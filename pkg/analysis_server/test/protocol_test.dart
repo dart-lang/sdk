@@ -300,6 +300,16 @@ class RequestDatumTest {
     expect(indexResult.path, equals('myPath.bar'));
   }
 
+  @runTest
+  static void hasKey() {
+    var datum = makeDatum({
+      'foo': 'bar'
+    });
+    expect(datum.hasKey('foo'), isTrue);
+    expect(datum.hasKey('bar'), isFalse);
+    expect(datum.hasKey('baz'), isFalse);
+  }
+
   static void forEachMap_nonMap() {
     expect(() => makeDatum(1).forEachMap((key, value) {
       fail('Non-map should not be iterated');

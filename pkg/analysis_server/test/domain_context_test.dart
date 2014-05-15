@@ -19,6 +19,7 @@ main() {
   group('ContextDomainHandlerTest', () {
     test('applyChanges', ContextDomainHandlerTest.applyChanges);
     test('createChangeSet', ContextDomainHandlerTest.createChangeSet);
+    test('createChangeSet_onlyAdded', ContextDomainHandlerTest.createChangeSet_onlyAdded);
     test('setOptions', ContextDomainHandlerTest.setOptions);
     test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
     test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
@@ -65,6 +66,20 @@ class ContextDomainHandlerTest {
     expect(changeSet.addedSources, hasLength(equals(1)));
     expect(changeSet.changedSources, hasLength(equals(0)));
     expect(changeSet.removedSources, hasLength(equals(2)));
+  }
+
+  static void createChangeSet_onlyAdded() {
+    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
+    ContextDomainHandler handler = new ContextDomainHandler(server);
+    SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
+    ChangeSet changeSet = handler.createChangeSet(request, sourceFactory,
+        new RequestDatum(request, ContextDomainHandler.CHANGES_PARAM, {
+      ContextDomainHandler.ADDED_PARAM: ['ffile:/one.dart'],
+    }));
+    expect(changeSet.addedSources, hasLength(equals(1)));
+    expect(changeSet.changedSources, hasLength(equals(0)));
+    expect(changeSet.removedSources, hasLength(equals(0)));
   }
 
   static void setOptions() {

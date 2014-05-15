@@ -185,6 +185,17 @@ class RequestDatum {
   }
 
   /**
+   * Return `true` if the datum is a Map containing the given [key].
+   */
+  bool hasKey(String key) {
+    if (datum is! Map<String, dynamic>) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a map"));
+    }
+    return datum.containsKey(key);
+  }
+
+  /**
    * Validate that the datum is a Map whose keys are strings, and call [f] on
    * each key/value pair in the map.
    */
