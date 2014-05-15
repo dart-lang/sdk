@@ -28,113 +28,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 #define __ assembler->
 
-void Intrinsifier::List_Allocate(Assembler* assembler) {
-  // This snippet of inlined code uses the following registers:
-  // EAX, EBX, EDI
-  // and the newly allocated object is returned in EAX.
-  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kArrayLengthOffset = 1 * kWordSize;
-  Label fall_through;
-
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-  __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array length.
-  // Check that length is a positive Smi.
-  __ testl(EDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through);
-  __ cmpl(EDI, Immediate(0));
-  __ j(LESS, &fall_through);
-  // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
-  __ cmpl(EDI, max_len);
-  __ j(GREATER, &fall_through);
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
-  ASSERT(kSmiTagShift == 1);
-  __ andl(EDI, Immediate(-kObjectAlignment));
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ movl(EAX, Address::Absolute(heap->TopAddress()));
-  __ movl(EBX, EAX);
-
-  // EDI: allocation size.
-  __ addl(EBX, EDI);
-  __ j(CARRY, &fall_through);
-
-  // Check if the allocation fits into the remaining space.
-  // EAX: potential new object start.
-  // EBX: potential next object start.
-  // EDI: allocation size.
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-  __ j(ABOVE_EQUAL, &fall_through);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress()), EBX);
-  __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
-
-  // Initialize the tags.
-  // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
-  // EDI: allocation size.
-  {
-    Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
-    __ jmp(&done, Assembler::kNearJump);
-
-    __ Bind(&size_tag_overflow);
-    __ movl(EDI, Immediate(0));
-    __ Bind(&done);
-
-    // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
-    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
-  }
-
-  // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
-  // Store the type argument field.
-  __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(EAX,
-                              FieldAddress(EAX, Array::type_arguments_offset()),
-                              EDI);
-
-  // Set the length field.
-  __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
-  __ StoreIntoObjectNoBarrier(EAX,
-                              FieldAddress(EAX, Array::length_offset()),
-                              EDI);
-
-  // Initialize all array elements to raw_null.
-  // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
-  // EDI: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
-  Label done;
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmpl(EDI, EBX);
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movl(Address(EDI, 0), raw_null);
-  __ addl(EDI, Immediate(kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
-  __ Bind(&done);
-  __ ret();  // returns the newly allocated object in EAX.
-
-  __ Bind(&fall_through);
-}
-
 
 void Intrinsifier::Array_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
@@ -559,7 +452,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
   }
   UNREACHABLE();
   return static_cast<ScaleFactor>(0);
-};
+}
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \

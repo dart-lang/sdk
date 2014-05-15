@@ -21,112 +21,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 #define __ assembler->
 
-void Intrinsifier::List_Allocate(Assembler* assembler) {
-  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kArrayLengthOffset = 0 * kWordSize;
-  Label fall_through;
-
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-  __ ldr(R3, Address(SP, kArrayLengthOffset));  // Array length.
-
-  // Check that length is a positive Smi.
-  __ tst(R3, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  __ cmp(R3, ShifterOperand(0));
-  __ b(&fall_through, LT);
-
-  // Check for maximum allowed length.
-  const intptr_t max_len =
-      reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
-  __ CompareImmediate(R3, max_len);
-  __ b(&fall_through, GT);
-
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R2, fixed_size);
-  __ add(R2, R2, ShifterOperand(R3, LSL, 1));  // R3 is  a Smi.
-  ASSERT(kSmiTagShift == 1);
-  __ bic(R2, R2, ShifterOperand(kObjectAlignment - 1));
-
-  // R2: Allocation size.
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ LoadImmediate(R6, heap->TopAddress());
-  __ ldr(R0, Address(R6, 0));  // Potential new object start.
-  __ adds(R1, R0, ShifterOperand(R2));  // Potential next object start.
-  __ b(&fall_through, VS);
-
-  // Check if the allocation fits into the remaining space.
-  // R0: potential new object start.
-  // R1: potential next object start.
-  // R2: allocation size.
-  __ LoadImmediate(R3, heap->EndAddress());
-  __ ldr(R3, Address(R3, 0));
-  __ cmp(R1, ShifterOperand(R3));
-  __ b(&fall_through, CS);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ str(R1, Address(R6, 0));
-  __ add(R0, R0, ShifterOperand(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, R2, R4);
-
-  // Initialize the tags.
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // R2: allocation size.
-  {
-    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-
-    __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
-    __ mov(R2, ShifterOperand(R2, LSL, shift), LS);
-    __ mov(R2, ShifterOperand(0), HI);
-
-    // Get the class index and insert it into the tags.
-    // R2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
-    __ orr(R2, R2, ShifterOperand(TMP));
-    __ str(R2, FieldAddress(R0, Array::tags_offset()));  // Store tags.
-  }
-
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // Store the type argument field.
-  __ ldr(R2, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(R0,
-                              FieldAddress(R0, Array::type_arguments_offset()),
-                              R2);
-
-  // Set the length field.
-  __ ldr(R2, Address(SP, kArrayLengthOffset));  // Array Length.
-  __ StoreIntoObjectNoBarrier(R0,
-                              FieldAddress(R0, Array::length_offset()),
-                              R2);
-
-  // Initialize all array elements to raw_null.
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // R2: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  // R3: null
-  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  __ AddImmediate(R2, R0, sizeof(RawArray) - kHeapObjectTag);
-
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmp(R2, ShifterOperand(R1));
-  __ str(R3, Address(R2, 0), CC);
-  __ AddImmediate(R2, kWordSize, CC);
-  __ b(&init_loop, CC);
-
-  __ Ret();  // Returns the newly allocated object in R0.
-  __ Bind(&fall_through);
-}
-
 
 void Intrinsifier::Array_getLength(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
@@ -551,7 +445,7 @@ static int GetScaleFactor(intptr_t size) {
   }
   UNREACHABLE();
   return -1;
-};
+}
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \

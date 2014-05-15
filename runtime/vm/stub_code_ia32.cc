@@ -599,140 +599,122 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 
 // Called for inline allocation of arrays.
 // Input parameters:
-//   EDX : Array length as Smi.
+//   EDX : Array length as Smi (must be preserved).
 //   ECX : array element type (either NULL or an instantiated type).
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
-// NOTE: EDX cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in EAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
-  if (FLAG_inline_alloc) {
-    // Compute the size to be allocated, it is based on the array length
-    // and is computed as:
-    // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-    // Assert that length is a Smi.
-    __ testl(EDX, Immediate(kSmiTagMask));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(NOT_ZERO, &slow_case);
-    }
-    __ cmpl(EDX, Immediate(0));
-    __ j(LESS,  &slow_case);
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  // Assert that length is a Smi.
+  __ testl(EDX, Immediate(kSmiTagMask));
+  if (FLAG_use_slow_path) {
+    __ jmp(&slow_case);
+  } else {
+    __ j(NOT_ZERO, &slow_case);
+  }
+  __ cmpl(EDX, Immediate(0));
+  __ j(LESS,  &slow_case);
 
-    // Check for maximum allowed length.
-    const Immediate& max_len =
-        Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
-    __ cmpl(EDX, max_len);
-    __ j(GREATER, &slow_case);
+  // Check for maximum allowed length.
+  const Immediate& max_len =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  __ cmpl(EDX, max_len);
+  __ j(GREATER, &slow_case);
 
-    __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
-    __ movl(EDI, Address(EDI, Isolate::heap_offset()));
-    __ movl(EDI, Address(EDI, Heap::new_space_offset()));
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leal(EDI, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andl(EDI, Immediate(-kObjectAlignment));
 
-    // Calculate and align allocation size.
-    // Load new object start and calculate next object start.
-    // ECX: array element type.
-    // EDX: Array length as Smi.
-    // EDI: Points to new space object.
-    __ movl(EAX, Address(EDI, Scavenger::top_offset()));
-    intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-    __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
-    ASSERT(kSmiTagShift == 1);
-    __ andl(EBX, Immediate(-kObjectAlignment));
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  // EDI: allocation size.
 
-    // Check for overflow.
-    __ addl(EBX, EAX);
-    __ j(CARRY, &slow_case);
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
 
-    // Check if the allocation fits into the remaining space.
-    // EAX: potential new object start.
-    // EBX: potential next object start.
-    // ECX: array element type.
-    // EDX: Array length as Smi.
-    // EDI: Points to new space object.
-    __ cmpl(EBX, Address(EDI, Scavenger::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case);
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  __ movl(EBX, EAX);
 
-    // Successfully allocated the object(s), now update top to point to
-    // next object start and initialize the object.
-    // EAX: potential new object start.
-    // EBX: potential next object start.
-    // EDX: Array length as Smi.
-    // EDI: Points to new space object.
-    __ movl(Address(EDI, Scavenger::top_offset()), EBX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
-    // EDI: Size of allocation in bytes.
-    __ movl(EDI, EBX);
-    __ subl(EDI, EAX);
-    __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
+  // EDI: allocation size.
+  __ addl(EBX, EDI);
+  __ j(CARRY, &slow_case);
 
-    // EAX: new object start as a tagged pointer.
-    // EBX: new object end address.
-    // ECX: array element type.
-    // EDX: Array length as Smi.
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new object start.
+  // EBX: potential next object start.
+  // EDI: allocation size.
+  // ECX: array element type.
+  // EDX: array length as Smi).
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ j(ABOVE_EQUAL, &slow_case);
 
-    // Store the type argument field.
-    __ StoreIntoObjectNoBarrier(
-        EAX,
-        FieldAddress(EAX, Array::type_arguments_offset()),
-        ECX);
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
 
-    // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        EAX,
-        FieldAddress(EAX, Array::length_offset()),
-        EDX);
+  // Initialize the tags.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: allocation size.
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
 
-    // Calculate the size tag.
-    // EAX: new object start as a tagged pointer.
-    // EBX: new object end address.
-    // EDX: Array length as Smi.
-    {
-      Label size_tag_overflow, done;
-      __ leal(ECX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
-      ASSERT(kSmiTagShift == 1);
-      __ andl(ECX, Immediate(-kObjectAlignment));
-      __ cmpl(ECX, Immediate(RawObject::SizeTag::kMaxSizeTag));
-      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(ECX, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
-      __ jmp(&done);
-
-      __ Bind(&size_tag_overflow);
-      __ movl(ECX, Immediate(0));
-      __ Bind(&done);
-
-      // Get the class index and insert it into the tags.
-      __ orl(ECX, Immediate(RawObject::ClassIdTag::encode(kArrayCid)));
-      __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
-    }
-
-    // Initialize all array elements to raw_null.
-    // EAX: new object start as a tagged pointer.
-    // EBX: new object end address.
-    // EDX: Array length as Smi.
-    __ leal(ECX, FieldAddress(EAX, Array::data_offset()));
-    // ECX: iterator which initially points to the start of the variable
-    // data area to be initialized.
-    Label done;
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ cmpl(ECX, EBX);
-    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ movl(Address(ECX, 0), raw_null);
-    __ addl(ECX, Immediate(kWordSize));
-    __ jmp(&init_loop, Assembler::kNearJump);
+    __ Bind(&size_tag_overflow);
+    __ movl(EDI, Immediate(0));
     __ Bind(&done);
 
-    // Done allocating and initializing the array.
-    // EAX: new object.
-    // EDX: Array length as Smi (preserved for the caller.)
-    __ ret();
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // ECX: array element type.
+  // EDX: Array length as Smi (preserved).
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::type_arguments_offset()),
+                              ECX);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::length_offset()),
+                              EDX);
+
+  // Initialize all array elements to raw_null.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpl(EDI, EBX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movl(Address(EDI, 0), raw_null);
+  __ addl(EDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+  __ ret();  // returns the newly allocated object in EAX.
 
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
@@ -745,7 +727,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushl(ECX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
   __ popl(EAX);  // Pop element type argument.
-  __ popl(EDX);  // Pop array length argument.
+  __ popl(EDX);  // Pop array length argument (preserved).
   __ popl(EAX);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();

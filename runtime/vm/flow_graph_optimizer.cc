@@ -50,6 +50,7 @@ DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
+
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }

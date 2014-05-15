@@ -25,8 +25,6 @@ class RawCode;
   V(LazyCompile)                                                               \
   V(CallBootstrapCFunction)                                                    \
   V(CallNativeCFunction)                                                       \
-  V(AllocateArray)                                                             \
-  V(CallNoSuchMethodFunction)                                                  \
   V(CallStaticFunction)                                                        \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
@@ -50,6 +48,8 @@ class RawCode;
 // List of stubs created per isolate, these stubs could potentially contain
 // embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
+  V(AllocateArray)                                                             \
+  V(CallNoSuchMethodFunction)                                                  \
   V(AllocateContext)                                                           \
   V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \

@@ -17,10 +17,6 @@ namespace dart {
 
 #define __ assembler->
 
-void Intrinsifier::List_Allocate(Assembler* assembler) {
-  return;
-}
-
 
 void Intrinsifier::Array_getLength(Assembler* assembler) {
   return;

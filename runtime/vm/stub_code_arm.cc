@@ -596,130 +596,112 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // Called for inline allocation of arrays.
 // Input parameters:
 //   LR: return address.
-//   R2: array length as Smi.
 //   R1: array element type (either NULL or an instantiated type).
-// NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
+//   R2: array length as Smi (must be preserved).
 // The newly allocated object is returned in R0.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  if (FLAG_inline_alloc) {
-    // Compute the size to be allocated, it is based on the array length
-    // and is computed as:
-    // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-    // Assert that length is a Smi.
-    __ tst(R2, ShifterOperand(kSmiTagMask));
-    if (FLAG_use_slow_path) {
-      __ b(&slow_case);
-    } else {
-      __ b(&slow_case, NE);
-    }
-    __ cmp(R2, ShifterOperand(0));
-    __ b(&slow_case, LT);
 
-    // Check for maximum allowed length.
-    const intptr_t max_len =
-        reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
-    __ CompareImmediate(R2, max_len);
-    __ b(&slow_case, GT);
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  __ MoveRegister(R3, R2);   // Array length.
 
-    __ ldr(R8, FieldAddress(CTX, Context::isolate_offset()));
-    __ LoadFromOffset(kWord, R8, R8, Isolate::heap_offset());
-    __ LoadFromOffset(kWord, R8, R8, Heap::new_space_offset());
+  // Check that length is a positive Smi.
+  __ tst(R3, ShifterOperand(kSmiTagMask));
+  __ b(&slow_case, NE);
+  __ cmp(R3, ShifterOperand(0));
+  __ b(&slow_case, LT);
 
-    // Calculate and align allocation size.
-    // Load new object start and calculate next object start.
-    // R1: array element type.
-    // R2: array length as Smi.
-    // R8: points to new space object.
-    __ LoadFromOffset(kWord, R0, R8, Scavenger::top_offset());
-    intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-    __ LoadImmediate(R3, fixed_size);
-    __ add(R3, R3, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
-    ASSERT(kSmiTagShift == 1);
-    __ bic(R3, R3, ShifterOperand(kObjectAlignment - 1));
-    __ adds(R7, R3, ShifterOperand(R0));
-    __ b(&slow_case, VS);
+  // Check for maximum allowed length.
+  const intptr_t max_len =
+      reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
+  __ CompareImmediate(R3, max_len);
+  __ b(&slow_case, GT);
 
-    // Check if the allocation fits into the remaining space.
-    // R0: potential new object start.
-    // R1: array element type.
-    // R2: array length as Smi.
-    // R3: array size.
-    // R7: potential next object start.
-    // R8: points to new space object.
-    __ LoadFromOffset(kWord, IP, R8, Scavenger::end_offset());
-    __ cmp(R7, ShifterOperand(IP));
-    __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R8, fixed_size);
+  __ add(R8, R8, ShifterOperand(R3, LSL, 1));  // R3 is  a Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ bic(R8, R8, ShifterOperand(kObjectAlignment - 1));
 
-    // Successfully allocated the object(s), now update top to point to
-    // next object start and initialize the object.
-    // R0: potential new object start.
-    // R3: array size.
-    // R7: potential next object start.
-    // R8: Points to new space object.
-    __ StoreToOffset(kWord, R7, R8, Scavenger::top_offset());
-    __ add(R0, R0, ShifterOperand(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(kArrayCid, R3, R8);
+  // R8: Allocation size.
 
-    // R0: new object start as a tagged pointer.
-    // R1: array element type.
-    // R2: array length as Smi.
-    // R3: array size.
-    // R7: new object end address.
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
 
-    // Store the type argument field.
-    __ StoreIntoObjectNoBarrier(
-        R0,
-        FieldAddress(R0, Array::type_arguments_offset()),
-        R1);
+  __ LoadImmediate(R6, heap->TopAddress());
+  __ ldr(R0, Address(R6, 0));  // Potential new object start.
+  __ adds(R7, R0, ShifterOperand(R8));  // Potential next object start.
+  __ b(&slow_case, VS);
 
-    // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        R0,
-        FieldAddress(R0, Array::length_offset()),
-        R2);
+  // Check if the allocation fits into the remaining space.
+  // R0: potential new object start.
+  // R7: potential next object start.
+  // R8: allocation size.
+  __ LoadImmediate(R3, heap->EndAddress());
+  __ ldr(R3, Address(R3, 0));
+  __ cmp(R7, ShifterOperand(R3));
+  __ b(&slow_case, CS);
 
-    // Calculate the size tag.
-    // R0: new object start as a tagged pointer.
-    // R2: array length as Smi.
-    // R3: array size.
-    // R7: new object end address.
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ str(R7, Address(R6, 0));
+  __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, R8, R4);
+
+  // Initialize the tags.
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+  // R8: allocation size.
+  {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag);
-    // If no size tag overflow, shift R1 left, else set R1 to zero.
-    __ mov(R1, ShifterOperand(R3, LSL, shift), LS);
-    __ mov(R1, ShifterOperand(0), HI);
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+
+    __ CompareImmediate(R8, RawObject::SizeTag::kMaxSizeTag);
+    __ mov(R8, ShifterOperand(R8, LSL, shift), LS);
+    __ mov(R8, ShifterOperand(0), HI);
 
     // Get the class index and insert it into the tags.
-    __ LoadImmediate(IP, RawObject::ClassIdTag::encode(kArrayCid));
-    __ orr(R1, R1, ShifterOperand(IP));
-    __ str(R1, FieldAddress(R0, Array::tags_offset()));
-
-    // Initialize all array elements to raw_null.
-    // R0: new object start as a tagged pointer.
-    // R7: new object end address.
-    // R2: array length as Smi.
-    __ AddImmediate(R1, R0, Array::data_offset() - kHeapObjectTag);
-    // R1: iterator which initially points to the start of the variable
-    // data area to be initialized.
-    __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-    Label loop;
-    __ Bind(&loop);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ cmp(R1, ShifterOperand(R7));
-    __ str(IP, Address(R1, 0), CC);  // Store if unsigned lower.
-    __ AddImmediate(R1, kWordSize, CC);
-    __ b(&loop, CC);  // Loop until R1 == R7.
-
-    // Done allocating and initializing the array.
-    // R0: new object.
-    // R2: array length as Smi (preserved for the caller.)
-    __ Ret();
+    // R8: size and bit tags.
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
+    __ orr(R8, R8, ShifterOperand(TMP));
+    __ str(R8, FieldAddress(R0, Array::tags_offset()));  // Store tags.
   }
 
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::type_arguments_offset()),
+                              R1);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::length_offset()),
+                              R2);
+
+  // Initialize all array elements to raw_null.
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+  // R8: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // R3: null
+  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+  __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmp(R8, ShifterOperand(R7));
+  __ str(R3, Address(R8, 0), CC);
+  __ AddImmediate(R8, kWordSize, CC);
+  __ b(&init_loop, CC);
+
+  __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
   __ Bind(&slow_case);
+
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();

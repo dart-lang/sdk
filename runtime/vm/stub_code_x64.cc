@@ -562,125 +562,98 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // The newly allocated object is returned in RAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  __ movq(RDI, R10);  // Array Length.
+  // Check that length is a positive Smi.
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &slow_case);
+  __ cmpq(RDI, Immediate(0));
+  __ j(LESS, &slow_case);
+  // Check for maximum allowed length.
+  const Immediate& max_len =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
+  __ cmpq(RDI, max_len);
+  __ j(GREATER, &slow_case);
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andq(RDI, Immediate(-kObjectAlignment));
 
-  if (FLAG_inline_alloc) {
-    // Compute the size to be allocated, it is based on the array length
-    // and is computed as:
-    // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-    // Assert that length is a Smi.
-    __ testq(R10, Immediate(kSmiTagMask));
-    if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
-    } else {
-      __ j(NOT_ZERO, &slow_case);
-    }
-    __ cmpq(R10, Immediate(0));
-    __ j(LESS,  &slow_case);
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
 
-    // Check for maximum allowed length.
-    const Immediate& max_len =
-        Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
-    __ cmpq(R10, max_len);
-    __ j(GREATER, &slow_case);
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
 
-    __ movq(R13, FieldAddress(CTX, Context::isolate_offset()));
-    __ movq(R13, Address(R13, Isolate::heap_offset()));
-    __ movq(R13, Address(R13, Heap::new_space_offset()));
+  // RDI: allocation size.
+  __ movq(RCX, RAX);
+  __ addq(RCX, RDI);
+  __ j(CARRY, &slow_case);
 
-    // Calculate and align allocation size.
-    // Load new object start and calculate next object start.
-    // RBX: array element type.
-    // R10: Array length as Smi.
-    // R13: Points to new space object.
-    __ movq(RAX, Address(R13, Scavenger::top_offset()));
-    intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-    __ leaq(R12, Address(R10, TIMES_4, fixed_size));  // R10 is Smi.
-    ASSERT(kSmiTagShift == 1);
-    __ andq(R12, Immediate(-kObjectAlignment));
-    __ addq(R12, RAX);
-    __ j(CARRY, &slow_case);
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  // RDI: allocation size.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, &slow_case);
 
-    // Check if the allocation fits into the remaining space.
-    // RAX: potential new object start.
-    // R12: potential next object start.
-    // RBX: array element type.
-    // R10: Array length as Smi.
-    // R13: Points to new space object.
-    __ cmpq(R12, Address(R13, Scavenger::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case);
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  // RDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
 
-    // Successfully allocated the object(s), now update top to point to
-    // next object start and initialize the object.
-    // RAX: potential new object start.
-    // R12: potential next object start.
-    // R13: Points to new space object.
-    __ movq(Address(R13, Scavenger::top_offset()), R12);
-    __ addq(RAX, Immediate(kHeapObjectTag));
-    // R13: Size of allocation in bytes.
-    __ movq(R13, R12);
-    __ subq(R13, RAX);
-    __ UpdateAllocationStatsWithSize(kArrayCid, R13);
-
-    // RAX: new object start as a tagged pointer.
-    // R12: new object end address.
-    // RBX: array element type.
-    // R10: Array length as Smi.
-
-    // Store the type argument field.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, Array::type_arguments_offset()), RBX);
-
-    // Set the length field.
-    __ StoreIntoObjectNoBarrier(
-        RAX, FieldAddress(RAX, Array::length_offset()), R10);
-
-    // Calculate the size tag.
-    // RAX: new object start as a tagged pointer.
-    // R12: new object end address.
-    // R10: Array length as Smi.
-    {
-      Label size_tag_overflow, done;
-      __ leaq(RBX, Address(R10, TIMES_4, fixed_size));  // R10 is Smi.
-      ASSERT(kSmiTagShift == 1);
-      __ andq(RBX, Immediate(-kObjectAlignment));
-      __ cmpq(RBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
-      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RBX, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
-      __ jmp(&done);
-
-      __ Bind(&size_tag_overflow);
-      __ movq(RBX, Immediate(0));
-      __ Bind(&done);
-
-      // Get the class index and insert it into the tags.
-      __ orq(RBX, Immediate(RawObject::ClassIdTag::encode(kArrayCid)));
-      __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
-    }
-
-    // Initialize all array elements to raw_null.
-    // RAX: new object start as a tagged pointer.
-    // R12: new object end address.
-    // R10: Array length as Smi.
-    __ leaq(RBX, FieldAddress(RAX, Array::data_offset()));
-    // RBX: iterator which initially points to the start of the variable
-    // data area to be initialized.
-    __ LoadObject(R13, Object::null_object(), PP);
-    Label done;
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ cmpq(RBX, R12);
-    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ movq(Address(RBX, 0), R13);
-    __ addq(RBX, Immediate(kWordSize));
-    __ jmp(&init_loop, Assembler::kNearJump);
+    __ Bind(&size_tag_overflow);
+    __ movq(RDI, Immediate(0));
     __ Bind(&done);
 
-    // Done allocating and initializing the array.
-    // RAX: new object.
-    // R10: Array length as Smi (preserved for the caller.)
-    __ ret();
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
   }
+
+  // RAX: new object start as a tagged pointer.
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::type_arguments_offset()),
+                              RBX);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::length_offset()),
+                              R10);
+
+  // Initialize all array elements to raw_null.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpq(RDI, RCX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movq(Address(RDI, 0), R12);
+  __ addq(RDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+  __ ret();  // returns the newly allocated object in RAX.
 
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
