@@ -20,4 +20,3 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError # Issue 16522
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError # Issue 16522
 
 lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
-lib/_internal/compiler/samples/darttags/darttags: CompileTimeError  # Issue 16524
