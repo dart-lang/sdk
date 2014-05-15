@@ -7411,8 +7411,6 @@ class CompressedTokenStreamData : public ValueObject {
 
   // Add an IDENT token into the stream and the token objects array.
   void AddIdentToken(const String* ident) {
-    ASSERT(ident != NULL);
-    ASSERT(ident->IsSymbol());
     // If the IDENT token is already in the tokens object array use the
     // same index instead of duplicating it.
     intptr_t index = FindIdentIndex(ident);
@@ -7427,20 +7425,16 @@ class CompressedTokenStreamData : public ValueObject {
 
   // Add a LITERAL token into the stream and the token objects array.
   void AddLiteralToken(Token::Kind kind, const String* literal) {
-    if (literal != NULL) {
-      // If the literal token is already in the tokens object array use the
-      // same index instead of duplicating it.
-      intptr_t index = FindLiteralIndex(kind, literal);
-      if (index == -1) {
-        WriteIndex(token_objects_.Length());
-        ASSERT(literal != NULL);
-        literal_token_ = LiteralToken::New(kind, *literal);
-        token_objects_.Add(literal_token_);
-      } else {
-        WriteIndex(index);
-      }
+    // If the literal token is already in the tokens object array use the
+    // same index instead of duplicating it.
+    intptr_t index = FindLiteralIndex(kind, literal);
+    if (index == -1) {
+      WriteIndex(token_objects_.Length());
+      ASSERT(literal != NULL);
+      literal_token_ = LiteralToken::New(kind, *literal);
+      token_objects_.Add(literal_token_);
     } else {
-      WriteIndex(0);
+      WriteIndex(index);
     }
   }
 
@@ -7463,16 +7457,13 @@ class CompressedTokenStreamData : public ValueObject {
  private:
   intptr_t FindIdentIndex(const String* ident) {
     ASSERT(ident != NULL);
+    ASSERT(ident->IsSymbol());
     intptr_t hash_value = ident->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = ident_table_[hash_value];
     for (intptr_t i = 0; i < value.length(); i++) {
       intptr_t index = value[i];
-      token_obj_ = token_objects_.At(index);
-      if (token_obj_.IsString()) {
-        const String& ident_str = String::Cast(token_obj_);
-        if (ident->Equals(ident_str)) {
-          return index;
-        }
+      if (token_objects_.At(index) == ident->raw()) {
+        return index;
       }
     }
     value.Add(token_objects_.Length());
@@ -7481,17 +7472,15 @@ class CompressedTokenStreamData : public ValueObject {
 
   intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
     ASSERT(literal != NULL);
+    ASSERT(literal->IsSymbol());
     intptr_t hash_value = literal->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = literal_table_[hash_value];
     for (intptr_t i = 0; i < value.length(); i++) {
       intptr_t index = value[i];
       token_obj_ = token_objects_.At(index);
-      if (token_obj_.IsLiteralToken()) {
-        const LiteralToken& token = LiteralToken::Cast(token_obj_);
-        literal_str_ = token.literal();
-        if (kind == token.kind() && literal->Equals(literal_str_)) {
-          return index;
-        }
+      const LiteralToken& token = LiteralToken::Cast(token_obj_);
+      if ((kind == token.kind()) && (token.literal() == literal->raw())) {
+        return index;
       }
     }
     value.Add(token_objects_.Length());
