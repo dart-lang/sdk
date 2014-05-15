@@ -703,11 +703,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       return -1;
     }
   }
-  if (signal_handlers == NULL) {
-    signal_handlers = new SignalInfo(fds[1], signal);
-  } else {
-    new SignalInfo(fds[1], signal, signal_handlers);
-  }
+  signal_handlers = new SignalInfo(fds[1], signal, signal_handlers);
   return fds[0];
 }
 

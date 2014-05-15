@@ -138,15 +138,15 @@ class Process {
 
 class SignalInfo {
  public:
-  SignalInfo(int fd, int signal, SignalInfo* prev = NULL)
+  SignalInfo(int fd, int signal, SignalInfo* next = NULL)
       : fd_(fd),
         signal_(signal),
         // SignalInfo is expected to be created when in a isolate.
         port_(Dart_GetMainPortId()),
-        next_(NULL),
-        prev_(prev) {
-    if (prev_ != NULL) {
-      prev_->next_ = this;
+        next_(next),
+        prev_(NULL) {
+    if (next_ != NULL) {
+      next_->prev_ = this;
     }
   }
 
