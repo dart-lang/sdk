@@ -173,7 +173,7 @@ class RequestDatum {
    * a [RequestDatum] containing the corresponding value.
    */
   RequestDatum operator [](String key) {
-    if (datum is! Map<String, dynamic>) {
+    if (datum is! Map) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
@@ -188,7 +188,7 @@ class RequestDatum {
    * Return `true` if the datum is a Map containing the given [key].
    */
   bool hasKey(String key) {
-    if (datum is! Map<String, dynamic>) {
+    if (datum is! Map) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
@@ -200,7 +200,7 @@ class RequestDatum {
    * each key/value pair in the map.
    */
   void forEachMap(void f(String key, RequestDatum value)) {
-    if (datum is! Map<String, dynamic>) {
+    if (datum is! Map) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
@@ -257,10 +257,25 @@ class RequestDatum {
   }
 
   /**
+   * Determine if the datum is a list of strings.
+   */
+  bool isStringList() {
+    if (datum is! List) {
+      return false;
+    }
+    for (var element in datum) {
+      if (element is! String) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Validate that the datum is a list of strings, and return it.
    */
   List<String> asStringList() {
-    if (datum is! List<String>) {
+    if (!isStringList()) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a list of strings"));
     }
@@ -268,10 +283,28 @@ class RequestDatum {
   }
 
   /**
+   * Determine if the datum is a map whose values are all strings.
+   *
+   * Note: we can safely assume that the keys are all strings, since JSON maps
+   * cannot have any other key type.
+   */
+  bool isStringMap() {
+    if (datum is! Map) {
+      return false;
+    }
+    for (var value in datum.values) {
+      if (value is! String) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Validate that the datum is a map from strings to strings, and return it.
    */
   Map<String, String> asStringMap() {
-    if (datum is! Map<String, String>) {
+    if (!isStringMap()) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string map"));
     }
