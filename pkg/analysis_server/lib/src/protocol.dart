@@ -237,9 +237,9 @@ class RequestDatum {
     if (datum is bool) {
       return datum;
     } else if (datum == 'true') {
-      return datum == 'true';
+      return true;
     } else if (datum == 'false') {
-      return datum == 'false';
+      return false;
     }
     throw new RequestFailure(new Response.invalidParameter(request, datum,
         "be a boolean"));
