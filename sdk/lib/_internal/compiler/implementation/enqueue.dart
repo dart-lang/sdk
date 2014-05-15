@@ -24,15 +24,9 @@ class EnqueueTask extends CompilerTask {
       ScopeContainerElement container = null;
       if (element.isLibrary) {
         LibraryElement library = element;
-        // Don't include private implementation libraries.  These
-        // libraries contain special classes that cause problems
-        // in other parts of the resolver (in particular Null and Void).
-        // TODO(ahe): Consider lifting this restriction.
-        if (!library.isInternalLibrary) {
-          container = library;
-          // TODO(ahe): Is this right?  Is this necessary?
-          name = library.getLibraryOrScriptName();
-        }
+        container = library;
+        // TODO(ahe): Is this right?  Is this necessary?
+        name = library.getLibraryOrScriptName();
       } else if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);

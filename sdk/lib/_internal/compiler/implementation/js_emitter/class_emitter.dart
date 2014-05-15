@@ -226,7 +226,7 @@ class ClassEmitter extends CodeEmitterHelper {
           if (backend.isAccessibleByReflection(field)) {
             reflectionMarker = '-';
             if (backend.isNeededForReflection(field)) {
-              DartType type = field.computeType(compiler);
+              DartType type = field.type;
               reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
             }
           }
