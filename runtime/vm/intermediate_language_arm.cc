@@ -1226,8 +1226,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
-
-  Address element_address(kNoRegister, 0);
   ASSERT(index.IsRegister());  // TODO(regis): Revisit.
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
   // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
@@ -1262,7 +1260,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ AddImmediate(index.reg(),
         FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
-  element_address = Address(array, index.reg(), LSL, 0);
+  Address element_address(array, index.reg(), LSL, 0);
   Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
