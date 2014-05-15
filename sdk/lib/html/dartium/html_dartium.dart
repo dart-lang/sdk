@@ -37533,12 +37533,22 @@ class _Utils {
   /**
    * Header passed in from the Dartium Developer Tools when an expression is
    * evaluated in the console as opposed to the watch window or another context
-   * that does not expect REPL support.
+   * that does not expect REPL support in Dartium 34.
    */
-  static const _CONSOLE_API_SUPPORT_HEADER =
+  static const _CONSOLE_API_SUPPORT_HEADER_34 =
       'with ((console && console._commandLineAPI) || { __proto__: null }) {\n';
+  /**
+   * Header passed in from the Dartium Developer Tools when an expression is
+   * evaluated in the console as opposed to the watch window or another context
+   * that does not expect REPL support in Dartium 35.
+   */
+  static const _CONSOLE_API_SUPPORT_HEADER_35 =
+      'with (__commandLineAPI || { __proto__: null }) {\n';
+
+
   static bool expectsConsoleApi(String expression) {
-    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER_34) == 0 ||
+        expression.indexOf(_CONSOLE_API_SUPPORT_HEADER_35) == 0;
   }
 
   /**
@@ -37553,7 +37563,7 @@ class _Utils {
    * For example:
    * <code>
    * _consoleTempVariables = {'a' : someValue, 'b': someOtherValue}
-   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER}foo + bar + a",
+   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER35}foo + bar + a",
    *                         ["bar", 40, "foo", 2])
    * </code>
    * will return:
