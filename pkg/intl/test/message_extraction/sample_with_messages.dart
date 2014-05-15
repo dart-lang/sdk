@@ -13,6 +13,7 @@ import "package:intl/intl.dart";
 import "foo_messages_all.dart";
 import "print_to_list.dart";
 import "dart:async";
+import "package:unittest/unittest.dart";
 
 part 'part_of_sample_with_messages.dart';
 
@@ -223,8 +224,17 @@ main() {
   var de = new Intl("de_DE");
   // Throw in an initialize of a null locale to make sure it doesn't throw.
   initializeMessages(null);
-  var f1 = initializeMessages(fr.locale).then((_) => printStuff(fr));
+
+  // Verify that a translated message isn't initially present.
+  var messageInGerman = Intl.withLocale('de_DE', message1);
+  test("Locales don't work before they're initialized", ()
+      => expect(messageInGerman, "This is a message"));
+
+  var f1 = initializeMessages(fr.locale)
+      // Since English has the one message which is always translated, we
+      // can't print it until French is ready.
+      .then((_) => printStuff(english))
+      .then((_) => printStuff(fr));
   var f2 = initializeMessages('de-de').then((_) => printStuff(de));
-  printStuff(english);
   return Future.wait([f1, f2]);
 }

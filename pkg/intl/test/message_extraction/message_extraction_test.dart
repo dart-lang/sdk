@@ -16,8 +16,18 @@ final dart = Platform.executable;
 /** The VM arguments we were given, most important package-root. */
 final vmArgs = Platform.executableArguments;
 
-var tempDir = Directory.systemTemp.createTempSync('message_extraction_test'
-    ).path;
+/**
+ * For testing we move the files into a temporary directory so as not to leave
+ * generated files around after a failed test. For debugging, we omit that
+ * step if [useLocalDirectory] is true. The place we move them to is saved as
+ * [tempDir].
+ */
+String get tempDir => _tempDir == null ? _tempDir = _createTempDir() : _tempDir;
+var _tempDir;
+_createTempDir() => useLocalDirectory ? '.' :
+  Directory.systemTemp.createTempSync('message_extraction_test').path;
+
+var useLocalDirectory = false;
 
 /**
  * Translate a relative file path into this test directory. This is
@@ -41,7 +51,14 @@ String asTempDirPath([String s]) {
   return path.join(tempDir, s);
 }
 
-main() {
+main(arguments) {
+  // If debugging, use --local to avoid copying everything to temporary
+  // directories to make it even harder to debug. Note that this will also
+  // not delete the generated files, so may require manual cleanup.
+  if (arguments.contains("--local")) {
+    print("Testing using local directory for generated files");
+    useLocalDirectory = true;
+  }
   setUp(copyFilesToTempDirectory);
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
@@ -56,6 +73,7 @@ main() {
 }
 
 void copyFilesToTempDirectory() {
+  if (useLocalDirectory) return;
   var files = [asTestDirPath('sample_with_messages.dart'),
       asTestDirPath('part_of_sample_with_messages.dart'),
       asTestDirPath('verify_messages.dart'),
@@ -68,6 +86,7 @@ void copyFilesToTempDirectory() {
 }
 
 void deleteGeneratedFiles() {
+  if (useLocalDirectory) return;
   try {
     var dir = new Directory(tempDir);
     dir.listSync().forEach((x) => x.deleteSync());

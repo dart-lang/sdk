@@ -179,22 +179,14 @@ String generateMainImportFile() {
   for (var locale in allLocales) {
     var baseFile = '${generatedFilePrefix}messages_$locale.dart';
     var file = importForGeneratedFile(baseFile);
-    // TODO(alanknight): Restore this once deferred loading works in dartj2s.
-    // Issue 12824
-    //    output.write("@${_deferredName(locale)}\n");
-    output.write("import '$file' as ${_libraryName(locale)};\n");
+    output.write("import '$file' deferred as ${_libraryName(locale)};\n");
   }
   output.write("\n");
-  // Issue 12824
-  //for (var locale in allLocales) {
-  //  output.write("const ${_deferredName(locale)} = const DeferredLibrary");
-  //  output.write("('${_libraryName(locale)}');\n");
-  //}
-  //output.write("\nconst deferredLibraries = const {\n");
-  //for (var locale in allLocales) {
-  //  output.write("  '$locale' : ${_deferredName(locale)},\n");
-  //}
-  //output.write("};\n");
+  output.write("\nMap<String, Function> _deferredLibraries = {\n");
+  for (var locale in allLocales) {
+    output.write("  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n");
+  }
+  output.write("};\n");
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
     "  switch (localeName) {\n");
@@ -238,11 +230,10 @@ const closing = """
 /** User programs should call this before using [localeName] for messages.*/
 Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
-  messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  // TODO(alanknight): Restore once Issue 12824 is fixed.
-  // var lib = deferredLibraries[localeName];
-  // return lib == null ? new Future.value(false) : lib.load();
-  return new Future.value(true);
+  var lib = _deferredLibraries[Intl.canonicalizedLocale(localeName)];
+  var load = lib == null ? new Future.value(false) : lib();
+  return load.then((_) => 
+      messageLookup.addLocale(localeName, _findGeneratedMessagesFor));
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {
