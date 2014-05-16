@@ -1654,9 +1654,9 @@ Native_Document_caretRangeFromPoint_Callback(mthis, x, y) native "Document_caret
 
 Native_Document_createDocumentFragment_Callback(mthis) native "Document_createDocumentFragment_Callback_RESOLVER_STRING_0_";
 
-Native_Document_createElement_Callback(mthis, localName_OR_tagName, typeExtension) native "Document_createElement_Callback_RESOLVER_STRING_2_DOMString";
+Native_Document_createElement_Callback(mthis, localName_OR_tagName, typeExtension) native "Document_createElement_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_Document_createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback_RESOLVER_STRING_3_DOMString_DOMString";
+Native_Document_createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
   // Generated overload resolver
 Native_Document__createEvent(mthis, eventType) {
@@ -8212,7 +8212,7 @@ Native_XMLHttpRequest_open_Callback(mthis, method, url, async, user, password) n
 
 Native_XMLHttpRequest_overrideMimeType_Callback(mthis, override) native "XMLHttpRequest_overrideMimeType_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_XMLHttpRequest_send_Callback(mthis, data) native "XMLHttpRequest_send_Callback_RESOLVER_STRING_1_";
+Native_XMLHttpRequest_send_Callback(mthis, data) native "XMLHttpRequest_send_Callback_RESOLVER_STRING_0_";
 
 Native_XMLHttpRequest_setRequestHeader_Callback(mthis, header, value) native "XMLHttpRequest_setRequestHeader_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
