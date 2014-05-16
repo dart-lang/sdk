@@ -2003,9 +2003,10 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       (loop_header != NULL) &&
       (free_until >= loop_header->last_block()->end_pos()) &&
       loop_header->backedge_interference()->Contains(unallocated->vreg())) {
-    ASSERT(static_cast<intptr_t>(kNumberOfFpuRegisters) <=
-           kNumberOfCpuRegisters);
-    bool used_on_backedge[kNumberOfCpuRegisters] = { false };
+    GrowableArray<bool> used_on_backedge(number_of_registers_);
+    for (intptr_t i = 0; i < number_of_registers_; i++) {
+      used_on_backedge.Add(false);
+    }
 
     for (PhiIterator it(loop_header->entry()->AsJoinEntry());
          !it.Done();
