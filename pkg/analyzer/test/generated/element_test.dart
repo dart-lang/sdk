@@ -1078,6 +1078,15 @@ class ElementLocationImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(encoding, location.encoding);
   }
 
+  /**
+   * For example unnamed constructor.
+   */
+  void test_create_encoding_emptyLast() {
+    String encoding = "a;b;c;";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertEquals(encoding, location.encoding);
+  }
+
   void test_equals_equal() {
     String encoding = "a;b;c";
     ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
@@ -1142,6 +1151,10 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_create_encoding', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_create_encoding);
+      });
+      _ut.test('test_create_encoding_emptyLast', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_create_encoding_emptyLast);
       });
       _ut.test('test_equals_equal', () {
         final __test = new ElementLocationImplTest();

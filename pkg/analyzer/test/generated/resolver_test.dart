@@ -587,6 +587,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_constConstructorWithMixin() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class M {",
+        "}",
+        "class A extends Object with M {",
+        "  const A();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN]);
+    verify([source]);
+  }
+
   void test_constConstructorWithNonConstSuper_explicit() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -622,7 +634,9 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B();",
         "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
     verify([source]);
   }
 
@@ -678,6 +692,19 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "const a = new A();"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+
+  void test_constEval_newInstance_externalFactoryConstConstructor() {
+    // We can't evaluate "const A()" because its constructor is external.  But
+    // the code is correct--we shouldn't report an error.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  external factory const A();",
+        "}",
+        "const x = const A();"]));
+    resolve(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -740,6 +767,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND,
         HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2154,6 +2182,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
   }
 
+  void test_invalidAnnotation_useLibraryScope() {
+    Source source = addSource(EngineTestCase.createSource(["@foo", "class A {", "  static const foo = null;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+  }
+
   void test_invalidAnnotationFromDeferredLibrary() {
     // See test_invalidAnnotation_notConstantVariable
     addNamedSource("/lib1.dart", EngineTestCase.createSource([
@@ -2191,12 +2225,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY]);
     verify([source]);
-  }
-
-  void test_invalidAnnotation_useLibraryScope() {
-    Source source = addSource(EngineTestCase.createSource(["@foo", "class A {", "  static const foo = null;", "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
   }
 
   void test_invalidConstructorName_notEnclosingClassName_defined() {
@@ -2963,7 +2991,9 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = p && true;",
         "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
   }
 
@@ -2974,7 +3004,9 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = true && p;",
         "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
   }
 
@@ -3999,7 +4031,9 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(bool p) : a = ${expr};",
         "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND]);
     verify([source]);
     reset();
   }
@@ -4135,6 +4169,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_consistentCaseExpressionTypes_dynamic);
       });
+      _ut.test('test_constConstructorWithMixin', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constConstructorWithMixin);
+      });
       _ut.test('test_constConstructorWithNonConstSuper_explicit', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constConstructorWithNonConstSuper_explicit);
@@ -4214,6 +4252,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_constEval_newInstance_constConstructor', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constEval_newInstance_constConstructor);
+      });
+      _ut.test('test_constEval_newInstance_externalFactoryConstConstructor', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEval_newInstance_externalFactoryConstConstructor);
       });
       _ut.test('test_constEval_propertyExtraction_targetNotConst', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -6122,6 +6164,34 @@ class DeferredLoadingTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_typeAnnotationDeferredClass_asExpression() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  v as a.A;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationDeferredClass_catchClause() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  try {",
+        "  } on a.A {",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
   void test_typeAnnotationDeferredClass_fieldFormalParameter() {
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
     Source source = addSource(EngineTestCase.createSource([
@@ -6153,6 +6223,19 @@ class DeferredLoadingTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "f(a.A g()) {}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationDeferredClass_isExpression() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  bool b = v is a.A;",
+        "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
     verify([source]);
@@ -6371,6 +6454,14 @@ class DeferredLoadingTest extends ResolverTestCase {
         final __test = new DeferredLoadingTest();
         runJUnitTest(__test, __test.test_sharedDeferredPrefix_nonTest);
       });
+      _ut.test('test_typeAnnotationDeferredClass_asExpression', () {
+        final __test = new DeferredLoadingTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_asExpression);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_catchClause', () {
+        final __test = new DeferredLoadingTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_catchClause);
+      });
       _ut.test('test_typeAnnotationDeferredClass_fieldFormalParameter', () {
         final __test = new DeferredLoadingTest();
         runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_fieldFormalParameter);
@@ -6382,6 +6473,10 @@ class DeferredLoadingTest extends ResolverTestCase {
       _ut.test('test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType', () {
         final __test = new DeferredLoadingTest();
         runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_isExpression', () {
+        final __test = new DeferredLoadingTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_isExpression);
       });
       _ut.test('test_typeAnnotationDeferredClass_methodDeclaration_returnType', () {
         final __test = new DeferredLoadingTest();
@@ -10914,6 +11009,38 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_assignmentToFinalNoSetter_prefixedIdentifier() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int get x => 0;",
+        "  set x(v) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.x = 0;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assignmentToFinalNoSetter_propertyAccess() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int get x => 0;",
+        "  set x(v) {}",
+        "}",
+        "class B {",
+        "  static A a;",
+        "}",
+        "main() {",
+        "  B.a.x = 0;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_assignmentToFinals_importWithPrefix() {
     Source source = addSource(EngineTestCase.createSource([
         "library lib;",
@@ -11256,7 +11383,7 @@ class NonErrorResolverTest extends ResolverTestCase {
         "  const B();",
         "}"]));
     resolve(source);
-    assertNoErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN]);
     verify([source]);
   }
 
@@ -13135,6 +13262,46 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_nonBoolOperand_and_bool() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(bool left, bool right) {",
+        "  return left && right;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_and_dynamic() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(left, dynamic right) {",
+        "  return left && right;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_or_bool() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(bool left, bool right) {",
+        "  return left || right;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_or_dynamic() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(dynamic left, right) {",
+        "  return left || right;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonConstantDefaultValue_function_named() {
     Source source = addSource(EngineTestCase.createSource(["f({x : 2 + 3}) {}"]));
     resolve(source);
@@ -14701,6 +14868,14 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_argumentTypeNotAssignable_typedef_parameter);
       });
+      _ut.test('test_assignmentToFinalNoSetter_prefixedIdentifier', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_assignmentToFinalNoSetter_prefixedIdentifier);
+      });
+      _ut.test('test_assignmentToFinalNoSetter_propertyAccess', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_assignmentToFinalNoSetter_propertyAccess);
+      });
       _ut.test('test_assignmentToFinal_prefixNegate', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_assignmentToFinal_prefixNegate);
@@ -15468,6 +15643,22 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_nonBoolNegationExpression', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonBoolNegationExpression);
+      });
+      _ut.test('test_nonBoolOperand_and_bool', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_and_bool);
+      });
+      _ut.test('test_nonBoolOperand_and_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_and_dynamic);
+      });
+      _ut.test('test_nonBoolOperand_or_bool', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_or_bool);
+      });
+      _ut.test('test_nonBoolOperand_or_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_or_dynamic);
       });
       _ut.test('test_nonConstCaseExpression', () {
         final __test = new NonErrorResolverTest();
@@ -17010,7 +17201,7 @@ class RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked ex
 
   List<bool> found;
 
-  List<AnalysisException> thrownException;
+  List<CaughtException> thrownException;
 
   RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
 
@@ -17025,8 +17216,8 @@ class RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked ex
         // check propagated type
         FunctionType propagatedType = node.propagatedType as FunctionType;
         JUnitTestCase.assertEquals(SimpleResolverTest_this.typeProvider.stringType, propagatedType.returnType);
-      } on AnalysisException catch (e) {
-        thrownException[0] = e;
+      } on AnalysisException catch (e, stackTrace) {
+        thrownException[0] = new CaughtException(e, stackTrace);
       }
     }
     return null;
@@ -17408,6 +17599,19 @@ class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
+  Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
+    for (CompilationUnitMember member in compilationUnit.declarations) {
+      if (member is TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable in member.variables.variables) {
+          if (variable.name.name == name) {
+            return variable.initializer;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   AnalysisContext get analysisContext => _analysisContext;
 
   /**
@@ -17456,6 +17660,12 @@ class ResolverTestCase extends EngineTestCase {
    * @throws Exception if the compilation unit could not be resolved
    */
   CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
+
+  CompilationUnit resolveSource(String sourceText) {
+    Source source = addSource(sourceText);
+    LibraryElement library = analysisContext.computeLibraryElement(source);
+    return analysisContext.resolveCompilationUnit(source, library);
+  }
 
   @override
   void tearDown() {
@@ -18312,10 +18522,10 @@ class SimpleResolverTest extends ResolverTestCase {
     CompilationUnit unit = analysisContext.getResolvedCompilationUnit(source, library);
     JUnitTestCase.assertNotNull(unit);
     List<bool> found = [false];
-    List<AnalysisException> thrownException = new List<AnalysisException>(1);
+    List<CaughtException> thrownException = new List<CaughtException>(1);
     unit.accept(new RecursiveAstVisitor_SimpleResolverTest_test_localVariable_types_invoked(this, found, thrownException));
     if (thrownException[0] != null) {
-      throw new AnalysisException.con3(thrownException[0]);
+      throw new AnalysisException("Exception", new CaughtException(thrownException[0], null));
     }
     JUnitTestCase.assertTrue(found[0]);
   }
@@ -20672,6 +20882,46 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_nonBoolOperand_and_left() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(int left, bool right) {",
+        "  return left && right;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_and_right() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(bool left, String right) {",
+        "  return left && right;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_or_left() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(List<int> left, bool right) {",
+        "  return left || right;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    verify([source]);
+  }
+
+  void test_nonBoolOperand_or_right() {
+    Source source = addSource(EngineTestCase.createSource([
+        "bool f(bool left, double right) {",
+        "  return left || right;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+    verify([source]);
+  }
+
   void test_nonTypeAsTypeArgument_notAType() {
     Source source = addSource(EngineTestCase.createSource(["int A;", "class B<E> {}", "f(B<A> b) {}"]));
     resolve(source);
@@ -21671,6 +21921,22 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_nonBoolNegationExpression);
       });
+      _ut.test('test_nonBoolOperand_and_left', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_and_left);
+      });
+      _ut.test('test_nonBoolOperand_and_right', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_and_right);
+      });
+      _ut.test('test_nonBoolOperand_or_left', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_or_left);
+      });
+      _ut.test('test_nonBoolOperand_or_right', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolOperand_or_right);
+      });
       _ut.test('test_nonTypeAsTypeArgument_notAType', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_nonTypeAsTypeArgument_notAType);
@@ -22581,6 +22847,20 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_assignmentToFinal_postfixMinusMinus() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  final x = 0;", "  x--;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    verify([source]);
+  }
+
+  void test_assignmentToFinal_postfixPlusPlus() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  final x = 0;", "  x++;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    verify([source]);
+  }
+
   void test_assignmentToFinal_prefixMinusMinus() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  final x = 0;", "  --x;", "}"]));
     resolve(source);
@@ -22590,22 +22870,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
 
   void test_assignmentToFinal_prefixPlusPlus() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  final x = 0;", "  ++x;", "}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
-    verify([source]);
-  }
-
-  void test_assignmentToFinal_propertyAccess() {
-    Source source = addSource(EngineTestCase.createSource([
-        "class A {",
-        "  int get x => 0;",
-        "}",
-        "class B {",
-        "  static A a;",
-        "}",
-        "main() {",
-        "  B.a.x = 0;",
-        "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
     verify([source]);
@@ -22629,6 +22893,36 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["final x = 0;", "f() { x = 1; }"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    verify([source]);
+  }
+
+  void test_assignmentToFinalNoSetter_prefixedIdentifier() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.x = 0;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
+    verify([source]);
+  }
+
+  void test_assignmentToFinalNoSetter_propertyAccess() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "class B {",
+        "  static A a;",
+        "}",
+        "main() {",
+        "  B.a.x = 0;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER]);
     verify([source]);
   }
 
@@ -22909,6 +23203,29 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["var m = {'a' : 0, 'b' : 1, 'a' : 2};"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
+    verify([source]);
+  }
+
+  void test_equalKeysInMap_withEqualTypeParams() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  const A();",
+        "}",
+        "var m = {const A<int>(): 0, const A<int>(): 1};"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
+    verify([source]);
+  }
+
+  void test_equalKeysInMap_withUnequalTypeParams() {
+    // No error should be produced because A<int> and A<num> are different types.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  const A();",
+        "}",
+        "var m = {const A<int>(): 0, const A<num>(): 1};"]));
+    resolve(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -24360,6 +24677,34 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_typeAnnotationDeferredClass_asExpression() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  v as a.A;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationDeferredClass_catchClause() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  try {",
+        "  } on a.A {",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
   void test_typeAnnotationDeferredClass_fieldFormalParameter() {
     addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
     Source source = addSource(EngineTestCase.createSource([
@@ -24391,6 +24736,19 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as a;",
         "f(a.A g()) {}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
+    verify([source]);
+  }
+
+  void test_typeAnnotationDeferredClass_isExpression() {
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}"]));
+    Source source = addSource(EngineTestCase.createSource([
+        "library root;",
+        "import 'lib1.dart' deferred as a;",
+        "f(var v) {",
+        "  bool b = v is a.A;",
+        "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS]);
     verify([source]);
@@ -24861,6 +25219,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_assignmentToConst_localVariable_plusEq);
       });
+      _ut.test('test_assignmentToFinalNoSetter_prefixedIdentifier', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_assignmentToFinalNoSetter_prefixedIdentifier);
+      });
+      _ut.test('test_assignmentToFinalNoSetter_propertyAccess', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_assignmentToFinalNoSetter_propertyAccess);
+      });
       _ut.test('test_assignmentToFinal_instanceVariable', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_assignmentToFinal_instanceVariable);
@@ -24877,6 +25243,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_assignmentToFinal_localVariable_plusEq);
       });
+      _ut.test('test_assignmentToFinal_postfixMinusMinus', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_assignmentToFinal_postfixMinusMinus);
+      });
+      _ut.test('test_assignmentToFinal_postfixPlusPlus', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_assignmentToFinal_postfixPlusPlus);
+      });
       _ut.test('test_assignmentToFinal_prefixMinusMinus', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_assignmentToFinal_prefixMinusMinus);
@@ -24884,10 +25258,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_assignmentToFinal_prefixPlusPlus', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_assignmentToFinal_prefixPlusPlus);
-      });
-      _ut.test('test_assignmentToFinal_propertyAccess', () {
-        final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_assignmentToFinal_propertyAccess);
       });
       _ut.test('test_assignmentToFinal_suffixMinusMinus', () {
         final __test = new StaticWarningCodeTest();
@@ -25000,6 +25370,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_equalKeysInMap', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_equalKeysInMap);
+      });
+      _ut.test('test_equalKeysInMap_withEqualTypeParams', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_equalKeysInMap_withEqualTypeParams);
+      });
+      _ut.test('test_equalKeysInMap_withUnequalTypeParams', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_equalKeysInMap_withUnequalTypeParams);
       });
       _ut.test('test_exportDuplicatedLibraryName', () {
         final __test = new StaticWarningCodeTest();
@@ -25489,6 +25867,14 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_switchExpressionNotAssignable);
       });
+      _ut.test('test_typeAnnotationDeferredClass_asExpression', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_asExpression);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_catchClause', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_catchClause);
+      });
       _ut.test('test_typeAnnotationDeferredClass_fieldFormalParameter', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_fieldFormalParameter);
@@ -25500,6 +25886,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType);
+      });
+      _ut.test('test_typeAnnotationDeferredClass_isExpression', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeAnnotationDeferredClass_isExpression);
       });
       _ut.test('test_typeAnnotationDeferredClass_methodDeclaration_returnType', () {
         final __test = new StaticWarningCodeTest();
@@ -27964,8 +28354,8 @@ main() {
 //  ErrorResolverTest.dartSuite();
 //  HintCodeTest.dartSuite();
 //  MemberMapTest.dartSuite();
-//  NonHintCodeTest.dartSuite();
 //  NonErrorResolverTest.dartSuite();
+//  NonHintCodeTest.dartSuite();
 //  SimpleResolverTest.dartSuite();
 //  StaticTypeWarningCodeTest.dartSuite();
 //  StaticWarningCodeTest.dartSuite();

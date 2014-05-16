@@ -1143,12 +1143,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * An array containing all of the mixins that are applied to the class being extended in order to
    * derive the superclass of this class.
    */
-  List<InterfaceType> mixins = InterfaceTypeImpl.EMPTY_ARRAY;
+  List<InterfaceType> mixins = InterfaceType.EMPTY_ARRAY;
 
   /**
    * An array containing all of the interfaces that are implemented by this class.
    */
-  List<InterfaceType> interfaces = InterfaceTypeImpl.EMPTY_ARRAY;
+  List<InterfaceType> interfaces = InterfaceType.EMPTY_ARRAY;
 
   /**
    * An array containing all of the methods contained in this class.
@@ -2157,9 +2157,9 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
   ConstructorDeclaration get node;
 
   /**
-   * Return the constructor to which this constructor is redirecting, or `null` if this constructor
-   * does not redirect to another constructor or if the library containing this constructor has
-   * not yet been resolved.
+   * Return the constructor to which this constructor is redirecting, or `null` if this
+   * constructor does not redirect to another constructor or if the library containing this
+   * constructor has not yet been resolved.
    *
    * @return the constructor to which this constructor is redirecting
    */
@@ -2201,6 +2201,12 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    * The constructor to which this constructor is redirecting.
    */
   ConstructorElement redirectedConstructor;
+
+  /**
+   * The initializers for this constructor (used for evaluating constant instance creation
+   * expressions).
+   */
+  List<ConstructorInitializer> constantInitializers;
 
   /**
    * Initialize a newly created constructor element to have the given name.
@@ -3634,9 +3640,7 @@ class ElementLocationImpl implements ElementLocation {
         index++;
       }
     }
-    if (builder.length > 0) {
-      components.add(builder.toString());
-    }
+    components.add(builder.toString());
     return new List.from(components);
   }
 
@@ -6080,6 +6084,11 @@ class ImportElementImpl extends UriReferencedElementImpl implements ImportElemen
  */
 abstract class InterfaceType implements ParameterizedType {
   /**
+   * An empty array of types.
+   */
+  static final List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>(0);
+
+  /**
    * Return an array containing all of the accessors (getters and setters) declared in this type.
    *
    * @return the accessors declared in this type
@@ -6371,11 +6380,6 @@ abstract class InterfaceType implements ParameterizedType {
  * type.
  */
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
-  /**
-   * An empty array of types.
-   */
-  static List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>(0);
-
   /**
    * This method computes the longest inheritance path from some passed [Type] to Object.
    *
@@ -7762,8 +7766,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
       InterfaceType futureType = futureElement.type;
       return futureType.substitute4(<DartType> [DynamicTypeImpl.instance]);
-    } on AnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", exception);
+    } on AnalysisException catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError2("Could not build the element model for dart:async", new CaughtException(exception, stackTrace));
       return VoidTypeImpl.instance;
     }
   }

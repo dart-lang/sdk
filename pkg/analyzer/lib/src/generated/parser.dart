@@ -2049,7 +2049,7 @@ class Parser {
   }
 
   /**
-   * Parse an expression that does not contain any cascades.
+   * Parse an expression that might contain a cascade.
    *
    * <pre>
    * expression ::=
@@ -3529,7 +3529,8 @@ class Parser {
    *
    * @param prefix the expression preceding the selector
    * @param optional `true` if the selector is optional
-   * @return the assignable selector that was parsed
+   * @return the assignable selector that was parsed, or the original prefix if there was no
+   *         assignable selector
    */
   Expression _parseAssignableSelector(Expression prefix, bool optional) {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
@@ -3667,6 +3668,7 @@ class Parser {
       _reportErrorForToken(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
       functionName = _createSyntheticIdentifier();
     }
+    assert((expression == null && functionName != null) || (expression != null && functionName == null));
     if (_currentToken.type == TokenType.OPEN_PAREN) {
       while (_currentToken.type == TokenType.OPEN_PAREN) {
         if (functionName != null) {
@@ -3684,6 +3686,7 @@ class Parser {
       expression = new PropertyAccess(expression, period, functionName);
       period = null;
     }
+    assert(expression != null);
     bool progress = true;
     while (progress) {
       progress = false;

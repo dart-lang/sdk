@@ -986,7 +986,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         SourceEntry entry = _getReadableSourceEntry(source);
         if (entry is DartEntry) {
           DartEntry dartEntry = entry;
-          _removeFromParts(source, dartEntry);
           DartEntryImpl dartCopy = dartEntry.writableCopy;
           dartCopy.invalidateAllResolutionInformation();
           _cache.put(source, dartCopy);
@@ -1141,13 +1140,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
     DartEntry dartEntry = _getReadableDartEntry(source);
     if (dartEntry == null) {
-      throw new AnalysisException.con1("computeResolvableCompilationUnit for non-Dart: ${source.fullName}");
+      throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: ${source.fullName}");
     }
     dartEntry = _cacheDartParseData(source, dartEntry, DartEntry.PARSED_UNIT);
     DartEntryImpl dartCopy = dartEntry.writableCopy;
     CompilationUnit unit = dartCopy.resolvableCompilationUnit;
     if (unit == null) {
-      throw new AnalysisException.con2("Internal error: computeResolvableCompilationUnit could not parse ${source.fullName}", dartEntry.exception);
+      throw new AnalysisException("Internal error: computeResolvableCompilationUnit could not parse ${source.fullName}", new CaughtException(dartEntry.exception, null));
     }
     _cache.put(source, dartCopy);
     return new ResolvableCompilationUnit.con1(dartCopy.modificationTime, unit);
@@ -1440,7 +1439,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       namespace = builder.createPublicNamespaceForLibrary(library);
       dartEntry = _getReadableDartEntry(source);
       if (dartEntry == null) {
-        AnalysisEngine.instance.logger.logError2("Could not compute the public namespace for ${library.source.fullName}", new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}"));
+        AnalysisEngine.instance.logger.logError2("Could not compute the public namespace for ${library.source.fullName}", new CaughtException(new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}"), null));
         return null;
       }
       if (identical(dartEntry.getValue(DartEntry.ELEMENT), library)) {
@@ -1576,11 +1575,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeProvider get typeProvider {
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     if (coreSource == null) {
-      throw new AnalysisException.con1("Could not create a source for dart:core");
+      throw new AnalysisException("Could not create a source for dart:core");
     }
     LibraryElement coreElement = computeLibraryElement(coreSource);
     if (coreElement == null) {
-      throw new AnalysisException.con1("Could not create an element for dart:core");
+      throw new AnalysisException("Could not create an element for dart:core");
     }
     return new TypeProviderImpl(coreElement);
   }
@@ -1867,7 +1866,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry recordResolveDartLibraryCycleTaskResults(ResolveDartLibraryCycleTask task) {
     LibraryResolver2 resolver = task.libraryResolver;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
     if (resolver != null) {
@@ -1882,11 +1881,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //
         unitEntry = _getReadableDartEntry(unitSource);
         if (unitEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
         }
         DartEntryImpl dartCopy = unitEntry.writableCopy;
         if (thrownException == null) {
-          dartCopy.recordResolutionError(new AnalysisException.con1("In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"));
+          dartCopy.recordResolutionError(new CaughtException(new AnalysisException("In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"), null));
         } else {
           dartCopy.recordResolutionError(thrownException);
         }
@@ -1974,7 +1973,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unitEntry == null) {
       unitEntry = _getReadableDartEntry(unitSource);
       if (unitEntry == null) {
-        throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+        throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
       }
     }
     return unitEntry;
@@ -1982,7 +1981,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
     LibraryResolver resolver = task.libraryResolver;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
     if (resolver != null) {
@@ -1997,11 +1996,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //
         unitEntry = _getReadableDartEntry(unitSource);
         if (unitEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
         }
         DartEntryImpl dartCopy = unitEntry.writableCopy;
         if (thrownException == null) {
-          dartCopy.recordResolutionError(new AnalysisException.con1("In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"));
+          dartCopy.recordResolutionError(new CaughtException(new AnalysisException("In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"), null));
         } else {
           dartCopy.recordResolutionError(thrownException);
         }
@@ -2028,7 +2027,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               _sourceChanged(source);
               dartEntry = _getReadableDartEntry(source);
               if (dartEntry == null) {
-                throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
+                throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
               }
             }
             DartEntryImpl dartCopy = dartEntry.writableCopy;
@@ -2100,7 +2099,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unitEntry == null) {
       unitEntry = _getReadableDartEntry(unitSource);
       if (unitEntry == null) {
-        throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+        throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
       }
     }
     return unitEntry;
@@ -2151,7 +2150,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry == null) {
           // This shouldn't be possible because we should never have performed the task if the
           // source didn't represent a Dart file, but check to be safe.
-          throw new AnalysisException.con1("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
+          throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
         }
         int sourceTime = getModificationStamp(source);
         int resultTime = library.getModificationTime(source);
@@ -2182,7 +2181,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry == null) {
           // This shouldn't be possible because we should never have performed the task if the
           // source didn't represent a Dart file, but check to be safe.
-          throw new AnalysisException.con1("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
+          throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
         }
         int sourceTime = getModificationStamp(source);
         int resultTime = library.getModificationTime(source);
@@ -2344,8 +2343,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry = new ScanDartTask(this, source, dartEntry.modificationTime, dartEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as DartEntry;
       } on AnalysisException catch (exception) {
         throw exception;
-      } on JavaException catch (exception) {
-        throw new AnalysisException.con3(exception);
+      } on JavaException catch (exception, stackTrace) {
+        throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
       }
       state = dartEntry.getState(descriptor);
     }
@@ -2380,7 +2379,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       LibraryElement library = computeLibraryElement(librarySource);
       CompilationUnit unit = resolveCompilationUnit(unitSource, library);
       if (unit == null) {
-        throw new AnalysisException.con1("Could not resolve compilation unit ${unitSource.fullName} in ${librarySource.fullName}");
+        throw new AnalysisException("Could not resolve compilation unit ${unitSource.fullName} in ${librarySource.fullName}");
       }
       dartEntry = new GenerateDartErrorsTask(this, unitSource, dartEntry.modificationTime, unit, library).perform(_resultRecorder) as DartEntry;
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
@@ -2426,8 +2425,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlEntry = new ParseHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as HtmlEntry;
       } on AnalysisException catch (exception) {
         throw exception;
-      } on JavaException catch (exception) {
-        throw new AnalysisException.con3(exception);
+      } on JavaException catch (exception, stackTrace) {
+        throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
       }
       state = htmlEntry.getState(descriptor);
     }
@@ -2541,11 +2540,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setStateInLibrary(DartEntry.BUILT_UNIT, source, CacheState.IN_PROCESS);
       _cache.put(source, dartCopy);
       return new AnalysisContextImpl_TaskData(new BuildDartElementModelTask(this, source, builder.librariesInCycle), false);
-    } on AnalysisException catch (exception) {
+    } on AnalysisException catch (exception, stackTrace) {
       DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.recordBuildElementErrorInLibrary(source, exception);
+      dartCopy.recordBuildElementErrorInLibrary(source, new CaughtException(exception, stackTrace));
       _cache.put(source, dartCopy);
-      AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", exception);
+      AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", new CaughtException(exception, stackTrace));
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -2567,7 +2566,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     CompilationUnit unit = unitEntry.getValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource);
     if (unit == null) {
-      AnalysisException exception = new AnalysisException.con1("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}");
+      CaughtException exception = new CaughtException(new AnalysisException("Entry has VALID state for RESOLVED_UNIT but null value for ${unitSource.fullName} in ${librarySource.fullName}"), null);
       AnalysisEngine.instance.logger.logInformation2(exception.toString(), exception);
       DartEntryImpl dartCopy = unitEntry.writableCopy;
       dartCopy.recordResolutionError(exception);
@@ -2763,11 +2762,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return taskData;
       }
       return new AnalysisContextImpl_TaskData(new ResolveDartLibraryCycleTask(this, source, source, builder.librariesInCycle), false);
-    } on AnalysisException catch (exception) {
+    } on AnalysisException catch (exception, stackTrace) {
       DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.recordResolutionError(exception);
+      dartCopy.recordResolutionError(new CaughtException(exception, stackTrace));
       _cache.put(source, dartCopy);
-      AnalysisEngine.instance.logger.logError2("Internal error trying to create a ResolveDartLibraryTask", exception);
+      AnalysisEngine.instance.logger.logError2("Internal error trying to create a ResolveDartLibraryTask", new CaughtException(exception, stackTrace));
     }
     return new AnalysisContextImpl_TaskData(null, false);
   }
@@ -3834,7 +3833,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartEntry _recordBuildDartElementModelTask(BuildDartElementModelTask task) {
     Source targetLibrary = task.targetLibrary;
     List<ResolvableLibrary> builtLibraries = task.librariesInCycle;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry targetEntry = null;
     if (_allModificationTimesMatch(builtLibraries)) {
       Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
@@ -3914,7 +3913,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (targetEntry == null) {
       targetEntry = _getReadableDartEntry(targetLibrary);
       if (targetEntry == null) {
-        throw new AnalysisException.con1("A Dart file became a non-Dart file: ${targetLibrary.fullName}");
+        throw new AnalysisException("A Dart file became a non-Dart file: ${targetLibrary.fullName}");
       }
     }
     return targetEntry;
@@ -3946,7 +3945,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartEntry _recordGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     Source source = task.source;
     Source librarySource = task.libraryElement.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry dartEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -3954,7 +3953,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! DartEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to verify non-Dart file as a Dart file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to verify non-Dart file as a Dart file: ${source.fullName}");
     }
     dartEntry = sourceEntry as DartEntry;
     int sourceTime = getModificationStamp(source);
@@ -3965,7 +3964,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         dartEntry = _getReadableDartEntry(source);
         if (dartEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
         }
       }
       DartEntryImpl dartCopy = dartEntry.writableCopy;
@@ -4019,7 +4018,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry _recordGenerateDartHintsTask(GenerateDartHintsTask task) {
     Source librarySource = task.libraryElement.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry libraryEntry = null;
     Map<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
     if (hintMap == null) {
@@ -4031,10 +4030,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } else if (sourceEntry is! DartEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
-        throw new AnalysisException.con1("Internal error: attempting to generate hints for non-Dart file as a Dart file: ${librarySource.fullName}");
+        throw new AnalysisException("Internal error: attempting to generate hints for non-Dart file as a Dart file: ${librarySource.fullName}");
       }
       if (thrownException == null) {
-        thrownException = new AnalysisException.con1("GenerateDartHintsTask returned a null hint map without throwing an exception: ${librarySource.fullName}");
+        thrownException = new CaughtException(new AnalysisException("GenerateDartHintsTask returned a null hint map without throwing an exception: ${librarySource.fullName}"), null);
       }
       DartEntryImpl dartCopy = (sourceEntry as DartEntry).writableCopy;
       dartCopy.recordHintErrorInLibrary(librarySource, thrownException);
@@ -4048,7 +4047,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (sourceEntry is! DartEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
-        throw new AnalysisException.con1("Internal error: attempting to parse non-Dart file as a Dart file: ${unitSource.fullName}");
+        throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${unitSource.fullName}");
       }
       DartEntry dartEntry = sourceEntry as DartEntry;
       if (unitSource == librarySource) {
@@ -4062,7 +4061,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _sourceChanged(unitSource);
           dartEntry = _getReadableDartEntry(unitSource);
           if (dartEntry == null) {
-            throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+            throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
           }
         }
         DartEntryImpl dartCopy = dartEntry.writableCopy;
@@ -4121,7 +4120,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     SourceEntry sourceEntry = null;
     sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4170,7 +4169,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry _recordParseDartTaskResults(ParseDartTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry dartEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4178,7 +4177,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! DartEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
     }
     dartEntry = sourceEntry as DartEntry;
     int sourceTime = getModificationStamp(source);
@@ -4189,7 +4188,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         dartEntry = _getReadableDartEntry(source);
         if (dartEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
         }
       }
       _removeFromParts(source, dartEntry);
@@ -4287,7 +4286,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordParseHtmlTaskResults(ParseHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4295,7 +4294,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to parse non-HTML file as a HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to parse non-HTML file as a HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4306,7 +4305,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = (sourceEntry as HtmlEntry).writableCopy;
@@ -4372,7 +4371,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordPolymerBuildHtmlTaskResults(PolymerBuildHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4380,7 +4379,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4391,7 +4390,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -4441,7 +4440,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordPolymerResolveHtmlTaskResults(PolymerResolveHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4449,7 +4448,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4460,7 +4459,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -4510,7 +4509,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordResolveAngularComponentTemplateTaskResults(ResolveAngularComponentTemplateTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4518,7 +4517,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4529,7 +4528,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -4589,7 +4588,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordResolveAngularEntryHtmlTaskResults(ResolveAngularEntryHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4597,7 +4596,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4608,7 +4607,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -4671,7 +4670,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartEntry _recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
     Source librarySource = task.librarySource;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry dartEntry = null;
     SourceEntry sourceEntry = _cache.get(unitSource);
     if (sourceEntry == null) {
@@ -4679,7 +4678,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! DartEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-Dart file as a Dart file: ${unitSource.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${unitSource.fullName}");
     }
     dartEntry = sourceEntry as DartEntry;
     int sourceTime = getModificationStamp(unitSource);
@@ -4690,7 +4689,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(unitSource);
         dartEntry = _getReadableDartEntry(unitSource);
         if (dartEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${unitSource.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
         }
       }
       DartEntryImpl dartCopy = dartEntry.writableCopy;
@@ -4746,7 +4745,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HtmlEntry _recordResolveHtmlTaskResults(ResolveHtmlTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     HtmlEntry htmlEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4754,7 +4753,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! HtmlEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
     }
     htmlEntry = sourceEntry as HtmlEntry;
     int sourceTime = getModificationStamp(source);
@@ -4765,7 +4764,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         htmlEntry = _getReadableHtmlEntry(source);
         if (htmlEntry == null) {
-          throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
         }
       }
       HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -4828,7 +4827,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   DartEntry _recordScanDartTaskResults(ScanDartTask task) {
     Source source = task.source;
-    AnalysisException thrownException = task.exception;
+    CaughtException thrownException = task.exception;
     DartEntry dartEntry = null;
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
@@ -4836,7 +4835,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (sourceEntry is! DartEntry) {
       // This shouldn't be possible because we should never have performed the task if the source
       // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException.con1("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
+      throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
     }
     dartEntry = sourceEntry as DartEntry;
     int sourceTime = getModificationStamp(source);
@@ -4847,7 +4846,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _sourceChanged(source);
         dartEntry = _getReadableDartEntry(source);
         if (dartEntry == null) {
-          throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
+          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
         }
       }
       DartEntryImpl dartCopy = dartEntry.writableCopy;
@@ -5051,7 +5050,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is HtmlEntry) {
       HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
       _invalidateAngularResolution(htmlCopy);
-      htmlCopy.recordContentError(new AnalysisException.con1("This source was marked as being deleted"));
+      htmlCopy.recordContentError(new CaughtException(new AnalysisException("This source was marked as being deleted"), null));
       _cache.put(source, htmlCopy);
     } else if (sourceEntry is DartEntry) {
       Set<Source> libraries = new Set<Source>();
@@ -5065,7 +5064,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _invalidateLibraryResolution(librarySource);
       }
       DartEntryImpl dartCopy = sourceEntry.writableCopy;
-      dartCopy.recordContentError(new AnalysisException.con1("This source was marked as being deleted"));
+      dartCopy.recordContentError(new CaughtException(new AnalysisException("This source was marked as being deleted"), null));
       _cache.put(source, dartCopy);
     }
     _workManager.remove(source);
@@ -5755,7 +5754,7 @@ abstract class AnalysisContextStatistics {
   /**
    * Return the exceptions that caused some entries to have a state of [CacheState#ERROR].
    */
-  List<AnalysisException> get exceptions;
+  List<CaughtException> get exceptions;
 
   /**
    * Return information about each of the partitions in the cache.
@@ -5776,7 +5775,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
 
   List<Source> _sources = new List<Source>();
 
-  Set<AnalysisException> _exceptions = new Set<AnalysisException>();
+  Set<CaughtException> _exceptions = new Set<CaughtException>();
 
   List<AnalysisContextStatistics_PartitionData> _partitionData;
 
@@ -5791,7 +5790,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   }
 
   @override
-  List<AnalysisException> get exceptions => new List.from(_exceptions);
+  List<CaughtException> get exceptions => new List.from(_exceptions);
 
   @override
   List<AnalysisContextStatistics_PartitionData> get partitionData => _partitionData;
@@ -5823,7 +5822,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
     }
     row._incState(state);
     if (state == CacheState.ERROR) {
-      AnalysisException exception = dartEntry.exception;
+      CaughtException exception = dartEntry.exception;
       if (exception != null) {
         _exceptions.add(exception);
       }
@@ -6176,39 +6175,6 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 }
 
 /**
- * Instances of the class `AnalysisException` represent an exception that occurred during the
- * analysis of one or more sources.
- */
-class AnalysisException extends JavaException {
-  /**
-   * Initialize a newly created exception.
-   */
-  AnalysisException() : super();
-
-  /**
-   * Initialize a newly created exception to have the given message.
-   *
-   * @param message the message associated with the exception
-   */
-  AnalysisException.con1(String message) : super(message);
-
-  /**
-   * Initialize a newly created exception to have the given message and cause.
-   *
-   * @param message the message associated with the exception
-   * @param cause the underlying exception that caused this exception
-   */
-  AnalysisException.con2(String message, Exception cause) : super(message, cause);
-
-  /**
-   * Initialize a newly created exception to have the given cause.
-   *
-   * @param cause the underlying exception that caused this exception
-   */
-  AnalysisException.con3(Exception cause) : super.withCause(cause);
-}
-
-/**
  * The enumeration `AnalysisLevel` encodes the different levels at which a source can be
  * analyzed.
  */
@@ -6487,7 +6453,7 @@ abstract class AnalysisTask {
    * The exception that was thrown while performing this task, or `null` if the task completed
    * successfully.
    */
-  AnalysisException _thrownException;
+  CaughtException _thrownException;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -6511,7 +6477,7 @@ abstract class AnalysisTask {
    *
    * @return the exception that was thrown while performing this task
    */
-  AnalysisException get exception => _thrownException;
+  CaughtException get exception => _thrownException;
 
   /**
    * Perform this analysis task and use the given visitor to visit this task after it has completed.
@@ -6523,9 +6489,9 @@ abstract class AnalysisTask {
   Object perform(AnalysisTaskVisitor visitor) {
     try {
       _safelyPerform();
-    } on AnalysisException catch (exception) {
-      _thrownException = exception;
-      AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", exception);
+    } on AnalysisException catch (exception, stackTrace) {
+      _thrownException = new CaughtException(exception, stackTrace);
+      AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", new CaughtException(exception, stackTrace));
     }
     return accept(visitor);
   }
@@ -6558,8 +6524,8 @@ abstract class AnalysisTask {
       internalPerform();
     } on AnalysisException catch (exception) {
       throw exception;
-    } on JavaException catch (exception) {
-      throw new AnalysisException.con3(exception);
+    } on JavaException catch (exception, stackTrace) {
+      throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     }
   }
 }
@@ -7710,7 +7676,7 @@ class BuildDartElementModelTask extends AnalysisTask {
       _coreLibrary = _libraryMap[_coreLibrarySource];
       LibraryElement coreElement = _coreLibrary.libraryElement;
       if (coreElement == null) {
-        throw new AnalysisException.con1("Could not resolve dart:core");
+        throw new AnalysisException("Could not resolve dart:core");
       }
       instrumentation.metric3("buildLibraryMap", "complete");
       //
@@ -8177,7 +8143,9 @@ abstract class CachePartition {
       }
     }
     if (sourceToRemove < 0) {
-      AnalysisEngine.instance.logger.logError2("Internal error: Could not flush data from the cache", new JavaException());
+      // This happens if the retention policy returns a priority of HIGH for all of the sources that
+      // have been recently used. This is the case, for example, when the list of priority sources
+      // is bigger than the current cache size.
       return null;
     }
     return _recentlyUsed.removeAt(sourceToRemove);
@@ -9411,7 +9379,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the source of the library in which the element model was being built
    * @param exception the exception that shows where the error occurred
    */
-  void recordBuildElementErrorInLibrary(Source librarySource, AnalysisException exception) {
+  void recordBuildElementErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
     _element = null;
     _elementState = CacheState.ERROR;
@@ -9439,7 +9407,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   @override
-  void recordContentError(AnalysisException exception) {
+  void recordContentError(CaughtException exception) {
     super.recordContentError(exception);
     recordScanError(exception);
   }
@@ -9451,7 +9419,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the source of the library in which hints were being generated
    * @param exception the exception that shows where the error occurred
    */
-  void recordHintErrorInLibrary(Source librarySource, AnalysisException exception) {
+  void recordHintErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
     state.recordHintError();
@@ -9464,7 +9432,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordParseError(AnalysisException exception) {
+  void recordParseError(CaughtException exception) {
     _sourceKind = SourceKind.UNKNOWN;
     _sourceKindState = CacheState.ERROR;
     _parseErrors = AnalysisError.NO_ERRORS;
@@ -9541,7 +9509,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordResolutionError(AnalysisException exception) {
+  void recordResolutionError(CaughtException exception) {
     this.exception = exception;
     _element = null;
     _elementState = CacheState.ERROR;
@@ -9561,7 +9529,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the source of the library in which resolution was being performed
    * @param exception the exception that shows where the error occurred
    */
-  void recordResolutionErrorInLibrary(Source librarySource, AnalysisException exception) {
+  void recordResolutionErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
     _element = null;
     _elementState = CacheState.ERROR;
@@ -9604,7 +9572,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param exception the exception that shows where the error occurred
    */
   @override
-  void recordScanError(AnalysisException exception) {
+  void recordScanError(CaughtException exception) {
     super.recordScanError(exception);
     _scanErrors = AnalysisError.NO_ERRORS;
     _scanErrorsState = CacheState.ERROR;
@@ -9653,7 +9621,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param librarySource the source of the library in which verification was being performed
    * @param exception the exception that shows where the error occurred
    */
-  void recordVerificationErrorInLibrary(Source librarySource, AnalysisException exception) {
+  void recordVerificationErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
     state.recordVerificationError();
@@ -10637,8 +10605,8 @@ class GetContentTask extends AnalysisTask {
       TimestampedData<String> data = context.getContents(source);
       _content = data.data;
       _modificationTime = data.modificationTime;
-    } on JavaException catch (exception) {
-      throw new AnalysisException.con2("Could not get contents of ${source}", exception);
+    } on JavaException catch (exception, stackTrace) {
+      throw new AnalysisException("Could not get contents of ${source}", new CaughtException(exception, stackTrace));
     }
   }
 }
@@ -11057,7 +11025,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   @override
-  void recordContentError(AnalysisException exception) {
+  void recordContentError(CaughtException exception) {
     super.recordContentError(exception);
     recordParseError(exception);
   }
@@ -11068,7 +11036,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordParseError(AnalysisException exception) {
+  void recordParseError(CaughtException exception) {
     // If the scanning and parsing of HTML are separated, the following line can be removed.
     recordScanError(exception);
     _parseErrors = AnalysisError.NO_ERRORS;
@@ -11086,7 +11054,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordResolutionError(AnalysisException exception) {
+  void recordResolutionError(CaughtException exception) {
     this.exception = exception;
     _angularErrors = AnalysisError.NO_ERRORS;
     _angularErrorsState = CacheState.ERROR;
@@ -11547,7 +11515,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
    * @param instrumentation the instrumentation builder being used to record the exception
    * @param exception the exception being reported
    */
-  static void _recordAnalysisException(InstrumentationBuilder instrumentation, AnalysisException exception) {
+  static void _recordAnalysisException(InstrumentationBuilder instrumentation, CaughtException exception) {
     instrumentation.record(exception);
   }
 
@@ -11642,8 +11610,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeHtmlElement(source);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -11672,8 +11640,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeLibraryElement(source);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -11687,8 +11655,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.computeLineInfo(source);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12121,8 +12089,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.parseCompilationUnit(source);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12136,8 +12104,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.parseHtmlUnit(source);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12172,8 +12140,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveCompilationUnit(unitSource, library);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12187,8 +12155,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveCompilationUnit2(unitSource, librarySource);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12202,8 +12170,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.resolveHtmlUnit(htmlSource);
-    } on AnalysisException catch (e) {
-      _recordAnalysisException(instrumentation, e);
+    } on AnalysisException catch (e, stackTrace) {
+      _recordAnalysisException(instrumentation, new CaughtException(e, stackTrace));
       throw e;
     } finally {
       instrumentation.log();
@@ -12686,7 +12654,7 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
    *
    * @param source the source that was removed while it was being analyzed
    */
-  ObsoleteSourceAnalysisException(Source source) : super.con1("The source '${source.fullName}' was removed while it was being analyzed") {
+  ObsoleteSourceAnalysisException(Source source) : super("The source '${source.fullName}' was removed while it was being analyzed") {
     this._source = source;
   }
 
@@ -12905,7 +12873,7 @@ class ParseDartTask extends AnalysisTask {
                   _includedSources.add(referencedSource);
                 }
               } else {
-                throw new AnalysisException.con1("${runtimeType.toString()} failed to handle a ${directive.runtimeType.toString()}");
+                throw new AnalysisException("${runtimeType.toString()} failed to handle a ${directive.runtimeType.toString()}");
               }
             }
           }
@@ -13044,8 +13012,8 @@ class ParseHtmlTask extends AnalysisTask {
       _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_internalPerform(this, errorListener));
       _errors = errorListener.getErrorsForSource(source);
       _referencedLibraries = librarySources;
-    } on JavaException catch (exception) {
-      throw new AnalysisException.con3(exception);
+    } on JavaException catch (exception, stackTrace) {
+      throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     }
   }
 
@@ -14384,7 +14352,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     _modificationTime = resolvableUnit.modificationTime;
     CompilationUnit unit = resolvableUnit.compilationUnit;
     if (unit == null) {
-      throw new AnalysisException.con1("Internal error: computeResolvableCompilationUnit returned a value without a parsed Dart unit");
+      throw new AnalysisException("Internal error: computeResolvableCompilationUnit returned a value without a parsed Dart unit");
     }
     //
     // Resolve names in declarations.
@@ -14651,8 +14619,8 @@ class ScanDartTask extends AnalysisTask {
       _tokenStream = scanner.tokenize();
       _lineInfo = new LineInfo(scanner.lineStarts);
       _errors = errorListener.getErrorsForSource(source);
-    } on JavaException catch (exception) {
-      throw new AnalysisException.con3(exception);
+    } on JavaException catch (exception, stackTrace) {
+      throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     } finally {
       timeCounterScan.stop();
     }
@@ -14718,7 +14686,7 @@ abstract class SourceEntry {
    *
    * @return the exception that caused one or more values to be uncomputable
    */
-  AnalysisException get exception;
+  CaughtException get exception;
 
   /**
    * Return `true` if the source was explicitly added to the context or `false` if the
@@ -14788,7 +14756,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   /**
    * The exception that caused one or more values to have a state of [CacheState#ERROR].
    */
-  AnalysisException _exception;
+  CaughtException _exception;
 
   /**
    * The state of the cached content.
@@ -14827,7 +14795,7 @@ abstract class SourceEntryImpl implements SourceEntry {
         // This code should never be reached, but is a fail-safe in case an exception is not
         // recorded when it should be.
         //
-        _exception = new AnalysisException.con1("State set to ERROR without setting an exception");
+        _exception = new CaughtException(new AnalysisException("State set to ERROR without setting an exception"), null);
       }
     } else {
       _exception = null;
@@ -14841,7 +14809,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    * @return the exception that caused one or more values to be uncomputable
    */
   @override
-  AnalysisException get exception => _exception;
+  CaughtException get exception => _exception;
 
   /**
    * Return `true` if the source was explicitly added to the context or `false` if the
@@ -14894,7 +14862,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordContentError(AnalysisException exception) {
+  void recordContentError(CaughtException exception) {
     _content = null;
     _contentState = CacheState.ERROR;
     recordScanError(exception);
@@ -14907,7 +14875,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    *
    * @param exception the exception that shows where the error occurred
    */
-  void recordScanError(AnalysisException exception) {
+  void recordScanError(CaughtException exception) {
     this.exception = exception;
     _lineInfo = null;
     _lineInfoState = CacheState.ERROR;
@@ -15022,7 +14990,7 @@ abstract class SourceEntryImpl implements SourceEntry {
    *
    * @param exception the exception that caused one or more values to be uncomputable
    */
-  void set exception(AnalysisException exception) {
+  void set exception(CaughtException exception) {
     if (exception == null) {
       throw new IllegalArgumentException("exception cannot be null");
     }

@@ -23,7 +23,7 @@ call_closurization_test: StaticWarning # Issue 17476
 #
 
 ref_before_declaration_test/none: fail # test issue 14879, "P" is not defined
-bad_initializer2_negative_test: fail # tester issue 14880, Analyzer reports compile-time error, but test runner is not satisfied
+bad_initializer2_negative_test: fail # Issue 14880, Analyzer reports compile-time error, but test runner is not satisfied
 
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
@@ -59,7 +59,7 @@ malbounded_redirecting_factory2_test/none: fail # Issue 11578
 getter_no_setter_test/none: fail
 
 # test issue 11584, positional arguments cannot be used for named parameters
-compile_time_constant_e_test: fail
+compile_time_constant_e_test: fail # Test Issue 11584
 
 # test issue 11585, static warning, not negative test
 constructor3_negative_test: fail
@@ -72,10 +72,6 @@ field_method4_negative_test: fail
 # test issue 11594, Reference to a not resolve identifier is static warning
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
-
-# test issue 11918: mixin and const constructor
-const_constructor_mixin_test/01: fail
-const_constructor_mixin3_test/01: fail
 
 # test issue 11962, it is warning, not error to reference undeclared identifier
 prefix1_negative_test: fail
@@ -108,9 +104,6 @@ type_error_test: fail # Issue 12289
 
 # test issue 12381, It is compile-time error to invoke not existing function
 issue11724_test: fail # Issue 12381
-
-# test issue 12539, rules for finals were loosened, contradiction in spec was fixed
-const_syntax_test/09: fail # Issue 12539
 
 # test issue 12541; there shouldn't be a static warning
 static_field_test/01: fail # Issue 12541
@@ -183,12 +176,19 @@ override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
-abstract_object_method_test: StaticWarning
-application_negative_test: CompileTimeError
-bad_constructor_test/05: CompileTimeError
-bad_initializer1_negative_test: CompileTimeError
-bad_named_constructor_negative_test: CompileTimeError
-body_less_constructor_wrong_arg_negative_test: CompileTimeError
+abstract_object_method_test: StaticWarning # Issue 14527
+
+# The following tests are currently assumed to be failing because the test is wrong.
+#
+application_negative_test: CompileTimeError # Test Issue 14528
+bad_constructor_test/05: CompileTimeError # Test Issue 5337
+bad_initializer1_negative_test: CompileTimeError # Test Issue 14529
+bad_named_constructor_negative_test: CompileTimeError # Test Issue 18693
+body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 18695
+empty_block_case_test: StaticWarning # Test Issue 18701
+error_stacktrace_test: StaticWarning # Test Issue 18702
+external_test/20: StaticWarning # Test Issue 18703
+
 const_counter_negative_test: CompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
@@ -196,24 +196,21 @@ constructor_redirect2_negative_test: CompileTimeError
 constructor_setter_negative_test: CompileTimeError
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
-empty_block_case_test: StaticWarning
-error_stacktrace_test: StaticWarning
 export_ambiguous_main_negative_test: CompileTimeError
 extend_type_parameter2_negative_test: CompileTimeError
 extend_type_parameter_negative_test: CompileTimeError
-external_test/20: StaticWarning
 factory2_negative_test: CompileTimeError
-factory2_test: StaticWarning
+factory2_test: StaticWarning # Test Issue 18727
 factory3_negative_test: CompileTimeError
-factory3_test: StaticWarning
-factory4_test: StaticWarning
+factory3_test: StaticWarning # Test Issue 18727
+factory4_test: StaticWarning # Test Issue 18727
 factory_implementation_test/00: StaticWarning
 factory_negative_test: CompileTimeError
-factory_redirection_test/01: StaticWarning
-factory_redirection_test/03: StaticWarning
-factory_redirection_test/05: StaticWarning
-factory_redirection_test/06: StaticWarning
-factory_return_type_checked_test: StaticWarning
+factory_redirection_test/01: StaticWarning # Test Issue 11578
+factory_redirection_test/03: StaticWarning # Test Issue 11578
+factory_redirection_test/05: StaticWarning # Test Issue 11578
+factory_redirection_test/06: StaticWarning # Test Issue 11578
+factory_return_type_checked_test: StaticWarning # Test Issue 18728
 f_bounded_quantification4_test: StaticWarning
 f_bounded_quantification5_test: StaticWarning
 field1_negative_test: CompileTimeError
@@ -223,7 +220,7 @@ field4_negative_test: CompileTimeError
 field5_negative_test: CompileTimeError
 field6a_negative_test: CompileTimeError
 field6_negative_test: CompileTimeError
-first_class_types_literals_test: StaticWarning
+first_class_types_literals_test: StaticWarning # Issue 18731
 function_malformed_result_type_test: StaticWarning
 function_subtype_bound_closure7_test: StaticWarning
 function_subtype_checked0_test: StaticWarning
@@ -436,24 +433,20 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
+issue13474_test: StaticWarning, OK # Test Issue
+
 # Issue 16391. The analyzer handle compile-time error in checked only in these
 # cases:
-compile_time_constant_checked2_test/01: CompileTimeError # Issue 16391
-compile_time_constant_checked2_test/05: CompileTimeError # Issue 16391
-compile_time_constant_checked3_test/01: CompileTimeError # Issue 16391
-compile_time_constant_checked3_test/05: CompileTimeError # Issue 16391
+compile_time_constant_checked2_test/01: CompileTimeError # Language Issue 16391
+compile_time_constant_checked2_test/05: CompileTimeError # Language Issue 16391
+compile_time_constant_checked3_test/01: CompileTimeError # Language Issue 16391
+compile_time_constant_checked3_test/05: CompileTimeError # Language Issue 16391
 list_literal1_test/01: CompileTimeError # Issue 16391
 map_literal1_test/01: CompileTimeError # Issue 16391
 
 # Issue 18562- Old syntax (@lazy) for deferred libraries
 deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
 deferred_constraints_constants_old_syntax_test/*: Pass, Fail
-
-# Issue 18562- 'is', 'as' and 'catch' aren't type annotations, thus we don't
-# generate the "The deferred types cannot be used in a declaration" warning
-deferred_constraints_type_annotation_test/as_operation: MissingStaticWarning
-deferred_constraints_type_annotation_test/is_check: MissingStaticWarning
-deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
 
 # The following lines have been left in to quickly switch back to having deferred loading
 # off by default again.
@@ -469,9 +462,9 @@ deferred_constraints_type_annotation_test/catch_check: MissingStaticWarning
 
 # Issues to be fixed now that type parameters have been fixed
 # (issues 14221, 15553)
-factory1_test/00: StaticWarning
-factory1_test/01: StaticWarning
-factory1_test/none: StaticWarning
+factory1_test/00: StaticWarning # Test Issue 18726
+factory1_test/01: StaticWarning # Test Issue 18726
+factory1_test/none: StaticWarning # Test Issue 18726
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning

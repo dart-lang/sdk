@@ -440,14 +440,14 @@ abstract class IndexConstants {
    * referenced at a specific location (the right operand). This is used for qualified resolved
    * references to methods and fields.
    */
-  static final Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED = Relationship.getRelationship("is-referenced-by_qualified-resolved");
+  static final Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED = Relationship.getRelationship("is-referenced-by-qualified-resolved");
 
   /**
    * The relationship used to indicate that an [NameElementImpl] (the left-operand) is
    * referenced at a specific location (the right operand). This is used for qualified unresolved
    * references to methods and fields.
    */
-  static final Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED = Relationship.getRelationship("is-referenced-by_qualified-unresolved");
+  static final Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED = Relationship.getRelationship("is-referenced-by-qualified-unresolved");
 
   /**
    * The relationship used to indicate that an element (the left-operand) is referenced at a
@@ -478,6 +478,54 @@ abstract class IndexConstants {
    * location (the right operand). This is used for methods.
    */
   static final Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is invoked
+   * at a specific location (the right operand). This is used for resolved invocations.
+   */
+  static final Relationship NAME_IS_INVOKED_BY_RESOLVED = Relationship.getRelationship("name-is-invoked-by-resolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is read at
+   * a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_READ_BY_RESOLVED = Relationship.getRelationship("name-is-read-by-resolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is both
+   * read and written at a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_READ_WRITTEN_BY_RESOLVED = Relationship.getRelationship("name-is-read-written-by-resolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is written
+   * at a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_WRITTEN_BY_RESOLVED = Relationship.getRelationship("name-is-written-by-resolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is invoked
+   * at a specific location (the right operand). This is used for unresolved invocations.
+   */
+  static final Relationship NAME_IS_INVOKED_BY_UNRESOLVED = Relationship.getRelationship("name-is-invoked-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is read at
+   * a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_READ_BY_UNRESOLVED = Relationship.getRelationship("name-is-read-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is both
+   * read and written at a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_READ_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("name-is-read-written-by-unresolved");
+
+  /**
+   * The relationship used to indicate that an [NameElementImpl] (the left-operand) is written
+   * at a specific location (the right operand).
+   */
+  static final Relationship NAME_IS_WRITTEN_BY_UNRESOLVED = Relationship.getRelationship("name-is-written-by-unresolved");
 
   /**
    * Reference to some [AngularElement].
@@ -1010,9 +1058,16 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
       }
       recordRelationship(element, relationship, location);
     }
-    if (element is FunctionElement) {
+    if (element is FunctionElement || element is VariableElement) {
       Location location = _createLocationFromNode(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
+    }
+    // name invocation
+    {
+      Element nameElement = new NameElementImpl(name.name);
+      Location location = _createLocationFromNode(name);
+      Relationship kind = element != null ? IndexConstants.NAME_IS_INVOKED_BY_RESOLVED : IndexConstants.NAME_IS_INVOKED_BY_UNRESOLVED;
+      _store.recordRelationship(nameElement, kind, location);
     }
     _recordImportElementReferenceWithoutPrefix(name);
     return super.visitMethodInvocation(node);
@@ -1061,6 +1116,21 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
     // stop if already handled
     if (_isAlreadyHandledName(node)) {
       return null;
+    }
+    // record name read/write
+    {
+      bool inGetterContext = node.inGetterContext();
+      bool inSetterContext = node.inSetterContext();
+      if (inGetterContext && inSetterContext) {
+        Relationship kind = element != null ? IndexConstants.NAME_IS_READ_WRITTEN_BY_RESOLVED : IndexConstants.NAME_IS_READ_WRITTEN_BY_UNRESOLVED;
+        _store.recordRelationship(nameElement, kind, location);
+      } else if (inGetterContext) {
+        Relationship kind = element != null ? IndexConstants.NAME_IS_READ_BY_RESOLVED : IndexConstants.NAME_IS_READ_BY_UNRESOLVED;
+        _store.recordRelationship(nameElement, kind, location);
+      } else if (inSetterContext) {
+        Relationship kind = element != null ? IndexConstants.NAME_IS_WRITTEN_BY_RESOLVED : IndexConstants.NAME_IS_WRITTEN_BY_UNRESOLVED;
+        _store.recordRelationship(nameElement, kind, location);
+      }
     }
     // record specific relations
     if (element is ClassElement || element is FunctionElement || element is FunctionTypeAliasElement || element is LabelElement || element is TypeParameterElement) {
