@@ -479,10 +479,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> visitArguments(List<HInstruction> inputs,
                                      {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
-    List<js.Expression> result = <js.Expression>[];
+    List<js.Expression> result = new List<js.Expression>(inputs.length - start);
     for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
-      result.add(pop());
+      result[i - start] = pop();
     }
     return result;
   }
@@ -1652,9 +1652,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         methodName = backend.namer.getNameOfInstanceMember(superMethod);
       }
-      push(js.js('#.prototype.#.call(#)', [
-          backend.namer.elementAccess(superClass),
-          methodName, visitArguments(node.inputs, start: 0)]),
+      push(
+          js.js('#.prototype.#.call(#)', [
+              backend.namer.elementAccess(superClass),
+              methodName, visitArguments(node.inputs, start: 0)]),
           node);
     }
   }
@@ -2000,7 +2001,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(argument);
       arguments.add(pop());
     }
-    js.Call value = new js.Call(jsHelper, arguments);
+    js.Call value = new js.Call(jsHelper, arguments.toList(growable: false));
     value = attachLocation(value, location);
     // BUG(4906): Using throw/return here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that

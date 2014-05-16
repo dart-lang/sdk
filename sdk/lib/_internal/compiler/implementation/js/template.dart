@@ -495,6 +495,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Iterable<Instantiator> argumentMakers =
         node.arguments.map(visitSplayableExpression).toList();
 
+    // TODO(sra): Avoid copying call arguments if no interpolation or forced
+    // copying.
     return (arguments) {
       Node target = makeTarget(arguments);
       List<Expression> callArguments = <Expression>[];
@@ -506,7 +508,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
           callArguments.add(result);
         }
       }
-      return finish(target, callArguments);
+      return finish(target, callArguments.toList(growable: false));
     };
   }
 
@@ -588,7 +590,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // Assume array has no missing elements.
-    // TODO(sra): Splicing?
+    // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers = node.elements
         .map((ArrayElement element) => visit(element.value))
         .toList();
