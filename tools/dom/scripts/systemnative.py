@@ -323,14 +323,20 @@ def DeriveNativeName(interface_name, name, suffix):
         fields.append(suffix)
     return "_".join(fields)
 
-def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids):
+def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids, 
+                         is_custom):
     type_string = \
         "_".join(type_ids)
     if native_suffix:
         operation_id = "%s_%s" % (operation_id, native_suffix)
-    components = \
-        [interface_id, operation_id,
-         "RESOLVER_STRING", str(len(type_ids)), type_string]
+    if is_custom:
+        components = \
+            [interface_id, operation_id,
+             "RESOLVER_STRING"]
+    else:
+        components = \
+            [interface_id, operation_id,
+             "RESOLVER_STRING", str(len(type_ids)), type_string]
     return "_".join(components)
 
 # FIXME(leafp) This should really go elsewhere.  I think the right thing
@@ -559,7 +565,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, cpp_prefix, cpp_suffix, factory_method_name,
-      arguments=None, emit_to_native=False):
+      arguments=None, emit_to_native=False, is_custom=False):
 
     constructor_callback_cpp_name = cpp_prefix + cpp_suffix
 
@@ -579,7 +585,8 @@ class DartiumBackend(HtmlDartGenerator):
     if self._dart_use_blink:
         type_ids = [p.type.id for p in arguments[:argument_count]]
         constructor_callback_id = \
-            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids)
+            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids,
+                                 is_custom)
     else:
         constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
 
@@ -641,7 +648,8 @@ class DartiumBackend(HtmlDartGenerator):
 
     constructor_callback_cpp_name = 'constructorCallback'
     self._EmitConstructorInfrastructure(
-        constructor_info, "", constructor_callback_cpp_name, '_create')
+        constructor_info, "", constructor_callback_cpp_name, '_create', 
+        is_custom=True)
 
     self._cpp_declarations_emitter.Emit(
         '\n'
@@ -657,7 +665,8 @@ class DartiumBackend(HtmlDartGenerator):
     constructor_callback_cpp_name = name + 'constructorCallback'  
     self._EmitConstructorInfrastructure(
         constructor_info, name, 'constructorCallback', name, arguments, 
-        emit_to_native=self._dart_use_blink)
+        emit_to_native=self._dart_use_blink, 
+        is_custom=False)
 
     ext_attrs = self._interface.ext_attrs
 
@@ -1005,7 +1014,7 @@ class DartiumBackend(HtmlDartGenerator):
           # Calls to this are emitted elsewhere,
           resolver_string = \
               DeriveResolverString(self._interface.id, "item", "Callback",
-                                   ["unsigned long"])
+                                   ["unsigned long"], False)
           self._native_library_emitter.Emit(
               '\n'
               '$(DART_NATIVE_NAME)(mthis, index) '
@@ -1141,7 +1150,7 @@ class DartiumBackend(HtmlDartGenerator):
                       for argument in operation.arguments[:argument_count]]
           resolver_string = \
               DeriveResolverString(self._interface.id, operation.id,
-                                   native_suffix, type_ids)
+                                   native_suffix, type_ids, is_custom)
       else:
           resolver_string = None
       cpp_callback_name = self._GenerateNativeBinding(
@@ -1162,6 +1171,7 @@ class DartiumBackend(HtmlDartGenerator):
       actuals = info.ParametersAsListOfVariables(argument_count)
       return_type = self.SecureOutputType(operation.type.id)
       native_suffix = 'Callback'
+      is_custom = 'Custom' in operation.ext_attrs
       if self._dart_use_blink:
           base_name = '_%s_%s' % (operation.id, version)
           overload_name = \
@@ -1176,7 +1186,7 @@ class DartiumBackend(HtmlDartGenerator):
                       for argument in operation.arguments[:argument_count]]
           resolver_string = \
               DeriveResolverString(self._interface.id, operation.id,
-                                   native_suffix, type_ids)
+                                   native_suffix, type_ids, is_custom)
       else:
           base_name = '_%s_%s' % (operation.id, version)
           overload_name = base_name
@@ -1189,7 +1199,6 @@ class DartiumBackend(HtmlDartGenerator):
           resolver_string = None
 
       call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
-      is_custom = 'Custom' in operation.ext_attrs
       auto_scope_setup = \
         self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
