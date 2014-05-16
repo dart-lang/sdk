@@ -112,7 +112,7 @@ enum DRegister {
   D13 = 13,
   D14 = 14,
   D15 = 15,
-#ifdef VFPv3_D16
+#if defined(VFPv3_D16)
   kNumberOfDRegisters = 16,
   // Leaving these defined, but marking them as kNoDRegister to avoid polluting
   // other parts of the code with #ifdef's. Instead, query kNumberOfDRegisters
@@ -166,7 +166,7 @@ enum QRegister {
   Q5  =  5,
   Q6  =  6,
   Q7  =  7,
-#ifdef VFPv3_D16
+#if defined(VFPv3_D16)
   kNumberOfQRegisters = 8,
   Q8  = kNoQRegister,
   Q9  = kNoQRegister,
@@ -223,6 +223,7 @@ const SRegister STMP = EvenSRegisterOf(DTMP);
 
 // Architecture independent aliases.
 typedef QRegister FpuRegister;
+
 const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;

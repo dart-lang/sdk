@@ -555,6 +555,9 @@ void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    nop();
+  }
 }
 
 
@@ -612,6 +615,7 @@ void Assembler::nop(Condition cond) {
 
 
 void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -627,6 +631,7 @@ void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
 
 
 void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -643,6 +648,7 @@ void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
 
 void Assembler::vmovsrr(SRegister sm, Register rt, Register rt2,
                         Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sm != kNoSRegister);
   ASSERT(sm != S31);
   ASSERT(rt != kNoRegister);
@@ -664,6 +670,7 @@ void Assembler::vmovsrr(SRegister sm, Register rt, Register rt2,
 
 void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
                         Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sm != kNoSRegister);
   ASSERT(sm != S31);
   ASSERT(rt != kNoRegister);
@@ -686,6 +693,7 @@ void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
 
 void Assembler::vmovdrr(DRegister dm, Register rt, Register rt2,
                         Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dm != kNoDRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -706,6 +714,7 @@ void Assembler::vmovdrr(DRegister dm, Register rt, Register rt2,
 
 void Assembler::vmovrrd(Register rt, Register rt2, DRegister dm,
                         Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dm != kNoDRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -726,6 +735,7 @@ void Assembler::vmovrrd(Register rt, Register rt2, DRegister dm,
 
 
 void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
@@ -738,6 +748,7 @@ void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
 
 
 void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
   ASSERT(sd != kNoSRegister);
   ASSERT(cond != kNoCondition);
@@ -751,6 +762,7 @@ void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
 
 
 void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
@@ -763,6 +775,7 @@ void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
 
 
 void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
   ASSERT(dd != kNoDRegister);
   ASSERT(cond != kNoCondition);
@@ -780,6 +793,7 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
                                 Register base,
                                 SRegister start,
                                 uint32_t count) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoSRegister);
@@ -803,10 +817,12 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
                                 Register base,
                                 DRegister start,
                                 int32_t count) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoDRegister);
   ASSERT(static_cast<int32_t>(start) + count <= kNumberOfDRegisters);
+  const int armv5te = TargetCPUFeatures::arm_version() == ARMv5TE ? 1 : 0;
 
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B27 | B26 | B11 | B9 | B8 |
@@ -815,7 +831,7 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
                      (static_cast<int32_t>(base) << kRnShift) |
                      ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
                      ((static_cast<int32_t>(start) & 0xf) << 12) |
-                     (count << 1);
+                     (count << 1) | armv5te;
   Emit(encoding);
 }
 
@@ -856,6 +872,7 @@ void Assembler::vstmd(BlockAddressMode am, Register base,
 
 void Assembler::EmitVFPsss(Condition cond, int32_t opcode,
                            SRegister sd, SRegister sn, SRegister sm) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(sn != kNoSRegister);
   ASSERT(sm != kNoSRegister);
@@ -874,6 +891,7 @@ void Assembler::EmitVFPsss(Condition cond, int32_t opcode,
 
 void Assembler::EmitVFPddd(Condition cond, int32_t opcode,
                            DRegister dd, DRegister dn, DRegister dm) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(dn != kNoDRegister);
   ASSERT(dm != kNoDRegister);
@@ -1039,6 +1057,7 @@ void Assembler::vsqrtd(DRegister dd, DRegister dm, Condition cond) {
 
 void Assembler::EmitVFPsd(Condition cond, int32_t opcode,
                           SRegister sd, DRegister dm) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(dm != kNoDRegister);
   ASSERT(cond != kNoCondition);
@@ -1054,6 +1073,7 @@ void Assembler::EmitVFPsd(Condition cond, int32_t opcode,
 
 void Assembler::EmitVFPds(Condition cond, int32_t opcode,
                           DRegister dd, SRegister sm) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(sm != kNoSRegister);
   ASSERT(cond != kNoCondition);
@@ -1138,6 +1158,7 @@ void Assembler::vcmpdz(DRegister dd, Condition cond) {
 
 
 void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B27 | B26 | B25 | B23 | B22 | B21 | B20 | B16 |
@@ -1175,6 +1196,7 @@ static inline int ShiftOfOperandSize(OperandSize size) {
 
 void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
                             QRegister qd, QRegister qn, QRegister qm) {
+  ASSERT(TargetCPUFeatures::neon_supported());
   int sz = ShiftOfOperandSize(size);
   int32_t encoding =
       (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
@@ -1192,6 +1214,7 @@ void Assembler::EmitSIMDqqq(int32_t opcode, OperandSize size,
 
 void Assembler::EmitSIMDddd(int32_t opcode, OperandSize size,
                             DRegister dd, DRegister dn, DRegister dm) {
+  ASSERT(TargetCPUFeatures::neon_supported());
   int sz = ShiftOfOperandSize(size);
   int32_t encoding =
       (static_cast<int32_t>(kSpecialCondition) << kConditionShift) |
@@ -1724,10 +1747,11 @@ class PatchFarBranch : public AssemblerFixup {
   PatchFarBranch() {}
 
   void Process(const MemoryRegion& region, intptr_t position) {
-    if (TargetCPUFeatures::arm_version() == ARMv6) {
+    const ARMVersion version = TargetCPUFeatures::arm_version();
+    if ((version == ARMv5TE) || (version == ARMv6)) {
       ProcessARMv6(region, position);
     } else {
-      ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+      ASSERT(version == ARMv7);
       ProcessARMv7(region, position);
     }
   }
@@ -1987,10 +2011,11 @@ void Assembler::BindARMv7(Label* label) {
 
 
 void Assembler::Bind(Label* label) {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     BindARMv6(label);
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     BindARMv7(label);
   }
 }
@@ -2238,7 +2263,8 @@ void Assembler::BranchLinkOffset(Register base, int32_t offset) {
 
 void Assembler::LoadPatchableImmediate(
     Register rd, int32_t value, Condition cond) {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     // This sequence is patched in a few places, and should remain fixed.
     const uint32_t byte0 = (value & 0x000000ff);
     const uint32_t byte1 = (value & 0x0000ff00) >> 8;
@@ -2249,7 +2275,7 @@ void Assembler::LoadPatchableImmediate(
     orr(rd, rd, ShifterOperand(12, byte1), cond);
     orr(rd, rd, ShifterOperand(byte0), cond);
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     const uint16_t value_low = Utils::Low16Bits(value);
     const uint16_t value_high = Utils::High16Bits(value);
     movw(rd, value_low, cond);
@@ -2260,10 +2286,11 @@ void Assembler::LoadPatchableImmediate(
 
 void Assembler::LoadDecodableImmediate(
     Register rd, int32_t value, Condition cond) {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     LoadPatchableImmediate(rd, value, cond);
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     movw(rd, Utils::Low16Bits(value), cond);
     const uint16_t value_high = Utils::High16Bits(value);
     if (value_high != 0) {
@@ -2455,6 +2482,82 @@ void Assembler::StoreMultipleDToOffset(DRegister first,
   ASSERT(base != IP);
   AddImmediate(IP, base, offset);
   vstmd(IA, IP, first, count);
+}
+
+
+void Assembler::CopyDoubleField(
+    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+  if (TargetCPUFeatures::vfp_supported()) {
+    LoadDFromOffset(dtmp, src, Double::value_offset() - kHeapObjectTag);
+    StoreDToOffset(dtmp, dst, Double::value_offset() - kHeapObjectTag);
+  } else {
+    LoadFromOffset(kWord, tmp1, src,
+        Double::value_offset() - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp2, src,
+        Double::value_offset() + kWordSize - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst,
+        Double::value_offset() - kHeapObjectTag);
+    StoreToOffset(kWord, tmp2, dst,
+        Double::value_offset() + kWordSize - kHeapObjectTag);
+  }
+}
+
+
+void Assembler::CopyFloat32x4Field(
+    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+  if (TargetCPUFeatures::neon_supported()) {
+    LoadMultipleDFromOffset(dtmp, 2, src,
+        Float32x4::value_offset() - kHeapObjectTag);
+    StoreMultipleDToOffset(dtmp, 2, dst,
+        Float32x4::value_offset() - kHeapObjectTag);
+  } else {
+    LoadFromOffset(kWord, tmp1, src,
+        (Float32x4::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp2, src,
+        (Float32x4::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst,
+        (Float32x4::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp2, dst,
+        (Float32x4::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+
+    LoadFromOffset(kWord, tmp1, src,
+        (Float32x4::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp2, src,
+        (Float32x4::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst,
+        (Float32x4::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp2, dst,
+        (Float32x4::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+  }
+}
+
+
+void Assembler::CopyFloat64x2Field(
+    Register dst, Register src, Register tmp1, Register tmp2, DRegister dtmp) {
+  if (TargetCPUFeatures::neon_supported()) {
+    LoadMultipleDFromOffset(dtmp, 2, src,
+        Float64x2::value_offset() - kHeapObjectTag);
+    StoreMultipleDToOffset(dtmp, 2, dst,
+        Float64x2::value_offset() - kHeapObjectTag);
+  } else {
+    LoadFromOffset(kWord, tmp1, src,
+        (Float64x2::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp2, src,
+        (Float64x2::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst,
+        (Float64x2::value_offset() + 0 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp2, dst,
+        (Float64x2::value_offset() + 1 * kWordSize) - kHeapObjectTag);
+
+    LoadFromOffset(kWord, tmp1, src,
+        (Float64x2::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+    LoadFromOffset(kWord, tmp2, src,
+        (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp1, dst,
+        (Float64x2::value_offset() + 2 * kWordSize) - kHeapObjectTag);
+    StoreToOffset(kWord, tmp2, dst,
+        (Float64x2::value_offset() + 3 * kWordSize) - kHeapObjectTag);
+  }
 }
 
 
@@ -2708,14 +2811,16 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
 
   // Preserve all volatile FPU registers.
-  DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-  DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  if ((lastv - firstv + 1) >= 16) {
-    DRegister mid = static_cast<DRegister>(firstv + 16);
-    vstmd(DB_W, SP, mid, lastv - mid + 1);
-    vstmd(DB_W, SP, firstv, 16);
-  } else {
-    vstmd(DB_W, SP, firstv, lastv - firstv + 1);
+  if (TargetCPUFeatures::vfp_supported()) {
+    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+    if ((lastv - firstv + 1) >= 16) {
+      DRegister mid = static_cast<DRegister>(firstv + 16);
+      vstmd(DB_W, SP, mid, lastv - mid + 1);
+      vstmd(DB_W, SP, firstv, 16);
+    } else {
+      vstmd(DB_W, SP, firstv, lastv - firstv + 1);
+    }
   }
 
   ReserveAlignedFrameSpace(frame_space);
@@ -2726,20 +2831,25 @@ void Assembler::LeaveCallRuntimeFrame() {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
+  const intptr_t kPushedFpuRegisterSize =
+      TargetCPUFeatures::vfp_supported() ?
+      kDartVolatileFpuRegCount * kFpuRegisterSize : 0;
+
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * kWordSize +
-      kDartVolatileFpuRegCount * kFpuRegisterSize;
+      kDartVolatileCpuRegCount * kWordSize + kPushedFpuRegisterSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
-  DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
-  DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
-  if ((lastv - firstv + 1) >= 16) {
-    DRegister mid = static_cast<DRegister>(firstv + 16);
-    vldmd(IA_W, SP, firstv, 16);
-    vldmd(IA_W, SP, mid, lastv - mid + 1);
-  } else {
-    vldmd(IA_W, SP, firstv, lastv - firstv + 1);
+  if (TargetCPUFeatures::vfp_supported()) {
+    DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
+    DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
+    if ((lastv - firstv + 1) >= 16) {
+      DRegister mid = static_cast<DRegister>(firstv + 16);
+      vldmd(IA_W, SP, firstv, 16);
+      vldmd(IA_W, SP, mid, lastv - mid + 1);
+    } else {
+      vldmd(IA_W, SP, firstv, lastv - firstv + 1);
+    }
   }
 
   // Restore volatile CPU registers.
@@ -3018,7 +3128,7 @@ const char* Assembler::RegisterName(Register reg) {
 
 static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
-#ifdef VFPv3_D32
+#if defined(VFPv3_D32)
   "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
 #endif
 };

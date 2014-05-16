@@ -24,6 +24,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
+DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -37,6 +38,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   for (int i = 0; i < block_info_.length(); ++i) {
     ASSERT(!block_info_[i]->jump_label()->IsLinked());
   }
+}
+
+
+bool FlowGraphCompiler::SupportsUnboxedDoubles() {
+  return TargetCPUFeatures::vfp_supported() && FLAG_unbox_doubles;
 }
 
 
@@ -1596,7 +1602,14 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      __ vmovq(destination.fpu_reg(), source.fpu_reg());
+      if (TargetCPUFeatures::neon_supported()) {
+        __ vmovq(destination.fpu_reg(), source.fpu_reg());
+      } else {
+        // If we're not inlining simd values, then only the even numbered D
+        // register will have anything in them.
+        __ vmovd(EvenDRegisterOf(destination.fpu_reg()),
+                 EvenDRegisterOf(source.fpu_reg()));
+      }
     } else {
       if (destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();

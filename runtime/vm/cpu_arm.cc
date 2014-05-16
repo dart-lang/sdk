@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/cpuinfo.h"
+#include "vm/heap.h"
+#include "vm/isolate.h"
+#include "vm/object.h"
 #include "vm/simulator.h"
+#include "vm/thread.h"
 
 #if defined(HOST_ARCH_ARM)
 #include <sys/syscall.h>  /* NOLINT */
@@ -16,6 +20,14 @@
 #endif
 
 namespace dart {
+
+DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
+DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
+#if !defined(HOST_ARCH_ARM)
+DEFINE_FLAG(bool, sim_use_armv7, true, "Use all ARMv7 instructions");
+DEFINE_FLAG(bool, sim_use_armv5te, false, "Restrict to ARMv5TE instructions");
+DEFINE_FLAG(bool, sim_use_armv6, false, "Restrict to ARMv6 instructions");
+#endif
 
 void CPU::FlushICache(uword start, uword size) {
 #if defined(HOST_ARCH_ARM)
@@ -52,6 +64,7 @@ const char* CPU::Id() {
 
 
 bool HostCPUFeatures::integer_division_supported_ = false;
+bool HostCPUFeatures::vfp_supported_ = false;
 bool HostCPUFeatures::neon_supported_ = false;
 const char* HostCPUFeatures::hardware_ = NULL;
 ARMVersion HostCPUFeatures::arm_version_ = ARMvUnknown;
@@ -64,18 +77,27 @@ bool HostCPUFeatures::initialized_ = false;
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
-  // Check for ARMv6 or ARMv7. It can be in either the Processor or
+
+  // Has floating point unit.
+  vfp_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") &&
+                   FLAG_use_vfp;
+
+  // Check for ARMv5, ARMv6 or ARMv7. It can be in either the Processor or
   // Model information fields.
-  if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
-      CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
+  if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARM926EJ-S") ||
+      CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
+    // Lego Mindstorm EV3.
+    arm_version_ = ARMv5TE;
+  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
+             CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
+    // Raspberry Pi, etc.
     arm_version_ = ARMv6;
   } else {
     ASSERT(CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
            CpuInfo::FieldContains(kCpuInfoModel, "ARMv7"));
     arm_version_ = ARMv7;
   }
-  // Has floating point unit.
-  ASSERT(CpuInfo::FieldContains(kCpuInfoFeatures, "vfp"));
+
   // Has integer division.
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   if (is_krait) {
@@ -85,7 +107,8 @@ void HostCPUFeatures::InitOnce() {
     integer_division_supported_ =
         CpuInfo::FieldContains(kCpuInfoFeatures, "idiva");
   }
-  neon_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "neon");
+  neon_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "neon") &&
+                    FLAG_use_vfp && FLAG_use_neon;
 #if defined(DEBUG)
   initialized_ = true;
 #endif
@@ -108,9 +131,16 @@ void HostCPUFeatures::Cleanup() {
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
+  vfp_supported_ = FLAG_use_vfp;
+  neon_supported_ = FLAG_use_vfp && FLAG_use_neon;
   integer_division_supported_ = true;
-  neon_supported_ = true;
-  arm_version_ = ARMv7;
+  if (FLAG_sim_use_armv5te) {
+    arm_version_ = ARMv5TE;
+  } else if (FLAG_sim_use_armv6) {
+    arm_version_ = ARMv6;
+  } else if (FLAG_sim_use_armv7) {
+    arm_version_ = ARMv7;
+  }
 #if defined(DEBUG)
   initialized_ = true;
 #endif

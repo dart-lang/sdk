@@ -290,7 +290,8 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0) &&
+        TargetCPUFeatures::neon_supported()) {
       const QRegister dst = locs()->out(0).fpu_reg();
       __ veorq(dst, dst, dst);
     } else {
@@ -2076,12 +2077,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_double);
-      __ LoadDFromOffset(fpu_temp,
-                         value_reg,
-                         Double::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp,
-                        temp,
-                        Double::value_offset() - kHeapObjectTag);
+      __ CopyDoubleField(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2107,10 +2103,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float32x4);
-      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
-          Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
-          Float32x4::value_offset() - kHeapObjectTag);
+      __ CopyFloat32x4Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2136,10 +2129,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float64x2);
-      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
-          Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
-          Float64x2::value_offset() - kHeapObjectTag);
+      __ CopyFloat64x2Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2481,6 +2471,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
     locs->AddTemp(opt ? Location::RequiresFpuRegister()
                       : Location::FpuRegisterLocation(Q1));
     locs->AddTemp(Location::RequiresRegister());
+    locs->AddTemp(Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -2488,7 +2479,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
+  const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
     const Register temp = locs()->temp(0).reg();
@@ -2519,8 +2510,9 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label done;
   Register result_reg = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
-    const Register temp = locs()->temp(1).reg();
     const DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
+    const Register temp = locs()->temp(1).reg();
+    const Register temp2 = locs()->temp(2).reg();
 
     Label load_pointer;
     Label load_double;
@@ -2567,10 +2559,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(value,
-                        result_reg,
-                        Double::value_offset() - kHeapObjectTag);
+      __ CopyDoubleField(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 
@@ -2585,10 +2574,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadMultipleDFromOffset(value, 2, temp,
-          Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(value, 2, result_reg,
-          Float32x4::value_offset() - kHeapObjectTag);
+      __ CopyFloat32x4Field(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 
@@ -2603,10 +2589,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadMultipleDFromOffset(value, 2, temp,
-          Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(value, 2, result_reg,
-          Float64x2::value_offset() - kHeapObjectTag);
+      __ CopyFloat64x2Field(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 

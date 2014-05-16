@@ -667,6 +667,13 @@ class Assembler : public ValueObject {
                               Register base,
                               int32_t offset);
 
+  void CopyDoubleField(Register dst, Register src,
+                       Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyFloat32x4Field(Register dst, Register src,
+                          Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyFloat64x2Field(Register dst, Register src,
+                          Register tmp1, Register tmp2, DRegister dtmp);
+
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);
 

@@ -676,58 +676,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 }
 
 
-// Synchronization primitives support.
-Mutex* Simulator::exclusive_access_lock_ = NULL;
-Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags];
-int Simulator::next_address_tag_;
-
-
-void Simulator::SetExclusiveAccess(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  int i = 0;
-  while ((i < kNumAddressTags) &&
-         (exclusive_access_state_[i].isolate != isolate)) {
-    i++;
-  }
-  if (i == kNumAddressTags) {
-    i = next_address_tag_;
-    if (++next_address_tag_ == kNumAddressTags) next_address_tag_ = 0;
-    exclusive_access_state_[i].isolate = isolate;
-  }
-  exclusive_access_state_[i].addr = addr;
-}
-
-
-bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  bool result = false;
-  for (int i = 0; i < kNumAddressTags; i++) {
-    if (exclusive_access_state_[i].isolate == isolate) {
-      if (exclusive_access_state_[i].addr == addr) {
-        result = true;
-      }
-      exclusive_access_state_[i].addr = static_cast<uword>(NULL);
-      continue;
-    }
-    if (exclusive_access_state_[i].addr == addr) {
-      exclusive_access_state_[i].addr = static_cast<uword>(NULL);
-    }
-  }
-  return result;
-}
-
-
-void Simulator::InitOnce() {
-  // Setup exclusive access state.
-  exclusive_access_lock_ = new Mutex();
-  for (int i = 0; i < kNumAddressTags; i++) {
-    exclusive_access_state_[i].isolate = NULL;
-    exclusive_access_state_[i].addr = static_cast<uword>(NULL);
-  }
-  next_address_tag_ = 0;
-}
+void Simulator::InitOnce() {}
 
 
 Simulator::Simulator() {
@@ -907,30 +856,35 @@ int32_t Simulator::get_pc() const {
 
 // Accessors for VFP register state.
 void Simulator::set_sregister(SRegister reg, float value) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = bit_cast<int32_t, float>(value);
 }
 
 
 float Simulator::get_sregister(SRegister reg) const {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return bit_cast<float, int32_t>(sregisters_[reg]);
 }
 
 
 void Simulator::set_dregister(DRegister reg, double value) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = bit_cast<int64_t, double>(value);
 }
 
 
 double Simulator::get_dregister(DRegister reg) const {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return bit_cast<double, int64_t>(dregisters_[reg]);
 }
 
 
 void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
+  ASSERT(TargetCPUFeatures::neon_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
   qregisters_[reg].data_[0] = value.data_[0];
   qregisters_[reg].data_[1] = value.data_[1];
@@ -940,6 +894,7 @@ void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
 
 
 void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
+  ASSERT(TargetCPUFeatures::neon_supported());
   // TODO(zra): Replace this test with an assert after we support
   // 16 Q registers.
   if ((reg >= 0) && (reg < kNumberOfQRegisters)) {
@@ -949,24 +904,28 @@ void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
 
 
 void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = value;
 }
 
 
 int32_t Simulator::get_sregister_bits(SRegister reg) const {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return sregisters_[reg];
 }
 
 
 void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = value;
 }
 
 
 int64_t Simulator::get_dregister_bits(DRegister reg) const {
+  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return dregisters_[reg];
 }
@@ -1098,53 +1057,6 @@ void Simulator::WriteB(uword addr, uint8_t value) {
   counter_write_b.Increment();
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   *ptr = value;
-}
-
-
-// Synchronization primitives support.
-void Simulator::ClearExclusive() {
-  // This lock is initialized in Simulator::InitOnce().
-  MutexLocker ml(exclusive_access_lock_);
-  // Set exclusive access to open state for this isolate.
-  HasExclusiveAccessAndOpen(static_cast<uword>(NULL));
-}
-
-
-intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
-  // This lock is initialized in Simulator::InitOnce().
-  MutexLocker ml(exclusive_access_lock_);
-  SetExclusiveAccess(addr);
-  return ReadW(addr, instr);
-}
-
-
-intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
-  // This lock is initialized in Simulator::InitOnce().
-  MutexLocker ml(exclusive_access_lock_);
-  bool write_allowed = HasExclusiveAccessAndOpen(addr);
-  if (write_allowed) {
-    WriteW(addr, value, instr);
-    return 0;  // Success.
-  }
-  return 1;  // Failure.
-}
-
-
-uword Simulator::CompareExchange(uword* address,
-                                 uword compare_value,
-                                 uword new_value) {
-  // This lock is initialized in Simulator::InitOnce().
-  MutexLocker ml(exclusive_access_lock_);
-  uword value = *address;
-  if (value == compare_value) {
-    *address = new_value;
-    // Same effect on exclusive access state as a successful STREX.
-    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
-  } else {
-    // Same effect on exclusive access state as an LDREX.
-    SetExclusiveAccess(reinterpret_cast<uword>(address));
-  }
-  return value;
 }
 
 
@@ -1597,18 +1509,20 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_register(R3, icount_);
         set_register(IP, icount_);
         set_register(LR, icount_);
-        double zap_dvalue = static_cast<double>(icount_);
-        // Do not zap D0, as it may contain a float result.
-        for (int i = D1; i <= D7; i++) {
-          set_dregister(static_cast<DRegister>(i), zap_dvalue);
+        if (TargetCPUFeatures::vfp_supported()) {
+          double zap_dvalue = static_cast<double>(icount_);
+          // Do not zap D0, as it may contain a float result.
+          for (int i = D1; i <= D7; i++) {
+            set_dregister(static_cast<DRegister>(i), zap_dvalue);
+          }
+          // The above loop also zaps overlapping registers S2-S15.
+          // Registers D8-D15 (overlapping with S16-S31) are preserved.
+#if defined(VFPv3_D32)
+          for (int i = D16; i <= D31; i++) {
+            set_dregister(static_cast<DRegister>(i), zap_dvalue);
+          }
+#endif
         }
-        // The above loop also zaps overlapping registers S2-S15.
-        // Registers D8-D15 (overlapping with S16-S31) are preserved.
-#ifdef VFPv3_D32
-        for (int i = D16; i <= D31; i++) {
-          set_dregister(static_cast<DRegister>(i), zap_dvalue);
-        }
-#endif  // VFPv3_D32
 
         // Return.
         set_pc(saved_lr);
@@ -1715,6 +1629,12 @@ void Simulator::DecodeType01(Instr* instr) {
       }
     } else if (instr->IsMultiplyOrSyncPrimitive()) {
       if (instr->Bit(24) == 0) {
+        if ((TargetCPUFeatures::arm_version() != ARMv7) &&
+            (instr->Bits(21, 3) != 0)) {
+          // mla ... smlal only supported on armv7.
+          UnimplementedInstruction(instr);
+          return;
+        }
         // multiply instructions.
         Register rn = instr->RnField();
         Register rd = instr->RdField();
@@ -1820,49 +1740,25 @@ void Simulator::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        // synchronization primitives
-        Register rd = instr->RdField();
-        Register rn = instr->RnField();
-        uword addr = get_register(rn);
-        switch (instr->Bits(20, 4)) {
-          case 8: {
-            // Format(instr, "strex'cond 'rd, 'rm, ['rn]");
-            if (IsIllegalAddress(addr)) {
-              HandleIllegalAccess(addr, instr);
-            } else {
-              Register rm = instr->RmField();
-              set_register(rd, WriteExclusiveW(addr, get_register(rm), instr));
-            }
-            break;
-          }
-          case 9: {
-            // Format(instr, "ldrex'cond 'rd, ['rn]");
-            if (IsIllegalAddress(addr)) {
-              HandleIllegalAccess(addr, instr);
-            } else {
-              set_register(rd, ReadExclusiveW(addr, instr));
-            }
-            break;
-          }
-          default: {
-            UnimplementedInstruction(instr);
-            break;
-          }
-        }
+        UnimplementedInstruction(instr);
       }
     } else if (instr->Bit(25) == 1) {
       // 16-bit immediate loads, msr (immediate), and hints
       switch (instr->Bits(20, 5)) {
         case 16:
         case 20: {
-          uint16_t imm16 = instr->MovwField();
-          Register rd = instr->RdField();
-          if (instr->Bit(22) == 0) {
-            // Format(instr, "movw'cond 'rd, #'imm4_12");
-            set_register(rd, imm16);
+          if (TargetCPUFeatures::arm_version() == ARMv7) {
+            uint16_t imm16 = instr->MovwField();
+            Register rd = instr->RdField();
+            if (instr->Bit(22) == 0) {
+              // Format(instr, "movw'cond 'rd, #'imm4_12");
+              set_register(rd, imm16);
+            } else {
+              // Format(instr, "movt'cond 'rd, #'imm4_12");
+              set_register(rd, (get_register(rd) & 0xffff) | (imm16 << 16));
+            }
           } else {
-            // Format(instr, "movt'cond 'rd, #'imm4_12");
-            set_register(rd, (get_register(rd) & 0xffff) | (imm16 << 16));
+            UnimplementedInstruction(instr);
           }
           break;
         }
@@ -2304,10 +2200,14 @@ void Simulator::DecodeType2(Instr* instr) {
 
 
 void Simulator::DoDivision(Instr* instr) {
-  ASSERT(TargetCPUFeatures::integer_division_supported());
-  Register rd = instr->DivRdField();
-  Register rn = instr->DivRnField();
-  Register rm = instr->DivRmField();
+  const Register rd = instr->DivRdField();
+  const Register rn = instr->DivRnField();
+  const Register rm = instr->DivRmField();
+
+  if (!TargetCPUFeatures::integer_division_supported()) {
+    UnimplementedInstruction(instr);
+    return;
+  }
 
   // ARMv7-a does not trap on divide-by-zero. The destination register is just
   // set to 0.
@@ -3539,7 +3439,7 @@ void Simulator::InstructionDecode(Instr* instr) {
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       // Format(instr, "clrex");
-      ClearExclusive();
+      UnimplementedInstruction(instr);
     } else {
       if (instr->IsSIMDDataProcessing()) {
         DecodeSIMDDataProcessing(instr);
@@ -3645,6 +3545,7 @@ int64_t Simulator::Call(int32_t entry,
 
   // Setup parameters.
   if (fp_args) {
+    ASSERT(TargetCPUFeatures::vfp_supported());
     set_sregister(S0, bit_cast<float, int32_t>(parameter0));
     set_sregister(S1, bit_cast<float, int32_t>(parameter1));
     set_sregister(S2, bit_cast<float, int32_t>(parameter2));
@@ -3683,14 +3584,25 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r10_val = get_register(R10);
   int32_t r11_val = get_register(R11);
 
-  double d8_val = get_dregister(D8);
-  double d9_val = get_dregister(D9);
-  double d10_val = get_dregister(D10);
-  double d11_val = get_dregister(D11);
-  double d12_val = get_dregister(D12);
-  double d13_val = get_dregister(D13);
-  double d14_val = get_dregister(D14);
-  double d15_val = get_dregister(D15);
+  double d8_val = 0.0;
+  double d9_val = 0.0;
+  double d10_val = 0.0;
+  double d11_val = 0.0;
+  double d12_val = 0.0;
+  double d13_val = 0.0;
+  double d14_val = 0.0;
+  double d15_val = 0.0;
+
+  if (TargetCPUFeatures::vfp_supported()) {
+    d8_val = get_dregister(D8);
+    d9_val = get_dregister(D9);
+    d10_val = get_dregister(D10);
+    d11_val = get_dregister(D11);
+    d12_val = get_dregister(D12);
+    d13_val = get_dregister(D13);
+    d14_val = get_dregister(D14);
+    d15_val = get_dregister(D15);
+  }
 
   // Setup the callee-saved registers with a known value. To be able to check
   // that they are preserved properly across dart execution.
@@ -3704,15 +3616,18 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R10, callee_saved_value);
   set_register(R11, callee_saved_value);
 
-  double callee_saved_dvalue = static_cast<double>(icount_);
-  set_dregister(D8, callee_saved_dvalue);
-  set_dregister(D9, callee_saved_dvalue);
-  set_dregister(D10, callee_saved_dvalue);
-  set_dregister(D11, callee_saved_dvalue);
-  set_dregister(D12, callee_saved_dvalue);
-  set_dregister(D13, callee_saved_dvalue);
-  set_dregister(D14, callee_saved_dvalue);
-  set_dregister(D15, callee_saved_dvalue);
+  double callee_saved_dvalue = 0.0;
+  if (TargetCPUFeatures::vfp_supported()) {
+    callee_saved_dvalue = static_cast<double>(icount_);
+    set_dregister(D8, callee_saved_dvalue);
+    set_dregister(D9, callee_saved_dvalue);
+    set_dregister(D10, callee_saved_dvalue);
+    set_dregister(D11, callee_saved_dvalue);
+    set_dregister(D12, callee_saved_dvalue);
+    set_dregister(D13, callee_saved_dvalue);
+    set_dregister(D14, callee_saved_dvalue);
+    set_dregister(D15, callee_saved_dvalue);
+  }
 
   // Start the simulation
   Execute();
@@ -3727,14 +3642,16 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R10));
   ASSERT(callee_saved_value == get_register(R11));
 
-  ASSERT(callee_saved_dvalue == get_dregister(D8));
-  ASSERT(callee_saved_dvalue == get_dregister(D9));
-  ASSERT(callee_saved_dvalue == get_dregister(D10));
-  ASSERT(callee_saved_dvalue == get_dregister(D11));
-  ASSERT(callee_saved_dvalue == get_dregister(D12));
-  ASSERT(callee_saved_dvalue == get_dregister(D13));
-  ASSERT(callee_saved_dvalue == get_dregister(D14));
-  ASSERT(callee_saved_dvalue == get_dregister(D15));
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(callee_saved_dvalue == get_dregister(D8));
+    ASSERT(callee_saved_dvalue == get_dregister(D9));
+    ASSERT(callee_saved_dvalue == get_dregister(D10));
+    ASSERT(callee_saved_dvalue == get_dregister(D11));
+    ASSERT(callee_saved_dvalue == get_dregister(D12));
+    ASSERT(callee_saved_dvalue == get_dregister(D13));
+    ASSERT(callee_saved_dvalue == get_dregister(D14));
+    ASSERT(callee_saved_dvalue == get_dregister(D15));
+  }
 
   // Restore callee-saved registers with the original value.
   set_register(R4, r4_val);
@@ -3746,19 +3663,22 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R10, r10_val);
   set_register(R11, r11_val);
 
-  set_dregister(D8, d8_val);
-  set_dregister(D9, d9_val);
-  set_dregister(D10, d10_val);
-  set_dregister(D11, d11_val);
-  set_dregister(D12, d12_val);
-  set_dregister(D13, d13_val);
-  set_dregister(D14, d14_val);
-  set_dregister(D15, d15_val);
+  if (TargetCPUFeatures::vfp_supported()) {
+    set_dregister(D8, d8_val);
+    set_dregister(D9, d9_val);
+    set_dregister(D10, d10_val);
+    set_dregister(D11, d11_val);
+    set_dregister(D12, d12_val);
+    set_dregister(D13, d13_val);
+    set_dregister(D14, d14_val);
+    set_dregister(D15, d15_val);
+  }
 
   // Restore the SP register and return R1:R0.
   set_register(SP, sp_before_call);
   int64_t return_value;
   if (fp_return) {
+    ASSERT(TargetCPUFeatures::vfp_supported());
     return_value = bit_cast<int64_t, double>(get_dregister(D0));
   } else {
     return_value = Utils::LowHighTo64Bits(get_register(R0), get_register(R1));

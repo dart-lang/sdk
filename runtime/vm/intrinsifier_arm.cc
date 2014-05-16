@@ -978,229 +978,245 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
 static void CompareDoubles(Assembler* assembler, Condition true_condition) {
-  Label fall_through, is_smi, double_op;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Both arguments are double, right operand is in R0.
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+    // Both arguments are double, right operand is in R0.
 
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ Bind(&double_op);
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
+    __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
 
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  __ LoadObject(R0, Bool::False());
-  // Return false if D0 or D1 was NaN before checking true condition.
-  __ bx(LR, VS);
-  __ LoadObject(R0, Bool::True(), true_condition);
-  __ Ret();
+    __ vcmpd(D0, D1);
+    __ vmstat();
+    __ LoadObject(R0, Bool::False());
+    // Return false if D0 or D1 was NaN before checking true condition.
+    __ bx(LR, VS);
+    __ LoadObject(R0, Bool::True(), true_condition);
+    __ Ret();
 
-  __ Bind(&is_smi);  // Convert R0 to a double.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ b(&double_op);  // Then do the comparison.
-  __ Bind(&fall_through);
+    __ Bind(&is_smi);  // Convert R0 to a double.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);  // Then do the comparison.
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  return CompareDoubles(assembler, HI);
+  CompareDoubles(assembler, HI);
 }
 
 
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, CS);
+  CompareDoubles(assembler, CS);
 }
 
 
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
-  return CompareDoubles(assembler, CC);
+  CompareDoubles(assembler, CC);
 }
 
 
 void Intrinsifier::Double_equal(Assembler* assembler) {
-  return CompareDoubles(assembler, EQ);
+  CompareDoubles(assembler, EQ);
 }
 
 
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, LS);
+  CompareDoubles(assembler, LS);
 }
 
 
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
-  // Both arguments are double, right operand is in R0.
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  switch (kind) {
-    case Token::kADD: __ vaddd(D0, D0, D1); break;
-    case Token::kSUB: __ vsubd(D0, D0, D1); break;
-    case Token::kMUL: __ vmuld(D0, D0, D1); break;
-    case Token::kDIV: __ vdivd(D0, D0, D1); break;
-    default: UNREACHABLE();
+    TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+    // Both arguments are double, right operand is in R0.
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    switch (kind) {
+      case Token::kADD: __ vaddd(D0, D0, D1); break;
+      case Token::kSUB: __ vsubd(D0, D0, D1); break;
+      case Token::kMUL: __ vmuld(D0, D0, D1); break;
+      case Token::kDIV: __ vdivd(D0, D0, D1); break;
+      default: UNREACHABLE();
+    }
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
   }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
 }
 
 
 void Intrinsifier::Double_add(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kADD);
+  DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kMUL);
+  DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
 void Intrinsifier::Double_sub(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kSUB);
+  DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
 void Intrinsifier::Double_div(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kDIV);
+  DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
-  Label fall_through;
-  // Only smis allowed.
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tst(R0, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  // Is Smi.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ ldr(R0, Address(SP, 1 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ vmuld(D0, D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
+    // Only smis allowed.
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ tst(R0, ShifterOperand(kSmiTagMask));
+    __ b(&fall_through, NE);
+    // Is Smi.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ ldr(R0, Address(SP, 1 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ vmuld(D0, D0, D1);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_fromInteger(Assembler* assembler) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tst(R0, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  // Is Smi.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D0, S0);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ tst(R0, ShifterOperand(kSmiTagMask));
+    __ b(&fall_through, NE);
+    // Is Smi.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D0, S0);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
-  Label is_true;
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ LoadObject(R0, Bool::False(), VC);
-  __ LoadObject(R0, Bool::True(), VS);
-  __ Ret();
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label is_true;
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ vcmpd(D0, D0);
+    __ vmstat();
+    __ LoadObject(R0, Bool::False(), VC);
+    __ LoadObject(R0, Bool::True(), VS);
+    __ Ret();
+  }
 }
 
 
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
-  Label is_false, is_true, is_zero;
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ LoadDImmediate(D1, 0.0, R1);
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  __ b(&is_false, VS);  // NaN -> false.
-  __ b(&is_zero, EQ);  // Check for negative zero.
-  __ b(&is_false, CS);  // >= 0 -> false.
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label is_false, is_true, is_zero;
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ LoadDImmediate(D1, 0.0, R1);
+    __ vcmpd(D0, D1);
+    __ vmstat();
+    __ b(&is_false, VS);  // NaN -> false.
+    __ b(&is_zero, EQ);  // Check for negative zero.
+    __ b(&is_false, CS);  // >= 0 -> false.
 
-  __ Bind(&is_true);
-  __ LoadObject(R0, Bool::True());
-  __ Ret();
+    __ Bind(&is_true);
+    __ LoadObject(R0, Bool::True());
+    __ Ret();
 
-  __ Bind(&is_false);
-  __ LoadObject(R0, Bool::False());
-  __ Ret();
+    __ Bind(&is_false);
+    __ LoadObject(R0, Bool::False());
+    __ Ret();
 
-  __ Bind(&is_zero);
-  // Check for negative zero by looking at the sign bit.
-  __ vmovrrd(R0, R1, D0);  // R1:R0 <- D0, so sign bit is in bit 31 of R1.
-  __ mov(R1, ShifterOperand(R1, LSR, 31));
-  __ tst(R1, ShifterOperand(1));
-  __ b(&is_true, NE);  // Sign bit set.
-  __ b(&is_false);
+    __ Bind(&is_zero);
+    // Check for negative zero by looking at the sign bit.
+    __ vmovrrd(R0, R1, D0);  // R1:R0 <- D0, so sign bit is in bit 31 of R1.
+    __ mov(R1, ShifterOperand(R1, LSR, 31));
+    __ tst(R1, ShifterOperand(1));
+    __ b(&is_true, NE);  // Sign bit set.
+    __ b(&is_false);
+  }
 }
 
 
 void Intrinsifier::Double_toInt(Assembler* assembler) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
 
-  // Explicit NaN check, since ARM gives an FPU exception if you try to
-  // convert NaN to an int.
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ b(&fall_through, VS);
+    // Explicit NaN check, since ARM gives an FPU exception if you try to
+    // convert NaN to an int.
+    __ vcmpd(D0, D0);
+    __ vmstat();
+    __ b(&fall_through, VS);
 
-  __ vcvtid(S0, D0);
-  __ vmovrs(R0, S0);
-  // Overflow is signaled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ CompareImmediate(R0, 0xC0000000);
-  __ b(&fall_through, MI);
-  __ SmiTag(R0);
-  __ Ret();
-  __ Bind(&fall_through);
+    __ vcvtid(S0, D0);
+    __ vmovrs(R0, S0);
+    // Overflow is signaled with minint.
+    // Check for overflow and that it fits into Smi.
+    __ CompareImmediate(R0, 0xC0000000);
+    __ b(&fall_through, MI);
+    __ SmiTag(R0);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Math_sqrt(Assembler* assembler) {
-  Label fall_through, is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in R0.
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ Bind(&double_op);
-  __ vsqrtd(D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&is_smi);
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ b(&double_op);
-  __ Bind(&fall_through);
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through, is_smi, double_op;
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+    // Argument is double and is in R0.
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
+    __ vsqrtd(D0, D1);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&is_smi);
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);
+    __ Bind(&fall_through);
+  }
 }
 
 

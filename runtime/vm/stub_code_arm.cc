@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
+#include "vm/cpu.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
@@ -484,12 +485,17 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   __ PushList(kAllCpuRegistersList);
-  ASSERT(kFpuRegisterSize == 4 * kWordSize);
-  if (kNumberOfDRegisters > 16) {
-    __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
-    __ vstmd(DB_W, SP, D0, 16);
+
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(kFpuRegisterSize == 4 * kWordSize);
+    if (kNumberOfDRegisters > 16) {
+      __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
+      __ vstmd(DB_W, SP, D0, 16);
+    } else {
+      __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
+    }
   } else {
-    __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
+    __ AddImmediate(SP, SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
   }
 
   __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.
@@ -735,9 +741,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ PushList((1 << R3) | kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
-  ASSERT(2 * kAbiPreservedFpuRegCount < 16);
-  // Save FPU registers. 2 D registers per Q register.
-  __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+    // Save FPU registers. 2 D registers per Q register.
+    __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    __ sub(SP, SP,
+           ShifterOperand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
+  }
 
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
@@ -836,8 +847,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R4, CTX, Isolate::vm_tag_offset());
 
   // Restore C++ ABI callee-saved registers.
-  // Restore FPU registers. 2 D registers per Q register.
-  __ vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  if (TargetCPUFeatures::vfp_supported()) {
+    // Restore FPU registers. 2 D registers per Q register.
+    __ vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    __ add(SP, SP,
+       ShifterOperand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
+  }
   // Restore CPU registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 

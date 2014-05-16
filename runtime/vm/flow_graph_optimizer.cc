@@ -56,6 +56,11 @@ static bool ShouldInlineSimd() {
 }
 
 
+static bool CanUnboxDouble() {
+  return FlowGraphCompiler::SupportsUnboxedDoubles();
+}
+
+
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -413,7 +418,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 // Tries to merge MathUnary operations, in this case sinus and cosinus.
 void FlowGraphOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
-  if (!FlowGraphCompiler::SupportsSinCos()) {
+  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble()) {
     return;
   }
   if (merge_candidates->length() < 2) {
@@ -606,6 +611,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new BoxIntegerInstr(use->CopyWithType());
 
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
+    ASSERT(CanUnboxDouble());
     // Convert by boxing/unboxing.
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
     BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
@@ -617,9 +623,11 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
 
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
+    ASSERT(CanUnboxDouble());
     converted = new BoxDoubleInstr(use->CopyWithType());
 
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
+    ASSERT(CanUnboxDouble());
     ASSERT((deopt_target != NULL) ||
            (use->Type()->ToCid() == kDoubleCid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
@@ -757,7 +765,9 @@ static bool UnboxPhi(PhiInstr* phi) {
 
   switch (phi->Type()->ToCid()) {
     case kDoubleCid:
-      unboxed = kUnboxedDouble;
+      if (CanUnboxDouble()) {
+        unboxed = kUnboxedDouble;
+      }
       break;
     case kFloat32x4Cid:
       if (ShouldInlineSimd()) {
@@ -934,6 +944,11 @@ static bool HasOnlyOneDouble(const ICData& ic_data) {
 
 
 static bool ShouldSpecializeForDouble(const ICData& ic_data) {
+  // Don't specialize for double if we can't unbox them.
+  if (!CanUnboxDouble()) {
+    return false;
+  }
+
   // Unboxed double operation can't handle case of two smis.
   if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
     return false;
@@ -1318,8 +1333,6 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kImmutableArrayGetIndexed:
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:
-    case MethodRecognizer::kFloat32ArrayGetIndexed:
-    case MethodRecognizer::kFloat64ArrayGetIndexed:
     case MethodRecognizer::kInt8ArrayGetIndexed:
     case MethodRecognizer::kUint8ArrayGetIndexed:
     case MethodRecognizer::kUint8ClampedArrayGetIndexed:
@@ -1327,6 +1340,12 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
+      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
@@ -1379,6 +1398,9 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       // Check that value is always double.
       if (!ArgIsAlways(kDoubleCid, ic_data, 2)) {
         return false;
@@ -1439,10 +1461,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                      kTypedDataUint32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat64:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat64ArrayCid,
                                      ic_data, entry, last);
@@ -1491,10 +1519,16 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat64:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataFloat64ArrayCid,
                                       ic_data, entry, last);
@@ -1827,7 +1861,7 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     cid = kMintCid;
-  } else if (HasTwoDoubleOrSmi(ic_data)) {
+  } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -1929,7 +1963,7 @@ bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
     cid = kMintCid;
-  } else if (HasTwoDoubleOrSmi(ic_data)) {
+  } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
@@ -2082,6 +2116,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   if (operands_type == kDoubleCid) {
+    if (!CanUnboxDouble()) {
+      return false;
+    }
     // Check that either left or right are not a smi.  Result of a
     // binary operation with two smis is a smi not a double, except '/' which
     // returns a double for two smis.
@@ -2192,7 +2229,8 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new UnaryMintOpInstr(
         op_kind, new Value(input), call->deopt_id());
   } else if (HasOnlyOneDouble(*call->ic_data()) &&
-             (op_kind == Token::kNEGATE)) {
+             (op_kind == Token::kNEGATE) &&
+             CanUnboxDouble()) {
     AddReceiverCheck(call);
     unary_op = new UnaryDoubleOpInstr(
         Token::kNEGATE, new Value(input), call->deopt_id());
@@ -2394,6 +2432,9 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
+  if (!ShouldInlineSimd()) {
+    return false;
+  }
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(
                     call->ic_data()->AsUnaryClassChecksForArgNr(0)),
@@ -2866,7 +2907,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return false;
   }
 
-  if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
+  if (CanUnboxDouble() &&
+      (recognized_kind == MethodRecognizer::kIntegerToDouble) &&
       (ic_data.NumberOfChecks() == 1) &&
       (class_ids[0] == kSmiCid)) {
     AddReceiverCheck(call);
@@ -2877,6 +2919,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (class_ids[0] == kDoubleCid) {
+    if (!CanUnboxDouble()) {
+      return false;
+    }
     switch (recognized_kind) {
       case MethodRecognizer::kDoubleToInteger: {
         AddReceiverCheck(call);
@@ -2925,7 +2970,18 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
         (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
         (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
+    }
+
+    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat64) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat64)) {
+      if (!CanUnboxDouble()) {
+        return false;
+      }
     }
 
     switch (recognized_kind) {
@@ -3709,8 +3765,13 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 
 bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
                                                 intptr_t view_cid) {
-  bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataInt32x4ArrayCid);
+  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
+                         (view_cid == kTypedDataInt32x4ArrayCid);
+  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
+                          (view_cid == kTypedDataFloat64ArrayCid);
+  if (float_view && !CanUnboxDouble()) {
+    return false;
+  }
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -3720,8 +3781,13 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
                                                  intptr_t view_cid) {
-  bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataInt32x4ArrayCid);
+  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
+                         (view_cid == kTypedDataInt32x4ArrayCid);
+  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
+                          (view_cid == kTypedDataFloat64ArrayCid);
+  if (float_view && !CanUnboxDouble()) {
+    return false;
+  }
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -4133,6 +4199,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
 
 void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
+  if (!CanUnboxDouble()) {
+    return;
+  }
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(call->function());
   MathUnaryInstr::MathUnaryKind unary_kind;
@@ -8095,13 +8164,14 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     intptr_t value_cid = instr->value()->Type()->ToCid();
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
-        (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4))     ||
-        (checked_type.IsDoubleType() && (rep == kUnboxedDouble))       ||
+        (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
+        (checked_type.IsDoubleType() && (rep == kUnboxedDouble) &&
+         CanUnboxDouble()) ||
         (checked_type.IsIntType() && (rep == kUnboxedMint))) {
       // Ensure that compile time type matches representation.
       ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||
-             ((rep == kUnboxedInt32x4) && (value_cid == kInt32x4Cid))     ||
-             ((rep == kUnboxedDouble) && (value_cid == kDoubleCid))       ||
+             ((rep == kUnboxedInt32x4) && (value_cid == kInt32x4Cid)) ||
+             ((rep == kUnboxedDouble) && (value_cid == kDoubleCid)) ||
              ((rep == kUnboxedMint) && (value_cid == kMintCid)));
       // The representation guarantees the type check to be true.
       SetValue(instr, instr->negate_result() ? Bool::False() : Bool::True());
