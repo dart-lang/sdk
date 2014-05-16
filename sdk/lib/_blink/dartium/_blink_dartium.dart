@@ -302,7 +302,7 @@ Native_AudioContext_AudioContext() {
     return Native_AudioContext__create_1constructorCallback();
   }
 
-Native_AudioContext__create_1constructorCallback() native "AudioContext__create_1constructorCallback";
+Native_AudioContext__create_1constructorCallback() native "AudioContext_constructorCallback_RESOLVER_STRING_0_";
 
 Native_AudioContext_activeSourceCount_Getter(mthis) native "AudioContext_activeSourceCount_Getter";
 
@@ -537,7 +537,7 @@ Native_BiquadFilterNode_type_Setter(mthis, value) native "BiquadFilterNode_type_
 
 Native_BiquadFilterNode_getFrequencyResponse_Callback(mthis, frequencyHz, magResponse, phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback_RESOLVER_STRING_3_Float32Array_Float32Array_Float32Array";
 
-Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback";
+Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback_RESOLVER_STRING_3_Array_DOMString_DOMString";
 
 Native_Blob_size_Getter(mthis) native "Blob_size_Getter";
 
@@ -1296,7 +1296,7 @@ Native_DOMParser_DomParser() {
     return Native_DOMParser__create_1constructorCallback();
   }
 
-Native_DOMParser__create_1constructorCallback() native "DOMParser__create_1constructorCallback";
+Native_DOMParser__create_1constructorCallback() native "DOMParser_constructorCallback_RESOLVER_STRING_0_";
 
 Native_DOMParser_parseFromString_Callback(mthis, str, contentType) native "DOMParser_parseFromString_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
@@ -2004,7 +2004,7 @@ Native_FileReader_FileReader() {
     return Native_FileReader__create_1constructorCallback();
   }
 
-Native_FileReader__create_1constructorCallback() native "FileReader__create_1constructorCallback";
+Native_FileReader__create_1constructorCallback() native "FileReader_constructorCallback_RESOLVER_STRING_0_";
 
 Native_FileReader_error_Getter(mthis) native "FileReader_error_Getter";
 
@@ -2037,7 +2037,7 @@ Native_FileReaderSync__FileReaderSync() {
     return Native_FileReaderSync__create_1constructorCallback();
   }
 
-Native_FileReaderSync__create_1constructorCallback() native "FileReaderSync__create_1constructorCallback";
+Native_FileReaderSync__create_1constructorCallback() native "FileReaderSync_constructorCallback_RESOLVER_STRING_0_";
 
 Native_FileWriter_error_Getter(mthis) native "FileWriter_error_Getter";
 
@@ -2124,7 +2124,7 @@ Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet_forE
 
 Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callback_RESOLVER_STRING_1_FontFace";
 
-Native_FormData_constructorCallback(form) native "FormData_constructorCallback";
+Native_FormData_constructorCallback(form) native "FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement";
 
 Native_FormData_append_Callback(mthis, name, value) native "FormData_append_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
@@ -4037,7 +4037,7 @@ Native_MediaController_MediaController() {
     return Native_MediaController__create_1constructorCallback();
   }
 
-Native_MediaController__create_1constructorCallback() native "MediaController__create_1constructorCallback";
+Native_MediaController__create_1constructorCallback() native "MediaController_constructorCallback_RESOLVER_STRING_0_";
 
 Native_MediaController_buffered_Getter(mthis) native "MediaController_buffered_Getter";
 
@@ -4149,7 +4149,7 @@ Native_MediaSource_MediaSource() {
     return Native_MediaSource__create_1constructorCallback();
   }
 
-Native_MediaSource__create_1constructorCallback() native "MediaSource__create_1constructorCallback";
+Native_MediaSource__create_1constructorCallback() native "MediaSource_constructorCallback_RESOLVER_STRING_0_";
 
 Native_MediaSource_activeSourceBuffers_Getter(mthis) native "MediaSource_activeSourceBuffers_Getter";
 
@@ -4195,7 +4195,7 @@ Native_MediaStream_MediaStream(stream_OR_tracks) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_MediaStream__create_1constructorCallback() native "MediaStream__create_1constructorCallback";
+Native_MediaStream__create_1constructorCallback() native "MediaStream_constructorCallback_RESOLVER_STRING_0_";
 
 Native_MediaStream__create_2constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStream";
 
@@ -4327,7 +4327,7 @@ Native_MouseEvent_webkitMovementY_Getter(mthis) native "MouseEvent_webkitMovemen
 
 Native_MouseEvent_initMouseEvent_Callback(mthis, type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "MouseEvent_initMouseEvent_Callback_RESOLVER_STRING_15_DOMString_boolean_boolean_Window_long_long_long_long_long_boolean_boolean_boolean_boolean_unsigned short_EventTarget";
 
-Native_MutationObserver_constructorCallback(callback) native "MutationObserver_constructorCallback";
+Native_MutationObserver_constructorCallback(callback) native "MutationObserver_constructorCallback_RESOLVER_STRING_1_MutationCallback";
 
 Native_MutationObserver_disconnect_Callback(mthis) native "MutationObserver_disconnect_Callback_RESOLVER_STRING_0_";
 
@@ -4613,7 +4613,7 @@ Native_Path_Path(path_OR_text) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Path__create_1constructorCallback() native "Path__create_1constructorCallback";
+Native_Path__create_1constructorCallback() native "Path_constructorCallback_RESOLVER_STRING_0_";
 
 Native_Path__create_2constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_Path";
 
@@ -6734,7 +6734,7 @@ Native_SpeechGrammar_SpeechGrammar() {
     return Native_SpeechGrammar__create_1constructorCallback();
   }
 
-Native_SpeechGrammar__create_1constructorCallback() native "SpeechGrammar__create_1constructorCallback";
+Native_SpeechGrammar__create_1constructorCallback() native "SpeechGrammar_constructorCallback_RESOLVER_STRING_0_";
 
 Native_SpeechGrammar_src_Getter(mthis) native "SpeechGrammar_src_Getter";
 
@@ -6749,7 +6749,7 @@ Native_SpeechGrammarList_SpeechGrammarList() {
     return Native_SpeechGrammarList__create_1constructorCallback();
   }
 
-Native_SpeechGrammarList__create_1constructorCallback() native "SpeechGrammarList__create_1constructorCallback";
+Native_SpeechGrammarList__create_1constructorCallback() native "SpeechGrammarList_constructorCallback_RESOLVER_STRING_0_";
 
 Native_SpeechGrammarList_length_Getter(mthis) native "SpeechGrammarList_length_Getter";
 
@@ -6802,7 +6802,7 @@ Native_SpeechRecognition_SpeechRecognition() {
     return Native_SpeechRecognition__create_1constructorCallback();
   }
 
-Native_SpeechRecognition__create_1constructorCallback() native "SpeechRecognition__create_1constructorCallback";
+Native_SpeechRecognition__create_1constructorCallback() native "SpeechRecognition_constructorCallback_RESOLVER_STRING_0_";
 
 Native_SpeechRecognition_continuous_Getter(mthis) native "SpeechRecognition_continuous_Getter";
 
@@ -7334,7 +7334,7 @@ Native_VTTRegion_VttRegion() {
     return Native_VTTRegion__create_1constructorCallback();
   }
 
-Native_VTTRegion__create_1constructorCallback() native "VTTRegion__create_1constructorCallback";
+Native_VTTRegion__create_1constructorCallback() native "VTTRegion_constructorCallback_RESOLVER_STRING_0_";
 
 Native_VTTRegion_height_Getter(mthis) native "VTTRegion_height_Getter";
 
@@ -7882,9 +7882,9 @@ Native_WebKitMediaSource__WebKitMediaSource() {
     return Native_WebKitMediaSource__create_1constructorCallback();
   }
 
-Native_WebKitMediaSource__create_1constructorCallback() native "WebKitMediaSource__create_1constructorCallback";
+Native_WebKitMediaSource__create_1constructorCallback() native "WebKitMediaSource_constructorCallback_RESOLVER_STRING_0_";
 
-Native_WebKitPoint_constructorCallback(x, y) native "WebKitPoint_constructorCallback";
+Native_WebKitPoint_constructorCallback(x, y) native "WebKitPoint_constructorCallback_RESOLVER_STRING_2_float_float";
 
 Native_WebKitPoint_x_Getter(mthis) native "WebKitPoint_x_Getter";
 
@@ -8174,7 +8174,7 @@ Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback_RESOLVER_STRING_0_";
 
-Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback";
+Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_";
 
 Native_XMLHttpRequest_readyState_Getter(mthis) native "XMLHttpRequest_readyState_Getter";
 
@@ -8221,7 +8221,7 @@ Native_XMLSerializer_XmlSerializer() {
     return Native_XMLSerializer__create_1constructorCallback();
   }
 
-Native_XMLSerializer__create_1constructorCallback() native "XMLSerializer__create_1constructorCallback";
+Native_XMLSerializer__create_1constructorCallback() native "XMLSerializer_constructorCallback_RESOLVER_STRING_0_";
 
 Native_XMLSerializer_serializeToString_Callback(mthis, node) native "XMLSerializer_serializeToString_Callback_RESOLVER_STRING_1_Node";
 
@@ -8230,7 +8230,7 @@ Native_XPathEvaluator_XPathEvaluator() {
     return Native_XPathEvaluator__create_1constructorCallback();
   }
 
-Native_XPathEvaluator__create_1constructorCallback() native "XPathEvaluator__create_1constructorCallback";
+Native_XPathEvaluator__create_1constructorCallback() native "XPathEvaluator_constructorCallback_RESOLVER_STRING_0_";
 
 Native_XPathEvaluator_createExpression_Callback(mthis, expression, resolver) native "XPathEvaluator_createExpression_Callback_RESOLVER_STRING_2_DOMString_XPathNSResolver";
 
@@ -8265,7 +8265,7 @@ Native_XSLTProcessor_XsltProcessor() {
     return Native_XSLTProcessor__create_1constructorCallback();
   }
 
-Native_XSLTProcessor__create_1constructorCallback() native "XSLTProcessor__create_1constructorCallback";
+Native_XSLTProcessor__create_1constructorCallback() native "XSLTProcessor_constructorCallback_RESOLVER_STRING_0_";
 
 Native_XSLTProcessor_clearParameters_Callback(mthis) native "XSLTProcessor_clearParameters_Callback_RESOLVER_STRING_0_";
 

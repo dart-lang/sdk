@@ -565,7 +565,11 @@ class DartiumBackend(HtmlDartGenerator):
     constructor_callback_cpp_name = cpp_prefix + cpp_suffix
 
     if arguments is None:
-      argument_count = len(constructor_info.param_infos)
+        if self._dart_use_blink:
+            arguments = constructor_info.idl_args[0]
+            argument_count = len(arguments)
+        else:
+            argument_count = len(constructor_info.param_infos)
     else:
       argument_count = len(arguments)
 
@@ -573,7 +577,7 @@ class DartiumBackend(HtmlDartGenerator):
     parameters = constructor_info.ParametersAsStringOfVariables(argument_count)
     interface_name =  self._interface_type_info.interface_name()
 
-    if self._dart_use_blink and arguments:
+    if self._dart_use_blink:
         type_ids = [p.type.id for p in arguments]
         constructor_callback_id = \
             DeriveResolverString(self._interface.id,
