@@ -133,7 +133,7 @@ class ContextDomainHandlerTest {
     ServerDomainHandler handler = new ServerDomainHandler(server);
     Request request = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
     Response response = handler.handleRequest(request);
     if (response.error != null) {
       fail('Unexpected error: ${response.error.toJson()}');

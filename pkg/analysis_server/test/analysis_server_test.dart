@@ -106,7 +106,7 @@ class AnalysisServerTest {
     server.handlers = [new ServerDomainHandler(server)];
     var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
+    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
     return channel.sendRequest(request)
         .then((Response response) {
           expect(response.id, equals('my27'));

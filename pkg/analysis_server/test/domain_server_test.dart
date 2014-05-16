@@ -29,7 +29,7 @@ class ServerDomainHandlerTest {
 
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
+    createRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
     Response response = handler.handleRequest(createRequest);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
@@ -42,7 +42,7 @@ class ServerDomainHandlerTest {
 
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
+    createRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
     Response response = handler.handleRequest(createRequest);
     expect(response.error, isNull);
     response = handler.handleRequest(createRequest);
@@ -56,11 +56,11 @@ class ServerDomainHandlerTest {
     String contextId = 'ctx';
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    createRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
     handler.handleRequest(createRequest);
 
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
-    deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    deleteRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
     handler.handleRequest(deleteRequest);
     Response response = handler.handleRequest(deleteRequest);
     expect(response.id, equals('0'));
@@ -72,7 +72,7 @@ class ServerDomainHandlerTest {
     ServerDomainHandler handler = new ServerDomainHandler(server);
 
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
-    deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'xyzzy');
+    deleteRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'xyzzy');
     Response response = handler.handleRequest(deleteRequest);
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
@@ -85,11 +85,11 @@ class ServerDomainHandlerTest {
     String contextId = 'ctx';
     Request createRequest = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     createRequest.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    createRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    createRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
     handler.createContext(createRequest);
 
     Request deleteRequest = new Request('0', ServerDomainHandler.DELETE_CONTEXT_METHOD);
-    deleteRequest.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, contextId);
+    deleteRequest.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
     Response response = handler.handleRequest(deleteRequest);
     expect(response.toJson(), equals({
       Response.ID: '0'

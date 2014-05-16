@@ -24,6 +24,11 @@ class AnalysisServer {
   static const String ERROR_NOTIFICATION_NAME = 'context.errors';
 
   /**
+   * The name of the contextId parameter.
+   */
+  static const String CONTEXT_ID_PARAM = 'contextId';
+
+  /**
    * The name of the parameter whose value is a list of errors.
    */
   static const String ERRORS_PARAM = 'errors';
