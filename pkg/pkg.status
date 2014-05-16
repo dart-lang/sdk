@@ -135,6 +135,7 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
+polymer/test/register_test: Fail # Issue 18870
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
