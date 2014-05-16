@@ -85,6 +85,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     fpu_regs_(),
     blocked_cpu_registers_(),
     blocked_fpu_registers_(),
+    number_of_registers_(0),
+    registers_(),
+    blocked_registers_(),
     cpu_spill_slot_count_(0) {
   for (intptr_t i = 0; i < vreg_count_; i++) {
     live_ranges_.Add(NULL);
@@ -1861,8 +1864,8 @@ void FlowGraphAllocator::Spill(LiveRange* range) {
 intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
     intptr_t reg, LiveRange* unallocated) {
   intptr_t intersection = kMaxPosition;
-  for (intptr_t i = 0; i < registers_[reg].length(); i++) {
-    LiveRange* allocated = registers_[reg][i];
+  for (intptr_t i = 0; i < registers_[reg]->length(); i++) {
+    LiveRange* allocated = (*registers_[reg])[i];
     if (allocated == NULL) continue;
 
     UseInterval* allocated_head =
@@ -1966,7 +1969,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
                           free_until));
   } else {
     for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
-      if (!blocked_registers_[reg] && (registers_[reg].length() == 0)) {
+      if (!blocked_registers_[reg] && (registers_[reg]->length() == 0)) {
         candidate = reg;
         free_until = kMaxPosition;
         break;
@@ -2062,7 +2065,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     AddToUnallocated(tail);
   }
 
-  registers_[candidate].Add(unallocated);
+  registers_[candidate]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(candidate));
 
   return true;
@@ -2084,8 +2087,8 @@ bool FlowGraphAllocator::IsCheapToEvictRegisterInLoop(BlockInfo* loop,
   const intptr_t loop_start = loop->entry()->start_pos();
   const intptr_t loop_end = loop->last_block()->end_pos();
 
-  for (intptr_t i = 0; i < registers_[reg].length(); i++) {
-    LiveRange* allocated = registers_[reg][i];
+  for (intptr_t i = 0; i < registers_[reg]->length(); i++) {
+    LiveRange* allocated = (*registers_[reg])[i];
 
     UseInterval* interval = allocated->finger()->first_pending_use_interval();
     if (interval->Contains(loop_start)) {
@@ -2182,8 +2185,8 @@ bool FlowGraphAllocator::UpdateFreeUntil(intptr_t reg,
   intptr_t blocked_at = kMaxPosition;
   const intptr_t start = unallocated->Start();
 
-  for (intptr_t i = 0; i < registers_[reg].length(); i++) {
-    LiveRange* allocated = registers_[reg][i];
+  for (intptr_t i = 0; i < registers_[reg]->length(); i++) {
+    LiveRange* allocated = (*registers_[reg])[i];
 
     UseInterval* first_pending_use_interval =
         allocated->finger()->first_pending_use_interval();
@@ -2234,19 +2237,19 @@ bool FlowGraphAllocator::UpdateFreeUntil(intptr_t reg,
 void FlowGraphAllocator::RemoveEvicted(intptr_t reg, intptr_t first_evicted) {
   intptr_t to = first_evicted;
   intptr_t from = first_evicted + 1;
-  while (from < registers_[reg].length()) {
-    LiveRange* allocated = registers_[reg][from++];
-    if (allocated != NULL) registers_[reg][to++] = allocated;
+  while (from < registers_[reg]->length()) {
+    LiveRange* allocated = (*registers_[reg])[from++];
+    if (allocated != NULL) (*registers_[reg])[to++] = allocated;
   }
-  registers_[reg].TruncateTo(to);
+  registers_[reg]->TruncateTo(to);
 }
 
 
 void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
                                                intptr_t reg) {
   intptr_t first_evicted = -1;
-  for (intptr_t i = registers_[reg].length() - 1; i >= 0; i--) {
-    LiveRange* allocated = registers_[reg][i];
+  for (intptr_t i = registers_[reg]->length() - 1; i >= 0; i--) {
+    LiveRange* allocated = (*registers_[reg])[i];
     if (allocated->vreg() < 0) continue;  // Can't be evicted.
     if (EvictIntersection(allocated, unallocated)) {
       // If allocated was not spilled convert all pending uses.
@@ -2254,7 +2257,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
         ASSERT(allocated->End() <= unallocated->Start());
         ConvertAllUses(allocated);
       }
-      registers_[reg][i] = NULL;
+      (*registers_[reg])[i] = NULL;
       first_evicted = i;
     }
   }
@@ -2262,7 +2265,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
   // Remove evicted ranges from the array.
   if (first_evicted != -1) RemoveEvicted(reg, first_evicted);
 
-  registers_[reg].Add(unallocated);
+  registers_[reg]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(reg));
 }
 
@@ -2355,14 +2358,14 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
 
 void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
   for (intptr_t reg = 0; reg < NumberOfRegisters(); reg++) {
-    if (registers_[reg].is_empty()) continue;
+    if (registers_[reg]->is_empty()) continue;
 
     intptr_t first_evicted = -1;
-    for (intptr_t i = registers_[reg].length() - 1; i >= 0; i--) {
-      LiveRange* range = registers_[reg][i];
+    for (intptr_t i = registers_[reg]->length() - 1; i >= 0; i--) {
+      LiveRange* range = (*registers_[reg])[i];
       if (range->finger()->Advance(start)) {
         ConvertAllUses(range);
-        registers_[reg][i] = NULL;
+        (*registers_[reg])[i] = NULL;
         first_evicted = i;
       }
     }
@@ -2461,26 +2464,31 @@ bool FlowGraphAllocator::UnallocatedIsSorted() {
 
 
 void FlowGraphAllocator::PrepareForAllocation(
-  Location::Kind register_kind,
-  intptr_t number_of_registers,
-  const GrowableArray<LiveRange*>& unallocated,
-  LiveRange** blocking_ranges,
-  bool* blocked_registers) {
-  ASSERT(number_of_registers <= kNumberOfCpuRegisters);
+    Location::Kind register_kind,
+    intptr_t number_of_registers,
+    const GrowableArray<LiveRange*>& unallocated,
+    LiveRange** blocking_ranges,
+    bool* blocked_registers) {
   register_kind_ = register_kind;
   number_of_registers_ = number_of_registers;
 
+  blocked_registers_.Clear();
+  registers_.Clear();
+  for (intptr_t i = 0; i < number_of_registers_; i++) {
+    blocked_registers_.Add(false);
+    registers_.Add(new ZoneGrowableArray<LiveRange*>);
+  }
   ASSERT(unallocated_.is_empty());
   unallocated_.AddArray(unallocated);
 
   for (intptr_t reg = 0; reg < number_of_registers; reg++) {
     blocked_registers_[reg] = blocked_registers[reg];
-    ASSERT(registers_[reg].is_empty());
+    ASSERT(registers_[reg]->is_empty());
 
     LiveRange* range = blocking_ranges[reg];
     if (range != NULL) {
       range->finger()->Initialize(range);
-      registers_[reg].Add(range);
+      registers_[reg]->Add(range);
     }
   }
 }
