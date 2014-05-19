@@ -1170,43 +1170,55 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  ASSERT(locs()->in(1).IsRegister());  // TODO(regis): Revisit.
+  Register index = locs()->in(1).reg();
 
   Address element_address(kNoRegister, 0);
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+
+  // The array register points to the backing store for external arrays.
+  intptr_t offset = 0;
+  if (!IsExternal()) {
+    ASSERT(this->array()->definition()->representation() == kTagged);
+    offset = FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+  }
+
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
   // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
   // index is expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
   switch (index_scale()) {
     case 1: {
-      __ SmiUntag(index.reg());
+      __ add(index, array, Operand(index, ASR, kSmiTagSize));
+      element_address = Address(index, offset);
       break;
     }
     case 2: {
+      if (offset != 0) {
+        __ add(index, array, Operand(index));
+        element_address = Address(index, offset);
+      } else {
+        element_address = Address(array, index, UXTX, Address::Unscaled);
+      }
       break;
     }
     case 4: {
-      __ Lsl(index.reg(), index.reg(), 1);
+      __ add(index, array, Operand(index, LSL, 1));
+      element_address = Address(index, offset);
       break;
     }
     case 8: {
-      __ Lsl(index.reg(), index.reg(), 2);
+      __ add(index, array, Operand(index, LSL, 2));
+      element_address = Address(index, offset);
       break;
     }
     case 16: {
-      __ Lsl(index.reg(), index.reg(), 3);
+      __ add(index, array, Operand(index, LSL, 3));
+      element_address = Address(index, offset);
       break;
     }
     default:
       UNREACHABLE();
   }
-  if (!IsExternal()) {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    __ AddImmediate(index.reg(), index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag, PP);
-  }
-  element_address = Address(array, index.reg(), UXTX, Address::Unscaled);
 
   switch (class_id()) {
     case kArrayCid:
@@ -1280,23 +1292,20 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat32ArrayCid: {
-      const VRegister in2 = locs()->in(2).fpu_reg();
-      __ add(index.reg(), index.reg(), Operand(array));
-      __ fstrs(in2, Address(index.reg()));
+      const VRegister value_reg = locs()->in(2).fpu_reg();
+      __ fstrs(value_reg, element_address);
       break;
     }
     case kTypedDataFloat64ArrayCid: {
-      const VRegister in2 = locs()->in(2).fpu_reg();
-      __ add(index.reg(), index.reg(), Operand(array));
-      __ StoreDToOffset(in2, index.reg(), 0, PP);
+      const VRegister value_reg = locs()->in(2).fpu_reg();
+      __ fstrd(value_reg, element_address);
       break;
     }
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
-      const VRegister in2 = locs()->in(2).fpu_reg();
-      __ add(index.reg(), index.reg(), Operand(array));
-      __ StoreQToOffset(in2, index.reg(), 0, PP);
+      const VRegister value_reg = locs()->in(2).fpu_reg();
+      __ fstrq(value_reg, element_address);
       break;
     }
     default:

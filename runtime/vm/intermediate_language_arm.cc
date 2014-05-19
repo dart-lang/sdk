@@ -1262,16 +1262,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       element_address = Address(index.reg(), offset);
       break;
     }
-    case 8: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 2));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
-    case 16: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 3));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
+    // Cases 8 and 16 are only for unboxed values and are handled above.
     default:
       UNREACHABLE();
   }
@@ -1418,6 +1409,61 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if ((class_id() == kTypedDataFloat32ArrayCid) ||
+      (class_id() == kTypedDataFloat64ArrayCid) ||
+      (class_id() == kTypedDataFloat32x4ArrayCid) ||
+      (class_id() == kTypedDataFloat64x2ArrayCid) ||
+      (class_id() == kTypedDataInt32x4ArrayCid)) {
+    Register array = locs()->in(0).reg();
+    Register idx = locs()->in(1).reg();
+    Location value = locs()->in(2);
+    switch (index_scale()) {
+      case 1:
+        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
+        break;
+      case 4:
+        __ add(idx, array, ShifterOperand(idx, LSL, 1));
+        break;
+      case 8:
+        __ add(idx, array, ShifterOperand(idx, LSL, 2));
+        break;
+      case 16:
+        __ add(idx, array, ShifterOperand(idx, LSL, 3));
+        break;
+      default:
+        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
+        UNREACHABLE();
+    }
+    if (!IsExternal()) {
+      ASSERT(this->array()->definition()->representation() == kTagged);
+      __ AddImmediate(idx,
+          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    }
+    switch (class_id()) {
+      case kTypedDataFloat32ArrayCid: {
+        SRegister value_reg =
+            EvenSRegisterOf(EvenDRegisterOf(value.fpu_reg()));
+        __ StoreSToOffset(value_reg, idx, 0);
+        break;
+      }
+      case kTypedDataFloat64ArrayCid: {
+        DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
+        __ StoreDToOffset(value_reg, idx, 0);
+        break;
+      }
+      case kTypedDataFloat64x2ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat32x4ArrayCid: {
+        const DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
+        __ vstmd(IA, idx, value_reg, 2);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    return;
+  }
+
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
@@ -1427,35 +1473,34 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
   // index is expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
+  const intptr_t offset = IsExternal()
+      ? 0
+      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
   switch (index_scale()) {
     case 1: {
-      __ SmiUntag(index.reg());
+      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
+      element_address = Address(index.reg(), offset);
       break;
     }
     case 2: {
+      // No scaling needed, since index is a smi.
+      if (!IsExternal()) {
+        __ AddImmediate(index.reg(), index.reg(), offset);
+        element_address = Address(array, index.reg(), LSL, 0);
+      } else {
+        element_address = Address(array, index.reg(), LSL, 0);
+      }
       break;
     }
     case 4: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
+      element_address = Address(index.reg(), offset);
       break;
     }
-    case 8: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
-      break;
-    }
-    case 16: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
-      break;
-    }
+    // Cases 8 and 16 are only for unboxed values and are handled above.
     default:
       UNREACHABLE();
   }
-  if (!IsExternal()) {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    __ AddImmediate(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
-  element_address = Address(array, index.reg(), LSL, 0);
 
   switch (class_id()) {
     case kArrayCid:
@@ -1533,28 +1578,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ vmovrs(TMP, EvenSRegisterOf(EvenDRegisterOf(value)));
         __ str(TMP, element_address);
       }
-      break;
-    }
-    case kTypedDataFloat32ArrayCid: {
-      SRegister value =
-          EvenSRegisterOf(EvenDRegisterOf(locs()->in(2).fpu_reg()));
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreSToOffset(value, index.reg(), 0);
-      break;
-    }
-    case kTypedDataFloat64ArrayCid: {
-      DRegister in2 = EvenDRegisterOf(locs()->in(2).fpu_reg());
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreDToOffset(in2, index.reg(), 0);
-      break;
-    }
-    case kTypedDataFloat64x2ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat32x4ArrayCid: {
-      const QRegister in = locs()->in(2).fpu_reg();
-      const DRegister din0 = EvenDRegisterOf(in);
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ vstmd(IA, index.reg(), din0, 2);
       break;
     }
     default:
