@@ -45,6 +45,10 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     return neon_supported_;
   }
+  static bool hardfp_supported() {
+    DEBUG_ASSERT(initialized_);
+    return hardfp_supported_;
+  }
   static ARMVersion arm_version() {
     DEBUG_ASSERT(initialized_);
     return arm_version_;
@@ -74,6 +78,7 @@ class HostCPUFeatures: public AllStatic {
   static bool integer_division_supported_;
   static bool vfp_supported_;
   static bool neon_supported_;
+  static bool hardfp_supported_;
   static ARMVersion arm_version_;
 #if defined(DEBUG)
   static bool initialized_;
@@ -99,6 +104,9 @@ class TargetCPUFeatures : public AllStatic {
   }
   static bool neon_supported() {
     return HostCPUFeatures::neon_supported();
+  }
+  static bool hardfp_supported() {
+    return HostCPUFeatures::hardfp_supported();
   }
   static const char* hardware() {
     return HostCPUFeatures::hardware();

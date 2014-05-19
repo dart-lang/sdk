@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
 DEFINE_FLAG(bool, sim_use_armv7, true, "Use all ARMv7 instructions");
 DEFINE_FLAG(bool, sim_use_armv5te, false, "Restrict to ARMv5TE instructions");
 DEFINE_FLAG(bool, sim_use_armv6, false, "Restrict to ARMv6 instructions");
+DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the softfp ABI.");
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
@@ -66,6 +67,7 @@ const char* CPU::Id() {
 bool HostCPUFeatures::integer_division_supported_ = false;
 bool HostCPUFeatures::vfp_supported_ = false;
 bool HostCPUFeatures::neon_supported_ = false;
+bool HostCPUFeatures::hardfp_supported_ = false;
 const char* HostCPUFeatures::hardware_ = NULL;
 ARMVersion HostCPUFeatures::arm_version_ = ARMvUnknown;
 #if defined(DEBUG)
@@ -109,6 +111,15 @@ void HostCPUFeatures::InitOnce() {
   }
   neon_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "neon") &&
                     FLAG_use_vfp && FLAG_use_neon;
+
+  // Use the cross-compiler's predefined macros to determine whether we should
+  // use the hard or soft float ABI.
+#if defined(__ARM_PCS_VFP)
+  hardfp_supported_ = true;
+#else
+  hardfp_supported_ = false;
+#endif
+
 #if defined(DEBUG)
   initialized_ = true;
 #endif
@@ -133,13 +144,16 @@ void HostCPUFeatures::InitOnce() {
   hardware_ = CpuInfo::GetCpuModel();
   vfp_supported_ = FLAG_use_vfp;
   neon_supported_ = FLAG_use_vfp && FLAG_use_neon;
-  integer_division_supported_ = true;
+  hardfp_supported_ = FLAG_sim_use_hardfp;
   if (FLAG_sim_use_armv5te) {
     arm_version_ = ARMv5TE;
+    integer_division_supported_ = false;
   } else if (FLAG_sim_use_armv6) {
     arm_version_ = ARMv6;
+    integer_division_supported_ = true;
   } else if (FLAG_sim_use_armv7) {
     arm_version_ = ARMv7;
+    integer_division_supported_ = true;
   }
 #if defined(DEBUG)
   initialized_ = true;

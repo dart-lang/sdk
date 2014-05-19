@@ -44,18 +44,12 @@
         'abstract': 1,
         'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
-        'defines': [
-          'ARM_FLOAT_ABI_HARD',
-        ],
       },
 
       'Dart_Linux_simarm64_Base': {
         'abstract': 1,
         'cflags': [ '-O3', '-m64', '-msse2' ],
         'ldflags': [ '-m64', ],
-        'defines': [
-          'ARM64_FLOAT_ABI_HARD',
-        ],
       },
 
       # ARM cross-build
@@ -68,10 +62,6 @@
             '-mfpu=vfp',
             '-Wno-psabi', # suppresses va_list warning
             '-fno-strict-overflow',
-          ],
-          'defines': [
-            # In build.py, we specify the hf compiler.
-            'ARM_FLOAT_ABI_HARD',
           ],
         }],
         ['_toolset=="host"', {
@@ -88,10 +78,6 @@
           '-mfpu=vfp',
           '-Wno-psabi', # suppresses va_list warning
           '-fno-strict-overflow',
-        ],
-        'defines': [
-          # In build.py, we specify the hf compiler.
-          'ARM_FLOAT_ABI_HARD',
         ],
       },
 

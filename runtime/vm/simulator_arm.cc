@@ -1458,31 +1458,31 @@ void Simulator::SupervisorCall(Instr* instr) {
                  (redirection->argument_count() <= 2));
           SimulatorLeafFloatRuntimeCall target =
               reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
-#if defined(ARM_FLOAT_ABI_HARD)
-          // If we're doing "hardfp", the double arguments are already in the
-          // floating point registers.
-          double d0 = get_dregister(D0);
-          double d1 = get_dregister(D1);
-          d0 = target(d0, d1);
-          set_dregister(D0, d0);
-#else
-          // If we're not doing "hardfp", we must be doing "soft" or "softfp",
-          // So take the double arguments from the integer registers.
-          uint32_t r0 = get_register(R0);
-          int32_t r1 = get_register(R1);
-          uint32_t r2 = get_register(R2);
-          int32_t r3 = get_register(R3);
-          int64_t a0 = Utils::LowHighTo64Bits(r0, r1);
-          int64_t a1 = Utils::LowHighTo64Bits(r2, r3);
-          double d0 = bit_cast<double, int64_t>(a0);
-          double d1 = bit_cast<double, int64_t>(a1);
-          d0 = target(d0, d1);
-          a0 = bit_cast<int64_t, double>(d0);
-          r0 = Utils::Low32Bits(a0);
-          r1 = Utils::High32Bits(a0);
-          set_register(R0, r0);
-          set_register(R1, r1);
-#endif
+          if (TargetCPUFeatures::hardfp_supported()) {
+            // If we're doing "hardfp", the double arguments are already in the
+            // floating point registers.
+            double d0 = get_dregister(D0);
+            double d1 = get_dregister(D1);
+            d0 = target(d0, d1);
+            set_dregister(D0, d0);
+          } else {
+            // If we're not doing "hardfp", we must be doing "soft" or "softfp",
+            // So take the double arguments from the integer registers.
+            uint32_t r0 = get_register(R0);
+            int32_t r1 = get_register(R1);
+            uint32_t r2 = get_register(R2);
+            int32_t r3 = get_register(R3);
+            int64_t a0 = Utils::LowHighTo64Bits(r0, r1);
+            int64_t a1 = Utils::LowHighTo64Bits(r2, r3);
+            double d0 = bit_cast<double, int64_t>(a0);
+            double d1 = bit_cast<double, int64_t>(a1);
+            d0 = target(d0, d1);
+            a0 = bit_cast<int64_t, double>(d0);
+            r0 = Utils::Low32Bits(a0);
+            r1 = Utils::High32Bits(a0);
+            set_register(R0, r0);
+            set_register(R1, r1);
+          }
         } else if (redirection->call_kind() == kBootstrapNativeCall) {
           NativeArguments* arguments;
           arguments = reinterpret_cast<NativeArguments*>(get_register(R0));

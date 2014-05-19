@@ -4896,12 +4896,12 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(Q0));
     summary->set_out(0, Location::FpuRegisterLocation(Q0));
-#if !defined(ARM_FLOAT_ABI_HARD)
-    summary->AddTemp(Location::RegisterLocation(R0));
-    summary->AddTemp(Location::RegisterLocation(R1));
-    summary->AddTemp(Location::RegisterLocation(R2));
-    summary->AddTemp(Location::RegisterLocation(R3));
-#endif
+    if (!TargetCPUFeatures::hardfp_supported()) {
+      summary->AddTemp(Location::RegisterLocation(R0));
+      summary->AddTemp(Location::RegisterLocation(R1));
+      summary->AddTemp(Location::RegisterLocation(R2));
+      summary->AddTemp(Location::RegisterLocation(R3));
+    }
     return summary;
   }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
@@ -4928,18 +4928,18 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT((kind() == MathUnaryInstr::kSin) ||
            (kind() == MathUnaryInstr::kCos));
-#if defined(ARM_FLOAT_ABI_HARD)
-    __ CallRuntime(TargetFunction(), InputCount());
-#else
-    // If we aren't doing "hardfp", then we have to move the double arguments
-    // to the integer registers, and take the results from the integer
-    // registers.
-    __ vmovrrd(R0, R1, D0);
-    __ vmovrrd(R2, R3, D1);
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ vmovdrr(D0, R0, R1);
-    __ vmovdrr(D1, R2, R3);
-#endif
+    if (TargetCPUFeatures::hardfp_supported()) {
+      __ CallRuntime(TargetFunction(), InputCount());
+      } else {
+      // If we aren't doing "hardfp", then we have to move the double arguments
+      // to the integer registers, and take the results from the integer
+      // registers.
+      __ vmovrrd(R0, R1, D0);
+      __ vmovrrd(R2, R3, D1);
+      __ CallRuntime(TargetFunction(), InputCount());
+      __ vmovdrr(D0, R0, R1);
+      __ vmovdrr(D1, R2, R3);
+    }
   }
 }
 
@@ -5244,15 +5244,15 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     result->AddTemp(Location::RegisterLocation(R2));
   }
-#if !defined(ARM_FLOAT_ABI_HARD)
-  result->AddTemp(Location::RegisterLocation(R0));
-  result->AddTemp(Location::RegisterLocation(R1));
-  // Check if R2 is already added.
-  if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
-    result->AddTemp(Location::RegisterLocation(R2));
+  if (!TargetCPUFeatures::hardfp_supported()) {
+    result->AddTemp(Location::RegisterLocation(R0));
+    result->AddTemp(Location::RegisterLocation(R1));
+    // Check if R2 is already added.
+    if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
+      result->AddTemp(Location::RegisterLocation(R2));
+    }
+    result->AddTemp(Location::RegisterLocation(R3));
   }
-  result->AddTemp(Location::RegisterLocation(R3));
-#endif
   result->set_out(0, Location::FpuRegisterLocation(Q0));
   return result;
 }
@@ -5374,18 +5374,18 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
   __ vmovd(D1, D2);
-#if defined(ARM_FLOAT_ABI_HARD)
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
-#else
-  // If the ABI is not "hardfp", then we have to move the double arguments
-  // to the integer registers, and take the results from the integer
-  // registers.
-  __ vmovrrd(R0, R1, D0);
-  __ vmovrrd(R2, R3, D1);
-  __ CallRuntime(instr->TargetFunction(), kInputCount);
-  __ vmovdrr(D0, R0, R1);
-  __ vmovdrr(D1, R2, R3);
-#endif
+  if (TargetCPUFeatures::hardfp_supported()) {
+    __ CallRuntime(instr->TargetFunction(), kInputCount);
+  } else {
+    // If the ABI is not "hardfp", then we have to move the double arguments
+    // to the integer registers, and take the results from the integer
+    // registers.
+    __ vmovrrd(R0, R1, D0);
+    __ vmovrrd(R2, R3, D1);
+    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    __ vmovdrr(D0, R0, R1);
+    __ vmovdrr(D1, R2, R3);
+  }
   __ Bind(&skip_call);
 }
 
@@ -5400,18 +5400,18 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
     __ vmovd(D1, D2);
   }
-#if defined(ARM_FLOAT_ABI_HARD)
-  __ CallRuntime(TargetFunction(), InputCount());
-#else
-  // If the ABI is not "hardfp", then we have to move the double arguments
-  // to the integer registers, and take the results from the integer
-  // registers.
-  __ vmovrrd(R0, R1, D0);
-  __ vmovrrd(R2, R3, D1);
-  __ CallRuntime(TargetFunction(), InputCount());
-  __ vmovdrr(D0, R0, R1);
-  __ vmovdrr(D1, R2, R3);
-#endif
+  if (TargetCPUFeatures::hardfp_supported()) {
+    __ CallRuntime(TargetFunction(), InputCount());
+  } else {
+    // If the ABI is not "hardfp", then we have to move the double arguments
+    // to the integer registers, and take the results from the integer
+    // registers.
+    __ vmovrrd(R0, R1, D0);
+    __ vmovrrd(R2, R3, D1);
+    __ CallRuntime(TargetFunction(), InputCount());
+    __ vmovdrr(D0, R0, R1);
+    __ vmovdrr(D1, R2, R3);
+  }
 }
 
 
