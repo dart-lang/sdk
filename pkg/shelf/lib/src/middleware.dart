@@ -7,6 +7,7 @@ library shelf.middleware;
 import 'request.dart';
 import 'response.dart';
 import 'handler.dart';
+import 'hijack_exception.dart';
 import 'util.dart';
 
 /// A function which creates a new [Handler] by wrapping a [Handler].
@@ -20,6 +21,9 @@ import 'util.dart';
 /// together to offer rich functionality.
 ///
 /// Common uses for middleware include caching, logging, and authentication.
+///
+/// Middleware that captures exceptions should be sure to pass
+/// [HijackException]s on without modification.
 ///
 /// A simple [Middleware] can be created using [createMiddleware].
 typedef Handler Middleware(Handler innerHandler);
@@ -40,8 +44,9 @@ typedef Handler Middleware(Handler innerHandler);
 /// create a new response object.
 ///
 /// If provided, [errorHandler] receives errors thrown by the inner handler. It
-/// does not receive errors thrown by [requestHandler] or [responseHandler]. It
-/// can either return a new response or throw an error.
+/// does not receive errors thrown by [requestHandler] or [responseHandler], nor
+/// does it receive [HijackException]s. It can either return a new response or
+/// throw an error.
 Middleware createMiddleware({requestHandler(Request request),
     responseHandler(Response response),
     errorHandler(error, StackTrace stackTrace)}) {
@@ -56,7 +61,10 @@ Middleware createMiddleware({requestHandler(Request request),
 
         return syncFuture(() => innerHandler(request))
             .then((response) => responseHandler(response),
-                onError: errorHandler);
+                onError: (error, stackTrace) {
+          if (error is HijackException) throw error;
+          return errorHandler(error, stackTrace);
+        });
       });
     };
   };

@@ -4,7 +4,7 @@ author: Dart Team <misc@dartlang.org>
 description: Web Server Middleware for Dart
 homepage: http://www.dartlang.org
 environment:
-  sdk: '>=1.2.0 <2.0.0'
+  sdk: '>=1.4.0-dev.5.0 <2.0.0'
 documentation: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf
 dependencies:
   collection: '>=0.9.1 <0.10.0'

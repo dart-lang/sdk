@@ -8,6 +8,10 @@ import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
 
+/// Like [new Future], but avoids around issue 11911 by using [new Future.value]
+/// under the covers.
+Future newFuture(callback()) => new Future.value().then((_) => callback());
+
 /// Like [Future.sync], but wraps the Future in [Chain.track] as well.
 Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
 
