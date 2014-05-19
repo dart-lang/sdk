@@ -1163,6 +1163,10 @@ class ConstantNamingVisitor implements ConstantVisitor {
   visitDummy(DummyConstant constant) {
     add('dummy_receiver');
   }
+
+  visitDeferred(DeferredConstant constant) {
+    addRoot('Deferred');
+  }
 }
 
 /**
@@ -1243,6 +1247,11 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   visitDummy(DummyConstant constant) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         'DummyReceiverConstant should never be named and never be subconstant');
+  }
+
+  visitDeferred(DeferredConstant constant) {
+    int hash = constant.prefix.hashCode;
+    return _combine(hash, constant.referenced.accept(this));
   }
 
   int _hashString(int hash, String s) {

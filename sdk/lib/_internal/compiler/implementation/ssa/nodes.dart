@@ -184,6 +184,13 @@ class HGraph {
     return result;
   }
 
+  HConstant addDeferredConstant(Constant constant, PrefixElement prefix,
+                                Compiler compiler) {
+    Constant wrapper = new DeferredConstant(constant, prefix);
+    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
+    return addConstant(wrapper, compiler);
+  }
+
   HConstant addConstantInt(int i, Compiler compiler) {
     return addConstant(compiler.backend.constantSystem.createInt(i), compiler);
   }

@@ -2996,7 +2996,16 @@ class SsaBuilder extends ResolvedVisitor {
         value = backend.constants.getConstantForVariable(element);
       }
       if (value != null) {
-        HConstant instruction = graph.addConstant(value, compiler);
+        HConstant instruction;
+        // Constants that are referred via a deferred prefix should be referred
+        // by reference.
+        PrefixElement prefix = compiler.deferredLoadTask
+            .deferredPrefixElement(send, elements);
+        if (prefix != null) {
+          instruction = graph.addDeferredConstant(value, prefix, compiler);
+        } else {
+          instruction = graph.addConstant(value, compiler);
+        }
         stack.add(instruction);
         // The inferrer may have found a better type than the constant
         // handler in the case of lists, because the constant handler

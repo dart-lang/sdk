@@ -18,6 +18,7 @@ abstract class ConstantVisitor<R> {
   R visitType(TypeConstant constant);
   R visitInterceptor(InterceptorConstant constant);
   R visitDummy(DummyConstant constant);
+  R visitDeferred(DeferredConstant constant);
 }
 
 abstract class Constant {
@@ -650,5 +651,38 @@ class ConstructedConstant extends ObjectConstant {
     });
     sb.write('))');
     return sb.toString();
+  }
+}
+
+/// A reference to a constant in another output unit.
+/// Used for referring to deferred constants.
+class DeferredConstant extends Constant {
+  DeferredConstant(this.referenced, this.prefix);
+
+  final Constant referenced;
+  final PrefixElement prefix;
+
+  bool get isReference => true;
+
+  bool operator ==(other) {
+    return other is DeferredConstant
+        && referenced == other.referenced
+        && prefix == other.prefix;
+  }
+
+  get hashCode => (referenced.hashCode * 17 + prefix.hashCode) & 0x3fffffff;
+
+  List<Constant> getDependencies() => <Constant>[referenced];
+
+  accept(ConstantVisitor visitor) => visitor.visitDeferred(this);
+
+  DartType computeType(Compiler compiler) => referenced.computeType(compiler);
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return referenced.computeMask(compiler);
+  }
+
+  String toString() {
+    return 'DeferredConstant($referenced)';
   }
 }

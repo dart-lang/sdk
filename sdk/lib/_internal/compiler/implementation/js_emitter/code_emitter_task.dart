@@ -33,6 +33,8 @@ class CodeEmitterTask extends CompilerTask {
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
   final Map<OutputUnit, List<ClassElement>> outputClassLists =
       new Map<OutputUnit, List<ClassElement>>();
+  final Map<OutputUnit, List<Constant>> outputConstantLists =
+      new Map<OutputUnit, List<Constant>>();
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
@@ -890,26 +892,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants = handler.getConstantsForEmission(
-        compareConstants);
-    Set<Constant> outputUnitConstants = null;
-    // TODO(sigurdm): We shouldn't run through all constants for every
-    // outputUnit.
+    List<Constant> constants = outputConstantLists[outputUnit];
+    if (constants == null) return;
     for (Constant constant in constants) {
-      if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
-      OutputUnit constantUnit =
-          compiler.deferredLoadTask.outputUnitForConstant(constant);
-      if (constantUnit != outputUnit && constantUnit != null) continue;
-      if (outputUnit != compiler.deferredLoadTask.mainOutputUnit
-          && constantUnit == null) {
-        // The back-end introduces some constants, like "InterceptorConstant" or
-        // some list constants. They are emitted in the main output-unit, and
-        // ignored otherwise.
-        // TODO(sigurdm): We should track those constants.
-        continue;
-      }
-
       String name = namer.constantName(constant);
       if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
       jsAst.Expression init = js('#.# = #',
@@ -1091,6 +1076,28 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write(jsAst.prettyPrint(invokeMain, compiler));
     buffer.write(N);
     addComment('END invoke [main].', buffer);
+  }
+
+  /**
+   * Compute all the constants that must be emitted.
+   */
+  void computeNeededConstants() {
+    JavaScriptConstantCompiler handler = backend.constants;
+    List<Constant> constants = handler.getConstantsForEmission(
+        compareConstants);
+    for (Constant constant in constants) {
+      if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
+      OutputUnit constantUnit =
+          compiler.deferredLoadTask.outputUnitForConstant(constant);
+      if (constantUnit == null) {
+        // The back-end introduces some constants, like "InterceptorConstant" or
+        // some list constants. They are emitted in the main output-unit.
+        // TODO(sigurdm): We should track those constants.
+        constantUnit = compiler.deferredLoadTask.mainOutputUnit;
+      }
+      outputConstantLists.putIfAbsent(constantUnit, () => new List<Constant>())
+          .add(constant);
+    }
   }
 
   /**
@@ -1464,6 +1471,7 @@ class CodeEmitterTask extends CompilerTask {
       // which may need getInterceptor (and one-shot interceptor) methods, so
       // we have to make sure that [emitGetInterceptorMethods] and
       // [emitOneShotInterceptors] have been called.
+      computeNeededConstants();
       emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
       // Write a javascript mapping from Deferred import load ids (derrived from

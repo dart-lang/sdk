@@ -11,6 +11,7 @@ import 'dart2jslib.dart' show
     Constant,
     ConstructedConstant,
     MessageKind,
+    DeferredConstant,
     StringConstant,
     invariant;
 
@@ -187,6 +188,13 @@ class DeferredLoadTask extends CompilerTask {
   /// Returns true if e1 and e2 are in the same output unit.
   bool inSameOutputUnit(Element e1, Element e2) {
     return outputUnitForElement(e1) == outputUnitForElement(e2);
+  }
+
+  void registerConstantDeferredUse(DeferredConstant constant,
+                                   PrefixElement prefix) {
+    OutputUnit outputUnit = new OutputUnit();
+    outputUnit.imports.add(prefix.deferredImport);
+    _constantToOutputUnit[constant] = outputUnit;
   }
 
   /// Mark that [import] is part of the [OutputputUnit] for [element].
