@@ -28,6 +28,7 @@ main() {
   });
   group('ByteStreamClientChannel',  () {
     setUp(ByteStreamClientChannelTest.setUp);
+    test('close', ByteStreamClientChannelTest.close);
     test('listen_notification', ByteStreamClientChannelTest.listen_notification);
     test('listen_response', ByteStreamClientChannelTest.listen_response);
     test('sendRequest', ByteStreamClientChannelTest.sendRequest);
@@ -184,9 +185,14 @@ class ByteStreamClientChannelTest {
 
   /**
    * Sink that may be used to deliver data to the channel, as though it's
-   * coming from the client.
+   * coming from the server.
    */
   static IOSink inputSink;
+
+  /**
+   * Sink through which the channel delivers data to the server.
+   */
+  static IOSink outputSink;
 
   /**
    * Stream of lines sent back to the client by the channel.
@@ -199,8 +205,25 @@ class ByteStreamClientChannelTest {
     var outputStream = new StreamController<List<int>>();
     outputLineStream = outputStream.stream.transform((new Utf8Codec()).decoder
         ).transform(new LineSplitter());
-    var outputSink = new IOSink(outputStream);
+    outputSink = new IOSink(outputStream);
     channel = new ByteStreamClientChannel(inputStream.stream, outputSink);
+  }
+
+  static Future close() {
+    bool doneCalled = false;
+    bool closeCalled = false;
+    // add listener so that outputSink will trigger done/close futures
+    outputLineStream.listen((_) { /* no-op */ });
+    outputSink.done.then((_) {
+      doneCalled = true;
+    });
+    channel.close().then((_) {
+      closeCalled = true;
+    });
+    return pumpEventQueue().then((_) {
+      expect(doneCalled, isTrue);
+      expect(closeCalled, isTrue);
+    });
   }
 
   static Future listen_notification() {

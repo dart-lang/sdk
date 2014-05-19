@@ -202,7 +202,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 
   @override
   Future close() {
-    // TODO: implement close
+    return output.close();
   }
 
   @override
