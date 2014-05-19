@@ -23,6 +23,9 @@ kill_test: Skip         # Not implemented yet, hangs.
 kill2_test: Skip        # Not implemented yet, hangs.
 kill3_test: Skip        # Not implemented yet, hangs.
 kill_self_test: Skip    # Not implemented yet, hangs.
+handle_error_test: Skip # Not implemented yet, hangs.
+handle_error2_test: Skip # Not implemented yet, hangs.
+handle_error3_test: Skip # Not implemented yet, hangs.
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
@@ -32,6 +35,7 @@ pause_test: Fail  # non-zero timer not supported.
 
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
+isolate_throws_test/01: Fail, OK # Issue 12588. Dart2js no longer dies when an isolate throws.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 browser/typed_data_message_test: Fail # Issue 12624
