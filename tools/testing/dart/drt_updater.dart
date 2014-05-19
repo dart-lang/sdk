@@ -40,7 +40,7 @@ class _DartiumUpdater {
 
   List<String> get _getUpdateCommand {
     Uri updateScript = TestUtils.dartDirUri.resolve(script);
-    List<String> command = [updateScriptPath.toFilePath()];
+    List<String> command = [updateScript.toFilePath()];
     if (null != option) {
       command.add(option);
     }
