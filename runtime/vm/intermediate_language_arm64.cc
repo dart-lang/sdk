@@ -2463,10 +2463,10 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Register result) {
   if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
-    __ CompareImmediate(result, -0x20000000000000LL, PP);
-    __ b(overflow, LT);
-    __ CompareImmediate(result, 0x20000000000000LL, PP);
-    __ b(overflow, GT);
+    __ LoadImmediate(TMP, 0x20000000000000LL, PP);
+    __ add(TMP2, result, Operand(TMP));
+    __ cmp(TMP2, Operand(TMP, LSL, 1));
+    __ b(overflow, HI);
   }
 }
 
@@ -2578,8 +2578,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Left is not a constant.
     // Check if count too large for handling it inlined.
-    __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into IP.
-    // Overflow test (preserve left, right, and IP);
+    __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    // Overflow test (preserve left, right, and TMP);
     Register temp = locs.temp(0).reg();
     __ lslv(temp, left, TMP);
     __ asrv(TMP2, temp, TMP);

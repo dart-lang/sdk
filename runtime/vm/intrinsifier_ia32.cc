@@ -37,7 +37,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  return Array_getLength(assembler);
+  Array_getLength(assembler);
 }
 
 
@@ -60,7 +60,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  return Array_getIndexed(assembler);
+  Array_getIndexed(assembler);
 }
 
 
@@ -495,7 +495,7 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_add(Assembler* assembler) {
-  return Integer_addFromInteger(assembler);
+  Integer_addFromInteger(assembler);
 }
 
 
@@ -538,7 +538,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mul(Assembler* assembler) {
-  return Integer_mulFromInteger(assembler);
+  Integer_mulFromInteger(assembler);
 }
 
 
@@ -672,7 +672,7 @@ void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  return Integer_bitAndFromInteger(assembler);
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -688,7 +688,7 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  return Integer_bitOrFromInteger(assembler);
+  Integer_bitOrFromInteger(assembler);
 }
 
 
@@ -704,7 +704,7 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  return Integer_bitXorFromInteger(assembler);
+  Integer_bitXorFromInteger(assembler);
 }
 
 
@@ -844,27 +844,27 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
 
 
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS);
+  CompareIntegers(assembler, LESS);
 }
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  return Integer_greaterThanFromInt(assembler);
+  Integer_greaterThanFromInt(assembler);
 }
 
 
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GREATER);
+  CompareIntegers(assembler, GREATER);
 }
 
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS_EQUAL);
+  CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GREATER_EQUAL);
+  CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
@@ -920,7 +920,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_equal(Assembler* assembler) {
-  return Integer_equalToInteger(assembler);
+  Integer_equalToInteger(assembler);
 }
 
 
@@ -1022,31 +1022,31 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  return CompareDoubles(assembler, ABOVE);
+  CompareDoubles(assembler, ABOVE);
 }
 
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, ABOVE_EQUAL);
+  CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
-  return CompareDoubles(assembler, BELOW);
+  CompareDoubles(assembler, BELOW);
 }
 
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_equal(Assembler* assembler) {
-  return CompareDoubles(assembler, EQUAL);
+  CompareDoubles(assembler, EQUAL);
 }
 
 
 // arg0 is Double, arg1 is unknown.
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, BELOW_EQUAL);
+  CompareDoubles(assembler, BELOW_EQUAL);
 }
 
 
@@ -1080,22 +1080,22 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
 
 
 void Intrinsifier::Double_add(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kADD);
+  DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kMUL);
+  DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
 void Intrinsifier::Double_sub(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kSUB);
+  DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
 void Intrinsifier::Double_div(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kDIV);
+  DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 

@@ -473,6 +473,9 @@ class Assembler : public ValueObject {
   void and_(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(AND, rd, rn, o, kDoubleWord);
   }
+  void andw_(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(AND, rd, rn, o, kWord);
+  }
   void bic(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(BIC, rd, rn, o, kDoubleWord);
   }
@@ -484,6 +487,9 @@ class Assembler : public ValueObject {
   }
   void eor(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EOR, rd, rn, o, kDoubleWord);
+  }
+  void eorw(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(EOR, rd, rn, o, kWord);
   }
   void eon(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EON, rd, rn, o, kDoubleWord);
@@ -780,8 +786,15 @@ class Assembler : public ValueObject {
   void Lsl(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSL, shift));
   }
+  void Lslw(Register rd, Register rn, int shift) {
+    addw(rd, ZR, Operand(rn, LSL, shift));
+  }
   void Lsr(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSR, shift));
+  }
+  void Lsrw(Register rd, Register rn, int shift) {
+    ASSERT((shift >= 0) && (shift < 32));
+    addw(rd, ZR, Operand(rn, LSR, shift));
   }
   void Asr(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, ASR, shift));

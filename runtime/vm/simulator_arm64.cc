@@ -611,7 +611,7 @@ int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
   if ((reg == R31) && (r31t == R31IsZR)) {
     return 0;
   } else {
-    return registers_[reg];
+    return static_cast<int32_t>(registers_[reg]);
   }
 }
 

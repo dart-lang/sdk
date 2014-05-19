@@ -86,10 +86,3 @@ LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
-
-
-[ $compiler == none && $runtime == vm && $arch == simarm64 ]
-# Timeout.
-LibTest/math/MutableRectangle/boundingBox_A01_t01: Skip
-LibTest/math/Rectangle/boundingBox_A01_t01: Skip
-LibTest/core/Uri/encodeQueryComponent_A01_t02: Skip

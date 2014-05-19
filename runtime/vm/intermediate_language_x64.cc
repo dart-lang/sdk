@@ -2594,6 +2594,8 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Register result) {
   if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
+    // TODO(zra): This can be tightened to one compare/branch using:
+    // overflow = (result + 2^52) > 2^53 with an unsigned comparison.
     __ CompareImmediate(result, Immediate(-0x20000000000000LL), PP);
     __ j(LESS, overflow);
     __ CompareImmediate(result, Immediate(0x20000000000000LL), PP);

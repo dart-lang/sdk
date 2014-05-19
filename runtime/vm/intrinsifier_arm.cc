@@ -30,7 +30,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  return Array_getLength(assembler);
+  Array_getLength(assembler);
 }
 
 
@@ -57,7 +57,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  return Array_getIndexed(assembler);
+  Array_getIndexed(assembler);
 }
 
 
@@ -313,7 +313,9 @@ void Intrinsifier::GrowableList_setData(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableList_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (FLAG_enable_type_checks) return;
+  if (FLAG_enable_type_checks) {
+    return;
+  }
   Label fall_through;
   // R0: Array.
   __ ldr(R0, Address(SP, 1 * kWordSize));
@@ -488,7 +490,7 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_add(Assembler* assembler) {
-  return Integer_addFromInteger(assembler);
+  Integer_addFromInteger(assembler);
 }
 
 
@@ -516,7 +518,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-  __ SmiUntag(R0);  // untags R6. only want result shifted by one
+  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
 
   if (TargetCPUFeatures::arm_version() == ARMv7) {
     __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
@@ -533,7 +535,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mul(Assembler* assembler) {
-  return Integer_mulFromInteger(assembler);
+  Integer_mulFromInteger(assembler);
 }
 
 
@@ -595,7 +597,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //  }
 void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   // Check to see if we have integer division
-  Label fall_through, subtract;
+  Label fall_through;
   __ ldr(R1, Address(SP, + 0 * kWordSize));
   __ ldr(R0, Address(SP, + 1 * kWordSize));
   __ orr(TMP, R0, ShifterOperand(R1));
@@ -670,7 +672,7 @@ void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  return Integer_bitAndFromInteger(assembler);
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -686,7 +688,7 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  return Integer_bitOrFromInteger(assembler);
+  Integer_bitOrFromInteger(assembler);
 }
 
 
@@ -702,7 +704,7 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  return Integer_bitXorFromInteger(assembler);
+  Integer_bitXorFromInteger(assembler);
 }
 
 
@@ -841,27 +843,27 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
 
 
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return CompareIntegers(assembler, LT);
+  CompareIntegers(assembler, LT);
 }
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  return Integer_greaterThanFromInt(assembler);
+  Integer_greaterThanFromInt(assembler);
 }
 
 
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GT);
+  CompareIntegers(assembler, GT);
 }
 
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, LE);
+  CompareIntegers(assembler, LE);
 }
 
 
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GE);
+  CompareIntegers(assembler, GE);
 }
 
 
@@ -919,7 +921,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_equal(Assembler* assembler) {
-  return Integer_equalToInteger(assembler);
+  Integer_equalToInteger(assembler);
 }
 
 
@@ -1145,8 +1147,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
     Label is_false, is_true, is_zero;
     __ ldr(R0, Address(SP, 0 * kWordSize));
     __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-    __ LoadDImmediate(D1, 0.0, R1);
-    __ vcmpd(D0, D1);
+    __ vcmpdz(D0);
     __ vmstat();
     __ b(&is_false, VS);  // NaN -> false.
     __ b(&is_zero, EQ);  // Check for negative zero.

@@ -20,8 +20,3 @@ dart2js_test: Skip # Uses dart:io.
 source_mirrors_test: Slow, Pass
 dummy_compiler_test: Slow, Pass
 source_mirrors_test: Slow, Pass
-
-[ $arch == simarm64 && $checked ]
-# Timeout
-source_mirrors_test: Skip
-recursive_import_test: Skip

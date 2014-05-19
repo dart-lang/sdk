@@ -121,17 +121,6 @@ io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 io/file_read_special_device_test: Fail # dartbug.com/17440
 
-[ $arch == simarm64 ]
-# Timeout
-io/http_proxy_test: Skip
-io/http_auth_digest_test: Skip
-io/web_socket_test: Skip
-io/http_server_response_test: Skip
-io/http_content_length_test: Skip
-io/http_shutdown_test: Skip
-typed_data_test: Skip
-
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
 
