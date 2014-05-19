@@ -70,7 +70,7 @@ class AnalysisServerTest {
     ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
     LineInfo lineInfo = new LineInfo([0]);
     AnalysisError analysisError = new AnalysisError.con1(source,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, []);
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, ['Foo']);
     changeNoticeImpl.setErrors([analysisError], lineInfo);
     context.when(callsTo('performAnalysisTask')).thenReturn(
         new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0));
@@ -142,14 +142,14 @@ class AnalysisServerTest {
     CompileTimeErrorCode errorCode =
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
     AnalysisError analysisError =
-        new AnalysisError.con2(source, 10, 5, errorCode, []);
+        new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
     Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
     expect(json, hasLength(5));
     expect(json['source'], equals('foo.dart'));
     expect(json['errorCode'], equals(errorCode.ordinal));
     expect(json['offset'], equals(analysisError.offset));
     expect(json['length'], equals(analysisError.length));
-    expect(json['message'], equals(errorCode.message));
+    expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));
   }
 
   static void errorToJson_withCorrection() {
