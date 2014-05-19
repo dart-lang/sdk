@@ -49,6 +49,7 @@ final STATUS_TUPLES = [
 ];
 
 void main(List<String> args) {
+  TestUtils.setDartDirUri(Platform.script.resolve('..'));
   usage() {
     print("Usage: ${Platform.executable} <deflake|remove-nonexistent-tests>");
     exit(1);

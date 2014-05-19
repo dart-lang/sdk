@@ -10,7 +10,6 @@ import "dart:async";
 import "dart:io";
 
 import "test_suite.dart";
-import "utils.dart" show Path;
 
 class _DartiumUpdater {
   String name;
@@ -40,9 +39,8 @@ class _DartiumUpdater {
   }
 
   List<String> get _getUpdateCommand {
-    Path testScriptPath = new Path(TestUtils.testScriptPath);
-    Path updateScriptPath = testScriptPath.directoryPath.append(script);
-    List<String> command = [updateScriptPath.toNativePath()];
+    Uri updateScript = TestUtils.dartDirUri.resolve(script);
+    List<String> command = [updateScriptPath.toFilePath()];
     if (null != option) {
       command.add(option);
     }
@@ -72,13 +70,15 @@ _DartiumUpdater runtimeUpdater(Map configuration) {
     // Download the default content shell from Google Storage.
     if (_contentShellUpdater == null) {
       _contentShellUpdater = new _DartiumUpdater('Content Shell',
-                                                 'get_archive.py', 'drt');
+                                                 'tools/get_archive.py',
+                                                 'drt');
     }
     return _contentShellUpdater;
   } else if (runtime == 'dartium' && configuration['dartium'] == '') {
     // Download the default Dartium from Google Storage.
     if (_dartiumUpdater == null) {
-      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome', 'get_archive.py',
+      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome',
+                                            'tools/get_archive.py',
                                             'dartium');
     }
     return _dartiumUpdater;

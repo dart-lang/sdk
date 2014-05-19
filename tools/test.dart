@@ -306,6 +306,8 @@ Future deleteTemporaryDartDirectories() {
 }
 
 void main(List<String> arguments) {
+  // This script is in [dart]/tools.
+  TestUtils.setDartDirUri(Platform.script.resolve('..'));
   deleteTemporaryDartDirectories().then((_) {
     var optionsParser = new TestOptionsParser();
     var configurations = optionsParser.parse(arguments);

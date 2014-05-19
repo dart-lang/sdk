@@ -1874,18 +1874,19 @@ class ExistsCache {
 
 class TestUtils {
   /**
-   * The libraries in this directory relies on finding various files
-   * relative to the 'test.dart' script in '.../dart/tools/test.dart'. If
-   * the main script using 'test_suite.dart' is not there, the main
-   * script must set this to '.../dart/tools/test.dart'.
+   * Any script using TestUtils must set dartDirUri to a file:// URI
+   * pointing to the root of the Dart checkout.
    */
-  static String testScriptPath = new Path(Platform.script.path).toNativePath();
+  static setDartDirUri(uri) {
+    dartDirUri = uri;
+    dartDir = new Path(uri.toFilePath());
+  }
+  static Uri dartDirUri;
+  static Path dartDir;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static ExistsCache existsCache = new ExistsCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
-  static Path dartDir = new Path(new File(testScriptPath).absolute.path)
-      .directoryPath.directoryPath;
 
   /**
    * Creates a directory using a [relativePath] to an existing

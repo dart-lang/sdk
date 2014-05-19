@@ -38,6 +38,8 @@ const PREFIX_DARTDIR = 'root_dart';
 // Issue: 8368
 
 main(List<String> arguments) {
+  // This script is in [dart]/tools/testing/dart.
+  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
   var parser = new ArgParser();
   parser.addOption('port', abbr: 'p',
@@ -60,14 +62,6 @@ main(List<String> arguments) {
   if (args['help']) {
     print(parser.getUsage());
   } else {
-    // Pretend we're running test.dart so that TestUtils doesn't get confused
-    // about the "current directory." This is only used if we're trying to run
-    // this file independently for local testing.
-    TestUtils.testScriptPath = new Path(Platform.script.path)
-        .directoryPath
-        .join(new Path('../../test.dart'))
-        .canonicalize()
-        .toNativePath();
     var servers = new TestingServers(new Path(args['build-directory']),
                                      args['csp'],
                                      args['runtime']);
