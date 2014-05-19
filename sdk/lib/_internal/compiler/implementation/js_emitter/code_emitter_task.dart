@@ -1255,12 +1255,8 @@ class CodeEmitterTask extends CompilerTask {
 
   void writeLibraryDescriptors(LibraryElement library) {
     var uri = library.canonicalUri;
-    if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
-      // TODO(ahe): It is a hack to use compiler.sourceMapUri
-      // here.  It should be relative to the main JavaScript
-      // output file.
-      uri = relativize(
-          compiler.sourceMapUri, library.canonicalUri, false);
+    if (uri.scheme == 'file' && compiler.outputUri != null) {
+      uri = relativize(compiler.outputUri, library.canonicalUri, false);
     }
     Map<OutputUnit, ClassBuilder> descriptors =
         elementDescriptors[library];
