@@ -14,15 +14,27 @@ import 'exception.dart';
 import 'io.dart' as io;
 import 'streamed_response.dart';
 
-/// A `dart:io`-based HTTP client. This is the default client.
+/// A `dart:io`-based HTTP client.
+///
+/// This is the default client when running on the command line.
 class IOClient extends BaseClient {
   /// The underlying `dart:io` HTTP client.
   var _inner;
 
   /// Creates a new HTTP client.
-  IOClient() {
+  ///
+  /// [innerClient] must be a `dart:io` HTTP client. If it's not passed, a
+  /// default one will be instantiated.
+  IOClient([innerClient]) {
     io.assertSupported("IOClient");
-    _inner = io.newHttpClient();
+    if (innerClient != null) {
+      // TODO(nweiz): remove this assert when we can type [innerClient]
+      // properly.
+      assert(io.isHttpClient(innerClient));
+      _inner = innerClient;
+    } else {
+      _inner = io.newHttpClient();
+    }
   }
 
   /// Sends an HTTP request and asynchronously returns the response.

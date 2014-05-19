@@ -1,3 +1,7 @@
+## 0.11.1
+
+* Expose the `IOClient` class which wraps a `dart:io` `HttpClient`.
+
 ## 0.11.0+1
 
 * Fix a bug in handling errors in decoding XMLHttpRequest responses for

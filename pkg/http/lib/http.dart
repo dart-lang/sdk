@@ -18,6 +18,7 @@ export 'src/base_response.dart';
 export 'src/byte_stream.dart';
 export 'src/client.dart';
 export 'src/exception.dart';
+export 'src/io_client.dart';
 export 'src/multipart_file.dart';
 export 'src/multipart_request.dart';
 export 'src/request.dart';
