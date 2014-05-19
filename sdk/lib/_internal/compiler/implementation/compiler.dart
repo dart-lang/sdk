@@ -433,7 +433,7 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool suppressWarnings;
 
-  final api.CompilerOutputProvider outputProvider;
+  api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
 

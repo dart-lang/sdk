@@ -551,9 +551,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     for (String tag in nativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
-        compiler.reportError(classElement,
-            MessageKind.GENERIC,
-            {'text': "Tag '$tag' already in use by '${owner.name}'"});
+        if (owner != classElement) {
+          compiler.internalError(
+              classElement, "Tag '$tag' already in use by '${owner.name}'");
+        }
       } else {
         tagOwner[tag] = classElement;
       }
