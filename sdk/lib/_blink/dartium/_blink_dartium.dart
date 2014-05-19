@@ -537,7 +537,7 @@ Native_BiquadFilterNode_type_Setter(mthis, value) native "BiquadFilterNode_type_
 
 Native_BiquadFilterNode_getFrequencyResponse_Callback(mthis, frequencyHz, magResponse, phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback_RESOLVER_STRING_3_Float32Array_Float32Array_Float32Array";
 
-Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback_RESOLVER_STRING_3_Array_DOMString_DOMString";
+Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback_RESOLVER_STRING_0_";
 
 Native_Blob_size_Getter(mthis) native "Blob_size_Getter";
 
@@ -8333,16 +8333,16 @@ Native_DOMWindowCrossFrame_get_parent(_DOMWindowCrossFrame) native "Window_paren
 
 Native_DOMWindowCrossFrame_get_top(_DOMWindowCrossFrame) native "Window_top_Getter";
 
-Native_DOMWindowCrossFrame_close(_DOMWindowCrossFrame) native "Window_close_Callback";
+Native_DOMWindowCrossFrame_close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
 
-Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
+Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback_RESOLVER_STRING_3_SerializedScriptValue_DOMString_MessagePort[]";
 
 // _HistoryCrossFrame native entry points
-Native_HistoryCrossFrame_back(_HistoryCrossFrame) native "History_back_Callback";
+Native_HistoryCrossFrame_back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";
 
-Native_HistoryCrossFrame_forward(_HistoryCrossFrame) native "History_forward_Callback";
+Native_HistoryCrossFrame_forward(_HistoryCrossFrame) native "History_forward_Callback_RESOLVER_STRING_0_";
 
-Native_HistoryCrossFrame_go(_HistoryCrossFrame, distance) native "History_go_Callback";
+Native_HistoryCrossFrame_go(_HistoryCrossFrame, distance) native "History_go_Callback_RESOLVER_STRING_1_long";
 
 // _LocationCrossFrame native entry points
 Native_LocationCrossFrame_set_href(_LocationCrossFrame, h) native "Location_href_Setter";

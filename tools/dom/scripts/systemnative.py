@@ -16,8 +16,12 @@ from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 # This is an ugly hack to get things working on the M35 roll.  Once we
 # generate dart:blink from the new scripts, this shouldn't be needed.
 _cpp_resolver_string_map = {
-  'XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_':
-      'XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions',
+    # These custom constructors all resolve to a common entry, so choosing any
+    # of the generated strings works.
+    'Blob_constructorCallback_RESOLVER_STRING_3_Array_DOMString_DOMString':
+        'Blob_constructorCallback_RESOLVER_STRING_0_',
+    'XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_':
+        'XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions',
 }
 
 # TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
