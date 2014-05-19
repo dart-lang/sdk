@@ -146,4 +146,14 @@ main() {
       expect(set.removeId(barId), isNull);
     });
   });
+
+  group(".ids", () {
+    test("contains the ids of all the assets in the set", () {
+      var set = new AssetSet();
+      var foo = new Asset.fromString(fooId, "foo");
+      var bar = new Asset.fromString(barId, "bar");
+      set.addAll([foo, bar]);
+      expect(set.ids, unorderedEquals([fooId, barId]));
+    });
+  });
 }

@@ -7,7 +7,7 @@ library barback.errors;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'asset/asset_id.dart';
-import 'transformer/transformer.dart';
+import 'transformer/wrapping_aggregate_transformer.dart';
 import 'utils.dart';
 
 /// Error thrown when an asset with [id] cannot be found.
@@ -167,12 +167,17 @@ class AssetLoadException extends _WrappedException {
 /// the transformer that is applied to it.
 class TransformInfo {
   /// The transformer that's run for this transform.
-  final Transformer transformer;
+  ///
+  /// This may be a [Transformer] or a [WrappingAggregateTransformer]. It may
+  /// also return additional types in the future.
+  final transformer;
 
   /// The id of this transform's primary asset.
   final AssetId primaryId;
 
-  TransformInfo(this.transformer, this.primaryId);
+  TransformInfo(transformer, this.primaryId)
+      : transformer = transformer is WrappingAggregateTransformer ?
+            transformer.transformer : transformer;
 
   bool operator==(other) =>
       other is TransformInfo &&

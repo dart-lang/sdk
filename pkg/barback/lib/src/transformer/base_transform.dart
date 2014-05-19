@@ -47,7 +47,7 @@ abstract class BaseTransform {
       if (level == LogLevel.ERROR) _loggedError = true;
 
       // If the log isn't already associated with an asset, use the primary.
-      if (asset == null) asset = _node.primary.id;
+      if (asset == null) asset = _node.info.primaryId;
       var entry = new LogEntry(_node.info, asset, level, message, span);
       _onLogController.add(entry);
     });
@@ -84,14 +84,29 @@ abstract class BaseTransformController {
   /// The stream of log entries emitted by the transformer during a run.
   Stream<LogEntry> get onLog => transform._onLogController.stream;
 
+  /// Whether the transform's input or id stream has been closed.
+  ///
+  /// See also [done].
+  bool get isDone;
+
   BaseTransformController(this.transform);
 
-  /// Notifies the [BaseTransform] that the transformation has finished being
-  /// applied.
+  /// Mark this transform as finished emitting new inputs or input ids.
+  ///
+  /// This is distinct from [cancel] in that it *doesn't* indicate that the
+  /// transform is finished being used entirely. The transformer may still log
+  /// messages and load secondary inputs. This just indicates that all the
+  /// primary inputs are accounted for.
+  void done();
+
+  /// Mark this transform as canceled.
   ///
   /// This will close any streams and release any resources that were allocated
-  /// for the duration of the transformation.
-  void close() {
+  /// for the duration of the transformation. Unlike [done], this indicates that
+  /// the transformation is no longer relevant; either it has returned, or
+  /// something external has preemptively invalidated its results.
+  void cancel() {
+    done();
     transform._onLogController.close();
   }
 }

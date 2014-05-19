@@ -73,7 +73,7 @@ abstract class Transformer {
     return false;
   }
 
-  /// Run this transformer on on the primary input specified by [transform].
+  /// Run this transformer on the primary input specified by [transform].
   ///
   /// The [transform] is used by the [Transformer] for two purposes (in
   /// addition to accessing the primary input). It can call `getInput()` to

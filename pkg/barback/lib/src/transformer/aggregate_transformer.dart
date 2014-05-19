@@ -32,15 +32,14 @@ abstract class AggregateTransformer {
   /// All assets for which [classifyPrimary] returns the same key are passed
   /// together to the same [apply] call.
   ///
-  /// Any string can be used to classify an asset. If possible, though, this
-  /// should return a path-like string to aid in logging. If [classifyPrimary]
-  /// needs to do asynchronous work, it can also return a [Future] that
-  /// completes to the key.
+  /// This may return [Future<String>] or, if it's entirely synchronous,
+  /// [String]. Any string can be used to classify an asset. If possible,
+  /// though, this should return a path-like string to aid in logging.
   ///
   /// A return value of `null` indicates that the transformer is not interested
   /// in an asset. Assets with a key of `null` will not be passed to any [apply]
   /// call; this is equivalent to [Transformer.isPrimary] returning `false`.
-  String classifyPrimary(AssetId id);
+  classifyPrimary(AssetId id);
 
   /// Runs this transformer on a group of primary inputs specified by
   /// [transform].

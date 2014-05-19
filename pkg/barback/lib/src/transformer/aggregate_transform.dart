@@ -132,14 +132,21 @@ class AggregateTransformController extends BaseTransformController {
   /// The set of assets that the transformer has emitted.
   AssetSet get outputs => transform._outputs;
 
-  /// The controller for the [AggregateTransform.primaryInputs] stream.
-  StreamController<Asset> get inputController => transform._inputController;
+  bool get isDone => transform._inputController.isClosed;
 
   AggregateTransformController(TransformNode node)
       : super(new AggregateTransform._(node));
 
-  void close() {
-    super.close();
+  /// Adds a primary input asset to the [AggregateTransform.primaryInputs]
+  /// stream.
+  void addInput(Asset input) => transform._inputController.add(input);
+
+  /// Returns whether an input with the given [id] was added via [addInput].
+  bool addedId(AssetId id) {
+    return transform._emittedPrimaryInputs.ids.contains(id);
+  }
+
+  void done() {
     transform._inputController.close();
   }
 }
