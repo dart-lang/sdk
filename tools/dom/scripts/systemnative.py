@@ -147,6 +147,12 @@ _cpp_overloaded_callback_map = {
   ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
 }
 
+_blink_1916_rename_map = {
+  'NavigatorID': 'Navigator',
+  'Clipboard': 'DataTransfer',
+  'Player': 'AnimationPlayer',
+}
+
 _cpp_partial_map = {}
 
 _cpp_no_auto_scope_list = set([
@@ -312,6 +318,11 @@ def array_type(data_type):
         return None
     return matched.group(1)
 
+def TypeIdToBlinkName(interface_id):
+  if interface_id in _blink_1916_rename_map:
+    interface_id = _blink_1916_rename_map[interface_id]
+  return interface_id
+
 def _GetCPPTypeName(interface_name, callback_name, cpp_name):
   # TODO(vsm): We need to track the original IDL file name in order to recover
   # the proper CPP name.
@@ -336,11 +347,11 @@ def DeriveNativeName(interface_name, name, suffix):
 
 def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids):
     type_string = \
-        "_".join(type_ids)
+        "_".join(map(TypeIdToBlinkName, type_ids))
     if native_suffix:
         operation_id = "%s_%s" % (operation_id, native_suffix)
     components = \
-        [interface_id, operation_id,
+        [TypeIdToBlinkName(interface_id), operation_id,
          "RESOLVER_STRING", str(len(type_ids)), type_string]
     return "_".join(components)
 
@@ -1656,8 +1667,11 @@ class DartiumBackend(HtmlDartGenerator):
     if (resolver_string):
         native_binding = resolver_string
     else:
+        native_binding_id = self._interface.id
+        if self._dart_use_blink:
+          native_binding_id = TypeIdToBlinkName(native_binding_id)
         native_binding = \
-            '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
+            '%s_%s_%s' % (native_binding_id, idl_name, native_suffix)
 
     if self._dart_use_blink:
         if not static:

@@ -1114,19 +1114,19 @@ Native_ClientRectList_NativeIndexed_Getter(mthis, index) native "ClientRectList_
 
 Native_ClientRectList_item_Callback(mthis, index) native "ClientRectList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
-Native_Clipboard_dropEffect_Getter(mthis) native "Clipboard_dropEffect_Getter";
+Native_Clipboard_dropEffect_Getter(mthis) native "DataTransfer_dropEffect_Getter";
 
-Native_Clipboard_dropEffect_Setter(mthis, value) native "Clipboard_dropEffect_Setter";
+Native_Clipboard_dropEffect_Setter(mthis, value) native "DataTransfer_dropEffect_Setter";
 
-Native_Clipboard_effectAllowed_Getter(mthis) native "Clipboard_effectAllowed_Getter";
+Native_Clipboard_effectAllowed_Getter(mthis) native "DataTransfer_effectAllowed_Getter";
 
-Native_Clipboard_effectAllowed_Setter(mthis, value) native "Clipboard_effectAllowed_Setter";
+Native_Clipboard_effectAllowed_Setter(mthis, value) native "DataTransfer_effectAllowed_Setter";
 
-Native_Clipboard_files_Getter(mthis) native "Clipboard_files_Getter";
+Native_Clipboard_files_Getter(mthis) native "DataTransfer_files_Getter";
 
-Native_Clipboard_items_Getter(mthis) native "Clipboard_items_Getter";
+Native_Clipboard_items_Getter(mthis) native "DataTransfer_items_Getter";
 
-Native_Clipboard_types_Getter(mthis) native "Clipboard_types_Getter";
+Native_Clipboard_types_Getter(mthis) native "DataTransfer_types_Getter";
 
   // Generated overload resolver
 Native_Clipboard_clearData(mthis, type) {
@@ -1138,15 +1138,15 @@ Native_Clipboard_clearData(mthis, type) {
     return;
   }
 
-Native_Clipboard__clearData_1_Callback(mthis, type) native "Clipboard_clearData_Callback_RESOLVER_STRING_1_DOMString";
+Native_Clipboard__clearData_1_Callback(mthis, type) native "DataTransfer_clearData_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_Clipboard__clearData_2_Callback(mthis) native "Clipboard_clearData_Callback_RESOLVER_STRING_0_";
+Native_Clipboard__clearData_2_Callback(mthis) native "DataTransfer_clearData_Callback_RESOLVER_STRING_0_";
 
-Native_Clipboard_getData_Callback(mthis, type) native "Clipboard_getData_Callback_RESOLVER_STRING_1_DOMString";
+Native_Clipboard_getData_Callback(mthis, type) native "DataTransfer_getData_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_Clipboard_setData_Callback(mthis, type, data) native "Clipboard_setData_Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_Clipboard_setData_Callback(mthis, type, data) native "DataTransfer_setData_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
-Native_Clipboard_setDragImage_Callback(mthis, element, x, y) native "Clipboard_setDragImage_Callback_RESOLVER_STRING_3_Element_long_long";
+Native_Clipboard_setDragImage_Callback(mthis, element, x, y) native "DataTransfer_setDragImage_Callback_RESOLVER_STRING_3_Element_long_long";
 
 Native_CloseEvent_code_Getter(mthis) native "CloseEvent_code_Getter";
 
@@ -4373,17 +4373,17 @@ Native_NamedNodeMap_setNamedItem_Callback(mthis, node) native "NamedNodeMap_setN
 
 Native_NamedNodeMap_setNamedItemNS_Callback(mthis, node) native "NamedNodeMap_setNamedItemNS_Callback_RESOLVER_STRING_1_Node";
 
-Native_NavigatorID_appCodeName_Getter(mthis) native "NavigatorID_appCodeName_Getter";
+Native_NavigatorID_appCodeName_Getter(mthis) native "Navigator_appCodeName_Getter";
 
-Native_NavigatorID_appName_Getter(mthis) native "NavigatorID_appName_Getter";
+Native_NavigatorID_appName_Getter(mthis) native "Navigator_appName_Getter";
 
-Native_NavigatorID_appVersion_Getter(mthis) native "NavigatorID_appVersion_Getter";
+Native_NavigatorID_appVersion_Getter(mthis) native "Navigator_appVersion_Getter";
 
-Native_NavigatorID_platform_Getter(mthis) native "NavigatorID_platform_Getter";
+Native_NavigatorID_platform_Getter(mthis) native "Navigator_platform_Getter";
 
-Native_NavigatorID_product_Getter(mthis) native "NavigatorID_product_Getter";
+Native_NavigatorID_product_Getter(mthis) native "Navigator_product_Getter";
 
-Native_NavigatorID_userAgent_Getter(mthis) native "NavigatorID_userAgent_Getter";
+Native_NavigatorID_userAgent_Getter(mthis) native "Navigator_userAgent_Getter";
 
 Native_NavigatorOnLine_onLine_Getter(mthis) native "NavigatorOnLine_onLine_Getter";
 
@@ -4739,37 +4739,37 @@ Native_PerformanceTiming_unloadEventEnd_Getter(mthis) native "PerformanceTiming_
 
 Native_PerformanceTiming_unloadEventStart_Getter(mthis) native "PerformanceTiming_unloadEventStart_Getter";
 
-Native_Player_currentTime_Getter(mthis) native "Player_currentTime_Getter";
+Native_Player_currentTime_Getter(mthis) native "AnimationPlayer_currentTime_Getter";
 
-Native_Player_currentTime_Setter(mthis, value) native "Player_currentTime_Setter";
+Native_Player_currentTime_Setter(mthis, value) native "AnimationPlayer_currentTime_Setter";
 
-Native_Player_finished_Getter(mthis) native "Player_finished_Getter";
+Native_Player_finished_Getter(mthis) native "AnimationPlayer_finished_Getter";
 
-Native_Player_paused_Getter(mthis) native "Player_paused_Getter";
+Native_Player_paused_Getter(mthis) native "AnimationPlayer_paused_Getter";
 
-Native_Player_playbackRate_Getter(mthis) native "Player_playbackRate_Getter";
+Native_Player_playbackRate_Getter(mthis) native "AnimationPlayer_playbackRate_Getter";
 
-Native_Player_playbackRate_Setter(mthis, value) native "Player_playbackRate_Setter";
+Native_Player_playbackRate_Setter(mthis, value) native "AnimationPlayer_playbackRate_Setter";
 
-Native_Player_source_Getter(mthis) native "Player_source_Getter";
+Native_Player_source_Getter(mthis) native "AnimationPlayer_source_Getter";
 
-Native_Player_source_Setter(mthis, value) native "Player_source_Setter";
+Native_Player_source_Setter(mthis, value) native "AnimationPlayer_source_Setter";
 
-Native_Player_startTime_Getter(mthis) native "Player_startTime_Getter";
+Native_Player_startTime_Getter(mthis) native "AnimationPlayer_startTime_Getter";
 
-Native_Player_startTime_Setter(mthis, value) native "Player_startTime_Setter";
+Native_Player_startTime_Setter(mthis, value) native "AnimationPlayer_startTime_Setter";
 
-Native_Player_timeLag_Getter(mthis) native "Player_timeLag_Getter";
+Native_Player_timeLag_Getter(mthis) native "AnimationPlayer_timeLag_Getter";
 
-Native_Player_cancel_Callback(mthis) native "Player_cancel_Callback_RESOLVER_STRING_0_";
+Native_Player_cancel_Callback(mthis) native "AnimationPlayer_cancel_Callback_RESOLVER_STRING_0_";
 
-Native_Player_finish_Callback(mthis) native "Player_finish_Callback_RESOLVER_STRING_0_";
+Native_Player_finish_Callback(mthis) native "AnimationPlayer_finish_Callback_RESOLVER_STRING_0_";
 
-Native_Player_pause_Callback(mthis) native "Player_pause_Callback_RESOLVER_STRING_0_";
+Native_Player_pause_Callback(mthis) native "AnimationPlayer_pause_Callback_RESOLVER_STRING_0_";
 
-Native_Player_play_Callback(mthis) native "Player_play_Callback_RESOLVER_STRING_0_";
+Native_Player_play_Callback(mthis) native "AnimationPlayer_play_Callback_RESOLVER_STRING_0_";
 
-Native_Player_reverse_Callback(mthis) native "Player_reverse_Callback_RESOLVER_STRING_0_";
+Native_Player_reverse_Callback(mthis) native "AnimationPlayer_reverse_Callback_RESOLVER_STRING_0_";
 
 Native_Plugin_description_Getter(mthis) native "Plugin_description_Getter";
 
