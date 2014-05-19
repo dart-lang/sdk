@@ -1278,8 +1278,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Bind(&loop);
   __ and_(R3, R3, Operand(R1));
   const intptr_t base = Array::data_offset();
-  // R3 is smi tagged, but table entries are 8 bytes, so LSL 2.
-  __ add(TMP, R2, Operand(R3, LSL, 2));
+  // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
+  __ add(TMP, R2, Operand(R3, LSL, 3));
   __ LoadFieldFromOffset(R4, TMP, base, PP);
 
   ASSERT(kIllegalCid == 0);
@@ -1293,7 +1293,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ add(TMP, R2, Operand(R3, LSL, 2));
+  __ add(TMP, R2, Operand(R3, LSL, 3));
   __ LoadFieldFromOffset(R0, TMP, base + kWordSize, PP);
   __ LoadFieldFromOffset(R1, R0, Function::code_offset(), PP);
   __ LoadFieldFromOffset(R1, R1, Code::instructions_offset(), PP);
