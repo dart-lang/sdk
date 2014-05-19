@@ -128,6 +128,7 @@ io/http_auth_digest_test: Skip
 io/web_socket_test: Skip
 io/http_server_response_test: Skip
 io/http_content_length_test: Skip
+io/http_shutdown_test: Skip
 typed_data_test: Skip
 
 
