@@ -13941,11 +13941,11 @@ bool Type::IsEquivalent(const Instance& other,
       isolate, other_type.arguments());
   if (type_args.IsNull()) {
     // Ignore from_index.
-    return other_type_args.IsRaw(0, num_type_params);
+    return other_type_args.IsRaw(0, num_type_args);
   }
   if (other_type_args.IsNull()) {
     // Ignore from_index.
-    return type_args.IsRaw(0, num_type_params);
+    return type_args.IsRaw(0, num_type_args);
   }
   if (!type_args.IsSubvectorEquivalent(other_type_args,
                                        from_index,
