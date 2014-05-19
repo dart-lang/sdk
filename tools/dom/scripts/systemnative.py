@@ -13,6 +13,13 @@ from htmldartgenerator import *
 from idlnode import IDLArgument, IDLAttribute
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
+# This is an ugly hack to get things working on the M35 roll.  Once we
+# generate dart:blink from the new scripts, this shouldn't be needed.
+_cpp_resolver_string_map = {
+  'XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_':
+      'XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions',
+}
+
 # TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
 # an ugly workaround.
 _cpp_callback_map = {
@@ -587,6 +594,9 @@ class DartiumBackend(HtmlDartGenerator):
         # First we emit the toplevel function
         dart_native_name = \
             DeriveNativeName(self._interface.id, constructor_callback_cpp_name, "")
+        if constructor_callback_id in _cpp_resolver_string_map:
+            constructor_callback_id = \
+                _cpp_resolver_string_map[constructor_callback_id]
         self._native_library_emitter.Emit(
             '\n'
             '$FACTORY_METHOD_NAME($PARAMETERS) native "$ID";\n',
@@ -1008,6 +1018,9 @@ class DartiumBackend(HtmlDartGenerator):
           resolver_string = \
               DeriveResolverString(self._interface.id, "item", "Callback",
                                    ["unsigned long"])
+          if resolver_string in _cpp_resolver_string_map:
+              resolver_string = \
+                  _cpp_resolver_string_map[resolver_string]
           self._native_library_emitter.Emit(
               '\n'
               '$(DART_NATIVE_NAME)(mthis, index) '
@@ -1649,7 +1662,9 @@ class DartiumBackend(HtmlDartGenerator):
         else:
             formals = ", ".join(parameters)
             actuals = ", ".join(parameters)
-
+        if native_binding in _cpp_resolver_string_map:
+            native_binding = \
+                _cpp_resolver_string_map[native_binding]
         self._native_library_emitter.Emit(
             '\n'
             '$DART_NAME($FORMALS) native "$NATIVE_BINDING";\n',

@@ -8174,7 +8174,7 @@ Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback_RESOLVER_STRING_0_";
 
-Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_";
+Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions";
 
 Native_XMLHttpRequest_readyState_Getter(mthis) native "XMLHttpRequest_readyState_Getter";
 
