@@ -7,6 +7,7 @@
 import hashlib
 import imp
 import os
+import platform
 import string
 import subprocess
 import sys
@@ -17,8 +18,6 @@ DART_DIR = os.path.abspath(
 def GetUtils():
   '''Dynamically load the tools/utils.py python module.'''
   return imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
-
-utils = GetUtils()
 
 SYSTEM_RENAMES = {
   'win32': 'windows',
@@ -222,7 +221,9 @@ class GSUtil(object):
 
   def _layzCalculateGSUtilPath(self):
     if not GSUtil.GSUTIL_PATH:
-      buildbot_gsutil = utils.GetBuildbotGSUtilPath()
+      buildbot_gsutil = '/b/build/scripts/slave/gsutil'
+      if platform.system() == 'Windows':
+        buildbot_gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
       if os.path.isfile(buildbot_gsutil) and not GSUtil.USE_DART_REPO_VERSION:
         GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
         GSUtil.GSUTIL_PATH = buildbot_gsutil
@@ -250,12 +251,14 @@ class GSUtil(object):
 
     env = dict(os.environ)
     # If we're on the buildbot, we use a specific boto file.
-    if utils.GetUserName() == 'chrome-bot':
+    user_name = os.environ.get(
+        'USERNAME' if sys.platform == 'win32' else 'USER', '')
+    if user_name == 'chrome-bot':
       boto_config = {
-        'linux': '/mnt/data/b/build/site_config/.boto',
-        'macos': '/Volumes/data/b/build/site_config/.boto',
-        'win32': r'e:\b\build\site_config\.boto',
-      }[utils.GuessOS()]
+        'Linux': '/mnt/data/b/build/site_config/.boto',
+        'Darwin': '/Volumes/data/b/build/site_config/.boto',
+        'Windows': r'e:\b\build\site_config\.boto',
+      }[platform.system()]
       env['AWS_CREDENTIAL_FILE'] = boto_config
       env['BOTO_CONFIG'] = boto_config
 
