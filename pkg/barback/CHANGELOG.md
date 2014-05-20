@@ -1,3 +1,7 @@
+## 0.14.0+2
+
+* Fix a bug with the previous bug fix.
+
 ## 0.14.0+1
 
 * Fix a bug where a transformer group preceded by another transformer group

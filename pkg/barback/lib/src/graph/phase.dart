@@ -87,7 +87,7 @@ class Phase {
   NodeStatus get status {
     // Before any transformers are added, the phase should be dirty if and only
     // if any input is dirty.
-    if (_classifiers.isEmpty && _groups.isEmpty) {
+    if (_classifiers.isEmpty && _groups.isEmpty && previous == null) {
       return _inputs.any((input) => input.state.isDirty) ?
           NodeStatus.RUNNING : NodeStatus.IDLE;
     }
