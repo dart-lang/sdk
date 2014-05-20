@@ -24790,11 +24790,11 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  bool get resetStyleInheritance => _blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
+  bool get _resetStyleInheritance => _blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  void set resetStyleInheritance(bool value) => _blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
+  void set _resetStyleInheritance(bool value) => _blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
 
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
@@ -24826,6 +24826,29 @@ class ShadowRoot extends DocumentFragment {
   Selection getSelection() => _blink.Native_ShadowRoot_getSelection_Callback(this);
 
   static final bool supported = true;
+
+  static bool _resetStyleInheritanceDeprecationReported = false;
+  static void _resetStyleInheritanceDeprecationReport() {
+    if (!_resetStyleInheritanceDeprecationReported) {
+      window.console.warn('''
+ShadowRoot.resetStyleInheritance is now deprecated in dart:html.
+Please remove from your code.
+''');
+      _resetStyleInheritanceDeprecationReported = true;
+    }
+  }
+
+  @deprecated
+  bool get resetStyleInheritance {
+    _resetStyleInheritanceDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    _resetStyleInheritanceDeprecationReport();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

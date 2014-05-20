@@ -303,6 +303,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Screen.availLeft',
   'Screen.availTop',
   'Screen.availWidth',
+  'ShadowRoot.resetStyleInheritance',
   'Storage.clear',
   'Storage.getItem',
   'Storage.key',

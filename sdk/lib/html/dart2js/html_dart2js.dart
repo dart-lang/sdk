@@ -23327,9 +23327,10 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @Experimental() // untriaged
   final ShadowRoot olderShadowRoot;
 
+  @JSName('resetStyleInheritance')
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  bool resetStyleInheritance;
+  bool _resetStyleInheritance;
 
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
@@ -23369,6 +23370,14 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 
   static bool get supported =>
       JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
+
+  @deprecated
+  bool get resetStyleInheritance => this._resetStyleInheritance;
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    this._resetStyleInheritance = value;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
