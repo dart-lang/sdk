@@ -185,9 +185,6 @@ class Phase {
     for (var classifier in _classifiers.values) {
       classifier.addInput(node);
     }
-    for (var group in _groups.values) {
-      group.addInput(node);
-    }
   }
 
   // TODO(nweiz): If the output is available when this is called, it's
@@ -263,14 +260,11 @@ class Phase {
     }
 
     for (var added in newGroups.difference(oldGroups)) {
-      var runner = new GroupRunner(cascade, added, "$_location.$_index");
+      var runner = new GroupRunner(previous, added, "$_location.$_index");
       _groups[added] = runner;
       runner.onAsset.listen(_handleOutput);
       _streams.onLogPool.add(runner.onLog);
       runner.onStatusChange.listen((_) => _streams.changeStatus(status));
-      for (var input in _inputs) {
-        runner.addInput(input);
-      }
     }
 
     for (var forwarder in _forwarders.values) {
@@ -294,9 +288,18 @@ class Phase {
 
   /// Add a new phase after this one.
   ///
-  /// This may only be called on a phase with no phase following it.
-  Phase addPhase() {
-    var next = new Phase._(cascade, _location, _index + 1, this);
+  /// The new phase will have a location annotation describing its place in the
+  /// package graph. By default, this annotation will describe it as being
+  /// directly after [this]. If [location] is passed, though, it's described as
+  /// being the first phase in that location.
+  Phase addPhase([String location]) {
+    var index = 0;
+    if (location == null) {
+      location = _location;
+      index = _index + 1;
+    }
+
+    var next = new Phase._(cascade, location, index, this);
     for (var output in _outputs.values.toList()) {
       // Remove [output]'s listeners because now they should get the asset from
       // [next], rather than this phase. Any transforms consuming [output] will

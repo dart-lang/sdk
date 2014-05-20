@@ -449,4 +449,25 @@ main() {
     updateSources(["app|foo.a", "app|foo.x"]);
     buildShouldFail([isAssetCollisionException("app|foo.c")]);
   });
+
+  // Regression test for issue 18872.
+  test("a multi-phase group's outputs should be visible as secondary inputs "
+      "for a following group", () {
+    initGraph({
+      "app|foo.txt": "bar.c",
+      "app|bar.a": "bar"
+    }, {"app": [
+      [new TransformerGroup([
+        [new RewriteTransformer("a", "b")],
+        [new RewriteTransformer("b", "c")]
+      ])],
+      [new TransformerGroup([
+        [new ManyToOneTransformer("txt")]
+      ])]
+    ]});
+
+    updateSources(["app|foo.txt", "app|bar.a"]);
+    expectAsset("app|foo.out", "bar.b.c");
+    buildShouldSucceed();
+  });
 }

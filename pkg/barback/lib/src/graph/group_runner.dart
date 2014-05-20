@@ -50,8 +50,8 @@ class GroupRunner {
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
-  GroupRunner(AssetCascade cascade, this._group, this._location) {
-    _addPhase(new Phase(cascade, _location), []);
+  GroupRunner(Phase previous, this._group, this._location) {
+    _addPhase(previous.addPhase(_location), []);
     for (var phase in _group.phases) {
       _addPhase(_phases.last.addPhase(), phase);
     }
@@ -76,11 +76,6 @@ class GroupRunner {
     for (var phase in _phases) {
       phase.forceAllTransforms();
     }
-  }
-
-  /// Adds a new asset as an input for this group.
-  void addInput(AssetNode node) {
-    _phases.first.addInput(node);
   }
 
   /// Removes this group and all sub-phases within it.

@@ -1,3 +1,8 @@
+## 0.14.0+1
+
+* Fix a bug where a transformer group preceded by another transformer group
+  would sometimes fail to load secondary assets.
+
 ## 0.14.0
 
 * **Breaking change**: when an output of a lazy transformer is requested, that
