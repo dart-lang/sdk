@@ -2,38 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utils;
+library yaml.utils;
 
-/// Returns the hash code for [obj]. This includes null, true, false, maps, and
-/// lists. Also handles self-referential structures.
-int hashCodeFor(obj, [List parents]) {
-  if (parents == null) {
-    parents = [];
-  } else if (parents.any((p) => identical(p, obj))) {
-    return -1;
-  }
+import 'package:collection/collection.dart';
 
-  parents.add(obj);
-  try {
-    if (obj == null) return 0;
-    if (obj == true) return 1;
-    if (obj == false) return 2;
-    if (obj is Map) {
-      return hashCodeFor(obj.keys, parents) ^
-        hashCodeFor(obj.values, parents);
-    }
-    if (obj is Iterable) {
-      // This is probably a really bad hash function, but presumably we'll get
-      // this in the standard library before it actually matters.
-      int hash = 0;
-      for (var e in obj) {
-        hash ^= hashCodeFor(e, parents);
+/// Returns a hash code for [obj] such that structurally equivalent objects
+/// will have the same hash code.
+///
+/// This supports deep equality for maps and lists, including those with
+/// self-referential structures.
+int hashCodeFor(obj) {
+  var parents = [];
+
+  _hashCodeFor(value) {
+    if (parents.any((parent) => identical(parent, value))) return -1;
+
+    parents.add(value);
+    try {
+      if (value is Map) {
+        return _hashCodeFor(value.keys) ^ _hashCodeFor(value.values);
+      } else if (value is Iterable) {
+        return const IterableEquality().hash(value.map(hashCodeFor));
       }
-      return hash;
+      return value.hashCode;
+    } finally {
+      parents.removeLast();
     }
-    return obj.hashCode;
-  } finally {
-    parents.removeLast();
   }
-}
 
+  return _hashCodeFor(obj);
+}

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library composer;
+library yaml.composer;
 
 import 'model.dart';
 import 'visitor.dart';
@@ -19,10 +19,11 @@ class Composer extends Visitor {
   /// that anchor.
   final _anchors = <String, Node>{};
 
-  /// The next id to use for the represenation graph's anchors. The spec doesn't
-  /// use anchors in the representation graph, but we do so that the constructor
-  /// can ensure that the same node in the representation graph produces the
-  /// same native object.
+  /// The next id to use for the represenation graph's anchors.
+  ///
+  /// The spec doesn't use anchors in the representation graph, but we do so
+  /// that the constructor can ensure that the same node in the representation
+  /// graph produces the same native object.
   var _idCounter = 0;
 
   Composer(this._root);
@@ -33,13 +34,15 @@ class Composer extends Visitor {
   /// Returns the anchor to which an alias node refers.
   Node visitAlias(AliasNode alias) {
     if (!_anchors.containsKey(alias.anchor)) {
-      throw new YamlException("no anchor for alias ${alias.anchor}");
+      throw new YamlException("No anchor for alias ${alias.anchor}.");
     }
     return _anchors[alias.anchor];
   }
 
   /// Parses a scalar node according to its tag, or auto-detects the type if no
-  /// tag exists. Currently this only supports the YAML core type schema.
+  /// tag exists.
+  ///
+  /// Currently this only supports the YAML core type schema.
   Node visitScalar(ScalarNode scalar) {
     if (scalar.tag.name == "!") {
       return setAnchor(scalar, parseString(scalar.content));
@@ -51,30 +54,31 @@ class Composer extends Visitor {
       return setAnchor(scalar, parseString(scalar.content));
     }
 
-    // TODO(nweiz): support the full YAML type repository
-    var tagParsers = {
-      'null': parseNull, 'bool': parseBool, 'int': parseInt,
-      'float': parseFloat, 'str': parseString
-    };
+    var result = _parseByTag(scalar);
+    if (result != null) return setAnchor(scalar, result);
+    throw new YamlException('Invalid literal for ${scalar.tag}: '
+        '"${scalar.content}".');
+  }
 
-    for (var key in tagParsers.keys) {
-      if (scalar.tag.name != Tag.yaml(key)) continue;
-      var result = tagParsers[key](scalar.content);
-      if (result != null) return setAnchor(scalar, result);
-      throw new YamlException('invalid literal for $key: "${scalar.content}"');
+  ScalarNode _parseByTag(ScalarNode scalar) {
+    switch (scalar.tag.name) {
+      case "null": return parseNull(scalar.content);
+      case "bool": return parseBool(scalar.content);
+      case "int": return parseInt(scalar.content);
+      case "float": return parseFloat(scalar.content);
+      case "str": return parseString(scalar.content);
     }
-
-    throw new YamlException('undefined tag: "${scalar.tag.name}"');
+    throw new YamlException('Undefined tag: ${scalar.tag}.');
   }
 
   /// Assigns a tag to the sequence and recursively composes its contents.
   Node visitSequence(SequenceNode seq) {
     var tagName = seq.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != Tag.yaml("seq")) {
-      throw new YamlException("invalid tag for sequence: ${tagName}");
+      throw new YamlException("Invalid tag for sequence: ${seq.tag}.");
     }
 
-    var result = setAnchor(seq, new SequenceNode(Tag.yaml("seq"), null));
+    var result = setAnchor(seq, new SequenceNode(Tag.yaml('seq'), null));
     result.content = super.visitSequence(seq);
     return result;
   }
@@ -83,10 +87,10 @@ class Composer extends Visitor {
   Node visitMapping(MappingNode map) {
     var tagName = map.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != Tag.yaml("map")) {
-      throw new YamlException("invalid tag for mapping: ${tagName}");
+      throw new YamlException("Invalid tag for mapping: ${map.tag}.");
     }
 
-    var result = setAnchor(map, new MappingNode(Tag.yaml("map"), null));
+    var result = setAnchor(map, new MappingNode(Tag.yaml('map'), null));
     result.content = super.visitMapping(map);
     return result;
   }

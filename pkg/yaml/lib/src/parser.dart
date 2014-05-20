@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library parser;
+library yaml.parser;
 
 import 'dart:collection';
 
@@ -407,23 +407,24 @@ class Parser {
   error(String message) {
     // Line and column should be one-based.
     throw new SyntaxError(_line + 1, _column + 1,
-        "$message (in $_farthestContext)");
+        "$message (in $_farthestContext).");
   }
 
   /// If [result] is falsey, throws an error saying that [expected] was
   /// expected.
   expect(result, String expected) {
     if (truth(result)) return result;
-    error("expected $expected");
+    error("Expected $expected");
   }
 
   /// Throws an error saying that the parse failed. Uses [_farthestLine],
-  /// [_farthestColumn], and [_farthestContext] to provide additional information.
+  /// [_farthestColumn], and [_farthestContext] to provide additional
+  /// information.
   parseFailed() {
-    var message = "invalid YAML in $_farthestContext";
+    var message = "Invalid YAML in $_farthestContext";
     var extraError = _errorAnnotations[_farthestPos];
     if (extraError != null) message = "$message ($extraError)";
-    throw new SyntaxError(_farthestLine + 1, _farthestColumn + 1, message);
+    throw new SyntaxError(_farthestLine + 1, _farthestColumn + 1, "$message.");
   }
 
   /// Returns the number of spaces after the current position.
@@ -788,7 +789,7 @@ class Parser {
     case BLOCK_KEY:
     case FLOW_KEY:
       return s_separateInLine();
-    default: throw 'invalid context "$ctx"';
+    default: throw 'Invalid context "$ctx".';
     }
   }
 
@@ -1014,7 +1015,7 @@ class Parser {
     var char = peek();
     var indicator = indicatorType(char);
     if (indicator == C_RESERVED) {
-      error("reserved indicators can't start a plain scalar");
+      error("Reserved indicators can't start a plain scalar");
     }
     var match = (isNonSpace(char) && indicator == null) ||
       ((indicator == C_MAPPING_KEY ||
@@ -1037,7 +1038,7 @@ class Parser {
     case FLOW_KEY:
       // 129
       return isNonSpace(char) && !isFlowIndicator(char);
-    default: throw 'invalid context "$ctx"';
+    default: throw 'Invalid context "$ctx".';
     }
   }
 
@@ -1066,7 +1067,7 @@ class Parser {
       case BLOCK_KEY:
       case FLOW_KEY:
         return ns_plainOneLine(ctx);
-      default: throw 'invalid context "$ctx"';
+      default: throw 'Invalid context "$ctx".';
       }
     });
   });

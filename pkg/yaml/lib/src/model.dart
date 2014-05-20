@@ -5,38 +5,37 @@
 /// This file contains the node classes for the internal representations of YAML
 /// documents. These nodes are used for both the serialization tree and the
 /// representation graph.
-library model;
+library yaml.model;
 
 import 'parser.dart';
 import 'utils.dart';
 import 'visitor.dart';
 import 'yaml_exception.dart';
 
+/// The prefix for tag types defined by the YAML spec.
+const _YAML_URI_PREFIX = "tag:yaml.org,2002:";
+
 /// A tag that indicates the type of a YAML node.
 class Tag {
-  // TODO(nweiz): it would better match the semantics of the spec if there were
-  // a singleton instance of this class for each tag.
-
-  static const SCALAR_KIND = 0;
-  static const SEQUENCE_KIND = 1;
-  static const MAPPING_KIND = 2;
-
-  static const String YAML_URI_PREFIX = 'tag:yaml.org,2002:';
-
   /// The name of the tag, either a URI or a local tag beginning with "!".
   final String name;
 
-  /// The kind of the tag: SCALAR_KIND, SEQUENCE_KIND, or MAPPING_KIND.
-  final int kind;
-
-  Tag(this.name, this.kind);
-
-  Tag.scalar(String name) : this(name, SCALAR_KIND);
-  Tag.sequence(String name) : this(name, SEQUENCE_KIND);
-  Tag.mapping(String name) : this(name, MAPPING_KIND);
+  /// The kind of the tag.
+  final TagKind kind;
 
   /// Returns the standard YAML tag URI for [type].
   static String yaml(String type) => "tag:yaml.org,2002:$type";
+
+  const Tag(this.name, this.kind);
+
+  const Tag.scalar(String name)
+      : this(name, TagKind.SCALAR);
+
+  const Tag.sequence(String name)
+      : this(name, TagKind.SEQUENCE);
+
+  const Tag.mapping(String name)
+      : this(name, TagKind.MAPPING);
 
   /// Two tags are equal if their URIs are equal.
   operator ==(other) {
@@ -45,14 +44,32 @@ class Tag {
   }
 
   String toString() {
-    if (name.startsWith(YAML_URI_PREFIX)) {
-      return '!!${name.substring(YAML_URI_PREFIX.length)}';
+    if (name.startsWith(_YAML_URI_PREFIX)) {
+      return '!!${name.substring(_YAML_URI_PREFIX.length)}';
     } else {
       return '!<$name>';
     }
   }
 
   int get hashCode => name.hashCode;
+}
+
+/// An enum for kinds of tags.
+class TagKind {
+  /// A tag indicating that the value is a scalar.
+  static const SCALAR = const TagKind._("scalar");
+
+  /// A tag indicating that the value is a sequence.
+  static const SEQUENCE = const TagKind._("sequence");
+
+  /// A tag indicating that the value is a mapping.
+  static const MAPPING = const TagKind._("mapping");
+
+  final String name;
+
+  const TagKind._(this.name);
+
+  String toString() => name;
 }
 
 /// The abstract class for YAML nodes.
@@ -185,7 +202,7 @@ class ScalarNode extends Node {
       return '"${escapedValue.join()}"';
     }
 
-    throw new YamlException("unknown scalar value: $value");
+    throw new YamlException('Unknown scalar value: "$value".');
   }
 
   String toString() => '$tag "$content"';
