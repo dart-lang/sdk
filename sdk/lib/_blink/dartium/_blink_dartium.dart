@@ -537,7 +537,7 @@ Native_BiquadFilterNode_type_Setter(mthis, value) native "BiquadFilterNode_type_
 
 Native_BiquadFilterNode_getFrequencyResponse_Callback(mthis, frequencyHz, magResponse, phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback_RESOLVER_STRING_3_Float32Array_Float32Array_Float32Array";
 
-Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback_RESOLVER_STRING_0_";
+Native_Blob_constructorCallback(blobParts, type, endings) native "Blob_constructorCallback";
 
 Native_Blob_size_Getter(mthis) native "Blob_size_Getter";
 
@@ -2124,7 +2124,7 @@ Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet_forE
 
 Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callback_RESOLVER_STRING_1_FontFace";
 
-Native_FormData_constructorCallback(form) native "FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement";
+Native_FormData_constructorCallback(form) native "FormData_constructorCallback";
 
 Native_FormData_append_Callback(mthis, name, value) native "FormData_append_Callback";
 
@@ -4327,7 +4327,7 @@ Native_MouseEvent_webkitMovementY_Getter(mthis) native "MouseEvent_webkitMovemen
 
 Native_MouseEvent_initMouseEvent_Callback(mthis, type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native "MouseEvent_initMouseEvent_Callback_RESOLVER_STRING_15_DOMString_boolean_boolean_Window_long_long_long_long_long_boolean_boolean_boolean_boolean_unsigned short_EventTarget";
 
-Native_MutationObserver_constructorCallback(callback) native "MutationObserver_constructorCallback_RESOLVER_STRING_1_MutationCallback";
+Native_MutationObserver_constructorCallback(callback) native "MutationObserver_constructorCallback";
 
 Native_MutationObserver_disconnect_Callback(mthis) native "MutationObserver_disconnect_Callback_RESOLVER_STRING_0_";
 
@@ -7884,7 +7884,7 @@ Native_WebKitMediaSource__WebKitMediaSource() {
 
 Native_WebKitMediaSource__create_1constructorCallback() native "WebKitMediaSource_constructorCallback_RESOLVER_STRING_0_";
 
-Native_WebKitPoint_constructorCallback(x, y) native "WebKitPoint_constructorCallback_RESOLVER_STRING_2_float_float";
+Native_WebKitPoint_constructorCallback(x, y) native "WebKitPoint_constructorCallback";
 
 Native_WebKitPoint_x_Getter(mthis) native "WebKitPoint_x_Getter";
 
@@ -8174,7 +8174,7 @@ Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback_RESOLVER_STRING_0_";
 
-Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions";
+Native_XMLHttpRequest_constructorCallback() native "XMLHttpRequest_constructorCallback";
 
 Native_XMLHttpRequest_readyState_Getter(mthis) native "XMLHttpRequest_readyState_Getter";
 

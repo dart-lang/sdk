@@ -605,7 +605,7 @@ class DartiumBackend(HtmlDartGenerator):
     if self._dart_use_blink:
         type_ids = [p.type.id for p in arguments[:argument_count]]
         constructor_callback_id = \
-            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids)
+            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids, is_custom)
     else:
         constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
 
