@@ -46,7 +46,7 @@ Native_ANGLEInstancedArrays_drawElementsInstancedANGLE_Callback(mthis, mode, cou
 
 Native_ANGLEInstancedArrays_vertexAttribDivisorANGLE_Callback(mthis, index, divisor) native "ANGLEInstancedArrays_vertexAttribDivisorANGLE_Callback_RESOLVER_STRING_2_unsigned long_long";
 
-Native_Algorithm_name_Getter(mthis) native "Algorithm_name_Getter";
+Native_Algorithm_name_Getter(mthis) native "KeyAlgorithm_name_Getter";
 
 Native_EventTarget_addEventListener_Callback(mthis, type, listener, useCapture) native "EventTarget_addEventListener_Callback_RESOLVER_STRING_3_DOMString_EventListener_boolean";
 
@@ -863,7 +863,7 @@ Native_CanvasRenderingContext2D_clip(mthis, winding) {
     return;
   }
 
-Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D_clip_Callback_RESOLVER_STRING_1_CanvasWindingRule";
+Native_CanvasRenderingContext2D__clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D_clip_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_CanvasRenderingContext2D__clip_2_Callback(mthis) native "CanvasRenderingContext2D_clip_Callback_RESOLVER_STRING_0_";
 
@@ -960,8 +960,6 @@ Native_CanvasRenderingContext2D__drawImage_11_Callback(mthis, canvas_OR_image_OR
 
 Native_CanvasRenderingContext2D__drawImage_12_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_Callback_RESOLVER_STRING_9_ImageBitmap_float_float_float_float_float_float_float_float";
 
-Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(mthis, element) native "CanvasRenderingContext2D_drawSystemFocusRing_Callback_RESOLVER_STRING_1_Element";
-
 Native_CanvasRenderingContext2D_ellipse_Callback(mthis, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) native "CanvasRenderingContext2D_ellipse_Callback_RESOLVER_STRING_8_float_float_float_float_float_float_float_boolean";
 
   // Generated overload resolver
@@ -974,7 +972,7 @@ Native_CanvasRenderingContext2D_fill(mthis, winding) {
     return;
   }
 
-Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D_fill_Callback_RESOLVER_STRING_1_CanvasWindingRule";
+Native_CanvasRenderingContext2D__fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D_fill_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_CanvasRenderingContext2D__fill_2_Callback(mthis) native "CanvasRenderingContext2D_fill_Callback_RESOLVER_STRING_0_";
 
@@ -1008,7 +1006,7 @@ Native_CanvasRenderingContext2D_isPointInPath(mthis, x, y, winding) {
     return Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y);
   }
 
-Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D_isPointInPath_Callback_RESOLVER_STRING_3_float_float_CanvasWindingRule";
+Native_CanvasRenderingContext2D__isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D_isPointInPath_Callback_RESOLVER_STRING_3_float_float_DOMString";
 
 Native_CanvasRenderingContext2D__isPointInPath_2_Callback(mthis, x, y) native "CanvasRenderingContext2D_isPointInPath_Callback_RESOLVER_STRING_2_float_float";
 
@@ -2118,7 +2116,7 @@ Native_FontFaceSet_forEach(mthis, callback, thisArg) {
     return;
   }
 
-Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet_forEach_Callback_RESOLVER_STRING_2_FontFaceSetForEachCallback_any";
+Native_FontFaceSet__forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet_forEach_Callback_RESOLVER_STRING_2_FontFaceSetForEachCallback_ScriptValue";
 
 Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet_forEach_Callback_RESOLVER_STRING_1_FontFaceSetForEachCallback";
 
@@ -2206,49 +2204,49 @@ Native_HTMLElement_webkitdropzone_Setter(mthis, value) native "HTMLElement_webki
 
 Native_HTMLElement_click_Callback(mthis) native "HTMLElement_click_Callback_RESOLVER_STRING_0_";
 
-Native_URLUtils_hash_Getter(mthis) native "URLUtils_hash_Getter";
+Native_URLUtils_hash_Getter(mthis) native "URL_hash_Getter";
 
-Native_URLUtils_hash_Setter(mthis, value) native "URLUtils_hash_Setter";
+Native_URLUtils_hash_Setter(mthis, value) native "URL_hash_Setter";
 
-Native_URLUtils_host_Getter(mthis) native "URLUtils_host_Getter";
+Native_URLUtils_host_Getter(mthis) native "URL_host_Getter";
 
-Native_URLUtils_host_Setter(mthis, value) native "URLUtils_host_Setter";
+Native_URLUtils_host_Setter(mthis, value) native "URL_host_Setter";
 
-Native_URLUtils_hostname_Getter(mthis) native "URLUtils_hostname_Getter";
+Native_URLUtils_hostname_Getter(mthis) native "URL_hostname_Getter";
 
-Native_URLUtils_hostname_Setter(mthis, value) native "URLUtils_hostname_Setter";
+Native_URLUtils_hostname_Setter(mthis, value) native "URL_hostname_Setter";
 
-Native_URLUtils_href_Getter(mthis) native "URLUtils_href_Getter";
+Native_URLUtils_href_Getter(mthis) native "URL_href_Getter";
 
-Native_URLUtils_href_Setter(mthis, value) native "URLUtils_href_Setter";
+Native_URLUtils_href_Setter(mthis, value) native "URL_href_Setter";
 
-Native_URLUtils_origin_Getter(mthis) native "URLUtils_origin_Getter";
+Native_URLUtils_origin_Getter(mthis) native "URL_origin_Getter";
 
-Native_URLUtils_password_Getter(mthis) native "URLUtils_password_Getter";
+Native_URLUtils_password_Getter(mthis) native "URL_password_Getter";
 
-Native_URLUtils_password_Setter(mthis, value) native "URLUtils_password_Setter";
+Native_URLUtils_password_Setter(mthis, value) native "URL_password_Setter";
 
-Native_URLUtils_pathname_Getter(mthis) native "URLUtils_pathname_Getter";
+Native_URLUtils_pathname_Getter(mthis) native "URL_pathname_Getter";
 
-Native_URLUtils_pathname_Setter(mthis, value) native "URLUtils_pathname_Setter";
+Native_URLUtils_pathname_Setter(mthis, value) native "URL_pathname_Setter";
 
-Native_URLUtils_port_Getter(mthis) native "URLUtils_port_Getter";
+Native_URLUtils_port_Getter(mthis) native "URL_port_Getter";
 
-Native_URLUtils_port_Setter(mthis, value) native "URLUtils_port_Setter";
+Native_URLUtils_port_Setter(mthis, value) native "URL_port_Setter";
 
-Native_URLUtils_protocol_Getter(mthis) native "URLUtils_protocol_Getter";
+Native_URLUtils_protocol_Getter(mthis) native "URL_protocol_Getter";
 
-Native_URLUtils_protocol_Setter(mthis, value) native "URLUtils_protocol_Setter";
+Native_URLUtils_protocol_Setter(mthis, value) native "URL_protocol_Setter";
 
-Native_URLUtils_search_Getter(mthis) native "URLUtils_search_Getter";
+Native_URLUtils_search_Getter(mthis) native "URL_search_Getter";
 
-Native_URLUtils_search_Setter(mthis, value) native "URLUtils_search_Setter";
+Native_URLUtils_search_Setter(mthis, value) native "URL_search_Setter";
 
-Native_URLUtils_username_Getter(mthis) native "URLUtils_username_Getter";
+Native_URLUtils_username_Getter(mthis) native "URL_username_Getter";
 
-Native_URLUtils_username_Setter(mthis, value) native "URLUtils_username_Setter";
+Native_URLUtils_username_Setter(mthis, value) native "URL_username_Setter";
 
-Native_URLUtils_toString_Callback(mthis) native "URLUtils_toString_Callback_RESOLVER_STRING_0_";
+Native_URLUtils_toString_Callback(mthis) native "URL_toString_Callback_RESOLVER_STRING_0_";
 
 Native_HTMLAnchorElement_download_Getter(mthis) native "HTMLAnchorElement_download_Getter";
 
@@ -3719,13 +3717,13 @@ Native_IDBCursor_source_Getter(mthis) native "IDBCursor_source_Getter";
 
 Native_IDBCursor_advance_Callback(mthis, count) native "IDBCursor_advance_Callback_RESOLVER_STRING_1_unsigned long";
 
-Native_IDBCursor_continuePrimaryKey_Callback(mthis, key, primaryKey) native "IDBCursor_continuePrimaryKey_Callback_RESOLVER_STRING_2_any_any";
+Native_IDBCursor_continuePrimaryKey_Callback(mthis, key, primaryKey) native "IDBCursor_continuePrimaryKey_Callback_RESOLVER_STRING_2_ScriptValue_ScriptValue";
 
 Native_IDBCursor_delete_Callback(mthis) native "IDBCursor_delete_Callback_RESOLVER_STRING_0_";
 
-Native_IDBCursor_next_Callback(mthis, key) native "IDBCursor_continue_Callback_RESOLVER_STRING_1_any";
+Native_IDBCursor_next_Callback(mthis, key) native "IDBCursor_continue_Callback_RESOLVER_STRING_1_ScriptValue";
 
-Native_IDBCursor_update_Callback(mthis, value) native "IDBCursor_update_Callback_RESOLVER_STRING_1_any";
+Native_IDBCursor_update_Callback(mthis, value) native "IDBCursor_update_Callback_RESOLVER_STRING_1_ScriptValue";
 
 Native_IDBCursorWithValue_value_Getter(mthis) native "IDBCursorWithValue_value_Getter";
 
@@ -3767,7 +3765,7 @@ Native_IDBDatabase_transactionStore_Callback(mthis, storeName, mode) native "IDB
 
 Native_IDBDatabase_transactionStores_Callback(mthis, storeNames, mode) native "IDBDatabase_transaction_Callback_RESOLVER_STRING_2_DOMStringList_DOMString";
 
-Native_IDBFactory_cmp_Callback(mthis, first, second) native "IDBFactory_cmp_Callback_RESOLVER_STRING_2_any_any";
+Native_IDBFactory_cmp_Callback(mthis, first, second) native "IDBFactory_cmp_Callback_RESOLVER_STRING_2_ScriptValue_ScriptValue";
 
 Native_IDBFactory_deleteDatabase_Callback(mthis, name) native "IDBFactory_deleteDatabase_Callback_RESOLVER_STRING_1_DOMString";
 
@@ -3795,15 +3793,15 @@ Native_IDBIndex_objectStore_Getter(mthis) native "IDBIndex_objectStore_Getter";
 
 Native_IDBIndex_unique_Getter(mthis) native "IDBIndex_unique_Getter";
 
-Native_IDBIndex_count_Callback(mthis, key) native "IDBIndex_count_Callback_RESOLVER_STRING_1_any";
+Native_IDBIndex_count_Callback(mthis, key) native "IDBIndex_count_Callback_RESOLVER_STRING_1_ScriptValue";
 
-Native_IDBIndex_get_Callback(mthis, key) native "IDBIndex_get_Callback_RESOLVER_STRING_1_any";
+Native_IDBIndex_get_Callback(mthis, key) native "IDBIndex_get_Callback_RESOLVER_STRING_1_ScriptValue";
 
-Native_IDBIndex_getKey_Callback(mthis, key) native "IDBIndex_getKey_Callback_RESOLVER_STRING_1_any";
+Native_IDBIndex_getKey_Callback(mthis, key) native "IDBIndex_getKey_Callback_RESOLVER_STRING_1_ScriptValue";
 
-Native_IDBIndex_openCursor_Callback(mthis, key, direction) native "IDBIndex_openCursor_Callback_RESOLVER_STRING_2_any_DOMString";
+Native_IDBIndex_openCursor_Callback(mthis, key, direction) native "IDBIndex_openCursor_Callback_RESOLVER_STRING_2_ScriptValue_DOMString";
 
-Native_IDBIndex_openKeyCursor_Callback(mthis, key, direction) native "IDBIndex_openKeyCursor_Callback_RESOLVER_STRING_2_any_DOMString";
+Native_IDBIndex_openKeyCursor_Callback(mthis, key, direction) native "IDBIndex_openKeyCursor_Callback_RESOLVER_STRING_2_ScriptValue_DOMString";
 
 Native_IDBKeyRange_lower_Getter(mthis) native "IDBKeyRange_lower_Getter";
 
@@ -3813,13 +3811,13 @@ Native_IDBKeyRange_upper_Getter(mthis) native "IDBKeyRange_upper_Getter";
 
 Native_IDBKeyRange_upperOpen_Getter(mthis) native "IDBKeyRange_upperOpen_Getter";
 
-Native_IDBKeyRange_bound__Callback(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_Callback_RESOLVER_STRING_4_any_any_boolean_boolean";
+Native_IDBKeyRange_bound__Callback(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_Callback_RESOLVER_STRING_4_ScriptValue_ScriptValue_boolean_boolean";
 
-Native_IDBKeyRange_lowerBound__Callback(bound, open) native "IDBKeyRange_lowerBound_Callback_RESOLVER_STRING_2_any_boolean";
+Native_IDBKeyRange_lowerBound__Callback(bound, open) native "IDBKeyRange_lowerBound_Callback_RESOLVER_STRING_2_ScriptValue_boolean";
 
-Native_IDBKeyRange_only__Callback(value) native "IDBKeyRange_only_Callback_RESOLVER_STRING_1_any";
+Native_IDBKeyRange_only__Callback(value) native "IDBKeyRange_only_Callback_RESOLVER_STRING_1_ScriptValue";
 
-Native_IDBKeyRange_upperBound__Callback(bound, open) native "IDBKeyRange_upperBound_Callback_RESOLVER_STRING_2_any_boolean";
+Native_IDBKeyRange_upperBound__Callback(bound, open) native "IDBKeyRange_upperBound_Callback_RESOLVER_STRING_2_ScriptValue_boolean";
 
 Native_IDBObjectStore_autoIncrement_Getter(mthis) native "IDBObjectStore_autoIncrement_Getter";
 
@@ -3831,11 +3829,11 @@ Native_IDBObjectStore_name_Getter(mthis) native "IDBObjectStore_name_Getter";
 
 Native_IDBObjectStore_transaction_Getter(mthis) native "IDBObjectStore_transaction_Getter";
 
-Native_IDBObjectStore_add_Callback(mthis, value, key) native "IDBObjectStore_add_Callback_RESOLVER_STRING_2_any_any";
+Native_IDBObjectStore_add_Callback(mthis, value, key) native "IDBObjectStore_add_Callback_RESOLVER_STRING_2_ScriptValue_ScriptValue";
 
 Native_IDBObjectStore_clear_Callback(mthis) native "IDBObjectStore_clear_Callback_RESOLVER_STRING_0_";
 
-Native_IDBObjectStore_count_Callback(mthis, key) native "IDBObjectStore_count_Callback_RESOLVER_STRING_1_any";
+Native_IDBObjectStore_count_Callback(mthis, key) native "IDBObjectStore_count_Callback_RESOLVER_STRING_1_ScriptValue";
 
   // Generated overload resolver
 Native_IDBObjectStore__createIndex(mthis, name, keyPath, options) {
@@ -3852,19 +3850,19 @@ Native_IDBObjectStore__createIndex_1_Callback(mthis, name, keyPath, options) nat
 
 Native_IDBObjectStore__createIndex_2_Callback(mthis, name, keyPath, options) native "IDBObjectStore_createIndex_Callback_RESOLVER_STRING_3_DOMString_DOMString_Dictionary";
 
-Native_IDBObjectStore_delete_Callback(mthis, key) native "IDBObjectStore_delete_Callback_RESOLVER_STRING_1_any";
+Native_IDBObjectStore_delete_Callback(mthis, key) native "IDBObjectStore_delete_Callback_RESOLVER_STRING_1_ScriptValue";
 
 Native_IDBObjectStore_deleteIndex_Callback(mthis, name) native "IDBObjectStore_deleteIndex_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_IDBObjectStore_get_Callback(mthis, key) native "IDBObjectStore_get_Callback_RESOLVER_STRING_1_any";
+Native_IDBObjectStore_get_Callback(mthis, key) native "IDBObjectStore_get_Callback_RESOLVER_STRING_1_ScriptValue";
 
 Native_IDBObjectStore_index_Callback(mthis, name) native "IDBObjectStore_index_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_IDBObjectStore_openCursor_Callback(mthis, key, direction) native "IDBObjectStore_openCursor_Callback_RESOLVER_STRING_2_any_DOMString";
+Native_IDBObjectStore_openCursor_Callback(mthis, key, direction) native "IDBObjectStore_openCursor_Callback_RESOLVER_STRING_2_ScriptValue_DOMString";
 
-Native_IDBObjectStore_openKeyCursor_Callback(mthis, range, direction) native "IDBObjectStore_openKeyCursor_Callback_RESOLVER_STRING_2_any_DOMString";
+Native_IDBObjectStore_openKeyCursor_Callback(mthis, range, direction) native "IDBObjectStore_openKeyCursor_Callback_RESOLVER_STRING_2_ScriptValue_DOMString";
 
-Native_IDBObjectStore_put_Callback(mthis, value, key) native "IDBObjectStore_put_Callback_RESOLVER_STRING_2_any_any";
+Native_IDBObjectStore_put_Callback(mthis, value, key) native "IDBObjectStore_put_Callback_RESOLVER_STRING_2_ScriptValue_ScriptValue";
 
 Native_IDBRequest_error_Getter(mthis) native "IDBRequest_error_Getter";
 
@@ -3914,7 +3912,7 @@ Native_InputMethodContext_target_Getter(mthis) native "InputMethodContext_target
 
 Native_InputMethodContext_confirmComposition_Callback(mthis) native "InputMethodContext_confirmComposition_Callback_RESOLVER_STRING_0_";
 
-Native_InstallPhaseEvent_waitUntil_Callback(mthis, value) native "InstallPhaseEvent_waitUntil_Callback_RESOLVER_STRING_1_any";
+Native_InstallPhaseEvent_waitUntil_Callback(mthis, value) native "InstallPhaseEvent_waitUntil_Callback_RESOLVER_STRING_1_ScriptValue";
 
 Native_InstallEvent_replace_Callback(mthis) native "InstallEvent_replace_Callback_RESOLVER_STRING_0_";
 
@@ -4173,7 +4171,7 @@ Native_MediaSource_endOfStream(mthis, error) {
     return;
   }
 
-Native_MediaSource__endOfStream_1_Callback(mthis, error) native "MediaSource_endOfStream_Callback_RESOLVER_STRING_1_EndOfStreamError";
+Native_MediaSource__endOfStream_1_Callback(mthis, error) native "MediaSource_endOfStream_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_MediaSource__endOfStream_2_Callback(mthis) native "MediaSource_endOfStream_Callback_RESOLVER_STRING_0_";
 
@@ -5079,7 +5077,7 @@ Native_SQLResultSet_rowsAffected_Getter(mthis) native "SQLResultSet_rowsAffected
 
 Native_SQLResultSetRowList_length_Getter(mthis) native "SQLResultSetRowList_length_Getter";
 
-Native_SQLResultSetRowList_NativeIndexed_Getter(mthis, index) native "SQLResultSetRowList_item_Callback_RESOLVER_STRING_1_unsigned long";
+Native_SQLResultSetRowList_NativeIndexed_Getter(mthis, index) native "SQLResultSetRowList_item_Callback";
 
 Native_SQLResultSetRowList_item_Callback(mthis, index) native "SQLResultSetRowList_item_Callback";
 
@@ -6535,26 +6533,13 @@ Native_Screen_pixelDepth_Getter(mthis) native "Screen_pixelDepth_Getter";
 
 Native_Screen_width_Getter(mthis) native "Screen_width_Getter";
 
-  // Generated overload resolver
-Native_Screen_lockOrientation(mthis, orientation_OR_orientations) {
-    if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
-      return Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations);
-    }
-    if ((orientation_OR_orientations is List<String> || orientation_OR_orientations == null)) {
-      return Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-Native_Screen__lockOrientation_1_Callback(mthis, orientation_OR_orientations) native "Screen_lockOrientation_Callback_RESOLVER_STRING_1_DOMString";
-
-Native_Screen__lockOrientation_2_Callback(mthis, orientation_OR_orientations) native "Screen_lockOrientation_Callback_RESOLVER_STRING_1_sequence<DOMString>";
+Native_Screen_lockOrientation_Callback(mthis, orientation) native "Screen_lockOrientation_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_Screen_unlockOrientation_Callback(mthis) native "Screen_unlockOrientation_Callback_RESOLVER_STRING_0_";
 
 Native_ScriptProcessorNode_bufferSize_Getter(mthis) native "ScriptProcessorNode_bufferSize_Getter";
 
-Native_ScriptProcessorNode__setEventListener_Callback(mthis, eventListener) native "ScriptProcessorNode__setEventListener_Callback";
+Native_ScriptProcessorNode__setEventListener_Callback(mthis, eventListener) native "ScriptProcessorNode_setEventListener_Callback";
 
 Native_SecurityPolicyViolationEvent_blockedURI_Getter(mthis) native "SecurityPolicyViolationEvent_blockedURI_Getter";
 
@@ -7270,23 +7255,23 @@ Native_URL_username_Setter(mthis, value) native "URL_username_Setter";
 
 Native_URL_toString_Callback(mthis) native "URL_toString_Callback_RESOLVER_STRING_0_";
 
-Native_URLUtilsReadOnly_hash_Getter(mthis) native "URLUtilsReadOnly_hash_Getter";
+Native_URLUtilsReadOnly_hash_Getter(mthis) native "WorkerLocation_hash_Getter";
 
-Native_URLUtilsReadOnly_host_Getter(mthis) native "URLUtilsReadOnly_host_Getter";
+Native_URLUtilsReadOnly_host_Getter(mthis) native "WorkerLocation_host_Getter";
 
-Native_URLUtilsReadOnly_hostname_Getter(mthis) native "URLUtilsReadOnly_hostname_Getter";
+Native_URLUtilsReadOnly_hostname_Getter(mthis) native "WorkerLocation_hostname_Getter";
 
-Native_URLUtilsReadOnly_href_Getter(mthis) native "URLUtilsReadOnly_href_Getter";
+Native_URLUtilsReadOnly_href_Getter(mthis) native "WorkerLocation_href_Getter";
 
-Native_URLUtilsReadOnly_pathname_Getter(mthis) native "URLUtilsReadOnly_pathname_Getter";
+Native_URLUtilsReadOnly_pathname_Getter(mthis) native "WorkerLocation_pathname_Getter";
 
-Native_URLUtilsReadOnly_port_Getter(mthis) native "URLUtilsReadOnly_port_Getter";
+Native_URLUtilsReadOnly_port_Getter(mthis) native "WorkerLocation_port_Getter";
 
-Native_URLUtilsReadOnly_protocol_Getter(mthis) native "URLUtilsReadOnly_protocol_Getter";
+Native_URLUtilsReadOnly_protocol_Getter(mthis) native "WorkerLocation_protocol_Getter";
 
-Native_URLUtilsReadOnly_search_Getter(mthis) native "URLUtilsReadOnly_search_Getter";
+Native_URLUtilsReadOnly_search_Getter(mthis) native "WorkerLocation_search_Getter";
 
-Native_URLUtilsReadOnly_toString_Callback(mthis) native "URLUtilsReadOnly_toString_Callback_RESOLVER_STRING_0_";
+Native_URLUtilsReadOnly_toString_Callback(mthis) native "WorkerLocation_toString_Callback_RESOLVER_STRING_0_";
 
   // Generated overload resolver
 Native_VTTCue_VttCue(startTime, endTime, text) {
@@ -7450,7 +7435,7 @@ Native_WebGLContextEvent_statusMessage_Getter(mthis) native "WebGLContextEvent_s
 
 Native_WebGLDebugShaders_getTranslatedShaderSource_Callback(mthis, shader) native "WebGLDebugShaders_getTranslatedShaderSource_Callback_RESOLVER_STRING_1_WebGLShader";
 
-Native_WebGLDrawBuffers_drawBuffersWEBGL_Callback(mthis, buffers) native "WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<GLenum>";
+Native_WebGLDrawBuffers_drawBuffersWEBGL_Callback(mthis, buffers) native "WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<unsigned long>";
 
 Native_WebGLLoseContext_loseContext_Callback(mthis) native "WebGLLoseContext_loseContext_Callback_RESOLVER_STRING_0_";
 
@@ -8116,7 +8101,7 @@ Native_Window___getter__(mthis, index_OR_name) {
 
 Native_Window____getter___1_Callback(mthis, index_OR_name) native "Window___getter___Callback_RESOLVER_STRING_1_unsigned long";
 
-Native_Window____getter___2_Callback(mthis, index_OR_name) native "Window___getter___Callback_RESOLVER_STRING_1_DOMString";
+Native_Window____getter___2_Callback(mthis, index_OR_name) native "Window___getter___Callback";
 
 Native_Window_alert_Callback(mthis, message) native "Window_alert_Callback_RESOLVER_STRING_1_DOMString";
 

@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from idlnode import IDLArgument, IDLAttribute
+from idlnode import IDLArgument, IDLAttribute, IDLEnum
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 # This is an ugly hack to get things working on the M35 roll.  Once we
@@ -26,6 +26,14 @@ _cpp_resolver_string_map = {
         'FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement',
     'XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_':
         'XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions',
+    # This callback name just gets generated sligtly different and we don't
+    # want to bother fixing it.
+    'ScriptProcessorNode__setEventListener_Callback':
+        'ScriptProcessorNode_setEventListener_Callback',
+    # We don't know how to get GLenum to show up as the correct type in this
+    # script and don't want to bother fixing it the right way.
+    'WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<GLenum>' :
+        'WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<unsigned long>'
 }
 
 # TODO(vsm): This logic needs to pulled from the source IDL.  These tables are
@@ -156,6 +164,10 @@ _blink_1916_rename_map = {
   'CanvasRenderingContext' : 'CanvasRenderingContext2D',
   'Clipboard': 'DataTransfer',
   'Player': 'AnimationPlayer',
+  'Algorithm': 'KeyAlgorithm',
+  'any': 'ScriptValue',
+  'URLUtils': 'URL',
+  'URLUtilsReadOnly': 'WorkerLocation'
 }
 
 _cpp_partial_map = {}
@@ -323,7 +335,10 @@ def array_type(data_type):
         return None
     return matched.group(1)
 
-def TypeIdToBlinkName(interface_id):
+def TypeIdToBlinkName(interface_id, database):
+  if database.HasEnum(interface_id):
+    return "DOMString" # All enums are strings.
+
   if interface_id in _blink_1916_rename_map:
     interface_id = _blink_1916_rename_map[interface_id]
   return interface_id
@@ -350,17 +365,17 @@ def DeriveNativeName(interface_name, name, suffix):
         fields.append(suffix)
     return "_".join(fields)
 
-def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids, is_custom=False):
+def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids, database, is_custom):
     type_string = \
-        "_".join(map(TypeIdToBlinkName, type_ids))
+        "_".join(map(lambda type_id : TypeIdToBlinkName(type_id, database), type_ids))
     if native_suffix:
         operation_id = "%s_%s" % (operation_id, native_suffix)
     if is_custom:
         components = \
-            [TypeIdToBlinkName(interface_id), operation_id]
+            [TypeIdToBlinkName(interface_id, database), operation_id]
     else:
         components = \
-            [TypeIdToBlinkName(interface_id), operation_id,
+            [TypeIdToBlinkName(interface_id, database), operation_id,
              "RESOLVER_STRING", str(len(type_ids)), type_string]
     return "_".join(components)
 
@@ -610,7 +625,7 @@ class DartiumBackend(HtmlDartGenerator):
     if self._dart_use_blink:
         type_ids = [p.type.id for p in arguments[:argument_count]]
         constructor_callback_id = \
-            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids, is_custom)
+            DeriveResolverString(self._interface.id, cpp_suffix, None, type_ids, self._database, is_custom)
     else:
         constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
 
@@ -1035,13 +1050,14 @@ class DartiumBackend(HtmlDartGenerator):
       self._EmitExplicitIndexedGetter(dart_element_type)
     else:
       if self._dart_use_blink:
+          is_custom = any((op.id == 'item' and 'Custom' in op.ext_attrs) for op in self._interface.operations)
           dart_native_name = \
               DeriveNativeName(self._interface.id, "NativeIndexed", "Getter")
           # First emit a toplevel function to do the native call
           # Calls to this are emitted elsewhere,
           resolver_string = \
               DeriveResolverString(self._interface.id, "item", "Callback",
-                                   ["unsigned long"])
+                                   ["unsigned long"], self._database, is_custom)
           if resolver_string in _cpp_resolver_string_map:
               resolver_string = \
                   _cpp_resolver_string_map[resolver_string]
@@ -1180,7 +1196,7 @@ class DartiumBackend(HtmlDartGenerator):
                       for argument in operation.arguments[:len(info.param_infos)]]
           resolver_string = \
               DeriveResolverString(self._interface.id, operation.id,
-                                   native_suffix, type_ids, is_custom)
+                                   native_suffix, type_ids, self._database, is_custom)
       else:
           resolver_string = None
       cpp_callback_name = self._GenerateNativeBinding(
@@ -1216,7 +1232,7 @@ class DartiumBackend(HtmlDartGenerator):
                       for argument in operation.arguments[:argument_count]]
           resolver_string = \
               DeriveResolverString(self._interface.id, operation.id,
-                                   native_suffix, type_ids)
+                                   native_suffix, type_ids, self._database, is_custom)
       else:
           base_name = '_%s_%s' % (operation.id, version)
           overload_name = base_name
@@ -1678,7 +1694,7 @@ class DartiumBackend(HtmlDartGenerator):
     else:
         native_binding_id = self._interface.id
         if self._dart_use_blink:
-          native_binding_id = TypeIdToBlinkName(native_binding_id)
+          native_binding_id = TypeIdToBlinkName(native_binding_id, self._database)
         native_binding = \
             '%s_%s_%s' % (native_binding_id, idl_name, native_suffix)
 
