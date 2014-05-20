@@ -217,6 +217,7 @@ observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
+shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
 smoke/test/codegen/recorder_test: Skip # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
