@@ -3269,12 +3269,19 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
   const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
+
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Class& iterate_cls = Class::Handle(isolate, cls.raw());
     Field& field = Field::Handle(isolate);
     Array& fields = Array::Handle(isolate);
     while (!iterate_cls.IsNull()) {
+      ASSERT(iterate_cls.is_finalized());
       iterate_cls.set_is_fields_marked_nullable();
       fields = iterate_cls.fields();
       iterate_cls = iterate_cls.SuperClass();
@@ -3288,11 +3295,6 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     }
   }
 
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
-  if (!error.IsNull()) {
-    // An error occurred, return error object.
-    return Api::NewHandle(isolate, error.raw());
-  }
   // Allocate an object for the given class.
   return Api::NewHandle(isolate, Instance::New(cls));
 }
