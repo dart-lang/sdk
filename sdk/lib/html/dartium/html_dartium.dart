@@ -6978,7 +6978,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable()
-  void setDragImage(Element element, int x, int y) => _blink.Native_Clipboard_setDragImage_Callback(this, element, x, y);
+  void setDragImage(Element image, int x, int y) => _blink.Native_Clipboard_setDragImage_Callback(this, image, x, y);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29063,16 +29063,7 @@ class WebSocket extends EventTarget {
 
   void close([int code, String reason]) => _blink.Native_WebSocket_close(this, code, reason);
 
-  /**
-   * Transmit data to the server over this connection.
-   *
-   * This method accepts data of type [Blob], [ByteBuffer], [String], or
-   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
-   */
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void send(data) => _blink.Native_WebSocket_send_Callback(this, data);
+  void send(data) => _blink.Native_WebSocket_send(this, data);
 
   @DomName('WebSocket.sendBlob')
   @DocsEditable()

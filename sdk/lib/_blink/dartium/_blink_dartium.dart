@@ -1146,7 +1146,7 @@ Native_Clipboard_getData_Callback(mthis, type) native "DataTransfer_getData_Call
 
 Native_Clipboard_setData_Callback(mthis, type, data) native "DataTransfer_setData_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
-Native_Clipboard_setDragImage_Callback(mthis, element, x, y) native "DataTransfer_setDragImage_Callback";
+Native_Clipboard_setDragImage_Callback(mthis, image, x, y) native "DataTransfer_setDragImage_Callback_RESOLVER_STRING_3_Element_long_long";
 
 Native_CloseEvent_code_Getter(mthis) native "CloseEvent_code_Getter";
 
@@ -7950,15 +7950,42 @@ Native_WebSocket__close_2_Callback(mthis, code) native "WebSocket_close_Callback
 
 Native_WebSocket__close_3_Callback(mthis) native "WebSocket_close_Callback_RESOLVER_STRING_0_";
 
-Native_WebSocket_send_Callback(mthis, data) native "WebSocket_send_Callback";
+  // Generated overload resolver
+Native_WebSocket_send(mthis, data) {
+    if ((data is TypedData || data == null)) {
+      Native_WebSocket__send_1_Callback(mthis, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      Native_WebSocket__send_2_Callback(mthis, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      Native_WebSocket__send_3_Callback(mthis, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      Native_WebSocket__send_4_Callback(mthis, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-Native_WebSocket_sendBlob_Callback(mthis, data) native "WebSocket_send_Callback";
+Native_WebSocket__send_1_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBufferView";
 
-Native_WebSocket_sendByteBuffer_Callback(mthis, data) native "WebSocket_send_Callback";
+Native_WebSocket__send_2_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBuffer";
 
-Native_WebSocket_sendString_Callback(mthis, data) native "WebSocket_send_Callback";
+Native_WebSocket__send_3_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_Blob";
 
-Native_WebSocket_sendTypedData_Callback(mthis, data) native "WebSocket_send_Callback";
+Native_WebSocket__send_4_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_DOMString";
+
+Native_WebSocket_sendBlob_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_Blob";
+
+Native_WebSocket_sendByteBuffer_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBuffer";
+
+Native_WebSocket_sendString_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_DOMString";
+
+Native_WebSocket_sendTypedData_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBufferView";
 
 Native_WheelEvent_deltaMode_Getter(mthis) native "WheelEvent_deltaMode_Getter";
 

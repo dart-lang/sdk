@@ -23,12 +23,6 @@ interface AudioParam {
 };
 
 [Supplemental]
-interface Clipboard {
-  [Suppressed] void setDragImage(HTMLImageElement image, long x, long y);
-  [Custom] void setDragImage(Element element, long x, long y);
-};
-
-[Supplemental]
 interface Document {
   [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
   CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
@@ -291,21 +285,6 @@ interface SQLResultSetRowList {
   // API as a Maps, with the appropriate conversion in JavaScript.
   [Suppressed] object item(unsigned long index);
   [Custom] Dictionary item(unsigned long index);
-};
-
-[Supplemental]
-interface WebSocket {
-  // Suppress the default since it has non-standard return type and add
-  // overrides.
-  [Suppressed] boolean send(ArrayBuffer data);
-  [Suppressed] boolean send(ArrayBufferView data);
-  [Suppressed] boolean send(Blob data);
-  [Suppressed] boolean send(DOMString data);
-
-  [Custom] void send(DOMString data);
-  [Custom] void send(Blob data);
-  [Custom] void send(ArrayBuffer data);
-  [Custom] void send(ArrayBufferView data);
 };
 
 [Supplemental, Constructor]
