@@ -230,9 +230,6 @@ class LocalScope : public ZoneAllocated {
   // scope and to its children at the same loop level.
   int num_context_variables() const { return num_context_variables_; }
 
-  // Forget all the variables in the scope.
-  void Clear();
-
   // Add a variable to the scope. Returns false if a variable with the
   // same name is already present.
   bool AddVariable(LocalVariable* variable);

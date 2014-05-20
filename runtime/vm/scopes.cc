@@ -51,11 +51,6 @@ bool LocalScope::IsNestedWithin(LocalScope* scope) const {
 }
 
 
-void LocalScope::Clear() {
-  variables_.Clear();
-}
-
-
 bool LocalScope::AddVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
   if (LocalLookupVariable(variable->name()) != NULL) {
