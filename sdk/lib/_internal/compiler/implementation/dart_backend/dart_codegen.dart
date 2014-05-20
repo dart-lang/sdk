@@ -263,6 +263,16 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
         visitExpression(exp.elseExpression));
   }
 
+  Expression visitLogicalOperator(tree.LogicalOperator exp) {
+    return new BinaryOperator(visitExpression(exp.left),
+                              exp.operator,
+                              visitExpression(exp.right));
+  }
+
+  Expression visitNot(tree.Not exp) {
+    return new UnaryOperator('!', visitExpression(exp.operand));
+  }
+
   Expression visitVariable(tree.Variable exp) {
     return new Identifier(exp.name)
                ..element = exp.element;

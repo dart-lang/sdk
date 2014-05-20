@@ -44,7 +44,7 @@ abstract class Expression extends Node {
   bool get isPure;
   accept(Visitor v);
 
-  /// Temporary variable used by [TreeRewriter].
+  /// Temporary variable used by [StatementRewriter].
   /// If set to true, this expression has already had enclosing assignments
   /// propagated into its variables, and should not be processed again.
   /// It is only set for expressions that are known to be in risk of redundant
@@ -185,7 +185,7 @@ class ConcatenateStrings extends Expression {
  * A constant.
  */
 class Constant extends Expression {
-  final dart2js.Constant value;
+  dart2js.Constant value;
 
   Constant(this.value);
 
@@ -211,6 +211,35 @@ class Conditional extends Expression {
                      elseExpression.isPure;
 
   accept(Visitor visitor) => visitor.visitConditional(this);
+}
+
+/// An && or || expression. The operator is internally represented as a boolean
+/// [isAnd] to simplify rewriting of logical operators.
+class LogicalOperator extends Expression {
+  Expression left;
+  bool isAnd;
+  Expression right;
+
+  LogicalOperator(this.left, this.right, this.isAnd);
+  LogicalOperator.and(this.left, this.right) : isAnd = true;
+  LogicalOperator.or(this.left, this.right) : isAnd = false;
+
+  String get operator => isAnd ? '&&' : '||';
+
+  bool get isPure => left.isPure && right.isPure;
+
+  accept(Visitor visitor) => visitor.visitLogicalOperator(this);
+}
+
+/// Logical negation.
+class Not extends Expression {
+  Expression operand;
+
+  Not(this.operand);
+
+  bool get isPure => operand.isPure;
+
+  accept(Visitor visitor) => visitor.visitNot(this);
 }
 
 /**
@@ -330,6 +359,8 @@ abstract class Visitor<S, E> {
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitConditional(Conditional node);
+  E visitLogicalOperator(LogicalOperator node);
+  E visitNot(Not node);
 
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
@@ -588,13 +619,15 @@ class Builder extends ir.Visitor<Node> {
 }
 
 /**
- * Performs the following three transformations on the tree:
+ * Performs the following transformations on the tree:
  * - Assignment propagation
  * - If-to-conditional conversion
+ * - Flatten nested ifs
  * - Break inlining
+ * - Redirect breaks
  *
- * The above transformations are performed in the same phase because each
- * transformation can introduce redexes of one of the others.
+ * The above transformations all eliminate statements from the tree, and may
+ * introduce redexes of each other.
  *
  *
  * ASSIGNMENT PROPAGATION:
@@ -636,6 +669,17 @@ class Builder extends ir.Visitor<Node> {
  * See [visitIf].
  *
  *
+ * FLATTEN NESTED IFS:
+ * An if inside an if is converted to an if with a logical operator.
+ * For example:
+ *
+ *   if (E1) { if (E2) {S} else break L } else break L
+ *     ==>
+ *   if (E1 && E2) {S} else break L
+ *
+ * This may lead to inlining of L.
+ *
+ *
  * BREAK INLINING:
  * Single-use labels are inlined at [Break] statements.
  * For example:
@@ -647,14 +691,38 @@ class Builder extends ir.Visitor<Node> {
  * This can lead to propagation of v0.
  *
  * See [visitBreak] and [visitLabeledStatement].
+ *
+ *
+ * REDIRECT BREAKS:
+ * Labeled statements whose next is a break become flattened and all breaks
+ * to their label are redirected.
+ * For example:
+ *
+ *   L0: {... break L0 ...}; break L1
+ *     ==>
+ *   {... break L1 ...}
+ *
+ * This may trigger a flattening of nested ifs in case the eliminated label
+ * separated two ifs.
  */
-class TreeRewriter extends Visitor<Statement, Expression> {
+class StatementRewriter extends Visitor<Statement, Expression> {
   // The binding environment.  The rightmost element of the list is the nearest
   // enclosing binding.
   // We use null to mark an impure expressions that does not bind a variable.
   List<Assign> environment;
 
-  void apply(FunctionDefinition definition) {
+  /// Substitution map for labels. Any break to a label L should be substituted
+  /// for a break to L' if L maps to L'.
+  Map<Label, Label> labelRedirects = <Label, Label>{};
+
+  /// Returns the redirect target of [label] or [label] itself if it should not
+  /// be redirected.
+  Label redirect(Label label) {
+    Label newTarget = labelRedirects[label];
+    return newTarget != null ? newTarget : label;
+  }
+
+  void rewrite(FunctionDefinition definition) {
     environment = <Assign>[];
     definition.body = visitStatement(definition.body);
 
@@ -704,15 +772,6 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
-  Statement visitLabeledStatement(LabeledStatement node) {
-    node.body = visitStatement(node.body);
-    if (node.label.breakCount == 0) {
-      // If the break was inlined, eliminate the label.
-      return node.body;
-    }
-    node.next = visitStatement(node.next);
-    return node;
-  }
 
   Statement visitAssign(Assign node) {
     environment.add(node);
@@ -770,6 +829,21 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitLogicalOperator(LogicalOperator node) {
+    node.left = visitExpression(node.left);
+
+    environment.add(null); // impure expressions may not propagate across branch
+    node.right = visitExpression(node.right);
+    environment.removeLast();
+
+    return node;
+  }
+
+  Expression visitNot(Not node) {
+    node.operand = visitExpression(node.operand);
+    return node;
+  }
+
   Statement visitReturn(Return node) {
     node.value = visitExpression(node.value);
     return node;
@@ -777,10 +851,40 @@ class TreeRewriter extends Visitor<Statement, Expression> {
 
 
   Statement visitBreak(Break node) {
+    // Redirect through chain of breaks.
+    // Note that breakCount was accounted for at visitLabeledStatement.
+    node.target = redirect(node.target);
     if (node.target.breakCount == 1) {
       --node.target.breakCount;
       return visitStatement(node.target.binding.next);
     }
+    return node;
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    if (node.next is Break) {
+      // Eliminate label if next is just a break statement
+      // Breaks to this label are redirected to the outer label.
+      // Note that breakCount for the two labels is updated proactively here
+      // so breaks can reliably tell if they should inline their target.
+      Break next = node.next;
+      Label newTarget = redirect(next.target);
+      labelRedirects[node.label] = newTarget;
+      newTarget.breakCount += node.label.breakCount;
+      node.label.breakCount = 0;
+      Statement result = visitStatement(node.body);
+      labelRedirects.remove(node.label); // Save some space.
+      return result;
+    }
+
+    node.body = visitStatement(node.body);
+
+    if (node.label.breakCount == 0) {
+      // Eliminate the label if next was inlined at a break
+      return node.body;
+    }
+
+    node.next = visitStatement(node.next);
     return node;
   }
 
@@ -791,6 +895,8 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     node.thenStatement = visitStatement(node.thenStatement);
     node.elseStatement = visitStatement(node.elseStatement);
     environment.removeLast();
+
+    tryCollapseIf(node);
 
     Statement reduced = combineStatementsWithSubexpressions(
         node.thenStatement,
@@ -822,7 +928,6 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     }
     return node;
   }
-
 
   /// If [s] and [t] are similar statements we extract their subexpressions
   /// and returns a new statement of the same type using expressions combined
@@ -895,5 +1000,477 @@ class TreeRewriter extends Visitor<Statement, Expression> {
     }
     return false;
   }
+
+  /// Try to collapse nested ifs using && and || expressions.
+  /// For example:
+  ///
+  ///   if (E1) { if (E2) S else break L } else break L
+  ///     ==>
+  ///   if (E1 && E2) S else break L
+  ///
+  /// [branch1] and [branch2] control the position of the S statement.
+  ///
+  /// Returns true if another collapse redex might have been introduced.
+  void tryCollapseIf(If node) {
+    // Repeatedly try to collapse nested ifs.
+    // The transformation is shrinking (destroys an if) so it remains linear.
+    // Here is an example where more than one iteration is required:
+    //
+    //   if (E1)
+    //     if (E2) break L2 else break L1
+    //   else
+    //     break L1
+    //
+    // L1.target ::=
+    //   if (E3) S else break L2
+    //
+    // After first collapse:
+    //
+    //   if (E1 && E2)
+    //     break L2
+    //   else
+    //     {if (E3) S else break L2}  (inlined from break L1)
+    //
+    // We can then do another collapse using the inlined nested if.
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      if (tryCollapseIfAux(node, true, true)) {
+        changed = true;
+      }
+      if (tryCollapseIfAux(node, true, false)) {
+        changed = true;
+      }
+      if (tryCollapseIfAux(node, false, true)) {
+        changed = true;
+      }
+      if (tryCollapseIfAux(node, false, false)) {
+        changed = true;
+      }
+    }
+  }
+
+  bool tryCollapseIfAux(If outerIf, bool branch1, bool branch2) {
+    // NOTE: We name variables here as if S is in the then-then position.
+    Statement outerThen = getBranch(outerIf, branch1);
+    Statement outerElse = getBranch(outerIf, !branch1);
+    if (outerThen is If && outerElse is Break) {
+      If innerIf = outerThen;
+      Statement innerThen = getBranch(innerIf, branch2);
+      Statement innerElse = getBranch(innerIf, !branch2);
+      if (innerElse is Break && innerElse.target == outerElse.target) {
+        // We always put S in the then branch of the result, and adjust the
+        // condition expression if S was actually found in the else branch(es).
+        outerIf.condition = new LogicalOperator.and(
+            makeCondition(outerIf.condition, branch1),
+            makeCondition(innerIf.condition, branch2));
+        outerIf.thenStatement = innerThen;
+        --innerElse.target.breakCount;
+
+        // Try to inline the remaining break
+        environment.add(null); // Do not propagate impure definitions
+        outerIf.elseStatement = visitStatement(outerElse);
+        environment.removeLast();
+
+        return outerIf.elseStatement is If && innerThen is Break;
+      }
+    }
+    return false;
+  }
+
+  Expression makeCondition(Expression e, bool polarity) {
+    return polarity ? e : new Not(e);
+  }
+
+  Statement getBranch(If node, bool polarity) {
+    return polarity ? node.thenStatement : node.elseStatement;
+  }
 }
 
+
+
+/// Rewrites logical expressions to be more compact.
+///
+/// In this class an expression is said to occur in "boolean context" if
+/// its result is immediately applied to boolean conversion.
+///
+/// IF STATEMENTS:
+///
+/// We apply the following two rules to [If] statements (see [visitIf]).
+///
+///   if (E) {} else S  ==>  if (!E) S else {}    (else can be omitted)
+///   if (!E) S1 else S2  ==>  if (E) S2 else S1  (unless previous rule applied)
+///
+/// NEGATION:
+///
+/// De Morgan's Laws are used to rewrite negations of logical operators so
+/// negations are closer to the root:
+///
+///   !x && !y  -->  !(x || y)
+///
+/// This is to enable other rewrites, such as branch swapping in an if. In some
+/// contexts, the rule is reversed because we do not expect to apply a rewrite
+/// rule to the result. For example:
+///
+///   z = !(x || y)  ==>  z = !x && !y;
+///
+/// CONDITIONALS:
+///
+/// Conditionals with boolean constant operands occur frequently in the input.
+/// They can often the re-written to logical operators, for instance:
+///
+///   if (x ? y : false) S1 else S2
+///     ==>
+///   if (x && y) S1 else S2
+///
+/// Conditionals are tricky to rewrite when they occur out of boolean context.
+/// Here we must apply more conservative rules, such as:
+///
+///   x ? true : false  ==>  !!x
+///
+/// If an operand is known to be a boolean, we can introduce a logical operator:
+///
+///   x ? y : false  ==>  x && y   (if y is known to be a boolean)
+///
+/// The following sequence of rewrites demonstrates the merit of these rules:
+///
+///   x ? (y ? true : false) : false
+///   x ? !!y : false   (double negation introduced by [toBoolean])
+///   x && !!y          (!!y validated by [isBooleanValued])
+///   x && y            (double negation removed by [putInBooleanContext])
+///
+class LogicalRewriter extends Visitor<Statement, Expression> {
+
+  /// Statement to be executed next by natural fallthrough. Although fallthrough
+  /// is not introduced in this phase, we need to reason about fallthrough when
+  /// evaluating the benefit of swapping the branches of an [If].
+  Statement fallthrough;
+
+  void rewrite(FunctionDefinition definition) {
+    definition.body = visitStatement(definition.body);
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    Statement savedFallthrough = fallthrough;
+    fallthrough = node.next;
+    node.body = visitStatement(node.body);
+    fallthrough = savedFallthrough;
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitAssign(Assign node) {
+    node.definition = visitExpression(node.definition);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitReturn(Return node) {
+    node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Statement visitBreak(Break node) {
+    return node;
+  }
+
+  bool isFallthroughBreak(Statement node) {
+    return node is Break && node.target.binding.next == fallthrough;
+  }
+
+  Statement visitIf(If node) {
+    // If one of the branches is empty (i.e. just a fallthrough), then that
+    // branch should preferrably be the 'else' so we won't have to print it.
+    // In other words, we wish to perform this rewrite:
+    //   if (E) {} else {S}
+    //     ==>
+    //   if (!E) {S}
+    // In the tree language, empty statements do not exist yet, so we must check
+    // if one branch contains a break that can be eliminated by fallthrough.
+
+    // Swap branches if then is a fallthrough break.
+    if (isFallthroughBreak(node.thenStatement)) {
+      node.condition = new Not(node.condition);
+      Statement tmp = node.thenStatement;
+      node.thenStatement = node.elseStatement;
+      node.elseStatement = tmp;
+    }
+
+    // Can the else part be eliminated?
+    // (Either due to the above swap or if the break was already there).
+    bool emptyElse = isFallthroughBreak(node.elseStatement);
+
+    node.condition = makeCondition(node.condition, true, liftNots: !emptyElse);
+    node.thenStatement = visitStatement(node.thenStatement);
+    node.elseStatement = visitStatement(node.elseStatement);
+
+    // If neither branch is empty, eliminate a negation in the condition
+    // if (!E) S1 else S2
+    //   ==>
+    // if (E) S2 else S1
+    if (!emptyElse && node.condition is Not) {
+      node.condition = (node.condition as Not).operand;
+      Statement tmp = node.thenStatement;
+      node.thenStatement = node.elseStatement;
+      node.elseStatement = tmp;
+    }
+
+    return node;
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    // TODO(asgerf): in non-checked mode we can remove Not from the expression.
+    node.expression = visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+
+  Expression visitVariable(Variable node) {
+    return node;
+  }
+
+  Expression visitInvokeStatic(InvokeStatic node) {
+    for (int i = 0; i < node.arguments.length; i++) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitInvokeMethod(InvokeMethod node) {
+    node.receiver = visitExpression(node.receiver);
+    for (int i = 0; i < node.arguments.length; i++) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitInvokeConstructor(InvokeConstructor node) {
+    for (int i = 0; i < node.arguments.length; i++) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitConcatenateStrings(ConcatenateStrings node) {
+    for (int i = 0; i < node.arguments.length; i++) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitConstant(Constant node) {
+    return node;
+  }
+
+  Expression visitNot(Not node) {
+    return toBoolean(makeCondition(node.operand, false, liftNots: false));
+  }
+
+  Expression visitConditional(Conditional node) {
+    // node.condition will be visited after the then and else parts, because its
+    // polarity depends on what rewrite we use.
+    node.thenExpression = visitExpression(node.thenExpression);
+    node.elseExpression = visitExpression(node.elseExpression);
+
+    // In the following, we must take care not to eliminate or introduce a
+    // boolean conversion.
+
+    // x ? true : false --> !!x
+    if (isTrue(node.thenExpression) && isFalse(node.elseExpression)) {
+      return toBoolean(makeCondition(node.condition, true, liftNots: false));
+    }
+    // x ? false : true --> !x
+    if (isFalse(node.thenExpression) && isTrue(node.elseExpression)) {
+      return toBoolean(makeCondition(node.condition, false, liftNots: false));
+    }
+
+    // x ? y : false ==> x && y  (if y is known to be a boolean)
+    if (isBooleanValued(node.thenExpression) && isFalse(node.elseExpression)) {
+      return new LogicalOperator.and(
+          makeCondition(node.condition, true, liftNots:false),
+          putInBooleanContext(node.thenExpression));
+    }
+    // x ? y : true ==> !x || y  (if y is known to be a boolean)
+    if (isBooleanValued(node.thenExpression) && isTrue(node.elseExpression)) {
+      return new LogicalOperator.or(
+          makeCondition(node.condition, false, liftNots: false),
+          putInBooleanContext(node.thenExpression));
+    }
+    // x ? true : y ==> x || y  (if y if known to be boolean)
+    if (isBooleanValued(node.elseExpression) && isTrue(node.thenExpression)) {
+      return new LogicalOperator.or(
+          makeCondition(node.condition, true, liftNots: false),
+          putInBooleanContext(node.elseExpression));
+    }
+    // x ? false : y ==> !x && y  (if y is known to be a boolean)
+    if (isBooleanValued(node.elseExpression) && isTrue(node.thenExpression)) {
+      return new LogicalOperator.and(
+          makeCondition(node.condition, false, liftNots: false),
+          putInBooleanContext(node.elseExpression));
+    }
+
+    node.condition = makeCondition(node.condition, true);
+
+    // !x ? y : z ==> x ? z : y
+    if (node.condition is Not) {
+      node.condition = (node.condition as Not).operand;
+      Expression tmp = node.thenExpression;
+      node.thenExpression = node.elseExpression;
+      node.elseExpression = tmp;
+    }
+
+    return node;
+  }
+
+  Expression visitLogicalOperator(LogicalOperator node) {
+    node.left = makeCondition(node.left, true);
+    node.right = makeCondition(node.right, true);
+    return node;
+  }
+
+  /// True if the given expression is known to evaluate to a boolean.
+  /// This will not recursively traverse [Conditional] expressions, but if
+  /// applied to the result of [visitExpression] conditionals will have been
+  /// rewritten anyway.
+  bool isBooleanValued(Expression e) {
+    return isTrue(e) || isFalse(e) || e is Not || e is LogicalOperator;
+  }
+
+  /// Rewrite an expression that was originally processed in a non-boolean
+  /// context.
+  Expression putInBooleanContext(Expression e) {
+    if (e is Not && e.operand is Not) {
+      return (e.operand as Not).operand;
+    } else {
+      return e;
+    }
+  }
+
+  /// Forces a boolean conversion of the given expression.
+  Expression toBoolean(Expression e) {
+    if (isBooleanValued(e))
+      return e;
+    else
+      return new Not(new Not(e));
+  }
+
+  /// Creates an equivalent boolean expression. The expression must occur in a
+  /// context where its result is immediately subject to boolean conversion.
+  /// If [polarity] if false, the negated condition will be created instead.
+  /// If [liftNots] is true (default) then Not expressions will be lifted toward
+  /// the root the condition so they can be eliminated by the caller.
+  Expression makeCondition(Expression e, bool polarity, {bool liftNots:true}) {
+    if (e is Not) {
+      // !!E ==> E
+      return makeCondition(e.operand, !polarity, liftNots: liftNots);
+    }
+    if (e is LogicalOperator) {
+      // If polarity=false, then apply the rewrite !(x && y) ==> !x || !y
+      e.left = makeCondition(e.left, polarity);
+      e.right = makeCondition(e.right, polarity);
+      if (!polarity) {
+        e.isAnd = !e.isAnd;
+      }
+      // !x && !y ==> !(x || y)  (only if lifting nots)
+      if (e.left is Not && e.right is Not && liftNots) {
+        e.left = (e.left as Not).operand;
+        e.right = (e.right as Not).operand;
+        e.isAnd = !e.isAnd;
+        return new Not(e);
+      }
+      return e;
+    }
+    if (e is Conditional) {
+      // Handle polarity by: !(x ? y : z) ==> x ? !y : !z
+      // Rewrite individual branches now. The condition will be rewritten
+      // when we know what polarity to use (depends on which rewrite is used).
+      e.thenExpression = makeCondition(e.thenExpression, polarity);
+      e.elseExpression = makeCondition(e.elseExpression, polarity);
+
+      // x ? true : false ==> x
+      if (isTrue(e.thenExpression) && isFalse(e.elseExpression)) {
+        return makeCondition(e.condition, true, liftNots: liftNots);
+      }
+      // x ? false : true ==> !x
+      if (isFalse(e.thenExpression) && isTrue(e.elseExpression)) {
+        return makeCondition(e.condition, false, liftNots: liftNots);
+      }
+      // x ? true : y  ==> x || y
+      if (isTrue(e.thenExpression)) {
+        return makeOr(makeCondition(e.condition, true),
+                      e.elseExpression,
+                      liftNots: liftNots);
+      }
+      // x ? false : y  ==> !x && y
+      if (isFalse(e.thenExpression)) {
+        return makeAnd(makeCondition(e.condition, false),
+                       e.elseExpression,
+                       liftNots: liftNots);
+      }
+      // x ? y : true  ==> !x || y
+      if (isTrue(e.elseExpression)) {
+        return makeOr(makeCondition(e.condition, false),
+                      e.thenExpression,
+                      liftNots: liftNots);
+      }
+      // x ? y : false  ==> x && y
+      if (isFalse(e.elseExpression)) {
+        return makeAnd(makeCondition(e.condition, true),
+                       e.thenExpression,
+                       liftNots: liftNots);
+      }
+
+      e.condition = makeCondition(e.condition, true);
+
+      // !x ? y : z ==> x ? z : y
+      if (e.condition is Not) {
+        e.condition = (e.condition as Not).operand;
+        Expression tmp = e.thenExpression;
+        e.thenExpression = e.elseExpression;
+        e.elseExpression = tmp;
+      }
+      // x ? !y : !z ==> !(x ? y : z)  (only if lifting nots)
+      if (e.thenExpression is Not && e.elseExpression is Not && liftNots) {
+        e.thenExpression = (e.thenExpression as Not).operand;
+        e.elseExpression = (e.elseExpression as Not).operand;
+        return new Not(e);
+      }
+      return e;
+    }
+    if (e is Constant && e.value is dart2js.BoolConstant) {
+      // !true ==> false
+      if (!polarity) {
+        e.value = (e.value as dart2js.BoolConstant).negate();
+      }
+      return e;
+    }
+    e = visitExpression(e);
+    return polarity ? e : new Not(e);
+  }
+
+  bool isTrue(Expression e) {
+    return e is Constant && e.value is dart2js.TrueConstant;
+  }
+
+  bool isFalse(Expression e) {
+    return e is Constant && e.value is dart2js.FalseConstant;
+  }
+
+  Expression makeAnd(Expression e1, Expression e2, {bool liftNots: true}) {
+    if (e1 is Not && e2 is Not && liftNots) {
+      return new Not(new LogicalOperator.or(e1.operand, e2.operand));
+    } else {
+      return new LogicalOperator.and(e1, e2);
+    }
+  }
+
+  Expression makeOr(Expression e1, Expression e2, {bool liftNots: true}) {
+    if (e1 is Not && e2 is Not && liftNots) {
+      return new Not(new LogicalOperator.and(e1.operand, e2.operand));
+    } else {
+      return new LogicalOperator.or(e1, e2);
+    }
+  }
+
+}

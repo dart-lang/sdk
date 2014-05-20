@@ -52,6 +52,8 @@ class BlockCollector extends Visitor {
   visitConcatenateStrings(ConcatenateStrings node) {}
   visitConstant(Constant node) {}
   visitConditional(Conditional node) {}
+  visitLogicalOperator(LogicalOperator node) {}
+  visitNot(Not node) {}
 
   visitLabeledStatement(LabeledStatement node) {
     Block target = new Block();
@@ -186,6 +188,14 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, expr(node));
   }
 
+  visitLogicalOperator(LogicalOperator node) {
+    printStatement(null, expr(node));
+  }
+
+  visitNot(Not node) {
+    printStatement(null, expr(node));
+  }
+
   visitReturn(Return node) {
     printStatement(null, "return ${expr(node.value)}");
   }
@@ -266,10 +276,35 @@ class SubexpressionVisitor extends Visitor<String, String> {
     return "${node.value}";
   }
 
+  bool usesInfixNotation(Expression node) {
+    return node is Conditional || node is LogicalOperator;
+  }
+
   String visitConditional(Conditional node) {
-    return visitExpression(node.condition) + ' ? ' +
-           visitExpression(node.thenExpression) + ' : ' +
-           visitExpression(node.elseExpression);
+    String condition = visitExpression(node.condition);
+    String thenExpr = visitExpression(node.thenExpression);
+    String elseExpr = visitExpression(node.elseExpression);
+    return "$condition ? $thenExpr : $elseExpr";
+  }
+
+  String visitLogicalOperator(LogicalOperator node) {
+    String left = visitExpression(node.left);
+    String right = visitExpression(node.right);
+    if (usesInfixNotation(node.left)) {
+      left = "($left)";
+    }
+    if (usesInfixNotation(node.right)) {
+      right = "($right)";
+    }
+    return "$left ${node.operator} $right";
+  }
+
+  String visitNot(Not node) {
+    String operand = visitExpression(node.operand);
+    if (usesInfixNotation(node.operand)) {
+      operand = '($operand)';
+    }
+    return '!$operand';
   }
 
   // Note: There should not be statements in the context of expressions.
