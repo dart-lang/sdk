@@ -763,7 +763,7 @@ Native_Canvas2DContextAttributes_alpha_Setter(mthis, value) native "Canvas2DCont
 
 Native_CanvasGradient_addColorStop_Callback(mthis, offset, color) native "CanvasGradient_addColorStop_Callback_RESOLVER_STRING_2_float_DOMString";
 
-Native_CanvasRenderingContext_canvas_Getter(mthis) native "CanvasRenderingContext_canvas_Getter";
+Native_CanvasRenderingContext_canvas_Getter(mthis) native "CanvasRenderingContext2D_canvas_Getter";
 
 Native_CanvasRenderingContext2D_currentPath_Getter(mthis) native "CanvasRenderingContext2D_currentPath_Getter";
 
@@ -1189,7 +1189,7 @@ Native_CompositionEvent_data_Getter(mthis) native "CompositionEvent_data_Getter"
 
 Native_CompositionEvent_initCompositionEvent_Callback(mthis, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) native "CompositionEvent_initCompositionEvent_Callback_RESOLVER_STRING_5_DOMString_boolean_boolean_Window_DOMString";
 
-Native_ConsoleBase_assertCondition_Callback(mthis, condition, arg) native "ConsoleBase_assertCondition_Callback_RESOLVER_STRING_2_boolean_object";
+Native_ConsoleBase_assertCondition_Callback(mthis, condition, arg) native "ConsoleBase_assert_Callback_RESOLVER_STRING_2_boolean_object";
 
 Native_ConsoleBase_clear_Callback(mthis, arg) native "ConsoleBase_clear_Callback_RESOLVER_STRING_1_object";
 
@@ -2124,7 +2124,7 @@ Native_FontFaceSet__forEach_2_Callback(mthis, callback) native "FontFaceSet_forE
 
 Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callback_RESOLVER_STRING_1_FontFace";
 
-Native_FormData_constructorCallback(form) native "FormData_constructorCallback";
+Native_FormData_constructorCallback(form) native "FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement";
 
 Native_FormData_append_Callback(mthis, name, value) native "FormData_append_Callback";
 

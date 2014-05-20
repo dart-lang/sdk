@@ -20,6 +20,10 @@ _cpp_resolver_string_map = {
     # of the generated strings works.
     'Blob_constructorCallback_RESOLVER_STRING_3_Array_DOMString_DOMString':
         'Blob_constructorCallback_RESOLVER_STRING_0_',
+    'ConsoleBase_assertCondition_Callback_RESOLVER_STRING_2_boolean_object':
+        'ConsoleBase_assert_Callback_RESOLVER_STRING_2_boolean_object',
+    'FormData_constructorCallback':
+        'FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement',
     'XMLHttpRequest_constructorCallback_RESOLVER_STRING_0_':
         'XMLHttpRequest_constructorCallback_RESOLVER_STRING_1_XMLHttpRequestOptions',
 }
@@ -149,6 +153,7 @@ _cpp_overloaded_callback_map = {
 
 _blink_1916_rename_map = {
   'NavigatorID': 'Navigator',
+  'CanvasRenderingContext' : 'CanvasRenderingContext2D',
   'Clipboard': 'DataTransfer',
   'Player': 'AnimationPlayer',
 }
