@@ -943,7 +943,7 @@ class CodeEmitterTask extends CompilerTask {
   void emitMakeConstantListIfNotEmitted(CodeBuffer buffer) {
     if (hasMakeConstantList) return;
     hasMakeConstantList = true;
-    jsAst.Statement value = new jsAst.ExpressionStatement(new jsAst.Assignment(
+    jsAst.Expression value = new jsAst.Assignment(
             new jsAst.PropertyAccess.field(
                 new jsAst.VariableUse(namer.isolateName),
                 makeConstListProperty),
@@ -951,8 +951,9 @@ class CodeEmitterTask extends CompilerTask {
                     list.immutable\$list = $initName;
                     list.fixed\$length = $initName;
                     return list;
-                  }''')));
+                  }'''));
     buffer.write(jsAst.prettyPrint(value, compiler));
+    buffer.write(N);
   }
 
   /// Returns the code equivalent to:
