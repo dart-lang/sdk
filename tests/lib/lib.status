@@ -149,7 +149,7 @@ async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
-async/timer_isolate_test: RuntimeError, OK # Needs Timer to run.
+async/timer_isolate_test: Fail, OK # Needs Timer to run.
 async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
 async/timer_test: RuntimeError,OK # Needs Timer to run.
 async/stream_controller_async_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
