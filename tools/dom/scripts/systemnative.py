@@ -345,14 +345,18 @@ def DeriveNativeName(interface_name, name, suffix):
         fields.append(suffix)
     return "_".join(fields)
 
-def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids):
+def DeriveResolverString(interface_id, operation_id, native_suffix, type_ids, is_custom=False):
     type_string = \
         "_".join(map(TypeIdToBlinkName, type_ids))
     if native_suffix:
         operation_id = "%s_%s" % (operation_id, native_suffix)
-    components = \
-        [TypeIdToBlinkName(interface_id), operation_id,
-         "RESOLVER_STRING", str(len(type_ids)), type_string]
+    if is_custom:
+        components = \
+            [TypeIdToBlinkName(interface_id), operation_id]
+    else:
+        components = \
+            [TypeIdToBlinkName(interface_id), operation_id,
+             "RESOLVER_STRING", str(len(type_ids)), type_string]
     return "_".join(components)
 
 # FIXME(leafp) This should really go elsewhere.  I think the right thing
@@ -1168,10 +1172,10 @@ class DartiumBackend(HtmlDartGenerator):
       auto_scope_setup = self._GenerateAutoSetupScope(info.name, native_suffix)
       if self._dart_use_blink:
           type_ids = [argument.type.id
-                      for argument in operation.arguments[:argument_count]]
+                      for argument in operation.arguments[:len(info.param_infos)]]
           resolver_string = \
               DeriveResolverString(self._interface.id, operation.id,
-                                   native_suffix, type_ids)
+                                   native_suffix, type_ids, is_custom)
       else:
           resolver_string = None
       cpp_callback_name = self._GenerateNativeBinding(

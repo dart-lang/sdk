@@ -191,19 +191,19 @@ Native_Node_textContent_Getter(mthis) native "Node_textContent_Getter";
 
 Native_Node_textContent_Setter(mthis, value) native "Node_textContent_Setter";
 
-Native_Node_appendChild_Callback(mthis, newChild) native "Node_appendChild_Callback_RESOLVER_STRING_1_Node";
+Native_Node_appendChild_Callback(mthis, newChild) native "Node_appendChild_Callback";
 
-Native_Node_cloneNode_Callback(mthis, deep) native "Node_cloneNode_Callback_RESOLVER_STRING_1_boolean";
+Native_Node_cloneNode_Callback(mthis, deep) native "Node_cloneNode_Callback";
 
 Native_Node_contains_Callback(mthis, other) native "Node_contains_Callback_RESOLVER_STRING_1_Node";
 
 Native_Node_hasChildNodes_Callback(mthis) native "Node_hasChildNodes_Callback_RESOLVER_STRING_0_";
 
-Native_Node_insertBefore_Callback(mthis, newChild, refChild) native "Node_insertBefore_Callback_RESOLVER_STRING_2_Node_Node";
+Native_Node_insertBefore_Callback(mthis, newChild, refChild) native "Node_insertBefore_Callback";
 
-Native_Node_removeChild_Callback(mthis, oldChild) native "Node_removeChild_Callback_RESOLVER_STRING_1_Node";
+Native_Node_removeChild_Callback(mthis, oldChild) native "Node_removeChild_Callback";
 
-Native_Node_replaceChild_Callback(mthis, newChild, oldChild) native "Node_replaceChild_Callback_RESOLVER_STRING_2_Node_Node";
+Native_Node_replaceChild_Callback(mthis, newChild, oldChild) native "Node_replaceChild_Callback";
 
 Native_Attr_localName_Getter(mthis) native "Attr_localName_Getter";
 
@@ -433,7 +433,7 @@ Native_AudioContext__createScriptProcessor_4_Callback(mthis) native "AudioContex
 
 Native_AudioContext_createWaveShaper_Callback(mthis) native "AudioContext_createWaveShaper_Callback_RESOLVER_STRING_0_";
 
-Native_AudioContext_decodeAudioData_Callback(mthis, audioData, successCallback, errorCallback) native "AudioContext_decodeAudioData_Callback_RESOLVER_STRING_3_ArrayBuffer_AudioBufferCallback_AudioBufferCallback";
+Native_AudioContext_decodeAudioData_Callback(mthis, audioData, successCallback, errorCallback) native "AudioContext_decodeAudioData_Callback";
 
 Native_AudioContext_startRendering_Callback(mthis) native "AudioContext_startRendering_Callback_RESOLVER_STRING_0_";
 
@@ -479,7 +479,7 @@ Native_AudioParam_setTargetValueAtTime_Callback(mthis, targetValue, time, timeCo
 
 Native_AudioParam_setValueAtTime_Callback(mthis, value, time) native "AudioParam_setValueAtTime_Callback_RESOLVER_STRING_2_float_double";
 
-Native_AudioParam_setValueCurveAtTime_Callback(mthis, values, time, duration) native "AudioParam_setValueCurveAtTime_Callback_RESOLVER_STRING_3_Float32Array_double_double";
+Native_AudioParam_setValueCurveAtTime_Callback(mthis, values, time, duration) native "AudioParam_setValueCurveAtTime_Callback";
 
 Native_Event_bubbles_Getter(mthis) native "Event_bubbles_Getter";
 
@@ -673,7 +673,7 @@ Native_CSSStyleDeclaration_length_Getter(mthis) native "CSSStyleDeclaration_leng
 
 Native_CSSStyleDeclaration_parentRule_Getter(mthis) native "CSSStyleDeclaration_parentRule_Getter";
 
-Native_CSSStyleDeclaration___setter___Callback(mthis, propertyName, propertyValue) native "CSSStyleDeclaration___setter___Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_CSSStyleDeclaration___setter___Callback(mthis, propertyName, propertyValue) native "CSSStyleDeclaration___setter___Callback";
 
 Native_CSSStyleDeclaration_getPropertyPriority_Callback(mthis, propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback_RESOLVER_STRING_1_DOMString";
 
@@ -1146,7 +1146,7 @@ Native_Clipboard_getData_Callback(mthis, type) native "DataTransfer_getData_Call
 
 Native_Clipboard_setData_Callback(mthis, type, data) native "DataTransfer_setData_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
-Native_Clipboard_setDragImage_Callback(mthis, element, x, y) native "DataTransfer_setDragImage_Callback_RESOLVER_STRING_3_Element_long_long";
+Native_Clipboard_setDragImage_Callback(mthis, element, x, y) native "DataTransfer_setDragImage_Callback";
 
 Native_CloseEvent_code_Getter(mthis) native "CloseEvent_code_Getter";
 
@@ -1261,11 +1261,11 @@ Native_Coordinates_speed_Getter(mthis) native "Coordinates_speed_Getter";
 
 Native_Crypto_subtle_Getter(mthis) native "Crypto_subtle_Getter";
 
-Native_Crypto_getRandomValues_Callback(mthis, array) native "Crypto_getRandomValues_Callback_RESOLVER_STRING_1_ArrayBufferView";
+Native_Crypto_getRandomValues_Callback(mthis, array) native "Crypto_getRandomValues_Callback";
 
 Native_CustomEvent_detail_Getter(mthis) native "CustomEvent_detail_Getter";
 
-Native_CustomEvent_initCustomEvent_Callback(mthis, typeArg, canBubbleArg, cancelableArg, detailArg) native "CustomEvent_initCustomEvent_Callback_RESOLVER_STRING_4_DOMString_boolean_boolean_any";
+Native_CustomEvent_initCustomEvent_Callback(mthis, typeArg, canBubbleArg, cancelableArg, detailArg) native "CustomEvent_initCustomEvent_Callback";
 
 Native_DOMError_message_Getter(mthis) native "DOMError_message_Getter";
 
@@ -1434,9 +1434,9 @@ Native_WindowTimers_clearInterval_Callback(mthis, handle) native "WindowTimers_c
 
 Native_WindowTimers_clearTimeout_Callback(mthis, handle) native "WindowTimers_clearTimeout_Callback_RESOLVER_STRING_1_long";
 
-Native_WindowTimers_setInterval_Callback(mthis, handler, timeout) native "WindowTimers_setInterval_Callback_RESOLVER_STRING_2_any_long";
+Native_WindowTimers_setInterval_Callback(mthis, handler, timeout) native "WindowTimers_setInterval_Callback";
 
-Native_WindowTimers_setTimeout_Callback(mthis, handler, timeout) native "WindowTimers_setTimeout_Callback_RESOLVER_STRING_2_any_long";
+Native_WindowTimers_setTimeout_Callback(mthis, handler, timeout) native "WindowTimers_setTimeout_Callback";
 
 Native_WorkerGlobalScope_console_Getter(mthis) native "WorkerGlobalScope_console_Getter";
 
@@ -1476,11 +1476,11 @@ Native_WorkerGlobalScope_clearInterval_Callback(mthis, handle) native "WorkerGlo
 
 Native_WorkerGlobalScope_clearTimeout_Callback(mthis, handle) native "WorkerGlobalScope_clearTimeout_Callback_RESOLVER_STRING_1_long";
 
-Native_WorkerGlobalScope_setInterval_Callback(mthis, handler, timeout) native "WorkerGlobalScope_setInterval_Callback_RESOLVER_STRING_2_any_long";
+Native_WorkerGlobalScope_setInterval_Callback(mthis, handler, timeout) native "WorkerGlobalScope_setInterval_Callback";
 
-Native_WorkerGlobalScope_setTimeout_Callback(mthis, handler, timeout) native "WorkerGlobalScope_setTimeout_Callback_RESOLVER_STRING_2_any_long";
+Native_WorkerGlobalScope_setTimeout_Callback(mthis, handler, timeout) native "WorkerGlobalScope_setTimeout_Callback";
 
-Native_DedicatedWorkerGlobalScope_postMessage_Callback(mthis, message, messagePorts) native "DedicatedWorkerGlobalScope_postMessage_Callback_RESOLVER_STRING_2_any_MessagePort[]";
+Native_DedicatedWorkerGlobalScope_postMessage_Callback(mthis, message, messagePorts) native "DedicatedWorkerGlobalScope_postMessage_Callback";
 
 Native_DelayNode_delayTime_Getter(mthis) native "DelayNode_delayTime_Getter";
 
@@ -1506,7 +1506,7 @@ Native_DeviceMotionEvent_interval_Getter(mthis) native "DeviceMotionEvent_interv
 
 Native_DeviceMotionEvent_rotationRate_Getter(mthis) native "DeviceMotionEvent_rotationRate_Getter";
 
-Native_DeviceMotionEvent_initDeviceMotionEvent_Callback(mthis, type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval) native "DeviceMotionEvent_initDeviceMotionEvent_Callback_RESOLVER_STRING_7_DOMString_boolean_boolean_DeviceAcceleration_DeviceAcceleration_DeviceRotationRate_double";
+Native_DeviceMotionEvent_initDeviceMotionEvent_Callback(mthis, type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval) native "DeviceMotionEvent_initDeviceMotionEvent_Callback";
 
 Native_DeviceOrientationEvent_absolute_Getter(mthis) native "DeviceOrientationEvent_absolute_Getter";
 
@@ -1516,7 +1516,7 @@ Native_DeviceOrientationEvent_beta_Getter(mthis) native "DeviceOrientationEvent_
 
 Native_DeviceOrientationEvent_gamma_Getter(mthis) native "DeviceOrientationEvent_gamma_Getter";
 
-Native_DeviceOrientationEvent_initDeviceOrientationEvent_Callback(mthis, type, bubbles, cancelable, alpha, beta, gamma, absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback_RESOLVER_STRING_7_DOMString_boolean_boolean_double_double_double_boolean";
+Native_DeviceOrientationEvent_initDeviceOrientationEvent_Callback(mthis, type, bubbles, cancelable, alpha, beta, gamma, absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 Native_DeviceRotationRate_alpha_Getter(mthis) native "DeviceRotationRate_alpha_Getter";
 
@@ -1654,9 +1654,9 @@ Native_Document_caretRangeFromPoint_Callback(mthis, x, y) native "Document_caret
 
 Native_Document_createDocumentFragment_Callback(mthis) native "Document_createDocumentFragment_Callback_RESOLVER_STRING_0_";
 
-Native_Document_createElement_Callback(mthis, localName_OR_tagName, typeExtension) native "Document_createElement_Callback_RESOLVER_STRING_1_DOMString";
+Native_Document_createElement_Callback(mthis, localName_OR_tagName, typeExtension) native "Document_createElement_Callback";
 
-Native_Document_createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_Document_createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback";
 
   // Generated overload resolver
 Native_Document__createEvent(mthis, eventType) {
@@ -2126,9 +2126,9 @@ Native_FontFaceSet_has_Callback(mthis, fontFace) native "FontFaceSet_has_Callbac
 
 Native_FormData_constructorCallback(form) native "FormData_constructorCallback_RESOLVER_STRING_1_HTMLFormElement";
 
-Native_FormData_append_Callback(mthis, name, value) native "FormData_append_Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_FormData_append_Callback(mthis, name, value) native "FormData_append_Callback";
 
-Native_FormData_appendBlob_Callback(mthis, name, value, filename) native "FormData_append_Callback_RESOLVER_STRING_3_DOMString_Blob_DOMString";
+Native_FormData_appendBlob_Callback(mthis, name, value, filename) native "FormData_append_Callback";
 
 Native_GainNode_gain_Getter(mthis) native "GainNode_gain_Getter";
 
@@ -2150,15 +2150,15 @@ Native_GamepadList_item_Callback(mthis, index) native "GamepadList_item_Callback
 
 Native_Geolocation_clearWatch_Callback(mthis, watchID) native "Geolocation_clearWatch_Callback_RESOLVER_STRING_1_long";
 
-Native_Geolocation_getCurrentPosition_Callback(mthis, successCallback, errorCallback, options) native "Geolocation_getCurrentPosition_Callback_RESOLVER_STRING_3_PositionCallback_PositionErrorCallback_object";
+Native_Geolocation_getCurrentPosition_Callback(mthis, successCallback, errorCallback, options) native "Geolocation_getCurrentPosition_Callback";
 
-Native_Geolocation_watchPosition_Callback(mthis, successCallback, errorCallback, options) native "Geolocation_watchPosition_Callback_RESOLVER_STRING_3_PositionCallback_PositionErrorCallback_object";
+Native_Geolocation_watchPosition_Callback(mthis, successCallback, errorCallback, options) native "Geolocation_watchPosition_Callback";
 
 Native_Geoposition_coords_Getter(mthis) native "Geoposition_coords_Getter";
 
 Native_Geoposition_timestamp_Getter(mthis) native "Geoposition_timestamp_Getter";
 
-Native_HTMLAllCollection_item_Callback(mthis, index) native "HTMLAllCollection_item_Callback_RESOLVER_STRING_1_unsigned long";
+Native_HTMLAllCollection_item_Callback(mthis, index) native "HTMLAllCollection_item_Callback";
 
 Native_HTMLElement_contentEditable_Getter(mthis) native "HTMLElement_contentEditable_Getter";
 
@@ -2594,9 +2594,9 @@ Native_HTMLCanvasElement_width_Getter(mthis) native "HTMLCanvasElement_width_Get
 
 Native_HTMLCanvasElement_width_Setter(mthis, value) native "HTMLCanvasElement_width_Setter";
 
-Native_HTMLCanvasElement_getContext_Callback(mthis, contextId, attrs) native "HTMLCanvasElement_getContext_Callback_RESOLVER_STRING_2_DOMString_Dictionary";
+Native_HTMLCanvasElement_getContext_Callback(mthis, contextId, attrs) native "HTMLCanvasElement_getContext_Callback";
 
-Native_HTMLCanvasElement_toDataURL_Callback(mthis, type, quality) native "HTMLCanvasElement_toDataURL_Callback_RESOLVER_STRING_2_DOMString_float";
+Native_HTMLCanvasElement_toDataURL_Callback(mthis, type, quality) native "HTMLCanvasElement_toDataURL_Callback";
 
 Native_HTMLCollection_length_Getter(mthis) native "HTMLCollection_length_Getter";
 
@@ -2656,9 +2656,9 @@ Native_HTMLEmbedElement_width_Getter(mthis) native "HTMLEmbedElement_width_Gette
 
 Native_HTMLEmbedElement_width_Setter(mthis, value) native "HTMLEmbedElement_width_Setter";
 
-Native_HTMLEmbedElement___getter___Callback(mthis, index_OR_name) native "HTMLEmbedElement___getter___Callback_RESOLVER_STRING_1_unsigned long";
+Native_HTMLEmbedElement___getter___Callback(mthis, index_OR_name) native "HTMLEmbedElement___getter___Callback";
 
-Native_HTMLEmbedElement___setter___Callback(mthis, index_OR_name, value) native "HTMLEmbedElement___setter___Callback_RESOLVER_STRING_2_unsigned long_Node";
+Native_HTMLEmbedElement___setter___Callback(mthis, index_OR_name, value) native "HTMLEmbedElement___setter___Callback";
 
 Native_HTMLFieldSetElement_disabled_Getter(mthis) native "HTMLFieldSetElement_disabled_Getter";
 
@@ -3227,9 +3227,9 @@ Native_HTMLObjectElement_width_Setter(mthis, value) native "HTMLObjectElement_wi
 
 Native_HTMLObjectElement_willValidate_Getter(mthis) native "HTMLObjectElement_willValidate_Getter";
 
-Native_HTMLObjectElement___getter___Callback(mthis, index_OR_name) native "HTMLObjectElement___getter___Callback_RESOLVER_STRING_1_unsigned long";
+Native_HTMLObjectElement___getter___Callback(mthis, index_OR_name) native "HTMLObjectElement___getter___Callback";
 
-Native_HTMLObjectElement___setter___Callback(mthis, index_OR_name, value) native "HTMLObjectElement___setter___Callback_RESOLVER_STRING_2_unsigned long_Node";
+Native_HTMLObjectElement___setter___Callback(mthis, index_OR_name, value) native "HTMLObjectElement___setter___Callback";
 
 Native_HTMLObjectElement_checkValidity_Callback(mthis) native "HTMLObjectElement_checkValidity_Callback_RESOLVER_STRING_0_";
 
@@ -3705,9 +3705,9 @@ Native_History_forward_Callback(mthis) native "History_forward_Callback_RESOLVER
 
 Native_History_go_Callback(mthis, distance) native "History_go_Callback_RESOLVER_STRING_1_long";
 
-Native_History_pushState_Callback(mthis, data, title, url) native "History_pushState_Callback_RESOLVER_STRING_3_any_DOMString_DOMString";
+Native_History_pushState_Callback(mthis, data, title, url) native "History_pushState_Callback";
 
-Native_History_replaceState_Callback(mthis, data, title, url) native "History_replaceState_Callback_RESOLVER_STRING_3_any_DOMString_DOMString";
+Native_History_replaceState_Callback(mthis, data, title, url) native "History_replaceState_Callback";
 
 Native_IDBCursor_direction_Getter(mthis) native "IDBCursor_direction_Getter";
 
@@ -3988,11 +3988,11 @@ Native_Location_search_Getter(mthis) native "Location_search_Getter";
 
 Native_Location_search_Setter(mthis, value) native "Location_search_Setter";
 
-Native_Location_assign_Callback(mthis, url) native "Location_assign_Callback_RESOLVER_STRING_1_DOMString";
+Native_Location_assign_Callback(mthis, url) native "Location_assign_Callback";
 
-Native_Location_reload_Callback(mthis) native "Location_reload_Callback_RESOLVER_STRING_0_";
+Native_Location_reload_Callback(mthis) native "Location_reload_Callback";
 
-Native_Location_replace_Callback(mthis, url) native "Location_replace_Callback_RESOLVER_STRING_1_DOMString";
+Native_Location_replace_Callback(mthis, url) native "Location_replace_Callback";
 
 Native_Location_toString_Callback(mthis) native "Location_toString_Callback_RESOLVER_STRING_0_";
 
@@ -4261,11 +4261,11 @@ Native_MessageEvent_origin_Getter(mthis) native "MessageEvent_origin_Getter";
 
 Native_MessageEvent_source_Getter(mthis) native "MessageEvent_source_Getter";
 
-Native_MessageEvent_initMessageEvent_Callback(mthis, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts) native "MessageEvent_initMessageEvent_Callback_RESOLVER_STRING_8_DOMString_boolean_boolean_any_DOMString_DOMString_Window_MessagePort[]";
+Native_MessageEvent_initMessageEvent_Callback(mthis, typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 Native_MessagePort_close_Callback(mthis) native "MessagePort_close_Callback_RESOLVER_STRING_0_";
 
-Native_MessagePort_postMessage_Callback(mthis, message, messagePorts) native "MessagePort_postMessage_Callback_RESOLVER_STRING_2_any_MessagePort[]";
+Native_MessagePort_postMessage_Callback(mthis, message, messagePorts) native "MessagePort_postMessage_Callback";
 
 Native_MessagePort_start_Callback(mthis) native "MessagePort_start_Callback_RESOLVER_STRING_0_";
 
@@ -5081,9 +5081,9 @@ Native_SQLResultSetRowList_length_Getter(mthis) native "SQLResultSetRowList_leng
 
 Native_SQLResultSetRowList_NativeIndexed_Getter(mthis, index) native "SQLResultSetRowList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
-Native_SQLResultSetRowList_item_Callback(mthis, index) native "SQLResultSetRowList_item_Callback_RESOLVER_STRING_1_unsigned long";
+Native_SQLResultSetRowList_item_Callback(mthis, index) native "SQLResultSetRowList_item_Callback";
 
-Native_SQLTransaction_executeSql_Callback(mthis, sqlStatement, arguments, callback, errorCallback) native "SQLTransaction_executeSql_Callback_RESOLVER_STRING_4_DOMString_object[]_SQLStatementCallback_SQLStatementErrorCallback";
+Native_SQLTransaction_executeSql_Callback(mthis, sqlStatement, arguments, callback, errorCallback) native "SQLTransaction_executeSql_Callback";
 
 Native_SVGElement_className_Getter(mthis) native "SVGElement_className_Getter";
 
@@ -6554,7 +6554,7 @@ Native_Screen_unlockOrientation_Callback(mthis) native "Screen_unlockOrientation
 
 Native_ScriptProcessorNode_bufferSize_Getter(mthis) native "ScriptProcessorNode_bufferSize_Getter";
 
-Native_ScriptProcessorNode__setEventListener_Callback(mthis, eventListener) native "ScriptProcessorNode__setEventListener_Callback_RESOLVER_STRING_1_EventListener";
+Native_ScriptProcessorNode__setEventListener_Callback(mthis, eventListener) native "ScriptProcessorNode__setEventListener_Callback";
 
 Native_SecurityPolicyViolationEvent_blockedURI_Getter(mthis) native "SecurityPolicyViolationEvent_blockedURI_Getter";
 
@@ -7616,45 +7616,45 @@ Native_WebGLRenderingContext_getActiveAttrib_Callback(mthis, program, index) nat
 
 Native_WebGLRenderingContext_getActiveUniform_Callback(mthis, program, index) native "WebGLRenderingContext_getActiveUniform_Callback_RESOLVER_STRING_2_WebGLProgram_unsigned long";
 
-Native_WebGLRenderingContext_getAttachedShaders_Callback(mthis, program) native "WebGLRenderingContext_getAttachedShaders_Callback_RESOLVER_STRING_1_WebGLProgram";
+Native_WebGLRenderingContext_getAttachedShaders_Callback(mthis, program) native "WebGLRenderingContext_getAttachedShaders_Callback";
 
 Native_WebGLRenderingContext_getAttribLocation_Callback(mthis, program, name) native "WebGLRenderingContext_getAttribLocation_Callback_RESOLVER_STRING_2_WebGLProgram_DOMString";
 
-Native_WebGLRenderingContext_getBufferParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getBufferParameter_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
+Native_WebGLRenderingContext_getBufferParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getBufferParameter_Callback";
 
 Native_WebGLRenderingContext_getContextAttributes_Callback(mthis) native "WebGLRenderingContext_getContextAttributes_Callback_RESOLVER_STRING_0_";
 
 Native_WebGLRenderingContext_getError_Callback(mthis) native "WebGLRenderingContext_getError_Callback_RESOLVER_STRING_0_";
 
-Native_WebGLRenderingContext_getExtension_Callback(mthis, name) native "WebGLRenderingContext_getExtension_Callback_RESOLVER_STRING_1_DOMString";
+Native_WebGLRenderingContext_getExtension_Callback(mthis, name) native "WebGLRenderingContext_getExtension_Callback";
 
-Native_WebGLRenderingContext_getFramebufferAttachmentParameter_Callback(mthis, target, attachment, pname) native "WebGLRenderingContext_getFramebufferAttachmentParameter_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_unsigned long";
+Native_WebGLRenderingContext_getFramebufferAttachmentParameter_Callback(mthis, target, attachment, pname) native "WebGLRenderingContext_getFramebufferAttachmentParameter_Callback";
 
-Native_WebGLRenderingContext_getParameter_Callback(mthis, pname) native "WebGLRenderingContext_getParameter_Callback_RESOLVER_STRING_1_unsigned long";
+Native_WebGLRenderingContext_getParameter_Callback(mthis, pname) native "WebGLRenderingContext_getParameter_Callback";
 
 Native_WebGLRenderingContext_getProgramInfoLog_Callback(mthis, program) native "WebGLRenderingContext_getProgramInfoLog_Callback_RESOLVER_STRING_1_WebGLProgram";
 
-Native_WebGLRenderingContext_getProgramParameter_Callback(mthis, program, pname) native "WebGLRenderingContext_getProgramParameter_Callback_RESOLVER_STRING_2_WebGLProgram_unsigned long";
+Native_WebGLRenderingContext_getProgramParameter_Callback(mthis, program, pname) native "WebGLRenderingContext_getProgramParameter_Callback";
 
-Native_WebGLRenderingContext_getRenderbufferParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getRenderbufferParameter_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
+Native_WebGLRenderingContext_getRenderbufferParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getRenderbufferParameter_Callback";
 
 Native_WebGLRenderingContext_getShaderInfoLog_Callback(mthis, shader) native "WebGLRenderingContext_getShaderInfoLog_Callback_RESOLVER_STRING_1_WebGLShader";
 
-Native_WebGLRenderingContext_getShaderParameter_Callback(mthis, shader, pname) native "WebGLRenderingContext_getShaderParameter_Callback_RESOLVER_STRING_2_WebGLShader_unsigned long";
+Native_WebGLRenderingContext_getShaderParameter_Callback(mthis, shader, pname) native "WebGLRenderingContext_getShaderParameter_Callback";
 
 Native_WebGLRenderingContext_getShaderPrecisionFormat_Callback(mthis, shadertype, precisiontype) native "WebGLRenderingContext_getShaderPrecisionFormat_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
 
 Native_WebGLRenderingContext_getShaderSource_Callback(mthis, shader) native "WebGLRenderingContext_getShaderSource_Callback_RESOLVER_STRING_1_WebGLShader";
 
-Native_WebGLRenderingContext_getSupportedExtensions_Callback(mthis) native "WebGLRenderingContext_getSupportedExtensions_Callback_RESOLVER_STRING_0_";
+Native_WebGLRenderingContext_getSupportedExtensions_Callback(mthis) native "WebGLRenderingContext_getSupportedExtensions_Callback";
 
-Native_WebGLRenderingContext_getTexParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getTexParameter_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
+Native_WebGLRenderingContext_getTexParameter_Callback(mthis, target, pname) native "WebGLRenderingContext_getTexParameter_Callback";
 
-Native_WebGLRenderingContext_getUniform_Callback(mthis, program, location) native "WebGLRenderingContext_getUniform_Callback_RESOLVER_STRING_2_WebGLProgram_WebGLUniformLocation";
+Native_WebGLRenderingContext_getUniform_Callback(mthis, program, location) native "WebGLRenderingContext_getUniform_Callback";
 
 Native_WebGLRenderingContext_getUniformLocation_Callback(mthis, program, name) native "WebGLRenderingContext_getUniformLocation_Callback_RESOLVER_STRING_2_WebGLProgram_DOMString";
 
-Native_WebGLRenderingContext_getVertexAttrib_Callback(mthis, index, pname) native "WebGLRenderingContext_getVertexAttrib_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
+Native_WebGLRenderingContext_getVertexAttrib_Callback(mthis, index, pname) native "WebGLRenderingContext_getVertexAttrib_Callback";
 
 Native_WebGLRenderingContext_getVertexAttribOffset_Callback(mthis, index, pname) native "WebGLRenderingContext_getVertexAttribOffset_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
 
@@ -7798,41 +7798,41 @@ Native_WebGLRenderingContext_texSubImage2DVideo_Callback(mthis, target, level, x
 
 Native_WebGLRenderingContext_uniform1f_Callback(mthis, location, x) native "WebGLRenderingContext_uniform1f_Callback_RESOLVER_STRING_2_WebGLUniformLocation_float";
 
-Native_WebGLRenderingContext_uniform1fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform1fv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Float32Array";
+Native_WebGLRenderingContext_uniform1fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform1fv_Callback";
 
 Native_WebGLRenderingContext_uniform1i_Callback(mthis, location, x) native "WebGLRenderingContext_uniform1i_Callback_RESOLVER_STRING_2_WebGLUniformLocation_long";
 
-Native_WebGLRenderingContext_uniform1iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform1iv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Int32Array";
+Native_WebGLRenderingContext_uniform1iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform1iv_Callback";
 
 Native_WebGLRenderingContext_uniform2f_Callback(mthis, location, x, y) native "WebGLRenderingContext_uniform2f_Callback_RESOLVER_STRING_3_WebGLUniformLocation_float_float";
 
-Native_WebGLRenderingContext_uniform2fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform2fv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Float32Array";
+Native_WebGLRenderingContext_uniform2fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform2fv_Callback";
 
 Native_WebGLRenderingContext_uniform2i_Callback(mthis, location, x, y) native "WebGLRenderingContext_uniform2i_Callback_RESOLVER_STRING_3_WebGLUniformLocation_long_long";
 
-Native_WebGLRenderingContext_uniform2iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform2iv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Int32Array";
+Native_WebGLRenderingContext_uniform2iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform2iv_Callback";
 
 Native_WebGLRenderingContext_uniform3f_Callback(mthis, location, x, y, z) native "WebGLRenderingContext_uniform3f_Callback_RESOLVER_STRING_4_WebGLUniformLocation_float_float_float";
 
-Native_WebGLRenderingContext_uniform3fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform3fv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Float32Array";
+Native_WebGLRenderingContext_uniform3fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform3fv_Callback";
 
 Native_WebGLRenderingContext_uniform3i_Callback(mthis, location, x, y, z) native "WebGLRenderingContext_uniform3i_Callback_RESOLVER_STRING_4_WebGLUniformLocation_long_long_long";
 
-Native_WebGLRenderingContext_uniform3iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform3iv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Int32Array";
+Native_WebGLRenderingContext_uniform3iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform3iv_Callback";
 
 Native_WebGLRenderingContext_uniform4f_Callback(mthis, location, x, y, z, w) native "WebGLRenderingContext_uniform4f_Callback_RESOLVER_STRING_5_WebGLUniformLocation_float_float_float_float";
 
-Native_WebGLRenderingContext_uniform4fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform4fv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Float32Array";
+Native_WebGLRenderingContext_uniform4fv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform4fv_Callback";
 
 Native_WebGLRenderingContext_uniform4i_Callback(mthis, location, x, y, z, w) native "WebGLRenderingContext_uniform4i_Callback_RESOLVER_STRING_5_WebGLUniformLocation_long_long_long_long";
 
-Native_WebGLRenderingContext_uniform4iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform4iv_Callback_RESOLVER_STRING_2_WebGLUniformLocation_Int32Array";
+Native_WebGLRenderingContext_uniform4iv_Callback(mthis, location, v) native "WebGLRenderingContext_uniform4iv_Callback";
 
-Native_WebGLRenderingContext_uniformMatrix2fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix2fv_Callback_RESOLVER_STRING_3_WebGLUniformLocation_boolean_Float32Array";
+Native_WebGLRenderingContext_uniformMatrix2fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
-Native_WebGLRenderingContext_uniformMatrix3fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix3fv_Callback_RESOLVER_STRING_3_WebGLUniformLocation_boolean_Float32Array";
+Native_WebGLRenderingContext_uniformMatrix3fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
-Native_WebGLRenderingContext_uniformMatrix4fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix4fv_Callback_RESOLVER_STRING_3_WebGLUniformLocation_boolean_Float32Array";
+Native_WebGLRenderingContext_uniformMatrix4fv_Callback(mthis, location, transpose, array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
 Native_WebGLRenderingContext_useProgram_Callback(mthis, program) native "WebGLRenderingContext_useProgram_Callback_RESOLVER_STRING_1_WebGLProgram";
 
@@ -7840,19 +7840,19 @@ Native_WebGLRenderingContext_validateProgram_Callback(mthis, program) native "We
 
 Native_WebGLRenderingContext_vertexAttrib1f_Callback(mthis, indx, x) native "WebGLRenderingContext_vertexAttrib1f_Callback_RESOLVER_STRING_2_unsigned long_float";
 
-Native_WebGLRenderingContext_vertexAttrib1fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib1fv_Callback_RESOLVER_STRING_2_unsigned long_Float32Array";
+Native_WebGLRenderingContext_vertexAttrib1fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
 Native_WebGLRenderingContext_vertexAttrib2f_Callback(mthis, indx, x, y) native "WebGLRenderingContext_vertexAttrib2f_Callback_RESOLVER_STRING_3_unsigned long_float_float";
 
-Native_WebGLRenderingContext_vertexAttrib2fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib2fv_Callback_RESOLVER_STRING_2_unsigned long_Float32Array";
+Native_WebGLRenderingContext_vertexAttrib2fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
 Native_WebGLRenderingContext_vertexAttrib3f_Callback(mthis, indx, x, y, z) native "WebGLRenderingContext_vertexAttrib3f_Callback_RESOLVER_STRING_4_unsigned long_float_float_float";
 
-Native_WebGLRenderingContext_vertexAttrib3fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib3fv_Callback_RESOLVER_STRING_2_unsigned long_Float32Array";
+Native_WebGLRenderingContext_vertexAttrib3fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
 Native_WebGLRenderingContext_vertexAttrib4f_Callback(mthis, indx, x, y, z, w) native "WebGLRenderingContext_vertexAttrib4f_Callback_RESOLVER_STRING_5_unsigned long_float_float_float_float";
 
-Native_WebGLRenderingContext_vertexAttrib4fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib4fv_Callback_RESOLVER_STRING_2_unsigned long_Float32Array";
+Native_WebGLRenderingContext_vertexAttrib4fv_Callback(mthis, indx, values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
 Native_WebGLRenderingContext_vertexAttribPointer_Callback(mthis, indx, size, type, normalized, stride, offset) native "WebGLRenderingContext_vertexAttribPointer_Callback_RESOLVER_STRING_6_unsigned long_long_unsigned long_boolean_long_long long";
 
@@ -7950,15 +7950,15 @@ Native_WebSocket__close_2_Callback(mthis, code) native "WebSocket_close_Callback
 
 Native_WebSocket__close_3_Callback(mthis) native "WebSocket_close_Callback_RESOLVER_STRING_0_";
 
-Native_WebSocket_send_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBuffer";
+Native_WebSocket_send_Callback(mthis, data) native "WebSocket_send_Callback";
 
-Native_WebSocket_sendBlob_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_Blob";
+Native_WebSocket_sendBlob_Callback(mthis, data) native "WebSocket_send_Callback";
 
-Native_WebSocket_sendByteBuffer_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBuffer";
+Native_WebSocket_sendByteBuffer_Callback(mthis, data) native "WebSocket_send_Callback";
 
-Native_WebSocket_sendString_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_DOMString";
+Native_WebSocket_sendString_Callback(mthis, data) native "WebSocket_send_Callback";
 
-Native_WebSocket_sendTypedData_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBufferView";
+Native_WebSocket_sendTypedData_Callback(mthis, data) native "WebSocket_send_Callback";
 
 Native_WheelEvent_deltaMode_Getter(mthis) native "WheelEvent_deltaMode_Getter";
 
@@ -8113,11 +8113,11 @@ Native_Window_moveBy_Callback(mthis, x, y) native "Window_moveBy_Callback_RESOLV
 
 Native_Window_moveTo_Callback(mthis, x, y) native "Window_moveTo_Callback_RESOLVER_STRING_2_float_float";
 
-Native_Window_open_Callback(mthis, url, name, options) native "Window_open_Callback_RESOLVER_STRING_3_DOMString_DOMString_DOMString";
+Native_Window_open_Callback(mthis, url, name, options) native "Window_open_Callback";
 
 Native_Window_openDatabase_Callback(mthis, name, version, displayName, estimatedSize, creationCallback) native "Window_openDatabase_Callback_RESOLVER_STRING_5_DOMString_DOMString_DOMString_unsigned long_DatabaseCallback";
 
-Native_Window_postMessage_Callback(mthis, message, targetOrigin, messagePorts) native "Window_postMessage_Callback_RESOLVER_STRING_3_SerializedScriptValue_DOMString_MessagePort[]";
+Native_Window_postMessage_Callback(mthis, message, targetOrigin, messagePorts) native "Window_postMessage_Callback";
 
 Native_Window_print_Callback(mthis) native "Window_print_Callback_RESOLVER_STRING_0_";
 
@@ -8133,11 +8133,11 @@ Native_Window_scrollBy_Callback(mthis, x, y, scrollOptions) native "Window_scrol
 
 Native_Window_scrollTo_Callback(mthis, x, y, scrollOptions) native "Window_scrollTo_Callback_RESOLVER_STRING_3_long_long_Dictionary";
 
-Native_Window_showModalDialog_Callback(mthis, url, dialogArgs, featureArgs) native "Window_showModalDialog_Callback_RESOLVER_STRING_3_DOMString_any_DOMString";
+Native_Window_showModalDialog_Callback(mthis, url, dialogArgs, featureArgs) native "Window_showModalDialog_Callback";
 
 Native_Window_stop_Callback(mthis) native "Window_stop_Callback_RESOLVER_STRING_0_";
 
-Native_Window_toString_Callback(mthis) native "Window_toString_Callback_RESOLVER_STRING_0_";
+Native_Window_toString_Callback(mthis) native "Window_toString_Callback";
 
 Native_Window_webkitConvertPointFromNodeToPage_Callback(mthis, node, p) native "Window_webkitConvertPointFromNodeToPage_Callback_RESOLVER_STRING_2_Node_WebKitPoint";
 
@@ -8155,9 +8155,9 @@ Native_Window_clearInterval_Callback(mthis, handle) native "Window_clearInterval
 
 Native_Window_clearTimeout_Callback(mthis, handle) native "Window_clearTimeout_Callback_RESOLVER_STRING_1_long";
 
-Native_Window_setInterval_Callback(mthis, handler, timeout) native "Window_setInterval_Callback_RESOLVER_STRING_2_any_long";
+Native_Window_setInterval_Callback(mthis, handler, timeout) native "Window_setInterval_Callback";
 
-Native_Window_setTimeout_Callback(mthis, handler, timeout) native "Window_setTimeout_Callback_RESOLVER_STRING_2_any_long";
+Native_Window_setTimeout_Callback(mthis, handler, timeout) native "Window_setTimeout_Callback";
 
   // Generated overload resolver
 Native_Worker_Worker(scriptUrl) {
@@ -8166,11 +8166,11 @@ Native_Worker_Worker(scriptUrl) {
 
 Native_Worker__create_1constructorCallback(scriptUrl) native "Worker_constructorCallback_RESOLVER_STRING_1_DOMString";
 
-Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback_RESOLVER_STRING_2_SerializedScriptValue_MessagePort[]";
+Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback";
 
 Native_Worker_terminate_Callback(mthis) native "Worker_terminate_Callback_RESOLVER_STRING_0_";
 
-Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_getRandomValues_Callback_RESOLVER_STRING_1_ArrayBufferView";
+Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_getRandomValues_Callback";
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback_RESOLVER_STRING_0_";
 
@@ -8208,11 +8208,11 @@ Native_XMLHttpRequest_getAllResponseHeaders_Callback(mthis) native "XMLHttpReque
 
 Native_XMLHttpRequest_getResponseHeader_Callback(mthis, header) native "XMLHttpRequest_getResponseHeader_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_XMLHttpRequest_open_Callback(mthis, method, url, async, user, password) native "XMLHttpRequest_open_Callback_RESOLVER_STRING_5_DOMString_DOMString_boolean_DOMString_DOMString";
+Native_XMLHttpRequest_open_Callback(mthis, method, url, async, user, password) native "XMLHttpRequest_open_Callback";
 
 Native_XMLHttpRequest_overrideMimeType_Callback(mthis, override) native "XMLHttpRequest_overrideMimeType_Callback_RESOLVER_STRING_1_DOMString";
 
-Native_XMLHttpRequest_send_Callback(mthis, data) native "XMLHttpRequest_send_Callback_RESOLVER_STRING_0_";
+Native_XMLHttpRequest_send_Callback(mthis, data) native "XMLHttpRequest_send_Callback";
 
 Native_XMLHttpRequest_setRequestHeader_Callback(mthis, header, value) native "XMLHttpRequest_setRequestHeader_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
@@ -8269,15 +8269,15 @@ Native_XSLTProcessor__create_1constructorCallback() native "XSLTProcessor_constr
 
 Native_XSLTProcessor_clearParameters_Callback(mthis) native "XSLTProcessor_clearParameters_Callback_RESOLVER_STRING_0_";
 
-Native_XSLTProcessor_getParameter_Callback(mthis, namespaceURI, localName) native "XSLTProcessor_getParameter_Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_XSLTProcessor_getParameter_Callback(mthis, namespaceURI, localName) native "XSLTProcessor_getParameter_Callback";
 
 Native_XSLTProcessor_importStylesheet_Callback(mthis, stylesheet) native "XSLTProcessor_importStylesheet_Callback_RESOLVER_STRING_1_Node";
 
-Native_XSLTProcessor_removeParameter_Callback(mthis, namespaceURI, localName) native "XSLTProcessor_removeParameter_Callback_RESOLVER_STRING_2_DOMString_DOMString";
+Native_XSLTProcessor_removeParameter_Callback(mthis, namespaceURI, localName) native "XSLTProcessor_removeParameter_Callback";
 
 Native_XSLTProcessor_reset_Callback(mthis) native "XSLTProcessor_reset_Callback_RESOLVER_STRING_0_";
 
-Native_XSLTProcessor_setParameter_Callback(mthis, namespaceURI, localName, value) native "XSLTProcessor_setParameter_Callback_RESOLVER_STRING_3_DOMString_DOMString_DOMString";
+Native_XSLTProcessor_setParameter_Callback(mthis, namespaceURI, localName, value) native "XSLTProcessor_setParameter_Callback";
 
 Native_XSLTProcessor_transformToDocument_Callback(mthis, source) native "XSLTProcessor_transformToDocument_Callback_RESOLVER_STRING_1_Node";
 
@@ -8335,7 +8335,7 @@ Native_DOMWindowCrossFrame_get_top(_DOMWindowCrossFrame) native "Window_top_Gett
 
 Native_DOMWindowCrossFrame_close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
 
-Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback_RESOLVER_STRING_3_SerializedScriptValue_DOMString_MessagePort[]";
+Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
 
 // _HistoryCrossFrame native entry points
 Native_HistoryCrossFrame_back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";

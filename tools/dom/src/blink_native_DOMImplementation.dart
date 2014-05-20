@@ -34,7 +34,7 @@ Native_DOMWindowCrossFrame_get_top(_DOMWindowCrossFrame) native "Window_top_Gett
 
 Native_DOMWindowCrossFrame_close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
 
-Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback_RESOLVER_STRING_3_SerializedScriptValue_DOMString_MessagePort[]";
+Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
 
 // _HistoryCrossFrame native entry points
 Native_HistoryCrossFrame_back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";
