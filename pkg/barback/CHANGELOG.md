@@ -1,6 +1,23 @@
-## 0.13.1
+## 0.14.0
 
-* Only run `Transformer.isPrimary` once for each asset.
+* **Breaking change**: when an output of a lazy transformer is requested, that
+  transformer will run long enough to generate the output, then become lazy
+  again. Previously, it would become eager as soon as an asset had been
+  requested.
+
+* Only run `Transformer.isPrimary` and `Transformer.declareOutputs` once for
+  each asset.
+
+* Lazy transformers' laziness is preserved when followed by
+  declaring transformers, or by normal transformers for which the lazy outputs
+  aren't primary.
+
+* Fix a bug where reading the primary input using `Transform.readInputAsString`
+  had slightly different behavior than reading it using
+  `Transform.primary.readAsString`.
+
+* Fix a crashing bug when `Barback.getAllAssets` is called synchronously after
+  creating a new `Barback` instance.
 
 * Don't warn if a lazy or declaring transformer doesn't emit outputs that it has
   declared. This is valid for transformers like dart2js that need to read their
