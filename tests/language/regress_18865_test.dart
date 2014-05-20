@@ -11,5 +11,5 @@ class A<T> extends B {
 }
 
 main () {
-    A.foo();
+  A.foo();
 }

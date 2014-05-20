@@ -5387,6 +5387,13 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
   ASSERT((params != NULL) && (params->parameters != NULL));
   ASSERT(scope != NULL);
   const int num_parameters = params->parameters->length();
+  // Formal parameters should always be the first variables of the scope.
+  if (scope->num_variables() > 0) {
+    // Any local variables already present in the scope were entered as a side
+    // effect of parsing formal parameter default values. They are aliases of
+    // variables in outer scopes.
+    scope->Clear();
+  }
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
     ASSERT(!is_top_level_ || param_desc.type->IsResolved());
