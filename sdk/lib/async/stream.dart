@@ -49,8 +49,11 @@ part of dart.async;
  *
  * Broadcast streams are used for independent events/observers.
  *
- * Stream transformations, such as [where] and [skip], always return
- * non-broadcast streams. If several listeners want to listen to the returned
+ * Stream transformations, such as [where] and [skip],
+ * return the same type of stream as the one the method was called on,
+ * unless otherwise noted.
+ *
+ * If several listeners want to listen to the returned
  * stream, use [asBroadcastStream] to create a broadcast stream on top of the
  * non-broadcast stream.
  *
@@ -262,7 +265,7 @@ abstract class Stream<T> {
    * The new stream sends the same error and done events as this stream,
    * but it only sends the data events that satisfy the [test].
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> where(bool test(T event)) {
     return new _WhereStream<T>(this, test);
@@ -272,7 +275,7 @@ abstract class Stream<T> {
    * Creates a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream map(convert(T event)) {
     return new _MapStream<T, dynamic>(this, convert);
@@ -285,6 +288,8 @@ abstract class Stream<T> {
    * This acts like [map], except that [convert] may return a [Future],
    * and in that case, the stream waits for that future to complete before
    * continuing with its result.
+   *
+   * The returned stream is not a broadcast stream.
    */
   Stream asyncMap(convert(T event)) {
     StreamController controller;
@@ -332,6 +337,8 @@ abstract class Stream<T> {
    *
    * If [convert] returns `null`, no value is put on the output stream,
    * just as if it returned an empty stream.
+   *
+   * The returned stream is a not a broadcast stream.
    */
   Stream asyncExpand(Stream convert(T event)) {
     StreamController controller;
@@ -388,7 +395,7 @@ abstract class Stream<T> {
    * [Stream.transform] to handle the event by writing a data event to
    * the output sink
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> handleError(Function onError, { bool test(error) }) {
     return new _HandleErrorStream<T>(this, onError, test);
@@ -402,7 +409,7 @@ abstract class Stream<T> {
    * and each of these new events are then sent by the returned stream
    * in order.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream expand(Iterable convert(T value)) {
     return new _ExpandStream<T, dynamic>(this, convert);
@@ -419,6 +426,9 @@ abstract class Stream<T> {
    * Chains this stream as the input of the provided [StreamTransformer].
    *
    * Returns the result of [:streamTransformer.bind:] itself.
+   *
+   * The `streamTransformer` can decide whether it wants to return a
+   * broadcast stream or not.
    */
   Stream transform(StreamTransformer<T, dynamic> streamTransformer) {
     return streamTransformer.bind(this);
@@ -738,7 +748,7 @@ abstract class Stream<T> {
    * means that single-subscription (non-broadcast) streams are closed and
    * cannot be reused after a call to this method.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> take(int count) {
     return new _TakeStream(this, count);
@@ -758,7 +768,7 @@ abstract class Stream<T> {
    * means that single-subscription (non-broadcast) streams are closed and
    * cannot be reused after a call to this method.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream(this, test);
@@ -767,7 +777,7 @@ abstract class Stream<T> {
   /**
    * Skips the first [count] data events from this stream.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> skip(int count) {
     return new _SkipStream(this, count);
@@ -781,7 +791,7 @@ abstract class Stream<T> {
    * Starting with the first data event where [test] returns false for the
    * event data, the returned stream will have the same events as this stream.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream(this, test);
@@ -796,7 +806,7 @@ abstract class Stream<T> {
    * Equality is determined by the provided [equals] method. If that is
    * omitted, the '==' operator on the last provided data element is used.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
     return new _DistinctStream(this, equals);
@@ -1088,12 +1098,12 @@ abstract class Stream<T> {
    * If `onTimeout` is omitted, a timeout will just put a [TimeoutException]
    * into the error channel of the returned stream.
    *
-   * The returned stream is not a broadcast stream, even if this stream is.
+   * The returned stream is a broadcast stream if this stream is.
    */
   Stream timeout(Duration timeLimit, {void onTimeout(EventSink sink)}) {
-    StreamSubscription<T> subscription;
-    _StreamController controller;
+    StreamController controller;
     // The following variables are set on listen.
+    StreamSubscription<T> subscription;
     Timer timer;
     Zone zone;
     Function timeout;
@@ -1112,46 +1122,51 @@ abstract class Stream<T> {
       timer.cancel();
       controller.close();
     }
-    controller = new _SyncStreamController(
-        () {
-          // This is the onListen callback for of controller.
-          // It runs in the same zone that the subscription was created in.
-          // Use that zone for creating timers and running the onTimeout
-          // callback.
-          zone = Zone.current;
-          if (onTimeout == null) {
-            timeout = () {
-              controller.addError(new TimeoutException("No stream event",
-                                                       timeLimit));
-            };
-          } else {
-            onTimeout = zone.registerUnaryCallback(onTimeout);
-            _ControllerEventSinkWrapper wrapper =
-                new _ControllerEventSinkWrapper(null);
-            timeout = () {
-              wrapper._sink = controller;  // Only valid during call.
-              zone.runUnaryGuarded(onTimeout, wrapper);
-              wrapper._sink = null;
-            };
-          }
+    void onListen() {
+      // This is the onListen callback for of controller.
+      // It runs in the same zone that the subscription was created in.
+      // Use that zone for creating timers and running the onTimeout
+      // callback.
+      zone = Zone.current;
+      if (onTimeout == null) {
+        timeout = () {
+          controller.addError(new TimeoutException("No stream event",
+                                                   timeLimit));
+        };
+      } else {
+        onTimeout = zone.registerUnaryCallback(onTimeout);
+        _ControllerEventSinkWrapper wrapper =
+            new _ControllerEventSinkWrapper(null);
+        timeout = () {
+          wrapper._sink = controller;  // Only valid during call.
+          zone.runUnaryGuarded(onTimeout, wrapper);
+          wrapper._sink = null;
+        };
+      }
 
-          subscription = this.listen(onData, onError: onError, onDone: onDone);
-          timer = zone.createTimer(timeLimit, timeout);
-        },
-        () {
-          timer.cancel();
-          subscription.pause();
-        },
-        () {
-          subscription.resume();
-          timer = zone.createTimer(timeLimit, timeout);
-        },
-        () {
-          timer.cancel();
-          Future result = subscription.cancel();
-          subscription = null;
-          return result;
-        });
+      subscription = this.listen(onData, onError: onError, onDone: onDone);
+      timer = zone.createTimer(timeLimit, timeout);
+    }
+    Future onCancel() {
+      timer.cancel();
+      Future result = subscription.cancel();
+      subscription = null;
+      return result;
+    }
+    controller = isBroadcast
+        ? new _SyncBroadcastStreamController(onListen, onCancel)
+        : new _SyncStreamController(
+              onListen,
+              () {
+                // Don't null the timer, onCancel may call cancel again.
+                timer.cancel();
+                subscription.pause();
+              },
+              () {
+                subscription.resume();
+                timer = zone.createTimer(timeLimit, timeout);
+              },
+              onCancel);
     return controller.stream;
   }
 }
