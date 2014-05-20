@@ -51,6 +51,11 @@ class DebuggerConnectionHandler {
   // from the client.
   static int StartHandler(const char* address, int port_number);
 
+  // Initializes the parts of the debugger which are needed by the vm
+  // service.  This function should only be called when StartHandler
+  // is not called.
+  static void InitForVmService();
+
   // Called by Isolates when they need to wait for a connection
   // from debugger clients.
   static void WaitForConnection();
@@ -98,6 +103,10 @@ class DebuggerConnectionHandler {
   // debugger. This is also used to ensure that the isolate waits for
   // a debugger to be attached when that is requested on the command line.
   static dart::Monitor* handler_lock_;
+
+  static bool IsListening() {
+    return listener_fd_ != -1;
+  }
 
   // The socket that is listening for incoming debugger connections.
   // This descriptor is created and closed by a native thread.

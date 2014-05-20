@@ -1391,6 +1391,34 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleDebugResume(Isolate* isolate, JSONStream* js) {
+  if (isolate->message_handler()->paused_on_start()) {
+    isolate->message_handler()->set_pause_on_start(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
+    return true;
+  }
+  if (isolate->message_handler()->paused_on_exit()) {
+    isolate->message_handler()->set_pause_on_exit(false);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
+    return true;
+  }
+  if (isolate->debugger()->PauseEvent() != NULL) {
+    isolate->Resume();
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Success");
+    jsobj.AddProperty("id", "");
+    return true;
+  }
+
+  PrintError(js, "VM was not paused");
+  return true;
+}
+
+
 static bool HandleDebug(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     PrintError(js, "Must specify a subcommand");
@@ -1419,6 +1447,25 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
         PrintError(js, "Unrecognized breakpoint id %s", js->GetArgument(2));
         return true;
       }
+    } else {
+      PrintError(js, "Command too long");
+      return true;
+    }
+  } else if (strcmp(command, "pause") == 0) {
+    if (js->num_arguments() == 2) {
+      // TODO(turnidge): Don't double-interrupt the isolate here.
+      isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
+      JSONObject jsobj(js);
+      jsobj.AddProperty("type", "Success");
+      jsobj.AddProperty("id", "");
+      return true;
+    } else {
+      PrintError(js, "Command too long");
+      return true;
+    }
+  } else if (strcmp(command, "resume") == 0) {
+    if (js->num_arguments() == 2) {
+      return HandleDebugResume(isolate, js);
     } else {
       PrintError(js, "Command too long");
       return true;
@@ -1575,27 +1622,6 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleResume(Isolate* isolate, JSONStream* js) {
-  if (isolate->message_handler()->pause_on_start()) {
-    isolate->message_handler()->set_pause_on_start(false);
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
-    return true;
-  }
-  if (isolate->message_handler()->pause_on_exit()) {
-    isolate->message_handler()->set_pause_on_exit(false);
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Success");
-    jsobj.AddProperty("id", "");
-    return true;
-  }
-
-  PrintError(js, "VM was not paused");
-  return true;
-}
-
-
 static bool HandleTypeArguments(Isolate* isolate, JSONStream* js) {
   ObjectStore* object_store = isolate->object_store();
   const Array& table = Array::Handle(object_store->canonical_type_arguments());
@@ -1730,7 +1756,6 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "libraries", HandleLibraries },
   { "objects", HandleObjects },
   { "profile", HandleProfile },
-  { "resume", HandleResume },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
   { "typearguments", HandleTypeArguments },

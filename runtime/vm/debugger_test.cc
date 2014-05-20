@@ -65,9 +65,9 @@ static void InspectPausedEvent(Dart_IsolateId isolate_id,
 
   // The debugger knows that it is paused, and why.
   EXPECT(debugger->IsPaused());
-  const Debugger::DebuggerEvent* event = debugger->PauseEvent();
+  const DebuggerEvent* event = debugger->PauseEvent();
   EXPECT(event != NULL);
-  EXPECT(event->type == Debugger::kBreakpointReached);
+  EXPECT(event->type() == DebuggerEvent::kBreakpointReached);
   saw_paused_event = true;
 }
 

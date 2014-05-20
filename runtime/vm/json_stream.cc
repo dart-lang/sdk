@@ -247,6 +247,12 @@ void JSONStream::PrintValue(SourceBreakpoint* bpt) {
 }
 
 
+void JSONStream::PrintValue(const DebuggerEvent* event) {
+  PrintCommaIfNeeded();
+  event->PrintJSON(this);
+}
+
+
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
@@ -280,6 +286,18 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintProperty(const char* name, const DebuggerEvent* event) {
+  PrintPropertyName(name);
+  PrintValue(event);
+}
+
+
+void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
+  PrintPropertyName(name);
+  PrintValue(isolate);
 }
 
 

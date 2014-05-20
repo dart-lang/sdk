@@ -109,34 +109,34 @@ static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 static Dart_BreakpointHandler* legacy_bp_handler = NULL;
 
 
-static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
+static void DebuggerEventHandler(DebuggerEvent* event) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate->debugger() != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
-  if (event->type == Debugger::kBreakpointReached) {
+  if (event->type() == DebuggerEvent::kBreakpointReached) {
     if (legacy_bp_handler != NULL) {
       Dart_StackTrace stack_trace =
           reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
       (*legacy_bp_handler)(isolate_id, NULL, stack_trace);
     } else if (paused_event_handler != NULL) {
       Dart_CodeLocation location;
-      ActivationFrame* top_frame = event->top_frame;
+      ActivationFrame* top_frame = event->top_frame();
       location.script_url = Api::NewHandle(isolate, top_frame->SourceUrl());
       const Library& lib = Library::Handle(top_frame->Library());
       location.library_id = lib.index();
       location.token_pos = top_frame->TokenPos();
       intptr_t bp_id = 0;
-      if (event->breakpoint != NULL) {
-        ASSERT(event->breakpoint->id() != ILLEGAL_BREAKPOINT_ID);
-        bp_id = event->breakpoint->id();
+      if (event->breakpoint() != NULL) {
+        ASSERT(event->breakpoint()->id() != ILLEGAL_BREAKPOINT_ID);
+        bp_id = event->breakpoint()->id();
       }
       (*paused_event_handler)(isolate_id, bp_id, location);
     }
-  } else if (event->type == Debugger::kBreakpointResolved) {
+  } else if (event->type() == DebuggerEvent::kBreakpointResolved) {
     if (bp_resolved_handler != NULL) {
-      SourceBreakpoint* bpt = event->breakpoint;
+      SourceBreakpoint* bpt = event->breakpoint();
       ASSERT(bpt != NULL);
       Dart_CodeLocation location;
       Library& library = Library::Handle(isolate);
@@ -148,24 +148,25 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
       location.token_pos = token_pos;
       (*bp_resolved_handler)(isolate_id, bpt->id(), location);
     }
-  } else if (event->type == Debugger::kExceptionThrown) {
+  } else if (event->type() == DebuggerEvent::kExceptionThrown) {
     if (exc_thrown_handler != NULL) {
-      Dart_Handle exception = Api::NewHandle(isolate, event->exception->raw());
+      Dart_Handle exception =
+          Api::NewHandle(isolate, event->exception()->raw());
       Dart_StackTrace trace =
       reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
       (*exc_thrown_handler)(isolate_id, exception, trace);
     }
-  } else if (event->type == Debugger::kIsolateCreated) {
+  } else if (event->type() == DebuggerEvent::kIsolateCreated) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(event->isolate_id, kCreated);
+      (*isolate_event_handler)(event->isolate_id(), kCreated);
     }
-  } else if (event->type == Debugger::kIsolateInterrupted) {
+  } else if (event->type() == DebuggerEvent::kIsolateInterrupted) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(event->isolate_id, kInterrupted);
+      (*isolate_event_handler)(event->isolate_id(), kInterrupted);
     }
-  } else if (event->type == Debugger::kIsolateShutdown) {
+  } else if (event->type() == DebuggerEvent::kIsolateShutdown) {
     if (isolate_event_handler != NULL) {
-      (*isolate_event_handler)(event->isolate_id, kShutdown);
+      (*isolate_event_handler)(event->isolate_id(), kShutdown);
     }
   } else {
     UNIMPLEMENTED();

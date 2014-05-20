@@ -1,4 +1,5 @@
 <head>
+  <link rel="import" href="action_link.html">
   <link rel="import" href="function_ref.html">
   <link rel="import" href="isolate_ref.html">
   <link rel="import" href="observatory_element.html">
@@ -8,63 +9,173 @@
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
-    <style>
-      .counters {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-      }
-      .counter {
-        margin: 10px;
-      }
-    </style>
     <div class="flex-row">
-      <div class="flex-item-fixed-1-12"><img src="../../../../packages/observatory/src/elements/img/isolate_icon.png"></div>
-      <div class="flex-item-fixed-1-12">{{ isolate.mainPort }}</div>
-      <div class="flex-item-fixed-4-12">
-        <div class="flex-row">
-          <isolate-ref ref="{{ isolate }}"></isolate-ref>
-        </div>
-        <div class="flex-row">
-          <small>
-            (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
-            (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
-            (<a href="{{ isolate.relativeHashLink('profile') }}">profile</a>)
-          </small>
-        </div>
+      <div class="flex-item-10-percent">
+        <img src="../../../../packages/observatory/src/elements/img/isolate_icon.png">
       </div>
-
-      <div class="flex-item-fixed-2-12">
-        <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
-          {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
-        </a>
-        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
+      <div class="flex-item-10-percent">
+        <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
-      <div class="flex-item-fixed-2-12">
-        <template if="{{ isolate.topFrame == null }}">
-          idle
-        </template>
-        <template if="{{ isolate.topFrame != null }}">
-          run
-        </template>
-        ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
+      <div class="flex-item-20-percent">
+        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+      </div>
+      <div class="flex-item-50-percent">
+        <isolate-location isolate="{{ isolate }}"></isolate-location>
+      </div>
+      <div class="flex-item-10-percent">
       </div>
     </div>
 
-    <div class="counters">
-      <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="counter">{{ key }} ({{ isolate.counters[key] }})</div>
-      </template>
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent">
+        <hr>
+      </div>
+      <div class="flex-item-20-percent"></div>
     </div>
 
-    <template if="{{ isolate.topFrame != null }}">
-      <script-inset script="{{ isolate.topFrame['script'] }}"
-                    pos="{{ isolate.topFrame['tokenPos'] }}">
-        <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
-        (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
-      </script-inset>
+    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-run-state" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <strong>paused</strong>
+      <action-link callback="{{ resume }}" label="resume"></action-link>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      <strong>running</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
+    </template>
+
+    <template if="{{ isolate.idle }}">
+      <strong>idle</strong>
+    </template>
+
+    <template if="{{ isolate.loading }}">
+      <strong>loading...</strong>
     </template>
   </template>
-  <script type="application/dart" src="isolate_summary.dart"></script>
 </polymer-element>
+
+<polymer-element name="isolate-location" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateCreated' }}">
+        at isolate start
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateShutdown' }}">
+        at isolate exit
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateInterrupted' }}">
+        at
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'BreakpointReached' }}">
+        at breakpoint {{ isolate.pauseEvent['breakpoint']['id'] }}
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                         pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      at
+      <function-ref ref="{{ isolate.topFrame['function'] }}">
+      </function-ref>
+      (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                   pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+    </template>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-shared-summary" extends="observatory-element">
+  <template>
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+    <template if="{{ isolate.error != null }}">
+      <div class="content-centered">
+        <pre class="errorBox">{{ isolate.error.message }}</pre>
+        <br>
+      </div>
+    </template>
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
+      </div>
+      <div class="flex-item-40-percent">
+        <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
+      </div>
+      <div class="flex-item-40-percent">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">new heap</div>
+              <div class="memberValue">
+                {{ isolate.newHeapUsed | formatSize }}
+                of
+                {{ isolate.newHeapCapacity | formatSize }}
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">old heap</div>
+              <div class="memberValue">
+                {{ isolate.oldHeapUsed | formatSize }}
+                of
+                {{ isolate.oldHeapCapacity | formatSize }}
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+            </div>
+          </div>
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-counter-chart" extends="observatory-element">
+  <template>
+    <div id="counterPieChart" style="height: 200px"></div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="isolate_summary.dart"></script>

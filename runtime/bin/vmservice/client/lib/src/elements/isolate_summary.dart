@@ -4,12 +4,104 @@
 
 library isolate_summary_element;
 
-import 'package:observatory/service.dart';
-import 'package:polymer/polymer.dart';
+import 'dart:async';
+import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/app.dart';
+import 'package:observatory/service.dart';
+import 'package:logging/logging.dart';
+import 'package:polymer/polymer.dart';
 
 @CustomTag('isolate-summary')
 class IsolateSummaryElement extends ObservatoryElement {
   IsolateSummaryElement.created() : super.created();
+
   @published Isolate isolate;
 }
+
+@CustomTag('isolate-run-state')
+class IsolateRunStateElement extends ObservatoryElement {
+  IsolateRunStateElement.created() : super.created();
+
+  @published Isolate isolate;
+
+  Future pause(_) {
+    return isolate.get("debug/pause").then((result) {
+        // TODO(turnidge): Instead of asserting here, handle errors
+        // properly.
+        assert(result.serviceType == 'Success');
+        return isolate.reload();
+      });
+  }
+
+  Future resume(_) {
+    return isolate.get("debug/resume").then((result) {
+        // TODO(turnidge): Instead of asserting here, handle errors
+        // properly.
+        assert(result.serviceType == 'Success');
+        return isolate.reload();
+      });
+  }
+}
+
+@CustomTag('isolate-location')
+class IsolateLocationElement extends ObservatoryElement {
+  IsolateLocationElement.created() : super.created();
+
+  @published Isolate isolate;
+}
+
+@CustomTag('isolate-shared-summary')
+class IsolateSharedSummaryElement extends ObservatoryElement {
+  IsolateSharedSummaryElement.created() : super.created();
+
+  @published Isolate isolate;
+}
+
+class CounterChart {
+  var _table = new DataTable();
+  var _chart;
+
+  void update(Map counters) {
+    if (_table.columns == 0) {
+      // Initialize.
+      _table.addColumn('string', 'Name');
+      _table.addColumn('number', 'Value');
+    }
+    _table.clearRows();
+    for (var key in counters.keys) {
+      var value = double.parse(counters[key].split('%')[0]);
+      _table.addRow([key, value]);
+    }
+  }
+
+  void draw(var element) {
+    if (_chart == null) {
+      assert(element != null);
+      _chart = new Chart('PieChart', element);
+    }
+    _chart.draw(_table);
+  }
+}
+
+@CustomTag('isolate-counter-chart')
+class IsolateCounterChartElement extends ObservatoryElement {
+  IsolateCounterChartElement.created() : super.created();
+
+  @published ObservableMap counters;
+  CounterChart chart = new CounterChart();
+
+  void countersChanged(oldValue) {
+    if (counters == null) {
+      return;
+    }
+    chart.update(counters);
+    var element = shadowRoot.querySelector('#counterPieChart');
+    if (element != null) {
+      chart.draw(element);
+    }
+  }
+}
+
+
+

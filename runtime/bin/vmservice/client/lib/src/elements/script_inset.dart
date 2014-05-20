@@ -64,13 +64,15 @@ class ScriptInsetElement extends ObservatoryElement {
     notifyPropertyChange(#lines, 0, 1);
     lines.clear();
     var startLineNumber = script.tokenToLine(pos);
-    if (endPos == null) {
-      lines.add(script.lines[startLineNumber - 1]);
-    } else {
-      var endLineNumber = script.tokenToLine(endPos);
-      assert(endLineNumber != null);
-      for (var i = startLineNumber; i <= endLineNumber; i++) {
-        lines.add(script.lines[i - 1]);
+    if (startLineNumber != null) {
+      if (endPos == null) {  
+        lines.add(script.lines[startLineNumber - 1]);
+      } else {
+        var endLineNumber = script.tokenToLine(endPos);
+        assert(endLineNumber != null);
+        for (var i = startLineNumber; i <= endLineNumber; i++) {
+          lines.add(script.lines[i - 1]);
+        }
       }
     }
   }

@@ -11,6 +11,7 @@
 
 namespace dart {
 
+class DebuggerEvent;
 class Field;
 class GrowableObjectArray;
 class Instance;
@@ -84,6 +85,7 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
+  void PrintValue(const DebuggerEvent* event);
   void PrintValue(Isolate* isolate, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
@@ -95,6 +97,8 @@ class JSONStream : ValueObject {
   PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
+  void PrintProperty(const char* name, const DebuggerEvent* event);
+  void PrintProperty(const char* name, Isolate* isolate);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
   bool NeedComma();
@@ -151,6 +155,12 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, const Object& obj, bool ref = true) const {
     stream_->PrintProperty(name, obj, ref);
   }
+  void AddProperty(const char* name, const DebuggerEvent* event) const {
+    stream_->PrintProperty(name, event);
+  }
+  void AddProperty(const char* name, Isolate* isolate) const {
+    stream_->PrintProperty(name, isolate);
+  }
   void AddPropertyF(const char* name, const char* format, ...) const
       PRINTF_ATTRIBUTE(3, 4);
 
@@ -192,6 +202,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);
+  }
+  void AddValue(const DebuggerEvent* event) const {
+    stream_->PrintValue(event);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

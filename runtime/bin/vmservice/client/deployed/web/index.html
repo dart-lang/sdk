@@ -10,7 +10,156 @@
   <script src="index.html_bootstrap.dart.js"></script>
   
 </head>
-<body><polymer-element name="observatory-element">
+<body><polymer-element name="curly-block">
+  <template>
+    <style>
+      .idle {
+        display: inline-block;
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        display: inline-block;
+        color: white;
+        cursor: wait;
+      }
+    </style>
+    <template if="{{ expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div>
+        <br>
+        <content></content>
+        }
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div></a>
+        <br>
+        <content></content>
+        }
+      </template>
+    </template>
+
+    <template if="{{ !expanded }}">
+      <template if="{{ busy }}">
+        {<div class="busy">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div>}
+      </template>
+      <template if="{{ !busy }}">
+        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div></a>}
+      </template>
+    </template>
+  </template>
+  
+</polymer-element>
+<polymer-element name="observatory-element">
+  
+</polymer-element>
+<polymer-element name="service-ref" extends="observatory-element">
+  
+</polymer-element><polymer-element name="instance-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <span>
+      <template if="{{ isError(ref.serviceType) }}">
+        <pre class="errorBox">{{ ref.message }}</pre>
+      </template>
+
+      <template if="{{ isUnexpected(ref.serviceType) }}">
+        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+      </template>
+
+      <template if="{{ isNull(ref.serviceType) }}">
+        <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
+      </template>
+
+      <template if="{{ (isString(ref.serviceType) ||
+                        isBool(ref.serviceType) ||
+                        isInt(ref.serviceType)) ||
+                        isDouble(ref.serviceType)) }}">
+        <a href="{{ url }}">{{ ref['valueAsString'] }}</a>
+      </template>
+
+      <template if="{{ (isType(ref.serviceType)) }}">
+        <a href="{{ url }}">{{ ref['user_name'] }}</a>
+      </template>
+
+      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+                       ref['closureFunc'] != null}}">
+        <a href="{{ url }}">
+          <!-- TODO(turnidge): Switch this to fully-qualified function -->
+          {{ ref['closureFunc']['user_name'] }}
+        </a>
+      </template>
+
+      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+                       ref['closureFunc'] == null}}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ field in ref['fields'] }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  {{ field['decl']['user_name'] }}
+                </div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ isList(ref.serviceType) }}">
+        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ element in ref['elements'] }}">
+              <div class="memberItem">
+                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberValue">
+                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+    </span>
+  </template>
+  
+</polymer-element>
+<polymer-element name="action-link">
+  <template>
+    <style>
+      .idle {
+        color: #0489c3;
+        cursor: pointer;
+      }
+      .busy {
+        color: #aaa;
+        cursor: wait;
+      }
+    </style>
+
+    <template if="{{ busy }}">
+      <span class="busy">[{{ label }}]</span>
+    </template>
+    <template if="{{ !busy }}">
+      <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+    </template>
+
+  </template>
   
 </polymer-element>
 <polymer-element name="nav-bar" extends="observatory-element">
@@ -91,7 +240,8 @@
       }
     </style>
 
-    <li class="menu"><a href="{{ link }}">{{ anchor }}</a>
+    <li class="menu">
+      <a href="{{ link }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
     <template if="{{ !last }}">
@@ -239,137 +389,11 @@
   </template>
   
 </polymer-element>
-<polymer-element name="service-ref" extends="observatory-element">
-  
-</polymer-element><polymer-element name="class-ref" extends="service-ref">
+<polymer-element name="class-ref" extends="service-ref">
 
 <template><link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css"><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
 
 
-</polymer-element>
-<polymer-element name="curly-block">
-  <template>
-    <style>
-      .idle {
-        display: inline-block;
-        color: #0489c3;
-        cursor: pointer;
-      }
-      .busy {
-        display: inline-block;
-        color: white;
-        cursor: wait;
-      }
-    </style>
-    <template if="{{ expanded }}">
-      <template if="{{ busy }}">
-        {<div class="busy">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div>
-        <br>
-        <content></content>
-        }
-      </template>
-      <template if="{{ !busy }}">
-        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊟&nbsp;&nbsp;</div></a>
-        <br>
-        <content></content>
-        }
-      </template>
-    </template>
-
-    <template if="{{ !expanded }}">
-      <template if="{{ busy }}">
-        {<div class="busy">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div>}
-      </template>
-      <template if="{{ !busy }}">
-        {<a on-click="{{ toggleExpand }}"><div class="idle">&nbsp;&nbsp;⊞&nbsp;&nbsp;</div></a>}
-      </template>
-    </template>
-  </template>
-  
-</polymer-element>
-<polymer-element name="instance-ref" extends="service-ref">
-  <template>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
-    <style>
-      .errorBox {
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: pre;
-      }
-    </style>
-    <span>
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre class="errorBox">{{ ref.message }}</pre>
-      </template>
-
-      <template if="{{ isUnexpected(ref.serviceType) }}">
-        unexpected reference type &lt;{{ ref.serviceType }}&gt;
-      </template>
-
-      <template if="{{ isNull(ref.serviceType) }}">
-        <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
-      </template>
-
-      <template if="{{ (isString(ref.serviceType) ||
-                        isBool(ref.serviceType) ||
-                        isInt(ref.serviceType)) ||
-                        isDouble(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['valueAsString'] }}</a>
-      </template>
-
-      <template if="{{ (isType(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['user_name'] }}</a>
-      </template>
-
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
-                       ref['closureFunc'] != null}}">
-        <a href="{{ url }}">
-          <!-- TODO(turnidge): Switch this to fully-qualified function -->
-          {{ ref['closureFunc']['user_name'] }}
-        </a>
-      </template>
-
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
-                       ref['closureFunc'] == null}}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
-        <curly-block callback="{{ expander() }}">
-          <div class="memberList">
-            <template repeat="{{ field in ref['fields'] }}">
-              <div class="memberItem">
-                <div class="memberName">
-                  {{ field['decl']['user_name'] }}
-                </div>
-                <div class="memberValue">
-                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
-                </div>
-              </div>
-            </template>
-          </div>
-        </curly-block>
-      </template>
-
-      <template if="{{ isList(ref.serviceType) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
-        <curly-block callback="{{ expander() }}">
-          <div class="memberList">
-            <template repeat="{{ element in ref['elements'] }}">
-              <div class="memberItem">
-                <div class="memberName">[{{ element['index']}}]</div>
-                <div class="memberValue">
-                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
-                </div>
-              </div>
-            </template>
-          </div>
-        </curly-block>
-      </template>
-    </span>
-  </template>
-  
 </polymer-element>
 <polymer-element name="eval-box" extends="observatory-element">
   <template>
@@ -1149,64 +1173,173 @@
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
-    <style>
-      .counters {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-      }
-      .counter {
-        margin: 10px;
-      }
-    </style>
     <div class="flex-row">
-      <div class="flex-item-fixed-1-12"><img src="packages/observatory/src/elements/img/isolate_icon.png"></div>
-      <div class="flex-item-fixed-1-12">{{ isolate.mainPort }}</div>
-      <div class="flex-item-fixed-4-12">
-        <div class="flex-row">
-          <isolate-ref ref="{{ isolate }}"></isolate-ref>
-        </div>
-        <div class="flex-row">
-          <small>
-            (<a href="{{ isolate.rootLib.hashLink }}">library</a>)
-            (<a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>)
-            (<a href="{{ isolate.relativeHashLink('profile') }}">profile</a>)
-          </small>
-        </div>
+      <div class="flex-item-10-percent">
+        <img src="packages/observatory/src/elements/img/isolate_icon.png">
       </div>
-
-      <div class="flex-item-fixed-2-12">
-        <a href="{{ isolate.relativeHashLink('allocationprofile') }}">
-          {{ isolate.newHeapUsed | formatSize }}/{{ isolate.oldHeapUsed | formatSize }}
-        </a>
-        ( <a href="{{ isolate.relativeHashLink('heapmap') }}">map</a> )
+      <div class="flex-item-10-percent">
+        <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
-      <div class="flex-item-fixed-2-12">
-        <template if="{{ isolate.topFrame == null }}">
-          idle
-        </template>
-        <template if="{{ isolate.topFrame != null }}">
-          run
-        </template>
-        ( <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a> )
+      <div class="flex-item-20-percent">
+        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+      </div>
+      <div class="flex-item-50-percent">
+        <isolate-location isolate="{{ isolate }}"></isolate-location>
+      </div>
+      <div class="flex-item-10-percent">
       </div>
     </div>
 
-    <div class="counters">
-      <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="counter">{{ key }} ({{ isolate.counters[key] }})</div>
-      </template>
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent">
+        <hr>
+      </div>
+      <div class="flex-item-20-percent"></div>
     </div>
 
-    <template if="{{ isolate.topFrame != null }}">
-      <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
-        <function-ref ref="{{ isolate.topFrame['function'] }}"></function-ref>
-        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
-      </script-inset>
+    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-run-state" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <strong>paused</strong>
+      <action-link callback="{{ resume }}" label="resume"></action-link>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      <strong>running</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
+    </template>
+
+    <template if="{{ isolate.idle }}">
+      <strong>idle</strong>
+    </template>
+
+    <template if="{{ isolate.loading }}">
+      <strong>loading...</strong>
     </template>
   </template>
-  
 </polymer-element>
+
+<polymer-element name="isolate-location" extends="observatory-element">
+  <template>
+    <template if="{{ isolate.pauseEvent != null }}">
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateCreated' }}">
+        at isolate start
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateShutdown' }}">
+        at isolate exit
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateInterrupted' }}">
+        at
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+      <template if="{{ isolate.pauseEvent['eventType'] == 'BreakpointReached' }}">
+        at breakpoint {{ isolate.pauseEvent['breakpoint']['id'] }}
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+    </template>
+
+    <template if="{{ isolate.running }}">
+      at
+      <function-ref ref="{{ isolate.topFrame['function'] }}">
+      </function-ref>
+      (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+    </template>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-shared-summary" extends="observatory-element">
+  <template>
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <template if="{{ isolate.error != null }}">
+      <div class="content-centered">
+        <pre class="errorBox">{{ isolate.error.message }}</pre>
+        <br>
+      </div>
+    </template>
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
+      </div>
+      <div class="flex-item-40-percent">
+        <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
+      </div>
+      <div class="flex-item-40-percent">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">new heap</div>
+              <div class="memberValue">
+                {{ isolate.newHeapUsed | formatSize }}
+                of
+                {{ isolate.newHeapCapacity | formatSize }}
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">old heap</div>
+              <div class="memberValue">
+                {{ isolate.oldHeapUsed | formatSize }}
+                of
+                {{ isolate.oldHeapCapacity | formatSize }}
+              </div>
+            </div>
+          </div>
+          <br>
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+            </div>
+          </div>
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberValue">
+                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="isolate-counter-chart" extends="observatory-element">
+  <template>
+    <div id="counterPieChart" style="height: 200px"></div>
+  </template>
+</polymer-element>
+
+
 <polymer-element name="isolate-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
@@ -1229,85 +1362,48 @@
 
     <div class="content">
       <h1>isolate '{{ isolate.name }}'</h1>
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">status</div>
-          <div class="memberValue">
-            <template if="{{ isolate.pausedOnStart }}">
-              <strong style="color:darkred;">paused</strong> @ isolate start
-              <span style="padding-left:20px;">
-                [<a on-click="{{ resume }}">resume</a>]
-              </span>
-            </template>
-
-            <template if="{{ isolate.pausedOnExit }}">
-              <strong style="color:darkred;">paused</strong> @ isolate exit
-              <span style="padding-left:20px;">
-                [<a on-click="{{ resume }}">resume</a>]
-              </span>
-            </template>
-
-            <template if="{{ isolate.running }}">
-              <strong>running</strong>
-              @
-              <function-ref ref="{{ isolate.topFrame['function'] }}">
-              </function-ref>
-              (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
-              </script-ref>)
-            </template>
-
-            <template if="{{ isolate.idle }}">
-              <strong>idle</strong>
-            </template>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <template if="{{ isolate.error != null }}">
-      <div class="content">
-        <h1>Error</h1>
-        <div class="memberList">
-          <div class="memberItem">
-            <div class="memberName">message</div>
-            <div class="memberValue">
-              <pre>{{ isolate.error.message }}</pre>
-            </div>
-          </div>
-          <div class="memberItem">
-            <template if="{{ isolate.error.exception != null }}">
-              <div class="memberName">exception</div>
-              <div class="memberValue">
-                <instance-ref ref="{{ isolate.error.exception }}"></instance-ref>
-              </div>
-            </template>
-          </div>
-          <div class="memberItem">
-            <template if="{{ isolate.error.stacktrace != null }}">
-            <div class="memberName">stacktrace</div>
-            <div class="memberValue">
-              <instance-ref ref="{{ isolate.error.stacktrace }}"></instance-ref>
-            </div>
-            </template>
-          </div>
-        </div>
+    <br>
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
       </div>
-      <hr>
-    </template>
-
+      <div class="flex-item-20-percent">
+        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+      </div>
+      <div class="flex-item-60-percent">
+        <isolate-location isolate="{{ isolate }}"></isolate-location>
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
     <br>
 
     <template if="{{ isolate.topFrame != null }}">
+      <br>
       <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
       </script-inset>
     </template>
 
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent"><hr></div>
+      <div class="flex-item-20-percent"></div>
+    </div>
+
     <br>
+
+    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
+
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent"><hr></div>
+      <div class="flex-item-20-percent"></div>
+    </div>
 
     <div class="content-centered">
       <div class="flex-row">
-
-        <div class="flex-item-fixed-6-12">
+        <div class="flex-item-50-percent">
           <div class="memberList">
             <div class="memberItem">
               <div class="memberName">root library</div>
@@ -1324,65 +1420,20 @@
               </template>
             </div>
             <div class="memberItem">
-              <div class="memberName">id</div>
+              <div class="memberName">isolate id</div>
               <div class="memberValue">{{ isolate.mainPort }}</div>
             </div>
-            <br>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
-
-              </div>
+          </div>
+        </div>
+        <div class="flex-item-50-percent">
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
             </div>
           </div>
         </div>
-
-        <div class="flex-item-fixed-6-12">
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberName">new heap</div>
-              <div class="memberValue">
-                {{ isolate.newHeapUsed | formatSize }}
-                of
-                {{ isolate.newHeapCapacity | formatSize }}
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberName">old heap</div>
-              <div class="memberValue">
-                {{ isolate.oldHeapUsed | formatSize }}
-                of
-                {{ isolate.oldHeapCapacity | formatSize }}
-              </div>
-            </div>
-          </div>
-          <br>
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div> <!-- flex row -->
-    </div> <!-- content -->
+      </div>
+    </div>
 
     <hr>
 
@@ -1402,13 +1453,6 @@
     </div>
 
     <hr>
-
-    <div class="content">
-      <div class="memberValue">Isolate execution</div>
-      <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
-      </template>
-    </div>
 
     <div class="content">
       <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>
@@ -2087,6 +2131,7 @@
 </polymer-element>
 <polymer-element name="script-view" extends="observatory-element">
 <template>
+  <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ script.isolate }}">

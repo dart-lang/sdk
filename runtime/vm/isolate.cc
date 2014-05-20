@@ -313,6 +313,7 @@ Isolate::Isolate()
       stub_code_(NULL),
       debugger_(NULL),
       single_step_(false),
+      resume_request_(false),
       random_(),
       simulator_(NULL),
       long_jump_base_(NULL),
@@ -937,16 +938,23 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     // inlined frames.
     jsobj.AddProperty("depth", (intptr_t)0);
   }
-  intptr_t live_ports = message_handler()->live_ports();
-  intptr_t control_ports = message_handler()->control_ports();
-  bool paused_on_exit = message_handler()->paused_on_exit();
-  bool pause_on_start = message_handler()->pause_on_start();
-  bool pause_on_exit = message_handler()->pause_on_exit();
-  jsobj.AddProperty("livePorts", live_ports);
-  jsobj.AddProperty("controlPorts", control_ports);
-  jsobj.AddProperty("pausedOnStart", pause_on_start);
-  jsobj.AddProperty("pausedOnExit", paused_on_exit);
-  jsobj.AddProperty("pauseOnExit", pause_on_exit);
+  jsobj.AddProperty("livePorts", message_handler()->live_ports());
+  jsobj.AddProperty("controlPorts", message_handler()->control_ports());
+  jsobj.AddProperty("pauseOnExit", message_handler()->pause_on_exit());
+
+  // TODO(turnidge): Make the debugger support paused_on_start/exit.
+  if (message_handler()->paused_on_start()) {
+    ASSERT(debugger()->PauseEvent() == NULL);
+    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateCreated);
+    jsobj.AddProperty("pauseEvent", &pauseEvent);
+  } else if (message_handler()->paused_on_exit()) {
+    ASSERT(debugger()->PauseEvent() == NULL);
+    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateShutdown);
+    jsobj.AddProperty("pauseEvent", &pauseEvent);
+  } else if (debugger()->PauseEvent() != NULL) {
+    jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
+  }
+
   const Library& lib =
       Library::Handle(object_store()->root_library());
   jsobj.AddProperty("rootLib", lib);

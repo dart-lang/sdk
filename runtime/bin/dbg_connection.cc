@@ -297,11 +297,18 @@ void DebuggerConnectionHandler::CloseDbgConnection() {
 }
 
 
+// The vm service relies on certain debugger functionality.
+void DebuggerConnectionHandler::InitForVmService() {
+  MonitorLocker ml(handler_lock_);
+  DbgMsgQueueList::Initialize();
+}
+
+
 int DebuggerConnectionHandler::StartHandler(const char* address,
                                             int port_number) {
   ASSERT(handler_lock_ != NULL);
   MonitorLocker ml(handler_lock_);
-  if (listener_fd_ != -1) {
+  if (IsListening()) {
     // The debugger connection handler was already started.
     return Socket::GetPort(listener_fd_);
   }
@@ -333,6 +340,11 @@ int DebuggerConnectionHandler::StartHandler(const char* address,
 void DebuggerConnectionHandler::WaitForConnection() {
   ASSERT(handler_lock_ != NULL);
   MonitorLocker ml(handler_lock_);
+  if (!IsListening()) {
+    // If we are only running the vm service, don't wait for
+    // connections.
+    return;
+  }
   while (!IsConnected()) {
     dart::Monitor::WaitResult res = ml.Wait();
     ASSERT(res == dart::Monitor::kNotified);
@@ -350,6 +362,11 @@ void DebuggerConnectionHandler::SendMsg(int debug_fd, dart::TextBuffer* msg) {
 void DebuggerConnectionHandler::BroadcastMsg(dart::TextBuffer* msg) {
   ASSERT(handler_lock_ != NULL);
   MonitorLocker ml(handler_lock_);
+  if (!IsListening()) {
+    // If we are only running the vm service, don't try to broadcast
+    // to debugger clients.
+    return;
+  }
   // TODO(asiva): Once we support connection to multiple debuggers
   // we need to send the message to all of them.
   ASSERT(singleton_handler != NULL);
