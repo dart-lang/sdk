@@ -68,6 +68,16 @@ class ObjectGraph : public StackResource {
   // The number of bytes retained by the set of all objects of the given class.
   intptr_t SizeRetainedByClass(intptr_t class_id);
 
+  // Finds some retaining path from the isolate roots to 'obj'. Populates the
+  // provided array, starting with a direct parent of 'obj', up to the smaller
+  // of the length of the array and the length of the path. Returns the length
+  // of the path. A null input array behaves like a zero-length input array.
+  //
+  // To break the trivial path, the handle 'obj' is temporarily cleared during
+  // the search, but restored before returning. If no path is found (i.e., the
+  // provided handle was the only way to reach the object), zero is returned.
+  intptr_t RetainingPath(Object* obj, const Array& path);
+
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };

@@ -207,4 +207,50 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
   return size_total - size_excluding_class;
 }
 
+
+class RetainingPathVisitor : public ObjectGraph::Visitor {
+ public:
+  // We cannot use a GrowableObjectArray, since we must not trigger GC.
+  RetainingPathVisitor(RawObject* obj, const Array& path)
+      : obj_(obj), path_(path), length_(0) {
+    ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  }
+
+  intptr_t length() const { return length_; }
+
+  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
+    if (it->Get() != obj_) {
+      return kProceed;
+    } else {
+      HANDLESCOPE(Isolate::Current());
+      Object& parent = Object::Handle();
+      for (length_ = 0; it->MoveToParent(); ++length_) {
+        if (!path_.IsNull() && length_ < path_.Length()) {
+          parent = it->Get();
+          path_.SetAt(length_, parent);
+        }
+      }
+      return kAbort;
+    }
+  }
+
+ private:
+  RawObject* obj_;
+  const Array& path_;
+  intptr_t length_;
+};
+
+
+intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
+  NoGCScope no_gc_scope_;
+  // To break the trivial path, the handle 'obj' is temporarily cleared during
+  // the search, but restored before returning.
+  RawObject* raw = obj->raw();
+  *obj = Object::null();
+  RetainingPathVisitor visitor(raw, path);
+  IterateObjects(&visitor);
+  *obj = raw;
+  return visitor.length();
+}
+
 }  // namespace dart
