@@ -137,6 +137,8 @@ class CodeEmitterTask extends CompilerTask {
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
   String get initName => 'init';
+  String get makeConstListProperty
+      => namer.getMappedInstanceName('makeConstantList');
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
@@ -540,7 +542,7 @@ class CodeEmitterTask extends CompilerTask {
         if (#)
           Isolate.$finishClassesProperty = oldIsolate.$finishClassesProperty;
         if (#)
-          Isolate.makeConstantList = oldIsolate.makeConstantList;
+          Isolate.$makeConstListProperty = oldIsolate.$makeConstListProperty;
         return Isolate;
       }''',
         [ needsDefineClass, hasMakeConstantList ]);
@@ -941,14 +943,16 @@ class CodeEmitterTask extends CompilerTask {
   void emitMakeConstantListIfNotEmitted(CodeBuffer buffer) {
     if (hasMakeConstantList) return;
     hasMakeConstantList = true;
-    buffer
-        ..write(namer.isolateName)
-        ..write('''.makeConstantList = function(list) {
-  list.immutable\$list = $initName;
-  list.fixed\$length = $initName;
-  return list;
-};
-''');
+    jsAst.Statement value = new jsAst.ExpressionStatement(new jsAst.Assignment(
+            new jsAst.PropertyAccess.field(
+                new jsAst.VariableUse(namer.isolateName),
+                makeConstListProperty),
+            js('''function(list) {
+                    list.immutable\$list = $initName;
+                    list.fixed\$length = $initName;
+                    return list;
+                  }''')));
+    buffer.write(jsAst.prettyPrint(value, compiler));
   }
 
   /// Returns the code equivalent to:

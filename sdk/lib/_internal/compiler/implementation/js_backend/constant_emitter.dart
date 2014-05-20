@@ -228,7 +228,7 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
     jsAst.Expression value = new jsAst.Call(
         new jsAst.PropertyAccess.field(
             new jsAst.VariableUse(namer.isolateName),
-            'makeConstantList'),
+            namer.getMappedInstanceName('makeConstantList')),
         [new jsAst.ArrayInitializer.from(_array(constant.entries))]);
     return maybeAddTypeArguments(constant.type, value);
   }
