@@ -20,7 +20,9 @@ int hashCodeFor(obj) {
     parents.add(value);
     try {
       if (value is Map) {
-        return _hashCodeFor(value.keys) ^ _hashCodeFor(value.values);
+        var equality = const UnorderedIterableEquality();
+        return equality.hash(value.keys.map(_hashCodeFor)) ^
+            equality.hash(value.values.map(_hashCodeFor));
       } else if (value is Iterable) {
         return const IterableEquality().hash(value.map(hashCodeFor));
       }

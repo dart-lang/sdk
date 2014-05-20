@@ -1,3 +1,7 @@
+## 0.9.0+2
+
+* Ensure that maps are order-independent when used as map keys.
+
 ## 0.9.0+1
 
 * The `YamlMap` class is deprecated. In a future version, maps returned by
