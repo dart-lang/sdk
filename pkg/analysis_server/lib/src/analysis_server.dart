@@ -68,6 +68,11 @@ class AnalysisServer {
   final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
 
   /**
+   * A table mapping analysis contexts to the context id's associated with them.
+   */
+  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
+
+  /**
    * A list of the analysis contexts for which analysis work needs to be
    * performed.
    *
@@ -162,8 +167,10 @@ class AnalysisServer {
     // Look for a context that has work to be done and then perform one task.
     //
     List<ChangeNotice> notices = null;
+    String contextId;
     try {
       AnalysisContext context = contextWorkQueue[0];
+      contextId = contextIdMap[context];
       AnalysisResult result = context.performAnalysisTask();
       notices = result.changeNotices;
     } finally {
@@ -183,17 +190,18 @@ class AnalysisServer {
       }
     }
     if (notices != null) {
-      sendNotices(notices);
+      sendNotices(contextId, notices);
     }
   }
 
   /**
    * Send the information in the given list of notices back to the client.
    */
-  void sendNotices(List<ChangeNotice> notices) {
+  void sendNotices(String contextId, List<ChangeNotice> notices) {
     for (int i = 0; i < notices.length; i++) {
       ChangeNotice notice = notices[i];
       Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
+      notification.setParameter(CONTEXT_ID_PARAM, contextId);
       notification.setParameter(SOURCE_PARAM, notice.source.encoding);
       notification.setParameter(ERRORS_PARAM, notice.errors.map(
           errorToJson).toList());

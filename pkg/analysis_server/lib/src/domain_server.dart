@@ -111,6 +111,7 @@ class ServerDomainHandler implements RequestHandler {
       // new PackageUriResolver(),
     ]);
     server.contextMap[contextId] = context;
+    server.contextIdMap[context] = contextId;
 
     Response response = new Response(request.id);
     return response;
@@ -127,6 +128,7 @@ class ServerDomainHandler implements RequestHandler {
     if (removedContext == null) {
       return new Response.contextDoesNotExist(request);
     }
+    server.contextIdMap.remove(removedContext);
     Response response = new Response(request.id);
     return response;
   }

@@ -65,6 +65,7 @@ class AnalysisServerTest {
   static Future addContextToWorkQueue_whenRunning() {
     MockAnalysisContext context = new MockAnalysisContext();
     server.addContextToWorkQueue(context);
+    server.contextIdMap[context] = 'context-27';
     MockSource source = new MockSource();
     source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
     ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
@@ -78,14 +79,13 @@ class AnalysisServerTest {
         new AnalysisResult(null, 0, null, 0));
     return pumpEventQueue().then((_) {
       context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(2));
-      expect(channel.notificationsReceived, hasLength(2));
-      expect(channel.notificationsReceived[0].event, equals('server.connected')
-          );
-      expect(channel.notificationsReceived[1].event, equals('context.errors'));
-      expect(channel.notificationsReceived[1].params['source'], equals(
-          'foo.dart'));
-      List<AnalysisError> errors =
-          channel.notificationsReceived[1].params['errors'];
+      var notifications = channel.notificationsReceived;
+      expect(notifications, hasLength(2));
+      expect(notifications[0].event, equals('server.connected'));
+      expect(notifications[1].event, equals('context.errors'));
+      expect(notifications[1].params['source'], equals('foo.dart'));
+      expect(notifications[1].params['contextId'], equals('context-27'));
+      List<AnalysisError> errors = notifications[1].params['errors'];
       expect(errors, hasLength(1));
       expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
     });
