@@ -845,13 +845,6 @@ static Dart_Handle GenerateScriptSource() {
 }
 
 
-static const char* ServiceRequestError(const char* message) {
-  TextBuffer buffer(128);
-  buffer.Printf("{\"type\":\"Error\",\"text\":\"%s\"}", message);
-  return buffer.Steal();
-}
-
-
 static const char* ServiceRequestError(Dart_Handle error) {
   TextBuffer buffer(128);
   buffer.Printf("{\"type\":\"Error\",\"text\":\"Internal error %s\"}",
@@ -876,27 +869,35 @@ static const char* ServiceRequestHandler(
     intptr_t num_options,
     void* user_data) {
   DartScope scope;
-  const char* kSockets = "sockets";
-  if (num_arguments == 2 &&
-      strncmp(arguments[1], kSockets, strlen(kSockets)) == 0) {
-    Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
-    if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
-    Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
-    if (Dart_IsError(io_lib)) return ServiceRequestError(io_lib);
-    Dart_Handle handler_function_name =
-        Dart_NewStringFromCString("_socketsStats");
-    if (Dart_IsError(handler_function_name)) {
-      return ServiceRequestError(handler_function_name);
-    }
-    Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 0, NULL);
-    if (Dart_IsError(result)) return ServiceRequestError(result);
-    const char *json;
-    result = Dart_StringToCString(result, &json);
-    if (Dart_IsError(result)) return ServiceRequestError(result);
-    return strdup(json);
-  } else {
-    return ServiceRequestError("Unrecognized path");
+  ASSERT(num_arguments > 0);
+  ASSERT(strncmp(arguments[0], "io", 2) == 0);
+  // TODO(ajohnsen): Store the library/function in isolate data or user_data.
+  Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
+  if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
+  Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
+  if (Dart_IsError(io_lib)) return ServiceRequestError(io_lib);
+  Dart_Handle handler_function_name =
+      Dart_NewStringFromCString("_serviceObjectHandler");
+  if (Dart_IsError(handler_function_name)) {
+    return ServiceRequestError(handler_function_name);
   }
+  Dart_Handle paths = Dart_NewList(num_arguments - 1);
+  for (int i = 0; i < num_arguments - 1; i++) {
+    Dart_ListSetAt(paths, i, Dart_NewStringFromCString(arguments[i + 1]));
+  }
+  Dart_Handle keys = Dart_NewList(num_options);
+  Dart_Handle values = Dart_NewList(num_options);
+  for (int i = 0; i < num_options; i++) {
+    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(option_keys[i]));
+    Dart_ListSetAt(values, i, Dart_NewStringFromCString(option_values[i]));
+  }
+  Dart_Handle args[] = {paths, keys, values};
+  Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
+  if (Dart_IsError(result)) return ServiceRequestError(result);
+  const char *json;
+  result = Dart_StringToCString(result, &json);
+  if (Dart_IsError(result)) return ServiceRequestError(result);
+  return strdup(json);
 }
 
 
