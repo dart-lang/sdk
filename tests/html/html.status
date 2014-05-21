@@ -16,7 +16,7 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff || $runtime == chrome || $ie) ]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 

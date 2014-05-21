@@ -105,7 +105,7 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == safari || $runtime == safarimobilesim) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == safari || $runtime == safarimobilesim) ]
 string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
 
 [ $compiler == dart2js && ( $runtime == drt) ]
