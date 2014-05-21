@@ -787,7 +787,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final InterfaceType constructedType;
-  final FunctionElement constructor;
+  final ConstructorElement constructor;
   final Map<Element, Constant> definitions;
   final Map<Element, Constant> fieldValues;
 
@@ -884,7 +884,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
-      FunctionElement target = constructor.targetConstructor.implementation;
+      FunctionElement target = constructor.definingConstructor.implementation;
       Selector.addForwardingElementArgumentsToList(constructor,
                                                    compiledArguments,
                                                    target,

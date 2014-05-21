@@ -507,7 +507,8 @@ class SimpleTypeInferrerVisitor<T>
       ClassElement cls = analyzedElement.enclosingClass;
       if (analyzedElement.isSynthesized) {
         node = analyzedElement;
-        synthesizeForwardingCall(node, analyzedElement.targetConstructor);
+        ConstructorElement constructor = analyzedElement;
+        synthesizeForwardingCall(node, constructor.definingConstructor);
       } else {
         visitingInitializers = true;
         visit(node.initializers);

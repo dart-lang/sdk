@@ -10,8 +10,7 @@ import "dart_types.dart";
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
-import "elements/modelx.dart" show ElementX, SynthesizedCallMethodElementX,
-    ClassElementX;
+import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 import "elements/visitor.dart" show ElementVisitor;
 
 class ClosureNamer {
@@ -218,6 +217,23 @@ class ThisElement extends ElementX implements TypedElement {
   Token get position => enclosingElement.position;
 
   accept(ElementVisitor visitor) => visitor.visitThisElement(this);
+}
+
+/// Call method of a closure class.
+class SynthesizedCallMethodElementX extends FunctionElementX {
+  final FunctionElement expression;
+
+  SynthesizedCallMethodElementX(String name,
+                                FunctionElementX other,
+                                Element enclosing)
+      : expression = other,
+        super(name, other.kind, other.modifiers, enclosing, false) {
+    functionSignatureCache = other.functionSignature;
+  }
+
+  FunctionExpression get node => expression.node;
+
+  FunctionExpression parseNode(DiagnosticListener listener) => node;
 }
 
 // The box-element for a scope, and the captured variables that need to be
