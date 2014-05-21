@@ -1595,6 +1595,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Experimental() // untriaged
   bool drawCustomFocusRing(Element element) native;
 
+  @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawSystemFocusRing(Element element) native;
+
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
@@ -22840,7 +22845,26 @@ class Screen extends EventTarget native "Screen" {
   @DomName('Screen.lockOrientation')
   @DocsEditable()
   @Experimental() // untriaged
-  bool lockOrientation(String orientation) native;
+  bool lockOrientation(orientation_OR_orientations) {
+    if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
+      return _lockOrientation_1(orientation_OR_orientations);
+    }
+    if ((orientation_OR_orientations is List<String> || orientation_OR_orientations == null)) {
+      List orientations_1 = convertDartToNative_StringArray(orientation_OR_orientations);
+      return _lockOrientation_2(orientations_1);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('lockOrientation')
+  @DomName('Screen.lockOrientation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool _lockOrientation_1(String orientation) native;
+  @JSName('lockOrientation')
+  @DomName('Screen.lockOrientation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool _lockOrientation_2(List orientations) native;
 
   @DomName('Screen.unlockOrientation')
   @DocsEditable()

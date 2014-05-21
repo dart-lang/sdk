@@ -35,8 +35,6 @@ interface Document {
 [Supplemental]
 interface Node {
   [Custom] Node cloneNode([Default=Undefined] optional boolean deep);
-  [Suppressed] readonly attribute Element nextElementSibling;
-  [Suppressed] readonly attribute Element previousElementSibling;
 };
 
 [Supplemental]
@@ -59,18 +57,6 @@ interface ElementTraversal : ChildNode, ParentNode {
 Element implements ElementTraversal;
 */
 
-[Supplemental]
-interface Element {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
-};
-
-[Supplemental]
-interface CharacterData {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
-};
-
 [Callback]
 interface TimeoutHandler {
   void handleEvent();
@@ -88,11 +74,6 @@ interface URL {
 [Supplemental]
 interface CanvasRenderingContext2D {
   [DartName=createImageDataFromImageData] ImageData createImageData(ImageData imagedata);
-
-  // Removed in 1916.
-  [Suppressed] void drawSystemFocusRing(Element element);
-
-  [Suppressed] void assert(boolean condition);
 
   [Suppressed] attribute boolean webkitImageSmoothingEnabled;
 };
@@ -368,11 +349,5 @@ interface Window : EventTarget {};
 
 [Suppressed]
 interface Promise {};
-
-[Supplemental]
-interface Screen {
-    [Suppressed]
-    boolean lockOrientation(sequence<DOMString> orientations);
-};
 
 Element implements GlobalEventHandlers;
