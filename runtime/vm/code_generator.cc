@@ -1066,6 +1066,67 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     UNREACHABLE();
   }
 
+  // The following code is used to stress test deoptimization and
+  // debugger stack tracing.
+  bool do_deopt = false;
+  bool do_stacktrace = false;
+  if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0)) {
+    // TODO(turnidge): To make --deoptimize_every and
+    // --stacktrace-every faster we could move this increment/test to
+    // the generated code.
+    int32_t count = isolate->IncrementAndGetStackOverflowCount();
+    if (FLAG_deoptimize_every > 0 &&
+        (count % FLAG_deoptimize_every) == 0) {
+      do_deopt = true;
+    }
+    if (FLAG_stacktrace_every > 0 &&
+        (count % FLAG_stacktrace_every) == 0) {
+      do_stacktrace = true;
+    }
+  }
+  if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL)) {
+    DartFrameIterator iterator;
+    StackFrame* frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
+    const Code& code = Code::Handle(frame->LookupDartCode());
+    ASSERT(!code.IsNull());
+    const Function& function = Function::Handle(code.function());
+    ASSERT(!function.IsNull());
+    const char* function_name = function.ToFullyQualifiedCString();
+    ASSERT(function_name != NULL);
+    if (code.is_optimized() &&
+        FLAG_deoptimize_filter != NULL &&
+        strstr(function_name, FLAG_deoptimize_filter) != NULL) {
+      OS::PrintErr("*** Forcing deoptimization (%s)\n",
+                   function.ToFullyQualifiedCString());
+      do_deopt = true;
+    }
+    if (FLAG_stacktrace_filter != NULL &&
+        strstr(function_name, FLAG_stacktrace_filter) != NULL) {
+      OS::PrintErr("*** Computing stacktrace (%s)\n",
+                   function.ToFullyQualifiedCString());
+      do_stacktrace = true;
+    }
+  }
+  if (do_deopt) {
+    // TODO(turnidge): Consider using DeoptimizeAt instead.
+    DeoptimizeAll();
+  }
+  if (do_stacktrace) {
+    String& var_name = String::Handle();
+    Instance& var_value = Instance::Handle();
+    DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+    intptr_t num_frames = stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = stack->FrameAt(i);
+      const int num_vars = frame->NumLocalVariables();
+      intptr_t unused;
+      for (intptr_t v = 0; v < num_vars; v++) {
+        frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
+      }
+    }
+  }
+
   uword interrupt_bits = isolate->GetAndClearInterrupts();
   if ((interrupt_bits & Isolate::kStoreBufferInterrupt) != 0) {
     if (FLAG_verbose_gc) {
@@ -1142,69 +1203,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
       function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
-    }
-  }
-
-  // The following code is used to stress test deoptimization and
-  // debugger stack tracing.
-  bool do_deopt = false;
-  bool do_stacktrace = false;
-  if (FLAG_deoptimize_every > 0 ||
-      FLAG_stacktrace_every > 0) {
-    // TODO(turnidge): To make --deoptimize_every and
-    // --stacktrace-every faster we could move this increment/test to
-    // the generated code.
-    int32_t count = isolate->IncrementAndGetStackOverflowCount();
-    if (FLAG_deoptimize_every > 0 &&
-        (count % FLAG_deoptimize_every) == 0) {
-      do_deopt = true;
-    }
-    if (FLAG_stacktrace_every > 0 &&
-        (count % FLAG_stacktrace_every) == 0) {
-      do_stacktrace = true;
-    }
-  }
-  if (FLAG_deoptimize_filter != NULL ||
-      FLAG_stacktrace_filter != NULL) {
-    DartFrameIterator iterator;
-    StackFrame* frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
-    const Code& code = Code::Handle(frame->LookupDartCode());
-    ASSERT(!code.IsNull());
-    const Function& function = Function::Handle(code.function());
-    ASSERT(!function.IsNull());
-    const char* function_name = function.ToFullyQualifiedCString();
-    ASSERT(function_name != NULL);
-    if (code.is_optimized() &&
-        FLAG_deoptimize_filter != NULL &&
-        strstr(function_name, FLAG_deoptimize_filter) != NULL) {
-      OS::PrintErr("*** Forcing deoptimization (%s)\n",
-                   function.ToFullyQualifiedCString());
-      do_deopt = true;
-    }
-    if (FLAG_stacktrace_filter != NULL &&
-        strstr(function_name, FLAG_stacktrace_filter) != NULL) {
-      OS::PrintErr("*** Computing stacktrace (%s)\n",
-                   function.ToFullyQualifiedCString());
-      do_stacktrace = true;
-    }
-  }
-  if (do_deopt) {
-    // TODO(turnidge): Consider using DeoptimizeAt instead.
-    DeoptimizeAll();
-  }
-  if (do_stacktrace) {
-    String& var_name = String::Handle();
-    Instance& var_value = Instance::Handle();
-    DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-    intptr_t num_frames = stack->Length();
-    for (intptr_t i = 0; i < num_frames; i++) {
-      ActivationFrame* frame = stack->FrameAt(i);
-      const int num_vars = frame->NumLocalVariables();
-      intptr_t unused;
-      for (intptr_t v = 0; v < num_vars; v++) {
-        frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
-      }
     }
   }
 }
