@@ -8,6 +8,7 @@
 library dart2js.helpers;
 
 import "dart:collection";
+import 'dart:convert';
 import '../dart2jslib.dart';
 import '../util/util.dart';
 
@@ -15,6 +16,7 @@ part 'debug_collection.dart';
 part 'trace.dart';
 part 'expensive_map.dart';
 part 'expensive_set.dart';
+part 'stats.dart';
 
 /// Global flag to enable [debugPrint]. This should always be `true` by default
 /// and be set to `false` as a means to temporarily turn off all debugging
