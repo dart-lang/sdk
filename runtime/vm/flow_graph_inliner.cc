@@ -817,7 +817,17 @@ class CallSiteInliner : public ValueObject {
  private:
   friend class PolymorphicInliner;
 
+
+  static bool Contains(const GrowableArray<intptr_t>& a, intptr_t deopt_id) {
+    for (intptr_t i = 0; i < a.length(); i++) {
+      if (a[i] == deopt_id) return true;
+    }
+    return false;
+  }
+
   void PrintInlinedInfoFor(const Function& caller, intptr_t depth) {
+    // Prevent duplicate printing as inlined_info aggregates all inlinining.
+    GrowableArray<intptr_t> call_instructions_printed;
     // Print those that were inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {
       const InlinedInfo& info = inlined_info_[i];
@@ -825,7 +835,8 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw())) {
+          (info.caller->raw() == caller.raw()) &&
+          !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           OS::Print("  ");
         }
@@ -833,8 +844,10 @@ class CallSiteInliner : public ValueObject {
             info.call_instr->GetDeoptId(),
             info.inlined->ToQualifiedCString());
         PrintInlinedInfoFor(*info.inlined, depth + 1);
+        call_instructions_printed.Add(info.call_instr->GetDeoptId());
       }
     }
+    call_instructions_printed.Clear();
     // Print those that were not inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {
       const InlinedInfo& info = inlined_info_[i];
@@ -842,7 +855,8 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw())) {
+          (info.caller->raw() == caller.raw()) &&
+          !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           OS::Print("  ");
         }
@@ -850,6 +864,7 @@ class CallSiteInliner : public ValueObject {
             info.call_instr->GetDeoptId(),
             info.inlined->ToQualifiedCString(),
             info.bailout_reason);
+        call_instructions_printed.Add(info.call_instr->GetDeoptId());
       }
     }
   }
