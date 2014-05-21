@@ -22,14 +22,13 @@ import upload_steps
 SRC_PATH = dartium_bot_utils.srcPath()
 
 def main():
-  print SRC_PATH
   multivm_deps = os.path.join(os.path.dirname(SRC_PATH), 'multivm.deps')
   revision_directory = (multivm_deps if (os.path.isdir(multivm_deps))
                            else os.path.join(SRC_PATH, 'dart'))
   output, _ = subprocess.Popen(['svn', 'info'],
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
-                               shell=(platform.system == 'Windows'),
+                               shell=(platform.system() == 'Windows'),
                                cwd=revision_directory).communicate()
   revision = re.search('Last Changed Rev: (\d+)', output).group(1)
   version = revision + '.0'
