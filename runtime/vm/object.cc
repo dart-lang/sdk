@@ -7854,7 +7854,7 @@ void Script::Tokenize(const String& private_key) const {
     return;
   }
   // Get the source, scan and allocate the token stream.
-  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+  VMTagScope tagScope(isolate, VMTag::kCompileScannerTagId);
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
   const String& src = String::Handle(isolate, Source());
   Scanner scanner(src, private_key);

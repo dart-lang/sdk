@@ -1178,8 +1178,9 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
     // Can't instrument native functions.
     return;
   }
+  Isolate* isolate = Isolate::Current();
   if (!target_function.HasCode()) {
-    Compiler::CompileFunction(target_function);
+    Compiler::CompileFunction(isolate, target_function);
     // If there were any errors, ignore them silently and return without
     // adding breakpoints to target.
     if (!target_function.HasCode()) {
@@ -1188,11 +1189,11 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
   }
   // Hang on to the code object before deoptimizing, in case deoptimization
   // might cause the GC to run.
-  Code& code = Code::Handle(target_function.unoptimized_code());
+  Code& code = Code::Handle(isolate, target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   DeoptimizeWorld();
   ASSERT(!target_function.HasOptimizedCode());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors& desc = PcDescriptors::Handle(isolate, code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
     if (IsSafePoint(desc, i)) {
       CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
@@ -1241,7 +1242,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   // closure function, because it may not be on the stack yet.
   bool is_closure_call = false;
   const PcDescriptors& pc_desc =
-      PcDescriptors::Handle(code.pc_descriptors());
+      PcDescriptors::Handle(isolate, code.pc_descriptors());
 
   for (int i = 0; i < pc_desc.Length(); i++) {
     if (pc_desc.PC(i) == pc &&
@@ -1307,7 +1308,8 @@ RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
 
   deopt_context->FillDestFrame();
   deopt_context->MaterializeDeferredObjects();
-  const Array& dest_frame = Array::Handle(deopt_context->DestFrameAsArray());
+  const Array& dest_frame = Array::Handle(isolate,
+                                          deopt_context->DestFrameAsArray());
 
   isolate->set_deopt_context(NULL);
   delete deopt_context;
@@ -1321,7 +1323,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   StackFrameIterator iterator(false);
   ActivationFrame* current_activation = NULL;
-  Context& entry_ctx = Context::Handle(isolate->top_context());
+  Context& entry_ctx = Context::Handle(isolate, isolate->top_context());
   Code& code = Code::Handle(isolate);
   Code& inlined_code = Code::Handle(isolate);
   Array& deopt_frame = Array::Handle(isolate);
@@ -1352,7 +1354,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
           inlined_code = it.code();
           if (FLAG_trace_debugger_stacktrace) {
             const Function& function =
-                Function::Handle(inlined_code.function());
+                Function::Handle(isolate, inlined_code.function());
             ASSERT(!function.IsNull());
             OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                          function.ToFullyQualifiedCString());

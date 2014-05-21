@@ -67,7 +67,8 @@ DECLARE_FLAG(bool, warning_as_error);
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.HasCode());
-  const Error& error = Error::Handle(Compiler::CompileFunction(function));
+  const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+                                                               function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -159,11 +160,12 @@ RawError* Compiler::CompileClass(const Class& cls) {
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
-  Class& parse_class = Class::Handle();
+  VMTagScope tagScope(isolate, VMTag::kCompileTopLevelTagId);
+  Class& parse_class = Class::Handle(isolate);
   const GrowableObjectArray& parse_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
   const GrowableObjectArray& patch_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
 
   // Parse the class and all the interfaces it implements and super classes.
   StackZone zone(isolate);
@@ -228,7 +230,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
       }
     }
 
-    Error& error = Error::Handle();
+    Error& error = Error::Handle(isolate);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
     return error.raw();
@@ -264,7 +266,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
-  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   HANDLESCOPE(isolate);
   isolate->set_cha_used(false);
 
@@ -857,17 +858,22 @@ static RawError* CompileFunctionHelper(const Function& function,
 }
 
 
-RawError* Compiler::CompileFunction(const Function& function) {
+RawError* Compiler::CompileFunction(Isolate* isolate,
+                                    const Function& function) {
+  VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
   return CompileFunctionHelper(function, false, Isolate::kNoDeoptId);
 }
 
 
-RawError* Compiler::CompileOptimizedFunction(const Function& function,
+RawError* Compiler::CompileOptimizedFunction(Isolate* isolate,
+                                             const Function& function,
                                              intptr_t osr_id) {
+  VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
   return CompileFunctionHelper(function, true, osr_id);
 }
 
 
+// This is only used from unit tests.
 RawError* Compiler::CompileParsedFunction(
     ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
@@ -892,9 +898,10 @@ RawError* Compiler::CompileParsedFunction(
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  Error& error = Error::Handle();
-  Array& functions = Array::Handle(cls.functions());
-  Function& func = Function::Handle();
+  Isolate* isolate = Isolate::Current();
+  Error& error = Error::Handle(isolate);
+  Array& functions = Array::Handle(isolate, cls.functions());
+  Function& func = Function::Handle(isolate);
   // Class dynamic lives in the vm isolate. Its array fields cannot be set to
   // an empty array.
   if (functions.IsNull()) {
@@ -908,7 +915,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
-      error = CompileFunction(func);
+      error = CompileFunction(isolate, func);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -919,12 +926,12 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   // more closures can be added to the end of the array. Compile all the
   // closures until we have reached the end of the "worklist".
   GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(cls.closures());
+      GrowableObjectArray::Handle(isolate, cls.closures());
   if (!closures.IsNull()) {
     for (int i = 0; i < closures.Length(); i++) {
       func ^= closures.At(i);
       if (!func.HasCode()) {
-        error = CompileFunction(func);
+        error = CompileFunction(isolate, func);
         if (!error.IsNull()) {
           return error.raw();
         }

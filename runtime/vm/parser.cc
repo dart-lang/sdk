@@ -381,7 +381,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
-  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+  VMTagScope tagScope(isolate, VMTag::kCompileTopLevelTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -730,7 +730,6 @@ static bool HasReturnNode(SequenceNode* seq) {
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
     Isolate* isolate = Isolate::Current();
-    VMTagScope tagScope(isolate, VMTag::kCompileTagId);
     TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
     ASSERT(isolate->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(isolate, cls.script());
@@ -789,7 +788,6 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
-  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   CompilerStats::num_functions_compiled++;
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
@@ -8777,14 +8775,15 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
   // Resolve class.
   if (!type->HasResolvedTypeClass()) {
     const UnresolvedClass& unresolved_class =
-        UnresolvedClass::Handle(type->unresolved_class());
+        UnresolvedClass::Handle(isolate(), type->unresolved_class());
     const String& unresolved_class_name =
-        String::Handle(unresolved_class.ident());
-    Class& resolved_type_class = Class::Handle();
+        String::Handle(isolate(), unresolved_class.ident());
+    Class& resolved_type_class = Class::Handle(isolate());
     if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
       if (!scope_class.IsNull()) {
         // First check if the type is a type parameter of the given scope class.
         const TypeParameter& type_parameter = TypeParameter::Handle(
+            isolate(),
             scope_class.LookupTypeParameter(unresolved_class_name));
         if (!type_parameter.IsNull()) {
           // A type parameter is considered to be a malformed type when
@@ -8792,23 +8791,23 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
             *type = ClassFinalizer::NewFinalizedMalformedType(
-                Error::Handle(),  // No previous error.
+                Error::Handle(isolate()),  // No previous error.
                 script_,
                 type->token_pos(),
                 "type parameter '%s' cannot be referenced "
                 "from static member",
-                String::Handle(type_parameter.name()).ToCString());
+                String::Handle(isolate(), type_parameter.name()).ToCString());
             return;
           }
           // A type parameter cannot be parameterized, so make the type
           // malformed if type arguments have previously been parsed.
-          if (!TypeArguments::Handle(type->arguments()).IsNull()) {
+          if (!TypeArguments::Handle(isolate(), type->arguments()).IsNull()) {
             *type = ClassFinalizer::NewFinalizedMalformedType(
-                Error::Handle(),  // No previous error.
+                Error::Handle(isolate()),  // No previous error.
                 script_,
                 type_parameter.token_pos(),
                 "type parameter '%s' cannot be parameterized",
-                String::Handle(type_parameter.name()).ToCString());
+                String::Handle(isolate(), type_parameter.name()).ToCString());
             return;
           }
           *type = type_parameter.raw();
@@ -8824,7 +8823,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       }
     } else {
       LibraryPrefix& lib_prefix =
-          LibraryPrefix::Handle(unresolved_class.library_prefix());
+          LibraryPrefix::Handle(isolate(), unresolved_class.library_prefix());
       // Resolve class name in the scope of the library prefix.
       resolved_type_class =
           ResolveClassInPrefixScope(lib_prefix, unresolved_class_name);
@@ -8836,21 +8835,24 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
       ClassFinalizer::FinalizeMalformedType(
-          Error::Handle(),  // No previous error.
+          Error::Handle(isolate()),  // No previous error.
           script_,
           parameterized_type,
           "type '%s' is not loaded",
-          String::Handle(parameterized_type.UserVisibleName()).ToCString());
+          String::Handle(isolate(),
+                         parameterized_type.UserVisibleName()).ToCString());
       return;
     }
   }
   // Resolve type arguments, if any.
-  const TypeArguments& arguments = TypeArguments::Handle(type->arguments());
-      TypeArguments::Handle(type->arguments());
+  const TypeArguments& arguments = TypeArguments::Handle(isolate(),
+                                                         type->arguments());
+      TypeArguments::Handle(isolate(), type->arguments());
   if (!arguments.IsNull()) {
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
-      AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
+      AbstractType& type_argument = AbstractType::Handle(isolate(),
+                                                         arguments.TypeAt(i));
       ResolveTypeFromClass(scope_class, finalization, &type_argument);
       arguments.SetTypeAt(i, type_argument);
     }

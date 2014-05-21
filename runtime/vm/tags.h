@@ -16,7 +16,10 @@ class RuntimeEntry;
 #define VM_TAG_LIST(V)                                                         \
   V(Idle)                                                                      \
   V(VM) /* Catch all */                                                        \
-  V(Compile)                                                                   \
+  V(CompileOptimized)                                                          \
+  V(CompileUnoptimized)                                                        \
+  V(CompileTopLevel)                                                           \
+  V(CompileScanner)                                                            \
   V(Script)                                                                    \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \

@@ -615,7 +615,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
       caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
   if (!target_function.HasCode()) {
     const Error& error =
-        Error::Handle(Compiler::CompileFunction(target_function));
+        Error::Handle(Compiler::CompileFunction(isolate, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -895,7 +895,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   ASSERT(ic_data.NumberOfChecks() > 0);
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(target));
+    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+                                                                 target));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1186,8 +1187,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Since the code is referenced from the frame and the ZoneHandle,
     // it cannot have been removed from the function.
     ASSERT(!original_code.IsNull());
-    const Error& error =
-        Error::Handle(Compiler::CompileOptimizedFunction(function, osr_id));
+    const Error& error = Error::Handle(Compiler::CompileOptimizedFunction(
+        isolate, function, osr_id));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1229,7 +1230,8 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
-  const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(isolate,
+                                                     arguments.ArgAt(0));
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 
@@ -1237,15 +1239,15 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
-    const Error& error =
-        Error::Handle(Compiler::CompileOptimizedFunction(function));
+    const Error& error = Error::Handle(
+        isolate, Compiler::CompileOptimizedFunction(isolate, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
-    const Code& optimized_code = Code::Handle(function.CurrentCode());
+    const Code& optimized_code = Code::Handle(isolate, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  arguments.SetReturn(Code::Handle(function.CurrentCode()));
+  arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
 }
 
 
@@ -1264,16 +1266,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
-      caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+      isolate, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(
-      caller_code.GetStaticCallTargetCodeAt(frame->pc()));
+      isolate, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
-    const Error& error =
-        Error::Handle(Compiler::CompileFunction(target_function));
+    const Error& error = Error::Handle(
+        isolate, Compiler::CompileFunction(isolate, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1281,8 +1283,10 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.HasCode());
   ASSERT(target_function.raw() == target_code.function());
 
-  const Code& current_target_code = Code::Handle(target_function.CurrentCode());
-  const Instructions& instrs = Instructions::Handle(caller_code.instructions());
+  const Code& current_target_code = Code::Handle(
+      isolate, target_function.CurrentCode());
+  const Instructions& instrs = Instructions::Handle(
+      isolate, caller_code.instructions());
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
