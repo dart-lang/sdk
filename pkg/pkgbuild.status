@@ -8,6 +8,9 @@ samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
+[ $runtime == drt || $runtime == dartium ]
+third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
+
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError

@@ -211,6 +211,8 @@ LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeErr
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Issue 18931
+LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/synthetic-click-inert_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -218,7 +220,6 @@ LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeE
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLElement/set-inner-outer-optimization_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLElement/spellcheck_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLFormElement/adopt-assertion_t01: Timeout # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLFormElement/move-option-between-documents_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLImageElement/image-alt-text_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLImageElement/parse-src_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -258,7 +259,6 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interf
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-006_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-005_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -284,6 +284,7 @@ WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01:
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-007_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Timeout, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Timeout, Pass # co19-roll r722: Please triage this failure.
@@ -299,9 +300,12 @@ LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text
 LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTemplateElement/innerHTML_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTemplateElement/ownerDocumentXHTML_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: RuntimeError # Issue 18931
+LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Timeout # co19-roll r722: Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout # co19-roll r722: Please triage this failure.
@@ -331,7 +335,8 @@ WebPlatformTest/dom/nodes/Element-childElementCount_t01: RuntimeError # co19-rol
 WebPlatformTest/dom/nodes/Node-appendChild_t02: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-insertBefore_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # co19-roll r722: Please triage this failure
+WebPlatformTest/dom/nodes/Node-textContent_t01: RuntimeError # Issue 18931
 WebPlatformTest/dom/nodes/attributes/attributes_A04_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/attributes_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -344,6 +349,16 @@ WebPlatformTest/dom/nodes/attributes/setAttributeNS_A09_t02: RuntimeError # co19
 WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttribute_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-005_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-006_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-content-html-element/test-004_t02: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test-003_t02: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: RuntimeError # Issue 18931
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Issue 18931
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
@@ -363,7 +378,6 @@ WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
