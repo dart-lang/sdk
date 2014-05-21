@@ -167,7 +167,8 @@ _blink_1916_rename_map = {
   'Algorithm': 'KeyAlgorithm',
   'any': 'ScriptValue',
   'URLUtils': 'URL',
-  'URLUtilsReadOnly': 'WorkerLocation'
+  'URLUtilsReadOnly': 'WorkerLocation',
+  'Path': 'Path2D'
 }
 
 _cpp_partial_map = {}

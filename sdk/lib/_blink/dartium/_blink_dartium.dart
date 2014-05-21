@@ -4611,27 +4611,27 @@ Native_Path_Path(path_OR_text) {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-Native_Path__create_1constructorCallback() native "Path_constructorCallback_RESOLVER_STRING_0_";
+Native_Path__create_1constructorCallback() native "Path2D_constructorCallback_RESOLVER_STRING_0_";
 
-Native_Path__create_2constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_Path";
+Native_Path__create_2constructorCallback(path_OR_text) native "Path2D_constructorCallback_RESOLVER_STRING_1_Path2D";
 
-Native_Path__create_3constructorCallback(path_OR_text) native "Path_constructorCallback_RESOLVER_STRING_1_DOMString";
+Native_Path__create_3constructorCallback(path_OR_text) native "Path2D_constructorCallback_RESOLVER_STRING_1_DOMString";
 
-Native_Path_arc_Callback(mthis, x, y, radius, startAngle, endAngle, anticlockwise) native "Path_arc_Callback_RESOLVER_STRING_6_float_float_float_float_float_boolean";
+Native_Path_arc_Callback(mthis, x, y, radius, startAngle, endAngle, anticlockwise) native "Path2D_arc_Callback_RESOLVER_STRING_6_float_float_float_float_float_boolean";
 
-Native_Path_arcTo_Callback(mthis, x1, y1, x2, y2, radius) native "Path_arcTo_Callback_RESOLVER_STRING_5_float_float_float_float_float";
+Native_Path_arcTo_Callback(mthis, x1, y1, x2, y2, radius) native "Path2D_arcTo_Callback_RESOLVER_STRING_5_float_float_float_float_float";
 
-Native_Path_bezierCurveTo_Callback(mthis, cp1x, cp1y, cp2x, cp2y, x, y) native "Path_bezierCurveTo_Callback_RESOLVER_STRING_6_float_float_float_float_float_float";
+Native_Path_bezierCurveTo_Callback(mthis, cp1x, cp1y, cp2x, cp2y, x, y) native "Path2D_bezierCurveTo_Callback_RESOLVER_STRING_6_float_float_float_float_float_float";
 
-Native_Path_closePath_Callback(mthis) native "Path_closePath_Callback_RESOLVER_STRING_0_";
+Native_Path_closePath_Callback(mthis) native "Path2D_closePath_Callback_RESOLVER_STRING_0_";
 
-Native_Path_lineTo_Callback(mthis, x, y) native "Path_lineTo_Callback_RESOLVER_STRING_2_float_float";
+Native_Path_lineTo_Callback(mthis, x, y) native "Path2D_lineTo_Callback_RESOLVER_STRING_2_float_float";
 
-Native_Path_moveTo_Callback(mthis, x, y) native "Path_moveTo_Callback_RESOLVER_STRING_2_float_float";
+Native_Path_moveTo_Callback(mthis, x, y) native "Path2D_moveTo_Callback_RESOLVER_STRING_2_float_float";
 
-Native_Path_quadraticCurveTo_Callback(mthis, cpx, cpy, x, y) native "Path_quadraticCurveTo_Callback_RESOLVER_STRING_4_float_float_float_float";
+Native_Path_quadraticCurveTo_Callback(mthis, cpx, cpy, x, y) native "Path2D_quadraticCurveTo_Callback_RESOLVER_STRING_4_float_float_float_float";
 
-Native_Path_rect_Callback(mthis, x, y, width, height) native "Path_rect_Callback_RESOLVER_STRING_4_float_float_float_float";
+Native_Path_rect_Callback(mthis, x, y, width, height) native "Path2D_rect_Callback_RESOLVER_STRING_4_float_float_float_float";
 
 Native_Performance_memory_Getter(mthis) native "Performance_memory_Getter";
 
