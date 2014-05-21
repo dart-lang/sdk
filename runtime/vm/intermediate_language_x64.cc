@@ -961,16 +961,16 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (is_external) {
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
+        ? compiler->ExternalElementAddressForRegIndex(
             index_scale(), array, index.reg())
-        : FlowGraphCompiler::ExternalElementAddressForIntIndex(
+        : compiler->ExternalElementAddressForIntIndex(
             index_scale(), array, Smi::Cast(index.constant()).Value());
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ElementAddressForRegIndex(
+        ? compiler->ElementAddressForRegIndex(
             class_id(), index_scale(), array, index.reg())
-        : FlowGraphCompiler::ElementAddressForIntIndex(
+        : compiler->ElementAddressForIntIndex(
             class_id(), index_scale(), array,
             Smi::Cast(index.constant()).Value());
   }
@@ -1143,16 +1143,16 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Address element_address(kNoRegister, 0);
   if (is_external) {
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
+        ? compiler->ExternalElementAddressForRegIndex(
             index_scale(), array, index.reg())
-        : FlowGraphCompiler::ExternalElementAddressForIntIndex(
+        : compiler->ExternalElementAddressForIntIndex(
             index_scale(), array, Smi::Cast(index.constant()).Value());
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ElementAddressForRegIndex(
+        ? compiler->ElementAddressForRegIndex(
             class_id(), index_scale(), array, index.reg())
-        : FlowGraphCompiler::ElementAddressForIntIndex(
+        : compiler->ElementAddressForIntIndex(
             class_id(), index_scale(), array,
             Smi::Cast(index.constant()).Value());
   }

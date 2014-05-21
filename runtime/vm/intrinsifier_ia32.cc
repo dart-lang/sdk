@@ -1248,16 +1248,12 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
   __ movl(EBX, FieldAddress(EAX, state_field.Offset()));  // Field '_state'.
   // Addresses of _state[0] and _state[1].
-  Address addr_0 = FlowGraphCompiler::ElementAddressForIntIndex(
-      kTypedDataUint32ArrayCid,
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
-      EBX,
-      0);
-  Address addr_1 = FlowGraphCompiler::ElementAddressForIntIndex(
-      kTypedDataUint32ArrayCid,
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
-      EBX,
-      1);
+  const intptr_t index_scale =
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const intptr_t offset =
+      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+  Address addr_0 = FieldAddress(EBX, 0 * index_scale + offset);
+  Address addr_1 = FieldAddress(EBX, 1 * index_scale + offset);
   __ movl(EAX, Immediate(a_int32_value));
   // 64-bit multiply EAX * value -> EDX:EAX.
   __ mull(addr_0);
