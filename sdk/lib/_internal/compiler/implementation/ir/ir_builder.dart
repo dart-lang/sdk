@@ -580,6 +580,26 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return visit(node.expression);
   }
 
+  // Stores the result of visiting a CascadeReceiver, so we can return it from
+  // its enclosing Cascade.
+  ir.Primitive _currentCascadeReceiver;
+
+  ir.Primitive visitCascadeReceiver(ast.CascadeReceiver node) {
+    assert(isOpen);
+    return _currentCascadeReceiver = visit(node.expression);
+  }
+
+  ir.Primitive visitCascade(ast.Cascade node) {
+    assert(isOpen);
+    var oldCascadeReceiver = _currentCascadeReceiver;
+    // Throw away the result of visiting the expression.
+    // Instead we return the result of visiting the CascadeReceiver.
+    this.visit(node.expression);
+    ir.Primitive receiver = _currentCascadeReceiver;
+    _currentCascadeReceiver = oldCascadeReceiver;
+    return receiver;
+  }
+
   // ==== Sends ====
   ir.Primitive visitAssert(ast.Send node) {
     assert(isOpen);
