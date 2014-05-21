@@ -68,7 +68,7 @@ main() {
 
         dependencies:
         - from_path 1.2.3
-        - normal 1.2.3 [circular_a transitive]
+        - normal 1.2.3 [transitive circular_a]
         - overridden 2.0.0
 
         dev dependencies:
@@ -94,18 +94,18 @@ main() {
 
         dependencies:
         - from_path 1.2.3
-        - overridden 2.0.0
         - normal 1.2.3
-          - circular_a any
           - transitive any
+          - circular_a any
+        - overridden 2.0.0
 
         dev dependencies:
         - unittest 1.2.3
           - shared any
 
         dependency overrides:
-        - override_only 1.2.3
         - overridden 2.0.0
+        - override_only 1.2.3
 
         transitive dependencies:
         - circular_a 1.2.3
