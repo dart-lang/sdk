@@ -5,7 +5,7 @@
 part of dart.core;
 
 /// Opaque name used by mirrors, invocations and [Function.apply].
-class Symbol {
+abstract class Symbol {
   /**
    * Constructs a new Symbol.
    *
@@ -35,4 +35,19 @@ class Symbol {
    * be passed to this constructor.
    */
   const factory Symbol(String name) = internal.Symbol;
+
+  /**
+   * Returns a hash code compatible with [operator==].
+   *
+   * Equal symbols have the same hash code.
+   */
+  int get hashCode;
+
+  /**
+   * Symbols are equal to other symbols that correspond to the same member name.
+   *
+   * Qualified member names, like `#foo.bar` are equal only if they have the
+   * same identifiers before the same final member name.
+   */
+  bool operator ==(Object other);
 }

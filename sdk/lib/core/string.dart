@@ -180,7 +180,15 @@ abstract class String implements Comparable<String>, Pattern {
   int get length;
 
   /**
-   * Returns true if the two strings are equal. False, otherwise.
+   * Returns a hash code derived from the code units of the string.
+   *
+   * This is compatible with [operator==]. Strings with the same sequence
+   * of code units have the same hash code.
+   */
+  int get hashCode;
+
+  /**
+   * Returns true if other is a `String` with the same sequence of code units.
    *
    * This method compares each individual code unit of the strings.
    * It does not check for Unicode equivalence.
@@ -193,7 +201,7 @@ abstract class String implements Comparable<String>, Pattern {
    * a single rune), whereas the second string encodes it as 'e' with the
    * combining accent character '◌́'.
    */
-  bool operator ==(var other);
+  bool operator ==(Object other);
 
   /**
    * Returns true if this string ends with [other]. For example:
