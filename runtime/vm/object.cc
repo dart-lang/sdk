@@ -13838,7 +13838,7 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
     return true;
   }
   const TypeArguments& args = TypeArguments::Handle(arguments());
-  const intptr_t num_type_args = args.Length();
+  intptr_t num_type_args = args.Length();
   intptr_t len = num_type_args;  // Check the full vector of type args.
   ASSERT(num_type_args > 0);
   // This type is not instantiated if it refers to type parameters.
@@ -13849,8 +13849,10 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
   // arguments and not just at the type parameters.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
+    len = cls.NumTypeArguments();
+    ASSERT(num_type_args >= len);  // The vector may be longer than necessary.
+    num_type_args = len;
     len = cls.NumTypeParameters();  // Check the type parameters only.
-    ASSERT(num_type_args == cls.NumTypeArguments());
   }
   return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
 }
