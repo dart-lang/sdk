@@ -450,14 +450,14 @@ class FlowGraphCompiler : public ValueObject {
   // Array/list element address computations.
   static intptr_t DataOffsetFor(intptr_t cid);
   static intptr_t ElementSizeFor(intptr_t cid);
-  static FieldAddress ElementAddressForIntIndex(intptr_t cid,
-                                                intptr_t index_scale,
-                                                Register array,
-                                                intptr_t offset);
-  static FieldAddress ElementAddressForRegIndex(intptr_t cid,
-                                                intptr_t index_scale,
-                                                Register array,
-                                                Register index);
+  static Address ElementAddressForIntIndex(intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           intptr_t offset);
+  static Address ElementAddressForRegIndex(intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           Register index);
   static Address ExternalElementAddressForIntIndex(intptr_t index_scale,
                                                    Register array,
                                                    intptr_t offset);

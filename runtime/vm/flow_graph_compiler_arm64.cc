@@ -1527,22 +1527,20 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-// Do not implement or use this function.
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          intptr_t index) {
+Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     intptr_t index) {
   UNREACHABLE();
   return FieldAddress(array, index);
 }
 
 
-// Do not implement or use this function.
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          Register index) {
-  UNREACHABLE();  // No register indexed with offset addressing mode on ARM.
+Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

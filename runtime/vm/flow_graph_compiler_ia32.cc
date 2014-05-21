@@ -1539,10 +1539,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          intptr_t index) {
+Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     intptr_t index) {
   const int64_t disp =
       static_cast<int64_t>(index) * index_scale + DataOffsetFor(cid);
   ASSERT(Utils::IsInt(32, disp));
@@ -1568,10 +1568,10 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          Register index) {
+Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
   return FieldAddress(array,
                       index,
                       ToScaleFactor(index_scale),
