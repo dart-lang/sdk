@@ -18,12 +18,13 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 polymer/test/build/script_compactor_test: Pass, Slow
 
-[ $runtime == drt || $runtime == dartium ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
 polymer/test/bind_test: Pass, RuntimeError # Issue 18931
+polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
@@ -34,6 +35,9 @@ polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
