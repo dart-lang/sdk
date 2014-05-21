@@ -8,31 +8,6 @@ import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
 
-const TRANSFORMER = """
-import 'dart:async';
-
-import 'package:barback/barback.dart';
-
-class LazyRewriteTransformer extends Transformer implements LazyTransformer {
-  LazyRewriteTransformer.asPlugin();
-
-  String get allowedExtensions => '.txt';
-
-  Future apply(Transform transform) {
-    transform.logger.info('Rewriting \${transform.primaryInput.id}.');
-    return transform.primaryInput.readAsString().then((contents) {
-      var id = transform.primaryInput.id.changeExtension(".out");
-      transform.addOutput(new Asset.fromString(id, "\$contents.out"));
-    });
-  }
-
-  Future declareOutputs(DeclaringTransform transform) {
-    transform.declareOutput(transform.primaryId.changeExtension(".out"));
-    return new Future.value();
-  }
-}
-""";
-
 main() {
   initConfig();
   integration("supports a user-defined lazy transformer", () {
@@ -42,7 +17,7 @@ main() {
         "transformers": ["myapp/src/transformer"]
       }),
       d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", TRANSFORMER)
+        d.file("transformer.dart", LAZY_TRANSFORMER)
       ])]),
       d.dir("web", [
         d.file("foo.txt", "foo")

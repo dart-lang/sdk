@@ -19,7 +19,15 @@ class ExcludingTransformer extends Transformer {
       Set<String> excludes) {
     if (includes == null && excludes == null) return inner;
 
-    return new ExcludingTransformer._(inner, includes, excludes);
+    if (inner is LazyTransformer) {
+      return new _LazyExcludingTransformer(
+          inner as LazyTransformer, includes, excludes);
+    } else if (inner is DeclaringTransformer) {
+      return new _DeclaringExcludingTransformer(
+          inner as DeclaringTransformer, includes, excludes);
+    } else {
+      return new ExcludingTransformer._(inner, includes, excludes);
+    }
   }
 
   final Transformer _inner;
@@ -55,4 +63,21 @@ class ExcludingTransformer extends Transformer {
   Future apply(Transform transform) => _inner.apply(transform);
 
   String toString() => _inner.toString();
+}
+
+class _DeclaringExcludingTransformer extends ExcludingTransformer
+    implements DeclaringTransformer {
+  _DeclaringExcludingTransformer(DeclaringTransformer inner,
+        Set<String> includes, Set<String> excludes)
+      : super._(inner as Transformer, includes, excludes);
+
+  Future declareOutputs(DeclaringTransform transform) =>
+      (_inner as DeclaringTransformer).declareOutputs(transform);
+}
+
+class _LazyExcludingTransformer extends _DeclaringExcludingTransformer
+    implements LazyTransformer {
+  _LazyExcludingTransformer(DeclaringTransformer inner,
+        Set<String> includes, Set<String> excludes)
+      : super(inner, includes, excludes);
 }

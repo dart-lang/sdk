@@ -57,6 +57,32 @@ class RewriteTransformer extends Transformer {
 }
 """;
 
+/// The code for a lazy version of [REWRITE_TRANSFORMER].
+const LAZY_TRANSFORMER = """
+import 'dart:async';
+
+import 'package:barback/barback.dart';
+
+class LazyRewriteTransformer extends Transformer implements LazyTransformer {
+  LazyRewriteTransformer.asPlugin();
+
+  String get allowedExtensions => '.txt';
+
+  Future apply(Transform transform) {
+    transform.logger.info('Rewriting \${transform.primaryInput.id}.');
+    return transform.primaryInput.readAsString().then((contents) {
+      var id = transform.primaryInput.id.changeExtension(".out");
+      transform.addOutput(new Asset.fromString(id, "\$contents.out"));
+    });
+  }
+
+  Future declareOutputs(DeclaringTransform transform) {
+    transform.declareOutput(transform.primaryId.changeExtension(".out"));
+    return new Future.value();
+  }
+}
+""";
+
 /// The web socket error code for a directory not being served.
 const NOT_SERVED = 1;
 
