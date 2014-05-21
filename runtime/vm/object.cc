@@ -2514,7 +2514,14 @@ class WeakCodeReferences : public ValueObject {
         function.SwitchToUnoptimizedCode();
       } else if (function.unoptimized_code() == code.raw()) {
         ReportSwitchingCode(code);
+        // Remove the code object from the function. The next time the
+        // function is invoked, it will be compiled again.
         function.ClearCode();
+        // Invalidate the old code object so existing references to it
+        // (from optimized code) will fail when invoked.
+        if (!CodePatcher::IsEntryPatched(code)) {
+          CodePatcher::PatchEntry(code);
+        }
       }
     }
   }
@@ -9559,9 +9566,10 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("Prefix '%s': deleting %s code for function '%s'\n",
+      OS::PrintErr("Prefix '%s': deleting %s code for %s function '%s'\n",
         String::Handle(prefix_.name()).ToCString(),
         code.is_optimized() ? "optimized" : "unoptimized",
+        CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
         Function::Handle(code.function()).ToCString());
     }
   }
