@@ -562,6 +562,20 @@ TEST_CASE(Service_Objects) {
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    arr.raw()->Size() + arr.At(0)->Size());
+
+  // eval against list containing an internal object.
+  Object& internal_object = Object::Handle();
+  internal_object = LiteralToken::New();
+  arr.SetAt(0, internal_object);
+  service_msg = Eval(lib,
+                     "[port, ['objects', '$validId', 'eval'], "
+                     "['expr'], ['toString()']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(), "\"type\":\"Error\"");
+  ExpectSubstringF(
+      handler.msg(),
+      "\"message\":\"attempt to evaluate against internal VM object\\n\"");
 }
 
 
