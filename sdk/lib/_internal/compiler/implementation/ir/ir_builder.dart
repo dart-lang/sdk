@@ -640,7 +640,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       int index = variableIndex[element];
       ir.Primitive value = assignedVars[index];
       return value == null ? freeVars[index] : value;
-    } else if (Elements.isInstanceField(element)) {
+    } else if (element == null || Elements.isInstanceField(element)) {
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
