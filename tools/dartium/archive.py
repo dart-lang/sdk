@@ -130,7 +130,8 @@ def StageAndZip(fileList, target):
   if os.path.exists(stageDir):
     shutil.rmtree(stageDir)
   os.mkdir(stageDir)
-  oldFiles = glob.glob(target.split('-')[0] + '*.zip')
+  revision = target.split('-')[-1]
+  oldFiles = glob.glob(target.replace(revision, '*.zip')
   for oldFile in oldFiles:
     os.remove(oldFile)
 
