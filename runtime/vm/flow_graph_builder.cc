@@ -558,7 +558,6 @@ Value* EffectGraphVisitor::Bind(Definition* definition) {
   ASSERT(is_open());
   owner()->DeallocateTemps(definition->InputCount());
   owner()->add_args_pushed(-definition->ArgumentCount());
-  definition->set_use_kind(Definition::kValue);
   definition->set_temp_index(owner()->AllocateTemp());
   if (is_empty()) {
     entry_ = definition;
@@ -574,7 +573,6 @@ void EffectGraphVisitor::Do(Definition* definition) {
   ASSERT(is_open());
   owner()->DeallocateTemps(definition->InputCount());
   owner()->add_args_pushed(-definition->ArgumentCount());
-  definition->set_use_kind(Definition::kEffect);
   if (is_empty()) {
     entry_ = definition;
   } else {

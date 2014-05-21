@@ -1337,7 +1337,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
         last,
         result,
         call_->env(),  // Return can become deoptimization target.
-        Definition::kEffect);
+        FlowGraph::kEffect);
     entry->set_last_instruction(result);
     exit_collector->AddExit(result);
     GraphEntryInstr* graph_entry =

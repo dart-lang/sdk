@@ -720,7 +720,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
     return;
   }
   Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->is_used()) {
+  if ((defn != NULL) && defn->HasTemp()) {
     __ Push(defn->locs()->out(0).reg());
   }
 }

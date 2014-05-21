@@ -321,7 +321,7 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                                 Isolate::kNoDeoptId,
                                                 instr->token_pos());
   instr->ReplaceUsesWith(load);
-  flow_graph()->InsertAfter(instr, load, NULL, Definition::kValue);
+  flow_graph()->InsertAfter(instr, load, NULL, FlowGraph::kValue);
 }
 
 
@@ -334,7 +334,7 @@ void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
                                                              rep,
                                                              cid);
   instr->ReplaceUsesWith(extract);
-  flow_graph()->InsertAfter(instr, extract, NULL, Definition::kValue);
+  flow_graph()->InsertAfter(instr, extract, NULL, FlowGraph::kValue);
 }
 
 
@@ -616,7 +616,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
     BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
     use->BindTo(boxed);
-    InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
 
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
@@ -688,7 +688,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       UNIMPLEMENTED();
     }
     use->BindTo(boxed);
-    InsertBefore(insert_before, boxed, NULL, Definition::kValue);
+    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
     Value* to_value = new Value(boxed);
     if (to == kUnboxedDouble) {
       converted = new UnboxDoubleInstr(to_value, deopt_id);
@@ -706,7 +706,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   }
   ASSERT(converted != NULL);
   InsertBefore(insert_before, converted, use->instruction()->env(),
-               Definition::kValue);
+               FlowGraph::kValue);
   if (is_environment_use) {
     use->BindToEnvironment(converted);
   } else {
@@ -984,7 +984,7 @@ void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
                                    deopt_id,
                                    insert_before->token_pos()),
                  deopt_environment,
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
   }
 }
 
@@ -1012,7 +1012,7 @@ void FlowGraphOptimizer::AddCheckClass(Definition* to_check,
   // Type propagation has not run yet, we cannot eliminate the check.
   Instruction* check = GetCheckClass(
       to_check, unary_checks, deopt_id, insert_before->token_pos());
-  InsertBefore(insert_before, check, deopt_environment, Definition::kEffect);
+  InsertBefore(insert_before, check, deopt_environment, FlowGraph::kEffect);
 }
 
 
@@ -1207,7 +1207,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
         cursor = flow_graph()->AppendTo(cursor,
                                         load_type_args,
                                         NULL,
-                                        Definition::kValue);
+                                        FlowGraph::kValue);
 
         instantiator = array;
         type_args = load_type_args;
@@ -1265,7 +1265,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     cursor = flow_graph()->AppendTo(cursor,
                                     assert_value,
                                     call->env(),
-                                    Definition::kValue);
+                                    FlowGraph::kValue);
   }
 
   array_cid = PrepareInlineIndexedOp(call,
@@ -1289,7 +1289,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     cursor = flow_graph()->AppendTo(cursor,
                                     check,
                                     call->env(),
-                                    Definition::kEffect);
+                                    FlowGraph::kEffect);
   }
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
@@ -1298,7 +1298,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     NULL,
-                                    Definition::kValue);
+                                    FlowGraph::kValue);
   }
 
   intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
@@ -1313,7 +1313,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
   flow_graph()->AppendTo(cursor,
                          *last,
                          call->env(),
-                         Definition::kEffect);
+                         FlowGraph::kEffect);
   return true;
 }
 
@@ -1567,7 +1567,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
                                                      call->deopt_id(),
                                                      call->token_pos()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
 
   // Insert array length load and bounds check.
   LoadFieldInstr* length =
@@ -1583,7 +1583,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
   *cursor = flow_graph()->AppendTo(*cursor,
                                    length,
                                    NULL,
-                                   Definition::kValue);
+                                   FlowGraph::kValue);
 
   *cursor = flow_graph()->AppendTo(*cursor,
                                    new CheckArrayBoundInstr(
@@ -1591,7 +1591,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
                                        new Value(index),
                                        call->deopt_id()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -1604,7 +1604,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
     *cursor = flow_graph()->AppendTo(*cursor,
                                      elements,
                                      NULL,
-                                     Definition::kValue);
+                                     FlowGraph::kValue);
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
     array_cid = kArrayCid;
@@ -1615,7 +1615,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
     *cursor = flow_graph()->AppendTo(*cursor,
                                      elements,
                                      NULL,
-                                     Definition::kValue);
+                                     FlowGraph::kValue);
     *array = elements;
   }
   return array_cid;
@@ -1664,14 +1664,14 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
       cursor,
       *last,
       deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-      Definition::kValue);
+      FlowGraph::kValue);
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new FloatToDoubleInstr(new Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
                            deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-                           Definition::kValue);
+                           FlowGraph::kValue);
   }
   return true;
 }
@@ -1795,7 +1795,7 @@ bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       // string is not of length one.
       StringToCharCodeInstr* char_code_right =
           new StringToCharCodeInstr(new Value(right), kOneByteStringCid);
-      InsertBefore(call, char_code_right, call->env(), Definition::kValue);
+      InsertBefore(call, char_code_right, call->env(), FlowGraph::kValue);
       right_val = new Value(char_code_right);
     }
 
@@ -1850,13 +1850,13 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                    call->deopt_id(),
                                    call->token_pos()),
                  call->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     InsertBefore(call,
                  new CheckSmiInstr(new Value(right),
                                    call->deopt_id(),
                                    call->token_pos()),
                  call->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -1876,7 +1876,7 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                                 new Value(right),
                                                 call->deopt_id()),
                      call->env(),
-                     Definition::kEffect);
+                     FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -1952,13 +1952,13 @@ bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                    call->deopt_id(),
                                    call->token_pos()),
                  call->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     InsertBefore(call,
                  new CheckSmiInstr(new Value(right),
                                    call->deopt_id(),
                                    call->token_pos()),
                  call->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     cid = kSmiCid;
   } else if (HasTwoMintOrSmi(ic_data) &&
              FlowGraphCompiler::SupportsUnboxedMints()) {
@@ -1978,7 +1978,7 @@ bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                                 new Value(right),
                                                 call->deopt_id()),
                      call->env(),
-                     Definition::kEffect);
+                     FlowGraph::kEffect);
         cid = kDoubleCid;
       }
     }
@@ -2128,7 +2128,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                               new Value(right),
                                               call->deopt_id()),
                    call->env(),
-                   Definition::kEffect);
+                   FlowGraph::kEffect);
     }
 
     BinaryDoubleOpInstr* double_bin_op =
@@ -2166,7 +2166,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                        call->deopt_id(),
                                        call->token_pos()),
                      call->env(),
-                     Definition::kEffect);
+                     FlowGraph::kEffect);
         ConstantInstr* constant =
             flow_graph()->GetConstant(Smi::Handle(
                 Smi::New(Smi::Cast(obj).Value() - 1)));
@@ -2221,7 +2221,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
                                    call->deopt_id(),
                                    call->token_pos()),
                  call->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     unary_op = new UnarySmiOpInstr(op_kind, new Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
              HasOnlySmiOrMint(*call->ic_data()) &&
@@ -2708,18 +2708,18 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
                                                     call->deopt_id(),
                                                     call->token_pos()),
                                   call->env(),
-                                  Definition::kEffect);
+                                  FlowGraph::kEffect);
 
   // Load the length of the string.
   LoadFieldInstr* length = BuildLoadStringLength(str);
-  cursor = flow_graph()->AppendTo(cursor, length, NULL, Definition::kValue);
+  cursor = flow_graph()->AppendTo(cursor, length, NULL, FlowGraph::kValue);
   // Bounds check.
   cursor = flow_graph()->AppendTo(cursor,
                                    new CheckArrayBoundInstr(new Value(length),
                                                             new Value(index),
                                                             call->deopt_id()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
 
   LoadIndexedInstr* load_indexed = new LoadIndexedInstr(
       new Value(str),
@@ -2732,7 +2732,7 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
   cursor = flow_graph()->AppendTo(cursor,
                                   load_indexed,
                                   NULL,
-                                  Definition::kValue);
+                                  FlowGraph::kValue);
   ASSERT(cursor == load_indexed);
   return load_indexed;
 }
@@ -2782,7 +2782,7 @@ bool FlowGraphOptimizer::InlineStringBaseCharAt(
   StringFromCharCodeInstr* char_at =
           new StringFromCharCodeInstr(new Value(*last), cid);
 
-  flow_graph()->AppendTo(*last, char_at, NULL, Definition::kValue);
+  flow_graph()->AppendTo(*last, char_at, NULL, FlowGraph::kValue);
   *last = char_at;
 
   return true;
@@ -3077,7 +3077,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         // No BIT_AND operation needed.
         ReplaceCall(call, left_shift);
       } else {
-        InsertBefore(call, left_shift, call->env(), Definition::kValue);
+        InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
         BinarySmiOpInstr* bit_and =
             new BinarySmiOpInstr(Token::kBIT_AND,
                                  new Value(left_shift), new Value(int32_mask),
@@ -3097,7 +3097,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           new ShiftMintOpInstr(Token::kSHL,
                                new Value(value), new Value(count),
                                call->deopt_id());
-      InsertBefore(call, left_shift, call->env(), Definition::kValue);
+      InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
       BinaryMintOpInstr* bit_and =
           new BinaryMintOpInstr(Token::kBIT_AND,
                                 new Value(left_shift), new Value(int32_mask),
@@ -3530,14 +3530,14 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
       cursor,
       *last,
       deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-      Definition::kValue);
+      FlowGraph::kValue);
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new FloatToDoubleInstr(new Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
                            deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
-                           Definition::kValue);
+                           FlowGraph::kValue);
   }
   return true;
 }
@@ -3656,7 +3656,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     NULL,
-                                    Definition::kValue);
+                                    FlowGraph::kValue);
   }
 
   StoreBarrierType needs_store_barrier = kNoStoreBarrier;
@@ -3673,7 +3673,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
                          *last,
                          call->deopt_id() != Isolate::kNoDeoptId ?
                             call->env() : NULL,
-                         Definition::kEffect);
+                         FlowGraph::kEffect);
   return true;
 }
 
@@ -3692,7 +3692,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                                                      call->deopt_id(),
                                                      call->token_pos()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
 
   LoadFieldInstr* length =
       new LoadFieldInstr(new Value(*array),
@@ -3706,7 +3706,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
   *cursor = flow_graph()->AppendTo(*cursor,
                                    length,
                                    NULL,
-                                   Definition::kValue);
+                                   FlowGraph::kValue);
 
   intptr_t element_size = FlowGraphCompiler::ElementSizeFor(array_cid);
   ConstantInstr* bytes_per_element =
@@ -3717,7 +3717,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                            new Value(bytes_per_element),
                            call->deopt_id(), call->token_pos());
   *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
-                                   Definition::kValue);
+                                   FlowGraph::kValue);
 
   ConstantInstr* length_adjustment =
       flow_graph()->GetConstant(Smi::Handle(Smi::New(
@@ -3729,7 +3729,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                            new Value(length_adjustment),
                            call->deopt_id(), call->token_pos());
   *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
-                                   Definition::kValue);
+                                   FlowGraph::kValue);
 
   // Check adjusted_length > 0.
   ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
@@ -3739,7 +3739,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                                        new Value(zero),
                                        call->deopt_id()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
   // Check 0 <= byte_index < adjusted_length.
   *cursor = flow_graph()->AppendTo(*cursor,
                                    new CheckArrayBoundInstr(
@@ -3747,7 +3747,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                                        new Value(byte_index),
                                        call->deopt_id()),
                                    call->env(),
-                                   Definition::kEffect);
+                                   FlowGraph::kEffect);
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     LoadUntaggedInstr* elements =
@@ -3756,7 +3756,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
     *cursor = flow_graph()->AppendTo(*cursor,
                                      elements,
                                      NULL,
-                                     Definition::kValue);
+                                     FlowGraph::kValue);
     *array = elements;
   }
   return array_cid;
@@ -4004,7 +4004,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     InsertBefore(call,
                  left_cid,
                  NULL,
-                 Definition::kValue);
+                 FlowGraph::kValue);
     const intptr_t type_cid = Class::Handle(type.type_class()).id();
     ConstantInstr* cid =
         flow_graph()->GetConstant(Smi::Handle(Smi::New(type_cid)));
@@ -4419,7 +4419,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                    instr->deopt_id(),
                                    instr->token_pos()),
                  instr->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
     needs_store_barrier = kNoStoreBarrier;
   }
 
@@ -4429,7 +4429,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                      field,
                                      instr->deopt_id()),
                  instr->env(),
-                 Definition::kEffect);
+                 FlowGraph::kEffect);
   }
 
   // Field guard was detached.
@@ -4717,7 +4717,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
 
   ConstraintInstr* constraint =
       new ConstraintInstr(new Value(defn), constraint_range);
-  flow_graph_->InsertAfter(after, constraint, NULL, Definition::kValue);
+  flow_graph_->InsertAfter(after, constraint, NULL, FlowGraph::kValue);
   RenameDominatedUses(defn, constraint, constraint);
   constraints_.Add(constraint);
   return constraint;
@@ -5156,7 +5156,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   it->RemoveCurrentFromGraph();
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
-  flow_graph()->InsertBefore(last, current, last->env(), Definition::kEffect);
+  flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
   current->deopt_id_ = last->GetDeoptId();
 }
 
@@ -9395,7 +9395,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           flow_graph->InsertBefore(branch,
                                    if_then_else,
                                    NULL,
-                                   Definition::kValue);
+                                   FlowGraph::kValue);
 
           phi->ReplaceUsesWith(if_then_else);
 
@@ -9640,12 +9640,12 @@ void AllocationSinking::CreateMaterializationAt(
                              AbstractType::ZoneHandle(),
                              alloc->token_pos());
     flow_graph_->InsertBefore(
-        exit, load, NULL, Definition::kValue);
+        exit, load, NULL, FlowGraph::kValue);
     values->Add(new Value(load));
   }
 
   MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, slots, values);
-  flow_graph_->InsertBefore(exit, mat, NULL, Definition::kValue);
+  flow_graph_->InsertBefore(exit, mat, NULL, FlowGraph::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
   // MaterializeObject instruction.

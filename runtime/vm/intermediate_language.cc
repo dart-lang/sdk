@@ -43,7 +43,6 @@ Definition::Definition()
       ssa_temp_index_(-1),
       input_use_list_(NULL),
       env_use_list_(NULL),
-      use_kind_(kValue),  // Phis and parameters rely on this default.
       constant_value_(Object::ZoneHandle(ConstantPropagator::Unknown())) {
 }
 
@@ -1403,7 +1402,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
         new MathUnaryInstr(MathUnaryInstr::kDoubleSquare,
                            new Value(left()->definition()),
                            DeoptimizationTarget());
-    flow_graph->InsertBefore(this, math_unary, env(), Definition::kValue);
+    flow_graph->InsertBefore(this, math_unary, env(), FlowGraph::kValue);
     return math_unary;
   }
 
@@ -1661,7 +1660,7 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsDouble()) {
     UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
-    flow_graph->InsertBefore(this, uc, NULL, Definition::kValue);
+    flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
 

@@ -170,17 +170,15 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
 
 
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
-  if (definition.is_used()) {
-    if (definition.HasSSATemp()) {
-      if (definition.HasPairRepresentation()) {
-        f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
-                                       definition.ssa_temp_index() + 1);
-      } else {
-        f->Print("v%" Pd "", definition.ssa_temp_index());
-      }
-    } else if (definition.temp_index() != -1) {
-      f->Print("t%" Pd "", definition.temp_index());
+  if (definition.HasSSATemp()) {
+    if (definition.HasPairRepresentation()) {
+      f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
+                                     definition.ssa_temp_index() + 1);
+    } else {
+      f->Print("v%" Pd "", definition.ssa_temp_index());
     }
+  } else if (definition.HasTemp()) {
+    f->Print("t%" Pd "", definition.temp_index());
   }
 }
 
@@ -214,9 +212,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
-  if (is_used()) {
-    if (HasSSATemp() || (temp_index() != -1)) f->Print(" <- ");
-  }
+  if (HasSSATemp() || HasTemp()) f->Print(" <- ");
   if (GetDeoptId() != Isolate::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {

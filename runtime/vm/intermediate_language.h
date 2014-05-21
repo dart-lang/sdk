@@ -1749,8 +1749,6 @@ enum AliasIdentity {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  enum UseKind { kEffect, kValue };
-
   Definition();
 
   virtual Definition* AsDefinition() { return this; }
@@ -1770,11 +1768,11 @@ class Definition : public Instruction {
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
   void ClearTempIndex() { temp_index_ = -1; }
+  bool HasTemp() const { return temp_index_ >= 0; }
 
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
   void set_ssa_temp_index(intptr_t index) {
     ASSERT(index >= 0);
-    ASSERT(is_used());
     ssa_temp_index_ = index;
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
@@ -1783,8 +1781,6 @@ class Definition : public Instruction {
     return (representation() == kPairOfTagged) ||
            (representation() == kPairOfUnboxedDouble);
   }
-  bool is_used() const { return (use_kind_ != kEffect); }
-  void set_use_kind(UseKind kind) { use_kind_ = kind; }
 
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
@@ -1910,7 +1906,6 @@ class Definition : public Instruction {
   intptr_t ssa_temp_index_;
   Value* input_use_list_;
   Value* env_use_list_;
-  UseKind use_kind_;
 
   Object& constant_value_;
 
@@ -2072,7 +2067,6 @@ class PushArgumentInstr : public Definition {
  public:
   explicit PushArgumentInstr(Value* value) {
     SetInputAt(0, value);
-    set_use_kind(kEffect);  // Override the default.
   }
 
   DECLARE_INSTRUCTION(PushArgument)
