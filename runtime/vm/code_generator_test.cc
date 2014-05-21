@@ -58,7 +58,7 @@ CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
   const int num_params = 1;
   LocalVariable* parameter = NewTestLocalVariable("parameter");
   LocalScope* local_scope = node_seq->scope();
-  local_scope->AddVariable(parameter);
+  local_scope->InsertParameterAt(0, parameter);
   ASSERT(local_scope->num_variables() == num_params);
   const Function& function = test->function();
   function.set_num_fixed_parameters(num_params);
@@ -88,8 +88,8 @@ CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   const int num_locals = 1;
   LocalVariable* sum = NewTestLocalVariable("sum");
   LocalScope* local_scope = node_seq->scope();
-  local_scope->AddVariable(param1);
-  local_scope->AddVariable(param2);
+  local_scope->InsertParameterAt(0, param1);
+  local_scope->InsertParameterAt(1, param2);
   local_scope->AddVariable(sum);
   ASSERT(local_scope->num_variables() == num_params + num_locals);
   const Function& function = test->function();
@@ -206,8 +206,8 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   const int num_opt_params = 1;
   const int num_params = num_fixed_params + num_opt_params;
   LocalScope* local_scope = node_seq->scope();
-  local_scope->AddVariable(NewTestLocalVariable("a"));
-  local_scope->AddVariable(NewTestLocalVariable("b"));
+  local_scope->InsertParameterAt(0, NewTestLocalVariable("a"));
+  local_scope->InsertParameterAt(1, NewTestLocalVariable("b"));
   ASSERT(local_scope->num_variables() == num_params);
   const Array& default_values = Array::ZoneHandle(Array::New(num_opt_params));
   default_values.SetAt(0, Smi::ZoneHandle(Smi::New(1)));  // b = 1.
@@ -377,11 +377,11 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   const int num_opt_params = 3;
   const int num_params = num_fixed_params + num_opt_params;
   LocalScope* local_scope = node_seq->scope();
-  local_scope->AddVariable(NewTestLocalVariable("a"));
-  local_scope->AddVariable(NewTestLocalVariable("b"));
-  local_scope->AddVariable(NewTestLocalVariable("c"));
-  local_scope->AddVariable(NewTestLocalVariable("d"));
-  local_scope->AddVariable(NewTestLocalVariable("e"));
+  local_scope->InsertParameterAt(0, NewTestLocalVariable("a"));
+  local_scope->InsertParameterAt(1, NewTestLocalVariable("b"));
+  local_scope->InsertParameterAt(2, NewTestLocalVariable("c"));
+  local_scope->InsertParameterAt(3, NewTestLocalVariable("d"));
+  local_scope->InsertParameterAt(4, NewTestLocalVariable("e"));
   ASSERT(local_scope->num_variables() == num_params);
   const Array& default_values = Array::ZoneHandle(Array::New(num_opt_params));
   default_values.SetAt(0, Smi::ZoneHandle(Smi::New(10)));
@@ -474,9 +474,9 @@ CODEGEN_TEST_GENERATE(NativeNonNullSumCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
   const int num_params = 3;
   LocalScope* local_scope = node_seq->scope();
-  local_scope->AddVariable(NewTestLocalVariable("a"));
-  local_scope->AddVariable(NewTestLocalVariable("b"));
-  local_scope->AddVariable(NewTestLocalVariable("c"));
+  local_scope->InsertParameterAt(0, NewTestLocalVariable("a"));
+  local_scope->InsertParameterAt(1, NewTestLocalVariable("b"));
+  local_scope->InsertParameterAt(2, NewTestLocalVariable("c"));
   ASSERT(local_scope->num_variables() == num_params);
   const Function& function = test->function();
   function.set_is_native(true);

@@ -2476,13 +2476,13 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
   LocalVariable* receiver = new LocalVariable(
       Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
-  current_block_->scope->AddVariable(receiver);
+  current_block_->scope->InsertParameterAt(0, receiver);
 
   LocalVariable* phase_parameter =
       new LocalVariable(Scanner::kNoSourcePos,
                         Symbols::PhaseParameter(),
                         Type::ZoneHandle(Type::SmiType()));
-  current_block_->scope->AddVariable(phase_parameter);
+  current_block_->scope->InsertParameterAt(1, phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
   // initializer expression.
@@ -2523,7 +2523,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
           Scanner::kNoSourcePos,
           String::ZoneHandle(func.ParameterNameAt(i)),
           Type::ZoneHandle(Type::DynamicType()));
-      current_block_->scope->AddVariable(param);
+      current_block_->scope->InsertParameterAt(i, param);
       forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
     }
   }
@@ -5393,7 +5393,7 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     const String* name = param_desc.name;
     LocalVariable* parameter = new LocalVariable(
         param_desc.name_pos, *name, *param_desc.type);
-    if (!scope->AddVariable(parameter)) {
+    if (!scope->InsertParameterAt(i, parameter)) {
       ErrorMsg(param_desc.name_pos,
                "name '%s' already exists in scope",
                param_desc.name->ToCString());
