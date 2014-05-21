@@ -305,6 +305,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return null;
   }
 
+  /// Given delimited builders for the arms of a branch, return a list of
+  /// fresh join-point continuation parameters for the join continuation.
+  /// Fill in [leftArguments] and [rightArguments] with the left and right
+  /// continuation invocation arguments.
   List<ir.Parameter> createJoinParameters(IrBuilder leftBuilder,
                                           List<ir.Primitive> leftArguments,
                                           IrBuilder rightBuilder,
@@ -327,7 +331,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // different values reaching the join point and needs to be passed as an
     // argument to the join point continuation.
     for (int i = 0; i < assignedVars.length; ++i) {
-      // The last assignments if any reaching the end of the two subterms.
+      // The last assignments, if any, reaching the end of the two subterms.
       ir.Definition leftAssignment =
           leftBuilder.isOpen ? leftBuilder.assignedVars[i] : null;
       ir.Definition rightAssignment =
@@ -339,8 +343,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         // left and right subterms we will still have a join continuation with
         // possibly arguments passed to it.  Such singly-used continuations
         // are eliminated by the shrinking conversions.
-        ir.Parameter parameter = new ir.Parameter(null);
-        parameters.add(parameter);
+        parameters.add(new ir.Parameter(null));
         leftArguments.add(leftAssignment == null
                               ? leftBuilder.freeVars[i]
                               : leftAssignment);
@@ -348,6 +351,53 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
                               ? rightBuilder.freeVars[i]
                               : rightAssignment);
       }
+    }
+    return parameters;
+  }
+
+  /// Allocate loop join continuation parameters and fill in arguments.
+  ///
+  /// Given delimited builders for a test at the top (while, for, or for-in)
+  /// loop's condition and for the loop body, return a list of fresh
+  /// join-point continuation parameters for the loop join.  Fill in
+  /// [entryArguments] with the arguments to the non-recursive continuation
+  /// invocation and [loopArguments] with the arguments to the recursive
+  /// continuation invocation.
+  ///
+  /// The [bodyBuilder] is assumed to be open, otherwise there is no join
+  /// necessary.
+  List<ir.Parameter> createLoopJoinParametersAndFillArguments(
+      List<ir.Primitive> entryArguments,
+      IrBuilder condBuilder,
+      IrBuilder bodyBuilder,
+      List<ir.Primitive> loopArguments) {
+    assert(bodyBuilder.isOpen);
+    // The loop condition and body are delimited --- assignedVars are still
+    // those reaching the entry to the loop.
+    assert(assignedVars.length == condBuilder.freeVars.length);
+    assert(assignedVars.length == bodyBuilder.freeVars.length);
+    assert(assignedVars.length <= condBuilder.assignedVars.length);
+    assert(assignedVars.length <= bodyBuilder.assignedVars.length);
+
+    List<ir.Parameter> parameters = <ir.Parameter>[];
+    // When the free variables in the loop body are computed later, the
+    // parameters are assumed to appear in the same order as they appear in
+    // the assignedVars list.
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // Was there an assignment in the body?
+      ir.Definition reachingAssignment = bodyBuilder.assignedVars[i];
+      // If not, was there an assignment in the condition?
+      if (reachingAssignment == null) {
+        reachingAssignment = condBuilder.assignedVars[i];
+      }
+      // If not, no value needs to be passed to the join point.
+      if (reachingAssignment == null) continue;
+
+      parameters.add(new ir.Parameter(null));
+      ir.Definition entryAssignment = assignedVars[i];
+      entryArguments.add(
+          entryAssignment == null ? freeVars[i] : entryAssignment);
+      loopArguments.add(reachingAssignment);
     }
     return parameters;
   }
@@ -372,6 +422,45 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
           (rightBuilder.isOpen && rightBuilder.assignedVars[i] != null)) {
         assignedVars[i] = parameters[parameterIndex++];
       }
+    }
+  }
+
+  /// Capture free variables in a test at the top loop.
+  ///
+  /// Capture the free variables in the condition and the body of a test at
+  /// the top loop (e.g., while, for, or for-in).  Also updates the
+  /// builder's assigned variables to be those reaching the loop successor
+  /// statement.
+  void captureFreeLoopVariables(IrBuilder condBuilder,
+                                IrBuilder bodyBuilder,
+                                List<ir.Parameter> parameters) {
+    // Capturing loop-body variables differs from capturing variables for
+    // the predecessors of a non-recursive join-point continuation.  The
+    // join point continuation parameters are in scope for the condition
+    // and body in the case of a loop.
+    int parameterIndex = 0;
+    // The parameters are assumed to be in the same order as the corresponding
+    // variables appear in the assignedVars list.
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // Add recursive join continuation parameters as assignments for the
+      // join body, if there is a join continuation (parameters != null).
+      // This is done first because free occurrences in the loop should be
+      // captured by the join continuation parameters.
+      if (parameters != null &&
+          (condBuilder.assignedVars[i] != null ||
+           bodyBuilder.assignedVars[i] != null)) {
+        assignedVars[i] = parameters[parameterIndex++];
+      }
+      ir.Definition reachingDefinition =
+            assignedVars[i] == null ? freeVars[i] : assignedVars[i];
+      // Free variables in the body can be captured by assignments in the
+      // condition.
+      if (condBuilder.assignedVars[i] == null) {
+        reachingDefinition.substituteFor(bodyBuilder.freeVars[i]);
+      } else {
+        condBuilder.assignedVars[i].substituteFor(bodyBuilder.freeVars[i]);
+      }
+      reachingDefinition.substituteFor(condBuilder.freeVars[i]);
     }
   }
 
@@ -433,6 +522,65 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       current = null;
     } else {
       add(new ir.LetCont(joinContinuation, branch));
+    }
+    return null;
+  }
+
+  ir.Primitive visitWhile(ast.While node) {
+    assert(isOpen);
+    // While loops use three named continuations: the entry to the body,
+    // the loop exit (break), and the loop back edge (continue).
+    // The CPS translation [[while (condition) body; successor]] is:
+    //
+    // let cont break() = [[successor]] in
+    // let cont continue(x, ...) =
+    //     let cont body() = [[body]]; continue(v, ...) in
+    //     let prim cond = [[condition]] in
+    //     branch cond (body, break) in
+    // continue(v, ...)
+
+    // The condition and body are delimited.
+    IrBuilder condBuilder = new IrBuilder.delimited(this);
+    IrBuilder bodyBuilder = new IrBuilder.delimited(this);
+    ir.Primitive condition = condBuilder.visit(node.condition);
+    bodyBuilder.visit(node.body);
+
+    // Create body entry and loop exit continuations and a join-point
+    // continuation if control flow reaches the end of the body.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation breakContinuation = new ir.Continuation([]);
+    condBuilder.add(new ir.Branch(new ir.IsTrue(condition),
+                                  bodyContinuation,
+                                  breakContinuation));
+    ir.Continuation continueContinuation;
+    List<ir.Parameter> parameters;
+    List<ir.Primitive> entryArguments = <ir.Primitive>[];  // The forward edge.
+    if (bodyBuilder.isOpen) {
+      List<ir.Primitive> loopArguments = <ir.Primitive>[];  // The back edge.
+      parameters =
+          createLoopJoinParametersAndFillArguments(entryArguments, condBuilder,
+                                   bodyBuilder, loopArguments);
+      continueContinuation = new ir.Continuation(parameters);
+      continueContinuation.body =
+          new ir.LetCont(bodyContinuation, condBuilder.root);
+      bodyBuilder.add(
+          new ir.InvokeContinuation(continueContinuation, loopArguments,
+                                    recursive:true));
+    }
+    bodyContinuation.body = bodyBuilder.root;
+
+    // Capture free variable occurrences in the loop body.
+    captureFreeLoopVariables(condBuilder, bodyBuilder, parameters);
+
+    if (continueContinuation != null) {
+      add(new ir.LetCont(breakContinuation,
+              new ir.LetCont(continueContinuation,
+                  new ir.InvokeContinuation(continueContinuation,
+                                            entryArguments))));
+    } else {
+      add(new ir.LetCont(breakContinuation,
+              new ir.LetCont(bodyContinuation,
+                  condBuilder.root)));
     }
     return null;
   }

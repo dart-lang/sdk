@@ -10,10 +10,7 @@ import '../elements/elements.dart'
          ClassElement;
 import '../universe/universe.dart';
 import '../ir/ir_nodes.dart' as ir;
-import '../tree/tree.dart' as ast;
-import '../scanner/scannerlib.dart';
 import '../dart_types.dart' show DartType, GenericType;
-import '../helpers/helpers.dart';
 import '../universe/universe.dart' show Selector;
 
 // The Tree language is the target of translation out of the CPS-based IR.
@@ -41,7 +38,6 @@ abstract class Node {
  * The base class of [Expression]s.
  */
 abstract class Expression extends Node {
-  bool get isPure;
   accept(Visitor v);
 
   /// Temporary variable used by [StatementRewriter].
@@ -102,8 +98,6 @@ class Variable extends Expression {
 
   Variable(this.element);
 
-  final bool isPure = true;
-
   accept(Visitor visitor) => visitor.visitVariable(this);
 }
 
@@ -127,8 +121,6 @@ class InvokeStatic extends Expression implements Invoke {
 
   InvokeStatic(this.target, this.selector, this.arguments);
 
-  final bool isPure = false;
-
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
@@ -147,8 +139,6 @@ class InvokeMethod extends Expression implements Invoke {
     assert(receiver != null);
   }
 
-  final bool isPure = false;
-
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
 
@@ -165,8 +155,6 @@ class InvokeConstructor extends Expression implements Invoke {
 
   ClassElement get targetClass => target.enclosingElement;
 
-  final bool isPure = false;
-
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
@@ -175,8 +163,6 @@ class ConcatenateStrings extends Expression {
   final List<Expression> arguments;
 
   ConcatenateStrings(this.arguments);
-
-  final bool isPure = false; // invokes toString
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
@@ -189,8 +175,6 @@ class Constant extends Expression {
 
   Constant(this.value);
 
-  final bool isPure = true;
-
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
@@ -201,14 +185,6 @@ class Conditional extends Expression {
   Expression elseExpression;
 
   Conditional(this.condition, this.thenExpression, this.elseExpression);
-
-  // TODO(asgerf): Repeatedly computing isPure is potentially expensive,
-  // but caching isPure in a field is dangerous because a subexpression could
-  // become impure during a transformation (e.g. assignment propagation).
-  // Improve the situation somehow.
-  bool get isPure => condition.isPure &&
-                     thenExpression.isPure &&
-                     elseExpression.isPure;
 
   accept(Visitor visitor) => visitor.visitConditional(this);
 }
@@ -226,8 +202,6 @@ class LogicalOperator extends Expression {
 
   String get operator => isAnd ? '&&' : '||';
 
-  bool get isPure => left.isPure && right.isPure;
-
   accept(Visitor visitor) => visitor.visitLogicalOperator(this);
 }
 
@@ -236,8 +210,6 @@ class Not extends Expression {
   Expression operand;
 
   Not(this.operand);
-
-  bool get isPure => operand.isPure;
 
   accept(Visitor visitor) => visitor.visitNot(this);
 }
@@ -319,6 +291,21 @@ class Break extends Statement {
 }
 
 /**
+ * A continue to an enclosing [While] loop.  The continue targets the
+ * loop's body.
+ */
+class Continue extends Statement {
+  Label target;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Continue(this.target);
+
+  accept(Visitor visitor) => visitor.visitContinue(this);
+}
+
+/**
  * A conditional branch based on the true value of an [Expression].
  */
 class If extends Statement {
@@ -333,6 +320,22 @@ class If extends Statement {
 
   accept(Visitor visitor) => visitor.visitIf(this);
 }
+
+/**
+ * A labeled while(true) loop.
+ */
+class While extends Statement {
+  final Label label;
+  Statement body;
+
+  While(this.label, this.body);
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  accept(Visitor visitor) => visitor.visitWhile(this);
+}
+
 
 class ExpressionStatement extends Statement {
   Statement next;
@@ -367,7 +370,9 @@ abstract class Visitor<S, E> {
   S visitAssign(Assign node);
   S visitReturn(Return node);
   S visitBreak(Break node);
+  S visitContinue(Continue node);
   S visitIf(If node);
+  S visitWhile(While node);
   S visitExpressionStatement(ExpressionStatement node);
 }
 
@@ -491,7 +496,7 @@ class Builder extends ir.Visitor<Node> {
 
   Statement visitLetCont(ir.LetCont node) {
     Label label;
-    if (!node.continuation.hasAtMostOneUse) {
+    if (node.continuation.hasMultipleUses) {
       label = new Label();
       labels[node.continuation] = label;
     }
@@ -499,7 +504,15 @@ class Builder extends ir.Visitor<Node> {
         if (p.hasAtLeastOneUse) variables[p] = new Variable(null);
     });
     Statement body = visit(node.body);
-    if (label == null) return body;
+    // The continuation's body is not always translated directly here because
+    // it may have been already translated:
+    //   * For singly-used continuations, the continuation's body is
+    //     translated at the site of the continuation invocation.
+    //   * For recursive continuations, there is a single non-recursive
+    //     invocation.  The continuation's body is translated at the site
+    //     of the non-recursive continuation invocation.
+    // See visitInvokeContinuation for the implementation.
+    if (label == null || node.continuation.isRecursive) return body;
     return new LabeledStatement(label, body, visit(node.continuation.body));
   }
 
@@ -575,9 +588,28 @@ class Builder extends ir.Visitor<Node> {
     } else {
       List<Expression> arguments = translateArguments(node.arguments);
       return buildParameterAssignments(cont.parameters, arguments,
-          () => cont.hasExactlyOneUse
-                    ? visit(cont.body)
-                    : new Break(labels[cont]));
+          () {
+            // Translate invocations of recursive and non-recursive
+            // continuations differently.
+            //   * Non-recursive continuations
+            //     - If there is one use, translate the continuation body
+            //       inline at the invocation site.
+            //     - If there are multiple uses, translate to Break.
+            //   * Recursive continuations
+            //     - There is a single non-recursive invocation.  Translate
+            //       the continuation body inline as a labeled loop at the
+            //       invocation site.
+            //     - Translate the recursive invocations to Continue.
+            if (cont.isRecursive) {
+              return node.isRecursive
+                  ? new Continue(labels[cont])
+                  : new While(labels[cont], visit(cont.body));
+            } else {
+              return cont.hasExactlyOneUse
+                  ? visit(cont.body)
+                  : new Break(labels[cont]);
+            }
+          });
     }
   }
 
@@ -707,8 +739,7 @@ class Builder extends ir.Visitor<Node> {
  */
 class StatementRewriter extends Visitor<Statement, Expression> {
   // The binding environment.  The rightmost element of the list is the nearest
-  // enclosing binding.
-  // We use null to mark an impure expressions that does not bind a variable.
+  // available enclosing binding.
   List<Assign> environment;
 
   /// Substitution map for labels. Any break to a label L should be substituted
@@ -738,35 +769,12 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     // Propagate a variable's definition to its use site if:
     // 1.  It has a single use, to avoid code growth and potential duplication
     //     of side effects, AND
-    // 2a. It is pure (i.e., does not have side effects that prevent it from
-    //     being moved), OR
-    // 2b. There are only pure expressions between the definition and use.
-
-    // TODO(kmillikin): It's not always beneficial to propagate pure
-    // definitions---it can prevent propagation of their inputs.  Implement
-    // a heuristic to avoid this.
-
-    // TODO(kmillikin): Replace linear search with something faster in
-    // practice.
-    bool seenImpure = false;
-    for (int i = environment.length - 1; i >= 0; --i) {
-      if (environment[i] == null) {
-        seenImpure = true;
-        continue;
-      }
-      if (environment[i].variable == node) {
-        if ((!seenImpure || environment[i].definition.isPure)
-            && environment[i].hasExactlyOneUse) {
-          // Use the definition if it is pure or if it is the first impure
-          // definition (i.e., propagating past only pure expressions).
-          return visitExpression(environment.removeAt(i).definition);
-        }
-        break;
-      } else if (!environment[i].definition.isPure) {
-        // Once the first impure definition is seen, impure definitions should
-        // no longer be propagated.  Continue searching for a pure definition.
-        seenImpure = true;
-      }
+    // 2.  It was the most recent expression evaluated so that we do not
+    //     reorder expressions with side effects.
+    if (!environment.isEmpty &&
+        environment.last.variable == node &&
+        environment.last.hasExactlyOneUse) {
+      return visitExpression(environment.removeLast().definition);
     }
     // If the definition could not be propagated, leave the variable use.
     return node;
@@ -821,10 +829,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
 
-    environment.add(null); // impure expressions may not propagate across branch
+    List<Assign> savedEnvironment = environment;
+    environment = <Assign>[];
     node.thenExpression = visitExpression(node.thenExpression);
+    assert(environment.isEmpty);
     node.elseExpression = visitExpression(node.elseExpression);
-    environment.removeLast();
+    assert(environment.isEmpty);
+    environment = savedEnvironment;
 
     return node;
   }
@@ -861,6 +872,10 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Statement visitContinue(Continue node) {
+    return node;
+  }
+
   Statement visitLabeledStatement(LabeledStatement node) {
     if (node.next is Break) {
       // Eliminate label if next is just a break statement
@@ -891,10 +906,18 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   Statement visitIf(If node) {
     node.condition = visitExpression(node.condition);
 
-    environment.add(null); // impure expressions may not propagate across branch
+    // Do not propagate assignments into branches.  Doing so will lead to code
+    // duplication.
+    // TODO(kmillikin): Rethink this.  Propagating some assignments (e.g.,
+    // constants or variables) is benign.  If they can occur here, they should
+    // be handled well.
+    List<Assign> savedEnvironment = environment;
+    environment = <Assign>[];
     node.thenStatement = visitStatement(node.thenStatement);
+    assert(environment.isEmpty);
     node.elseStatement = visitStatement(node.elseStatement);
-    environment.removeLast();
+    assert(environment.isEmpty);
+    environment = savedEnvironment;
 
     tryCollapseIf(node);
 
@@ -913,19 +936,34 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Statement visitWhile(While node) {
+    // Do not propagate assignments into loops.  Doing so is not safe for
+    // variables modified in the loop (the initial value will be propagated).
+    List<Assign> savedEnvironment = environment;
+    environment = <Assign>[];
+    node.body = visitStatement(node.body);
+    assert(environment.isEmpty);
+    environment = savedEnvironment;
+    return node;
+  }
+
   Expression visitConstant(Constant node) {
     return node;
   }
 
   Statement visitExpressionStatement(ExpressionStatement node) {
     node.expression = visitExpression(node.expression);
-    if (!node.expression.isPure) {
-      environment.add(null); // insert impurity marker (TODO: refactor)
-    }
+    // Do not allow propagation of assignments past an expression evaluated
+    // for its side effects because it risks reordering side effects.
+    // TODO(kmillikin): Rethink this.  Some propagation is benign, e.g.,
+    // constants, variables, or other pure values that are not destroyed by
+    // the expression statement.  If they can occur here they should be
+    // handled well.
+    List<Assign> savedEnvironment = environment;
+    environment = <Assign>[];
     node.next = visitStatement(node.next);
-    if (!node.expression.isPure) {
-      environment.removeLast();
-    }
+    assert(environment.isEmpty);
+    environment = savedEnvironment;
     return node;
   }
 
@@ -1067,10 +1105,12 @@ class StatementRewriter extends Visitor<Statement, Expression> {
         outerIf.thenStatement = innerThen;
         --innerElse.target.breakCount;
 
-        // Try to inline the remaining break
-        environment.add(null); // Do not propagate impure definitions
+        // Try to inline the remaining break.  Do not propagate assignments.
+        List<Assign> savedEnvironment = environment;
+        environment = <Assign>[];
         outerIf.elseStatement = visitStatement(outerElse);
-        environment.removeLast();
+        assert(environment.isEmpty);
+        environment = savedEnvironment;
 
         return outerIf.elseStatement is If && innerThen is Break;
       }
@@ -1174,6 +1214,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Statement visitContinue(Continue node) {
+    return node;
+  }
+
   bool isFallthroughBreak(Statement node) {
     return node is Break && node.target.binding.next == fallthrough;
   }
@@ -1215,6 +1259,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
       node.elseStatement = tmp;
     }
 
+    return node;
+  }
+
+  Statement visitWhile(While node) {
+    node.body = visitStatement(node.body);
     return node;
   }
 

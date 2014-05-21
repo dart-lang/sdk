@@ -32,6 +32,7 @@ abstract class Definition extends Node {
   bool get hasAtMostOneUse => firstRef == null || firstRef.nextRef == null;
   bool get hasExactlyOneUse => firstRef != null && firstRef.nextRef == null;
   bool get hasAtLeastOneUse => firstRef != null;
+  bool get hasMultipleUses => !hasAtMostOneUse;
 
   void substituteFor(Definition other) {
     if (other.firstRef == null) return;
@@ -203,9 +204,18 @@ class InvokeContinuation extends Expression {
   final Reference continuation;
   final List<Reference> arguments;
 
-  InvokeContinuation(Continuation cont, List<Definition> args)
+  // An invocation of a continuation is recursive if it occurs in the body of
+  // the continuation itself.
+  bool isRecursive;
+
+  InvokeContinuation(Continuation cont, List<Definition> args,
+                     {recursive: false})
       : continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false);
+        arguments = args.map((t) => new Reference(t)).toList(growable: false),
+        isRecursive = recursive {
+    if (recursive) cont.isRecursive = true;
+  }
+
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
 
@@ -256,6 +266,9 @@ class Parameter extends Primitive {
 class Continuation extends Definition {
   final List<Parameter> parameters;
   Expression body = null;
+
+  // A continuation is recursive if it has any recursive invocations.
+  bool isRecursive = false;
 
   Continuation(this.parameters);
 
@@ -329,7 +342,7 @@ class SExpressionStringifier extends Visitor<String> {
           return name;
         })
         .join(' ');
-    return '(FunctionDefinition ($parameters) ${visit(node.body)})';
+    return '(FunctionDefinition ($parameters return) ${visit(node.body)})';
   }
 
   String visitLetPrim(LetPrim node) {
@@ -352,14 +365,15 @@ class SExpressionStringifier extends Visitor<String> {
        .join('');
     String contBody = visit(node.continuation.body);
     String body = visit(node.body);
-    return '(LetCont ($cont$parameters) $contBody) $body';
+    String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
+    return '($op ($cont$parameters) $contBody) $body';
   }
 
   String formatArguments(Invoke node) {
     int positionalArgumentCount = node.selector.positionalArgumentCount;
     List<String> args = new List<String>();
     args.addAll(node.arguments.getRange(0, positionalArgumentCount)
-        .map((v) => names[v.definition.toString()]));
+        .map((v) => names[v.definition]));
     for (int i = 0; i < node.selector.namedArgumentCount; ++i) {
       String name = node.selector.namedArguments[i];
       Definition arg = node.arguments[positionalArgumentCount + i].definition;
@@ -372,7 +386,7 @@ class SExpressionStringifier extends Visitor<String> {
     String name = node.target.name;
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '(InvokeStatic $name $cont $args)';
+    return '(InvokeStatic $name $args $cont)';
   }
 
   String visitInvokeMethod(InvokeMethod node) {
@@ -380,7 +394,7 @@ class SExpressionStringifier extends Visitor<String> {
     String rcv = names[node.receiver.definition];
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '(InvokeMethod $rcv $name $cont $args)';
+    return '(InvokeMethod $rcv $name $args $cont)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
@@ -392,19 +406,21 @@ class SExpressionStringifier extends Visitor<String> {
     }
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '(InvokeConstructor $callName $cont $args)';
+    return '(InvokeConstructor $callName $args $cont)';
   }
 
   String visitConcatenateStrings(ConcatenateStrings node) {
     String cont = names[node.continuation.definition];
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
-    return '(ConcatenateStrings $cont $args)';
+    return '(ConcatenateStrings $args $cont)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
     String cont = names[node.continuation.definition];
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
-    return '(InvokeContinuation $cont $args)';
+    String op =
+        node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
+    return '($op $cont $args)';
   }
 
   String visitBranch(Branch node) {
