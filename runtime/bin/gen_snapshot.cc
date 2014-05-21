@@ -351,8 +351,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return file_path;
   }
 
-  return DartUtils::LoadSource(NULL,
-                               library,
+  return DartUtils::LoadSource(library,
                                url,
                                tag,
                                DartUtils::GetStringValue(file_path));

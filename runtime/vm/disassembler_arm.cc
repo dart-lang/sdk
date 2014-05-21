@@ -6,7 +6,9 @@
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
 #if defined(TARGET_ARCH_ARM)
+
 #include "platform/assert.h"
+#include "vm/cpu.h"
 
 namespace dart {
 
@@ -694,6 +696,12 @@ void ARMDecoder::DecodeType01(Instr* instr) {
       }
     } else if (instr->IsMultiplyOrSyncPrimitive()) {
       if (instr->Bit(24) == 0) {
+        if ((TargetCPUFeatures::arm_version() != ARMv7) &&
+            (instr->Bits(21, 3) != 0)) {
+          // mla ... smlal only supported on armv7.
+          Unknown(instr);
+          return;
+        }
         // multiply instructions
         switch (instr->Bits(21, 3)) {
           case 0: {
@@ -757,7 +765,11 @@ void ARMDecoder::DecodeType01(Instr* instr) {
       // 16-bit immediate loads, msr (immediate), and hints
       switch (instr->Bits(20, 5)) {
         case 16: {
-          Format(instr, "movw'cond 'rd, #'imm4_12");
+          if (TargetCPUFeatures::arm_version() == ARMv7) {
+            Format(instr, "movw'cond 'rd, #'imm4_12");
+          } else {
+            Unknown(instr);
+          }
           break;
         }
         case 18: {
@@ -769,7 +781,11 @@ void ARMDecoder::DecodeType01(Instr* instr) {
           break;
         }
         case 20: {
-          Format(instr, "movt'cond 'rd, #'imm4_12");
+          if (TargetCPUFeatures::arm_version() == ARMv7) {
+            Format(instr, "movt'cond 'rd, #'imm4_12");
+          } else {
+            Unknown(instr);
+          }
           break;
         }
         default: {
@@ -948,6 +964,10 @@ void ARMDecoder::DecodeType2(Instr* instr) {
 
 void ARMDecoder::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
+    if (!TargetCPUFeatures::integer_division_supported()) {
+      Unknown(instr);
+      return;
+    }
     if (instr->Bit(21)) {
       Format(instr, "udiv'cond 'rn, 'rs, 'rm");
     } else {

@@ -27,113 +27,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::List_Allocate(Assembler* assembler) {
-  // This snippet of inlined code uses the following registers:
-  // RAX, RCX, RDI, R13
-  // and the newly allocated object is returned in RAX.
-  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kArrayLengthOffset = 1 * kWordSize;
-  Label fall_through;
-
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-  __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
-  // Check that length is a positive Smi.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through);
-  __ cmpq(RDI, Immediate(0));
-  __ j(LESS, &fall_through);
-  // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
-  __ cmpq(RDI, max_len);
-  __ j(GREATER, &fall_through);
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
-  ASSERT(kSmiTagShift == 1);
-  __ andq(RDI, Immediate(-kObjectAlignment));
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
-  __ movq(RAX, Address(RAX, 0));
-
-  // RDI: allocation size.
-  __ movq(RCX, RAX);
-  __ addq(RCX, RDI);
-  __ j(CARRY, &fall_through);
-
-  // Check if the allocation fits into the remaining space.
-  // RAX: potential new object start.
-  // RCX: potential next object start.
-  // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress()));
-  __ cmpq(RCX, Address(R13, 0));
-  __ j(ABOVE_EQUAL, &fall_through);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
-  __ movq(Address(R13, 0), RCX);
-  __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
-  // Initialize the tags.
-  // RAX: new object start as a tagged pointer.
-  // RDI: allocation size.
-  {
-    Label size_tag_overflow, done;
-    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
-    __ jmp(&done, Assembler::kNearJump);
-
-    __ Bind(&size_tag_overflow);
-    __ movq(RDI, Immediate(0));
-    __ Bind(&done);
-
-    // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
-    __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
-  }
-
-  // RAX: new object start as a tagged pointer.
-  // Store the type argument field.
-  __ movq(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
-  __ StoreIntoObjectNoBarrier(RAX,
-                              FieldAddress(RAX, Array::type_arguments_offset()),
-                              RDI);
-
-  // Set the length field.
-  __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
-  __ StoreIntoObjectNoBarrier(RAX,
-                              FieldAddress(RAX, Array::length_offset()),
-                              RDI);
-
-  // Initialize all array elements to raw_null.
-  // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
-  // RDI: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
-  Label done;
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmpq(RDI, RCX);
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movq(Address(RDI, 0), R12);
-  __ addq(RDI, Immediate(kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
-  __ Bind(&done);
-  __ ret();  // returns the newly allocated object in RAX.
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Array_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
@@ -142,7 +35,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  return Array_getLength(assembler);
+  Array_getLength(assembler);
 }
 
 
@@ -165,7 +58,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  return Array_getIndexed(assembler);
+  Array_getIndexed(assembler);
 }
 
 
@@ -514,7 +407,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
   }
   UNREACHABLE();
   return static_cast<ScaleFactor>(0);
-};
+}
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
@@ -558,7 +451,7 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_add(Assembler* assembler) {
-  return Integer_addFromInteger(assembler);
+  Integer_addFromInteger(assembler);
 }
 
 
@@ -604,7 +497,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mul(Assembler* assembler) {
-  return Integer_mulFromInteger(assembler);
+  Integer_mulFromInteger(assembler);
 }
 
 
@@ -617,7 +510,7 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 // RAX: Tagged left (dividend).
 // RCX: Tagged right (divisor).
 // RAX: Untagged result (remainder).
-void EmitRemainderOperation(Assembler* assembler) {
+static void EmitRemainderOperation(Assembler* assembler) {
   Label return_zero, try_modulo, not_32bit, done;
   // Check for quick zero results.
   __ cmpq(RAX, Immediate(0));
@@ -785,7 +678,7 @@ void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  return Integer_bitAndFromInteger(assembler);
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -801,7 +694,7 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  return Integer_bitOrFromInteger(assembler);
+  Integer_bitOrFromInteger(assembler);
 }
 
 
@@ -817,7 +710,7 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  return Integer_bitXorFromInteger(assembler);
+  Integer_bitXorFromInteger(assembler);
 }
 
 
@@ -868,29 +761,28 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
 }
 
 
-
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS);
+  CompareIntegers(assembler, LESS);
 }
 
 
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS);
+  CompareIntegers(assembler, LESS);
 }
 
 
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GREATER);
+  CompareIntegers(assembler, GREATER);
 }
 
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, LESS_EQUAL);
+  CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GREATER_EQUAL);
+  CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
@@ -950,7 +842,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_equal(Assembler* assembler) {
-  return Integer_equalToInteger(assembler);
+  Integer_equalToInteger(assembler);
 }
 
 
@@ -1039,27 +931,27 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
 
 
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  return CompareDoubles(assembler, ABOVE);
+  CompareDoubles(assembler, ABOVE);
 }
 
 
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, ABOVE_EQUAL);
+  CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
 
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
-  return CompareDoubles(assembler, BELOW);
+  CompareDoubles(assembler, BELOW);
 }
 
 
 void Intrinsifier::Double_equal(Assembler* assembler) {
-  return CompareDoubles(assembler, EQUAL);
+  CompareDoubles(assembler, EQUAL);
 }
 
 
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, BELOW_EQUAL);
+  CompareDoubles(assembler, BELOW_EQUAL);
 }
 
 
@@ -1093,22 +985,22 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
 
 
 void Intrinsifier::Double_add(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kADD);
+  DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kMUL);
+  DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
 void Intrinsifier::Double_sub(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kSUB);
+  DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
 void Intrinsifier::Double_div(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kDIV);
+  DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 

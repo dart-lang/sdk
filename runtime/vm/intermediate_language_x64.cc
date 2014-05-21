@@ -168,7 +168,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shlq(RDX, Immediate(shift + kSmiTagSize));
   } else {
-    __ AddImmediate(RDX, Immediate(-1), PP);
+    __ decq(RDX);
     __ AndImmediate(RDX,
         Immediate(Smi::RawValue(true_value) - Smi::RawValue(false_value)), PP);
     if (false_value != 0) {
@@ -1940,6 +1940,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// TODO(srdjan): In case of constant inputs make CreateArray kNoCall and
+// use slow path stub.
 LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1952,15 +1954,115 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = R10;
+  const Register kElemTypeReg = RBX;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+  __ movq(RCX, RAX);
+
+  __ addq(RCX, Immediate(kArraySize));
+  __ j(CARRY, slow_path);
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, slow_path);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+  __ movq(R13, Immediate(kArraySize));
+  __ UpdateAllocationStatsWithSize(kArrayCid, R13);
+
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(tags));
+  }
+
+  // RAX: new object start as a tagged pointer.
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::length_offset()),
+                              kLengthReg);
+
+  // Initialize all array elements to raw_null.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpq(RDI, RCX);
+  __ j(ABOVE_EQUAL, done, Assembler::kNearJump);
+  __ movq(Address(RDI, 0), R12);
+  __ addq(RDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
-  ASSERT(locs()->in(0).reg() == RBX);
-  ASSERT(locs()->in(1).reg() == R10);
+  const Register kLengthReg = R10;
+  const Register kElemTypeReg = RBX;
+  const Register kResultReg = RAX;
+  ASSERT(locs()->in(0).reg() == kElemTypeReg);
+  ASSERT(locs()->in(1).reg() == kLengthReg);
+
+  Label slow_path, done;
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+      __ pushq(kLengthReg);
+      __ pushq(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ popq(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
+  __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == RAX);
+  __ Bind(&done);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 
@@ -2492,6 +2594,8 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Register result) {
   if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
+    // TODO(zra): This can be tightened to one compare/branch using:
+    // overflow = (result + 2^52) > 2^53 with an unsigned comparison.
     __ CompareImmediate(result, Immediate(-0x20000000000000LL), PP);
     __ j(LESS, overflow);
     __ CompareImmediate(result, Immediate(0x20000000000000LL), PP);
@@ -2739,17 +2843,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm =
-        reinterpret_cast<int64_t>(constant.raw());
+    const int64_t imm = reinterpret_cast<int64_t>(constant.raw());
     switch (op_kind()) {
       case Token::kADD: {
-        __ AddImmediate(left, Immediate(imm), PP);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ AddImmediate(left, Immediate(imm), PP);
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       }
       case Token::kSUB: {
-        __ AddImmediate(left, Immediate(-imm), PP);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        if (imm != 0) {
+          // Checking overflow without emitting an instruction would be wrong.
+          __ SubImmediate(left, Immediate(imm), PP);
+          if (deopt != NULL) __ j(OVERFLOW, deopt);
+        }
         break;
       }
       case Token::kMUL: {
@@ -3092,7 +3201,9 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(bool opt) const {
   intptr_t right_cid = right()->Type()->ToCid();
   ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
   const intptr_t kNumInputs = 2;
-  const bool need_temp = (left_cid != kSmiCid) && (right_cid != kSmiCid);
+  const bool need_temp = (left()->definition() != right()->definition())
+                      && (left_cid != kSmiCid)
+                      && (right_cid != kSmiCid);
   const intptr_t kNumTemps = need_temp ? 1 : 0;
   LocationSummary* summary =
     new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -3110,7 +3221,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ testq(left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
     __ testq(right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ testq(left, Immediate(kSmiTagMask));
@@ -4794,7 +4907,146 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
+
+  XmmRegister base = locs->in(0).fpu_reg();
+  XmmRegister exp = locs->in(1).fpu_reg();
+  XmmRegister result = locs->out(0).fpu_reg();
+  Register temp =
+      locs->temp(InvokeMathCFunctionInstr::kObjectTempIndex).reg();
+  XmmRegister zero_temp =
+      locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
+
+  __ xorps(zero_temp, zero_temp);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)), PP);
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+
+  Label check_base, skip_call;
+  // exponent == 0.0 -> return 1.0;
+  __ comisd(exp, zero_temp);
+  __ j(PARITY_EVEN, &check_base, Assembler::kNearJump);
+  __ j(EQUAL, &skip_call);  // 'result' is 1.0.
+
+  // exponent == 1.0 ?
+  __ comisd(exp, result);
+  Label return_base;
+  __ j(EQUAL, &return_base, Assembler::kNearJump);
+
+  // exponent == 2.0 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(2.0)), PP);
+  __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, XMM0);
+  Label return_base_times_2;
+  __ j(EQUAL, &return_base_times_2, Assembler::kNearJump);
+
+  // exponent == 3.0 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(3.0)), PP);
+  __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, XMM0);
+  __ j(NOT_EQUAL, &check_base);
+
+  // Base times 3.
+  __ movsd(result, base);
+  __ mulsd(result, base);
+  __ mulsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&return_base);
+  __ movsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&return_base_times_2);
+  __ movsd(result, base);
+  __ mulsd(result, base);
+  __ jmp(&skip_call);
+
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+
+  Label return_nan;
+  // base == 1.0 -> return 1.0;
+  __ comisd(base, result);
+  __ j(PARITY_EVEN, &return_nan, Assembler::kNearJump);
+  __ j(EQUAL, &skip_call, Assembler::kNearJump);
+  // Note: 'base' could be NaN.
+  __ comisd(exp, base);
+  // Neither 'exp' nor 'base' is NaN.
+  Label try_sqrt;
+  __ j(PARITY_ODD, &try_sqrt, Assembler::kNearJump);
+  // Return NaN.
+  __ Bind(&return_nan);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)), PP);
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  __ jmp(&skip_call);
+
+  Label do_pow, return_zero;
+  __ Bind(&try_sqrt);
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadObject(temp,
+      Double::ZoneHandle(Double::NewCanonical(-INFINITY)), PP);
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  // base == -Infinity -> call pow;
+  __ comisd(base, result);
+  __ j(EQUAL, &do_pow, Assembler::kNearJump);
+
+  // exponent == 0.5 ?
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)), PP);
+  __ movsd(result, FieldAddress(temp, Double::value_offset()));
+  __ comisd(exp, result);
+  __ j(NOT_EQUAL, &do_pow, Assembler::kNearJump);
+
+  // base == 0 -> return 0;
+  __ comisd(base, zero_temp);
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+
+  __ sqrtsd(result, base);
+  __ jmp(&skip_call, Assembler::kNearJump);
+
+  __ Bind(&return_zero);
+  __ movsd(result, zero_temp);
+  __ jmp(&skip_call);
+
+  __ Bind(&do_pow);
+
+  // Save RSP.
+  __ movq(locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg(), RSP);
+  __ ReserveAlignedFrameSpace(0);
+  __ movaps(XMM0, locs->in(0).fpu_reg());
+  ASSERT(locs->in(1).fpu_reg() == XMM1);
+
+  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  __ movaps(locs->out(0).fpu_reg(), XMM0);
+  // Restore RSP.
+  __ movq(RSP, locs->temp(InvokeMathCFunctionInstr::kSavedSpTempIndex).reg());
+  __ Bind(&skip_call);
+}
+
+
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    InvokeDoublePow(compiler, this);
+    return;
+  }
   // Save RSP.
   __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
   __ ReserveAlignedFrameSpace(0);
@@ -4803,84 +5055,8 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).fpu_reg() == XMM1);
   }
 
-  Label skip_call;
-  if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    XmmRegister base = locs()->in(0).fpu_reg();
-    XmmRegister exp = locs()->in(1).fpu_reg();
-    XmmRegister result = locs()->out(0).fpu_reg();
-    Register temp = locs()->temp(kObjectTempIndex).reg();
-    XmmRegister zero_temp = locs()->temp(kDoubleTempIndex).fpu_reg();
-
-    Label try_sqrt, check_base, return_nan;
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0)), PP);
-    __ movsd(zero_temp, FieldAddress(temp, Double::value_offset()));
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)), PP);
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-
-    // exponent == 0.0 -> return 1.0;
-    __ comisd(exp, zero_temp);
-    __ j(PARITY_EVEN, &check_base, Assembler::kNearJump);
-    __ j(EQUAL, &skip_call, Assembler::kNearJump);  // 'result' is 1.0.
-
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-
-    // base == 1.0 -> return 1.0;
-    __ comisd(base, result);
-    __ j(PARITY_EVEN, &return_nan, Assembler::kNearJump);
-    __ j(EQUAL, &skip_call, Assembler::kNearJump);
-    // Note: 'base' could be NaN.
-    __ comisd(exp, base);
-    // Neither 'exp' nor 'base' is NaN.
-    __ j(PARITY_ODD, &try_sqrt, Assembler::kNearJump);
-    // Return NaN.
-    __ Bind(&return_nan);
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)), PP);
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    __ jmp(&skip_call);
-
-    Label do_pow, return_zero;
-    __ Bind(&try_sqrt);
-    // Before calling pow, check if we could use sqrt instead of pow.
-    __ LoadObject(temp,
-        Double::ZoneHandle(Double::NewCanonical(-INFINITY)), PP);
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    // base == -Infinity -> call pow;
-    __ comisd(base, result);
-    __ j(EQUAL, &do_pow, Assembler::kNearJump);
-
-    // exponent == 0.5 ?
-    __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)), PP);
-    __ movsd(result, FieldAddress(temp, Double::value_offset()));
-    __ comisd(exp, result);
-    __ j(NOT_EQUAL, &do_pow, Assembler::kNearJump);
-
-    // base == 0 -> return 0;
-    __ comisd(base, zero_temp);
-    __ j(EQUAL, &return_zero, Assembler::kNearJump);
-
-    __ sqrtsd(result, base);
-    __ jmp(&skip_call, Assembler::kNearJump);
-
-    __ Bind(&return_zero);
-    __ movsd(result, zero_temp);
-    __ jmp(&skip_call);
-
-    __ Bind(&do_pow);
-  }
   __ CallRuntime(TargetFunction(), InputCount());
   __ movaps(locs()->out(0).fpu_reg(), XMM0);
-  __ Bind(&skip_call);
   // Restore RSP.
   __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }

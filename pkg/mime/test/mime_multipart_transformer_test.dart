@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:unittest/unittest.dart";
-import "package:mime/mime.dart";
 import 'dart:async';
 import 'dart:math';
 
-void testParse(String message,
+import "package:unittest/unittest.dart";
+import "package:mime/mime.dart";
+
+void _testParse(String message,
                String boundary,
                [List<Map> expectedHeaders,
                 List expectedParts,
@@ -67,20 +68,9 @@ void testParse(String message,
   });
 }
 
-void testParseValid() {
-  String message;
-  Map headers;
-  Map headers1;
-  Map headers2;
-  Map headers3;
-  Map headers4;
-  String body1;
-  String body2;
-  String body3;
-  String body4;
-
+void _testParseValid() {
   // Sample from Wikipedia.
-  message = """
+  var message = """
 This is a message with multiple parts in MIME format.\r
 --frontier\r
 Content-Type: text/plain\r
@@ -93,14 +83,14 @@ Content-Transfer-Encoding: base64\r
 PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg
 Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=\r
 --frontier--\r\n""";
-  headers1 = <String, String>{"content-type": "text/plain"};
-  headers2 = <String, String>{"content-type": "application/octet-stream",
+  var headers1 = <String, String>{"content-type": "text/plain"};
+  var headers2 = <String, String>{"content-type": "application/octet-stream",
                               "content-transfer-encoding": "base64"};
-  body1 = "This is the body of the message.";
-  body2 = """
+  var body1 = "This is the body of the message.";
+  var body2 = """
 PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg
 Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=""";
-  testParse(message, "frontier", [headers1, headers2], [body1, body2]);
+  _testParse(message, "frontier", [headers1, headers2], [body1, body2]);
 
   // Sample from HTML 4.01 Specification.
   message = """
@@ -122,7 +112,7 @@ Content-Type: text/plain\r
   };
   body1 = "Larry";
   body2 = "... contents of file1.txt ...";
-  testParse(message, "AaB03x", [headers1, headers2], [body1, body2]);
+  _testParse(message, "AaB03x", [headers1, headers2], [body1, body2]);
 
   // Longer form from submitting the following from Chrome.
   //
@@ -164,15 +154,15 @@ on\r
       "content-disposition": "form-data; name=\"text_input\""};
   headers2 = <String, String>{
       "content-disposition": "form-data; name=\"password_input\""};
-  headers3 = <String, String>{
+  var headers3 = <String, String>{
       "content-disposition": "form-data; name=\"checkbox_input\""};
-  headers4 = <String, String>{
+  var headers4 = <String, String>{
       "content-disposition": "form-data; name=\"radio_input\""};
   body1 = "text";
   body2 = "password";
-  body3 = "on";
-  body4 = "on";
-  testParse(message,
+  var body3 = "on";
+  var body4 = "on";
+  _testParse(message,
             "----WebKitFormBoundaryQ3cgYAmGRF8yOeYB",
             [headers1, headers2, headers3, headers4],
             [body1, body2, body3, body4]);
@@ -196,7 +186,7 @@ Content-Disposition: form-data; name=\"radio_input\"\r
 \r
 on\r
 -----------------------------52284550912143824192005403738--\r\n""";
-  testParse(message,
+  _testParse(message,
             "---------------------------52284550912143824192005403738",
             [headers1, headers2, headers3, headers4],
             [body1, body2, body3, body4]);
@@ -220,7 +210,7 @@ Content-Disposition: form-data; name=\"radio_input\"\r
 \r
 on\r
 -----------------------------7dc8f38c60326--\r\n""";
-  testParse(message,
+  _testParse(message,
             "---------------------------7dc8f38c60326",
             [headers1, headers2, headers3, headers4],
             [body1, body2, body3, body4]);
@@ -261,7 +251,7 @@ Content-Type: text/plain\r
 --\r\r\r
 -\r\r
 --boundary--\r\n""";
-  headers = <String, String>{"content-type": "text/plain"};
+  var headers = <String, String>{"content-type": "text/plain"};
   body1 = """
 -\r
 --\r
@@ -282,7 +272,7 @@ Content-Type: text/plain\r
 --b\r\r\r\r
 --\r\r\r
 -\r""";
-  testParse(message, "boundary", [headers, headers], [body1, body2]);
+  _testParse(message, "boundary", [headers, headers], [body1, body2]);
 
   // Without initial CRLF.
   message = """
@@ -295,14 +285,12 @@ Body 1\r
 \r
 Body2\r
 --xxx--\r\n""";
-  testParse(message, "xxx", null, ["\r\nBody 1", "\r\nBody2"]);
+  _testParse(message, "xxx", null, ["\r\nBody 1", "\r\nBody2"]);
 }
 
-void testParseInvalid() {
-  String message;
-
+void _testParseInvalid() {
   // Missing end boundary.
-  message = """
+  var message = """
 \r
 --xxx\r
 \r
@@ -313,10 +301,10 @@ Body 1\r
 \r
 Body2\r
 --xxx\r\n""";
-  testParse(message, "xxx", null, [null, null], true);
+  _testParse(message, "xxx", null, [null, null], true);
 }
 
 void main() {
-  testParseValid();
-  testParseInvalid();
+  _testParseValid();
+  _testParseInvalid();
 }

@@ -142,4 +142,13 @@ void main() {
   testStatement('function foo(r, #) { return #[r](#) }',
       [['a', 'b'], 'g', ['b', 'a']],
       'function foo(r, a, b) {\n  return g[r](b, a);\n}');
+
+  // Sequence is printed flattened
+  var seq1 = js('1, 2, 3');
+  testStatement('x = #', [seq1], 'x = (1, 2, 3);');
+  testStatement('x = (#, #)', [seq1, seq1], 'x = (1, 2, 3, 1, 2, 3);');
+  testStatement('x = #, #', [seq1, seq1], 'x = (1, 2, 3), 1, 2, 3;');
+  testStatement(
+      'for (i = 0, j = #, k = 0; ; ++i, ++j, ++k){}', [seq1],
+      'for (i = 0, j = (1, 2, 3), k = 0;; ++i, ++j, ++k) {\n}');
 }

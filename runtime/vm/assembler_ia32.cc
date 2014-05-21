@@ -1985,20 +1985,35 @@ void Assembler::PopRegister(Register r) {
 
 
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
-  intptr_t value = imm.value();
-  if (value > 0) {
+  const intptr_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt32)) {
     if (value == 1) {
       incl(reg);
-    } else if (value != 0) {
+    } else {
       addl(reg, imm);
     }
-  } else if (value < 0) {
-    value = -value;
+  } else {
+    SubImmediate(reg, Immediate(-value));
+  }
+}
+
+
+void Assembler::SubImmediate(Register reg, const Immediate& imm) {
+  const intptr_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt32)) {
     if (value == 1) {
       decl(reg);
-    } else if (value != 0) {
-      subl(reg, Immediate(value));
+    } else {
+      subl(reg, imm);
     }
+  } else {
+    AddImmediate(reg, Immediate(-value));
   }
 }
 

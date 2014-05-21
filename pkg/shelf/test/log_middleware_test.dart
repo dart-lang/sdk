@@ -58,4 +58,14 @@ void main() {
 
     expect(makeSimpleRequest(handler), throwsA('testing logging throw'));
   });
+
+  test("doesn't log a HijackException", () {
+    var handler = const Pipeline()
+        .addMiddleware(logRequests(logger: logger))
+        .addHandler((request) => throw const HijackException());
+
+    expect(makeSimpleRequest(handler).whenComplete(() {
+      expect(gotLog, isFalse);
+    }), throwsA(new isInstanceOf<HijackException>()));
+  });
 }

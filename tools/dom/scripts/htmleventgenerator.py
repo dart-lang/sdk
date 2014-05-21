@@ -325,7 +325,8 @@ class HtmlEventGenerator(object):
 
   def _GetRawEvents(self, interface):
     all_interfaces = ([ interface ] +
-                      self._database.TransitiveSecondaryParents(interface))
+                      self._database.TransitiveSecondaryParents(interface,
+                                                                False))
     events = set([])
     for super_interface in all_interfaces:
       events = events.union(

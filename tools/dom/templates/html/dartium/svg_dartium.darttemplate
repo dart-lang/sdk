@@ -16,3 +16,9 @@ $endif
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 
 $!GENERATED_DART_FILES
+$if DART_USE_BLINK
+// FIXME: Can we make this private?
+const svgBlinkMap = const {
+$!TYPE_MAP
+};
+$endif

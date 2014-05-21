@@ -269,7 +269,8 @@ class _ScriptCompactor extends PolymerTransformer {
       var attrs = publishedAttributes[tagName];
       if (attrs == null) continue;
       for (var attr in attrs) {
-        recorder.lookupMember(cls, attr, recursive: true);
+        recorder.lookupMember(cls, attr, recursive: true,
+            includeUpTo: types.htmlElementElement);
       }
     }
   }

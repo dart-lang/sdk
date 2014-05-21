@@ -19,23 +19,14 @@ class _GrowableList<T> implements List<T> {
     // (with a length that has been increased, but without a new element).
     if (index is! int) throw new ArgumentError(index);
     this.length++;
-    Lists.copy(this,
-                index,
-                this,
-                index + 1,
-                oldLength - index);
+    Lists.copy(this, index, this, index + 1, oldLength - index);
     this[index] = element;
   }
 
   T removeAt(int index) {
-    if (index is! int) throw new ArgumentError(index);
-    T result = this[index];
+    var result = this[index];
     int newLength = this.length - 1;
-    Lists.copy(this,
-                index + 1,
-                this,
-                index,
-                newLength - index);
+    Lists.copy(this, index + 1, this, index, newLength - index);
     this.length = newLength;
     return result;
   }
@@ -96,11 +87,7 @@ class _GrowableList<T> implements List<T> {
 
   void removeRange(int start, int end) {
     Lists.indicesCheck(this, start, end);
-    Lists.copy(this,
-                end,
-                this,
-                start,
-                this.length - end);
+    Lists.copy(this, end, this, start, this.length - end);
     this.length = this.length - (end - start);
   }
 

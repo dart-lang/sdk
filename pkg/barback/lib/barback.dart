@@ -14,11 +14,10 @@ export 'src/log.dart';
 export 'src/package_provider.dart';
 export 'src/transformer/barback_settings.dart';
 export 'src/transformer/base_transform.dart';
-export 'src/transformer/declaring_transform.dart'
-    hide DeclaringTransformController;
+export 'src/transformer/declaring_transform.dart' hide newDeclaringTransform;
 export 'src/transformer/declaring_transformer.dart';
 export 'src/transformer/lazy_transformer.dart';
-export 'src/transformer/transform.dart' hide TransformController;
+export 'src/transformer/transform.dart' hide newTransform;
 export 'src/transformer/transform_logger.dart';
 export 'src/transformer/transformer.dart';
 export 'src/transformer/transformer_group.dart';

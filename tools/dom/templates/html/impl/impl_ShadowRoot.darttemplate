@@ -14,4 +14,37 @@ $if DART2JS
 $else
   static final bool supported = true;
 $endif
+
+$if DART_USE_BLINK
+  static bool _resetStyleInheritanceDeprecationReported = false;
+  static void _resetStyleInheritanceDeprecationReport() {
+    if (!_resetStyleInheritanceDeprecationReported) {
+      window.console.warn('''
+ShadowRoot.resetStyleInheritance is now deprecated in dart:html.
+Please remove from your code.
+''');
+      _resetStyleInheritanceDeprecationReported = true;
+    }
+  }
+
+  @deprecated
+  bool get resetStyleInheritance {
+    _resetStyleInheritanceDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    _resetStyleInheritanceDeprecationReport();
+  }
+$else
+  @deprecated
+  bool get resetStyleInheritance => this._resetStyleInheritance;
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    this._resetStyleInheritance = value;
+  }
+$endif
 }

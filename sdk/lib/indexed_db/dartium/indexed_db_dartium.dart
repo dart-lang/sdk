@@ -34,6 +34,21 @@ class _KeyRangeFactoryProvider {
       [bool lowerOpen = false, bool upperOpen = false]) =>
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
+// FIXME: Can we make this private?
+const indexed_dbBlinkMap = const {
+  'IDBCursor': Cursor,
+  'IDBCursorWithValue': CursorWithValue,
+  'IDBDatabase': Database,
+  'IDBFactory': IdbFactory,
+  'IDBIndex': Index,
+  'IDBKeyRange': KeyRange,
+  'IDBObjectStore': ObjectStore,
+  'IDBOpenDBRequest': OpenDBRequest,
+  'IDBRequest': Request,
+  'IDBTransaction': Transaction,
+  'IDBVersionChangeEvent': VersionChangeEvent,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -236,18 +251,6 @@ class Database extends EventTarget {
   @DomName('IDBDatabase.transactionStores')
   @DocsEditable()
   Transaction transactionStores(List<String> storeNames, String mode) => _blink.Native_IDBDatabase_transactionStores_Callback(this, storeNames, mode);
-
-  @DomName('IDBDatabase.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBDatabase_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('IDBDatabase.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_IDBDatabase_dispatchEvent_Callback(this, event);
-
-  @DomName('IDBDatabase.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBDatabase_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
@@ -927,18 +930,6 @@ class Request extends EventTarget {
   @DocsEditable()
   Transaction get transaction => _blink.Native_IDBRequest_transaction_Getter(this);
 
-  @DomName('IDBRequest.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBRequest_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('IDBRequest.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_IDBRequest_dispatchEvent_Callback(this, event);
-
-  @DomName('IDBRequest.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBRequest_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `error` events handled by this [Request].
   @DomName('IDBRequest.onerror')
   @DocsEditable()
@@ -1039,18 +1030,6 @@ class Transaction extends EventTarget {
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
   ObjectStore objectStore(String name) => _blink.Native_IDBTransaction_objectStore_Callback(this, name);
-
-  @DomName('IDBTransaction.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBTransaction_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('IDBTransaction.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_IDBTransaction_dispatchEvent_Callback(this, event);
-
-  @DomName('IDBTransaction.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_IDBTransaction_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')

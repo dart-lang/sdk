@@ -570,7 +570,7 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
     case GT: __ coltd(right, left); break;
     case GE: __ coled(right, left); break;
     default: {
-      // Should only passing the above conditions to this function.
+      // We should only be passing the above conditions to this function.
       UNREACHABLE();
       break;
     }
@@ -2056,16 +2056,117 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = A1;
+  const Register kElemTypeReg = A0;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ LoadImmediate(T3, heap->TopAddress());
+  __ lw(V0, Address(T3, 0));  // Potential new object start.
+  // Potential next object start.
+  __ AddImmediateDetectOverflow(T1, V0, kArraySize, CMPRES1);
+  __ bltz(CMPRES1, slow_path);  // CMPRES1 < 0 on overflow.
+
+  // Check if the allocation fits into the remaining space.
+  // V0: potential new object start.
+  // T1: potential next object start.
+  __ LoadImmediate(T4, heap->EndAddress());
+  __ lw(T4, Address(T4, 0));
+  __ BranchUnsignedGreaterEqual(T1, T4, slow_path);
+
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ sw(T1, Address(T3, 0));
+  __ addiu(V0, V0, Immediate(kHeapObjectTag));
+  __ LoadImmediate(T2, kArraySize);
+  __ UpdateAllocationStatsWithSize(kArrayCid, T2, T4);
+
+  // Initialize the tags.
+  // V0: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ LoadImmediate(T2, tags);
+    __ sw(T2, FieldAddress(V0, Array::tags_offset()));  // Store tags.
+  }
+  // V0: new object start as a tagged pointer.
+  // T1: new object end address.
+
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(V0,
+                              FieldAddress(V0, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(V0,
+                              FieldAddress(V0, Array::length_offset()),
+                              kLengthReg);
+
+  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+  // Initialize all array elements to raw_null.
+  // V0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // T2: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // T7: null.
+  __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
+
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ BranchUnsignedGreaterEqual(T2, T1, done);
+  __ sw(T7, Address(T2, 0));
+  __ b(&init_loop);
+  __ delay_slot()->addiu(T2, T2, Immediate(kWordSize));
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("CreateArrayInstr");
-  // Allocate the array.  A1 = length, A0 = element type.
-  ASSERT(locs()->in(0).reg() == A0);
-  ASSERT(locs()->in(1).reg() == A1);
+  const Register kLengthReg = A1;
+  const Register kElemTypeReg = A0;
+  const Register kResultReg = V0;
+  ASSERT(locs()->in(0).reg() == kElemTypeReg);
+  ASSERT(locs()->in(1).reg() == kLengthReg);
+
+  Label slow_path, done;
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
+      __ Push(kLengthReg);  // length.
+      __ Push(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ Pop(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
+  __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == V0);
+  __ Bind(&done);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 
@@ -2675,24 +2776,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    int32_t imm = reinterpret_cast<int32_t>(constant.raw());
+    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kSUB: {
-        __ TraceSimMsg("kSUB imm");
-        if (deopt == NULL) {
-          __ AddImmediate(result, left, -imm);
-        } else {
-          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
-          __ bltz(CMPRES1, deopt);
-        }
-        break;
-      }
       case Token::kADD: {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm);
         } else {
           Register temp = locs()->temp(0).reg();
           __ AddImmediateDetectOverflow(result, left, imm, CMPRES1, temp);
+          __ bltz(CMPRES1, deopt);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        __ TraceSimMsg("kSUB imm");
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -imm);
+        } else {
+          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
           __ bltz(CMPRES1, deopt);
         }
         break;
@@ -2804,7 +2905,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
 
         value = value + kSmiTagSize;
-        if (value >= kCountLimit) value = kCountLimit;
+        if (value >= kCountLimit) {
+          value = kCountLimit;
+        }
 
         __ sra(result, left, value);
         __ SmiTag(result);
@@ -2984,7 +3087,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ andi(CMPRES1, left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
     __ andi(CMPRES1, right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ andi(CMPRES1, left, Immediate(kSmiTagMask));
@@ -3850,77 +3955,127 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
+
+  DRegister base = locs->in(0).fpu_reg();
+  DRegister exp = locs->in(1).fpu_reg();
+  DRegister result = locs->out(0).fpu_reg();
+
+  Label check_base, skip_call;
+  __ LoadImmediate(DTMP, 0.0);
+  __ LoadImmediate(result, 1.0);
+  // exponent == 0.0 -> return 1.0;
+  __ cund(exp, exp);
+  __ bc1t(&check_base);  // NaN -> check base.
+  __ ceqd(exp, DTMP);
+  __ bc1t(&skip_call);  // exp is 0.0, result is 1.0.
+
+  // exponent == 1.0 ?
+  __ ceqd(exp, result);
+  Label return_base;
+  __ bc1t(&return_base);
+  // exponent == 2.0 ?
+  __ LoadImmediate(DTMP, 2.0);
+  __ ceqd(exp, DTMP);
+  Label return_base_times_2;
+  __ bc1t(&return_base_times_2);
+  // exponent == 3.0 ?
+  __ LoadImmediate(DTMP, 3.0);
+  __ ceqd(exp, DTMP);
+  __ bc1f(&check_base);
+
+  // base_times_3.
+  __ muld(result, base, base);
+  __ muld(result, result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base);
+  __ movd(result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base_times_2);
+  __ muld(result, base, base);
+  __ b(&skip_call);
+
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+  // base == 1.0 -> return 1.0;
+  __ cund(base, base);
+  Label return_nan;
+  __ bc1t(&return_nan);
+  __ ceqd(base, result);
+  __ bc1t(&skip_call);  // base and result are 1.0.
+
+  __ cund(exp, exp);
+  Label try_sqrt;
+  __ bc1f(&try_sqrt);  // Neither 'exp' nor 'base' are NaN.
+
+  __ Bind(&return_nan);
+  __ LoadImmediate(result, NAN);
+  __ b(&skip_call);
+
+  __ Bind(&try_sqrt);
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadImmediate(result, INFINITY);
+  // base == -Infinity -> call pow;
+  __ ceqd(base, result);
+  Label do_pow;
+  __ b(&do_pow);
+
+  // exponent == 0.5 ?
+  __ LoadImmediate(result, 0.5);
+  __ ceqd(base, result);
+  __ bc1f(&do_pow);
+
+  // base == 0 -> return 0;
+  __ LoadImmediate(DTMP, 0.0);
+  __ ceqd(base, DTMP);
+  Label return_zero;
+  __ bc1t(&return_zero);
+
+  __ sqrtd(result, base);
+  __ b(&skip_call);
+
+  __ Bind(&return_zero);
+  __ movd(result, DTMP);
+  __ b(&skip_call);
+
+  __ Bind(&do_pow);
+
+  // double values are passed and returned in vfp registers.
+  __ CallRuntime(instr->TargetFunction(), kInputCount);
+  __ Bind(&skip_call);
+}
+
+
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For pow-function return NaN if exponent is NaN.
-  Label skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    DRegister base = locs()->in(0).fpu_reg();
-    DRegister exp = locs()->in(1).fpu_reg();
-    DRegister result = locs()->out(0).fpu_reg();
-
-    Label try_sqrt, check_base, return_nan;
-    __ LoadImmediate(DTMP, 0.0);
-    __ LoadImmediate(result, 1.0);
-    // exponent == 0.0 -> return 1.0;
-    __ cund(exp, exp);
-    __ bc1t(&check_base);  // NaN -> check base.
-    __ ceqd(exp, DTMP);
-    __ bc1t(&skip_call);  // exp is 0.0, result is 1.0.
-
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-    // base == 1.0 -> return 1.0;
-    __ cund(base, base);
-    __ bc1t(&return_nan);
-    __ ceqd(base, result);
-    __ bc1t(&skip_call);  // base and result are 1.0.
-
-    __ cund(exp, exp);
-    __ bc1f(&try_sqrt);  // Neither 'exp' nor 'base' are NaN.
-
-    __ Bind(&return_nan);
-    __ LoadImmediate(result, NAN);
-    __ b(&skip_call);
-
-    __ Bind(&try_sqrt);
-    // Before calling pow, check if we could use sqrt instead of pow.
-    Label do_pow, return_zero;
-    __ LoadImmediate(result, INFINITY);
-    // base == -Infinity -> call pow;
-    __ ceqd(base, result);
-    __ b(&do_pow);
-
-    // exponent == 0.5 ?
-    __ LoadImmediate(result, 0.5);
-    __ ceqd(base, result);
-    __ bc1f(&do_pow);
-
-    // base == 0 -> return 0;
-    __ ceqd(base, DTMP);
-    __ bc1t(&return_zero);
-
-    __ sqrtd(result, base);
-    __ b(&skip_call);
-
-    __ Bind(&return_zero);
-    __ movd(result, DTMP);
-    __ b(&skip_call);
-
-    __ Bind(&do_pow);
+    InvokeDoublePow(compiler, this);
+    return;
   }
   // double values are passed and returned in vfp registers.
   __ CallRuntime(TargetFunction(), InputCount());
-  __ Bind(&skip_call);
 }
 
 

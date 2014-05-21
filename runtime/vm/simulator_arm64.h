@@ -53,8 +53,10 @@ class Simulator {
 
   // Get and set a V register in double ('d') mode. Setting clears the high
   // 64 bits of the V register. Getting ignores the high 64 bits.
-  int64_t get_vregisterd(VRegister reg);
+  int64_t get_vregisterd(VRegister reg) const;
   void set_vregisterd(VRegister reg, int64_t value);
+  void get_vregister(VRegister reg, simd_value_t* value) const;
+  void set_vregister(VRegister reg, const simd_value_t& value);
 
   int64_t get_pc() const;
   int64_t get_last_pc() const;

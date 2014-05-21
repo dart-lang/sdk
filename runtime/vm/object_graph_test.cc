@@ -91,6 +91,38 @@ TEST_CASE(ObjectGraph) {
     EXPECT_EQ(a_size + b_size + c_size + d_size,
               graph.SizeRetainedByInstance(a));
   }
+  {
+    // Get hold of c again.
+    b ^= a.At(0);
+    c ^= b.At(0);
+    b = Array::null();
+    ObjectGraph graph(isolate);
+    // A retaining path should end like this: c <- b <- a <- ...
+    // c itself is not included in the returned path and length.
+    {
+      HANDLESCOPE(isolate);
+      // Test null, empty, and length 1 array.
+      intptr_t null_length = graph.RetainingPath(&c, Object::null_array());
+      intptr_t empty_length = graph.RetainingPath(&c, Object::empty_array());
+      Array& path = Array::Handle(Array::New(1, Heap::kNew));
+      intptr_t one_length = graph.RetainingPath(&c, path);
+      EXPECT_EQ(null_length, empty_length);
+      EXPECT_EQ(null_length, one_length);
+      EXPECT_LE(2, null_length);
+    }
+    {
+      HANDLESCOPE(isolate);
+      Array& path = Array::Handle(Array::New(2, Heap::kNew));
+      intptr_t length = graph.RetainingPath(&c, path);
+      EXPECT_LE(2, length);
+      Array& expected_b = Array::Handle();
+      expected_b ^= path.At(0);
+      Array& expected_a = Array::Handle();
+      expected_a ^= path.At(1);
+      EXPECT(expected_b.raw() == a.At(0));
+      EXPECT(expected_a.raw() == a.raw());
+    }
+  }
 }
 
 }  // namespace dart

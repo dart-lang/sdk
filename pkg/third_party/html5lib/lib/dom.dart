@@ -1,17 +1,25 @@
 /// A simple tree API that results from parsing html. Intended to be compatible
-/// with dart:html, but right now it resembles the classic JS DOM.
+/// with dart:html, but it is missing many types and APIs.
 library dom;
+
+// TODO(jmesserly): lots to do here. Originally I wanted to generate this using
+// our Blink IDL generator, but another idea is to directly use the excellent
+// http://dom.spec.whatwg.org/ and http://html.spec.whatwg.org/ and just
+// implement that.
 
 import 'dart:collection';
 import 'package:source_maps/span.dart' show FileSpan;
 
 import 'src/constants.dart';
+import 'src/css_class_set.dart';
 import 'src/list_proxy.dart';
+import 'src/query_selector.dart' as query;
 import 'src/token.dart';
 import 'src/tokenizer.dart';
-import 'src/utils.dart';
 import 'dom_parsing.dart';
 import 'parser.dart';
+
+export 'src/css_class_set.dart' show CssClassSet;
 
 // TODO(jmesserly): this needs to be replaced by an AttributeMap for attributes
 // that exposes namespace info.
@@ -60,6 +68,55 @@ class AttributeName implements Comparable {
   }
 }
 
+// http://dom.spec.whatwg.org/#parentnode
+abstract class _ParentNode implements Node {
+  // TODO(jmesserly): this is only a partial implementation
+
+  /// Seaches for the first descendant node matching the given selectors, using
+  /// a preorder traversal.
+  ///
+  /// NOTE: Not all selectors from
+  /// [selectors level 4](http://dev.w3.org/csswg/selectors-4/)
+  /// are implemented. For example, nth-child does not implement An+B syntax
+  /// and *-of-type is not implemented. If a selector is not implemented this
+  /// method will throw [UniplmentedError].
+  Element querySelector(String selector) =>
+      query.querySelector(this, selector);
+
+  /// Returns all descendant nodes matching the given selectors, using a
+  /// preorder traversal.
+  ///
+  /// NOTE: Not all selectors from
+  /// [selectors level 4](http://dev.w3.org/csswg/selectors-4/)
+  /// are implemented. For example, nth-child does not implement An+B syntax
+  /// and *-of-type is not implemented. If a selector is not implemented this
+  /// method will throw [UniplmentedError].
+  List<Element> querySelectorAll(String selector) =>
+      query.querySelectorAll(this, selector);
+}
+
+// http://dom.spec.whatwg.org/#interface-nonelementparentnode
+abstract class _NonElementParentNode implements _ParentNode {
+  // TODO(jmesserly): could be faster, should throw on invalid id.
+  Element getElementById(String id) => querySelector('#$id');
+}
+
+// This doesn't exist as an interface in the spec, but it's useful to merge
+// common methods from these:
+// http://dom.spec.whatwg.org/#interface-document
+// http://dom.spec.whatwg.org/#element
+abstract class _ElementAndDocument implements _ParentNode {
+  // TODO(jmesserly): could be faster, should throw on invalid tag/class names.
+
+  List<Element> getElementsByTagName(String localName) =>
+      querySelectorAll(localName);
+
+  List<Element> getElementsByClassName(String classNames) =>
+      querySelectorAll(classNames.splitMapJoin(' ',
+          onNonMatch: (m) => m.isNotEmpty ? '.$m' : m,
+          onMatch: (m) => ''));
+}
+
 /// Really basic implementation of a DOM-core like Node.
 abstract class Node {
   static const int ATTRIBUTE_NODE = 2;
@@ -75,16 +132,14 @@ abstract class Node {
   static const int PROCESSING_INSTRUCTION_NODE = 7;
   static const int TEXT_NODE = 3;
 
-  /// Note: For now we use it to implement the deprecated tagName property.
-  final String _tagName;
-
-  /// *Deprecated* use [Element.localName] instead.
-  /// Note: after removal, this will be replaced by a correct version that
-  /// returns uppercase [as specified](http://dom.spec.whatwg.org/#dom-element-tagname).
-  @deprecated String get tagName => _tagName;
-
   /// The parent of the current node (or null for the document node).
-  Node parent;
+  Node parentNode;
+
+  /// The parent element of this node.
+  ///
+  /// Returns null if this node either does not have a parent or its parent is
+  /// not an element.
+  Element get parent => parentNode is Element ? parentNode : null;
 
   // TODO(jmesserly): should move to Element.
   /// A map holding name, value pairs for attributes of the node.
@@ -108,10 +163,7 @@ abstract class Node {
   LinkedHashMap<dynamic, FileSpan> _attributeSpans;
   LinkedHashMap<dynamic, FileSpan> _attributeValueSpans;
 
-  /// *Deprecated* use [new Element.tag] instead.
-  @deprecated Node(String tagName) : this._(tagName);
-
-  Node._([this._tagName]) {
+  Node._() {
     nodes._parent = this;
   }
 
@@ -140,28 +192,13 @@ abstract class Node {
     return _elements;
   }
 
-  // TODO(jmesserly): needs to support deep clone.
-  /// Return a shallow copy of the current node i.e. a node with the same
-  /// name and attributes but with no parent or child nodes.
-  Node clone();
-
-  /// *Deprecated* use [Element.namespaceUri] instead.
-  @deprecated String get namespace => null;
+  /// Returns a copy of this node.
+  ///
+  /// If [deep] is `true`, then all of this node's children and decendents are
+  /// copied as well. If [deep] is `false`, then only this node is copied.
+  Node clone(bool deep);
 
   int get nodeType;
-
-  /// *Deprecated* use [text], [Text.data] or [Comment.data].
-  @deprecated String get value => null;
-
-  /// *Deprecated* use [nodeType].
-  @deprecated int get $dom_nodeType => nodeType;
-
-  /// *Deprecated* use [Element.outerHtml]
-  @deprecated String get outerHtml => _outerHtml;
-
-  /// *Deprecated* use [Element.innerHtml]
-  @deprecated String get innerHtml => _innerHtml;
-  @deprecated set innerHtml(String value) { _innerHtml = value; }
 
   // http://domparsing.spec.whatwg.org/#extensions-to-the-element-interface
   String get _outerHtml {
@@ -174,13 +211,6 @@ abstract class Node {
     var str = new StringBuffer();
     _addInnerHtml(str);
     return str.toString();
-  }
-
-  set _innerHtml(String value) {
-    nodes.clear();
-    // TODO(jmesserly): should be able to get the same effect by adding the
-    // fragment directly.
-    nodes.addAll(parseFragment(value, container: _tagName).nodes);
   }
 
   // Implemented per: http://dom.spec.whatwg.org/#dom-node-textcontent
@@ -199,8 +229,8 @@ abstract class Node {
 
   Node remove() {
     // TODO(jmesserly): is parent == null an error?
-    if (parent != null) {
-      parent.nodes.remove(this);
+    if (parentNode != null) {
+      parentNode.nodes.remove(this);
     }
     return this;
   }
@@ -219,20 +249,16 @@ abstract class Node {
 
   /// Replaces this node with another node.
   Node replaceWith(Node otherNode) {
-    if (parent == null) {
+    if (parentNode == null) {
       throw new UnsupportedError('Node must have a parent to replace it.');
     }
-    parent.nodes[parent.nodes.indexOf(this)] = otherNode;
+    parentNode.nodes[parentNode.nodes.indexOf(this)] = otherNode;
     return this;
   }
 
   // TODO(jmesserly): should this be a property or remove?
   /// Return true if the node has children or text.
   bool hasContent() => nodes.length > 0;
-
-  /// *Deprecated* construct a pair using the namespaceUri and the name.
-  @deprecated Pair<String, String> get nameTuple =>
-      this is Element ? getElementNameTuple(this) : null;
 
   /// Move all the children of the current node to [newParent].
   /// This is needed so that trees that don't store text as nodes move the
@@ -242,41 +268,9 @@ abstract class Node {
     nodes.clear();
   }
 
-  /// *Deprecated* use [querySelector] instead.
-  @deprecated
-  Element query(String selectors) => querySelector(selectors);
-
-  /// *Deprecated* use [querySelectorAll] instead.
-  @deprecated
-  List<Element> queryAll(String selectors) => querySelectorAll(selectors);
-
-  /// Seaches for the first descendant node matching the given selectors, using a
-  /// preorder traversal. NOTE: right now, this supports only a single type
-  /// selectors, e.g. `node.query('div')`.
-
-  Element querySelector(String selectors) =>
-      _queryType(_typeSelector(selectors));
-
-  /// Returns all descendant nodes matching the given selectors, using a
-  /// preorder traversal. NOTE: right now, this supports only a single type
-  /// selectors, e.g. `node.queryAll('div')`.
-  List<Element> querySelectorAll(String selectors) {
-    var results = new List<Element>();
-    _queryAllType(_typeSelector(selectors), results);
-    return results;
-  }
-
   bool hasChildNodes() => !nodes.isEmpty;
 
   bool contains(Node node) => nodes.contains(node);
-
-  String _typeSelector(String selectors) {
-    selectors = selectors.trim();
-    if (!_isTypeSelector(selectors)) {
-      throw new UnimplementedError('only type selectors are implemented');
-    }
-    return selectors;
-  }
 
   /// Checks if this is a type selector.
   /// See <http://www.w3.org/TR/CSS2/grammar.html>.
@@ -318,24 +312,6 @@ abstract class Node {
     return true;
   }
 
-  Element _queryType(String tag) {
-    for (var node in nodes) {
-      if (node is! Element) continue;
-      if (node.localName == tag) return node;
-      var result = node._queryType(tag);
-      if (result != null) return result;
-    }
-    return null;
-  }
-
-  void _queryAllType(String tag, List<Element> results) {
-    for (var node in nodes) {
-      if (node is! Element) continue;
-      if (node.localName == tag) results.add(node);
-      node._queryAllType(tag, results);
-    }
-  }
-
   /// Initialize [attributeSpans] using [sourceSpan].
   void _ensureAttributeSpans() {
     if (_attributeSpans != null) return;
@@ -363,9 +339,20 @@ abstract class Node {
       }
     }
   }
+
+  _clone(Node shallowClone, bool deep) {
+    if (deep) {
+      for (var child in nodes) {
+        shallowClone.append(child.clone(true));
+      }
+    }
+    return shallowClone;
+  }
 }
 
-class Document extends Node {
+class Document extends Node
+    with _ParentNode, _NonElementParentNode, _ElementAndDocument {
+
   Document() : super._();
   factory Document.html(String html) => parse(html);
 
@@ -388,18 +375,41 @@ class Document extends Node {
 
   void _addOuterHtml(StringBuffer str) => _addInnerHtml(str);
 
-  Document clone() => new Document();
+  Document clone(bool deep) => _clone(new Document(), deep);
+
+  Element createElement(String tag) => new Element.tag(tag);
+
+  // TODO(jmesserly): this is only a partial implementation of:
+  // http://dom.spec.whatwg.org/#dom-document-createelementns
+  Element createElementNS(String namespaceUri, String tag) {
+    if (namespaceUri == '') namespaceUri = null;
+    return new Element._(tag, namespaceUri);
+  }
+
+  DocumentFragment createDocumentFragment() => new DocumentFragment();
 }
 
-class DocumentFragment extends Document {
-  DocumentFragment();
+class DocumentFragment extends Node
+    with _ParentNode, _NonElementParentNode {
+
+  DocumentFragment() : super._();
   factory DocumentFragment.html(String html) => parseFragment(html);
 
   int get nodeType => Node.DOCUMENT_FRAGMENT_NODE;
 
+  /// Returns a fragment of HTML or XML that represents the element and its
+  /// contents.
+  // TODO(jmesserly): this API is not specified in:
+  // <http://domparsing.spec.whatwg.org/> nor is it in dart:html, instead
+  // only Element has outerHtml. However it is quite useful. Should we move it
+  // to dom_parsing, where we keep other custom APIs?
+  String get outerHtml => _outerHtml;
+
   String toString() => "#document-fragment";
 
-  DocumentFragment clone() => new DocumentFragment();
+  DocumentFragment clone(bool deep) => _clone(new DocumentFragment(), deep);
+
+  void _addOuterHtml(StringBuffer str) => _addInnerHtml(str);
 
   String get text => _getText(this);
   set text(String value) => _setText(this, value);
@@ -412,7 +422,7 @@ class DocumentType extends Node {
 
   DocumentType(String name, this.publicId, this.systemId)
       // Note: once Node.tagName is removed, don't pass "name" to super
-      : name = name, super._(name);
+      : name = name, super._();
 
   int get nodeType => Node.DOCUMENT_TYPE_NODE;
 
@@ -433,7 +443,7 @@ class DocumentType extends Node {
     str.write(toString());
   }
 
-  DocumentType clone() => new DocumentType(name, publicId, systemId);
+  DocumentType clone(bool deep) => new DocumentType(name, publicId, systemId);
 }
 
 class Text extends Node {
@@ -441,36 +451,29 @@ class Text extends Node {
 
   Text(this.data) : super._();
 
-  /// *Deprecated* use [data].
-  @deprecated String get value => data;
-  @deprecated set value(String x) { data = x; }
-
   int get nodeType => Node.TEXT_NODE;
 
   String toString() => '"$data"';
 
   void _addOuterHtml(StringBuffer str) => writeTextNodeAsHtml(str, this);
 
-  Text clone() => new Text(data);
+  Text clone(bool deep) => new Text(data);
 
   String get text => data;
   set text(String value) { data = value; }
 }
 
-class Element extends Node {
+// TODO(jmesserly): Elements should have a pointer back to their document
+class Element extends Node with _ParentNode, _ElementAndDocument {
   final String namespaceUri;
-
-  @deprecated String get namespace => namespaceUri;
 
   /// The [local name](http://dom.spec.whatwg.org/#concept-element-local-name)
   /// of this element.
-  String get localName => _tagName;
+  final String localName;
 
-  // TODO(jmesserly): deprecate in favor of [Document.createElementNS].
-  // However we need every element to have a Document before this can work.
-  Element(String name, [this.namespaceUri]) : super._(name);
+  Element._(this.localName, [this.namespaceUri]) : super._();
 
-  Element.tag(String name) : namespaceUri = null, super._(name);
+  Element.tag(this.localName) : namespaceUri = Namespaces.html, super._();
 
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
@@ -528,9 +531,30 @@ class Element extends Node {
 
   int get nodeType => Node.ELEMENT_NODE;
 
+  // TODO(jmesserly): we can make this faster
+  Element get previousElementSibling {
+    if (parentNode == null) return null;
+    var siblings = parentNode.nodes;
+    for (int i = siblings.indexOf(this) - 1; i >= 0; i--) {
+      var s = siblings[i];
+      if (s is Element) return s;
+    }
+    return null;
+  }
+
+  Element get nextElementSibling {
+    if (parentNode == null) return null;
+    var siblings = parentNode.nodes;
+    for (int i = siblings.indexOf(this) + 1; i < siblings.length; i++) {
+      var s = siblings[i];
+      if (s is Element) return s;
+    }
+    return null;
+  }
+
   String toString() {
-    if (namespaceUri == null) return "<$localName>";
-    return "<${Namespaces.getPrefix(namespaceUri)} $localName>";
+    var prefix = Namespaces.getPrefix(namespaceUri);
+    return "<${prefix == null ? '' : '$prefix '}$localName>";
   }
 
   String get text => _getText(this);
@@ -546,21 +570,17 @@ class Element extends Node {
   String get innerHtml => _innerHtml;
   // TODO(jmesserly): deprecate in favor of:
   // <https://api.dartlang.org/apidocs/channels/stable/#dart-dom-html.Element@id_setInnerHtml>
-  set innerHtml(String value) { _innerHtml = value; }
+  set innerHtml(String value) {
+    nodes.clear();
+    // TODO(jmesserly): should be able to get the same effect by adding the
+    // fragment directly.
+    nodes.addAll(parseFragment(value, container: localName).nodes);
+  }
 
   void _addOuterHtml(StringBuffer str) {
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
     // Element is the most complicated one.
-    if (namespaceUri == null ||
-        namespaceUri == Namespaces.html ||
-        namespaceUri == Namespaces.mathml ||
-        namespaceUri == Namespaces.svg) {
-      str.write('<$localName');
-    } else {
-      // TODO(jmesserly): the spec doesn't define "qualified name".
-      // I'm not sure if this is correct, but it should parse reasonably.
-      str.write('<${Namespaces.getPrefix(namespaceUri)}:$localName');
-    }
+    str.write('<${_getSerializationPrefix(namespaceUri)}$localName');
 
     if (attributes.length > 0) {
       attributes.forEach((key, v) {
@@ -591,21 +611,56 @@ class Element extends Node {
     if (!isVoidElement(localName)) str.write('</$localName>');
   }
 
-  Element clone() => new Element(localName, namespaceUri)
-      ..attributes = new LinkedHashMap.from(attributes);
+  static String _getSerializationPrefix(String uri) {
+    if (uri == null ||
+        uri == Namespaces.html ||
+        uri == Namespaces.mathml ||
+        uri == Namespaces.svg) {
+      return '';
+    }
+    var prefix = Namespaces.getPrefix(uri);
+    // TODO(jmesserly): the spec doesn't define "qualified name".
+    // I'm not sure if this is correct, but it should parse reasonably.
+    return prefix == null ? '' : '$prefix:';
+  }
 
+  Element clone(bool deep) {
+    var result = new Element._(localName, namespaceUri)
+        ..attributes = new LinkedHashMap.from(attributes);
+    return _clone(result, deep);
+  }
+
+  // http://dom.spec.whatwg.org/#dom-element-id
   String get id {
     var result = attributes['id'];
     return result != null ? result : '';
   }
 
   set id(String value) {
-    if (value == null) {
-      attributes.remove('id');
-    } else {
-      attributes['id'] = value;
-    }
+    attributes['id'] = '$value';
   }
+
+  // http://dom.spec.whatwg.org/#dom-element-classname
+  String get className {
+    var result = attributes['class'];
+    return result != null ? result : '';
+  }
+
+  set className(String value) {
+    attributes['class'] = '$value';
+  }
+
+  /**
+   * The set of CSS classes applied to this element.
+   *
+   * This set makes it easy to add, remove or toggle the classes applied to
+   * this element.
+   *
+   *     element.classes.add('selected');
+   *     element.classes.toggle('isOnline');
+   *     element.classes.remove('selected');
+   */
+  CssClassSet get classes => new ElementCssClassSet(this);
 }
 
 class Comment extends Node {
@@ -621,7 +676,7 @@ class Comment extends Node {
     str.write("<!--$data-->");
   }
 
-  Comment clone() => new Comment(data);
+  Comment clone(bool deep) => new Comment(data);
 
   String get text => data;
   set text(String value) {
@@ -646,7 +701,7 @@ class NodeList extends ListProxy<Node> {
     // Note: we need to remove the node from its previous parent node, if any,
     // before updating its parent pointer to point at our parent.
     node.remove();
-    node.parent = _parent;
+    node.parentNode = _parent;
     return node;
   }
 
@@ -681,12 +736,12 @@ class NodeList extends ListProxy<Node> {
     }
   }
 
-  Node removeLast() => super.removeLast()..parent = null;
+  Node removeLast() => super.removeLast()..parentNode = null;
 
-  Node removeAt(int i) => super.removeAt(i)..parent = null;
+  Node removeAt(int i) => super.removeAt(i)..parentNode = null;
 
   void clear() {
-    for (var node in this) node.parent = null;
+    for (var node in this) node.parentNode = null;
     super.clear();
   }
 
@@ -695,7 +750,7 @@ class NodeList extends ListProxy<Node> {
       removeAt(index);
       insertAll(index, value.nodes);
     } else {
-      this[index].parent = null;
+      this[index].parentNode = null;
       super[index] = _setParent(value);
     }
   }
@@ -721,20 +776,20 @@ class NodeList extends ListProxy<Node> {
   }
 
   void removeRange(int start, int rangeLength) {
-    for (int i = start; i < rangeLength; i++) this[i].parent = null;
+    for (int i = start; i < rangeLength; i++) this[i].parentNode = null;
     super.removeRange(start, rangeLength);
   }
 
   void removeWhere(bool test(Element e)) {
     for (var node in where(test)) {
-      node.parent = null;
+      node.parentNode = null;
     }
     super.removeWhere(test);
   }
 
   void retainWhere(bool test(Element e)) {
     for (var node in where((n) => !test(n))) {
-      node.parent = null;
+      node.parentNode = null;
     }
     super.retainWhere(test);
   }

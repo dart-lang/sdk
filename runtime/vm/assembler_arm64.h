@@ -13,6 +13,7 @@
 #include "platform/utils.h"
 #include "vm/constants_arm64.h"
 #include "vm/hash_map.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -472,6 +473,9 @@ class Assembler : public ValueObject {
   void and_(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(AND, rd, rn, o, kDoubleWord);
   }
+  void andw_(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(AND, rd, rn, o, kWord);
+  }
   void bic(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(BIC, rd, rn, o, kDoubleWord);
   }
@@ -483,6 +487,9 @@ class Assembler : public ValueObject {
   }
   void eor(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EOR, rd, rn, o, kDoubleWord);
+  }
+  void eorw(Register rd, Register rn, Operand o) {
+    EmitLogicalShiftOp(EOR, rd, rn, o, kWord);
   }
   void eon(Register rd, Register rn, Operand o) {
     EmitLogicalShiftOp(EON, rd, rn, o, kDoubleWord);
@@ -549,7 +556,11 @@ class Assembler : public ValueObject {
       ASSERT(((a.type() != Address::PreIndex) &&
               (a.type() != Address::PostIndex)) ||
              (rt != a.base()));
-      EmitLoadStoreReg(LDR, rt, a, sz);
+      if (IsSignedOperand(sz)) {
+        EmitLoadStoreReg(LDRS, rt, a, sz);
+      } else {
+        EmitLoadStoreReg(LDR, rt, a, sz);
+      }
     }
   }
   void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
@@ -597,7 +608,13 @@ class Assembler : public ValueObject {
     EmitBranch(BCOND, cond, label);
   }
 
-  // TODO(zra): branch and link with imm26 offset.
+  void b(int32_t offset) {
+    EmitUnconditionalBranchOp(B, offset);
+  }
+  void bl(int32_t offset) {
+    EmitUnconditionalBranchOp(BL, offset);
+  }
+
   // TODO(zra): cbz, cbnz.
 
   // Branch, link, return.
@@ -658,18 +675,49 @@ class Assembler : public ValueObject {
   void fmovdd(VRegister vd, VRegister vn) {
     EmitFPOneSourceOp(FMOVDD, vd, vn);
   }
+  void fabsd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FABSD, vd, vn);
+  }
+  void fnegd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FNEGD, vd, vn);
+  }
+  void fsqrtd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FSQRTD, vd, vn);
+  }
+  void fcvtsd(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FCVTSD, vd, vn);
+  }
+  void fcvtds(VRegister vd, VRegister vn) {
+    EmitFPOneSourceOp(FCVTDS, vd, vn);
+  }
+  void fldrq(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kByte);
+  }
+  void fstrq(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kByte);
+  }
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDoubleWord);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kDWord);
   }
   void fstrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDoubleWord);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kDWord);
+  }
+  void fldrs(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FLDR, static_cast<Register>(vt), a, kSWord);
+  }
+  void fstrs(VRegister vt, Address a) {
+    ASSERT(a.type() != Address::PCOffset);
+    EmitLoadStoreReg(FSTR, static_cast<Register>(vt), a, kSWord);
   }
   void fcmpd(VRegister vn, VRegister vm) {
     EmitFPCompareOp(FCMPD, vn, vm);
   }
-  void fcmpzd(VRegister vn) {
+  void fcmpdz(VRegister vn) {
     EmitFPCompareOp(FCMPZD, vn, V0);
   }
   void fmuld(VRegister vd, VRegister vn, VRegister vm) {
@@ -738,8 +786,15 @@ class Assembler : public ValueObject {
   void Lsl(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSL, shift));
   }
+  void Lslw(Register rd, Register rn, int shift) {
+    addw(rd, ZR, Operand(rn, LSL, shift));
+  }
   void Lsr(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSR, shift));
+  }
+  void Lsrw(Register rd, Register rn, int shift) {
+    ASSERT((shift >= 0) && (shift < 32));
+    addw(rd, ZR, Operand(rn, LSR, shift));
   }
   void Asr(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, ASR, shift));
@@ -753,34 +808,27 @@ class Assembler : public ValueObject {
   }
 
   // Branching to ExternalLabels.
-  void BranchPatchable(const ExternalLabel* label, Register pp) {
-    LoadExternalLabel(TMP, label, kPatchable, pp);
-    br(TMP);
-  }
-
   void Branch(const ExternalLabel* label, Register pp) {
     LoadExternalLabel(TMP, label, kNotPatchable, pp);
     br(TMP);
   }
 
   // Fixed length branch to label.
-  void BranchFixed(const ExternalLabel* label) {
+  void BranchPatchable(const ExternalLabel* label) {
+    // TODO(zra): Use LoadExternalLabelFixed if possible.
     LoadImmediateFixed(TMP, label->address());
     br(TMP);
   }
 
   void BranchLink(const ExternalLabel* label, Register pp) {
-    if (Isolate::Current() == Dart::vm_isolate()) {
-      LoadImmediate(TMP, label->address(), kNoPP);
-      blr(TMP);
-    } else {
-      LoadExternalLabel(TMP, label, kNotPatchable, pp);
-      blr(TMP);
-    }
+    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+    blr(TMP);
   }
 
+  // BranchLinkPatchable must be a fixed-length sequence so we can patch it
+  // with the debugger.
   void BranchLinkPatchable(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label, kPatchable, PP);
+    LoadExternalLabelFixed(TMP, label, kPatchable, PP);
     blr(TMP);
   }
 
@@ -791,6 +839,8 @@ class Assembler : public ValueObject {
   void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
   void AddImmediateSetFlags(
       Register dest, Register rn, int64_t imm, Register pp);
+  void SubImmediateSetFlags(
+      Register dest, Register rn, int64_t imm, Register pp);
   void AndImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void OrImmediate(Register rd, Register rn, int64_t imm, Register pp);
   void XorImmediate(Register rd, Register rn, int64_t imm, Register pp);
@@ -798,23 +848,41 @@ class Assembler : public ValueObject {
   void CompareImmediate(Register rn, int64_t imm, Register pp);
 
   void LoadFromOffset(Register dest, Register base, int32_t offset,
-                      OperandSize sz = kDoubleWord);
-  void LoadFieldFromOffset(Register dest, Register base, int32_t offset) {
-    LoadFromOffset(dest, base, offset - kHeapObjectTag);
+                      Register pp, OperandSize sz = kDoubleWord);
+  void LoadFieldFromOffset(
+      Register dest, Register base, int32_t offset, Register pp) {
+    LoadFromOffset(dest, base, offset - kHeapObjectTag, pp);
   }
-  void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
-  void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
-    LoadDFromOffset(dest, base, offset - kHeapObjectTag);
+  void LoadDFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp);
+  void LoadDFieldFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp) {
+    LoadDFromOffset(dest, base, offset - kHeapObjectTag, pp);
+  }
+  void LoadQFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp);
+  void LoadQFieldFromOffset(
+      VRegister dest, Register base, int32_t offset, Register pp) {
+    LoadQFromOffset(dest, base, offset - kHeapObjectTag, pp);
   }
 
   void StoreToOffset(Register src, Register base, int32_t offset,
-                     OperandSize sz = kDoubleWord);
-  void StoreFieldToOffset(Register src, Register base, int32_t offset) {
-    StoreToOffset(src, base, offset - kHeapObjectTag);
+                     Register pp, OperandSize sz = kDoubleWord);
+  void StoreFieldToOffset(
+      Register src, Register base, int32_t offset, Register pp) {
+    StoreToOffset(src, base, offset - kHeapObjectTag, pp);
   }
-  void StoreDToOffset(VRegister src, Register base, int32_t offset);
-  void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
-    StoreDToOffset(src, base, offset - kHeapObjectTag);
+  void StoreDToOffset(
+      VRegister src, Register base, int32_t offset, Register pp);
+  void StoreDFieldToOffset(
+      VRegister src, Register base, int32_t offset, Register pp) {
+    StoreDToOffset(src, base, offset - kHeapObjectTag, pp);
+  }
+  void StoreQToOffset(
+      VRegister src, Register base, int32_t offset, Register pp);
+  void StoreQFieldToOffset(
+      VRegister src, Register base, int32_t offset, Register pp) {
+    StoreQToOffset(src, base, offset - kHeapObjectTag, pp);
   }
 
   // Storing into an object.
@@ -822,12 +890,25 @@ class Assembler : public ValueObject {
                        const Address& dest,
                        Register value,
                        bool can_value_be_smi = true);
+  void StoreIntoObjectOffset(Register object,
+                             int32_t offset,
+                             Register value,
+                             Register pp,
+                             bool can_value_be_smi = true);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectOffsetNoBarrier(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      Register pp);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreIntoObjectOffsetNoBarrier(Register object,
+                                      int32_t offset,
+                                      const Object& value,
+                                      Register pp);
 
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
@@ -841,6 +922,7 @@ class Assembler : public ValueObject {
   };
 
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
+  void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
   intptr_t FindExternalLabel(const ExternalLabel* label,
                              Patchability patchable);
   intptr_t FindObject(const Object& obj, Patchability patchable);
@@ -849,6 +931,10 @@ class Assembler : public ValueObject {
   bool CanLoadImmediateFromPool(int64_t imm, Register pp);
   void LoadExternalLabel(Register dst, const ExternalLabel* label,
                          Patchability patchable, Register pp);
+  void LoadExternalLabelFixed(Register dst,
+                              const ExternalLabel* label,
+                              Patchability patchable,
+                              Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);
@@ -861,10 +947,10 @@ class Assembler : public ValueObject {
   }
   void CompareObject(Register reg, const Object& object, Register pp);
 
-  void LoadClassId(Register result, Register object);
-  void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object);
-  void CompareClassId(Register object, intptr_t class_id);
+  void LoadClassId(Register result, Register object, Register pp);
+  void LoadClassById(Register result, Register class_id, Register pp);
+  void LoadClass(Register result, Register object, Register pp);
+  void CompareClassId(Register object, intptr_t class_id, Register pp);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
@@ -1057,6 +1143,11 @@ class Assembler : public ValueObject {
   }
 
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
+    if (!CanEncodeImm19BranchOffset(imm)) {
+      ASSERT(!use_far_branches());
+      Isolate::Current()->long_jump_base()->Jump(
+          1, Object::branch_offset_error());
+    }
     const int32_t imm32 = static_cast<int32_t>(imm);
     const int32_t off = (((imm32 >> 2) << kImm19Shift) & kImm19Mask);
     return (instr & ~kImm19Mask) | off;
@@ -1064,6 +1155,26 @@ class Assembler : public ValueObject {
 
   int64_t DecodeImm19BranchOffset(int32_t instr) {
     const int32_t off = (((instr & kImm19Mask) >> kImm19Shift) << 13) >> 11;
+    return static_cast<int64_t>(off);
+  }
+
+  Condition DecodeImm19BranchCondition(int32_t instr) {
+    return static_cast<Condition>((instr & kCondMask) >> kCondShift);
+  }
+
+  int32_t EncodeImm19BranchCondition(Condition cond, int32_t instr) {
+    const int32_t c_imm = static_cast<int32_t>(cond);
+    return (instr & ~kCondMask) | (c_imm << kCondShift);
+  }
+
+  int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
+    const int32_t imm32 = static_cast<int32_t>(imm);
+    const int32_t off = (((imm32 >> 2) << kImm26Shift) & kImm26Mask);
+    return (instr & ~kImm26Mask) | off;
+  }
+
+  int64_t DecodeImm26BranchOffset(int32_t instr) {
+    const int32_t off = (((instr & kImm26Mask) >> kImm26Shift) << 6) >> 4;
     return static_cast<int64_t>(off);
   }
 
@@ -1092,23 +1203,47 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
+  void EmitFarConditionalBranch(ConditionalBranchOp op,
+                                Condition cond,
+                                int64_t offset) {
+    EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
+    b(offset);
+  }
+
   bool CanEncodeImm19BranchOffset(int64_t offset) {
     ASSERT(Utils::IsAligned(offset, 4));
     return Utils::IsInt(21, offset);
   }
 
-  // TODO(zra): Implement far branches. Requires loading large immediates.
   void EmitBranch(ConditionalBranchOp op, Condition cond, Label* label) {
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
-      ASSERT(CanEncodeImm19BranchOffset(dest));
-      EmitConditionalBranch(op, cond, dest);
+      if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+        EmitFarConditionalBranch(op, cond, dest);
+      } else {
+        EmitConditionalBranch(op, cond, dest);
+      }
     } else {
       const int64_t position = buffer_.Size();
-      ASSERT(CanEncodeImm19BranchOffset(position));
-      EmitConditionalBranch(op, cond, label->position_);
+      if (use_far_branches()) {
+        EmitFarConditionalBranch(op, cond, label->position_);
+      } else {
+        EmitConditionalBranch(op, cond, label->position_);
+      }
       label->LinkTo(position);
     }
+  }
+
+  bool CanEncodeImm26BranchOffset(int64_t offset) {
+    ASSERT(Utils::IsAligned(offset, 4));
+    return Utils::IsInt(26, offset);
+  }
+
+  void EmitUnconditionalBranchOp(UnconditionalBranchOp op, int64_t offset) {
+    ASSERT(CanEncodeImm26BranchOffset(offset));
+    const int32_t off = (offset >> 2) << kImm26Shift;
+    const int32_t encoding = op | off;
+    Emit(encoding);
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
@@ -1143,7 +1278,7 @@ class Assembler : public ValueObject {
     const Register crt = ConcreteRegister(rt);
     const int32_t size = Log2OperandSizeBytes(sz);
     const int32_t encoding =
-        op | (size << kSzShift) |
+        op | ((size & 0x3) << kSzShift) |
         (static_cast<int32_t>(crt) << kRtShift) |
         a.encoding();
     Emit(encoding);

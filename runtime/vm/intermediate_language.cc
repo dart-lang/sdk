@@ -34,6 +34,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 Definition::Definition()
     : range_(NULL),
@@ -410,11 +411,12 @@ static bool StartsWith(const String& name, const char* prefix, intptr_t n) {
 static bool CompareNames(const Library& lib,
                          const char* test_name,
                          const String& name) {
+  ASSERT(Library::kPrivateIdentifierStart == '_');
   const char* kPrivateGetterPrefix = "get:_";
   const char* kPrivateSetterPrefix = "set:_";
 
-  if (test_name[0] == '_') {
-    if (name.CharAt(0) != '_') {
+  if (test_name[0] == Library::kPrivateIdentifierStart) {
+    if (name.CharAt(0) != Library::kPrivateIdentifierStart) {
       return false;
     }
   } else if (strncmp(test_name,
@@ -435,8 +437,18 @@ static bool CompareNames(const Library& lib,
   }
 
   // Both names are private. Mangle test_name before comparison.
-  const String& test_name_symbol = String::Handle(Symbols::New(test_name));
-  return String::Handle(lib.PrivateName(test_name_symbol)).Equals(name);
+  // Check if this is a constructor (e.g., List,), in which case the mangler
+  // needs some help (see comment in Library::PrivateName).
+  String& test_name_symbol = String::Handle();
+  if (test_name[strlen(test_name) - 1] == '.') {
+    test_name_symbol = Symbols::New(test_name, strlen(test_name) - 1);
+    test_name_symbol = lib.PrivateName(test_name_symbol);
+    test_name_symbol = String::Concat(test_name_symbol, Symbols::Dot());
+  } else {
+    test_name_symbol = Symbols::New(test_name);
+    test_name_symbol = lib.PrivateName(test_name_symbol);
+  }
+  return test_name_symbol.Equals(name);
 }
 
 
@@ -640,6 +652,11 @@ BlockEntryInstr* Instruction::GetBlock() const {
 
 void ForwardInstructionIterator::RemoveCurrentFromGraph() {
   current_ = current_->RemoveFromGraph(true);  // Set current_ to previous.
+}
+
+
+void BackwardInstructionIterator::RemoveCurrentFromGraph() {
+  current_ = current_->RemoveFromGraph(false);  // Set current_ to next.
 }
 
 
@@ -2870,6 +2887,17 @@ void PhiInstr::InferRange() {
   }
 
   range_ = new Range(new_min, new_max);
+}
+
+
+bool PhiInstr::IsRedundant() const {
+  ASSERT(InputCount() > 1);
+  Definition* first = InputAt(0)->definition();
+  for (intptr_t i = 1; i < InputCount(); ++i) {
+    Definition* def = InputAt(i)->definition();
+    if (def != first) return false;
+  }
+  return true;
 }
 
 

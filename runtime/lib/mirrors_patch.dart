@@ -36,6 +36,20 @@ patch TypeMirror reflectType(Type key) {
 }
 
 patch class MirrorSystem {
+  /* patch */ LibraryMirror findLibrary(Symbol libraryName) {
+    var candidates =
+        libraries.values.where((lib) => lib.simpleName == libraryName);
+    if (candidates.length == 1) {
+      return candidates.single;
+    }
+    if (candidates.length > 1) {
+      var uris = candidates.map((lib) => lib.uri.toString()).toList();
+      throw new Exception("There are multiple libraries named "
+                          "'${getName(libraryName)}': $uris");
+    }
+    throw new Exception("There is no library named '${getName(libraryName)}'");
+  }
+
   /* patch */ static String getName(Symbol symbol) {
     String string = _symbol_dev.Symbol.getName(symbol);
 

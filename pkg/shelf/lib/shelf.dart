@@ -7,6 +7,7 @@ library shelf;
 export 'src/cascade.dart';
 export 'src/handler.dart';
 export 'src/handlers/logger.dart';
+export 'src/hijack_exception.dart';
 export 'src/middleware.dart';
 export 'src/pipeline.dart';
 export 'src/request.dart';

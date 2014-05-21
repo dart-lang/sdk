@@ -37,7 +37,7 @@ class SourceBreakpoint {
   intptr_t end_token_pos() const { return end_token_pos_; }
   intptr_t id() const { return id_; }
 
-  RawScript* script() { return script_; }
+  RawScript* script() const { return script_; }
   RawString* SourceUrl();
   intptr_t LineNumber();
 
@@ -46,7 +46,7 @@ class SourceBreakpoint {
   void Enable();
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
-  bool IsResolved() { return is_resolved_; }
+  bool IsResolved() const { return is_resolved_; }
 
   void PrintJSON(JSONStream* stream);
 
@@ -262,7 +262,9 @@ typedef void BreakpointHandler(Dart_Port isolate_id,
                                DebuggerStackTrace* stack);
 
 
-class Debugger {
+// TODO(turnidge): At some point we may want to turn this into a class
+// hierarchy.
+class DebuggerEvent {
  public:
   enum EventType {
     kBreakpointReached = 1,
@@ -272,24 +274,71 @@ class Debugger {
     kIsolateShutdown = 5,
     kIsolateInterrupted = 6,
   };
-  struct DebuggerEvent {
-    explicit DebuggerEvent(EventType event_type)
-        : type(event_type) {
-      top_frame = NULL;
-      breakpoint = NULL;
-      exception = NULL;
-      isolate_id = 0;
-    }
-    EventType type;
-    // type == kBreakpointReached.
-    ActivationFrame* top_frame;
-    // type == kBreakpointResolved, kBreakpointReached.
-    SourceBreakpoint* breakpoint;
-    // type == kExceptionThrown.
-    const Object* exception;
-    // type == kIsolate(Created|Shutdown|Interrupted).
-    Dart_Port isolate_id;
-  };
+
+  explicit DebuggerEvent(EventType event_type)
+      : type_(event_type),
+        top_frame_(NULL),
+        breakpoint_(NULL),
+        exception_(NULL),
+        isolate_id_(0) {}
+
+  EventType type() const { return type_; }
+
+  ActivationFrame* top_frame() const {
+    ASSERT(type_ == kBreakpointReached);
+    return top_frame_;
+  }
+  void set_top_frame(ActivationFrame* frame) {
+    ASSERT(type_ == kBreakpointReached);
+    top_frame_ = frame;
+  }
+
+  SourceBreakpoint* breakpoint() const {
+    ASSERT(type_ == kBreakpointReached || type_ == kBreakpointResolved);
+    return breakpoint_;
+  }
+  void set_breakpoint(SourceBreakpoint* bpt) {
+    ASSERT(type_ == kBreakpointReached || type_ == kBreakpointResolved);
+    breakpoint_ = bpt;
+  }
+
+  const Object* exception() const {
+    ASSERT(type_ == kExceptionThrown);
+    return exception_;
+  }
+  void set_exception(const Object* exception) {
+    ASSERT(type_ == kExceptionThrown);
+    exception_ = exception;
+  }
+
+  Dart_Port isolate_id() const {
+    ASSERT(type_ == kIsolateCreated ||
+           type_ == kIsolateShutdown ||
+           type_ == kIsolateInterrupted);
+    return isolate_id_;
+  }
+  void set_isolate_id(Dart_Port isolate_id) {
+    ASSERT(type_ == kIsolateCreated ||
+           type_ == kIsolateShutdown ||
+           type_ == kIsolateInterrupted);
+    isolate_id_ = isolate_id;
+  }
+
+  void PrintJSON(JSONStream* js) const;
+
+  static const char* EventTypeToCString(EventType type);
+
+ private:
+  EventType type_;
+  ActivationFrame* top_frame_;
+  SourceBreakpoint* breakpoint_;
+  const Object* exception_;
+  Dart_Port isolate_id_;
+};
+
+
+class Debugger {
+ public:
   typedef void EventHandler(DebuggerEvent *event);
 
   Debugger();
@@ -381,7 +430,7 @@ class Debugger {
   void DebuggerStepCallback();
 
   void SignalExceptionThrown(const Instance& exc);
-  void SignalIsolateEvent(EventType type);
+  void SignalIsolateEvent(DebuggerEvent::EventType type);
   static void SignalIsolateInterrupted();
 
   uword GetPatchedStubAddress(uword breakpoint_address);

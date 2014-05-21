@@ -20,9 +20,26 @@ part of dart.collection;
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-abstract class MapBase<K, V> implements Map<K, V> {
-  MapBase();  // Prevents use as mixin.
+abstract class MapBase<K, V> = Object with MapMixin<K, V>;
 
+
+/**
+ * Mixin implementing a [Map].
+ *
+ * This mixin has a basic implementation of all but five of the members of
+ * [Map].
+ * A basic `Map` class can be implemented by mixin in this class and
+ * implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
+ * The remaining operations are implemented in terms of these five.
+ *
+ * The `keys` iterable should have efficient [length] and [contains]
+ * operations, and it should catch concurrent modifications of the keys
+ * while iterating.
+ *
+ * A more efficient implementation is usually possible by overriding
+ * some of the other members as well.
+ */
+abstract class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
   V operator[](Object key);
   operator []=(K key, V value);

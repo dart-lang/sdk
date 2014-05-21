@@ -43,6 +43,7 @@ class Range;
   V(Object, get:_cid, ObjectCid, 1498751301)                                   \
   V(_TypedListBase, get:_cid, TypedListBaseCid, 1938244762)                    \
   V(_List, get:length, ObjectArrayLength, 215183186)                           \
+  V(_List, _List., ObjectArrayConstructor, 176587978)                          \
   V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
@@ -89,7 +90,7 @@ class Range;
   V(::, cos, MathCos, 1282146521)                                              \
   V(::, min, MathMin, 1022567780)                                              \
   V(::, max, MathMax, 612058870)                                               \
-  V(::, _doublePow, MathDoublePow, 2125162289)                                 \
+  V(::, _doublePow, MathDoublePow, 342259456)                                  \
   V(Float32x4, Float32x4., Float32x4Constructor, 1314950569)                   \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1432281809)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 1148280442)                    \
@@ -201,6 +202,7 @@ class Range;
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
   V(_List, [], ObjectArrayGetIndexed, 675155875)                               \
   V(_List, []=, ObjectArraySetIndexed, 1228569706)                             \
+  V(_List, get:isEmpty, ObjectArrayIsEmpty, 1082804442)                        \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 1768793932)                  \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1282104248)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 807019110)                    \
@@ -1473,6 +1475,8 @@ class BackwardInstructionIterator : public ValueObject {
 
   bool Done() const { return current_ == block_entry_; }
 
+  void RemoveCurrentFromGraph();
+
   Instruction* Current() const { return current_; }
 
  private:
@@ -1592,6 +1596,7 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
+  friend class DeadCodeElimination;
 
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
@@ -1995,6 +2000,9 @@ class PhiInstr : public Definition {
   }
 
   virtual bool MayThrow() const { return false; }
+
+  // A phi is redundant if all input operands are the same.
+  bool IsRedundant() const;
 
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
@@ -3758,6 +3766,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   Value* instance() const { return inputs_[kInstancePos]; }
   Value* value() const { return inputs_[kValuePos]; }
+  bool is_initialization() const { return is_initialization_; }
   virtual intptr_t token_pos() const { return token_pos_; }
 
   virtual CompileType* ComputeInitialType() const;
@@ -4058,7 +4067,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
   virtual intptr_t token_pos() const { return token_pos_; }
 
   virtual CompileType ComputeType() const;
-  // Issues a static call to Dart code whihc calls toString on objects.
+  // Issues a static call to Dart code which calls toString on objects.
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual bool CanDeoptimize() const { return true; }
   virtual bool MayThrow() const { return true; }
@@ -4362,18 +4371,20 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-
   virtual intptr_t token_pos() const { return token_pos_; }
   Value* element_type() const { return inputs_[kElementTypePos]; }
   Value* num_elements() const { return inputs_[kLengthPos]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  // Throw needs environment, which is created only if instruction can
+  // deoptimize.
+  virtual bool CanDeoptimize() const { return MayThrow(); }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
+  // OutOfMemoryError can be called.
+  virtual bool MayThrow() const { return true; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -7437,10 +7448,11 @@ class InvokeMathCFunctionInstr : public Definition {
 
   virtual bool MayThrow() const { return false; }
 
- private:
   static const intptr_t kSavedSpTempIndex = 0;
   static const intptr_t kObjectTempIndex = 1;
   static const intptr_t kDoubleTempIndex = 2;
+
+ private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
   }

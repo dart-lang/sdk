@@ -6,6 +6,7 @@ library barback.transformer.base_transform;
 
 import 'dart:async';
 
+import '../asset/asset_id.dart';
 import '../graph/transform_node.dart';
 import '../log.dart';
 import 'transform_logger.dart';
@@ -18,10 +19,10 @@ import 'transform_logger.dart';
 abstract class BaseTransform {
   final TransformNode _node;
 
-  /// Whether the primary input should be consumed.
+  /// The ids of primary inputs that should be consumed.
   ///
-  /// This is exposed via [BaseTransformController].
-  bool _consumePrimary = false;
+  /// This is exposed by [BaseTransformController].
+  final _consumedPrimaries = new Set<AssetId>();
 
   /// Whether the transformer logged an error.
   ///
@@ -46,21 +47,23 @@ abstract class BaseTransform {
       if (level == LogLevel.ERROR) _loggedError = true;
 
       // If the log isn't already associated with an asset, use the primary.
-      if (asset == null) asset = _node.primary.id;
+      if (asset == null) asset = _node.info.primaryId;
       var entry = new LogEntry(_node.info, asset, level, message, span);
       _onLogController.add(entry);
     });
   }
 
-  /// Consume the primary input so that it doesn't get processed by future
+  /// Consume a primary input so that it doesn't get processed by future
   /// phases or emitted once processing has finished.
   ///
-  /// Normally the primary input will automatically be forwarded unless the
+  /// Normally each primary input will automatically be forwarded unless the
   /// transformer overwrites it by emitting an input with the same id. This
-  /// allows the transformer to tell barback not to forward the primary input
+  /// allows the transformer to tell barback not to forward a primary input
   /// even if it's not overwritten.
-  void consumePrimary() {
-    _consumePrimary = true;
+  void consumePrimary(AssetId id) {
+    // TODO(nweiz): throw an error if an id is consumed that wasn't listed as a
+    // primary input.
+    _consumedPrimaries.add(id);
   }
 }
 
@@ -72,8 +75,8 @@ abstract class BaseTransformController {
   /// The [BaseTransform] controlled by this controller.
   final BaseTransform transform;
 
-  /// Whether the primary input should be consumed.
-  bool get consumePrimary => transform._consumePrimary;
+  /// The ids of primary inputs that should be consumed.
+  Set<AssetId> get consumedPrimaries => transform._consumedPrimaries;
 
   /// Whether the transform logged an error.
   bool get loggedError => transform._loggedError;
@@ -81,14 +84,29 @@ abstract class BaseTransformController {
   /// The stream of log entries emitted by the transformer during a run.
   Stream<LogEntry> get onLog => transform._onLogController.stream;
 
+  /// Whether the transform's input or id stream has been closed.
+  ///
+  /// See also [done].
+  bool get isDone;
+
   BaseTransformController(this.transform);
 
-  /// Notifies the [BaseTransform] that the transformation has finished being
-  /// applied.
+  /// Mark this transform as finished emitting new inputs or input ids.
+  ///
+  /// This is distinct from [cancel] in that it *doesn't* indicate that the
+  /// transform is finished being used entirely. The transformer may still log
+  /// messages and load secondary inputs. This just indicates that all the
+  /// primary inputs are accounted for.
+  void done();
+
+  /// Mark this transform as canceled.
   ///
   /// This will close any streams and release any resources that were allocated
-  /// for the duration of the transformation.
-  void close() {
+  /// for the duration of the transformation. Unlike [done], this indicates that
+  /// the transformation is no longer relevant; either it has returned, or
+  /// something external has preemptively invalidated its results.
+  void cancel() {
+    done();
     transform._onLogController.close();
   }
 }

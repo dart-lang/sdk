@@ -17,7 +17,7 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
     } else if (node.isOperator) {
       return visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
-      if (!Elements.isUnresolved(element) && element.impliesType()) {
+      if (!Elements.isUnresolved(element) && element.impliesType) {
         // A reference to a class literal, typedef or type variable.
         return visitTypeReferenceSend(node);
       } else {
@@ -39,13 +39,13 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
         } else {
           return visitStaticSend(node);
         }
-      } else if (element.impliesType()) {
+      } else if (element.impliesType) {
         // A reference to a class literal, typedef or type variable.
         return visitTypeReferenceSend(node);
-      } else if (element.isInstanceMember()) {
+      } else if (element.isInstanceMember) {
         // Example: f() with 'f' bound to instance method.
         return visitDynamicSend(node);
-      } else if (!element.isInstanceMember()) {
+      } else if (!element.isInstanceMember) {
         // Example: A.f() or f() with 'f' bound to a static function.
         // Also includes new A() or new A.named() which is treated like a
         // static call to a factory.

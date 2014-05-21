@@ -138,7 +138,7 @@ class Process {
 
 class SignalInfo {
  public:
-  SignalInfo(int fd, int signal, SignalInfo* next = NULL)
+  SignalInfo(int fd, int signal, SignalInfo* next)
       : fd_(fd),
         signal_(signal),
         // SignalInfo is expected to be created when in a isolate.

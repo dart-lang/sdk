@@ -1354,11 +1354,16 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   InterfaceType _stringType;
 
   /**
+   * The current library that is being analyzed.
+   */
+  final LibraryElement _currentLibrary;
+
+  /**
    * Initialize a newly created constant verifier.
    *
    * @param errorReporter the error reporter by which errors will be reported
    */
-  ConstantVerifier(this._errorReporter, this._typeProvider) {
+  ConstantVerifier(this._errorReporter, this._currentLibrary, this._typeProvider) {
     this._boolType = _typeProvider.boolType;
     this._intType = _typeProvider.intType;
     this._numType = _typeProvider.numType;
@@ -1415,8 +1420,12 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   Object visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.constKeyword != null) {
+      EvaluationResultImpl result;
       for (Expression element in node.elements) {
-        _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        result = _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+        if (result is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
+        }
       }
     }
     return null;
@@ -1432,18 +1441,27 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Expression key = entry.key;
       if (isConst) {
-        EvaluationResultImpl result = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        _validate(entry.value, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (result is ValidResult) {
-          DartObject value = result.value;
+        EvaluationResultImpl keyResult = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        Expression valueExpression = entry.value;
+        EvaluationResultImpl valueResult = _validate(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+        if (valueResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+        }
+        if (keyResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
+          DartObject value = keyResult.value;
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
             keys.add(value);
           }
+          DartType type = value.type;
+          if (_implementsEqualsWhenNotAllowed(type)) {
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, key, [type.displayName]);
+          }
         }
       } else {
-        EvaluationResultImpl result = key.accept(new ConstantVisitor(_typeProvider));
+        EvaluationResultImpl result = key.accept(new ConstantVisitor.con1(_typeProvider));
         if (result is ValidResult) {
           DartObject value = result.value;
           if (keys.contains(value)) {
@@ -1472,10 +1490,37 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
-    super.visitSwitchCase(node);
-    _validate(node.expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-    return null;
+  Object visitSwitchStatement(SwitchStatement node) {
+    // TODO(paulberry): to minimize error messages, it would be nice to
+    // compare all types with the most popular type rather than the first
+    // type.
+    NodeList<SwitchMember> switchMembers = node.members;
+    bool foundError = false;
+    DartType firstType = null;
+    for (SwitchMember switchMember in switchMembers) {
+      if (switchMember is SwitchCase) {
+        SwitchCase switchCase = switchMember;
+        Expression expression = switchCase.expression;
+        EvaluationResultImpl caseResult = _validate(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+        if (caseResult is ValidResult) {
+          _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+          DartObject value = caseResult.value;
+          if (firstType == null) {
+            firstType = value.type;
+          } else {
+            DartType nType = value.type;
+            if (firstType != nType) {
+              _errorReporter.reportErrorForNode(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, expression, [expression.toSource(), firstType.displayName]);
+              foundError = true;
+            }
+          }
+        }
+      }
+    }
+    if (!foundError) {
+      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
+    }
+    return super.visitSwitchStatement(node);
   }
 
   @override
@@ -1498,14 +1543,76 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         _reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         return null;
       }
-      DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-      initializer.accept(referenceDetector);
-      if (referenceDetector.result) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY, initializer, []);
-        return null;
-      }
+      _reportErrorIfFromDeferredLibrary(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
+  }
+
+  /**
+   * This verifies that the passed switch statement does not have a case expression with the
+   * operator '==' overridden.
+   *
+   * @param node the switch statement to evaluate
+   * @param type the common type of all 'case' expressions
+   * @return `true` if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
+    if (!_implementsEqualsWhenNotAllowed(type)) {
+      return false;
+    }
+    // report error
+    _errorReporter.reportErrorForToken(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, node.keyword, [type.displayName]);
+    return true;
+  }
+
+  /**
+   * @return `true` if given [Type] implements operator <i>==</i>, and it is not
+   *         <i>int</i> or <i>String</i>.
+   */
+  bool _implementsEqualsWhenNotAllowed(DartType type) {
+    // ignore int or String
+    if (type == null || type == _intType || type == _typeProvider.stringType) {
+      return false;
+    } else if (type == _typeProvider.doubleType) {
+      return true;
+    }
+    // prepare ClassElement
+    Element element = type.element;
+    if (element is! ClassElement) {
+      return false;
+    }
+    ClassElement classElement = element as ClassElement;
+    // lookup for ==
+    MethodElement method = classElement.lookUpMethod("==", _currentLibrary);
+    while (method != null && method.isAbstract) {
+      ClassElement definingClass = method.enclosingElement;
+      if (definingClass == null) {
+        return false;
+      }
+      method = definingClass.lookUpInheritedMethod("==", _currentLibrary);
+    }
+    if (method == null || method.enclosingElement.type.isObject) {
+      return false;
+    }
+    // there is == that we don't like
+    return true;
+  }
+
+  /**
+   * Given some computed [Expression], this method generates the passed [ErrorCode] on
+   * the node if its' value consists of information from a deferred library.
+   *
+   * @param expression the expression to be tested for a deferred library reference
+   * @param errorCode the error code to be used if the expression is or consists of a reference to a
+   *          deferred library
+   */
+  void _reportErrorIfFromDeferredLibrary(Expression expression, ErrorCode errorCode) {
+    DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
+    expression.accept(referenceDetector);
+    if (referenceDetector.result) {
+      _errorReporter.reportErrorForNode(errorCode, expression, []);
+    }
   }
 
   /**
@@ -1539,7 +1646,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @return the value of the compile time constant
    */
   EvaluationResultImpl _validate(Expression expression, ErrorCode errorCode) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor(_typeProvider));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor.con1(_typeProvider));
     _reportErrors(result, errorCode);
     return result;
   }
@@ -1576,10 +1683,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           EvaluationResultImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = parameter.element as VariableElementImpl;
           element.evaluationResult = result;
-          DeferredLibraryReferenceDetector referenceDetector = new DeferredLibraryReferenceDetector();
-          defaultValue.accept(referenceDetector);
-          if (result is ValidResult && referenceDetector.result) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY, defaultValue, []);
+          if (result is ValidResult) {
+            _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
       }
@@ -1596,6 +1701,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   void _validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor_ConstantVerifier_validateInitializerExpression(_typeProvider, this, parameterElements));
     _reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    if (result is ValidResult) {
+      _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+    }
   }
 
   /**
@@ -1662,7 +1770,7 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
+  ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super.con1(arg0);
 
   @override
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
@@ -5045,6 +5153,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Generate the type name.
       // The error code will never be generated via type propagation
       DartType targetType = _getStaticType(target);
+      if (targetType is InterfaceType && !targetType.isObject) {
+        targetType = (targetType as InterfaceType).superclass;
+      }
       String targetTypeName = targetType == null ? null : targetType.name;
       _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, methodName, [methodName.name, targetTypeName]);
     }
@@ -5509,10 +5620,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             return _resolveArgumentsToFunction(false, argumentList, callMethod);
           }
         } else if (getterReturnType is FunctionType) {
-          Element functionElement = getterReturnType.element;
-          if (functionElement is ExecutableElement) {
-            return _resolveArgumentsToFunction(false, argumentList, functionElement);
-          }
+          List<ParameterElement> parameters = getterReturnType.parameters;
+          return _resolveArgumentsToParameters(false, argumentList, parameters);
         }
       }
     } else if (element is ExecutableElement) {
@@ -6662,13 +6771,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           element = setter;
         }
       }
-    } else if (element == null && node.inSetterContext()) {
+    } else if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
       element = _resolver.nameScope.lookup(new ElementResolver_SyntheticIdentifier("${node.name}="), _definingLibrary);
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
-      if (element == null && node.inSetterContext()) {
+      if (element == null && (node.inSetterContext() || node.parent is CommentReference)) {
         element = _lookUpSetter(null, enclosingType, node.name);
       }
       if (element == null && node.inGetterContext()) {
@@ -7157,6 +7266,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAsExpression(AsExpression node) {
+    _checkForTypeAnnotationDeferredClass(node.type);
+    return super.visitAsExpression(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
     return super.visitAssertStatement(node);
@@ -7179,7 +7294,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+    sc.Token operator = node.operator;
+    sc.TokenType type = operator.type;
+    if (type == sc.TokenType.AMPERSAND_AMPERSAND || type == sc.TokenType.BAR_BAR) {
+      String lexeme = operator.lexeme;
+      _checkForAssignability(node.leftOperand, _boolType, StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
+      _checkForAssignability(node.rightOperand, _boolType, StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
+    } else {
+      _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+    }
     return super.visitBinaryExpression(node);
   }
 
@@ -7219,6 +7342,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     bool previousIsInCatchClause = _isInCatchClause;
     try {
       _isInCatchClause = true;
+      _checkForTypeAnnotationDeferredClass(node.exceptionType);
       return super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -7557,6 +7681,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitIsExpression(IsExpression node) {
+    _checkForTypeAnnotationDeferredClass(node.type);
+    return super.visitIsExpression(node);
+  }
+
+  @override
   Object visitListLiteral(ListLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -7586,7 +7716,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForMapTypeNotAssignable(node, typeArguments);
     }
     _checkForNonConstMapAsExpressionStatement(node);
-    _checkForConstMapKeyExpressionTypeImplementsEquals(node);
     return super.visitMapLiteral(node);
   }
 
@@ -7752,7 +7881,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    _checkForInconsistentCaseExpressionTypes(node);
     _checkForSwitchExpressionNotAssignable(node);
     _checkForCaseBlocksNotTerminated(node);
     return super.visitSwitchStatement(node);
@@ -8585,6 +8713,31 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check that the static type of the given expression is assignable to the given type. If it
+   * isn't, report an error with the given error code.
+   *
+   * @param expression the expression being tested
+   * @param type the type that the expression must be assignable to
+   * @param errorCode the error code to be reported
+   * @param arguments the arguments to pass in when creating the error
+   * @return `true` if an error was reported
+   */
+  bool _checkForAssignability(Expression expression, InterfaceType type, ErrorCode errorCode, List<Object> arguments) {
+    if (expression == null) {
+      return false;
+    }
+    DartType expressionType = expression.staticType;
+    if (expressionType == null) {
+      return false;
+    }
+    if (expressionType.isAssignableTo(type)) {
+      return false;
+    }
+    _errorReporter.reportErrorForNode(errorCode, expression, arguments);
+    return true;
+  }
+
+  /**
    * This verifies that the passed expression is not final.
    *
    * @param node the expression to evaluate
@@ -8619,10 +8772,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         return true;
       }
       if (variable.isFinal) {
+        if (variable is FieldElementImpl && variable.setter == null && variable.isSynthetic) {
+          _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, highlightedNode, [variable.name, variable.enclosingElement.displayName]);
+          return true;
+        }
         _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL, highlightedNode, [variable.name]);
         return true;
       }
       return false;
+    }
+    if (element is FunctionElement) {
+      _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression, []);
+      return true;
     }
     if (element is MethodElement) {
       _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression, []);
@@ -8714,24 +8875,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return foundError;
-  }
-
-  /**
-   * This verifies that the passed switch statement does not have a case expression with the
-   * operator '==' overridden.
-   *
-   * @param node the switch statement to evaluate
-   * @param type the common type of all 'case' expressions
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  bool _checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, DartType type) {
-    if (!_implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    _errorReporter.reportErrorForToken(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, node.keyword, [type.displayName]);
-    return true;
   }
 
   /**
@@ -9122,6 +9265,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (node.factoryKeyword != null) {
       return false;
     }
+    // check for mixins
+    if (_enclosingClass.mixins.length != 0) {
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, node.returnType, []);
+      return true;
+    }
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer in node.initializers) {
       if (initializer is SuperConstructorInvocation) {
@@ -9130,7 +9278,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (element == null || element.isConst) {
           return false;
         }
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, superInvocation, []);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, superInvocation, [element.enclosingElement.displayName]);
         return true;
       }
     }
@@ -9150,7 +9298,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // default constructor is not 'const', report problem
-    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node.returnType, []);
+    _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node.returnType, [supertype.displayName]);
     return true;
   }
 
@@ -9224,32 +9372,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This verifies that the all keys of the passed map literal have class type that does not declare
-   * operator <i>==<i>.
-   *
-   * @param key the map literal to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
-   */
-  bool _checkForConstMapKeyExpressionTypeImplementsEquals(MapLiteral node) {
-    // OK, not const.
-    if (node.constKeyword == null) {
-      return false;
-    }
-    // Check every map entry.
-    bool hasProblems = false;
-    for (MapLiteralEntry entry in node.entries) {
-      Expression key = entry.key;
-      DartType type = key.staticType;
-      if (_implementsEqualsWhenNotAllowed(type)) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, key, [type.displayName]);
-        hasProblems = true;
-      }
-    }
-    return hasProblems;
   }
 
   /**
@@ -10005,42 +10127,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // report problem
     _errorReporter.reportErrorForNode(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, node, [node.uri]);
     return true;
-  }
-
-  /**
-   * This verifies that the passed switch statement case expressions all have the same type.
-   *
-   * @param node the switch statement to evaluate
-   * @return `true` if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
-   */
-  bool _checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
-    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors?
-    NodeList<SwitchMember> switchMembers = node.members;
-    bool foundError = false;
-    DartType firstType = null;
-    for (SwitchMember switchMember in switchMembers) {
-      if (switchMember is SwitchCase) {
-        SwitchCase switchCase = switchMember;
-        Expression expression = switchCase.expression;
-        if (firstType == null) {
-          // TODO(brianwilkerson) This is failing with const variables whose declared type is
-          // dynamic. The problem is that we don't have any way to propagate type information for
-          // the variable.
-          firstType = expression.bestType;
-        } else {
-          DartType nType = expression.bestType;
-          if (firstType != nType) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, expression, [expression.toSource(), firstType.displayName]);
-            foundError = true;
-          }
-        }
-      }
-    }
-    if (!foundError) {
-      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
-    }
-    return foundError;
   }
 
   /**
@@ -11032,6 +11118,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
    * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
    * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
+   * @see CompileTimeErrorCode#REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
    */
   bool _checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
     bool errorReported = false;
@@ -11054,6 +11141,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (numRedirections > 0) {
           _errorReporter.reportErrorForNode(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS, initializer, []);
           errorReported = true;
+        }
+        if (node.factoryKeyword == null) {
+          RedirectingConstructorInvocation invocation = initializer;
+          ConstructorElement redirectingElement = invocation.staticElement;
+          if (redirectingElement == null) {
+            String enclosingTypeName = _enclosingClass.displayName;
+            String constructorStrName = enclosingTypeName;
+            if (invocation.constructorName != null) {
+              constructorStrName += ".${invocation.constructorName.name}";
+            }
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR, invocation, [constructorStrName, enclosingTypeName]);
+          } else {
+            if (redirectingElement.isFactory) {
+              _errorReporter.reportErrorForNode(CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR, initializer, []);
+            }
+          }
         }
         numRedirections++;
       }
@@ -11766,30 +11869,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  /**
-   * @return `true` if given [Type] implements operator <i>==</i>, and it is not
-   *         <i>int</i> or <i>String</i>.
-   */
-  bool _implementsEqualsWhenNotAllowed(DartType type) {
-    // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
-      return false;
-    }
-    // prepare ClassElement
-    Element element = type.element;
-    if (element is! ClassElement) {
-      return false;
-    }
-    ClassElement classElement = element as ClassElement;
-    // lookup for ==
-    MethodElement method = classElement.lookUpMethod("==", _currentLibrary);
-    if (method == null || method.enclosingElement.type.isObject) {
-      return false;
-    }
-    // there is == that we don't like
-    return true;
-  }
-
   bool _isFunctionType(DartType type) {
     if (type.isDynamic || type.isBottom) {
       return true;
@@ -11984,13 +12063,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitArgumentList(ArgumentList node) => _visitExpressions(node.arguments);
 
   @override
-  bool visitAsExpression(AsExpression node) => node.expression.accept(this);
+  bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
 
   @override
-  bool visitAssertStatement(AssertStatement node) => node.condition.accept(this);
+  bool visitAssertStatement(AssertStatement node) => _nodeExits(node.condition);
 
   @override
-  bool visitAssignmentExpression(AssignmentExpression node) => node.leftHandSide.accept(this) || node.rightHandSide.accept(this);
+  bool visitAssignmentExpression(AssignmentExpression node) => _nodeExits(node.leftHandSide) || _nodeExits(node.rightHandSide);
 
   @override
   bool visitBinaryExpression(BinaryExpression node) {
@@ -12019,14 +12098,14 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
     }
     Expression rhsExpression = node.rightOperand;
-    return (lhsExpression != null && lhsExpression.accept(this)) || (rhsExpression != null && rhsExpression.accept(this));
+    return _nodeExits(lhsExpression) || _nodeExits(rhsExpression);
   }
 
   @override
   bool visitBlock(Block node) => _visitStatements(node.statements);
 
   @override
-  bool visitBlockFunctionBody(BlockFunctionBody node) => node.block.accept(this);
+  bool visitBlockFunctionBody(BlockFunctionBody node) => _nodeExits(node.block);
 
   @override
   bool visitBreakStatement(BreakStatement node) {
@@ -12035,13 +12114,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    if (target.accept(this)) {
-      return true;
-    }
-    return _visitExpressions(node.cascadeSections);
-  }
+  bool visitCascadeExpression(CascadeExpression node) => _nodeExits(node.target) || _visitExpressions(node.cascadeSections);
 
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
@@ -12050,7 +12123,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     Expression elseStatement = node.elseExpression;
     // TODO(jwren) Do we want to take constant expressions into account, evaluate if(false) {}
     // differently than if(<condition>), when <condition> evaluates to a constant false value?
-    if (conditionExpression.accept(this)) {
+    if (_nodeExits(conditionExpression)) {
       return true;
     }
     if (thenStatement == null || elseStatement == null) {
@@ -12068,7 +12141,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       Expression conditionExpression = node.condition;
-      if (conditionExpression.accept(this)) {
+      if (_nodeExits(conditionExpression)) {
         return true;
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
@@ -12076,7 +12149,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         BooleanLiteral booleanLiteral = conditionExpression;
         // If do {} while (true), and the body doesn't return or the body doesn't have a break, then
         // return true.
-        bool blockReturns = node.body.accept(this);
+        bool blockReturns = _nodeExits(node.body);
         if (booleanLiteral.value && (blockReturns || !_enclosingBlockContainsBreak)) {
           return true;
         }
@@ -12091,14 +12164,14 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) => false;
 
   @override
-  bool visitExpressionStatement(ExpressionStatement node) => node.expression.accept(this);
+  bool visitExpressionStatement(ExpressionStatement node) => _nodeExits(node.expression);
 
   @override
   bool visitForEachStatement(ForEachStatement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      return node.iterator.accept(this);
+      return _nodeExits(node.iterator);
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
@@ -12112,11 +12185,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (node.variables != null && _visitVariableDeclarations(node.variables.variables)) {
         return true;
       }
-      if (node.initialization != null && node.initialization.accept(this)) {
+      if (node.initialization != null && _nodeExits(node.initialization)) {
         return true;
       }
       Expression conditionExpression = node.condition;
-      if (conditionExpression != null && conditionExpression.accept(this)) {
+      if (conditionExpression != null && _nodeExits(conditionExpression)) {
         return true;
       }
       if (_visitExpressions(node.updaters)) {
@@ -12127,7 +12200,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       // break, then return true.
       bool implicitOrExplictTrue = conditionExpression == null || (conditionExpression is BooleanLiteral && conditionExpression.value);
       if (implicitOrExplictTrue) {
-        bool blockReturns = node.body.accept(this);
+        bool blockReturns = _nodeExits(node.body);
         if (blockReturns || !_enclosingBlockContainsBreak) {
           return true;
         }
@@ -12146,7 +12219,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.function.accept(this)) {
+    if (_nodeExits(node.function)) {
       return true;
     }
     return node.argumentList.accept(this);
@@ -12160,7 +12233,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     Expression conditionExpression = node.condition;
     Statement thenStatement = node.thenStatement;
     Statement elseStatement = node.elseStatement;
-    if (conditionExpression.accept(this)) {
+    if (_nodeExits(conditionExpression)) {
       return true;
     }
     // TODO(jwren) Do we want to take all constant expressions into account?
@@ -12168,32 +12241,32 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       BooleanLiteral booleanLiteral = conditionExpression;
       if (booleanLiteral.value) {
         // if(true) ...
-        return thenStatement.accept(this);
+        return _nodeExits(thenStatement);
       } else if (elseStatement != null) {
         // if (false) ...
-        return elseStatement.accept(this);
+        return _nodeExits(elseStatement);
       }
     }
     if (thenStatement == null || elseStatement == null) {
       return false;
     }
-    return thenStatement.accept(this) && elseStatement.accept(this);
+    return _nodeExits(thenStatement) && _nodeExits(elseStatement);
   }
 
   @override
   bool visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
-    if (target != null && target.accept(this)) {
+    if (_nodeExits(target)) {
       return true;
     }
-    if (node.index.accept(this)) {
+    if (_nodeExits(node.index)) {
       return true;
     }
     return false;
   }
 
   @override
-  bool visitInstanceCreationExpression(InstanceCreationExpression node) => node.argumentList.accept(this);
+  bool visitInstanceCreationExpression(InstanceCreationExpression node) => _nodeExits(node.argumentList);
 
   @override
   bool visitIsExpression(IsExpression node) => node.expression.accept(this);
@@ -12213,7 +12286,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (target != null && target.accept(this)) {
       return true;
     }
-    return node.argumentList.accept(this);
+    return _nodeExits(node.argumentList);
   }
 
   @override
@@ -12289,11 +12362,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitTryStatement(TryStatement node) {
-    if (node.body.accept(this)) {
+    if (_nodeExits(node.body)) {
       return true;
     }
     Block finallyBlock = node.finallyBlock;
-    if (finallyBlock != null && finallyBlock.accept(this)) {
+    if (_nodeExits(finallyBlock)) {
       return true;
     }
     return false;
@@ -12348,6 +12421,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
+  }
+
+  /**
+   * Return `true` if the given node exits.
+   *
+   * @param node the node being tested
+   * @return `true` if the given node exits
+   */
+  bool _nodeExits(AstNode node) {
+    if (node == null) {
+      return false;
+    }
+    return node.accept(this);
   }
 
   bool _visitExpressions(NodeList<Expression> expressions) {
@@ -12757,9 +12843,9 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
           script.scriptLibrary = library;
           _resolvedLibraries.addAll(resolver.resolvedLibraries);
           _errorListener.addAll(resolver.errorListener);
-        } on AnalysisException catch (exception) {
+        } on AnalysisException catch (exception, stackTrace) {
           //TODO (danrubel): Handle or forward the exception
-          AnalysisEngine.instance.logger.logError2("Could not resolve script tag", exception);
+          AnalysisEngine.instance.logger.logError2("Could not resolve script tag", new CaughtException(exception, stackTrace));
         }
         node.scriptElement = script;
         _scripts.add(script);
@@ -13307,7 +13393,7 @@ class IncrementalResolver {
     AstNode rootNode = _findResolutionRoot(node);
     Scope scope = ScopeBuilder.scopeFor(rootNode, _errorListener);
     if (_elementModelChanged(rootNode.parent)) {
-      throw new AnalysisException.con1("Cannot resolve node: element model changed");
+      throw new AnalysisException("Cannot resolve node: element model changed");
     }
     _resolveTypes(node, scope);
     _resolveVariables(node, scope);
@@ -13334,7 +13420,7 @@ class IncrementalResolver {
   bool _elementModelChanged(AstNode node) {
     Element element = _getElement(node);
     if (element == null) {
-      throw new AnalysisException.con1("Cannot resolve node: a ${node.runtimeType.toString()} does not define an element");
+      throw new AnalysisException("Cannot resolve node: a ${node.runtimeType.toString()} does not define an element");
     }
     DeclarationMatcher matcher = new DeclarationMatcher();
     return !matcher.matches(node, element);
@@ -13356,7 +13442,7 @@ class IncrementalResolver {
       parent = result.parent;
     }
     if (parent == null) {
-      throw new AnalysisException.con1("Cannot resolve node: no resolvable node");
+      throw new AnalysisException("Cannot resolve node: no resolvable node");
     }
     return result;
   }
@@ -14530,8 +14616,8 @@ class Library {
     if (_libraryElement == null) {
       try {
         _libraryElement = _analysisContext.computeLibraryElement(librarySource) as LibraryElementImpl;
-      } on AnalysisException catch (exception) {
-        AnalysisEngine.instance.logger.logError2("Could not compute library element for ${librarySource.fullName}", exception);
+      } on AnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logError2("Could not compute library element for ${librarySource.fullName}", new CaughtException(exception, stackTrace));
       }
     }
     return _libraryElement;
@@ -15175,7 +15261,7 @@ class LibraryResolver {
         // This will be true unless the library being analyzed is the core library.
         _coreLibrary = createLibrary(_coreLibrarySource);
         if (_coreLibrary == null) {
-          throw new AnalysisException.con1("Core library does not exist");
+          throw new AnalysisException("Core library does not exist");
         }
       }
       instrumentation.metric3("createLibrary", "complete");
@@ -15202,7 +15288,7 @@ class LibraryResolver {
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
       if (coreElement == null) {
-        throw new AnalysisException.con1("Could not resolve dart:core");
+        throw new AnalysisException("Could not resolve dart:core");
       }
       _buildDirectiveModels();
       instrumentation.metric3("buildDirectiveModels", "complete");
@@ -15259,7 +15345,7 @@ class LibraryResolver {
         // This will be true unless the library being analyzed is the core library.
         _coreLibrary = _createLibraryOrNull(_coreLibrarySource);
         if (_coreLibrary == null) {
-          throw new AnalysisException.con1("Core library does not exist");
+          throw new AnalysisException("Core library does not exist");
         }
       }
       instrumentation.metric3("createLibrary", "complete");
@@ -15286,7 +15372,7 @@ class LibraryResolver {
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
       if (coreElement == null) {
-        throw new AnalysisException.con1("Could not resolve dart:core");
+        throw new AnalysisException("Could not resolve dart:core");
       }
       _buildDirectiveModels();
       instrumentation.metric3("buildDirectiveModels", "complete");
@@ -15739,8 +15825,8 @@ class LibraryResolver {
             if (unit != null) {
               computer.add(unit);
             }
-          } on AnalysisException catch (exception) {
-            AnalysisEngine.instance.logger.logError2("Internal Error: Could not access AST for ${source.fullName} during constant evaluation", exception);
+          } on AnalysisException catch (exception, stackTrace) {
+            AnalysisEngine.instance.logger.logError2("Internal Error: Could not access AST for ${source.fullName} during constant evaluation", new CaughtException(exception, stackTrace));
           }
         }
       }
@@ -15934,7 +16020,7 @@ class LibraryResolver2 {
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
       if (coreElement == null) {
-        throw new AnalysisException.con1("Could not resolve dart:core");
+        throw new AnalysisException("Could not resolve dart:core");
       }
       _buildDirectiveModels();
       instrumentation.metric3("buildDirectiveModels", "complete");
@@ -17622,6 +17708,12 @@ class ResolverVisitor extends ScopedVisitor {
   ClassElement _enclosingClass = null;
 
   /**
+   * The class declaration representing the class containing the current node, or `null` if
+   * the current node is not contained in a class.
+   */
+  ClassDeclaration _enclosingClassDeclaration = null;
+
+  /**
    * The element representing the function containing the current node, or `null` if the
    * current node is not contained in a function.
    */
@@ -17716,6 +17808,14 @@ class ResolverVisitor extends ScopedVisitor {
   TypePromotionManager get promoteManager => _promoteManager;
 
   @override
+  Object visitAnnotation(Annotation node) {
+    if (identical(node.parent, _enclosingClassDeclaration)) {
+      return null;
+    }
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     overrideExpression(node.expression, node.type.type);
@@ -17800,6 +17900,12 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    // Resolve the class metadata in the library scope.
+    if (node.metadata != null) {
+      node.metadata.accept(this);
+    }
+    _enclosingClassDeclaration = node;
+    // Continue the class resolution.
     ClassElement outerType = _enclosingClass;
     try {
       _enclosingClass = node.element;
@@ -17808,6 +17914,7 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
       _enclosingClass = outerType;
+      _enclosingClassDeclaration = null;
     }
     return null;
   }
@@ -19038,14 +19145,14 @@ class ScopeBuilder {
    */
   static Scope scopeFor(AstNode node, AnalysisErrorListener errorListener) {
     if (node == null) {
-      throw new AnalysisException.con1("Cannot create scope: node is null");
+      throw new AnalysisException("Cannot create scope: node is null");
     } else if (node is CompilationUnit) {
       ScopeBuilder builder = new ScopeBuilder(errorListener);
       return builder._scopeForAstNode(node);
     }
     AstNode parent = node.parent;
     if (parent == null) {
-      throw new AnalysisException.con1("Cannot create scope: node is not part of a CompilationUnit");
+      throw new AnalysisException("Cannot create scope: node is not part of a CompilationUnit");
     }
     ScopeBuilder builder = new ScopeBuilder(errorListener);
     return builder._scopeForAstNode(parent);
@@ -19081,25 +19188,25 @@ class ScopeBuilder {
     }
     AstNode parent = node.parent;
     if (parent == null) {
-      throw new AnalysisException.con1("Cannot create scope: node is not part of a CompilationUnit");
+      throw new AnalysisException("Cannot create scope: node is not part of a CompilationUnit");
     }
     Scope scope = _scopeForAstNode(parent);
     if (node is ClassDeclaration) {
       ClassElement element = node.element;
       if (element == null) {
-        throw new AnalysisException.con1("Cannot build a scope for an unresolved class");
+        throw new AnalysisException("Cannot build a scope for an unresolved class");
       }
       scope = new ClassScope(scope, element);
     } else if (node is ClassTypeAlias) {
       ClassElement element = node.element;
       if (element == null) {
-        throw new AnalysisException.con1("Cannot build a scope for an unresolved class type alias");
+        throw new AnalysisException("Cannot build a scope for an unresolved class type alias");
       }
       scope = new ClassScope(scope, element);
     } else if (node is ConstructorDeclaration) {
       ConstructorElement element = node.element;
       if (element == null) {
-        throw new AnalysisException.con1("Cannot build a scope for an unresolved constructor");
+        throw new AnalysisException("Cannot build a scope for an unresolved constructor");
       }
       FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
@@ -19107,7 +19214,7 @@ class ScopeBuilder {
     } else if (node is FunctionDeclaration) {
       ExecutableElement element = node.element;
       if (element == null) {
-        throw new AnalysisException.con1("Cannot build a scope for an unresolved function");
+        throw new AnalysisException("Cannot build a scope for an unresolved function");
       }
       FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
@@ -19117,7 +19224,7 @@ class ScopeBuilder {
     } else if (node is MethodDeclaration) {
       ExecutableElement element = node.element;
       if (element == null) {
-        throw new AnalysisException.con1("Cannot build a scope for an unresolved method");
+        throw new AnalysisException("Cannot build a scope for an unresolved method");
       }
       FunctionScope functionScope = new FunctionScope(scope, element);
       functionScope.defineParameters();
@@ -19129,11 +19236,11 @@ class ScopeBuilder {
   Scope _scopeForCompilationUnit(CompilationUnit node) {
     CompilationUnitElement unitElement = node.element;
     if (unitElement == null) {
-      throw new AnalysisException.con1("Cannot create scope: compilation unit is not resolved");
+      throw new AnalysisException("Cannot create scope: compilation unit is not resolved");
     }
     LibraryElement libraryElement = unitElement.library;
     if (libraryElement == null) {
-      throw new AnalysisException.con1("Cannot create scope: compilation unit is not part of a library");
+      throw new AnalysisException("Cannot create scope: compilation unit is not part of a library");
     }
     return new LibraryScope(libraryElement, _errorListener);
   }

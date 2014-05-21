@@ -121,12 +121,21 @@ class IsolateViewElement extends ObservatoryElement {
     isolate.reload().whenComplete(done);
   }
 
-  void resume(var a, var b, var c) {
-    isolate.get("resume").then((result) {
-      // TODO(turnidge): Instead of asserting here, handling errors
-      // properly.
-      assert(result.serviceType == 'Success');
-      isolate.reload();
-    });
+  Future pause(_) {
+    return isolate.get("debug/pause").then((result) {
+        // TODO(turnidge): Instead of asserting here, handle errors
+        // properly.
+        assert(result.serviceType == 'Success');
+        return isolate.reload();
+      });
+  }
+
+  Future resume(_) {
+    return isolate.get("resume").then((result) {
+        // TODO(turnidge): Instead of asserting here, handle errors
+        // properly.
+        assert(result.serviceType == 'Success');
+        return isolate.reload();
+      });
   }
 }

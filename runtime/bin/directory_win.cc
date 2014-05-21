@@ -302,32 +302,32 @@ static bool DeleteRecursively(PathBuffer* path) {
   WIN32_FIND_DATAW find_file_data;
   HANDLE find_handle = FindFirstFileW(path->AsStringW(), &find_file_data);
 
-  // Adjust the path by removing the '*' used for the search.
-  int path_length = path->length() - 1;
-  path->Reset(path_length);
-
   if (find_handle == INVALID_HANDLE_VALUE) {
     return false;
   }
 
+  // Adjust the path by removing the '*' used for the search.
+  int path_length = path->length() - 1;
+  path->Reset(path_length);
+
   do {
     if (!DeleteEntry(&find_file_data, path)) {
-      DWORD last_error = GetLastError();
-      FindClose(find_handle);
-      SetLastError(last_error);
-      return false;
+      break;
     }
     path->Reset(path_length);  // DeleteEntry adds to the path.
   } while (FindNextFileW(find_handle, &find_file_data) != 0);
 
-  path->Reset(path_length - 1);  // Drop the "\" from the end of the path.
-  if ((GetLastError() != ERROR_NO_MORE_FILES) ||
-      (FindClose(find_handle) == 0) ||
-      (RemoveDirectoryW(path->AsStringW()) == 0)) {
+  DWORD last_error = GetLastError();
+  // Always close handle.
+  FindClose(find_handle);
+  if (last_error != ERROR_NO_MORE_FILES) {
+    // Unexpected error, set and return.
+    SetLastError(last_error);
     return false;
   }
-
-  return true;
+  // All content deleted succesfully, try to delete directory.
+  path->Reset(path_length - 1);  // Drop the "\" from the end of the path.
+  return RemoveDirectoryW(path->AsStringW()) != 0;
 }
 
 

@@ -6,6 +6,9 @@ library trydart.decoration;
 
 import 'dart:html';
 
+import 'shadow_root.dart' show
+    setShadowRoot;
+
 class Decoration {
   final String color;
   final bool bold;
@@ -70,35 +73,23 @@ class DiagnosticDecoration extends Decoration {
   }
 }
 
-info(text) {
-  if (text is String) {
-    text = new Text(text);
+createAlert(text, [String cls]) {
+  var classes = ['alert'];
+  if (cls != null) {
+    classes.add(cls);
   }
-  return new SpanElement()
-      ..classes.addAll(['alert', 'alert-info'])
-      ..style.opacity = '0.75'
-      ..append(text);
+  SpanElement result = new SpanElement()
+      ..classes.addAll(classes)
+      ..style.opacity = '0.75';
+  setShadowRoot(result, text);
+  return result;
 }
 
-error(text) {
-  if (text is String) {
-    text = new Text(text);
-  }
-  return new SpanElement()
-      ..classes.addAll(['alert', 'alert-error'])
-      ..style.opacity = '0.75'
-      ..append(text);
-}
+info(text) => createAlert(text, 'alert-info');
 
-warning(text) {
-  if (text is String) {
-    text = new Text(text);
-  }
-  return new SpanElement()
-      ..classes.add('alert')
-      ..style.opacity = '0.75'
-      ..append(text);
-}
+error(text) => createAlert(text, 'alert-error');
+
+warning(text) => createAlert(text);
 
 class CodeCompletionDecoration extends Decoration {
   const CodeCompletionDecoration(

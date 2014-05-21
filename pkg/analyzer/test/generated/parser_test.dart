@@ -3195,6 +3195,7 @@ class ParserTestCase extends EngineTestCase {
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
+    parser.parseDeferredLibraries = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     JUnitTestCase.assertNotNull(unit);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3294,6 +3295,7 @@ class ParserTestCase extends EngineTestCase {
     //
     Parser parser = new Parser(null, listener);
     parser.parseFunctionBodies = parseFunctionBodies;
+    parser.parseDeferredLibraries = true;
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.

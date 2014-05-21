@@ -35,7 +35,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     if (cachedClassesUsingTypeVariableTests == null) {
       cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
           .where((DartType t) => t is TypeVariableType)
-          .map((TypeVariableType v) => v.element.getEnclosingClass())
+          .map((TypeVariableType v) => v.element.enclosingClass)
           .toList();
     }
     return cachedClassesUsingTypeVariableTests;
@@ -52,10 +52,11 @@ class TypeTestEmitter extends CodeEmitterHelper {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
-    void generateFunctionTypeSignature(Element method, FunctionType type) {
+    void generateFunctionTypeSignature(FunctionElement method,
+                                       FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      Node node = method.parseNode(compiler);
+      Node node = method.node;
       ClosureClassMap closureData =
           compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
@@ -116,7 +117,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
-      if (a.isClosure()) return true;
+      if (a.isClosure) return true;
       return backend.rti.isTrivialSubstitution(a, b);
     }
 
@@ -166,7 +167,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
         // If [cls] is a closure, it has a synthetic call operator method.
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
-      if (call != null && call.isFunction()) {
+      if (call != null && call.isFunction) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   emitSubstitution,
@@ -372,12 +373,12 @@ class TypeTestEmitter extends CodeEmitterHelper {
     }
 
     bool canTearOff(Element function) {
-      if (!function.isFunction() ||
-          function.isConstructor() ||
-          function.isAccessor()) {
+      if (!function.isFunction ||
+          function.isConstructor ||
+          function.isAccessor) {
         return false;
-      } else if (function.isInstanceMember()) {
-        if (!function.getEnclosingClass().isClosure()) {
+      } else if (function.isInstanceMember) {
+        if (!function.enclosingClass.isClosure) {
           return compiler.codegenWorld.hasInvokedGetter(function, compiler);
         }
       }

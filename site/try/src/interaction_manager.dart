@@ -14,7 +14,12 @@ import 'dart:math' show
     min;
 
 import 'dart:async' show
-    Future;
+    Completer,
+    Future,
+    Timer;
+
+import 'dart:collection' show
+    Queue;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
@@ -30,7 +35,7 @@ import 'package:compiler/implementation/source_file.dart' show
 
 import 'compilation.dart' show
     currentSource,
-    scheduleCompilation;
+    startCompilation;
 
 import 'ui.dart' show
     currentTheme,
@@ -64,9 +69,21 @@ import 'mock.dart' as mock;
 
 import 'settings.dart' as settings;
 
+import 'shadow_root.dart' show
+    getShadowRoot,
+    getText,
+    removeShadowRootPolyfill,
+    setShadowRoot;
+
 const String TRY_DART_NEW_DEFECT =
     'https://code.google.com/p/dart/issues/entry'
     '?template=Try+Dart+Internal+Error';
+
+const Duration HEARTBEAT_INTERVAL = const Duration(milliseconds: 500);
+
+const Duration SAVE_INTERVAL = const Duration(seconds: 5);
+
+const Duration COMPILE_INTERVAL = const Duration(seconds: 1);
 
 /**
  * UI interaction manager for the entire application.
@@ -77,7 +94,7 @@ abstract class InteractionManager {
   //
   // Simplicity in UI is in the eye of the beholder, not the implementor. Great
   // 'natural UI' is usually achieved with substantial implementation
-  // complexity that doesn't modularise well and has nasty complicated state
+  // complexity that doesn't modularize well and has nasty complicated state
   // dependencies.
   //
   // In rare cases, some UI components can be independent of this state
@@ -110,6 +127,9 @@ abstract class InteractionManager {
 
   /// Called when notified about a project file changed (on the server).
   void onProjectFileFsEvent(MessageEvent e);
+
+  /// Called every 500ms.
+  void onHeartbeat(Timer timer);
 }
 
 /**
@@ -120,15 +140,26 @@ class InteractionContext extends InteractionManager {
 
   final Map<String, CompilationUnit> projectFiles = <String, CompilationUnit>{};
 
+  final Set<CompilationUnit> modifiedUnits = new Set<CompilationUnit>();
+
+  final Queue<CompilationUnit> unitsToSave = new Queue<CompilationUnit>();
+
+  final Stopwatch saveTimer = new Stopwatch();
+
+  final Stopwatch compileTimer = new Stopwatch();
+
   CompilationUnit currentCompilationUnit =
       // TODO(ahe): Don't use a fake unit.
       new CompilationUnit('fake', '');
 
-  CompilationUnit lastSaved;
+  Timer heartbeat;
+
+  Completer<String> completeSaveOperation;
 
   InteractionContext()
       : super.internal() {
     state = new InitialState(this);
+    heartbeat = new Timer.periodic(HEARTBEAT_INTERVAL, onHeartbeat);
   }
 
   void onInput(Event event) => state.onInput(event);
@@ -180,6 +211,8 @@ class InteractionContext extends InteractionManager {
   void onProjectFileFsEvent(MessageEvent e) {
     return state.onProjectFileFsEvent(e);
   }
+
+  void onHeartbeat(Timer timer) => state.onHeartbeat(timer);
 }
 
 abstract class InteractionState implements InteractionManager {
@@ -257,8 +290,6 @@ class InitialState extends InteractionState {
       }
     }
 
-    // editor.scheduleRemoveCodeCompletion();
-
     // This is a hack to get Safari (iOS) to send mutation events on
     // contenteditable.
     // TODO(ahe): Move to onInput?
@@ -270,11 +301,7 @@ class InitialState extends InteractionState {
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     print('onMutation');
 
-    List<Node> highlighting = mainEditorPane.querySelectorAll(
-        'a.diagnostic>span, .dart-code-completion, .hazed-suggestion');
-    for (Element element in highlighting) {
-      element.remove();
-    }
+    removeCodeCompletion();
 
     Selection selection = window.getSelection();
     TrySelection trySelection = new TrySelection(mainEditorPane, selection);
@@ -289,9 +316,11 @@ class InitialState extends InteractionState {
       if (node is Element && node.classes.contains('lineNumber')) {
         print('Single line change: ${node.outerHtml}');
 
+        removeShadowRootPolyfill(node);
+
         String currentText = node.text;
 
-        trySelection = new TrySelection(node, selection);
+        trySelection = trySelection.copyWithRoot(node);
         trySelection.updateText(currentText);
 
         editor.isMalformedInput = false;
@@ -315,13 +344,17 @@ class InitialState extends InteractionState {
         node.remove();
         trySelection.adjust(selection);
 
+        // TODO(ahe): We know almost exactly what has changed.  It could be
+        // more efficient to only communicate what changed.
+        context.currentCompilationUnit.content = getText(mainEditorPane);
+
         // Discard highlighting mutations.
         observer.takeRecords();
         return;
       }
     }
 
-    String currentText = mainEditorPane.text;
+    String currentText = getText(mainEditorPane);
     trySelection.updateText(currentText);
 
     context.currentCompilationUnit.content = currentText;
@@ -355,33 +388,26 @@ class InitialState extends InteractionState {
 
   void onStateChanged(InteractionState previous) {
     super.onStateChanged(previous);
-    scheduleCompilation();
+    context.compileTimer
+        ..start()
+        ..reset();
   }
 
   void onCompilationUnitChanged(CompilationUnit unit) {
     if (unit == context.currentCompilationUnit) {
       currentSource = unit.content;
-      print("Saved source of '${unit.name}'");
       if (context.projectFiles.containsKey(unit.name)) {
         postProjectFileUpdate(unit);
       }
-      scheduleCompilation();
+      context.compileTimer.start();
     } else {
       print("Unexpected change to compilation unit '${unit.name}'.");
     }
   }
 
   void postProjectFileUpdate(CompilationUnit unit) {
-    context.lastSaved = unit;
-    onError(ProgressEvent event) {
-      HttpRequest request = event.target;
-      statusDiv.text = "Couldn't save '${unit.name}': ${request.responseText}";
-      context.lastSaved = null;
-    }
-    new HttpRequest()
-        ..open("POST", "/project/${unit.name}")
-        ..onError.listen(onError)
-        ..send(unit.content);
+    context.modifiedUnits.add(unit);
+    context.saveTimer.start();
   }
 
   Future<List<String>> projectFileNames() {
@@ -440,15 +466,66 @@ class InitialState extends InteractionState {
     List modified = map['modify'];
     if (modified == null) return;
     for (String name in modified) {
-      if (context.lastSaved != null && context.lastSaved.name == name) {
-        context.lastSaved = null;
-        continue;
-      }
-      if (context.currentCompilationUnit.name == name) {
-        mainEditorPane.contentEditable = 'false';
-        statusDiv.text = 'Modified on disk';
+      Completer completer = context.completeSaveOperation;
+      if (completer != null && !completer.isCompleted) {
+        completer.complete(name);
+      } else {
+        onUnexpectedServerModification(name);
       }
     }
+  }
+
+  void onUnexpectedServerModification(String name) {
+    if (context.currentCompilationUnit.name == name) {
+      mainEditorPane.contentEditable = 'false';
+      statusDiv.text = 'Modified on disk';
+    }
+  }
+
+  void onHeartbeat(Timer timer) {
+    if (context.unitsToSave.isEmpty &&
+        context.saveTimer.elapsed > SAVE_INTERVAL) {
+      context.saveTimer
+          ..stop()
+          ..reset();
+      context.unitsToSave.addAll(context.modifiedUnits);
+      context.modifiedUnits.clear();
+      saveUnits();
+    }
+    if (!settings.compilationPaused &&
+        context.compileTimer.elapsed > COMPILE_INTERVAL) {
+      if (startCompilation()) {
+        context.compileTimer
+            ..stop()
+            ..reset();
+      }
+    }
+  }
+
+  void saveUnits() {
+    if (context.unitsToSave.isEmpty) return;
+    CompilationUnit unit = context.unitsToSave.removeFirst();
+    onError(ProgressEvent event) {
+      HttpRequest request = event.target;
+      statusDiv.text = "Couldn't save '${unit.name}': ${request.responseText}";
+      context.completeSaveOperation.complete(unit.name);
+    }
+    new HttpRequest()
+        ..open("POST", "/project/${unit.name}")
+        ..onError.listen(onError)
+        ..send(unit.content);
+    void setupCompleter() {
+      context.completeSaveOperation = new Completer<String>.sync();
+      context.completeSaveOperation.future.then((String name) {
+        if (name == unit.name) {
+          print("Saved source of '$name'");
+          saveUnits();
+        } else {
+          setupCompleter();
+        }
+      });
+    }
+    setupCompleter();
   }
 }
 
@@ -521,6 +598,9 @@ class CodeCompletionState extends InitialState {
       case KeyCode.ENTER:
         event.preventDefault();
         return endCompletion(acceptSuggestion: true);
+
+      case KeyCode.SPACE:
+        return endCompletion();
     }
   }
 
@@ -535,7 +615,7 @@ class CodeCompletionState extends InitialState {
   }
 
   void move(int direction) {
-    Element element = editor.moveActive(direction);
+    Element element = editor.moveActive(direction, ui);
     if (element == null) return;
     var text = activeCompletion.firstChild;
     String prefix = "";
@@ -601,7 +681,7 @@ class CodeCompletionState extends InitialState {
 
     num height = activeCompletion.getBoundingClientRect().height;
     activeCompletion.classes.add('active');
-    ui.nodes.clear();
+    Node root = getShadowRoot(ui);
 
     inline = new SpanElement()
         ..classes.add('hazed-suggestion');
@@ -615,7 +695,7 @@ class CodeCompletionState extends InitialState {
     serverResults = new DivElement()
         ..style.display = 'none'
         ..classes.add('dart-server');
-    ui.nodes.addAll([staticResults, serverResults]);
+    root.nodes.addAll([staticResults, serverResults]);
     ui.style.top = '${height}px';
 
     staticResults.nodes.add(buildCompletionEntry(prefix));
@@ -632,10 +712,8 @@ class CodeCompletionState extends InitialState {
         ..display = 'inline-block'
         ..minWidth = '${minWidth}px';
 
-    inline
-        ..nodes.clear()
-        ..appendText(suggestion.substring(prefix.length))
-        ..style.display = '';
+    setShadowRoot(inline, suggestion.substring(prefix.length));
+    inline.style.display = '';
 
     observer.takeRecords(); // Discard mutations.
   }
@@ -666,9 +744,7 @@ class CodeCompletionState extends InitialState {
     serverResults.nodes.clear();
 
     if (inlineSuggestion != null && inlineSuggestion.startsWith(prefix)) {
-      inline
-          ..nodes.clear()
-          ..appendText(inlineSuggestion.substring(prefix.length));
+      setShadowRoot(inline, inlineSuggestion.substring(prefix.length));
     }
 
     List<String> results = editor.seenIdentifiers.where(
@@ -697,13 +773,14 @@ class CodeCompletionState extends InitialState {
           if (!serverSuggestions.isEmpty) {
             updateInlineSuggestion(prefix, serverSuggestions.first);
           }
+          var root = getShadowRoot(ui);
           for (int i = 1; i < serverSuggestions.length; i++) {
             String completion = serverSuggestions[i];
             DivElement where = staticResults;
             int index = results.indexOf(completion);
             if (index != -1) {
-              List<Element> entries =
-                  document.querySelectorAll('.dart-static>.dart-entry');
+              List<Element> entries = root.querySelectorAll(
+                  '.dart-static>.dart-entry');
               entries[index].classes.add('doubleplusgood');
             } else {
               if (results.length > 3) {
@@ -843,11 +920,12 @@ void normalizeMutationRecord(MutationRecord record,
                              Set<Node> normalizedNodes) {
   for (Node node in record.addedNodes) {
     if (node.parent == null) continue;
+    normalizedNodes.add(findLine(node));
+    if (node is Text) continue;
     StringBuffer buffer = new StringBuffer();
     int selectionOffset = htmlToText(node, buffer, selection);
     Text newNode = new Text('$buffer');
     node.replaceWith(newNode);
-    normalizedNodes.add(findLine(newNode));
     if (selectionOffset != -1) {
       selection.anchorNode = newNode;
       selection.anchorOffset = selectionOffset;
@@ -873,11 +951,6 @@ Node findLine(Node node) {
 }
 
 Element makeLine(List<Node> lineNodes, String state) {
-  // Using a div element here (anything with display=block) generally messes up
-  // editing and navigation.  We would like to use a block element here so
-  // error messages show as expected.  But no such luck.  Fortunately, there
-  // are strong indications that the current solution for displaying errors
-  // isn't good enough anyways.
   return new SpanElement()
       ..setAttribute('dart-state', state)
       ..nodes.addAll(lineNodes)
@@ -894,4 +967,12 @@ bool isAtEndOfFile(Text text, int offset) {
 
 List<String> splitLines(String text) {
   return text.split(new RegExp('^', multiLine: true));
+}
+
+void removeCodeCompletion() {
+  List<Node> highlighting =
+      mainEditorPane.querySelectorAll('.dart-code-completion');
+  for (Element element in highlighting) {
+    element.remove();
+  }
 }

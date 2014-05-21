@@ -72,6 +72,8 @@ named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
+generic_field_mixin3_test: Crash # Issue 18651
+
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test/0*: Fail # Issue 12605
@@ -88,6 +90,9 @@ mixin_mixin_bound_test: RuntimeError # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
+
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 type_variable_conflict2_test/02: Crash # Issue 16180
 type_variable_conflict2_test/06: Crash # Issue 16180

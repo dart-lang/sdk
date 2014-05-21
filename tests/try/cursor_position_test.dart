@@ -6,38 +6,41 @@
 
 // Test that cursor positions are correctly updated after adding new content.
 
-library trydart.cursor_position_test;
-
-import 'dart:html';
-import 'dart:async';
-
-import '../../site/try/src/interaction_manager.dart' show
-    InteractionManager;
-
-import '../../site/try/src/ui.dart' show
-    hackDiv,
-    mainEditorPane,
-    observer;
-
-import '../../site/try/src/user_option.dart' show
-    UserOption;
-
-import '../../pkg/expect/lib/expect.dart';
-
-import '../../pkg/async_helper/lib/async_helper.dart';
+import 'test_try.dart';
 
 void main() {
   InteractionManager interaction = mockTryDartInteraction();
 
-  List<TestCase> tests = <TestCase>[
+  TestCase twoLines =
+      new TestCase('Test adding two lines programmatically.', () {
+        clearEditorPaneWithoutNotifications();
+        mainEditorPane.appendText('\n\n');
+        Text text = mainEditorPane.firstChild;
+        window.getSelection().collapse(text, 1);
+        checkSelectionIsCollapsed(text, 1);
+      }, checkAtBeginningOfSecondLine);
 
-    new TestCase('Test adding two lines programmatically.', () {
-      clearEditorPaneWithoutNotifications();
-      mainEditorPane.appendText('\n\n');
-      Text text = mainEditorPane.firstChild;
-      window.getSelection().collapse(text, 1);
-      checkSelectionIsCollapsed(text, 1);
-    }, checkAtBeginningOfSecondLine),
+  runTests(<TestCase>[
+    twoLines,
+
+    new TestCase('Test adding a new text node.', () {
+      // This test relies on the previous test leaving two lines.
+      Text text = new Text('fisk');
+      window.getSelection().getRangeAt(0).insertNode(text);
+      window.getSelection().collapse(text, text.length);
+      checkSelectionIsCollapsed(text, text.length);
+    }, checkAtEndOfSecondLineWithFisk),
+
+    twoLines,
+
+    new TestCase('Test adding a new wrapped text node.', () {
+      // This test relies on the previous test leaving two lines.
+      Text text = new Text('fisk');
+      Node node = new SpanElement()..append(text);
+      window.getSelection().getRangeAt(0).insertNode(node);
+      window.getSelection().collapse(text, text.length);
+      checkSelectionIsCollapsed(text, text.length);
+    }, checkAtEndOfSecondLineWithFisk),
 
     new TestCase('Test adding a new line with mock key event.', () {
       clearEditorPaneWithoutNotifications();
@@ -45,19 +48,12 @@ void main() {
       simulateEnterKeyDown(interaction);
     }, checkAtBeginningOfSecondLine),
 
-  ];
-
-  runTests(tests.iterator, completerForAsyncTest());
+  ]);
 }
 
 void simulateEnterKeyDown(InteractionManager interaction) {
   interaction.onKeyUp(
       new MockKeyboardEvent('keydown', keyCode: KeyCode.ENTER));
-}
-
-void clearEditorPaneWithoutNotifications() {
-  mainEditorPane.nodes.clear();
-  observer.takeRecords();
 }
 
 void checkSelectionIsCollapsed(Node node, int offset) {
@@ -78,49 +74,15 @@ void checkAtBeginningOfSecondLine() {
   checkSelectionIsCollapsed(mainEditorPane.nodes[1].firstChild, 0);
 }
 
-runTests(Iterator<TestCase> iterator, Completer completer) {
-  if (iterator.moveNext()) {
-    TestCase test = iterator.current;
-    new Future(() {
-      print('${test.description}\nSetup.');
-      test.setup();
-      new Future(() {
-        test.validate();
-        print('${test.description}\nDone.');
-        runTests(iterator, completer);
-      });
-    });
-  } else {
-    completer.complete(null);
-  }
-}
-
-Completer completerForAsyncTest() {
-  Completer completer = new Completer();
-  asyncTest(() => completer.future.then((_) {
-    // Clear the DOM to work around a bug in test.dart.
-    document.body.nodes.clear();
-  }));
-  return completer;
-}
-
-InteractionManager mockTryDartInteraction() {
-  UserOption.storage = {};
-
-  InteractionManager interaction = new InteractionManager();
-
-  hackDiv = new DivElement();
-  mainEditorPane = new DivElement()
-      ..style.whiteSpace = 'pre'
-      ..contentEditable = 'true';
-
-  observer = new MutationObserver(interaction.onMutation);
-  observer.observe(
-      mainEditorPane, childList: true, characterData: true, subtree: true);
-
-  document.body.nodes.addAll([mainEditorPane, hackDiv]);
-
-  return interaction;
+void checkAtEndOfSecondLineWithFisk() {
+  checkLineCount(2);
+  SpanElement secondLine = mainEditorPane.nodes[1];
+  Text text = secondLine.firstChild.firstChild;
+  Expect.stringEquals('fisk', text.text);
+  Expect.equals(4, text.length);
+  Text newline = secondLine.firstChild.nextNode;
+  Expect.equals(newline, secondLine.lastChild);
+  checkSelectionIsCollapsed(newline, 0);
 }
 
 class MockKeyboardEvent extends KeyEvent {
@@ -131,14 +93,4 @@ class MockKeyboardEvent extends KeyEvent {
         super.wrap(new KeyEvent(type, keyCode: keyCode));
 
   bool getModifierState(String keyArgument) => false;
-}
-
-typedef void VoidFunction();
-
-class TestCase {
-  final String description;
-  final VoidFunction setup;
-  final VoidFunction validate;
-
-  TestCase(this.description, this.setup, this.validate);
 }

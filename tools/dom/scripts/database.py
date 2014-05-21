@@ -247,7 +247,7 @@ class Database(object):
   def AddEnum(self, enum):
     self._enums[enum.id] = enum
 
-  def TransitiveSecondaryParents(self, interface):
+  def TransitiveSecondaryParents(self, interface, propagate_event_target):
     """Returns a list of all non-primary parents.
 
     The list contains the interface objects for interfaces defined in the
@@ -267,7 +267,8 @@ class Database(object):
     result = []
     if interface.parents:
       parent = interface.parents[0]
-      if IsPureInterface(parent.type.id) or parent.type.id == 'EventTarget':
+      if (IsPureInterface(parent.type.id) or
+          (propagate_event_target and parent.type.id == 'EventTarget')):
         walk(interface.parents)
       else:
         walk(interface.parents[1:])

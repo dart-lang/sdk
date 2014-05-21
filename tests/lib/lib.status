@@ -19,6 +19,7 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 mirrors/delegate_test: RuntimeError # Issue 13864
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
+mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
 
 [ $compiler == dart2js && $checked && $runtime == drt && $nocsp ]
 async/stream_transform_test: RuntimeError # Issue 16719
@@ -85,6 +86,7 @@ mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/11: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError # Issue 14548
+mirrors/metadata_scope_test/none: CompileTimeError # Issue 10905
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
 mirrors/method_mirror_source_test : RuntimeError # Issue 6490
@@ -147,7 +149,7 @@ async/multiple_timer_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel1_test: RuntimeError,OK # Needs Timer to run.
 async/timer_cancel2_test: RuntimeError,OK # Needs Timer to run.
-async/timer_isolate_test: RuntimeError, OK # Needs Timer to run.
+async/timer_isolate_test: Fail, OK # Needs Timer to run.
 async/timer_repeat_test: RuntimeError,OK # Needs Timer to run.
 async/timer_test: RuntimeError,OK # Needs Timer to run.
 async/stream_controller_async_test: RuntimeError # Timer interface not supported; dartbug.com/7728.
@@ -181,7 +183,6 @@ async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbu
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
-mirrors/intercepted_object_test: RuntimeError # Issue 18569
 
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -274,15 +275,12 @@ async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
 [ $arch == simmips || $arch == mips ]
-convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12025.
-convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12025.
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
 
 [ $arch == simarm ]
-convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
-convert/utf85_test: Pass, Slow # Issue 12644.
-
-[ $arch == simarm64 ]
-*: Skip
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
@@ -308,7 +306,7 @@ async/deferred/deferred_in_isolate_test: Fail
 async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
+mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
@@ -319,7 +317,6 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
 
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
-mirrors/metadata_scope_test/01: MissingCompileTimeError # Issue 17894
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Skip # Issue 17458

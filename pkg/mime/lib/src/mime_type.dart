@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mime;
+library mime.mime_type;
 
+import 'default_extension_map.dart';
+import 'magic_number.dart';
 
 final MimeTypeResolver _globalResolver = new MimeTypeResolver();
 
 /**
  * The maximum number of bytes needed, to match all default magic-numbers.
  */
-int get defaultMagicNumbersMaxLength => _DEFAULT_MAGIC_NUMBERS_MAX_LENGTH;
+// NOTE: this is not formatted AS_A_CONST to avoid a breaking change
+const int defaultMagicNumbersMaxLength = 12;
 
 /**
  * Extract the extension from [path] and use that for MIME-type lookup, using
@@ -32,7 +35,7 @@ String lookupMimeType(String path, {List<int> headerBytes}) =>
  */
 class MimeTypeResolver {
   final Map<String, String> _extensionMap = {};
-  final List<_MagicNumber> _magicNumbers = [];
+  final List<MagicNumber> _magicNumbers = [];
   final bool _useDefault;
   int _magicNumbersMaxLength;
 
@@ -46,7 +49,7 @@ class MimeTypeResolver {
    */
   MimeTypeResolver() :
       _useDefault = true,
-      _magicNumbersMaxLength = _DEFAULT_MAGIC_NUMBERS_MAX_LENGTH;
+      _magicNumbersMaxLength = defaultMagicNumbersMaxLength;
 
   /**
    * Get the maximum number of bytes required to match all magic numbers, when
@@ -71,7 +74,7 @@ class MimeTypeResolver {
       result = _matchMagic(headerBytes, _magicNumbers);
       if (result != null) return result;
       if (_useDefault) {
-        result = _matchMagic(headerBytes, _DEFAULT_MAGIC_NUMBERS);
+        result = _matchMagic(headerBytes, DEFAULT_MAGIC_NUMBERS);
         if (result != null) return result;
       }
     }
@@ -79,7 +82,7 @@ class MimeTypeResolver {
     result = _extensionMap[ext];
     if (result != null) return result;
     if (_useDefault) {
-      result = _DEFAULT_EXTENSION_MAP[ext];
+      result = DEFAULT_EXTENSION_MAP[ext];
       if (result != null) return result;
     }
     return null;
@@ -106,11 +109,11 @@ class MimeTypeResolver {
     if (bytes.length > _magicNumbersMaxLength) {
       _magicNumbersMaxLength = bytes.length;
     }
-    _magicNumbers.add(new _MagicNumber(mimeType, bytes, mask: mask));
+    _magicNumbers.add(new MagicNumber(mimeType, bytes, mask: mask));
   }
 
   static String _matchMagic(List<int> headerBytes,
-                            List<_MagicNumber> magicNumbers) {
+                            List<MagicNumber> magicNumbers) {
     for (var mn in magicNumbers) {
       if (mn.matches(headerBytes)) return mn.mimeType;
     }

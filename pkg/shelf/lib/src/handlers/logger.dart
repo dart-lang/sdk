@@ -6,6 +6,7 @@ library shelf.handlers.logger;
 
 import 'package:stack_trace/stack_trace.dart';
 
+import '../hijack_exception.dart';
 import '../middleware.dart';
 import '../util.dart';
 
@@ -37,6 +38,8 @@ Middleware logRequests({void logger(String msg, bool isError)}) =>
 
       return response;
     }, onError: (error, stackTrace) {
+      if (error is HijackException) throw error;
+
       var msg = _getErrorMessage(startTime, request.url, request.method,
           watch.elapsed, error, stackTrace);
 

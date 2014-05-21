@@ -67,9 +67,9 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
         bailout('Used in JS ${info.call}');
       }
     }
-    if (called.isGetter()
+    if (called.isGetter
         && info.selector != null
-        && info.selector.isCall()
+        && info.selector.isCall
         && inferrer.types.getInferredTypeOf(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
@@ -92,9 +92,9 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
 
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
-    if (info.selector.isCall()) {
+    if (info.selector.isCall) {
       if (info.arguments.contains(currentUser)) {
-        if (!info.targets.every((element) => element.isFunction())) {
+        if (!info.targets.every((element) => element.isFunction)) {
           bailout('Passed to a closure');
         }
         if (info.targets.any(checkIfFunctionApply)) {
@@ -103,7 +103,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
       } else if (info.targets.any((element) => checkIfCurrentUser(element))) {
         analyzeCall(info);
       }
-    } else if (info.selector.isGetter() &&
+    } else if (info.selector.isGetter &&
         info.selector.name == Compiler.CALL_OPERATOR_NAME) {
       // We are potentially tearing off ourself here
       addNewEscapeInformation(info);
@@ -119,7 +119,7 @@ class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
     super.visitStaticCallSiteTypeInformation(info);
     if (info.calledElement == tracedElements.first
         && info.selector != null
-        && info.selector.isGetter()) {
+        && info.selector.isGetter) {
       addNewEscapeInformation(info);
     }
   }

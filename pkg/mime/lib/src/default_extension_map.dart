@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mime;
-
+library mime.extension_map;
 
 // TODO(ajohnsen): Use sorted list and binary search?
-const Map<String, String> _DEFAULT_EXTENSION_MAP = const <String, String>{
+const Map<String, String> DEFAULT_EXTENSION_MAP = const <String, String>{
 '123':'application/vnd.lotus-1-2-3',
 '3dml':'text/vnd.in3d.3dml',
 '3ds':'image/x-3ds',

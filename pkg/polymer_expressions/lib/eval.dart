@@ -80,7 +80,7 @@ Object update(ExpressionObserver expr, Scope scope) {
  * operators or function invocations, and any index operations must use a
  * literal index.
  */
-void assign(Expression expr, Object value, Scope scope) {
+Object assign(Expression expr, Object value, Scope scope) {
 
   notAssignable() =>
       throw new EvalException("Expression is not assignable: $expr");
@@ -140,6 +140,7 @@ void assign(Expression expr, Object value, Scope scope) {
   } else {
     smoke.write(o, smoke.nameToSymbol(property), value);
   }
+  return value;
 }
 
 

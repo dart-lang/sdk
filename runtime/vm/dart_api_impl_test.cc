@@ -49,7 +49,7 @@ TEST_CASE(ErrorHandleBasics) {
   EXPECT_STREQ(
       "Unhandled exception:\n"
       "Exception: bad news\n"
-      "#0      testMain (dart:test-lib:2:3)",
+      "#0      testMain (test-lib:2:3)",
       Dart_GetError(exception));
 
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
@@ -97,7 +97,7 @@ TEST_CASE(StacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("bar", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(10, column_number);
 
@@ -109,7 +109,7 @@ TEST_CASE(StacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(13, column_number);
 
@@ -121,7 +121,7 @@ TEST_CASE(StacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(3, line_number);
   EXPECT_EQ(18, column_number);
 
@@ -171,7 +171,7 @@ TEST_CASE(DeepStacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(20, column_number);
 
@@ -187,7 +187,7 @@ TEST_CASE(DeepStacktraceInfo) {
     Dart_StringToCString(function_name, &cstr);
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
-    EXPECT_STREQ("dart:test-lib", cstr);
+    EXPECT_STREQ("test-lib", cstr);
     EXPECT_EQ(1, line_number);
     EXPECT_EQ(43, column_number);
   }
@@ -201,7 +201,7 @@ TEST_CASE(DeepStacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(18, column_number);
 
@@ -250,7 +250,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("C.foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(3, column_number);
 
@@ -311,7 +311,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("inspectStack", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(1, line_number);
   EXPECT_EQ(47, column_number);
 
@@ -324,7 +324,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("foo", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
   EXPECT_EQ(32, column_number);
 
@@ -340,7 +340,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
     Dart_StringToCString(function_name, &cstr);
     EXPECT_STREQ("foo", cstr);
     Dart_StringToCString(script_url, &cstr);
-    EXPECT_STREQ("dart:test-lib", cstr);
+    EXPECT_STREQ("test-lib", cstr);
     EXPECT_EQ(2, line_number);
     EXPECT_EQ(40, column_number);
   }
@@ -354,7 +354,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   Dart_StringToCString(function_name, &cstr);
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
-  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(3, line_number);
   EXPECT_EQ(18, column_number);
 
@@ -5029,7 +5029,8 @@ TEST_CASE(InvokeNoSuchMethod) {
   Dart_Handle result;
   Dart_Handle instance;
   // Create a test library and Load up a test script in it.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  // The test library must have a dart: url so it can import dart:_internal.
+  Dart_Handle lib = TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Dart_Handle type = Dart_GetType(lib, NewString("TestClass"), 0, NULL);
   EXPECT_VALID(type);
 
@@ -5435,7 +5436,7 @@ TEST_CASE(LoadScript) {
   result = Dart_LoadScript(url, source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript: "
-               "A script has already been loaded from 'dart:test-lib'.",
+               "A script has already been loaded from 'test-lib'.",
                Dart_GetError(result));
 }
 

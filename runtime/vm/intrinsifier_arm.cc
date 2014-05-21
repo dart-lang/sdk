@@ -21,112 +21,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 #define __ assembler->
 
-void Intrinsifier::List_Allocate(Assembler* assembler) {
-  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
-  const intptr_t kArrayLengthOffset = 0 * kWordSize;
-  Label fall_through;
-
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-  __ ldr(R3, Address(SP, kArrayLengthOffset));  // Array length.
-
-  // Check that length is a positive Smi.
-  __ tst(R3, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  __ cmp(R3, ShifterOperand(0));
-  __ b(&fall_through, LT);
-
-  // Check for maximum allowed length.
-  const intptr_t max_len =
-      reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
-  __ CompareImmediate(R3, max_len);
-  __ b(&fall_through, GT);
-
-  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R2, fixed_size);
-  __ add(R2, R2, ShifterOperand(R3, LSL, 1));  // R3 is  a Smi.
-  ASSERT(kSmiTagShift == 1);
-  __ bic(R2, R2, ShifterOperand(kObjectAlignment - 1));
-
-  // R2: Allocation size.
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ LoadImmediate(R6, heap->TopAddress());
-  __ ldr(R0, Address(R6, 0));  // Potential new object start.
-  __ adds(R1, R0, ShifterOperand(R2));  // Potential next object start.
-  __ b(&fall_through, VS);
-
-  // Check if the allocation fits into the remaining space.
-  // R0: potential new object start.
-  // R1: potential next object start.
-  // R2: allocation size.
-  __ LoadImmediate(R3, heap->EndAddress());
-  __ ldr(R3, Address(R3, 0));
-  __ cmp(R1, ShifterOperand(R3));
-  __ b(&fall_through, CS);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ str(R1, Address(R6, 0));
-  __ add(R0, R0, ShifterOperand(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, R2, R4);
-
-  // Initialize the tags.
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // R2: allocation size.
-  {
-    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-
-    __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
-    __ mov(R2, ShifterOperand(R2, LSL, shift), LS);
-    __ mov(R2, ShifterOperand(0), HI);
-
-    // Get the class index and insert it into the tags.
-    // R2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
-    __ orr(R2, R2, ShifterOperand(TMP));
-    __ str(R2, FieldAddress(R0, Array::tags_offset()));  // Store tags.
-  }
-
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // Store the type argument field.
-  __ ldr(R2, Address(SP, kTypeArgumentsOffset));  // Type argument.
-  __ StoreIntoObjectNoBarrier(R0,
-                              FieldAddress(R0, Array::type_arguments_offset()),
-                              R2);
-
-  // Set the length field.
-  __ ldr(R2, Address(SP, kArrayLengthOffset));  // Array Length.
-  __ StoreIntoObjectNoBarrier(R0,
-                              FieldAddress(R0, Array::length_offset()),
-                              R2);
-
-  // Initialize all array elements to raw_null.
-  // R0: new object start as a tagged pointer.
-  // R1: new object end address.
-  // R2: iterator which initially points to the start of the variable
-  // data area to be initialized.
-  // R3: null
-  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  __ AddImmediate(R2, R0, sizeof(RawArray) - kHeapObjectTag);
-
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmp(R2, ShifterOperand(R1));
-  __ str(R3, Address(R2, 0), CC);
-  __ AddImmediate(R2, kWordSize, CC);
-  __ b(&init_loop, CC);
-
-  __ Ret();  // Returns the newly allocated object in R0.
-  __ Bind(&fall_through);
-}
-
 
 void Intrinsifier::Array_getLength(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
@@ -136,7 +30,7 @@ void Intrinsifier::Array_getLength(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  return Array_getLength(assembler);
+  Array_getLength(assembler);
 }
 
 
@@ -163,7 +57,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  return Array_getIndexed(assembler);
+  Array_getIndexed(assembler);
 }
 
 
@@ -419,7 +313,9 @@ void Intrinsifier::GrowableList_setData(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableList_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (FLAG_enable_type_checks) return;
+  if (FLAG_enable_type_checks) {
+    return;
+  }
   Label fall_through;
   // R0: Array.
   __ ldr(R0, Address(SP, 1 * kWordSize));
@@ -551,7 +447,7 @@ static int GetScaleFactor(intptr_t size) {
   }
   UNREACHABLE();
   return -1;
-};
+}
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
@@ -594,7 +490,7 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_add(Assembler* assembler) {
-  return Integer_addFromInteger(assembler);
+  Integer_addFromInteger(assembler);
 }
 
 
@@ -622,7 +518,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-  __ SmiUntag(R0);  // untags R6. only want result shifted by one
+  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
 
   if (TargetCPUFeatures::arm_version() == ARMv7) {
     __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
@@ -639,7 +535,7 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mul(Assembler* assembler) {
-  return Integer_mulFromInteger(assembler);
+  Integer_mulFromInteger(assembler);
 }
 
 
@@ -701,7 +597,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //  }
 void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   // Check to see if we have integer division
-  Label fall_through, subtract;
+  Label fall_through;
   __ ldr(R1, Address(SP, + 0 * kWordSize));
   __ ldr(R0, Address(SP, + 1 * kWordSize));
   __ orr(TMP, R0, ShifterOperand(R1));
@@ -776,7 +672,7 @@ void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  return Integer_bitAndFromInteger(assembler);
+  Integer_bitAndFromInteger(assembler);
 }
 
 
@@ -792,7 +688,7 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  return Integer_bitOrFromInteger(assembler);
+  Integer_bitOrFromInteger(assembler);
 }
 
 
@@ -808,7 +704,7 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  return Integer_bitXorFromInteger(assembler);
+  Integer_bitXorFromInteger(assembler);
 }
 
 
@@ -947,27 +843,27 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
 
 
 void Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return CompareIntegers(assembler, LT);
+  CompareIntegers(assembler, LT);
 }
 
 
 void Intrinsifier::Integer_lessThan(Assembler* assembler) {
-  return Integer_greaterThanFromInt(assembler);
+  Integer_greaterThanFromInt(assembler);
 }
 
 
 void Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GT);
+  CompareIntegers(assembler, GT);
 }
 
 
 void Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, LE);
+  CompareIntegers(assembler, LE);
 }
 
 
 void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return CompareIntegers(assembler, GE);
+  CompareIntegers(assembler, GE);
 }
 
 
@@ -1025,7 +921,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_equal(Assembler* assembler) {
-  return Integer_equalToInteger(assembler);
+  Integer_equalToInteger(assembler);
 }
 
 
@@ -1084,229 +980,244 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
 static void CompareDoubles(Assembler* assembler, Condition true_condition) {
-  Label fall_through, is_smi, double_op;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Both arguments are double, right operand is in R0.
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+    // Both arguments are double, right operand is in R0.
 
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ Bind(&double_op);
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
+    __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
 
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  __ LoadObject(R0, Bool::False());
-  // Return false if D0 or D1 was NaN before checking true condition.
-  __ bx(LR, VS);
-  __ LoadObject(R0, Bool::True(), true_condition);
-  __ Ret();
+    __ vcmpd(D0, D1);
+    __ vmstat();
+    __ LoadObject(R0, Bool::False());
+    // Return false if D0 or D1 was NaN before checking true condition.
+    __ bx(LR, VS);
+    __ LoadObject(R0, Bool::True(), true_condition);
+    __ Ret();
 
-  __ Bind(&is_smi);  // Convert R0 to a double.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ b(&double_op);  // Then do the comparison.
-  __ Bind(&fall_through);
+    __ Bind(&is_smi);  // Convert R0 to a double.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);  // Then do the comparison.
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  return CompareDoubles(assembler, HI);
+  CompareDoubles(assembler, HI);
 }
 
 
 void Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, CS);
+  CompareDoubles(assembler, CS);
 }
 
 
 void Intrinsifier::Double_lessThan(Assembler* assembler) {
-  return CompareDoubles(assembler, CC);
+  CompareDoubles(assembler, CC);
 }
 
 
 void Intrinsifier::Double_equal(Assembler* assembler) {
-  return CompareDoubles(assembler, EQ);
+  CompareDoubles(assembler, EQ);
 }
 
 
 void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  return CompareDoubles(assembler, LS);
+  CompareDoubles(assembler, LS);
 }
 
 
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
-  // Both arguments are double, right operand is in R0.
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  switch (kind) {
-    case Token::kADD: __ vaddd(D0, D0, D1); break;
-    case Token::kSUB: __ vsubd(D0, D0, D1); break;
-    case Token::kMUL: __ vmuld(D0, D0, D1); break;
-    case Token::kDIV: __ vdivd(D0, D0, D1); break;
-    default: UNREACHABLE();
+    TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+    // Both arguments are double, right operand is in R0.
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    switch (kind) {
+      case Token::kADD: __ vaddd(D0, D0, D1); break;
+      case Token::kSUB: __ vsubd(D0, D0, D1); break;
+      case Token::kMUL: __ vmuld(D0, D0, D1); break;
+      case Token::kDIV: __ vdivd(D0, D0, D1); break;
+      default: UNREACHABLE();
+    }
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
   }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
 }
 
 
 void Intrinsifier::Double_add(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kADD);
+  DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
 void Intrinsifier::Double_mul(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kMUL);
+  DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
 void Intrinsifier::Double_sub(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kSUB);
+  DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
 void Intrinsifier::Double_div(Assembler* assembler) {
-  return DoubleArithmeticOperations(assembler, Token::kDIV);
+  DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
-  Label fall_through;
-  // Only smis allowed.
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tst(R0, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  // Is Smi.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ ldr(R0, Address(SP, 1 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ vmuld(D0, D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
+    // Only smis allowed.
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ tst(R0, ShifterOperand(kSmiTagMask));
+    __ b(&fall_through, NE);
+    // Is Smi.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ ldr(R0, Address(SP, 1 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ vmuld(D0, D0, D1);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_fromInteger(Assembler* assembler) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tst(R0, ShifterOperand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  // Is Smi.
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D0, S0);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ tst(R0, ShifterOperand(kSmiTagMask));
+    __ b(&fall_through, NE);
+    // Is Smi.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D0, S0);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
-  Label is_true;
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ LoadObject(R0, Bool::False(), VC);
-  __ LoadObject(R0, Bool::True(), VS);
-  __ Ret();
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label is_true;
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ vcmpd(D0, D0);
+    __ vmstat();
+    __ LoadObject(R0, Bool::False(), VC);
+    __ LoadObject(R0, Bool::True(), VS);
+    __ Ret();
+  }
 }
 
 
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
-  Label is_false, is_true, is_zero;
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ LoadDImmediate(D1, 0.0, R1);
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  __ b(&is_false, VS);  // NaN -> false.
-  __ b(&is_zero, EQ);  // Check for negative zero.
-  __ b(&is_false, CS);  // >= 0 -> false.
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label is_false, is_true, is_zero;
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ vcmpdz(D0);
+    __ vmstat();
+    __ b(&is_false, VS);  // NaN -> false.
+    __ b(&is_zero, EQ);  // Check for negative zero.
+    __ b(&is_false, CS);  // >= 0 -> false.
 
-  __ Bind(&is_true);
-  __ LoadObject(R0, Bool::True());
-  __ Ret();
+    __ Bind(&is_true);
+    __ LoadObject(R0, Bool::True());
+    __ Ret();
 
-  __ Bind(&is_false);
-  __ LoadObject(R0, Bool::False());
-  __ Ret();
+    __ Bind(&is_false);
+    __ LoadObject(R0, Bool::False());
+    __ Ret();
 
-  __ Bind(&is_zero);
-  // Check for negative zero by looking at the sign bit.
-  __ vmovrrd(R0, R1, D0);  // R1:R0 <- D0, so sign bit is in bit 31 of R1.
-  __ mov(R1, ShifterOperand(R1, LSR, 31));
-  __ tst(R1, ShifterOperand(1));
-  __ b(&is_true, NE);  // Sign bit set.
-  __ b(&is_false);
+    __ Bind(&is_zero);
+    // Check for negative zero by looking at the sign bit.
+    __ vmovrrd(R0, R1, D0);  // R1:R0 <- D0, so sign bit is in bit 31 of R1.
+    __ mov(R1, ShifterOperand(R1, LSR, 31));
+    __ tst(R1, ShifterOperand(1));
+    __ b(&is_true, NE);  // Sign bit set.
+    __ b(&is_false);
+  }
 }
 
 
 void Intrinsifier::Double_toInt(Assembler* assembler) {
-  Label fall_through;
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through;
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
 
-  // Explicit NaN check, since ARM gives an FPU exception if you try to
-  // convert NaN to an int.
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ b(&fall_through, VS);
+    // Explicit NaN check, since ARM gives an FPU exception if you try to
+    // convert NaN to an int.
+    __ vcmpd(D0, D0);
+    __ vmstat();
+    __ b(&fall_through, VS);
 
-  __ vcvtid(S0, D0);
-  __ vmovrs(R0, S0);
-  // Overflow is signaled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ CompareImmediate(R0, 0xC0000000);
-  __ b(&fall_through, MI);
-  __ SmiTag(R0);
-  __ Ret();
-  __ Bind(&fall_through);
+    __ vcvtid(S0, D0);
+    __ vmovrs(R0, S0);
+    // Overflow is signaled with minint.
+    // Check for overflow and that it fits into Smi.
+    __ CompareImmediate(R0, 0xC0000000);
+    __ b(&fall_through, MI);
+    __ SmiTag(R0);
+    __ Ret();
+    __ Bind(&fall_through);
+  }
 }
 
 
 void Intrinsifier::Math_sqrt(Assembler* assembler) {
-  Label fall_through, is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in R0.
-  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
-  __ Bind(&double_op);
-  __ vsqrtd(D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
-  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&is_smi);
-  __ SmiUntag(R0);
-  __ vmovsr(S0, R0);
-  __ vcvtdi(D1, S0);
-  __ b(&double_op);
-  __ Bind(&fall_through);
+  if (TargetCPUFeatures::vfp_supported()) {
+    Label fall_through, is_smi, double_op;
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+    // Argument is double and is in R0.
+    __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
+    __ vsqrtd(D0, D1);
+    const Class& double_class = Class::Handle(
+        Isolate::Current()->object_store()->double_class());
+    __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
+    __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+    __ Bind(&is_smi);
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);
+    __ Bind(&fall_through);
+  }
 }
 
 

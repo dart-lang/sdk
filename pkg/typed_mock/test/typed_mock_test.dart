@@ -2,8 +2,8 @@ library test.typed_mock;
 
 import 'package:unittest/unittest.dart';
 
-import 'typed_mock.dart' hide equals;
-import 'typed_mock.dart' as typed_mocks show equals;
+import 'package:typed_mock/typed_mock.dart' hide equals;
+import 'package:typed_mock/typed_mock.dart' as typed_mocks show equals;
 
 
 abstract class TestInterface {
@@ -37,39 +37,39 @@ main() {
 
   group('Matchers', () {
     test('equals', () {
-      expect(typed_mocks.equals(10).match(10), true);
-      expect(typed_mocks.equals(10).match(20), false);
-      expect(typed_mocks.equals('abc').match('abc'), true);
-      expect(typed_mocks.equals('abc').match('xyz'), false);
+      expect(typed_mocks.equals(10).matches(10), true);
+      expect(typed_mocks.equals(10).matches(20), false);
+      expect(typed_mocks.equals('abc').matches('abc'), true);
+      expect(typed_mocks.equals('abc').matches('xyz'), false);
     });
 
     test('anyBool', () {
-      expect(anyBool.match(true), true);
-      expect(anyBool.match(false), true);
-      expect(anyBool.match(0), false);
-      expect(anyBool.match('0'), false);
+      expect(anyBool.matches(true), true);
+      expect(anyBool.matches(false), true);
+      expect(anyBool.matches(0), false);
+      expect(anyBool.matches('0'), false);
     });
 
     test('anyInt', () {
-      expect(anyInt.match(true), false);
-      expect(anyInt.match(-99), true);
-      expect(anyInt.match(0), true);
-      expect(anyInt.match(42), true);
-      expect(anyInt.match('0'), false);
+      expect(anyInt.matches(true), false);
+      expect(anyInt.matches(-99), true);
+      expect(anyInt.matches(0), true);
+      expect(anyInt.matches(42), true);
+      expect(anyInt.matches('0'), false);
     });
 
     test('anyObject', () {
-      expect(anyObject.match(true), true);
-      expect(anyObject.match(0), true);
-      expect(anyObject.match('0'), true);
+      expect(anyObject.matches(true), true);
+      expect(anyObject.matches(0), true);
+      expect(anyObject.matches('0'), true);
     });
 
     test('anyString', () {
-      expect(anyString.match(true), false);
-      expect(anyString.match(0), false);
-      expect(anyString.match(''), true);
-      expect(anyString.match('0'), true);
-      expect(anyString.match('abc'), true);
+      expect(anyString.matches(true), false);
+      expect(anyString.matches(0), false);
+      expect(anyString.matches(''), true);
+      expect(anyString.matches('0'), true);
+      expect(anyString.matches('abc'), true);
     });
   });
 

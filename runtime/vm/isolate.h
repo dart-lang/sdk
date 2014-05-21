@@ -329,6 +329,19 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
+  // Requests that the debugger resume execution.
+  void Resume() {
+    resume_request_ = true;
+  }
+
+  // Returns whether the vm service has requested that the debugger
+  // resume execution.
+  bool GetAndClearResumeRequest() {
+    bool resume_request = resume_request_;
+    resume_request_ = false;
+    return resume_request;
+  }
+
   Random* random() { return &random_; }
 
   Simulator* simulator() const { return simulator_; }
@@ -552,6 +565,7 @@ class Isolate : public BaseIsolate {
   StubCode* stub_code_;
   Debugger* debugger_;
   bool single_step_;
+  bool resume_request_;
   Random random_;
   Simulator* simulator_;
   LongJumpScope* long_jump_base_;

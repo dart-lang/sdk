@@ -99,10 +99,9 @@ void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
 // TODO(hausner): Get rid of library parameter. A source breakpoint location
 // does not imply a library, since the same source code can be included
 // in more than one library, e.g. the text location of mixin functions.
-void SourceBreakpoint::GetCodeLocation(
-    Library* lib,
-    Script* script,
-    intptr_t* pos) {
+void SourceBreakpoint::GetCodeLocation(Library* lib,
+                                       Script* script,
+                                       intptr_t* pos) {
   *script = this->script();
   *pos = token_pos_;
   if (IsResolved()) {
@@ -192,12 +191,12 @@ ActivationFrame::ActivationFrame(
 }
 
 
-void Debugger::SignalIsolateEvent(EventType type) {
+void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
   if (event_handler_ != NULL) {
     DebuggerEvent event(type);
-    event.isolate_id = isolate_id_;
-    ASSERT(event.isolate_id != ILLEGAL_ISOLATE_ID);
-    if (type == kIsolateInterrupted) {
+    event.set_isolate_id(isolate_id_);
+    ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
+    if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
       ASSERT(trace->Length() > 0);
       ASSERT(stack_trace_ == NULL);
@@ -217,7 +216,7 @@ void Debugger::SignalIsolateInterrupted() {
   if (event_handler_ != NULL) {
     Debugger* debugger = Isolate::Current()->debugger();
     ASSERT(debugger != NULL);
-    debugger->SignalIsolateEvent(kIsolateInterrupted);
+    debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
 }
 
@@ -484,6 +483,43 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
   }
   UNREACHABLE();
   return Context::null();
+}
+
+
+const char* DebuggerEvent::EventTypeToCString(EventType type) {
+  switch (type) {
+    case kBreakpointReached:
+      return "BreakpointReached";
+    case kBreakpointResolved:
+      return "BreakpointResolved";
+    case kExceptionThrown:
+      return "ExceptionThrown";
+    case kIsolateCreated:
+      return "IsolateCreated";
+    case kIsolateShutdown:
+      return "IsolateShutdown";
+    case kIsolateInterrupted:
+      return "IsolateInterrupted";
+    default:
+      UNREACHABLE();
+      return "Unknown";
+  }
+}
+
+
+void DebuggerEvent::PrintJSON(JSONStream* js) const {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "DebuggerEvent");
+  // TODO(turnidge): Drop the 'id' for things like DebuggerEvent.
+  jsobj.AddProperty("id", "");
+  // TODO(turnidge): Add 'isolate'.
+  jsobj.AddProperty("eventType", EventTypeToCString(type()));
+  if (type() == kBreakpointResolved || type() == kBreakpointReached) {
+    jsobj.AddProperty("breakpoint", breakpoint());
+  }
+  if (type() == kExceptionThrown) {
+    jsobj.AddProperty("exception", *(exception()));
+  }
 }
 
 
@@ -1030,7 +1066,7 @@ void Debugger::Shutdown() {
     delete bpt;
   }
   // Signal isolate shutdown event.
-  SignalIsolateEvent(Debugger::kIsolateShutdown);
+  SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
 }
 
 
@@ -1176,8 +1212,8 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
 
 void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
   if (event_handler_ != NULL) {
-    DebuggerEvent event(kBreakpointResolved);
-    event.breakpoint = bpt;
+    DebuggerEvent event(DebuggerEvent::kBreakpointResolved);
+    event.set_breakpoint(bpt);
     (*event_handler_)(&event);
   }
 }
@@ -1480,8 +1516,8 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   if (!ShouldPauseOnException(stack_trace, exc)) {
     return;
   }
-  DebuggerEvent event(kExceptionThrown);
-  event.exception = &exc;
+  DebuggerEvent event(DebuggerEvent::kExceptionThrown);
+  event.set_exception(&exc);
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   Pause(&event);
@@ -2166,6 +2202,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
 }
 
 
+// static
 bool Debugger::IsDebuggable(const Function& func) {
   if (!IsDebuggableFunctionKind(func)) {
     return false;
@@ -2183,9 +2220,9 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
-  DebuggerEvent event(kBreakpointReached);
-  event.top_frame = top_frame;
-  event.breakpoint = bpt;
+  DebuggerEvent event(DebuggerEvent::kBreakpointReached);
+  event.set_top_frame(top_frame);
+  event.set_breakpoint(bpt);
   Pause(&event);
 }
 
@@ -2297,7 +2334,7 @@ void Debugger::Initialize(Isolate* isolate) {
   initialized_ = true;
 
   // Signal isolate creation event.
-  SignalIsolateEvent(Debugger::kIsolateCreated);
+  SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
 }
 
 

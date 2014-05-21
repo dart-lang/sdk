@@ -780,11 +780,29 @@ backtracking() {
     'foo': '2.0.4'
   }, maxTries: 2);
 
-  // TODO(rnystrom): More tests. In particular:
-  // - Tests that demonstrate backtracking for every case that can cause a
-  //   solution to fail (no versions, disjoint, etc.)
-  // - Tests where there are multiple valid solutions and "best" is possibly
-  //   ambiguous to nail down which order the backtracker tries solutions.
+  // This is a regression test for #18666. It was possible for the solver to
+  // "forget" that a package had previously led to an error. In that case, it
+  // would backtrack over the failed package instead of trying different
+  // versions of it.
+  testResolve("finds solution with less strict constraint", {
+    "myapp 1.0.0": {
+      "a": "any",
+      "c": "any",
+      "d": "any"
+    },
+    "a 2.0.0": {},
+    "a 1.0.0": {},
+    "b 1.0.0": {"a": "1.0.0"},
+    "c 1.0.0": {"b": "any"},
+    "d 2.0.0": {"myapp": "any"},
+    "d 1.0.0": {"myapp": "<1.0.0"}
+  }, result: {
+    'myapp from root': '1.0.0',
+    'a': '1.0.0',
+    'b': '1.0.0',
+    'c': '1.0.0',
+    'd': '2.0.0'
+  }, maxTries: 3);
 }
 
 sdkConstraint() {

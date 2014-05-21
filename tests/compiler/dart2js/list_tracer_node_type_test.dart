@@ -59,7 +59,8 @@ main() {
 String generateTest(String call) {
   return """
 main() {
-  var a = [42];
+  List differentType = [true, false];
+  List a = [42];
   return a.$call + 42;
 }
 """;
@@ -91,17 +92,20 @@ main() {
     Expect.isFalse(generated.contains('iae'));
   }));
 
-  var selectors = const <String>[
+  var memberInvocations = const <String>[
     'first',
     'last',
     'single',
-    'singleWhere',
-    'elementAt',
-    'removeAt',
-    'removeLast'
+    'singleWhere((x) => true)',
+    'elementAt(0)',
+    'removeAt(0)',
+    'removeLast()',
   ];
-  selectors.map((name) => generateTest('$name()')).forEach((String test) {
-    asyncTest(() => compileAll(test).then((generated) {
+  memberInvocations.map((member) => generateTest('$member'))
+      .forEach((String test) {
+    asyncTest(() => compileAll(test, expectedErrors: 0, expectedWarnings: 0)
+        .then((generated) {
+      Expect.isTrue(generated.contains('+ 42'));
       Expect.isFalse(generated.contains('if (typeof t1'));
       Expect.isFalse(generated.contains('if (t1 == null)'));
     }));

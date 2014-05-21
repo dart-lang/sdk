@@ -37,16 +37,16 @@ class ExcludingTransformer extends Transformer {
 
   ExcludingTransformer._(this._inner, this._includes, this._excludes);
 
-  Future<bool> isPrimary(AssetId id) {
+  isPrimary(AssetId id) {
     // TODO(rnystrom): Support globs in addition to paths. See #17093.
     if (_includes != null) {
       // If there are any includes, it must match one of them.
-      if (!_includes.contains(id.path)) return new Future.value(false);
+      if (!_includes.contains(id.path)) return false;
     }
 
     // It must not be excluded.
     if (_excludes != null && _excludes.contains(id.path)) {
-      return new Future.value(false);
+      return false;
     }
 
     return _inner.isPrimary(id);

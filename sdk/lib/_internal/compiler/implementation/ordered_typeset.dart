@@ -87,6 +87,22 @@ class OrderedTypeSet {
     }
   }
 
+  InterfaceType asInstanceOf(ClassElement cls) {
+    int level = cls.hierarchyDepth;
+    if (level < levels) {
+      Link<DartType> pointer = _levels[level];
+      Link<DartType> end =
+          level > 0 ? _levels[level - 1] : const Link<DartType>();
+      while (!identical(pointer, end)) {
+        if (cls == pointer.head.element) {
+          return pointer.head;
+        }
+        pointer = pointer.tail;
+      }
+    }
+    return null;
+  }
+
   String toString() => types.toString();
 }
 

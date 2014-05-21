@@ -40,12 +40,12 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
     ExternalLabel label(name(), entry);
-    __ BranchLink(&label, PP);
+    __ BranchLink(&label, kNoPP);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadImmediate(R5, entry, kNoRegister);
-    __ LoadImmediate(R4, argument_count, kNoRegister);
+    __ LoadImmediate(R5, entry, kNoPP);
+    __ LoadImmediate(R4, argument_count, kNoPP);
     __ BranchLink(&StubCode::CallToRuntimeLabel(), PP);
   }
 }

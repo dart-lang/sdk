@@ -114,7 +114,8 @@ class HtmlDartGenerator(object):
     # interfaces need to be added.  Sometimes the attribute or operation is
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
-    secondary_parents = self._database.TransitiveSecondaryParents(interface)
+    secondary_parents = self._database.TransitiveSecondaryParents(interface,
+                          not self._dart_use_blink)
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue

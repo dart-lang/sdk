@@ -1313,8 +1313,8 @@ class InBodyPhase extends Phase {
         tree.openElements[1].localName != "body")) {
       assert(parser.innerHTMLMode);
     } else if (parser.framesetOK) {
-      if (tree.openElements[1].parent != null) {
-        tree.openElements[1].parent.nodes.remove(tree.openElements[1]);
+      if (tree.openElements[1].parentNode != null) {
+        tree.openElements[1].parentNode.nodes.remove(tree.openElements[1]);
       }
       while (tree.openElements.last.localName != "html") {
         tree.openElements.removeLast();
@@ -1840,7 +1840,7 @@ class InBodyPhase extends Phase {
         }
         // Step 6.5
         //cite = node.parent
-        var clone = node.clone();
+        var clone = node.clone(false);
         // Replace node with clone
         tree.activeFormattingElements[
             tree.activeFormattingElements.indexOf(node)] = clone;
@@ -1849,8 +1849,8 @@ class InBodyPhase extends Phase {
 
         // Step 6.6
         // Remove lastNode from its parents, if any
-        if (lastNode.parent != null) {
-          lastNode.parent.nodes.remove(lastNode);
+        if (lastNode.parentNode != null) {
+          lastNode.parentNode.nodes.remove(lastNode);
         }
         node.nodes.add(lastNode);
         // Step 7.7
@@ -1862,8 +1862,8 @@ class InBodyPhase extends Phase {
       // Foster parent lastNode if commonAncestor is a
       // table, tbody, tfoot, thead, or tr we need to foster parent the
       // lastNode
-      if (lastNode.parent != null) {
-        lastNode.parent.nodes.remove(lastNode);
+      if (lastNode.parentNode != null) {
+        lastNode.parentNode.nodes.remove(lastNode);
       }
 
       if (const ["table", "tbody", "tfoot", "thead", "tr"].contains(
@@ -1875,7 +1875,7 @@ class InBodyPhase extends Phase {
       }
 
       // Step 8
-      var clone = formattingElement.clone();
+      var clone = formattingElement.clone(false);
 
       // Step 9
       furthestBlock.reparentChildren(clone);

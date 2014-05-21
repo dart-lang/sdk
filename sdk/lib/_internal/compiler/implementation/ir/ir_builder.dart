@@ -10,9 +10,9 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
-import '../scanner/scannerlib.dart' show Token;
+import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
-import 'ir_pickler.dart' show Unpickler, IrConstantPool;
+import '../universe/universe.dart' show SelectorKind;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -59,7 +59,7 @@ class IrBuilderTask extends CompilerTask {
           ElementKind kind = element.kind;
           if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
             // TODO(lry): build ir for constructors.
-          } else if (element.isDeferredLoaderGetter()) {
+          } else if (element.isDeferredLoaderGetter) {
             // TODO(sigurdm): Build ir for deferred loader functions.
           } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
               kind == ElementKind.FUNCTION ||
@@ -73,14 +73,6 @@ class IrBuilderTask extends CompilerTask {
           }
 
           if (function != null) {
-            assert(() {
-              // In host-checked mode, serialize and de-serialize the IrNode.
-              LibraryElement library = element.declaration.getLibrary();
-              IrConstantPool constantPool = IrConstantPool.forLibrary(library);
-              List<int> data = function.pickle(constantPool);
-              function = new Unpickler(compiler, constantPool).unpickle(data);
-              return true;
-            });
             nodes[element] = function;
             compiler.tracer.traceCompilation(element.name, null, compiler);
             compiler.tracer.traceGraph("IR Builder", function);
@@ -92,12 +84,10 @@ class IrBuilderTask extends CompilerTask {
 
   bool irEnabled() {
     // TODO(lry): support checked-mode checks.
-    if (compiler.enableTypeAssertions ||
-        compiler.backend is !DartBackend ||
-        compiler.enableConcreteTypeInference) {
-      return false;
-    }
-    return const bool.fromEnvironment('enable_ir', defaultValue: true);
+    return const bool.fromEnvironment('USE_NEW_BACKEND') &&
+        compiler.backend is DartBackend &&
+        !compiler.enableTypeAssertions &&
+        !compiler.enableConcreteTypeInference;
   }
 
   bool canBuild(Element element) {
@@ -121,11 +111,11 @@ class IrBuilderTask extends CompilerTask {
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
-    if (element.isGetter() || element.isSetter()) return false;
-    if (element.enclosingElement.isClass()) return false;
+    if (element.isGetter || element.isSetter) return false;
+    if (element.enclosingElement.isClass) return false;
 
     // TODO(lry): support native functions (also in [visitReturn]).
-    if (function.isNative()) return false;
+    if (function.isNative) return false;
 
     return true;
   }
@@ -141,7 +131,7 @@ class IrBuilderTask extends CompilerTask {
       FunctionElement functionElement = element;
       if (functionElement.patch != null) element = functionElement.patch;
     }
-    return element.getCompilationUnit().script.file;
+    return element.compilationUnit.script.file;
   }
 }
 
@@ -236,9 +226,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.FunctionDefinition buildFunctionInternal(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression function = element.parseNode(compiler);
+    ast.FunctionExpression function = element.node;
     assert(function != null);
-    assert(!function.modifiers.isExternal());
+    assert(!function.modifiers.isExternal);
     assert(elements[function] != null);
 
     root = current = null;
@@ -315,14 +305,84 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return null;
   }
 
+  List<ir.Parameter> createJoinParameters(IrBuilder leftBuilder,
+                                          List<ir.Primitive> leftArguments,
+                                          IrBuilder rightBuilder,
+                                          List<ir.Primitive> rightArguments) {
+    // The sets of free and assigned variables for a delimited builder is
+    // initially the length of the assigned variables of the parent.  The free
+    // variables cannot grow because there cannot be free occurrences of
+    // variables that were not declared before the entrance to the delimited
+    // subgraph.  The assigned variables can grow when new variables are
+    // declared in the delimited graph, but we only inspect the prefix
+    // corresponding to the parent's declared variables.
+    assert(assignedVars.length == leftBuilder.freeVars.length);
+    assert(assignedVars.length == rightBuilder.freeVars.length);
+    assert(assignedVars.length <= leftBuilder.assignedVars.length);
+    assert(assignedVars.length <= rightBuilder.assignedVars.length);
+
+    List<ir.Parameter> parameters = <ir.Parameter>[];
+    // If a variable was assigned on either the left or the right (and control
+    // flow reaches the end of the corresponding subterm) then the variable has
+    // different values reaching the join point and needs to be passed as an
+    // argument to the join point continuation.
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // The last assignments if any reaching the end of the two subterms.
+      ir.Definition leftAssignment =
+          leftBuilder.isOpen ? leftBuilder.assignedVars[i] : null;
+      ir.Definition rightAssignment =
+          rightBuilder.isOpen ? rightBuilder.assignedVars[i] : null;
+
+      if (leftAssignment != null || rightAssignment != null) {
+        // The corresponsing argument is the reaching definition if any, or a
+        // free occurrence.  In the case that control does not reach both the
+        // left and right subterms we will still have a join continuation with
+        // possibly arguments passed to it.  Such singly-used continuations
+        // are eliminated by the shrinking conversions.
+        ir.Parameter parameter = new ir.Parameter(null);
+        parameters.add(parameter);
+        leftArguments.add(leftAssignment == null
+                              ? leftBuilder.freeVars[i]
+                              : leftAssignment);
+        rightArguments.add(rightAssignment == null
+                              ? rightBuilder.freeVars[i]
+                              : rightAssignment);
+      }
+    }
+    return parameters;
+  }
+
+  void captureFreeVariables(IrBuilder leftBuilder,
+                            IrBuilder rightBuilder,
+                            List<ir.Parameter> parameters) {
+    int parameterIndex = 0;
+    for (int i = 0; i < assignedVars.length; ++i) {
+      // This is the definition that reaches the left and right subterms.  All
+      // free uses in either term are uses of this definition.
+      ir.Definition reachingDefinition =
+          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
+      reachingDefinition
+          ..substituteFor(leftBuilder.freeVars[i])
+          ..substituteFor(rightBuilder.freeVars[i]);
+
+      // Also add join continuation parameters as assignments for the join
+      // body.  This is done last because the assigned variables are updated
+      // in place.
+      if ((leftBuilder.isOpen && leftBuilder.assignedVars[i] != null) ||
+          (rightBuilder.isOpen && rightBuilder.assignedVars[i] != null)) {
+        assignedVars[i] = parameters[parameterIndex++];
+      }
+    }
+  }
+
   ir.Primitive visitIf(ast.If node) {
     assert(isOpen);
     ir.Primitive condition = visit(node.condition);
 
     // The then and else parts are delimited.
     IrBuilder thenBuilder = new IrBuilder.delimited(this);
-    thenBuilder.visit(node.thenPart);
     IrBuilder elseBuilder = new IrBuilder.delimited(this);
+    thenBuilder.visit(node.thenPart);
     if (node.hasElsePart) elseBuilder.visit(node.elsePart);
 
     // The free variables in the then and else parts are uses of definitions
@@ -330,41 +390,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // assigned variables in the then and else parts are arguments to the join
     // point continuation if any.
 
-    // FreeVars is initially the length of assignedVars of the parent, and it
-    // does not grow.  AssignedVars can grow.
-    assert(assignedVars.length == thenBuilder.freeVars.length);
-    assert(assignedVars.length == elseBuilder.freeVars.length);
-    assert(assignedVars.length <= thenBuilder.assignedVars.length);
-    assert(assignedVars.length <= elseBuilder.assignedVars.length);
-    List<ir.Parameter> parameters = <ir.Parameter>[];
     List<ir.Primitive> thenArguments = <ir.Primitive>[];
     List<ir.Primitive> elseArguments = <ir.Primitive>[];
-    for (int i = 0; i < assignedVars.length; ++i) {
-      // These are the last assignments, if any, in the then and else
-      // continuations respectively (if they can reach the join point).  If a
-      // variable is assigned in either branch reaching the join point, it has
-      // different values that must be passed as an argument to the join point
-      // continuation.
-      ir.Definition thenAssignment =
-          thenBuilder.isOpen ? thenBuilder.assignedVars[i] : null;
-      ir.Definition elseAssignment =
-          elseBuilder.isOpen ? elseBuilder.assignedVars[i] : null;
-      if (thenAssignment != null || elseAssignment != null) {
-        // In the case that not both then and else parts can reach the join
-        // point, there will still be a join-point continuation possibly with
-        // arguments passed to it.  Such singly-used continuations should be
-        // eliminated by shrinking conversions (because they can arise
-        // otherwise as the result of optimization).
-        ir.Parameter parameter = new ir.Parameter(null);
-        parameters.add(parameter);
-        thenArguments.add(thenAssignment == null
-                              ? thenBuilder.freeVars[i]
-                              : thenAssignment);
-        elseArguments.add(elseAssignment == null
-                              ? elseBuilder.freeVars[i]
-                              : elseAssignment);
-      }
-    }
+    List<ir.Parameter> parameters =
+        createJoinParameters(thenBuilder, thenArguments,
+                             elseBuilder, elseArguments);
 
     // Create a then and else continuations and a join continuation if
     // necessary.  Jump to the join continuation from the exits of the then
@@ -386,27 +416,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     thenContinuation.body = thenBuilder.root;
     elseContinuation.body = elseBuilder.root;
 
-    // Capture free occurrences in the then and else bodies.  This is done
-    // after creating invocations of the join continuation so free join
+    // Capture free occurrences in the then and else bodies and add join
+    // continuation parameters as assignments reaching the join body.  This is
+    // done after creating invocations of the join continuation so free join
     // continuation arguments are properly captured.
-    //
-    // Also add join continuation parameters as assignments for the join body.
-    // This is done last because the assigned variables are updated in place.
-    int parameterIndex = 0;
-    for (int i = 0; i < assignedVars.length; ++i) {
-      // This is the definition that reaches the then and else continuations.
-      // All free uses in either continuation are uses of this definition.
-      ir.Definition reachingDefinition =
-          assignedVars[i] == null ? freeVars[i] : assignedVars[i];
-      reachingDefinition
-          ..substituteFor(thenBuilder.freeVars[i])
-          ..substituteFor(elseBuilder.freeVars[i]);
-
-      if ((thenBuilder.isOpen && thenBuilder.assignedVars[i] != null) ||
-          (elseBuilder.isOpen && elseBuilder.assignedVars[i] != null)) {
-        assignedVars[i] = parameters[parameterIndex++];
-      }
-    }
+    captureFreeVariables(thenBuilder, elseBuilder, parameters);
 
     ir.Expression branch =
         new ir.LetCont(thenContinuation,
@@ -469,6 +483,49 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   }
 
   // ==== Expressions ====
+  ir.Primitive visitConditional(ast.Conditional node) {
+    assert(isOpen);
+    ir.Primitive condition = visit(node.condition);
+
+    // The then and else expressions are delimited.
+    IrBuilder thenBuilder = new IrBuilder.delimited(this);
+    IrBuilder elseBuilder = new IrBuilder.delimited(this);
+    ir.Primitive thenValue = thenBuilder.visit(node.thenExpression);
+    ir.Primitive elseValue = elseBuilder.visit(node.elseExpression);
+
+    List<ir.Primitive> thenArguments = <ir.Primitive>[];
+    List<ir.Primitive> elseArguments = <ir.Primitive>[];
+    List<ir.Parameter> parameters =
+        createJoinParameters(thenBuilder, thenArguments,
+                             elseBuilder, elseArguments);
+    // Add a continuation parameter for the result of the expression.
+    ir.Parameter resultParameter = new ir.Parameter(null);
+    parameters.add(resultParameter);
+    thenArguments.add(thenValue);
+    elseArguments.add(elseValue);
+
+    ir.Continuation joinContinuation = new ir.Continuation(parameters);
+    ir.Continuation thenContinuation = new ir.Continuation([]);
+    ir.Continuation elseContinuation = new ir.Continuation([]);
+    thenBuilder.add(
+        new ir.InvokeContinuation(joinContinuation, thenArguments));
+    elseBuilder.add(
+        new ir.InvokeContinuation(joinContinuation, elseArguments));
+    thenContinuation.body = thenBuilder.root;
+    elseContinuation.body = elseBuilder.root;
+
+    captureFreeVariables(thenBuilder, elseBuilder, parameters);
+
+    ir.Expression branch =
+        new ir.LetCont(thenContinuation,
+            new ir.LetCont(elseContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              thenContinuation,
+                              elseContinuation)));
+    add(new ir.LetCont(joinContinuation, branch));
+    return resultParameter;
+  }
+
   // For all simple literals:
   // Build(Literal(c), C) = C[let val x = Constant(c) in [], x]
   ir.Primitive visitLiteralBool(ast.LiteralBool node) {
@@ -503,9 +560,15 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
-  // TODO(kmillikin): other literals.  Strings require quoting and escaping
-  // in the Dart backend.
-  //   LiteralString
+  ir.Primitive visitLiteralString(ast.LiteralString node) {
+    assert(isOpen);
+    ir.Constant constant =
+        new ir.Constant(constantSystem.createString(node.dartString));
+    add(new ir.LetPrim(constant));
+    return constant;
+  }
+
+  // TODO(kmillikin): other literals.
   //   LiteralList
   //   LiteralMap
   //   LiteralMapEntry
@@ -517,10 +580,35 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return visit(node.expression);
   }
 
+  // Stores the result of visiting a CascadeReceiver, so we can return it from
+  // its enclosing Cascade.
+  ir.Primitive _currentCascadeReceiver;
+
+  ir.Primitive visitCascadeReceiver(ast.CascadeReceiver node) {
+    assert(isOpen);
+    return _currentCascadeReceiver = visit(node.expression);
+  }
+
+  ir.Primitive visitCascade(ast.Cascade node) {
+    assert(isOpen);
+    var oldCascadeReceiver = _currentCascadeReceiver;
+    // Throw away the result of visiting the expression.
+    // Instead we return the result of visiting the CascadeReceiver.
+    this.visit(node.expression);
+    ir.Primitive receiver = _currentCascadeReceiver;
+    _currentCascadeReceiver = oldCascadeReceiver;
+    return receiver;
+  }
+
   // ==== Sends ====
   ir.Primitive visitAssert(ast.Send node) {
     assert(isOpen);
     return giveup();
+  }
+
+  ir.Primitive visitNamedArgument(ast.NamedArgument node) {
+    assert(isOpen);
+    return visit(node.expression);
   }
 
   ir.Primitive visitClosureSend(ast.Send node) {
@@ -530,20 +618,145 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitDynamicSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    if (node.receiver == null || node.receiver.isSuper()) {
+      return giveup();
+    }
+    Selector selector = elements.getSelector(node);
+    ir.Primitive receiver = visit(node.receiver);
+    List arguments = node.arguments.toList(growable:false)
+                         .map(visit).toList(growable:false);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.Expression invoke =
+        new ir.InvokeMethod(receiver, selector, k, arguments);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
   ir.Primitive visitGetterSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    if (!Elements.isLocal(element)) return giveup();
-    int index = variableIndex[element];
-    ir.Primitive value = assignedVars[index];
-    return value == null ? freeVars[index] : value;
+    if (Elements.isLocal(element)) {
+      int index = variableIndex[element];
+      ir.Primitive value = assignedVars[index];
+      return value == null ? freeVars[index] : value;
+    } else if (Elements.isInstanceField(element)) {
+      ir.Primitive receiver = visit(node.receiver);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.GETTER);
+      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, []);
+      add(new ir.LetCont(k, invoke));
+      return v;
+    } else {
+      // TODO(asgerf): static and top-level
+      // NOTE: Index-getters are OperatorSends, not GetterSends
+      return giveup();
+    }
+  }
+
+  ir.Primitive translateLogicalOperator(ast.Operator op,
+                                        ast.Expression left,
+                                        ast.Expression right) {
+    // e0 && e1 is translated as if e0 ? (e1 == true) : false.
+    // e0 || e1 is translated as if e0 ? true : (e1 == true).
+    // The translation must convert both e0 and e1 to booleans and handle
+    // local variable assignments in e1.
+
+    ir.Primitive leftValue = visit(left);
+    IrBuilder rightBuilder = new IrBuilder.delimited(this);
+    ir.Primitive rightValue = rightBuilder.visit(right);
+    // A dummy empty target for the branch on the left subexpression branch.
+    // This enables using the same infrastructure for continuation arguments
+    // and free variable capture as in visitIf and visitConditional.  It will
+    // hold an invocation of the join-point continuation.  It cannot have
+    // assigned variables but may have free variables as arguments to the
+    // join-point continuation.
+    IrBuilder emptyBuilder = new IrBuilder.delimited(this);
+
+    List <ir.Primitive> leftArguments = <ir.Primitive>[];
+    List <ir.Primitive> rightArguments = <ir.Primitive>[];
+    List <ir.Parameter> parameters =
+        createJoinParameters(emptyBuilder, leftArguments,
+                             rightBuilder, rightArguments);
+
+    // Add a continuation parameter for the result of the expression.
+    ir.Parameter resultParameter = new ir.Parameter(null);
+    parameters.add(resultParameter);
+    // If we don't evaluate the right subexpression, the value of the whole
+    // expression is this constant.
+    ir.Constant leftBool =
+        new ir.Constant(constantSystem.createBool(op.source == '||'));
+    leftArguments.add(leftBool);
+    // If we do evaluate the right subexpression, the value of the expression
+    // is a true or false constant.
+    ir.Constant rightTrue = new ir.Constant(constantSystem.createBool(true));
+    ir.Constant rightFalse = new ir.Constant(constantSystem.createBool(false));
+
+    // Wire up two continuations for the left subexpression, two continuations
+    // for the right subexpression, and a three-way join continuation.
+    ir.Continuation joinContinuation = new ir.Continuation(parameters);
+    ir.Continuation leftTrueContinuation = new ir.Continuation([]);
+    ir.Continuation leftFalseContinuation = new ir.Continuation([]);
+    ir.Continuation rightTrueContinuation = new ir.Continuation([]);
+    ir.Continuation rightFalseContinuation = new ir.Continuation([]);
+    // If right is true, invoke the join with a true value for the result.
+    rightArguments.add(rightTrue);
+    rightTrueContinuation.body = new ir.LetPrim(rightTrue)
+        ..plug(new ir.InvokeContinuation(joinContinuation, rightArguments));
+    // And if false, invoke the join continuation with a false value.  The
+    // argument list of definitions can be mutated, because fresh Reference
+    // objects are allocated by the InvokeContinuation constructor.
+    rightArguments[rightArguments.length - 1] = rightFalse;
+    rightFalseContinuation.body = new ir.LetPrim(rightFalse)
+        ..plug(new ir.InvokeContinuation(joinContinuation, rightArguments));
+    // The right subexpression has two continuations.
+    rightBuilder.add(
+        new ir.LetCont(rightTrueContinuation,
+            new ir.LetCont(rightFalseContinuation,
+                new ir.Branch(new ir.IsTrue(rightValue),
+                              rightTrueContinuation,
+                              rightFalseContinuation))));
+    // Depending on the operator, the left subexpression's continuations are
+    // either the right subexpression or an invocation of the join-point
+    // continuation.
+    if (op.source == '&&') {
+      leftTrueContinuation.body = rightBuilder.root;
+      leftFalseContinuation.body = new ir.LetPrim(leftBool)
+          ..plug(new ir.InvokeContinuation(joinContinuation, leftArguments));
+    } else {
+      leftTrueContinuation.body = new ir.LetPrim(leftBool)
+          ..plug(new ir.InvokeContinuation(joinContinuation, leftArguments));
+      leftFalseContinuation.body = rightBuilder.root;
+    }
+
+    // Capture free local variable occurrences in the right subexpression
+    // and update the reaching definitions for the join-point continuation
+    // body to include the continuation's parameters.
+    captureFreeVariables(rightBuilder, emptyBuilder, parameters);
+
+    add(new ir.LetCont(joinContinuation,
+            new ir.LetCont(leftTrueContinuation,
+                new ir.LetCont(leftFalseContinuation,
+                    new ir.Branch(new ir.IsTrue(leftValue),
+                                  leftTrueContinuation,
+                                  leftFalseContinuation)))));
+    return resultParameter;
   }
 
   ir.Primitive visitOperatorSend(ast.Send node) {
     assert(isOpen);
+    ast.Operator op = node.selector;
+    if (isUserDefinableOperator(op.source)) {
+      return visitDynamicSend(node);
+    }
+    if (op.source == '&&' || op.source == '||') {
+      assert(node.receiver != null);
+      assert(!node.arguments.isEmpty);
+      assert(node.arguments.tail.isEmpty);
+      return translateLogicalOperator(op, node.receiver, node.arguments.head);
+    }
     return giveup();
   }
 
@@ -553,35 +766,27 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support static fields. (separate IR instruction?)
-    if (element.isField() || element.isGetter()) return giveup();
+    if (element.isField || element.isGetter) return giveup();
     // TODO(kmillikin): support static setters.
-    if (element.isSetter()) return giveup();
+    if (element.isSetter) return giveup();
     // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor()) return giveup();
+    if (element.isConstructor) return giveup();
     // TODO(lry): support foreign functions.
     if (element.isForeign(compiler)) return giveup();
     // TODO(lry): for elements that could not be resolved emit code to throw a
     // [NoSuchMethodError].
-    if (element.isErroneous()) return giveup();
+    if (element.isErroneous) return giveup();
     // TODO(lry): generate IR for object identicality.
     if (element == compiler.identicalFunction) giveup();
 
     Selector selector = elements.getSelector(node);
-    // TODO(lry): support named arguments
-    if (selector.namedArgumentCount != 0) return giveup();
 
     // TODO(kmillikin): support a receiver: A.m().
     if (node.receiver != null) return giveup();
 
-    List arguments = [];
     // TODO(lry): support default arguments, need support for locals.
-    bool succeeded = selector.addArgumentsToList(
-        node.arguments, arguments, element.implementation, visit,
-        (node) => giveup(), compiler);
-    if (!succeeded) {
-      // TODO(lry): generate code to throw a [WrongArgumentCountError].
-      return giveup();
-    }
+    List<ir.Definition> arguments = node.arguments.toList(growable:false)
+                                       .map(visit).toList(growable:false);
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
@@ -603,14 +808,90 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitSendSet(ast.SendSet node) {
     assert(isOpen);
     Element element = elements[node];
-    if (!Elements.isLocal(element)) return giveup();
     if (node.assignmentOperator.source != '=') return giveup();
-    // Exactly one argument expected for a simple assignment.
-    assert(!node.arguments.isEmpty);
-    assert(node.arguments.tail.isEmpty);
-    ir.Primitive result = visit(node.arguments.head);
-    assignedVars[variableIndex[element]] = result;
-    return result;
+    if (Elements.isLocal(element)) {
+      // Exactly one argument expected for a simple assignment.
+      assert(!node.arguments.isEmpty);
+      assert(node.arguments.tail.isEmpty);
+      ir.Primitive result = visit(node.arguments.head);
+      assignedVars[variableIndex[element]] = result;
+      return result;
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      // TODO(asgerf): static and top-level
+      return giveup();
+    } else if (node.receiver == null) {
+      // Nodes that fall in this case:
+      // - Unresolved top-level
+      // - Assignment to final variable (will not be resolved)
+      return giveup();
+    } else {
+      // Setter or index-setter invocation
+      assert(node.receiver != null);
+      if (node.receiver.isSuper()) return giveup();
+
+      ir.Primitive receiver = visit(node.receiver);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.SETTER ||
+             selector.kind == SelectorKind.INDEX);
+      List<ir.Definition> args = node.arguments.toList(growable:false)
+                                     .map(visit).toList(growable:false);
+      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, args);
+      add(new ir.LetCont(k, invoke));
+      return args.last;
+    }
+  }
+
+  ir.Primitive visitNewExpression(ast.NewExpression node) {
+    if (node.isConst) {
+      return giveup(); // TODO(asgerf): Const constructor call.
+    }
+    FunctionElement element = elements[node.send];
+    if (Elements.isUnresolved(element)) {
+      return giveup();
+    }
+    ast.Node selector = node.send.selector;
+    GenericType type = elements.getType(node);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    List<ir.Definition> args = node.send.arguments.toList(growable:false)
+                                        .map(visit).toList(growable:false);
+    ir.InvokeConstructor invoke = new ir.InvokeConstructor(
+        type,
+        element,
+        elements.getSelector(node.send),
+        k,
+        args);
+    add(new ir.LetCont(k, invoke));
+    return v;
+  }
+
+  ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
+    ir.Primitive first = visit(node.first);
+    ir.Primitive second = visit(node.second);
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.ConcatenateStrings concat =
+        new ir.ConcatenateStrings(k, [first, second]);
+    add(new ir.LetCont(k, concat));
+    return v;
+  }
+
+  ir.Primitive visitStringInterpolation(ast.StringInterpolation node) {
+    List<ir.Primitive> arguments = [];
+    arguments.add(visitLiteralString(node.string));
+    var it = node.parts.iterator;
+    while (it.moveNext()) {
+      ast.StringInterpolationPart part = it.current;
+      arguments.add(visit(part.expression));
+      arguments.add(visitLiteralString(part.string));
+    }
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.ConcatenateStrings concat = new ir.ConcatenateStrings(k, arguments);
+    add(new ir.LetCont(k, concat));
+    return v;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";

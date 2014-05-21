@@ -20,6 +20,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -123,18 +124,81 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 }
 
 
-// TODO(zra): Support for far branches. Requires loading large immediates.
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
-  intptr_t bound_pc = buffer_.Size();
+  const intptr_t bound_pc = buffer_.Size();
 
   while (label->IsLinked()) {
     const int64_t position = label->Position();
     const int64_t dest = bound_pc - position;
-    const int32_t next = buffer_.Load<int32_t>(position);
-    const int32_t encoded = EncodeImm19BranchOffset(dest, next);
-    buffer_.Store<int32_t>(position, encoded);
-    label->position_ = DecodeImm19BranchOffset(next);
+    if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+      // Far branches are enabled, and we can't encode the branch offset in
+      // 19 bits.
+
+      // Grab the guarding branch instruction.
+      const int32_t guard_branch =
+          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+      // Grab the far branch instruction.
+      const int32_t far_branch =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+      const Condition c = DecodeImm19BranchCondition(guard_branch);
+
+      // Grab the link to the next branch.
+      const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+      // dest is the offset is from the guarding branch instruction.
+      // Correct it to be from the following instruction.
+      const int64_t offset = dest - Instr::kInstrSize;
+
+      // Encode the branch.
+      const int32_t encoded_branch =
+          EncodeImm26BranchOffset(offset, far_branch);
+
+      // If the guard branch is conditioned on NV, replace it with a nop.
+      if (c == NV) {
+        buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                               Instr::kNopInstruction);
+      }
+
+      // Write the far branch into the buffer and link to the next branch.
+      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
+      label->position_ = next;
+    } else if (use_far_branches() && CanEncodeImm19BranchOffset(dest)) {
+      // We assembled a far branch, but we don't need it. Replace it with a near
+      // branch.
+
+      // Grab the guarding branch instruction.
+      const int32_t guard_branch =
+          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+      // Grab the far branch instruction.
+      const int32_t far_branch =
+          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+      // Grab the link to the next branch.
+      const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+      // Re-target the guarding branch and flip the conditional sense.
+      int32_t encoded_guard_branch =
+          EncodeImm19BranchOffset(dest, guard_branch);
+      const Condition c = DecodeImm19BranchCondition(encoded_guard_branch);
+      encoded_guard_branch = EncodeImm19BranchCondition(
+          InvertCondition(c), encoded_guard_branch);
+
+      // Write back the re-encoded instructions. The far branch becomes a nop.
+      buffer_.Store<int32_t>(
+          position + 0 * Instr::kInstrSize, encoded_guard_branch);
+      buffer_.Store<int32_t>(
+          position + 1 * Instr::kInstrSize, Instr::kNopInstruction);
+      label->position_ = next;
+    } else {
+      const int32_t next = buffer_.Load<int32_t>(position);
+      const int32_t encoded = EncodeImm19BranchOffset(dest, next);
+      buffer_.Store<int32_t>(position, encoded);
+      label->position_ = DecodeImm19BranchOffset(next);
+    }
   }
   label->BindTo(bound_pc);
 }
@@ -299,11 +363,20 @@ void Assembler::LoadPoolPointer(Register pp) {
   sub(pp, pp, Operand(kHeapObjectTag));
 }
 
+
 void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
                                        uint32_t offset) {
   ASSERT(dst != pp);
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
   if (Address::CanHoldOffset(offset)) {
     ldr(dst, Address(pp, offset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    const uint32_t lower12 = offset & 0x00000fff;
+    ASSERT(Address::CanHoldOffset(lower12));
+    add(dst, pp, op);
+    ldr(dst, Address(dst, lower12));
   } else {
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
@@ -313,6 +386,21 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
     }
     ldr(dst, Address(pp, dst));
   }
+}
+
+
+void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
+                                            uint32_t offset) {
+  ASSERT(dst != pp);
+  Operand op;
+  const uint32_t upper20 = offset & 0xfffff000;
+  const uint32_t lower12 = offset & 0x00000fff;
+  const Operand::OperandType ot =
+      Operand::CanHold(upper20, kXRegSizeInBits, &op);
+  ASSERT(ot == Operand::Immediate);
+  ASSERT(Address::CanHoldOffset(lower12));
+  add(dst, pp, op);
+  ldr(dst, Address(dst, lower12));
 }
 
 
@@ -402,6 +490,9 @@ bool Assembler::CanLoadObjectFromPool(const Object& object) {
 bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
   return !Utils::IsInt(32, imm) &&
          (pp != kNoPP) &&
+         // We *could* put constants in the pool in a VM isolate, but it is
+         // simpler to maintain the invariant that the object pool is not used
+         // in the VM isolate.
          (Isolate::Current() != Dart::vm_isolate());
 }
 
@@ -410,9 +501,24 @@ void Assembler::LoadExternalLabel(Register dst,
                                   const ExternalLabel* label,
                                   Patchability patchable,
                                   Register pp) {
+  const int64_t target = static_cast<int64_t>(label->address());
+  if (CanLoadImmediateFromPool(target, pp)) {
+    const int32_t offset =
+        Array::element_offset(FindExternalLabel(label, patchable));
+    LoadWordFromPoolOffset(dst, pp, offset);
+  } else {
+    LoadImmediate(dst, target, kNoPP);
+  }
+}
+
+
+void Assembler::LoadExternalLabelFixed(Register dst,
+                                       const ExternalLabel* label,
+                                       Patchability patchable,
+                                       Register pp) {
   const int32_t offset =
       Array::element_offset(FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(dst, pp, offset);
+  LoadWordFromPoolOffsetFixed(dst, pp, offset);
 }
 
 
@@ -578,6 +684,12 @@ void Assembler::LoadDImmediate(VRegister vd, double immd, Register pp) {
 void Assembler::AddImmediate(
     Register dest, Register rn, int64_t imm, Register pp) {
   Operand op;
+  if (imm == 0) {
+    if (dest != rn) {
+      mov(dest, rn);
+    }
+    return;
+  }
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
     add(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
@@ -596,15 +708,36 @@ void Assembler::AddImmediateSetFlags(
     Register dest, Register rn, int64_t imm, Register pp) {
   Operand op;
   if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    // Handles imm == kMinInt64.
     adds(dest, rn, op);
   } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
              Operand::Immediate) {
+    ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
     subs(dest, rn, op);
   } else {
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm, pp);
     adds(dest, rn, Operand(TMP2));
+  }
+}
+
+
+void Assembler::SubImmediateSetFlags(
+    Register dest, Register rn, int64_t imm, Register pp) {
+  Operand op;
+  if (Operand::CanHold(imm, kXRegSizeInBits, &op) == Operand::Immediate) {
+    // Handles imm == kMinInt64.
+    subs(dest, rn, op);
+  } else if (Operand::CanHold(-imm, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    ASSERT(imm != kMinInt64);  // Would cause erroneous overflow detection.
+    adds(dest, rn, op);
+  } else {
+    // TODO(zra): Try subtracting top 12 bits, then bottom 12 bits.
+    ASSERT(rn != TMP2);
+    LoadImmediate(TMP2, imm, pp);
+    subs(dest, rn, Operand(TMP2));
   }
 }
 
@@ -672,52 +805,74 @@ void Assembler::CompareImmediate(Register rn, int64_t imm, Register pp) {
 
 
 void Assembler::LoadFromOffset(
-    Register dest, Register base, int32_t offset, OperandSize sz) {
+    Register dest, Register base, int32_t offset, Register pp, OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     ldr(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     ldr(dest, Address(TMP2), sz);
   }
 }
 
 
-void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
+void Assembler::LoadDFromOffset(
+    VRegister dest, Register base, int32_t offset, Register pp) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fldrd(dest, Address(base, offset, Address::Offset, kDWord));
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     fldrd(dest, Address(TMP2));
   }
 }
 
 
+void Assembler::LoadQFromOffset(
+    VRegister dest, Register base, int32_t offset, Register pp) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kQWord)) {
+    fldrq(dest, Address(base, offset, Address::Offset, kQWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset, pp);
+    fldrq(dest, Address(TMP2));
+  }
+}
+
+
 void Assembler::StoreToOffset(
-    Register src, Register base, int32_t offset, OperandSize sz) {
+    Register src, Register base, int32_t offset, Register pp, OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     str(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(src != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     str(src, Address(TMP2), sz);
   }
 }
 
 
-void Assembler::StoreDToOffset(VRegister src, Register base, int32_t offset) {
+void Assembler::StoreDToOffset(
+    VRegister src, Register base, int32_t offset, Register pp) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fstrd(src, Address(base, offset, Address::Offset, kDWord));
   } else {
     ASSERT(base != TMP2);
-    // Since offset is 32-bits, it won't be loaded from the pool.
-    AddImmediate(TMP2, base, offset, kNoPP);
+    AddImmediate(TMP2, base, offset, pp);
     fstrd(src, Address(TMP2));
+  }
+}
+
+
+void Assembler::StoreQToOffset(
+    VRegister src, Register base, int32_t offset, Register pp) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kQWord)) {
+    fstrq(src, Address(base, offset, Address::Offset, kQWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset, pp);
+    fstrq(src, Address(TMP2));
   }
 }
 
@@ -751,6 +906,21 @@ void Assembler::StoreIntoObjectFilter(Register object,
   bic(TMP, TMP, Operand(object));
   tsti(TMP, kNewObjectAlignmentOffset);
   b(no_update, EQ);
+}
+
+
+void Assembler::StoreIntoObjectOffset(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      Register pp,
+                                      bool can_value_be_smi) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObject(
+        object, FieldAddress(object, offset), value, can_value_be_smi);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObject(object, Address(TMP), value, can_value_be_smi);
+  }
 }
 
 
@@ -799,48 +969,74 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
+                                               int32_t offset,
+                                               Register value,
+                                               Register pp) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
-  LoadObject(TMP, value, PP);
-  str(TMP, dest);
+  LoadObject(TMP2, value, PP);
+  str(TMP2, dest);
 }
 
 
-void Assembler::LoadClassId(Register result, Register object) {
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
+                                               int32_t offset,
+                                               const Object& value,
+                                               Register pp) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag, pp);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+
+void Assembler::LoadClassId(Register result, Register object, Register pp) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
+  LoadFromOffset(result, object, class_id_offset - kHeapObjectTag, pp,
                  kUnsignedHalfword);
 }
 
 
-void Assembler::LoadClassById(Register result, Register class_id) {
+void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  LoadFieldFromOffset(result, CTX, Context::isolate_offset());
+  LoadFieldFromOffset(result, CTX, Context::isolate_offset(), pp);
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(result, result, table_offset_in_isolate);
+  LoadFromOffset(result, result, table_offset_in_isolate, pp);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 
 
-void Assembler::LoadClass(Register result, Register object) {
+void Assembler::LoadClass(Register result, Register object, Register pp) {
   ASSERT(object != TMP);
-  LoadClassId(TMP, object);
-  LoadClassById(result, TMP);
+  LoadClassId(TMP, object, pp);
+  LoadClassById(result, TMP, pp);
 }
 
 
-void Assembler::CompareClassId(Register object,
-                               intptr_t class_id) {
-  LoadClassId(TMP, object);
-  CompareImmediate(TMP, class_id, PP);
+void Assembler::CompareClassId(
+    Register object, intptr_t class_id, Register pp) {
+  LoadClassId(TMP, object, pp);
+  CompareImmediate(TMP, class_id, pp);
 }
 
 
@@ -848,7 +1044,9 @@ void Assembler::CompareClassId(Register object,
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
-  AddImmediate(SP, SP, -frame_space, kNoPP);
+  if (frame_space != 0) {
+    AddImmediate(SP, SP, -frame_space, kNoPP);
+  }
   if (OS::ActivationFrameAlignment() > 1) {
     mov(TMP, SP);  // SP can't be register operand of andi.
     andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));
@@ -922,7 +1120,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   Comment("EnterOsrFrame");
   adr(TMP, -CodeSize());
 
-  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize);
+  StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize, kNoPP);
 
   // Setup pool pointer for this dart function.
   if (new_pp == kNoPP) {
@@ -939,7 +1137,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 
 void Assembler::LeaveDartFrame() {
   // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize, kNoPP);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
 }
@@ -1022,7 +1220,7 @@ void Assembler::EnterStubFrame(bool load_pp) {
 
 void Assembler::LeaveStubFrame() {
   // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize, kNoPP);
   sub(PP, PP, Operand(kHeapObjectTag));
   LeaveFrame();
 }
@@ -1151,7 +1349,7 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     LoadImmediate(TMP, tags, pp);
-    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset());
+    StoreFieldToOffset(TMP, instance_reg, Object::tags_offset(), pp);
   } else {
     b(failure);
   }

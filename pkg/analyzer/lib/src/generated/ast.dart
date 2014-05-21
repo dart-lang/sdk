@@ -16,6 +16,7 @@ import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
 import 'utilities_collection.dart' show TokenMap;
 import 'element.dart';
+import 'constant.dart';
 
 /**
  * Instances of the class `AdjacentStrings` represents two or more string literals that are
@@ -790,6 +791,19 @@ class AssignmentExpression extends Expression {
    * @param rightHandSide the expression used to compute the right hand side
    */
   AssignmentExpression(Expression leftHandSide, this.operator, Expression rightHandSide) {
+    if (leftHandSide == null || rightHandSide == null) {
+      String message;
+      if (leftHandSide == null) {
+        if (rightHandSide == null) {
+          message = "Both the left-hand and right-hand sides are null";
+        } else {
+          message = "The left-hand size is null";
+        }
+      } else {
+        message = "The right-hand size is null";
+      }
+      AnalysisEngine.instance.logger.logError2(message, new JavaException(message));
+    }
     this._leftHandSide = becomeParentOf(leftHandSide);
     this._rightHandSide = becomeParentOf(rightHandSide);
   }
@@ -949,59 +963,68 @@ class AssignmentExpression extends Expression {
  * results or properties associated with the nodes.
  */
 class AstCloner implements AstVisitor<AstNode> {
-  @override
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(_cloneNodeList(node.strings));
+  List cloneNodeList(NodeList nodes) {
+    int count = nodes.length;
+    List clonedNodes = new List();
+    for (int i = 0; i < count; i++) {
+      clonedNodes.add((nodes[i]).accept(this) as AstNode);
+    }
+    return clonedNodes;
+  }
 
   @override
-  Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, _cloneNode(node.name), node.period, _cloneNode(node.constructorName), _cloneNode(node.arguments));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(cloneNodeList(node.strings));
 
   @override
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, _cloneNodeList(node.arguments), node.rightParenthesis);
+  Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, cloneNode(node.name), node.period, cloneNode(node.constructorName), cloneNode(node.arguments));
 
   @override
-  AsExpression visitAsExpression(AsExpression node) => new AsExpression(_cloneNode(node.expression), node.asOperator, _cloneNode(node.type));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, cloneNodeList(node.arguments), node.rightParenthesis);
 
   @override
-  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, _cloneNode(node.condition), node.rightParenthesis, node.semicolon);
+  AsExpression visitAsExpression(AsExpression node) => new AsExpression(cloneNode(node.expression), node.asOperator, cloneNode(node.type));
 
   @override
-  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(_cloneNode(node.leftHandSide), node.operator, _cloneNode(node.rightHandSide));
+  AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, node.semicolon);
 
   @override
-  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(_cloneNode(node.leftOperand), node.operator, _cloneNode(node.rightOperand));
+  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(cloneNode(node.leftHandSide), node.operator, cloneNode(node.rightHandSide));
 
   @override
-  Block visitBlock(Block node) => new Block(node.leftBracket, _cloneNodeList(node.statements), node.rightBracket);
+  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(cloneNode(node.leftOperand), node.operator, cloneNode(node.rightOperand));
 
   @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(_cloneNode(node.block));
+  Block visitBlock(Block node) => new Block(node.leftBracket, cloneNodeList(node.statements), node.rightBracket);
+
+  @override
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(cloneNode(node.block));
 
   @override
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral(node.literal, node.value);
 
   @override
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(node.keyword, _cloneNode(node.label), node.semicolon);
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(node.keyword, cloneNode(node.label), node.semicolon);
 
   @override
-  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression(_cloneNode(node.target), _cloneNodeList(node.cascadeSections));
+  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression(cloneNode(node.target), cloneNodeList(node.cascadeSections));
 
   @override
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause(node.onKeyword, _cloneNode(node.exceptionType), node.catchKeyword, node.leftParenthesis, _cloneNode(node.exceptionParameter), node.comma, _cloneNode(node.stackTraceParameter), node.rightParenthesis, _cloneNode(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(node.onKeyword, cloneNode(node.exceptionType), node.catchKeyword, node.leftParenthesis, cloneNode(node.exceptionParameter), node.comma, cloneNode(node.stackTraceParameter), node.rightParenthesis, cloneNode(node.body));
 
   @override
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration copy = new ClassDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.abstractKeyword, node.classKeyword, _cloneNode(node.name), _cloneNode(node.typeParameters), _cloneNode(node.extendsClause), _cloneNode(node.withClause), _cloneNode(node.implementsClause), node.leftBracket, _cloneNodeList(node.members), node.rightBracket);
-    copy.nativeClause = _cloneNode(node.nativeClause);
+    ClassDeclaration copy = new ClassDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.abstractKeyword, node.classKeyword, cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.extendsClause), cloneNode(node.withClause), cloneNode(node.implementsClause), node.leftBracket, cloneNodeList(node.members), node.rightBracket);
+    copy.nativeClause = cloneNode(node.nativeClause);
     return copy;
   }
 
   @override
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.name), _cloneNode(node.typeParameters), node.equals, node.abstractKeyword, _cloneNode(node.superclass), _cloneNode(node.withClause), _cloneNode(node.implementsClause), node.semicolon);
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.name), cloneNode(node.typeParameters), node.equals, node.abstractKeyword, cloneNode(node.superclass), cloneNode(node.withClause), cloneNode(node.implementsClause), node.semicolon);
 
   @override
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
-      return Comment.createDocumentationCommentWithReferences(node.tokens, _cloneNodeList(node.references));
+      return Comment.createDocumentationCommentWithReferences(node.tokens, cloneNodeList(node.references));
     } else if (node.isBlock) {
       return Comment.createBlockComment(node.tokens);
     }
@@ -1009,38 +1032,38 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference(node.newKeyword, _cloneNode(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference(node.newKeyword, cloneNode(node.identifier));
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = new CompilationUnit(node.beginToken, _cloneNode(node.scriptTag), _cloneNodeList(node.directives), _cloneNodeList(node.declarations), node.endToken);
+    CompilationUnit clone = new CompilationUnit(node.beginToken, cloneNode(node.scriptTag), cloneNodeList(node.directives), cloneNodeList(node.declarations), node.endToken);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
 
   @override
-  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression(_cloneNode(node.condition), node.question, _cloneNode(node.thenExpression), node.colon, _cloneNode(node.elseExpression));
+  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression(cloneNode(node.condition), node.question, cloneNode(node.thenExpression), node.colon, cloneNode(node.elseExpression));
 
   @override
-  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, _cloneNode(node.returnType), node.period, _cloneNode(node.name), _cloneNode(node.parameters), node.separator, _cloneNodeList(node.initializers), _cloneNode(node.redirectedConstructor), _cloneNode(node.body));
+  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, cloneNode(node.returnType), node.period, cloneNode(node.name), cloneNode(node.parameters), node.separator, cloneNodeList(node.initializers), cloneNode(node.redirectedConstructor), cloneNode(node.body));
 
   @override
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(node.keyword, node.period, _cloneNode(node.fieldName), node.equals, _cloneNode(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(node.keyword, node.period, cloneNode(node.fieldName), node.equals, cloneNode(node.expression));
 
   @override
-  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName(_cloneNode(node.type), node.period, _cloneNode(node.name));
+  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName(cloneNode(node.type), node.period, cloneNode(node.name));
 
   @override
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(node.keyword, _cloneNode(node.label), node.semicolon);
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(node.keyword, cloneNode(node.label), node.semicolon);
 
   @override
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.type), _cloneNode(node.identifier));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNode(node.identifier));
 
   @override
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(_cloneNode(node.parameter), node.kind, node.separator, _cloneNode(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(cloneNode(node.parameter), node.kind, node.separator, cloneNode(node.defaultValue));
 
   @override
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement(node.doKeyword, _cloneNode(node.body), node.whileKeyword, node.leftParenthesis, _cloneNode(node.condition), node.rightParenthesis, node.semicolon);
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(node.doKeyword, cloneNode(node.body), node.whileKeyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, node.semicolon);
 
   @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral(node.literal, node.value);
@@ -1053,72 +1076,72 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective directive = new ExportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), _cloneNodeList(node.combinators), node.semicolon);
+    ExportDirective directive = new ExportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.uri), cloneNodeList(node.combinators), node.semicolon);
     directive.source = node.source;
     directive.uriContent = node.uriContent;
     return directive;
   }
 
   @override
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, _cloneNode(node.expression), node.semicolon);
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, cloneNode(node.expression), node.semicolon);
 
   @override
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(_cloneNode(node.expression), node.semicolon);
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(cloneNode(node.expression), node.semicolon);
 
   @override
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(node.keyword, _cloneNode(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(node.keyword, cloneNode(node.superclass));
 
   @override
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.staticKeyword, _cloneNode(node.fields), node.semicolon);
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.staticKeyword, cloneNode(node.fields), node.semicolon);
 
   @override
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.type), node.thisToken, node.period, _cloneNode(node.identifier), _cloneNode(node.parameters));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), node.thisToken, node.period, cloneNode(node.identifier), cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, _cloneNode(node.identifier), node.inKeyword, _cloneNode(node.iterator), node.rightParenthesis, _cloneNode(node.body));
+      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, cloneNode(node.identifier), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
     }
-    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, _cloneNode(loopVariable), node.inKeyword, _cloneNode(node.iterator), node.rightParenthesis, _cloneNode(node.body));
+    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, cloneNode(loopVariable), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
   }
 
   @override
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(node.leftParenthesis, _cloneNodeList(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(node.leftParenthesis, cloneNodeList(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
 
   @override
-  ForStatement visitForStatement(ForStatement node) => new ForStatement(node.forKeyword, node.leftParenthesis, _cloneNode(node.variables), _cloneNode(node.initialization), node.leftSeparator, _cloneNode(node.condition), node.rightSeparator, _cloneNodeList(node.updaters), node.rightParenthesis, _cloneNode(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(node.forKeyword, node.leftParenthesis, cloneNode(node.variables), cloneNode(node.initialization), node.leftSeparator, cloneNode(node.condition), node.rightSeparator, cloneNodeList(node.updaters), node.rightParenthesis, cloneNode(node.body));
 
   @override
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.externalKeyword, _cloneNode(node.returnType), node.propertyKeyword, _cloneNode(node.name), _cloneNode(node.functionExpression));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, cloneNode(node.returnType), node.propertyKeyword, cloneNode(node.name), cloneNode(node.functionExpression));
 
   @override
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(_cloneNode(node.functionDeclaration));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(cloneNode(node.functionDeclaration));
 
   @override
-  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression(_cloneNode(node.parameters), _cloneNode(node.body));
+  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression(cloneNode(node.parameters), cloneNode(node.body));
 
   @override
-  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation(_cloneNode(node.function), _cloneNode(node.argumentList));
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation(cloneNode(node.function), cloneNode(node.argumentList));
 
   @override
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.returnType), _cloneNode(node.name), _cloneNode(node.typeParameters), _cloneNode(node.parameters), node.semicolon);
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.returnType), cloneNode(node.name), cloneNode(node.typeParameters), cloneNode(node.parameters), node.semicolon);
 
   @override
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _cloneNode(node.returnType), _cloneNode(node.identifier), _cloneNode(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.returnType), cloneNode(node.identifier), cloneNode(node.parameters));
 
   @override
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(node.keyword, _cloneNodeList(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(node.keyword, cloneNodeList(node.hiddenNames));
 
   @override
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement(node.ifKeyword, node.leftParenthesis, _cloneNode(node.condition), node.rightParenthesis, _cloneNode(node.thenStatement), node.elseKeyword, _cloneNode(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(node.ifKeyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, cloneNode(node.thenStatement), node.elseKeyword, cloneNode(node.elseStatement));
 
   @override
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, _cloneNodeList(node.interfaces));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, cloneNodeList(node.interfaces));
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
-    ImportDirective directive = new ImportDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.uri), node.deferredToken, node.asToken, _cloneNode(node.prefix), _cloneNodeList(node.combinators), node.semicolon);
+    ImportDirective directive = new ImportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.uri), node.deferredToken, node.asToken, cloneNode(node.prefix), cloneNodeList(node.combinators), node.semicolon);
     directive.source = node.source;
     directive.uriContent = node.uriContent;
     return directive;
@@ -1128,109 +1151,109 @@ class AstCloner implements AstVisitor<AstNode> {
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return new IndexExpression.forTarget(_cloneNode(node.target), node.leftBracket, _cloneNode(node.index), node.rightBracket);
+      return new IndexExpression.forTarget(cloneNode(node.target), node.leftBracket, cloneNode(node.index), node.rightBracket);
     } else {
-      return new IndexExpression.forCascade(period, node.leftBracket, _cloneNode(node.index), node.rightBracket);
+      return new IndexExpression.forCascade(period, node.leftBracket, cloneNode(node.index), node.rightBracket);
     }
   }
 
   @override
-  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression(node.keyword, _cloneNode(node.constructorName), _cloneNode(node.argumentList));
+  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression(node.keyword, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   @override
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral(node.literal, node.value);
 
   @override
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(node.leftBracket, _cloneNode(node.expression), node.rightBracket);
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(node.leftBracket, cloneNode(node.expression), node.rightBracket);
 
   @override
   InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(node.contents, node.value);
 
   @override
-  IsExpression visitIsExpression(IsExpression node) => new IsExpression(_cloneNode(node.expression), node.isOperator, node.notOperator, _cloneNode(node.type));
+  IsExpression visitIsExpression(IsExpression node) => new IsExpression(cloneNode(node.expression), node.isOperator, node.notOperator, cloneNode(node.type));
 
   @override
-  Label visitLabel(Label node) => new Label(_cloneNode(node.label), node.colon);
+  Label visitLabel(Label node) => new Label(cloneNode(node.label), node.colon);
 
   @override
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(_cloneNodeList(node.labels), _cloneNode(node.statement));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(cloneNodeList(node.labels), cloneNode(node.statement));
 
   @override
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.libraryToken, _cloneNode(node.name), node.semicolon);
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.libraryToken, cloneNode(node.name), node.semicolon);
 
   @override
-  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier(_cloneNodeList(node.components));
+  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier(cloneNodeList(node.components));
 
   @override
-  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(node.constKeyword, _cloneNode(node.typeArguments), node.leftBracket, _cloneNodeList(node.elements), node.rightBracket);
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(node.constKeyword, cloneNode(node.typeArguments), node.leftBracket, cloneNodeList(node.elements), node.rightBracket);
 
   @override
-  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(node.constKeyword, _cloneNode(node.typeArguments), node.leftBracket, _cloneNodeList(node.entries), node.rightBracket);
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(node.constKeyword, cloneNode(node.typeArguments), node.leftBracket, cloneNodeList(node.entries), node.rightBracket);
 
   @override
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(_cloneNode(node.key), node.separator, _cloneNode(node.value));
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(cloneNode(node.key), node.separator, cloneNode(node.value));
 
   @override
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.externalKeyword, node.modifierKeyword, _cloneNode(node.returnType), node.propertyKeyword, node.operatorKeyword, _cloneNode(node.name), _cloneNode(node.parameters), _cloneNode(node.body));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.externalKeyword, node.modifierKeyword, cloneNode(node.returnType), node.propertyKeyword, node.operatorKeyword, cloneNode(node.name), cloneNode(node.parameters), cloneNode(node.body));
 
   @override
-  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation(_cloneNode(node.target), node.period, _cloneNode(node.methodName), _cloneNode(node.argumentList));
+  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation(cloneNode(node.target), node.period, cloneNode(node.methodName), cloneNode(node.argumentList));
 
   @override
-  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(_cloneNode(node.name), _cloneNode(node.expression));
+  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(cloneNode(node.name), cloneNode(node.expression));
 
   @override
-  AstNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, _cloneNode(node.name));
+  AstNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, cloneNode(node.name));
 
   @override
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, _cloneNode(node.stringLiteral), node.semicolon);
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, cloneNode(node.stringLiteral), node.semicolon);
 
   @override
   NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral(node.literal);
 
   @override
-  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, _cloneNode(node.expression), node.rightParenthesis);
+  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, cloneNode(node.expression), node.rightParenthesis);
 
   @override
   PartDirective visitPartDirective(PartDirective node) {
-    PartDirective directive = new PartDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.partToken, _cloneNode(node.uri), node.semicolon);
+    PartDirective directive = new PartDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.partToken, cloneNode(node.uri), node.semicolon);
     directive.source = node.source;
     directive.uriContent = node.uriContent;
     return directive;
   }
 
   @override
-  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.partToken, node.ofToken, _cloneNode(node.libraryName), node.semicolon);
+  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.partToken, node.ofToken, cloneNode(node.libraryName), node.semicolon);
 
   @override
-  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression(_cloneNode(node.operand), node.operator);
+  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression(cloneNode(node.operand), node.operator);
 
   @override
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier(_cloneNode(node.prefix), node.period, _cloneNode(node.identifier));
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier(cloneNode(node.prefix), node.period, cloneNode(node.identifier));
 
   @override
-  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression(node.operator, _cloneNode(node.operand));
+  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression(node.operator, cloneNode(node.operand));
 
   @override
-  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(_cloneNode(node.target), node.operator, _cloneNode(node.propertyName));
+  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(cloneNode(node.target), node.operator, cloneNode(node.propertyName));
 
   @override
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation(node.keyword, node.period, _cloneNode(node.constructorName), _cloneNode(node.argumentList));
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation(node.keyword, node.period, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   @override
   RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression(node.keyword);
 
   @override
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(node.keyword, _cloneNode(node.expression), node.semicolon);
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(node.keyword, cloneNode(node.expression), node.semicolon);
 
   @override
   ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(node.scriptTag);
 
   @override
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(node.keyword, _cloneNodeList(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(node.keyword, cloneNodeList(node.shownNames));
 
   @override
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.type), _cloneNode(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNode(node.identifier));
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier(node.token);
@@ -1239,22 +1262,22 @@ class AstCloner implements AstVisitor<AstNode> {
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral(node.literal, node.value);
 
   @override
-  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation(_cloneNodeList(node.elements));
+  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation(cloneNodeList(node.elements));
 
   @override
-  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation(node.keyword, node.period, _cloneNode(node.constructorName), _cloneNode(node.argumentList));
+  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation(node.keyword, node.period, cloneNode(node.constructorName), cloneNode(node.argumentList));
 
   @override
   SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression(node.keyword);
 
   @override
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(_cloneNodeList(node.labels), node.keyword, _cloneNode(node.expression), node.colon, _cloneNodeList(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(cloneNodeList(node.labels), node.keyword, cloneNode(node.expression), node.colon, cloneNodeList(node.statements));
 
   @override
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(_cloneNodeList(node.labels), node.keyword, node.colon, _cloneNodeList(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(cloneNodeList(node.labels), node.keyword, node.colon, cloneNodeList(node.statements));
 
   @override
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, _cloneNode(node.expression), node.rightParenthesis, node.leftBracket, _cloneNodeList(node.members), node.rightBracket);
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, cloneNode(node.expression), node.rightParenthesis, node.leftBracket, cloneNodeList(node.members), node.rightBracket);
 
   @override
   SymbolLiteral visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
@@ -1263,55 +1286,46 @@ class AstCloner implements AstVisitor<AstNode> {
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression(node.keyword);
 
   @override
-  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression(node.keyword, _cloneNode(node.expression));
+  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression(node.keyword, cloneNode(node.expression));
 
   @override
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _cloneNode(node.variables), node.semicolon);
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.variables), node.semicolon);
 
   @override
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement(node.tryKeyword, _cloneNode(node.body), _cloneNodeList(node.catchClauses), node.finallyKeyword, _cloneNode(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(node.tryKeyword, cloneNode(node.body), cloneNodeList(node.catchClauses), node.finallyKeyword, cloneNode(node.finallyBlock));
 
   @override
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(node.leftBracket, _cloneNodeList(node.arguments), node.rightBracket);
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(node.leftBracket, cloneNodeList(node.arguments), node.rightBracket);
 
   @override
-  TypeName visitTypeName(TypeName node) => new TypeName(_cloneNode(node.name), _cloneNode(node.typeArguments));
+  TypeName visitTypeName(TypeName node) => new TypeName(cloneNode(node.name), cloneNode(node.typeArguments));
 
   @override
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _cloneNode(node.name), node.keyword, _cloneNode(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.name), node.keyword, cloneNode(node.bound));
 
   @override
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(node.leftBracket, _cloneNodeList(node.typeParameters), node.rightBracket);
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(node.leftBracket, cloneNodeList(node.typeParameters), node.rightBracket);
 
   @override
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, _cloneNodeList(node.metadata), _cloneNode(node.name), node.equals, _cloneNode(node.initializer));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, cloneNodeList(node.metadata), cloneNode(node.name), node.equals, cloneNode(node.initializer));
 
   @override
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, _cloneNodeList(node.metadata), node.keyword, _cloneNode(node.type), _cloneNodeList(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, cloneNodeList(node.metadata), node.keyword, cloneNode(node.type), cloneNodeList(node.variables));
 
   @override
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(_cloneNode(node.variables), node.semicolon);
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(cloneNode(node.variables), node.semicolon);
 
   @override
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(node.keyword, node.leftParenthesis, _cloneNode(node.condition), node.rightParenthesis, _cloneNode(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(node.keyword, node.leftParenthesis, cloneNode(node.condition), node.rightParenthesis, cloneNode(node.body));
 
   @override
-  WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, _cloneNodeList(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, cloneNodeList(node.mixinTypes));
 
-  AstNode _cloneNode(AstNode node) {
+  AstNode cloneNode(AstNode node) {
     if (node == null) {
       return null;
     }
     return node.accept(this) as AstNode;
-  }
-
-  List _cloneNodeList(NodeList nodes) {
-    int count = nodes.length;
-    List clonedNodes = new List();
-    for (int i = 0; i < count; i++) {
-      clonedNodes.add((nodes[i]).accept(this) as AstNode);
-    }
-    return clonedNodes;
   }
 }
 
@@ -9673,6 +9687,11 @@ class InstanceCreationExpression extends Expression {
   ConstructorElement staticElement;
 
   /**
+   * The result of evaluating this expression, if it is constant.
+   */
+  EvaluationResultImpl _result;
+
+  /**
    * Initialize a newly created instance creation expression.
    *
    * @param keyword the keyword used to indicate how an object should be created
@@ -9700,6 +9719,15 @@ class InstanceCreationExpression extends Expression {
   @override
   Token get endToken => _argumentList.endToken;
 
+  /**
+   * Return the result of evaluating this constant as a compile-time constant expression, or
+   * `null` if this variable is not a 'const' expression or an error prevented the result from
+   * being computed.
+   *
+   * @return the result of evaluating this constant
+   */
+  EvaluationResultImpl get evaluationResult => _result;
+
   @override
   int get precedence => 15;
 
@@ -9717,6 +9745,16 @@ class InstanceCreationExpression extends Expression {
    */
   void set argumentList(ArgumentList argumentList) {
     this._argumentList = becomeParentOf(argumentList);
+  }
+
+  /**
+   * Set the result of evaluating this expression as a compile-time constant expression to the given
+   * result.
+   *
+   * @param result the result of evaluating this expression
+   */
+  void set evaluationResult(EvaluationResultImpl result) {
+    this._result = result;
   }
 
   @override

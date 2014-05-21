@@ -2,36 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library yaml_test;
+library yaml.test;
 
 // TODO(rnystrom): rewrite tests so that they don't need "Expect".
-import "package:expect/expect.dart";
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
-import 'package:yaml/src/deep_equals.dart';
-// TODO(jmesserly): we should not be reaching outside the YAML package
-// The http package has a similar problem.
-import '../../../tests/utils/test_utils.dart';
 
-/// Constructs a new yaml.YamlMap, optionally from a normal Map.
-Map yamlMap([Map from]) =>
-    from == null ? new YamlMap() : new YamlMap.from(from);
-
-/// Asserts that a string containing a single YAML document produces a given
-/// value when loaded.
-expectYamlLoads(expected, String source) {
-  var actual = loadYaml(cleanUpLiteral(source));
-  Expect.isTrue(deepEquals(expected, actual), 
-      'expectYamlLoads(expected: <$expected>, actual: <$actual>)');
-}
-
-/// Asserts that a string containing a stream of YAML documents produces a given
-/// list of values when loaded.
-expectYamlStreamLoads(List expected, String source) {
-  var actual = loadYamlStream(cleanUpLiteral(source));
-  Expect.isTrue(deepEquals(expected, actual), 
-      'expectYamlStreamLoads(expected: <$expected>, actual: <$actual>)');
-}
+import 'utils.dart';
 
 main() {
   var infinity = double.parse("Infinity");
@@ -500,7 +477,7 @@ main() {
 
     expectDisallowsCharacter(int charCode) {
       var char = new String.fromCharCodes([charCode]);
-      Expect.throws(() => loadYaml('The character "$char" is disallowed'));
+      expectYamlFails('The character "$char" is disallowed');
     }
 
     test("doesn't include C0 control characters", () {
@@ -598,8 +575,8 @@ main() {
     // });
 
     test('[Example 5.10]', () {
-      Expect.throws(() => loadYaml("commercial-at: @text"));
-      Expect.throws(() => loadYaml("commercial-at: `text"));
+      expectYamlFails("commercial-at: @text");
+      expectYamlFails("commercial-at: `text");
     });
   });
 
@@ -610,7 +587,7 @@ main() {
     });
 
     group('do not include', () {
-      test('form feed', () => Expect.throws(() => loadYaml("- 1\x0C- 2")));
+      test('form feed', () => expectYamlFails("- 1\x0C- 2"));
       test('NEL', () => expectYamlLoads(["1\x85- 2"], "- 1\x85- 2"));
       test('0x2028', () => expectYamlLoads(["1\u2028- 2"], "- 1\u2028- 2"));
       test('0x2029', () => expectYamlLoads(["1\u2029- 2"], "- 1\u2029- 2"));
@@ -669,27 +646,27 @@ main() {
     });
 
     test('[Example 5.14]', () {
-      Expect.throws(() => loadYaml('Bad escape: "\\c"'));
-      Expect.throws(() => loadYaml('Bad escape: "\\xq-"'));
+      expectYamlFails('Bad escape: "\\c"');
+      expectYamlFails('Bad escape: "\\xq-"');
     });
   });
 
   // Chapter 6: Basic Structures
   group('6.1: Indentation Spaces', () {
     test('may not include TAB characters', () {
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         -
         \t- foo
-        \t- bar""")));
+        \t- bar""");
     });
 
     test('must be the same for all sibling nodes', () {
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         -
           - foo
-         - bar""")));
+         - bar""");
     });
 
     test('may be different for the children of sibling nodes', () {
@@ -916,10 +893,10 @@ main() {
 
   group('6.7: Separation Lines', () {
     test('may not be used within implicit keys', () {
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         [1,
-         2]: 3""")));
+         2]: 3""");
     });
 
     test('[Example 6.12]', () {
@@ -960,11 +937,11 @@ main() {
     // });
 
     // test('[Example 6.15]', () {
-    //   Expect.throws(() => loadYaml(cleanUpLiteral(
+    //   expectYamlFails(
     //     """
     //     %YAML 1.2
     //     %YAML 1.1
-    //     foo""")));
+    //     foo""");
     // });
 
     // test('[Example 6.16]', () {
@@ -976,11 +953,11 @@ main() {
     // });
 
     // test('[Example 6.17]', () {
-    //   Expect.throws(() => loadYaml(cleanUpLiteral(
+    //   ExpectYamlFails(
     //     """
     //     %TAG ! !foo
     //     %TAG ! !foo
-    //     bar""")));
+    //     bar""");
     // });
 
     // Examples 6.18 through 6.22 test custom tag URIs, which this
@@ -1010,8 +987,8 @@ main() {
     // // doesn't plan to support.
 
     // test('[Example 6.25]', () {
-    //   Expect.throws(() => loadYaml("- !<!> foo"));
-    //   Expect.throws(() => loadYaml("- !<\$:?> foo"));
+    //   expectYamlFails("- !<!> foo");
+    //   expectYamlFails("- !<\$:?> foo");
     // });
 
     // // Examples 6.26 and 6.27 test custom tag URIs, which this implementation
@@ -1040,10 +1017,10 @@ main() {
   // Chapter 7: Flow Styles
   group('7.1: Alias Nodes', () {
     // test("must not use an anchor that doesn't previously occur", () {
-    //   Expect.throws(() => loadYaml(cleanUpLiteral(
+    //   expectYamlFails(
     //     """
     //     - *anchor
-    //     - &anchor foo"""));
+    //     - &anchor foo""");
     // });
 
     // test("don't have to exist for a given anchor node", () {
@@ -1051,18 +1028,17 @@ main() {
     // });
 
     // group('must not specify', () {
-    //   test('tag properties', () => Expect.throws(() => loadYaml(cleanUpLiteral(
+    //   test('tag properties', () => expectYamlFails(
     //     """
     //     - &anchor foo
-    //     - !str *anchor""")));
+    //     - !str *anchor""");
 
-    //   test('anchor properties', () => Expect.throws(
-    //           () => loadYaml(cleanUpLiteral(
+    //   test('anchor properties', () => expectYamlFails(
     //     """
     //     - &anchor foo
-    //     - &anchor2 *anchor""")));
+    //     - &anchor2 *anchor""");
 
-    //   test('content', () => Expect.throws(() => loadYaml(cleanUpLiteral(
+    //   test('content', () => expectYamlFails(
     //     """
     //     - &anchor foo
     //     - *anchor bar""")));
@@ -1075,9 +1051,7 @@ main() {
     //     alias: *anchor""");
     //   var anchorList = doc['anchor'];
     //   var aliasList = doc['alias'];
-    //   Expect.isTrue(anchorList === aliasList);
-    //   anchorList.add('d');
-    //   Expect.listEquals(['a', 'b', 'c', 'd'], aliasList);
+    //   expect(anchorList, same(aliasList));
 
     //   doc = loadYaml(cleanUpLiteral(
     //     """
@@ -1086,9 +1060,7 @@ main() {
     //       : bar""");
     //   anchorList = doc.keys[0];
     //   aliasList = doc[['a', 'b', 'c']].keys[0];
-    //   Expect.isTrue(anchorList === aliasList);
-    //   anchorList.add('d');
-    //   Expect.listEquals(['a', 'b', 'c', 'd'], aliasList);
+    //   expect(anchorList, same(aliasList));
     // });
 
     // test('[Example 7.1]', () {
@@ -1344,15 +1316,15 @@ main() {
     });
 
     test('[Example 7.22]', () {
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         [ foo
-         bar: invalid ]""")));
+         bar: invalid ]""");
 
       // TODO(nweiz): enable this when we throw an error for long keys
       // var dotList = new List.filled(1024, ' ');
       // var dots = dotList.join();
-      // Expect.throws(() => loadYaml('[ "foo...$dots...bar": invalid ]'));
+      // expectYamlFails('[ "foo...$dots...bar": invalid ]');
     });
   });
 
@@ -1421,22 +1393,22 @@ main() {
     });
 
     test('[Example 8.3]', () {
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         - |
           
-         text""")));
+         text""");
 
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         - >
           text
-         text""")));
+         text""");
 
-      Expect.throws(() => loadYaml(cleanUpLiteral(
+      expectYamlFails(
         """
         - |2
-         text""")));
+         text""");
     });
 
     test('[Example 8.4]', () {

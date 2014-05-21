@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
-#include "platform/globals.h"
-#if !defined(TARGET_ARCH_ARM64)
-
 #include "vm/debugger.h"
 #include "vm/unit_test.h"
 
@@ -49,11 +45,11 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
        "[{\"type\":\"Breakpoint\",\"id\":2,"
          "\"enabled\":true,\"resolved\":false,"
          "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"dart:test-lib\",\"tokenPos\":14}},"
+                       "\"script\":\"test-lib\",\"tokenPos\":14}},"
         "{\"type\":\"Breakpoint\",\"id\":1,"
          "\"enabled\":true,\"resolved\":false,"
          "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"dart:test-lib\",\"tokenPos\":5}}]",
+                       "\"script\":\"test-lib\",\"tokenPos\":5}}]",
        js.ToCString());
   }
 }
@@ -69,9 +65,9 @@ static void InspectPausedEvent(Dart_IsolateId isolate_id,
 
   // The debugger knows that it is paused, and why.
   EXPECT(debugger->IsPaused());
-  const Debugger::DebuggerEvent* event = debugger->PauseEvent();
+  const DebuggerEvent* event = debugger->PauseEvent();
   EXPECT(event != NULL);
-  EXPECT(event->type == Debugger::kBreakpointReached);
+  EXPECT(event->type() == DebuggerEvent::kBreakpointReached);
   saw_paused_event = true;
 }
 
@@ -109,5 +105,3 @@ TEST_CASE(Debugger_PauseEvent) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(TARGET_ARCH_ARM64)

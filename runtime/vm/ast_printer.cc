@@ -391,29 +391,37 @@ void AstPrinter::PrintNode(AstNode* node) {
 }
 
 
+void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
+                                         LocalVariable* var) {
+  ASSERT(scope != NULL);
+  ASSERT(var != NULL);
+  OS::Print("(%s%s '%s'",
+            var->is_final() ? "final " : "",
+            String::Handle(var->type().Name()).ToCString(),
+            var->name().ToCString());
+  if (var->owner() != scope) {
+    OS::Print(" alias");
+  }
+  if (var->HasIndex()) {
+    OS::Print(" @%d", var->index());
+    if (var->is_captured()) {
+      OS::Print(" ctx %d", var->owner()->context_level());
+    }
+  } else if (var->owner()->function_level() != 0) {
+    OS::Print(" lev %d", var->owner()->function_level());
+  }
+  OS::Print(" valid %" Pd "-%" Pd ")",
+            var->token_pos(),
+            scope->end_token_pos());
+}
+
+
 void AstPrinter::PrintLocalScope(const LocalScope* scope,
                                  int start_index) {
   ASSERT(scope != NULL);
   for (int i = start_index; i < scope->num_variables(); i++) {
     LocalVariable* var = scope->VariableAt(i);
-    OS::Print("(%s%s '%s'",
-              var->is_final() ? "final " : "",
-              String::Handle(var->type().Name()).ToCString(),
-              var->name().ToCString());
-    if (var->owner() != scope) {
-      OS::Print(" alias");
-    }
-    if (var->HasIndex()) {
-      OS::Print(" @%d", var->index());
-      if (var->is_captured()) {
-        OS::Print(" ctx %d", var->owner()->context_level());
-      }
-    } else if (var->owner()->function_level() != 0) {
-      OS::Print(" lev %d", var->owner()->function_level());
-    }
-    OS::Print(" valid %" Pd "-%" Pd ")",
-              var->token_pos(),
-              scope->end_token_pos());
+    PrintLocalScopeVariable(scope, var);
   }
   const LocalScope* child = scope->child();
   while (child != NULL) {
@@ -455,7 +463,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   int pos = 0;  // Current position of variable in scope.
   while (pos < num_params) {
     LocalVariable* param = scope->VariableAt(pos);
-    ASSERT(param->owner() == scope);
+    ASSERT(param->owner() == scope);  // No aliases should precede parameters.
     OS::Print("(param %s%s '%s'",
               param->is_final() ? "final " : "",
               String::Handle(param->type().Name()).ToCString(),

@@ -175,7 +175,13 @@ const APPEND = FileMode.APPEND;
  */
 abstract class File extends FileSystemEntity {
   /**
-   * Create a File object.
+   * Creates a [File] object.
+   *
+   * If [path] is a relative path, it will be interpreted relative to the
+   * current working directory (see [Directory.current]), when used.
+   *
+   * If [path] is an absolute path, it will be immune to changes to the
+   * current working directory.
    */
   factory File(String path) => new _File(path);
 

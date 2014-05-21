@@ -116,14 +116,10 @@ class SsaInstructionSelection extends HBaseVisitor {
         HInstruction interceptor = node.inputs[0];
         HInstruction receiverArgument = node.inputs[1];
 
-        // TODO(15720): The test here should be
-        //
-        //     interceptor.nonCheck() == receiverArgument.nonCheck()
-        //
-        if (interceptor == receiverArgument) {
+        if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
           // TODO(15933): Make automatically generated property extraction
           // closures work with the dummy receiver optimization.
-          if (!selector.isGetter()) {
+          if (!selector.isGetter) {
             Constant constant = new DummyConstant(
                 receiverArgument.instructionType);
             HConstant dummy = graph.addConstant(constant, compiler);

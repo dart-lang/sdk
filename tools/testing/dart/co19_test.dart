@@ -20,7 +20,6 @@ import "dart:io";
 
 import "test_options.dart";
 import "test_suite.dart";
-import "utils.dart" show Path;
 import "../../test.dart" as test_dart;
 
 const List<String> COMMON_ARGUMENTS =
@@ -44,10 +43,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 ];
 
 void main(List<String> args) {
-  File scriptFile = new File(new Path(Platform.script.path).toNativePath());
-  Path scriptPath = new Path(scriptFile.absolute.path)
-      .directoryPath.directoryPath.directoryPath.append('test.dart');
-  TestUtils.testScriptPath = scriptPath.toNativePath();
+  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = <Map>[];
   for (var commandLine in COMMAND_LINES) {

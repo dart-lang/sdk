@@ -551,7 +551,7 @@ class ImportLink {
       String prefix = import.prefix.source;
       Element existingElement = importingLibrary.find(prefix);
       PrefixElement prefixElement;
-      if (existingElement == null || !existingElement.isPrefix()) {
+      if (existingElement == null || !existingElement.isPrefix) {
         prefixElement = new PrefixElementX(prefix,
             importingLibrary.entryCompilationUnit, import.getBeginToken());
       } else {
@@ -739,7 +739,7 @@ class LibraryDependencyNode {
                                Link<Export> duplicateExports,
                                {bool reportError: true}) {
       assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.getLibrary()} "
+          message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
       compiler.withCurrentElement(library, () {
         for (Export export in duplicateExports) {
@@ -758,7 +758,7 @@ class LibraryDependencyNode {
     void reportDuplicateExportDecl(Element duplicate,
                                    Link<Export> duplicateExports) {
       assert(invariant(library, !duplicateExports.isEmpty,
-          message: "No export for $duplicate from ${duplicate.getLibrary()} "
+          message: "No export for $duplicate from ${duplicate.library} "
                    "in $library."));
       compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
           {'name': name, 'uriString': duplicateExports.head.uri});
@@ -766,13 +766,13 @@ class LibraryDependencyNode {
 
     Element existingElement = exportScope[name];
     if (existingElement != null && existingElement != element) {
-      if (existingElement.isErroneous()) {
+      if (existingElement.isErroneous) {
         reportDuplicateExport(element, exports);
         reportDuplicateExportDecl(element, exports);
         element = existingElement;
-      } else if (existingElement.getLibrary() == library) {
+      } else if (existingElement.library == library) {
         // Do nothing. [existingElement] hides [element].
-      } else if (element.getLibrary() == library) {
+      } else if (element.library == library) {
         // [element] hides [existingElement].
         exportScope[name] = element;
         exporters[element] = exports;

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unittest;
+library unittest.configuration;
+
+import 'package:unittest/unittest.dart' show TestCase, SimpleConfiguration;
 
 /// Describes the interface used by the unit test system for communicating the
 /// results of a test run.

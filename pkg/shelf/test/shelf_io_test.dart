@@ -185,6 +185,39 @@ void main() {
     });
   });
 
+  test('supports request hijacking', () {
+    _scheduleServer((request) {
+      expect(request.method, 'POST');
+
+      request.hijack(expectAsync((stream, sink) {
+        expect(stream.first, completion(equals("Hello".codeUnits)));
+
+        sink.add((
+            "HTTP/1.1 404 Not Found\r\n"
+            "Date: Mon, 23 May 2005 22:38:34 GMT\r\n"
+            "Content-Length: 13\r\n"
+            "\r\n"
+            "Hello, world!").codeUnits);
+        sink.close();
+      }));
+    });
+
+    return _schedulePost(body: "Hello").then((response) {
+      expect(response.statusCode, HttpStatus.NOT_FOUND);
+      expect(response.headers["date"], "Mon, 23 May 2005 22:38:34 GMT");
+      expect(response.stream.bytesToString(),
+          completion(equals("Hello, world!")));
+    });
+  });
+
+  test('reports an error if a HijackException is thrown without hijacking', () {
+    _scheduleServer((request) => throw const HijackException());
+
+    return _scheduleGet().then((response) {
+      expect(response.statusCode, HttpStatus.INTERNAL_SERVER_ERROR);
+    });
+  });
+
   test('passes asynchronous exceptions to the parent error zone', () {
     return runZoned(() {
       return shelf_io.serve((request) {

@@ -41,7 +41,7 @@ class Tokenizer extends TokenizerBase {
 
           _startIndex = _index;
           ch = _nextChar();
-          Token ident = this.finishIdentifier(ch);
+          Token ident = finishIdentifier();
 
           // Is it a directive?
           int tokId = TokenKind.matchDirectives(_text, _startIndex,
@@ -101,7 +101,7 @@ class Tokenizer extends TokenizerBase {
         if (maybeEatDigit()) return finishNumber();
         return _finishToken(TokenKind.PLUS);
       case TokenChar.MINUS:
-        if (selectorExpression || unicodeRange) {
+        if (inSelectorExpression || unicodeRange) {
           // If parsing in pseudo function expression then minus is an operator
           // not part of identifier e.g., interval value range (e.g. U+400-4ff)
           // or minus operator in selector expression.
@@ -109,7 +109,7 @@ class Tokenizer extends TokenizerBase {
         } else if (maybeEatDigit()) {
           return finishNumber();
         } else if (TokenizerHelpers.isIdentifierStart(ch)) {
-          return this.finishIdentifier(ch);
+          return finishIdentifier();
         }
         return _finishToken(TokenKind.MINUS);
       case TokenChar.GREATER:
@@ -127,6 +127,9 @@ class Tokenizer extends TokenizerBase {
       case TokenChar.AMPERSAND:
         return _finishToken(TokenKind.AMPERSAND);
       case TokenChar.NAMESPACE:
+        if (_maybeEatChar(TokenChar.EQUALS)) {
+          return _finishToken(TokenKind.DASH_MATCH);      // |=
+        }
         return _finishToken(TokenKind.NAMESPACE);
       case TokenChar.COLON:
         return _finishToken(TokenKind.COLON);
@@ -162,11 +165,6 @@ class Tokenizer extends TokenizerBase {
         return _finishToken(TokenKind.LESS);
       case TokenChar.EQUALS:
         return _finishToken(TokenKind.EQUALS);
-      case TokenChar.OR:
-        if (_maybeEatChar(TokenChar.EQUALS)) {
-          return _finishToken(TokenKind.DASH_MATCH);      // |=
-        }
-        return _finishToken(TokenKind.OR);
       case TokenChar.CARET:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.PREFIX_MATCH);    // ^=
@@ -178,11 +176,16 @@ class Tokenizer extends TokenizerBase {
         }
         return _finishToken(TokenKind.DOLLAR);
       case TokenChar.BANG:
-        Token tok = finishIdentifier(ch);
+        Token tok = finishIdentifier();
         return (tok == null) ? _finishToken(TokenKind.BANG) : tok;
-      case TokenChar.BACKSLASH:
-        return _finishToken(TokenKind.BACKSLASH);
       default:
+        // TODO(jmesserly): this is used for IE8 detection; I'm not sure it's
+        // appropriate outside of a few specific places; certainly shouldn't
+        // be parsed in selectors.
+        if (!inSelector && ch == TokenChar.BACKSLASH) {
+          return _finishToken(TokenKind.BACKSLASH);
+        }
+
         if (unicodeRange) {
           // Three types of unicode ranges:
           //   - single code point (e.g. U+416)
@@ -212,7 +215,7 @@ class Tokenizer extends TokenizerBase {
         } else if (varUsage(ch)) {
           return _finishToken(TokenKind.VAR_USAGE);
         } else if (TokenizerHelpers.isIdentifierStart(ch)) {
-          return finishIdentifier(ch);
+          return finishIdentifier();
         } else if (TokenizerHelpers.isDigit(ch)) {
           return finishNumber();
         }
@@ -236,7 +239,12 @@ class Tokenizer extends TokenizerBase {
 
   int getIdentifierKind() {
     // Is the identifier a unit type?
-    int tokId = TokenKind.matchUnits(_text, _startIndex, _index - _startIndex);
+    int tokId = -1;
+
+    // Don't match units in selectors or selector expressions.
+    if (!inSelectorExpression && !inSelector) {
+      tokId = TokenKind.matchUnits(_text, _startIndex, _index - _startIndex);
+    }
     if (tokId == -1) {
       tokId = (_text.substring(_startIndex, _index) == '!important') ?
           TokenKind.IMPORTANT : -1;
@@ -245,31 +253,59 @@ class Tokenizer extends TokenizerBase {
     return tokId >= 0 ? tokId : TokenKind.IDENTIFIER;
   }
 
-  // Need to override so CSS version of isIdentifierPart is used.
-  Token finishIdentifier(int ch) {
+  Token finishIdentifier() {
+    // If we encounter an escape sequence, remember it so we can post-process
+    // to unescape.
+    bool hasEscapedChars = false;
+    var chars = [];
+
+    // backup so we can start with the first character
+    int validateFrom = _index;
+    _index = _startIndex;
     while (_index < _text.length) {
-      // If parsing in pseudo function expression then minus is an operator
-      // not part of identifier.
-      var isIdentifier = selectorExpression
-          ? TokenizerHelpers.isIdentifierPartExpr(_text.codeUnitAt(_index))
-          : TokenizerHelpers.isIdentifierPart(_text.codeUnitAt(_index));
-      if (!isIdentifier) {
-          break;
+      int ch = _text.codeUnitAt(_index);
+
+      // If the previous character was "\" we need to escape. T
+      // http://www.w3.org/TR/CSS21/syndata.html#characters
+      // if followed by hexadecimal digits, create the appropriate character.
+      // otherwise, include the character in the identifier and don't treat it
+      // specially.
+      if (ch == 92/*\*/) {
+        int startHex = ++_index;
+        eatHexDigits(startHex + 6);
+        if (_index != startHex) {
+          // Parse the hex digits and add that character.
+          chars.add(int.parse('0x' + _text.substring(startHex, _index)));
+
+          if (_index == _text.length) break;
+
+          // if we stopped the hex because of a whitespace char, skip it
+          ch = _text.codeUnitAt(_index);
+          if (_index - startHex != 6 &&
+              (ch == TokenChar.SPACE || ch == TokenChar.TAB ||
+              ch == TokenChar.RETURN || ch == TokenChar.NEWLINE)) {
+            _index++;
+          }
+        } else {
+          // not a digit, just add the next character literally
+          if (_index == _text.length) break;
+          chars.add(_text.codeUnitAt(_index++));
+        }
+      } else if (_index < validateFrom || (inSelectorExpression
+          ? TokenizerHelpers.isIdentifierPartExpr(ch)
+          : TokenizerHelpers.isIdentifierPart(ch))) {
+        chars.add(ch);
+        _index++;
       } else {
-        _index += 1;
+        // Not an identifier or escaped character.
+        break;
       }
     }
 
-    int kind = getIdentifierKind();
-    if (kind == TokenKind.IDENTIFIER) {
-      return _finishToken(TokenKind.IDENTIFIER);
-    } else {
-      return _finishToken(kind);
-    }
-  }
+    var span = _file.span(_startIndex, _index);
+    var text = new String.fromCharCodes(chars);
 
-  Token finishImportant() {
-
+    return new IdentifierToken(text, getIdentifierKind(), span);
   }
 
   Token finishNumber() {
@@ -299,12 +335,13 @@ class Tokenizer extends TokenizerBase {
   }
 
   Token finishHexNumber() {
-    eatHexDigits();
+    eatHexDigits(_text.length);
     return _finishToken(TokenKind.HEX_INTEGER);
   }
 
-  void eatHexDigits() {
-    while (_index < _text.length) {
+  void eatHexDigits(int end) {
+    end = math.min(end, _text.length);
+    while (_index < end) {
      if (TokenizerHelpers.isHexDigit(_text.codeUnitAt(_index))) {
        _index += 1;
      } else {
@@ -399,7 +436,11 @@ class TokenizerHelpers {
   /** Pseudo function expressions identifiers can't have a minus sign. */
   static bool isIdentifierStartExpr(int c) {
     return ((c >= 97/*a*/ && c <= 122/*z*/) || (c >= 65/*A*/ && c <= 90/*Z*/) ||
-        c == 95/*_*/);
+        // Note: Unicode 10646 chars U+00A0 or higher are allowed, see:
+        // http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+        // http://www.w3.org/TR/CSS21/syndata.html#characters
+        // Also, escaped character should be allowed.
+        c == 95/*_*/ || c >= 0xA0 || c == 92/*\*/);
   }
 
   /** Pseudo function expressions identifiers can't have a minus sign. */

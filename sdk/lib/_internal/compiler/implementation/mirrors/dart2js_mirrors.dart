@@ -97,25 +97,13 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
 
   Symbol get qualifiedName => symbolOf(_qualifiedNameString, getLibrary(this));
 
-  /**
-   * Returns the first token for the source of this declaration, not including
-   * metadata annotations.
-   */
-  Token getBeginToken();
+  DeclarationMirror lookupInScope(String name) => null;
 
-  /**
-   * Returns the last token for the source of this declaration.
-   */
-  Token getEndToken();
-
-  /**
-   * Returns the script for the source of this declaration.
-   */
-  Script getScript();
+  bool get isNameSynthetic => false;
 
   /// Returns the type mirror for [type] in the context of this declaration.
-  TypeMirror _getTypeMirror(DartType type, [FunctionSignature signature]) {
-    return mirrorSystem._convertTypeToTypeMirror(type, signature);
+  TypeMirror _getTypeMirror(DartType type) {
+    return mirrorSystem._convertTypeToTypeMirror(type);
   }
 
   /// Returns a list of the declaration mirrorSystem for [element].
@@ -141,7 +129,6 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
         "Unexpected member type $element ${element.kind}.");
     return null;
   }
-
 }
 
 abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
@@ -156,19 +143,19 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get _simpleNameString => _element.name;
 
-  bool get isNameSynthetic => false;
-
   /**
    * Computes the first token for this declaration using the begin token of the
    * element node or element position as indicator.
    */
   Token getBeginToken() {
-    // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _element.parseNode(mirrorSystem.compiler);
-    if (node == null) {
-      return _element.position();
+    Element element = _element;
+    if (element is AstElement) {
+      Node node = element.node;
+      if (node != null) {
+        return node.getBeginToken();
+      }
     }
-    return node.getBeginToken();
+    return element.position;
   }
 
   /**
@@ -176,12 +163,14 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * element node or element position as indicator.
    */
   Token getEndToken() {
-    // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _element.parseNode(mirrorSystem.compiler);
-    if (node == null) {
-      return _element.position();
+    Element element = _element;
+    if (element is AstElement) {
+      Node node = element.node;
+      if (node != null) {
+        return node.getEndToken();
+      }
     }
-    return node.getEndToken();
+    return element.position;
   }
 
   /**
@@ -199,7 +188,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     return getBeginToken();
   }
 
-  Script getScript() => _element.getCompilationUnit().script;
+  Script getScript() => _element.compilationUnit.script;
 
   SourceLocation get location {
     Token beginToken = getFirstToken();
@@ -251,7 +240,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       String prefix = name.substring(0, index);
       String id = name.substring(index+1);
       result = scope.lookup(prefix);
-      if (result != null && result.isPrefix()) {
+      if (result != null && result.isPrefix) {
         PrefixElement prefix = result;
         result = prefix.lookupLocalMember(id);
       } else {
@@ -261,7 +250,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       // Lookup [: id :].
       result = scope.lookup(name);
     }
-    if (result == null || result.isPrefix()) return null;
+    if (result == null || result.isPrefix) return null;
     return _convertElementToDeclarationMirror(mirrorSystem, result);
   }
 
@@ -322,10 +311,9 @@ class Dart2JsMirrorSystem extends MirrorSystem {
       _convertTypeToTypeMirror(compiler.types.dynamicType);
 
   TypeMirror get voidType =>
-      _convertTypeToTypeMirror(compiler.types.voidType);
+      _convertTypeToTypeMirror(const VoidType());
 
-  TypeMirror _convertTypeToTypeMirror(DartType type,
-                                      [FunctionSignature signature]) {
+  TypeMirror _convertTypeToTypeMirror(DartType type) {
     assert(type != null);
     if (type.treatAsDynamic) {
       return new Dart2JsDynamicMirror(this, type);
@@ -338,7 +326,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     } else if (type is TypeVariableType) {
       return new Dart2JsTypeVariableMirror(this, type);
     } else if (type is FunctionType) {
-      return new Dart2JsFunctionTypeMirror(this, type, signature);
+      return new Dart2JsFunctionTypeMirror(this, type);
     } else if (type is VoidType) {
       return new Dart2JsVoidMirror(this, type);
     } else if (type is TypedefType) {
@@ -354,9 +342,9 @@ class Dart2JsMirrorSystem extends MirrorSystem {
   }
 
   DeclarationMirror _getTypeDeclarationMirror(TypeDeclarationElement element) {
-    if (element.isClass()) {
+    if (element.isClass) {
       return new Dart2JsClassDeclarationMirror(this, element.thisType);
-    } else if (element.isTypedef()) {
+    } else if (element.isTypedef) {
       return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
     compiler.internalError(element, "Unexpected element $element.");
@@ -404,27 +392,27 @@ abstract class ContainerMixin {
  */
 DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
                                                      Element element) {
-  if (element.isTypeVariable()) {
+  if (element.isTypeVariable) {
     TypeVariableElement typeVariable = element;
     return new Dart2JsTypeVariableMirror(system, typeVariable.type);
   }
 
-  Dart2JsLibraryMirror library = system._libraryMap[element.getLibrary()];
-  if (element.isLibrary()) return library;
-  if (element.isTypedef()) {
+  Dart2JsLibraryMirror library = system._libraryMap[element.library];
+  if (element.isLibrary) return library;
+  if (element.isTypedef) {
     TypedefElement typedefElement = element;
     return new Dart2JsTypedefMirror.fromLibrary(
         library, typedefElement.thisType);
   }
 
   Dart2JsDeclarationMirror container = library;
-  if (element.getEnclosingClass() != null) {
-    container = system._getTypeDeclarationMirror(element.getEnclosingClass());
+  if (element.enclosingClass != null) {
+    container = system._getTypeDeclarationMirror(element.enclosingClass);
   }
-  if (element.isClass()) return container;
-  if (element.isParameter()) {
+  if (element.isClass) return container;
+  if (element.isParameter) {
     Dart2JsMethodMirror method = _convertElementMethodToMethodMirror(
-        container, element.getOutermostEnclosingMemberOrTopLevel());
+        container, element.outermostEnclosingMemberOrTopLevel);
     // TODO(johnniwinther): Find the right info for [isOptional] and [isNamed].
     return new Dart2JsParameterMirror(
         method, element, isOptional: false, isNamed: false);

@@ -56,9 +56,11 @@ class CompositeMessageLookup {
    */
   addLocale(String localeName, Function findLocale) {
     if (localeExists(localeName)) return;
-    var newLocale = findLocale(localeName);
+    var canonical = Intl.canonicalizedLocale(localeName);
+    var newLocale = findLocale(canonical);
     if (newLocale != null) {
       availableMessages[localeName] = newLocale;
+      availableMessages[canonical] = newLocale;
     }
   }
 }

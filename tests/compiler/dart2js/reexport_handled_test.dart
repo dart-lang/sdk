@@ -34,7 +34,7 @@ void main() {
     Expect.isTrue(exportingLibrary.exportsHandled);
     var foo = findInExports(exportingLibrary, 'foo');
     Expect.isNotNull(foo);
-    Expect.isTrue(foo.isField());
+    Expect.isTrue(foo.isField);
 
     // Load reexporting library when exports are handled on the exporting library.
     return compiler.libraryLoader.loadLibrary(
@@ -42,7 +42,7 @@ void main() {
   }).then((reexportingLibrary) {
     var foo = findInExports(reexportingLibrary, 'foo');
     Expect.isNotNull(foo);
-    Expect.isTrue(foo.isField());
+    Expect.isTrue(foo.isField);
   }));
 }
 

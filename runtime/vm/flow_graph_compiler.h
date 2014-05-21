@@ -244,6 +244,7 @@ class FlowGraphCompiler : public ValueObject {
 
   ~FlowGraphCompiler();
 
+  static bool SupportsUnboxedDoubles();
   static bool SupportsUnboxedMints();
   static bool SupportsSinCos();
   static bool SupportsUnboxedSimd128();

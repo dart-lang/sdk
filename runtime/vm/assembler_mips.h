@@ -768,6 +768,7 @@ class Assembler : public ValueObject {
   // registers is needed.
   void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
                                   Register ro, Register scratch = kNoRegister) {
+    ASSERT(!in_delay_slot_);
     LoadImmediate(rd, imm);
     AdduDetectOverflow(rd, rs, rd, ro, scratch);
   }
@@ -782,16 +783,19 @@ class Assembler : public ValueObject {
   // None of rd, rs, rt, or ro may be TMP.
   void SubImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
                                   Register ro) {
+    ASSERT(!in_delay_slot_);
     LoadImmediate(rd, imm);
     SubuDetectOverflow(rd, rs, rd, ro);
   }
 
   void Branch(const ExternalLabel* label) {
+    ASSERT(!in_delay_slot_);
     LoadImmediate(TMP, label->address());
     jr(TMP);
   }
 
   void BranchPatchable(const ExternalLabel* label) {
+    ASSERT(!in_delay_slot_);
     const uint16_t low = Utils::Low16Bits(label->address());
     const uint16_t high = Utils::High16Bits(label->address());
     lui(T9, Immediate(high));
@@ -801,11 +805,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchLink(const ExternalLabel* label) {
+    ASSERT(!in_delay_slot_);
     LoadImmediate(T9, label->address());
     jalr(T9);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
+    ASSERT(!in_delay_slot_);
     const int32_t offset =
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
     LoadWordFromPoolOffset(T9, offset);
@@ -821,6 +827,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadPoolPointer() {
+    ASSERT(!in_delay_slot_);
     GetNextPC(TMP);  // TMP gets the address of the next instruction.
     const intptr_t object_pool_pc_dist =
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
@@ -829,6 +836,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadImmediate(Register rd, int32_t value) {
+    ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, ZR, Immediate(value));
     } else {
@@ -840,6 +848,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadImmediate(DRegister rd, double value) {
+    ASSERT(!in_delay_slot_);
     FRegister frd = static_cast<FRegister>(rd * 2);
     const int64_t ival = bit_cast<uint64_t, double>(value);
     const int32_t low = Utils::Low32Bits(ival);
@@ -860,6 +869,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadImmediate(FRegister rd, float value) {
+    ASSERT(!in_delay_slot_);
     const int32_t ival = bit_cast<int32_t, float>(value);
     if (ival == 0) {
       mtc1(ZR, rd);
@@ -870,6 +880,7 @@ class Assembler : public ValueObject {
   }
 
   void AddImmediate(Register rd, Register rs, int32_t value) {
+    ASSERT(!in_delay_slot_);
     if ((value == 0) && (rd == rs)) return;
     // If value is 0, we still want to move rs to rd if they aren't the same.
     if (Utils::IsInt(kImmBits, value)) {
@@ -881,10 +892,12 @@ class Assembler : public ValueObject {
   }
 
   void AddImmediate(Register rd, int32_t value) {
+    ASSERT(!in_delay_slot_);
     AddImmediate(rd, rd, value);
   }
 
   void AndImmediate(Register rd, Register rs, int32_t imm) {
+    ASSERT(!in_delay_slot_);
     if (imm == 0) {
       mov(rd, ZR);
       return;
@@ -899,6 +912,7 @@ class Assembler : public ValueObject {
   }
 
   void BranchEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       beq(rd, ZR, l);
     } else {
@@ -909,12 +923,14 @@ class Assembler : public ValueObject {
   }
 
   void BranchEqual(Register rd, const Object& object, Label* l) {
+    ASSERT(!in_delay_slot_);
     ASSERT(rd != CMPRES2);
     LoadObject(CMPRES2, object);
     beq(rd, CMPRES2, l);
   }
 
   void BranchNotEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       bne(rd, ZR, l);
     } else {
@@ -925,17 +941,20 @@ class Assembler : public ValueObject {
   }
 
   void BranchNotEqual(Register rd, const Object& object, Label* l) {
+    ASSERT(!in_delay_slot_);
     ASSERT(rd != CMPRES2);
     LoadObject(CMPRES2, object);
     bne(rd, CMPRES2, l);
   }
 
   void BranchSignedGreater(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     slt(CMPRES2, rs, rd);  // CMPRES2 = rd > rs ? 1 : 0.
     bne(CMPRES2, ZR, l);
   }
 
   void BranchSignedGreater(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       bgtz(rd, l);
     } else {
@@ -946,11 +965,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedGreater(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     sltu(CMPRES2, rs, rd);
     bne(CMPRES2, ZR, l);
   }
 
   void BranchUnsignedGreater(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       BranchNotEqual(rd, 0, l);
     } else {
@@ -961,11 +982,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedGreaterEqual(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     slt(CMPRES2, rd, rs);  // CMPRES2 = rd < rs ? 1 : 0.
     beq(CMPRES2, ZR, l);  // If CMPRES2 = 0, then rd >= rs.
   }
 
   void BranchSignedGreaterEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       bgez(rd, l);
     } else {
@@ -981,11 +1004,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedGreaterEqual(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     sltu(CMPRES2, rd, rs);  // CMPRES2 = rd < rs ? 1 : 0.
     beq(CMPRES2, ZR, l);
   }
 
   void BranchUnsignedGreaterEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       b(l);
     } else {
@@ -1001,10 +1026,12 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedLess(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     BranchSignedGreater(rs, rd, l);
   }
 
   void BranchSignedLess(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       bltz(rd, l);
     } else {
@@ -1020,10 +1047,12 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedLess(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     BranchUnsignedGreater(rs, rd, l);
   }
 
   void BranchUnsignedLess(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     ASSERT(value != 0);
     if (Utils::IsUint(kImmBits, value)) {
       sltiu(CMPRES2, rd, Immediate(value));
@@ -1036,10 +1065,12 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedLessEqual(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     BranchSignedGreaterEqual(rs, rd, l);
   }
 
   void BranchSignedLessEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     if (value == 0) {
       blez(rd, l);
     } else {
@@ -1050,21 +1081,25 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedLessEqual(Register rd, Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
     BranchUnsignedGreaterEqual(rs, rd, l);
   }
 
   void BranchUnsignedLessEqual(Register rd, int32_t value, Label* l) {
+    ASSERT(!in_delay_slot_);
     ASSERT(rd != CMPRES2);
     LoadImmediate(CMPRES2, value);
     BranchUnsignedGreaterEqual(CMPRES2, rd, l);
   }
 
   void Push(Register rt) {
+    ASSERT(!in_delay_slot_);
     addiu(SP, SP, Immediate(-kWordSize));
     sw(rt, Address(SP));
   }
 
   void Pop(Register rt) {
+    ASSERT(!in_delay_slot_);
     lw(rt, Address(SP));
     addiu(SP, SP, Immediate(kWordSize));
   }
@@ -1082,6 +1117,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
+    ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {
       lw(reg, Address(base, offset));
     } else {
@@ -1092,6 +1128,7 @@ class Assembler : public ValueObject {
   }
 
   void StoreToOffset(Register reg, Register base, int32_t offset) {
+    ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {
       sw(reg, Address(base, offset));
     } else {
@@ -1102,6 +1139,7 @@ class Assembler : public ValueObject {
   }
 
   void StoreDToOffset(DRegister reg, Register base, int32_t offset) {
+    ASSERT(!in_delay_slot_);
     FRegister lo = static_cast<FRegister>(reg * 2);
     FRegister hi = static_cast<FRegister>(reg * 2 + 1);
     swc1(lo, Address(base, offset));
@@ -1109,6 +1147,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadDFromOffset(DRegister reg, Register base, int32_t offset) {
+    ASSERT(!in_delay_slot_);
     FRegister lo = static_cast<FRegister>(reg * 2);
     FRegister hi = static_cast<FRegister>(reg * 2 + 1);
     lwc1(lo, Address(base, offset));

@@ -572,7 +572,7 @@ TEST_CASE(SerializeArray) {
                         Snapshot::kMessage, Isolate::Current());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
-  EXPECT(array.Equals(serialized_array));
+  EXPECT(array.CanonicalizeEquals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -657,7 +657,7 @@ TEST_CASE(SerializeEmptyArray) {
                         Snapshot::kMessage, Isolate::Current());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
-  EXPECT(array.Equals(serialized_array));
+  EXPECT(array.CanonicalizeEquals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;

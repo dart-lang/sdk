@@ -84,9 +84,9 @@ class Helper3 {
     } on MyException catch (e) {
       i = 300;
       try {
-        // There should be no stackTrace in this normal excpetion object.
+        // There should be no stackTrace in this normal exception object.
         // We should get a NoSuchMethodError.
-        var trace = e.stackTrace;
+        var trace = e.stackTrace; /// static type warning
       } on NoSuchMethodError catch (e) {
         Expect.isNotNull(e.stackTrace, "Error needs a stackTrace on throw");
       }

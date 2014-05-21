@@ -1121,84 +1121,84 @@ class ConstantEvaluatorTest extends ParserTestCase {
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    // a[b] += c
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("c"));
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inGetterContext_assignment_simple_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    // a[b] = c
+    AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("c"));
     JUnitTestCase.assertFalse(expression.inGetterContext());
   }
 
   void test_inGetterContext_nonAssignment() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] + ?
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
+    // a[b] + c
+    AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("c"));
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inSetterContext_assignment_compound_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] += ?
-    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    // a[b] += c
+    AstFactory.assignmentExpression(expression, TokenType.PLUS_EQ, AstFactory.identifier3("c"));
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_compound_right() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? += a[i]
-    AstFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
+    // c += a[b]
+    AstFactory.assignmentExpression(AstFactory.identifier3("c"), TokenType.PLUS_EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_left() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // a[i] = ?
-    AstFactory.assignmentExpression(expression, TokenType.EQ, null);
+    // a[b] = c
+    AstFactory.assignmentExpression(expression, TokenType.EQ, AstFactory.identifier3("c"));
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_right() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ? = a[i]
-    AstFactory.assignmentExpression(null, TokenType.EQ, expression);
+    // c = a[b]
+    AstFactory.assignmentExpression(AstFactory.identifier3("c"), TokenType.EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_nonAssignment() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    AstFactory.binaryExpression(expression, TokenType.PLUS, null);
-    // a[i] + ?
+    AstFactory.binaryExpression(expression, TokenType.PLUS, AstFactory.identifier3("c"));
+    // a[b] + cc
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_postfix() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
     AstFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-    // a[i]++
+    // a[b]++
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_bang() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // !a[i]
+    // !a[b]
     AstFactory.prefixExpression(TokenType.BANG, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_minusMinus() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // --a[i]
+    // --a[b]
     AstFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_plusPlus() {
     IndexExpression expression = AstFactory.indexExpression(AstFactory.identifier3("a"), AstFactory.identifier3("b"));
-    // ++a[i]
+    // ++a[b]
     AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }

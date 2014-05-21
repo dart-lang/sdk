@@ -279,7 +279,7 @@ TEST_CASE(Service_DebugBreakpoints) {
           "\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
           "\"resolved\":false,"
           "\"location\":{\"type\":\"Location\","
-                        "\"script\":\"dart:test-lib\",\"tokenPos\":5}}]}",
+                        "\"script\":\"test-lib\",\"tokenPos\":5}}]}",
       handler.msg());
 
   // Individual breakpoint.
@@ -290,7 +290,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       "{\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
        "\"resolved\":false,"
        "\"location\":{\"type\":\"Location\","
-                     "\"script\":\"dart:test-lib\",\"tokenPos\":5}}",
+                     "\"script\":\"test-lib\",\"tokenPos\":5}}",
       handler.msg());
 
   // Missing sub-command.
@@ -606,7 +606,7 @@ TEST_CASE(Service_Libraries) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Library\"", handler.msg());
-  EXPECT_SUBSTRING("\"url\":\"dart:test-lib\"", handler.msg());
+  EXPECT_SUBSTRING("\"url\":\"test-lib\"", handler.msg());
 
   // Evaluate an expression from a library.
   service_msg = EvalF(h_lib,
@@ -1058,12 +1058,12 @@ TEST_CASE(Service_Scripts) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(h_lib, "[port, ['scripts', 'dart:test-lib'], [], []]");
+  service_msg = Eval(h_lib, "[port, ['scripts', 'test-lib'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"Script\",\"id\":\"scripts\\/dart%3Atest-lib\","
-       "\"name\":\"dart:test-lib\",\"user_name\":\"dart:test-lib\","
+      "{\"type\":\"Script\",\"id\":\"scripts\\/test-lib\","
+       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
        "\"kind\":\"script\","
        "\"source\":\"var port;\\n\\nmain() {\\n}\","
        "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
@@ -1105,9 +1105,9 @@ TEST_CASE(Service_Coverage) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING(
-      "{\"source\":\"dart:test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/dart%3Atest-lib\","
-      "\"name\":\"dart:test-lib\",\"user_name\":\"dart:test-lib\","
+      "{\"source\":\"test-lib\",\"script\":{"
+      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":"
       "[5,1,6,1]}", handler.msg());
 }

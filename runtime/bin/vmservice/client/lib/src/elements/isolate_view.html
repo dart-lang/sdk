@@ -1,7 +1,9 @@
 <head>
+  <link rel="import" href="action_link.html">
   <link rel="import" href="curly_block.html">
   <link rel="import" href="eval_box.html">
   <link rel="import" href="function_ref.html">
+  <link rel="import" href="isolate_summary.html">
   <link rel="import" href="library_ref.html">
   <link rel="import" href="nav_bar.html">
   <link rel="import" href="observatory_element.html">
@@ -30,87 +32,49 @@
 
     <div class="content">
       <h1>isolate '{{ isolate.name }}'</h1>
-      <div class="memberList">
-        <div class="memberItem">
-          <div class="memberName">status</div>
-          <div class="memberValue">
-            <template if="{{ isolate.pausedOnStart }}">
-              <strong style="color:darkred;">paused</strong> @ isolate start
-              <span style="padding-left:20px;">
-                [<a on-click="{{ resume }}">resume</a>]
-              </span>
-            </template>
-
-            <template if="{{ isolate.pausedOnExit }}">
-              <strong style="color:darkred;">paused</strong> @ isolate exit
-              <span style="padding-left:20px;">
-                [<a on-click="{{ resume }}">resume</a>]
-              </span>
-            </template>
-
-            <template if="{{ isolate.running }}">
-              <strong>running</strong>
-              @
-              <function-ref ref="{{ isolate.topFrame['function'] }}">
-              </function-ref>
-              (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                           pos="{{ isolate.topFrame['tokenPos'] }}">
-              </script-ref>)
-            </template>
-
-            <template if="{{ isolate.idle }}">
-              <strong>idle</strong>
-            </template>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <template if="{{ isolate.error != null }}">
-      <div class="content">
-        <h1>Error</h1>
-        <div class="memberList">
-          <div class="memberItem">
-            <div class="memberName">message</div>
-            <div class="memberValue">
-              <pre>{{ isolate.error.message }}</pre>
-            </div>
-          </div>
-          <div class="memberItem">
-            <template if="{{ isolate.error.exception != null }}">
-              <div class="memberName">exception</div>
-              <div class="memberValue">
-                <instance-ref ref="{{ isolate.error.exception }}"></instance-ref>
-              </div>
-            </template>
-          </div>
-          <div class="memberItem">
-            <template if="{{ isolate.error.stacktrace != null }}">
-            <div class="memberName">stacktrace</div>
-            <div class="memberValue">
-              <instance-ref ref="{{ isolate.error.stacktrace }}"></instance-ref>
-            </div>
-            </template>
-          </div>
-        </div>
+    <br>
+    <div class="flex-row">
+      <div class="flex-item-10-percent">
       </div>
-      <hr>
-    </template>
-
+      <div class="flex-item-20-percent">
+        <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
+      </div>
+      <div class="flex-item-60-percent">
+        <isolate-location isolate="{{ isolate }}"></isolate-location>
+      </div>
+      <div class="flex-item-10-percent">
+      </div>
+    </div>
     <br>
 
     <template if="{{ isolate.topFrame != null }}">
+      <br>
       <script-inset script="{{ isolate.topFrame['script'] }}"
                     pos="{{ isolate.topFrame['tokenPos'] }}">
       </script-inset>
     </template>
 
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent"><hr></div>
+      <div class="flex-item-20-percent"></div>
+    </div>
+
     <br>
+
+    <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
+
+    <div class="flex-row">
+      <div class="flex-item-20-percent"></div>
+      <div class="flex-item-60-percent"><hr></div>
+      <div class="flex-item-20-percent"></div>
+    </div>
 
     <div class="content-centered">
       <div class="flex-row">
-
-        <div class="flex-item-fixed-6-12">
+        <div class="flex-item-50-percent">
           <div class="memberList">
             <div class="memberItem">
               <div class="memberName">root library</div>
@@ -127,65 +91,20 @@
               </template>
             </div>
             <div class="memberItem">
-              <div class="memberName">id</div>
+              <div class="memberName">isolate id</div>
               <div class="memberValue">{{ isolate.mainPort }}</div>
             </div>
-            <br>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
-
-              </div>
+          </div>
+        </div>
+        <div class="flex-item-50-percent">
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
             </div>
           </div>
         </div>
-
-        <div class="flex-item-fixed-6-12">
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberName">new heap</div>
-              <div class="memberValue">
-                {{ isolate.newHeapUsed | formatSize }}
-                of
-                {{ isolate.newHeapCapacity | formatSize }}
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberName">old heap</div>
-              <div class="memberValue">
-                {{ isolate.oldHeapUsed | formatSize }}
-                of
-                {{ isolate.oldHeapCapacity | formatSize }}
-              </div>
-            </div>
-          </div>
-          <br>
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div> <!-- flex row -->
-    </div> <!-- content -->
+      </div>
+    </div>
 
     <hr>
 
@@ -205,13 +124,6 @@
     </div>
 
     <hr>
-
-    <div class="content">
-      <div class="memberValue">Isolate execution</div>
-      <template repeat="{{ key in isolate.counters.keys }}">
-        <div class="memberValue">{{ key }} ({{ isolate.counters[key] }})</div>
-      </template>
-    </div>
 
     <div class="content">
       <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>

@@ -79,6 +79,12 @@ class MessageHandler {
     pause_on_start_ = pause_on_start;
   }
 
+  bool paused_on_start() const {
+    // If pause_on_start_ is still set, tell the user we are paused,
+    // even if we haven't hit the pause point yet.
+    return pause_on_start_;
+  }
+
   bool pause_on_exit() const {
     return pause_on_exit_;
   }

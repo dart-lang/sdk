@@ -31,7 +31,6 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 1711421660)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 1392340623)               \
   V(_Double, .fromInteger, Double_fromInteger, 2033384877)                     \
-  V(_List, ., List_Allocate, 176587978)                                        \
   V(_List, get:length, Array_getLength, 215183186)                             \
   V(_List, [], Array_getIndexed, 675155875)                                    \
   V(_List, []=, Array_setIndexed, 1228569706)                                  \

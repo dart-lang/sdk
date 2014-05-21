@@ -3,6 +3,11 @@
 * Add a `Cascade` helper that runs handlers in sequence until one returns a
   response that's neither a 404 nor a 405.
 
+* Add a `Request.change` method that copies a request with new header values.
+
+* Add a `Request.hijack` method that allows handlers to gain access to the
+  underlying HTTP socket.
+
 ## 0.5.1+1
 
 * Capture all asynchronous errors thrown by handlers if they would otherwise be

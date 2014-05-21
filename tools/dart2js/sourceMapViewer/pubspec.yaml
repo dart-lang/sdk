@@ -1,0 +1,7 @@
+name: Display
+description: A sample web application
+dependencies:
+  browser: any
+  http_server: any
+  route: any
+  source_maps: any

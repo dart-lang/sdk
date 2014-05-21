@@ -35,3 +35,9 @@ class _KeyRangeFactoryProvider {
       [bool lowerOpen = false, bool upperOpen = false]) =>
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
+$if DART_USE_BLINK
+// FIXME: Can we make this private?
+const indexed_dbBlinkMap = const {
+$!TYPE_MAP
+};
+$endif

@@ -113,9 +113,6 @@ class DartUtils {
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
-  static Dart_Handle CanonicalizeURL(CommandLineOptions* url_mapping,
-                                     Dart_Handle library,
-                                     const char* url_str);
   static void* OpenFile(const char* name, bool write);
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
@@ -131,8 +128,7 @@ class DartUtils {
                                 Dart_Handle builtin_lib);
   static Dart_Handle LoadScriptHttp(Dart_Handle script_uri,
                                     Dart_Handle builtin_lib);
-  static Dart_Handle LoadSource(CommandLineOptions* url_mapping,
-                                Dart_Handle library,
+  static Dart_Handle LoadSource(Dart_Handle library,
                                 Dart_Handle url,
                                 Dart_LibraryTag tag,
                                 const char* filename);
@@ -223,9 +219,6 @@ class DartUtils {
   static uint8_t magic_number[];
 
  private:
-  static const char* GetCanonicalPath(const char* reference_dir,
-                                      const char* filename);
-
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);
 };

@@ -84,7 +84,7 @@ library sunflower;
 import "dart:html";
 import "dart:math";
 
-const String ORANGE = "orange";
+const String SEED_COLOR = "orange";
 const int SEED_RADIUS = 2;
 const int SCALE_FACTOR = 4;
 const num TAU = PI * 2;
@@ -124,8 +124,8 @@ void draw() {
 void drawSeed(num x, num y) {
   context..beginPath()
          ..lineWidth = 2
-         ..fillStyle = ORANGE
-         ..strokeStyle = ORANGE
+         ..fillStyle = SEED_COLOR
+         ..strokeStyle = SEED_COLOR
          ..arc(x, y, SEED_RADIUS, 0, TAU, false)
          ..fill()
          ..closePath()

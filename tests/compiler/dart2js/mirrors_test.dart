@@ -491,6 +491,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 //
 //   bool operator==(Object other) => false;
 //   int operator -() => 0;
+//   operator$foo() {}
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Symbol, DeclarationMirror> declarations) {
@@ -580,7 +581,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   var bazClassMembers = bazClass.declarations;
   Expect.isNotNull(bazClassMembers, "Declared members map is null");
-  Expect.equals(8, bazClassMembers.length,
+  Expect.equals(9, bazClassMembers.length,
                 "Unexpected number of declared members");
 
   ////////////////////////////////////////////////////////////////////////////
@@ -835,6 +836,35 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(operator_negate.isSetter);
   Expect.isTrue(operator_negate.isOperator);
   Expect.stringEquals('-', operatorName(operator_negate));
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  // operator$foo() {}
+  ////////////////////////////////////////////////////////////////////////////
+  var operator$foo = bazClassMembers[#operator$foo];
+  Expect.isNotNull(operator$foo, "operator\$foo not found");
+  Expect.equals(#operator$foo, operator$foo.simpleName);
+  Expect.equals(#mirrors_helper.Baz.operator$foo, operator$foo.qualifiedName);
+  Expect.equals(operator$foo.owner, bazClass);
+  Expect.isFalse(operator$foo.isTopLevel);
+  Expect.isTrue(operator$foo is MethodMirror);
+  Expect.isFalse(operator$foo.isConstructor);
+  Expect.isFalse(operator$foo.isPrivate);
+  Expect.isFalse(operator$foo.isStatic);
+  Expect.isTrue(operator$foo.isRegularMethod);
+  Expect.isFalse(operator$foo.isConstConstructor);
+  Expect.isFalse(operator$foo.isGenerativeConstructor);
+  Expect.isFalse(operator$foo.isRedirectingConstructor);
+  Expect.isFalse(operator$foo.isFactoryConstructor);
+  Expect.isFalse(operator$foo.isGetter);
+  Expect.isFalse(operator$foo.isSetter);
+  Expect.isFalse(operator$foo.isOperator);
+
+  Expect.equals(dynamicType, operator$foo.returnType);
+
+  var operator$fooParameters = operator$foo.parameters;
+  Expect.isNotNull(operator$fooParameters, "Method parameters is null");
+  Expect.equals(0, operator$fooParameters.length, "Unexpected parameter count");
 
   ////////////////////////////////////////////////////////////////////////////
   //   Baz();

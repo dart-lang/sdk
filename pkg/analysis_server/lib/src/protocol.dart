@@ -173,7 +173,7 @@ class RequestDatum {
    * a [RequestDatum] containing the corresponding value.
    */
   RequestDatum operator [](String key) {
-    if (datum is! Map<String, dynamic>) {
+    if (datum is! Map) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
@@ -185,11 +185,22 @@ class RequestDatum {
   }
 
   /**
+   * Return `true` if the datum is a Map containing the given [key].
+   */
+  bool hasKey(String key) {
+    if (datum is! Map) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a map"));
+    }
+    return datum.containsKey(key);
+  }
+
+  /**
    * Validate that the datum is a Map whose keys are strings, and call [f] on
    * each key/value pair in the map.
    */
   void forEachMap(void f(String key, RequestDatum value)) {
-    if (datum is! Map<String, dynamic>) {
+    if (datum is! Map) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
@@ -226,9 +237,9 @@ class RequestDatum {
     if (datum is bool) {
       return datum;
     } else if (datum == 'true') {
-      return datum == 'true';
+      return true;
     } else if (datum == 'false') {
-      return datum == 'false';
+      return false;
     }
     throw new RequestFailure(new Response.invalidParameter(request, datum,
         "be a boolean"));
@@ -246,10 +257,25 @@ class RequestDatum {
   }
 
   /**
+   * Determine if the datum is a list of strings.
+   */
+  bool isStringList() {
+    if (datum is! List) {
+      return false;
+    }
+    for (var element in datum) {
+      if (element is! String) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Validate that the datum is a list of strings, and return it.
    */
   List<String> asStringList() {
-    if (datum is! List<String>) {
+    if (!isStringList()) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a list of strings"));
     }
@@ -257,10 +283,28 @@ class RequestDatum {
   }
 
   /**
+   * Determine if the datum is a map whose values are all strings.
+   *
+   * Note: we can safely assume that the keys are all strings, since JSON maps
+   * cannot have any other key type.
+   */
+  bool isStringMap() {
+    if (datum is! Map) {
+      return false;
+    }
+    for (var value in datum.values) {
+      if (value is! String) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Validate that the datum is a map from strings to strings, and return it.
    */
   Map<String, String> asStringMap() {
-    if (datum is! Map<String, String>) {
+    if (!isStringMap()) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string map"));
     }
@@ -412,9 +456,7 @@ class Response {
   Map<String, Object> toJson() {
     Map<String, Object> jsonObject = new Map<String, Object>();
     jsonObject[ID] = id;
-    if (error == null) {
-      jsonObject[ERROR] = null;
-    } else {
+    if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
     if (!result.isEmpty) {
@@ -451,7 +493,7 @@ class RequestError {
    * server. An error occurred on the server while parsing the JSON text.
    */
   static const int CODE_PARSE_ERROR = -32700;
-  
+
   /**
    * An error code indicating that the analysis server has already been
    * started (and hence won't accept new connections).
@@ -523,7 +565,7 @@ class RequestError {
    */
   RequestError.serverAlreadyStarted()
     : this(CODE_SERVER_ALREADY_STARTED, "Server already started");
-  
+
   /**
    * Initialize a newly created [Error] to indicate an invalid request. The
    * JSON sent is not a valid [Request] object.

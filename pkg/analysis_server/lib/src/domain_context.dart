@@ -154,15 +154,21 @@ class ContextDomainHandler implements RequestHandler {
   ChangeSet createChangeSet(Request request, SourceFactory sourceFactory,
                             RequestDatum jsonData) {
     ChangeSet changeSet = new ChangeSet();
-    convertSources(request, sourceFactory, jsonData[ADDED_PARAM], (Source source) {
-      changeSet.addedSource(source);
-    });
-    convertSources(request, sourceFactory, jsonData[MODIFIED_PARAM], (Source source) {
-      changeSet.changedSource(source);
-    });
-    convertSources(request, sourceFactory, jsonData[REMOVED_PARAM], (Source source) {
-      changeSet.removedSource(source);
-    });
+    if (jsonData.hasKey(ADDED_PARAM)) {
+      convertSources(request, sourceFactory, jsonData[ADDED_PARAM], (Source source) {
+        changeSet.addedSource(source);
+      });
+    }
+    if (jsonData.hasKey(MODIFIED_PARAM)) {
+      convertSources(request, sourceFactory, jsonData[MODIFIED_PARAM], (Source source) {
+        changeSet.changedSource(source);
+      });
+    }
+    if (jsonData.hasKey(REMOVED_PARAM)) {
+      convertSources(request, sourceFactory, jsonData[REMOVED_PARAM], (Source source) {
+        changeSet.removedSource(source);
+      });
+    }
     return changeSet;
   }
 

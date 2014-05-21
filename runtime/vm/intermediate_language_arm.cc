@@ -290,7 +290,8 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(bool opt) const {
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0) &&
+        TargetCPUFeatures::neon_supported()) {
       const QRegister dst = locs()->out(0).fpu_reg();
       __ veorq(dst, dst, dst);
     } else {
@@ -979,7 +980,7 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   __ ldr(result, FieldAddress(str, String::length_offset()));
   __ cmp(result, ShifterOperand(Smi::RawValue(1)));
-  __ LoadImmediate(result, Smi::RawValue(-1), NE);
+  __ LoadImmediate(result, -1, NE);
   __ ldrb(result, FieldAddress(str, OneByteString::data_offset()), EQ);
   __ SmiTag(result);
 }
@@ -1135,7 +1136,11 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
   // The smi index is either untagged (element size == 1), or it is left smi
   // tagged (for all element sizes > 1).
   // TODO(regis): Revisit and see if the index can be immediate.
-  locs->set_in(1, Location::WritableRegister());
+  if (index_scale() == 2 && IsExternal()) {
+    locs->set_in(1, Location::RequiresRegister());
+  } else {
+    locs->set_in(1, Location::WritableRegister());
+  }
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
@@ -1156,54 +1161,38 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
-
-  Address element_address(kNoRegister, 0);
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-  // index is expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale()) {
-    case 1: {
-      __ SmiUntag(index.reg());
-      break;
-    }
-    case 2: {
-      break;
-    }
-    case 4: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
-      break;
-    }
-    case 8: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
-      break;
-    }
-    case 16: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-
-  if (!IsExternal()) {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    __ AddImmediate(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
-  element_address = Address(array, index.reg(), LSL, 0);
-
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedMint)      ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
       (representation() == kUnboxedFloat64x2)) {
+    Register array = locs()->in(0).reg();
+    Register idx = locs()->in(1).reg();
+    switch (index_scale()) {
+      case 1:
+        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
+        break;
+      case 4:
+        __ add(idx, array, ShifterOperand(idx, LSL, 1));
+        break;
+      case 8:
+        __ add(idx, array, ShifterOperand(idx, LSL, 2));
+        break;
+      case 16:
+        __ add(idx, array, ShifterOperand(idx, LSL, 3));
+        break;
+      default:
+        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
+        UNREACHABLE();
+    }
+    if (!IsExternal()) {
+      ASSERT(this->array()->definition()->representation() == kTagged);
+      __ AddImmediate(idx,
+          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    }
+    Address element_address(idx);
     const QRegister result = locs()->out(0).fpu_reg();
     const DRegister dresult0 = EvenDRegisterOf(result);
-    const Register idx = index.reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         __ veorq(result, result, result);
@@ -1225,24 +1214,57 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
         // vldrs does not support indexed addressing.
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        element_address = Address(index.reg(), 0);
         __ vldrs(EvenSRegisterOf(dresult0), element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         // vldrd does not support indexed addressing.
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        element_address = Address(index.reg(), 0);
         __ vldrd(dresult0, element_address);
         break;
       case kTypedDataFloat64x2ArrayCid:
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
-        __ add(index.reg(), index.reg(), ShifterOperand(array));
-        __ vldmd(IA, index.reg(), dresult0, 2);
+        __ vldmd(IA, idx, dresult0, 2);
         break;
     }
     return;
+  }
+
+  Register array = locs()->in(0).reg();
+  Location index = locs()->in(1);
+  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+  Address element_address(kNoRegister, 0);
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+  // index is expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  const intptr_t offset = IsExternal()
+      ? 0
+      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+  switch (index_scale()) {
+    case 1: {
+      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
+      element_address = Address(index.reg(), offset);
+      break;
+    }
+    case 2: {
+      // No scaling needed, since index is a smi.
+      if (!IsExternal()) {
+        __ AddImmediate(index.reg(), index.reg(),
+            FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+        element_address = Address(array, index.reg(), LSL, 0);
+      } else {
+        element_address = Address(array, index.reg(), LSL, 0);
+      }
+      break;
+    }
+    case 4: {
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
+      element_address = Address(index.reg(), offset);
+      break;
+    }
+    // Cases 8 and 16 are only for unboxed values and are handled above.
+    default:
+      UNREACHABLE();
   }
 
   Register result = locs()->out(0).reg();
@@ -1387,6 +1409,61 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if ((class_id() == kTypedDataFloat32ArrayCid) ||
+      (class_id() == kTypedDataFloat64ArrayCid) ||
+      (class_id() == kTypedDataFloat32x4ArrayCid) ||
+      (class_id() == kTypedDataFloat64x2ArrayCid) ||
+      (class_id() == kTypedDataInt32x4ArrayCid)) {
+    Register array = locs()->in(0).reg();
+    Register idx = locs()->in(1).reg();
+    Location value = locs()->in(2);
+    switch (index_scale()) {
+      case 1:
+        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
+        break;
+      case 4:
+        __ add(idx, array, ShifterOperand(idx, LSL, 1));
+        break;
+      case 8:
+        __ add(idx, array, ShifterOperand(idx, LSL, 2));
+        break;
+      case 16:
+        __ add(idx, array, ShifterOperand(idx, LSL, 3));
+        break;
+      default:
+        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
+        UNREACHABLE();
+    }
+    if (!IsExternal()) {
+      ASSERT(this->array()->definition()->representation() == kTagged);
+      __ AddImmediate(idx,
+          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    }
+    switch (class_id()) {
+      case kTypedDataFloat32ArrayCid: {
+        SRegister value_reg =
+            EvenSRegisterOf(EvenDRegisterOf(value.fpu_reg()));
+        __ StoreSToOffset(value_reg, idx, 0);
+        break;
+      }
+      case kTypedDataFloat64ArrayCid: {
+        DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
+        __ StoreDToOffset(value_reg, idx, 0);
+        break;
+      }
+      case kTypedDataFloat64x2ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat32x4ArrayCid: {
+        const DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
+        __ vstmd(IA, idx, value_reg, 2);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    return;
+  }
+
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
@@ -1396,35 +1473,34 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
   // index is expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
+  const intptr_t offset = IsExternal()
+      ? 0
+      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
   switch (index_scale()) {
     case 1: {
-      __ SmiUntag(index.reg());
+      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
+      element_address = Address(index.reg(), offset);
       break;
     }
     case 2: {
+      // No scaling needed, since index is a smi.
+      if (!IsExternal()) {
+        __ AddImmediate(index.reg(), index.reg(), offset);
+        element_address = Address(array, index.reg(), LSL, 0);
+      } else {
+        element_address = Address(array, index.reg(), LSL, 0);
+      }
       break;
     }
     case 4: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
+      element_address = Address(index.reg(), offset);
       break;
     }
-    case 8: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
-      break;
-    }
-    case 16: {
-      __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
-      break;
-    }
+    // Cases 8 and 16 are only for unboxed values and are handled above.
     default:
       UNREACHABLE();
   }
-  if (!IsExternal()) {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    __ AddImmediate(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
-  element_address = Address(array, index.reg(), LSL, 0);
 
   switch (class_id()) {
     case kArrayCid:
@@ -1502,28 +1578,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ vmovrs(TMP, EvenSRegisterOf(EvenDRegisterOf(value)));
         __ str(TMP, element_address);
       }
-      break;
-    }
-    case kTypedDataFloat32ArrayCid: {
-      SRegister value =
-          EvenSRegisterOf(EvenDRegisterOf(locs()->in(2).fpu_reg()));
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreSToOffset(value, index.reg(), 0);
-      break;
-    }
-    case kTypedDataFloat64ArrayCid: {
-      DRegister in2 = EvenDRegisterOf(locs()->in(2).fpu_reg());
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ StoreDToOffset(in2, index.reg(), 0);
-      break;
-    }
-    case kTypedDataFloat64x2ArrayCid:
-    case kTypedDataInt32x4ArrayCid:
-    case kTypedDataFloat32x4ArrayCid: {
-      const QRegister in = locs()->in(2).fpu_reg();
-      const DRegister din0 = EvenDRegisterOf(in);
-      __ add(index.reg(), index.reg(), ShifterOperand(array));
-      __ vstmd(IA, index.reg(), din0, 2);
       break;
     }
     default:
@@ -2046,12 +2100,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_double);
-      __ LoadDFromOffset(fpu_temp,
-                         value_reg,
-                         Double::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(fpu_temp,
-                        temp,
-                        Double::value_offset() - kHeapObjectTag);
+      __ CopyDoubleField(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2077,10 +2126,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float32x4);
-      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
-          Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
-          Float32x4::value_offset() - kHeapObjectTag);
+      __ CopyFloat32x4Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2106,10 +2152,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          FieldAddress(instance_reg, offset_in_bytes_),
                          temp2);
       __ Bind(&copy_float64x2);
-      __ LoadMultipleDFromOffset(fpu_temp, 2, value_reg,
-          Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(fpu_temp, 2, temp,
-          Float64x2::value_offset() - kHeapObjectTag);
+      __ CopyFloat64x2Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
     }
 
@@ -2225,15 +2268,115 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const Register kLengthReg = R2;
+  const Register kElemTypeReg = R1;
+  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ LoadImmediate(R6, heap->TopAddress());
+  __ ldr(R0, Address(R6, 0));  // Potential new object start.
+  __ AddImmediate(R7, R0, kArraySize);  // Potential next object start.
+  __ b(slow_path, VS);
+
+  // Check if the allocation fits into the remaining space.
+  // R0: potential new object start.
+  // R7: potential next object start.
+  __ LoadImmediate(R3, heap->EndAddress());
+  __ ldr(R3, Address(R3, 0));
+  __ cmp(R7, ShifterOperand(R3));
+  __ b(slow_path, CS);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ str(R7, Address(R6, 0));
+  __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+  __ LoadImmediate(R8, heap->TopAddress());
+  __ UpdateAllocationStatsWithSize(kArrayCid, R8, R4);
+
+
+  // Initialize the tags.
+  // R0: new object start as a tagged pointer.
+  {
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
+    tags = RawObject::SizeTag::update(kArraySize, tags);
+    __ LoadImmediate(R8, tags);
+    __ str(R8, FieldAddress(R0, Array::tags_offset()));  // Store tags.
+  }
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::length_offset()),
+                              kLengthReg);
+
+  // Initialize all array elements to raw_null.
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+  // R8: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // R3: null
+  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+  __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmp(R8, ShifterOperand(R7));
+  __ str(R3, Address(R8, 0), CC);
+  __ AddImmediate(R8, kWordSize, CC);
+  __ b(&init_loop, CC);
+  __ b(done);
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Allocate the array.  R2 = length, R1 = element type.
-  ASSERT(locs()->in(kElementTypePos).reg() == R1);
-  ASSERT(locs()->in(kLengthPos).reg() == R2);
+  const Register kLengthReg = R2;
+  const Register kElemTypeReg = R1;
+  const Register kResultReg = R0;
+
+  ASSERT(locs()->in(kElementTypePos).reg() == kElemTypeReg);
+  ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
+
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
+      __ Push(kLengthReg);  // length.
+      __ Push(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ Pop(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
+
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
-  ASSERT(locs()->out(0).reg() == R0);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 
@@ -2351,6 +2494,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
     locs->AddTemp(opt ? Location::RequiresFpuRegister()
                       : Location::FpuRegisterLocation(Q1));
     locs->AddTemp(Location::RequiresRegister());
+    locs->AddTemp(Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -2358,7 +2502,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(bool opt) const {
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instance_reg = locs()->in(0).reg();
+  const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
     const Register temp = locs()->temp(0).reg();
@@ -2389,8 +2533,9 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label done;
   Register result_reg = locs()->out(0).reg();
   if (IsPotentialUnboxedLoad()) {
-    const Register temp = locs()->temp(1).reg();
     const DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
+    const Register temp = locs()->temp(1).reg();
+    const Register temp2 = locs()->temp(2).reg();
 
     Label load_pointer;
     Label load_double;
@@ -2437,10 +2582,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(value,
-                        result_reg,
-                        Double::value_offset() - kHeapObjectTag);
+      __ CopyDoubleField(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 
@@ -2455,10 +2597,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadMultipleDFromOffset(value, 2, temp,
-          Float32x4::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(value, 2, result_reg,
-          Float32x4::value_offset() - kHeapObjectTag);
+      __ CopyFloat32x4Field(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 
@@ -2473,10 +2612,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp);
       __ Bind(slow_path->exit_label());
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes()));
-      __ LoadMultipleDFromOffset(value, 2, temp,
-          Float64x2::value_offset() - kHeapObjectTag);
-      __ StoreMultipleDToOffset(value, 2, result_reg,
-          Float64x2::value_offset() - kHeapObjectTag);
+      __ CopyFloat64x2Field(result_reg, temp, TMP, temp2, value);
       __ b(&done);
     }
 
@@ -2941,17 +3077,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    int32_t imm = reinterpret_cast<int32_t>(constant.raw());
+    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
-      case Token::kSUB: {
-        imm = -imm;  // TODO(regis): What if deopt != NULL && imm == 0x80000000?
-        // Fall through.
-      }
       case Token::kADD: {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm);
         } else {
           __ AddImmediateSetFlags(result, left, imm);
+          __ b(deopt, VS);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -imm);
+        } else {
+          // Negating imm and using AddImmediateSetFlags would not detect the
+          // overflow when imm == kMinInt32.
+          __ SubImmediateSetFlags(result, left, imm);
           __ b(deopt, VS);
         }
         break;
@@ -3026,8 +3169,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ShifterOperand shifter_op;
         if (ShifterOperand::CanHold(imm, &shifter_op)) {
           __ and_(result, left, shifter_op);
+        } else if (ShifterOperand::CanHold(~imm, &shifter_op)) {
+          __ bic(result, left, shifter_op);
         } else {
-          // TODO(regis): Try to use bic.
           __ LoadImmediate(IP, imm);
           __ and_(result, left, ShifterOperand(IP));
         }
@@ -3039,7 +3183,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (ShifterOperand::CanHold(imm, &shifter_op)) {
           __ orr(result, left, shifter_op);
         } else {
-          // TODO(regis): Try to use orn.
           __ LoadImmediate(IP, imm);
           __ orr(result, left, ShifterOperand(IP));
         }
@@ -3072,7 +3215,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
 
         value = value + kSmiTagSize;
-        if (value >= kCountLimit) value = kCountLimit;
+        if (value >= kCountLimit) {
+          value = kCountLimit;
+        }
 
         __ Asr(result, left, value);
         __ SmiTag(result);
@@ -3256,7 +3401,9 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  if (left_cid == kSmiCid) {
+  if (this->left()->definition() == this->right()->definition()) {
+    __ tst(left, ShifterOperand(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
     __ tst(right, ShifterOperand(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
     __ tst(left, ShifterOperand(kSmiTagMask));
@@ -4749,12 +4896,12 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(bool opt) const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(Q0));
     summary->set_out(0, Location::FpuRegisterLocation(Q0));
-#if !defined(ARM_FLOAT_ABI_HARD)
-    summary->AddTemp(Location::RegisterLocation(R0));
-    summary->AddTemp(Location::RegisterLocation(R1));
-    summary->AddTemp(Location::RegisterLocation(R2));
-    summary->AddTemp(Location::RegisterLocation(R3));
-#endif
+    if (!TargetCPUFeatures::hardfp_supported()) {
+      summary->AddTemp(Location::RegisterLocation(R0));
+      summary->AddTemp(Location::RegisterLocation(R1));
+      summary->AddTemp(Location::RegisterLocation(R2));
+      summary->AddTemp(Location::RegisterLocation(R3));
+    }
     return summary;
   }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
@@ -4781,18 +4928,18 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT((kind() == MathUnaryInstr::kSin) ||
            (kind() == MathUnaryInstr::kCos));
-#if defined(ARM_FLOAT_ABI_HARD)
-    __ CallRuntime(TargetFunction(), InputCount());
-#else
-    // If we aren't doing "hardfp", then we have to move the double arguments
-    // to the integer registers, and take the results from the integer
-    // registers.
-    __ vmovrrd(R0, R1, D0);
-    __ vmovrrd(R2, R3, D1);
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ vmovdrr(D0, R0, R1);
-    __ vmovdrr(D1, R2, R3);
-#endif
+    if (TargetCPUFeatures::hardfp_supported()) {
+      __ CallRuntime(TargetFunction(), InputCount());
+      } else {
+      // If we aren't doing "hardfp", then we have to move the double arguments
+      // to the integer registers, and take the results from the integer
+      // registers.
+      __ vmovrrd(R0, R1, D0);
+      __ vmovrrd(R2, R3, D1);
+      __ CallRuntime(TargetFunction(), InputCount());
+      __ vmovdrr(D0, R0, R1);
+      __ vmovdrr(D1, R2, R3);
+    }
   }
 }
 
@@ -5019,8 +5166,8 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(bool opt) const {
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
-  Register result = locs()->out(0).reg();
-  DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  const Register result = locs()->out(0).reg();
+  const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   // First check for NaN. Checking for minint after the conversion doesn't work
   // on ARM because vcvtid gives 0 for NaN.
   __ vcmpd(value, value);
@@ -5096,115 +5243,175 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(bool opt) const {
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     result->AddTemp(Location::RegisterLocation(R2));
-    result->AddTemp(Location::FpuRegisterLocation(Q2));
   }
-#if !defined(ARM_FLOAT_ABI_HARD)
-  result->AddTemp(Location::RegisterLocation(R0));
-  result->AddTemp(Location::RegisterLocation(R1));
-  // Check if R2 is already added.
-  if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
-    result->AddTemp(Location::RegisterLocation(R2));
+  if (!TargetCPUFeatures::hardfp_supported()) {
+    result->AddTemp(Location::RegisterLocation(R0));
+    result->AddTemp(Location::RegisterLocation(R1));
+    // Check if R2 is already added.
+    if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
+      result->AddTemp(Location::RegisterLocation(R2));
+    }
+    result->AddTemp(Location::RegisterLocation(R3));
   }
-  result->AddTemp(Location::RegisterLocation(R3));
-#endif
   result->set_out(0, Location::FpuRegisterLocation(Q0));
   return result;
 }
 
 
+// Pseudo code:
+// if (exponent == 0.0) return 1.0;
+// // Speed up simple cases.
+// if (exponent == 1.0) return base;
+// if (exponent == 2.0) return base * base;
+// if (exponent == 3.0) return base * base * base;
+// if (base == 1.0) return 1.0;
+// if (base.isNaN || exponent.isNaN) {
+//    return double.NAN;
+// }
+// if (base != -Infinity && exponent == 0.5) {
+//   if (base == 0.0) return 0.0;
+//   return sqrt(value);
+// }
+// TODO(srdjan): Move into a stub?
+static void InvokeDoublePow(FlowGraphCompiler* compiler,
+                            InvokeMathCFunctionInstr* instr) {
+  ASSERT(instr->recognized_kind() == MethodRecognizer::kMathDoublePow);
+  const intptr_t kInputCount = 2;
+  ASSERT(instr->InputCount() == kInputCount);
+  LocationSummary* locs = instr->locs();
+
+  const DRegister base = EvenDRegisterOf(locs->in(0).fpu_reg());
+  const DRegister exp = EvenDRegisterOf(locs->in(1).fpu_reg());
+  const DRegister result = EvenDRegisterOf(locs->out(0).fpu_reg());
+  const Register temp = locs->temp(0).reg();
+  const DRegister saved_base = OddDRegisterOf(locs->in(0).fpu_reg());
+  ASSERT((base == result) && (result != saved_base));
+
+  Label skip_call, try_sqrt, check_base, return_nan;
+  __ vmovd(saved_base, base);
+  __ LoadDImmediate(result, 1.0, temp);
+  // exponent == 0.0 -> return 1.0;
+  __ vcmpdz(exp);
+  __ vmstat();
+  __ b(&check_base, VS);  // NaN -> check base.
+  __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
+
+  // exponent == 1.0 ?
+  __ vcmpd(exp, result);
+  __ vmstat();
+  Label return_base;
+  __ b(&return_base, EQ);
+
+  // exponent == 2.0 ?
+  __ LoadDImmediate(DTMP, 2.0, temp);
+  __ vcmpd(exp, DTMP);
+  __ vmstat();
+  Label return_base_times_2;
+  __ b(&return_base_times_2, EQ);
+
+  // exponent == 3.0 ?
+  __ LoadDImmediate(DTMP, 3.0, temp);
+  __ vcmpd(exp, DTMP);
+  __ vmstat();
+  __ b(&check_base, NE);
+
+  // base_times_3.
+  __ vmuld(result, saved_base, saved_base);
+  __ vmuld(result, result, saved_base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base);
+  __ vmovd(result, saved_base);
+  __ b(&skip_call);
+
+  __ Bind(&return_base_times_2);
+  __ vmuld(result, saved_base, saved_base);
+  __ b(&skip_call);
+
+  __ Bind(&check_base);
+  // Note: 'exp' could be NaN.
+  // base == 1.0 -> return 1.0;
+  __ vcmpd(saved_base, result);
+  __ vmstat();
+  __ b(&return_nan, VS);
+  __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
+
+  __ vcmpd(saved_base, exp);
+  __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
+
+  __ Bind(&return_nan);
+  __ LoadDImmediate(result, NAN, temp);
+  __ b(&skip_call);
+
+  Label do_pow, return_zero;
+  __ Bind(&try_sqrt);
+
+  // Before calling pow, check if we could use sqrt instead of pow.
+  __ LoadDImmediate(result, -INFINITY, temp);
+
+  // base == -Infinity -> call pow;
+  __ vcmpd(saved_base, result);
+  __ b(&do_pow, EQ);
+
+  // exponent == 0.5 ?
+  __ LoadDImmediate(result, 0.5, temp);
+  __ vcmpd(exp, result);
+  __ b(&do_pow, NE);
+
+  // base == 0 -> return 0;
+  __ vcmpdz(saved_base);
+  __ b(&return_zero, EQ);
+
+  __ vsqrtd(result, saved_base);
+  __ b(&skip_call);
+
+  __ Bind(&return_zero);
+  __ LoadDImmediate(result, 0.0, temp);
+  __ b(&skip_call);
+
+  __ Bind(&do_pow);
+  __ vmovd(base, saved_base);  // Restore base.
+
+  // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
+  __ vmovd(D1, D2);
+  if (TargetCPUFeatures::hardfp_supported()) {
+    __ CallRuntime(instr->TargetFunction(), kInputCount);
+  } else {
+    // If the ABI is not "hardfp", then we have to move the double arguments
+    // to the integer registers, and take the results from the integer
+    // registers.
+    __ vmovrrd(R0, R1, D0);
+    __ vmovrrd(R2, R3, D1);
+    __ CallRuntime(instr->TargetFunction(), kInputCount);
+    __ vmovdrr(D0, R0, R1);
+    __ vmovdrr(D1, R2, R3);
+  }
+  __ Bind(&skip_call);
+}
+
+
 void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // For pow-function return NaN if exponent is NaN.
-  Label skip_call;
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    // Pseudo code:
-    // if (exponent == 0.0) return 1.0;
-    // if (base == 1.0) return 1.0;
-    // if (base.isNaN || exponent.isNaN) {
-    //    return double.NAN;
-    // }
-    // if (base != -Infinity && exponent == 0.5) {
-    //   if (base == 0.0) return 0.0;
-    //   return sqrt(value);
-    // }
-    DRegister base = EvenDRegisterOf(locs()->in(0).fpu_reg());
-    DRegister exp = EvenDRegisterOf(locs()->in(1).fpu_reg());
-    DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
-    Register temp = locs()->temp(0).reg();
-    DRegister saved_base = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-    ASSERT((base == result) && (result != saved_base));
-
-    Label try_sqrt, check_base, return_nan;
-    __ vmovd(saved_base, base);
-    __ LoadDImmediate(DTMP, 0.0, temp);
-    __ LoadDImmediate(result, 1.0, temp);
-    // exponent == 0.0 -> return 1.0;
-    __ vcmpd(exp, DTMP);
-    __ vmstat();
-    __ b(&check_base, VS);  // NaN -> check base.
-    __ b(&skip_call, EQ);  // exp is 0.0, result is 1.0.
-
-    __ Bind(&check_base);
-    // Note: 'exp' could be NaN.
-    // base == 1.0 -> return 1.0;
-    __ vcmpd(saved_base, result);
-    __ vmstat();
-    __ b(&return_nan, VS);
-    __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
-
-    __ vcmpd(saved_base, exp);
-    __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
-
-    __ Bind(&return_nan);
-    __ LoadDImmediate(result, NAN, temp);
-    __ b(&skip_call);
-
-    Label do_pow, return_zero;
-    __ Bind(&try_sqrt);
-
-    // Before calling pow, check if we could use sqrt instead of pow.
-    __ LoadDImmediate(result, -INFINITY, temp);
-
-    // base == -Infinity -> call pow;
-    __ vcmpd(saved_base, result);
-    __ b(&do_pow, EQ);
-
-    // exponent == 0.5 ?
-    __ LoadDImmediate(result, 0.5, temp);
-    __ vcmpd(exp, result);
-    __ b(&do_pow, NE);
-
-    // base == 0 -> return 0;
-    __ vcmpd(base, DTMP);
-    __ b(&return_zero, EQ);
-
-    __ vsqrtd(result, saved_base);
-    __ b(&skip_call);
-
-    __ Bind(&return_zero);
-    __ vmovd(result, DTMP);
-    __ b(&skip_call);
-
-    __ Bind(&do_pow);
-    __ vmovd(base, saved_base);  // Restore base.
+    InvokeDoublePow(compiler, this);
+    return;
   }
 
   if (InputCount() == 2) {
     // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
     __ vmovd(D1, D2);
   }
-#if defined(ARM_FLOAT_ABI_HARD)
-  __ CallRuntime(TargetFunction(), InputCount());
-#else
-  // If the ABI is not "hardfp", then we have to move the double arguments
-  // to the integer registers, and take the results from the integer
-  // registers.
-  __ vmovrrd(R0, R1, D0);
-  __ vmovrrd(R2, R3, D1);
-  __ CallRuntime(TargetFunction(), InputCount());
-  __ vmovdrr(D0, R0, R1);
-  __ vmovdrr(D1, R2, R3);
-#endif
-  __ Bind(&skip_call);
+  if (TargetCPUFeatures::hardfp_supported()) {
+    __ CallRuntime(TargetFunction(), InputCount());
+  } else {
+    // If the ABI is not "hardfp", then we have to move the double arguments
+    // to the integer registers, and take the results from the integer
+    // registers.
+    __ vmovrrd(R0, R1, D0);
+    __ vmovrrd(R2, R3, D1);
+    __ CallRuntime(TargetFunction(), InputCount());
+    __ vmovdrr(D0, R0, R1);
+    __ vmovdrr(D1, R2, R3);
+  }
 }
 
 

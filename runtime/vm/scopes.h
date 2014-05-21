@@ -234,6 +234,11 @@ class LocalScope : public ZoneAllocated {
   // same name is already present.
   bool AddVariable(LocalVariable* variable);
 
+  // Insert a formal parameter variable to the scope at the given position,
+  // possibly in front of aliases already added with AddVariable.
+  // Returns false if a variable with the same name is already present.
+  bool InsertParameterAt(intptr_t pos, LocalVariable* parameter);
+
   // Add a label to the scope. Returns false if a label with the same name
   // is already present.
   bool AddLabel(SourceLabel* label);

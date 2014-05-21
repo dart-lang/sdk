@@ -334,7 +334,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
     if (isMemberPatch || (isClassPatch && patch is ClassElement)) {
       // Apply patch.
       patch.addMetadata(popMetadataHack());
-      LibraryElement originLibrary = compilationUnitElement.getLibrary();
+      LibraryElement originLibrary = compilationUnitElement.library;
       assert(originLibrary.isPatched);
       Element origin = originLibrary.localLookup(patch.name);
       patchElement(listener, origin, patch);
@@ -404,23 +404,23 @@ void patchElement(leg.DiagnosticListener listener,
         patch, leg.MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
     return;
   }
-  if (!(origin.isClass() ||
-        origin.isConstructor() ||
-        origin.isFunction() ||
-        origin.isAbstractField())) {
+  if (!(origin.isClass ||
+        origin.isConstructor ||
+        origin.isFunction ||
+        origin.isAbstractField)) {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
     listener.reportError(origin, leg.MessageKind.PATCH_NONPATCHABLE);
     return;
   }
-  if (patch.isClass()) {
+  if (patch.isClass) {
     tryPatchClass(listener, origin, patch);
-  } else if (patch.isGetter()) {
+  } else if (patch.isGetter) {
     tryPatchGetter(listener, origin, patch);
-  } else if (patch.isSetter()) {
+  } else if (patch.isSetter) {
     tryPatchSetter(listener, origin, patch);
-  } else if (patch.isConstructor()) {
+  } else if (patch.isConstructor) {
     tryPatchConstructor(listener, origin, patch);
-  } else if(patch.isFunction()) {
+  } else if(patch.isFunction) {
     tryPatchFunction(listener, origin, patch);
   } else {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
@@ -431,7 +431,7 @@ void patchElement(leg.DiagnosticListener listener,
 void tryPatchClass(leg.DiagnosticListener listener,
                     Element origin,
                     ClassElement patch) {
-  if (!origin.isClass()) {
+  if (!origin.isClass) {
     listener.reportError(
         origin, leg.MessageKind.PATCH_NON_CLASS, {'className': patch.name});
     listener.reportInfo(
@@ -454,7 +454,7 @@ void patchClass(leg.DiagnosticListener listener,
 void tryPatchGetter(leg.DiagnosticListener listener,
                     Element origin,
                     FunctionElement patch) {
-  if (!origin.isAbstractField()) {
+  if (!origin.isAbstractField) {
     listener.reportError(
         origin, leg.MessageKind.PATCH_NON_GETTER, {'name': origin.name});
     listener.reportInfo(
@@ -477,7 +477,7 @@ void tryPatchGetter(leg.DiagnosticListener listener,
 void tryPatchSetter(leg.DiagnosticListener listener,
                      Element origin,
                      FunctionElement patch) {
-  if (!origin.isAbstractField()) {
+  if (!origin.isAbstractField) {
     listener.reportError(
         origin, leg.MessageKind.PATCH_NON_SETTER, {'name': origin.name});
     listener.reportInfo(
@@ -500,7 +500,7 @@ void tryPatchSetter(leg.DiagnosticListener listener,
 void tryPatchConstructor(leg.DiagnosticListener listener,
                           Element origin,
                           FunctionElement patch) {
-  if (!origin.isConstructor()) {
+  if (!origin.isConstructor) {
     listener.reportError(
         origin,
         leg.MessageKind.PATCH_NON_CONSTRUCTOR, {'constructorName': patch.name});
@@ -516,7 +516,7 @@ void tryPatchConstructor(leg.DiagnosticListener listener,
 void tryPatchFunction(leg.DiagnosticListener listener,
                       Element origin,
                       FunctionElement patch) {
-  if (!origin.isFunction()) {
+  if (!origin.isFunction) {
     listener.reportError(
         origin,
         leg.MessageKind.PATCH_NON_FUNCTION, {'functionName': patch.name});
@@ -531,7 +531,7 @@ void tryPatchFunction(leg.DiagnosticListener listener,
 void patchFunction(leg.DiagnosticListener listener,
                    FunctionElementX origin,
                    FunctionElementX patch) {
-  if (!origin.modifiers.isExternal()) {
+  if (!origin.modifiers.isExternal) {
     listener.reportError(origin, leg.MessageKind.PATCH_NON_EXTERNAL);
     listener.reportInfo(
         patch,
@@ -541,10 +541,6 @@ void patchFunction(leg.DiagnosticListener listener,
   if (origin.isPatched) {
     listener.internalError(origin,
         "Trying to patch a function more than once.");
-  }
-  if (origin.cachedNode != null) {
-    listener.internalError(origin,
-        "Trying to patch an already compiled function.");
   }
   origin.applyPatch(patch);
 }

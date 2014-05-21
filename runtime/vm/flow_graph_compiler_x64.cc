@@ -39,6 +39,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 }
 
 
+bool FlowGraphCompiler::SupportsUnboxedDoubles() {
+  return true;
+}
+
+
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
 }

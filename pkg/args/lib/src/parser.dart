@@ -10,45 +10,39 @@ final _SOLO_OPT = new RegExp(r'^-([a-zA-Z0-9])$');
 final _ABBR_OPT = new RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
 final _LONG_OPT = new RegExp(r'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
 
-/**
- * The actual parsing class. Unlike [ArgParser] which is really more an "arg
- * grammar", this is the class that does the parsing and holds the mutable
- * state required during a parse.
- */
+/// The actual argument parsing class.
+///
+/// Unlike [ArgParser] which is really more an "arg grammar", this is the class
+/// that does the parsing and holds the mutable state required during a parse.
 class Parser {
-  /**
-   * If parser is parsing a command's options, this will be the name of the
-   * command. For top-level results, this returns `null`.
-   */
+  /// If parser is parsing a command's options, this will be the name of the
+  /// command. For top-level results, this returns `null`.
   final String commandName;
 
-  /**
-   * The parser for the supercommand of this command parser, or `null` if this
-   * is the top-level parser.
-   */
+  /// The parser for the supercommand of this command parser, or `null` if this
+  /// is the top-level parser.
   final Parser parent;
 
-  /** The grammar being parsed. */
+  /// The grammar being parsed.
   final ArgParser grammar;
 
-  /** The arguments being parsed. */
+  /// The arguments being parsed.
   final List<String> args;
 
-  /** The remaining non-option, non-command arguments. */
+  /// The remaining non-option, non-command arguments.
   final rest = <String>[];
 
-  /** The accumulated parsed options. */
+  /// The accumulated parsed options.
   final Map<String, dynamic> results = <String, dynamic>{};
 
   Parser(this.commandName, this.grammar, this.args, this.parent, rest) {
     if (rest != null) this.rest.addAll(rest);
   }
 
-
-  /** The current argument being parsed. */
+  /// The current argument being parsed.
   String get current => args[0];
 
-  /** Parses the arguments. This can only be called once. */
+  /// Parses the arguments. This can only be called once.
   ArgResults parse() {
     var commandResults = null;
 
@@ -112,10 +106,9 @@ class Parser {
     return new ArgResults(results, commandName, commandResults, rest);
   }
 
-  /**
-   * Pulls the value for [option] from the second argument in [args]. Validates
-   * that there is a valid value there.
-   */
+  /// Pulls the value for [option] from the second argument in [args].
+  ///
+  /// Validates that there is a valid value there.
   void readNextArgAsValue(Option option) {
     // Take the option argument from the next command line arg.
     validate(args.length > 0,
@@ -129,12 +122,11 @@ class Parser {
     args.removeAt(0);
   }
 
-  /**
-   * Tries to parse the current argument as a "solo" option, which is a single
-   * hyphen followed by a single letter. We treat this differently than
-   * collapsed abbreviations (like "-abc") to handle the possible value that
-   * may follow it.
-   */
+  /// Tries to parse the current argument as a "solo" option, which is a single
+  /// hyphen followed by a single letter.
+  ///
+  /// We treat this differently than collapsed abbreviations (like "-abc") to
+  /// handle the possible value that may follow it.
   bool parseSoloOption() {
     var soloOpt = _SOLO_OPT.firstMatch(current);
     if (soloOpt == null) return false;
@@ -158,11 +150,9 @@ class Parser {
     return true;
   }
 
-  /**
-   * Tries to parse the current argument as a series of collapsed abbreviations
-   * (like "-abc") or a single abbreviation with the value directly attached
-   * to it (like "-mrelease").
-   */
+  /// Tries to parse the current argument as a series of collapsed abbreviations
+  /// (like "-abc") or a single abbreviation with the value directly attached
+  /// to it (like "-mrelease").
   bool parseAbbreviation(Parser innermostCommand) {
     var abbrOpt = _ABBR_OPT.firstMatch(current);
     if (abbrOpt == null) return false;
@@ -220,10 +210,8 @@ class Parser {
     setOption(results, option, true);
   }
 
-  /**
-   * Tries to parse the current argument as a long-form named option, which
-   * may include a value like "--mode=release" or "--mode release".
-   */
+  /// Tries to parse the current argument as a long-form named option, which
+  /// may include a value like "--mode=release" or "--mode release".
   bool parseLongOption() {
     var longOpt = _LONG_OPT.firstMatch(current);
     if (longOpt == null) return false;
@@ -268,15 +256,14 @@ class Parser {
     return true;
   }
 
-  /**
-   * Called during parsing to validate the arguments. Throws a
-   * [FormatException] if [condition] is `false`.
-   */
+  /// Called during parsing to validate the arguments.
+  ///
+  /// Throws a [FormatException] if [condition] is `false`.
   void validate(bool condition, String message) {
     if (!condition) throw new FormatException(message);
   }
 
-  /** Validates and stores [value] as the value for [option]. */
+  /// Validates and stores [value] as the value for [option].
   void setOption(Map results, Option option, value) {
     // See if it's one of the allowed values.
     if (option.allowed != null) {

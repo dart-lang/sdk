@@ -110,7 +110,8 @@ emitTagsForCompilationUnit(compilationUnit) {
 
   compilationUnit.declarations.forEach((_, DeclarationMirror mirror) {
     var tagname = nameOf(mirror);
-    var byte_offset = mirror.location.offset;
+    var location = mirror.location;
+    var byte_offset = location.offset;
     var line_number = file.getLine(byte_offset) + 1;
 
     var lineStart = file.lineStarts[line_number - 1];

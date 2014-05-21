@@ -118,9 +118,13 @@ abstract class Directory extends FileSystemEntity {
   final String path;
 
   /**
-   * Creates a directory object. The path is either an absolute path,
-   * or it is a relative path which is interpreted relative to the directory
-   * in which the Dart VM was started.
+   * Creates a [Directory] object.
+   *
+   * If [path] is a relative path, it will be interpreted relative to the
+   * current working directory (see [Directory.current]), when used.
+   *
+   * If [path] is an absolute path, it will be immune to changes to the
+   * current working directory.
    */
   factory Directory(String path) => new _Directory(path);
 

@@ -225,6 +225,20 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
   // Returns the non-HCheck instruction, or the last [HCheck] in the
   // check chain that is not generate at use site.
+  //
+  // For example:
+  //
+  //     t1 = GeneratedAtUseSite instruction
+  //     t2 = check(t1)
+  //     t3 = check(t2)
+  //     t4 = use(t3)
+  //     t5 = use(t3)
+  //     t6 = use(t2)
+  //
+  // The t1 is generate-at-use site, and the live-range must thus be on t2 and
+  // not on the checked instruction t1.
+  // When looking for the checkedInstructionOrNonGenerateAtUseSite of t3 we must
+  // return t2.
   HInstruction checkedInstructionOrNonGenerateAtUseSite(HCheck check) {
     var checked = check.checkedInput;
     while (checked is HCheck) {

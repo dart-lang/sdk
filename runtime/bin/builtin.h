@@ -43,6 +43,8 @@ class Builtin {
   // Setup native resolver method built in library specified in 'id'.
   static void SetNativeResolver(BuiltinLibraryId id);
 
+  static Dart_Handle LoadLibrary(Dart_Handle url, BuiltinLibraryId id);
+
   // Check if built in library specified in 'id' is already loaded, if not
   // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);

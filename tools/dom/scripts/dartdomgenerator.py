@@ -101,7 +101,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     template_paths = ['html/dart2js', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': False, 'DART2JS': True})
+                                     {'DARTIUM': False, 'DART2JS': True,
+                                      'DART_USE_BLINK' : False})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
         metadata)

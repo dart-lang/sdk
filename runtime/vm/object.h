@@ -939,6 +939,8 @@ class Class : public Object {
 
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
+  void AddField(const Field& field) const;
+  void AddFields(const GrowableObjectArray& fields) const;
   intptr_t FindFieldIndex(const Field& field) const;
   RawField* FieldFromIndex(intptr_t idx) const;
 
@@ -3306,6 +3308,10 @@ class ICData : public Object {
   bool IssuedJSWarning() const;
   void SetIssuedJSWarning() const;
 
+  // Return true if the target function of this IC data may check for (and
+  // possibly issue) a Javascript compatibility warning.
+  bool MayCheckForJSWarning() const;
+
   bool IsClosureCall() const;
   void SetIsClosureCall() const;
 
@@ -4013,6 +4019,7 @@ class LanguageError : public Error {
     kError,
     kMalformedType,
     kMalboundedType,
+    kBailout,
   };
 
   Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
@@ -4041,6 +4048,7 @@ class LanguageError : public Error {
                                          const char* format, va_list args);
 
   static RawLanguageError* New(const String& formatted_message,
+                               Kind kind = kError,
                                Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -4128,7 +4136,17 @@ class UnwindError : public Error {
 // in Dart source code.
 class Instance : public Object {
  public:
-  virtual bool Equals(const Instance& other) const;
+  // Equality and identity testing.
+  // 1. OperatorEquals: true iff 'this == other' is true in Dart code.
+  // 2. IsIdenticalTo: true iff 'identical(this, other)' is true in Dart code.
+  // 3. CanonicalizeEquals: used to canonicalize compile-time constants, e.g.,
+  //    using bitwise equality of fields and list elements.
+  // Subclasses where 1 and 3 coincide may also define a plain Equals, e.g.,
+  // String and Integer.
+  virtual bool OperatorEquals(const Instance& other) const;
+  bool IsIdenticalTo(const Instance& other) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+
   // Returns Instance::null() if instance cannot be canonicalized.
   // Any non-canonical number of string will be canonicalized here.
   // An instance cannot be canonicalized if it still contains non-canonical
@@ -4157,10 +4175,6 @@ class Instance : public Object {
   bool IsInstanceOf(const AbstractType& type,
                     const TypeArguments& type_instantiator,
                     Error* bound_error) const;
-
-  // Check whether this instance is identical to the argument according to the
-  // specification of dare:core's identical().
-  bool IsIdenticalTo(const Instance& other) const;
 
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
@@ -4306,6 +4320,9 @@ class AbstractType : public Instance {
   virtual RawTypeArguments* arguments() const;
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const {
+    return Equals(other);
+  }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
@@ -4872,6 +4889,17 @@ class Integer : public Number {
                          Heap::Space space = Heap::kNew,
                          const bool silent = false);
 
+  virtual bool OperatorEquals(const Instance& other) const {
+    return Equals(other);
+  }
+  virtual bool CanonicalizeEquals(const Instance& other) const {
+    return Equals(other);
+  }
+  virtual bool Equals(const Instance& other) const {
+    UNREACHABLE();
+    return false;
+  }
+
   // Integer is an abstract class.
   virtual bool IsZero() const {
     UNREACHABLE();
@@ -4911,7 +4939,7 @@ class Smi : public Integer {
  public:
   static const intptr_t kBits = kSmiBits;
   static const intptr_t kMaxValue = kSmiMax;
-  static const intptr_t kMinValue =  kSmiMin;
+  static const intptr_t kMinValue = kSmiMin;
 
   intptr_t Value() const {
     return ValueFromRaw(raw_value());
@@ -5136,8 +5164,9 @@ class Double : public Number {
     return raw_ptr()->value_;
   }
 
-  bool EqualsToDouble(double value) const;
-  virtual bool Equals(const Instance& other) const;
+  bool BitwiseEqualsToDouble(double value) const;
+  virtual bool OperatorEquals(const Instance& other) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
@@ -5257,6 +5286,12 @@ class String : public Instance {
   // Compares to an array of UTF-32 encoded characters.
   bool Equals(const int32_t* characters, intptr_t len) const;
 
+  virtual bool OperatorEquals(const Instance& other) const {
+    return Equals(other);
+  }
+  virtual bool CanonicalizeEquals(const Instance& other) const {
+    return Equals(other);
+  }
   virtual bool Equals(const Instance& other) const;
 
   intptr_t CompareTo(const String& other) const;
@@ -5887,7 +5922,7 @@ class Array : public Instance {
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
-  virtual bool Equals(const Instance& other) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -6047,7 +6082,7 @@ class GrowableObjectArray : public Instance {
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
-  virtual bool Equals(const Instance& other) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     UNREACHABLE();
@@ -6758,7 +6793,7 @@ class JSRegExp : public Instance {
   static RawJSRegExp* FromDataStartAddress(void* data);
   const char* Flags() const;
 
-  virtual bool Equals(const Instance& other) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -6868,7 +6903,7 @@ class UserTag : public Instance {
     ASSERT(t >= UserTags::kUserTagIdOffset);
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
     raw_ptr()->tag_ = t;
-  };
+  }
   static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
 
   RawString* label() const {

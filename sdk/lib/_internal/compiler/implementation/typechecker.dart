@@ -9,13 +9,13 @@ class TypeCheckerTask extends CompilerTask {
   String get name => "Type checker";
 
   void check(TreeElements elements) {
-    Element element = elements.currentElement;
+    AstElement element = elements.currentElement;
     compiler.withCurrentElement(element, () {
       measure(() {
-        Node tree = element.parseNode(compiler);
+        Node tree = element.node;
         TypeCheckerVisitor visitor =
             new TypeCheckerVisitor(compiler, elements, compiler.types);
-        if (element.isField()) {
+        if (element.isField) {
           visitor.analyzingInitializer = true;
         }
         tree.accept(visitor);
@@ -51,7 +51,7 @@ abstract class ElementAccess {
 
   /// Returns [: true :] if the element can be access as an invocation.
   bool isCallable(Compiler compiler) {
-    if (element.isAbstractField()) {
+    if (element.isAbstractField) {
       AbstractFieldElement abstractFieldElement = element;
       if (abstractFieldElement.getter == null) {
         // Setters cannot be invoked as function invocations.
@@ -101,10 +101,10 @@ class ResolvedAccess extends ElementAccess {
   }
 
   DartType computeType(Compiler compiler) {
-    if (element.isGetter()) {
+    if (element.isGetter) {
       FunctionType functionType = element.computeType(compiler);
       return functionType.returnType;
-    } else if (element.isSetter()) {
+    } else if (element.isSetter) {
       FunctionType functionType = element.computeType(compiler);
       return functionType.parameterTypes.head;
     } else {
@@ -302,7 +302,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   TypeCheckerVisitor(this.compiler, TreeElements elements, this.types)
       : this.elements = elements,
         currentClass = elements.currentElement != null
-            ? elements.currentElement.getEnclosingClass() : null {
+            ? elements.currentElement.enclosingClass : null {
     intType = compiler.intClass.computeType(compiler);
     doubleType = compiler.doubleClass.computeType(compiler);
     boolType = compiler.boolClass.computeType(compiler);
@@ -316,7 +316,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
-  LibraryElement get currentLibrary => elements.currentElement.getLibrary();
+  LibraryElement get currentLibrary => elements.currentElement.library;
 
   reportTypeWarning(Spannable spannable, MessageKind kind,
                     [Map arguments = const {}]) {
@@ -353,7 +353,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType analyzeNonVoid(Node node) {
     DartType type = analyze(node);
-    if (type == types.voidType) {
+    if (type.isVoid) {
       reportTypeWarning(node, MessageKind.VOID_EXPRESSION);
     }
     return type;
@@ -561,10 +561,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
         identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)) {
       type = types.dynamicType;
-      returnType = types.voidType;
+      returnType = const VoidType();
 
       element.functionSignature.forEachParameter((ParameterElement parameter) {
-        if (parameter.isFieldParameter()) {
+        if (parameter.isFieldParameter) {
           FieldParameterElement fieldParameter = parameter;
           checkAssignable(parameter, parameter.type,
               fieldParameter.fieldElement.computeType(compiler));
@@ -581,7 +581,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType previous = expectedReturnType;
     expectedReturnType = returnType;
     StatementType bodyType = analyze(node.body);
-    if (returnType != types.voidType && !returnType.treatAsDynamic
+    if (!returnType.isVoid && !returnType.treatAsDynamic
         && bodyType != StatementType.RETURNING) {
       MessageKind kind;
       if (bodyType == StatementType.MAYBE_RETURNING) {
@@ -604,9 +604,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       Element element = elements[node];
       assert(invariant(node, element != null,
           message: 'Missing element for identifier'));
-      assert(invariant(node, element.isVariable() ||
-                             element.isParameter() ||
-                             element.isField(),
+      assert(invariant(node, element.isVariable ||
+                             element.isParameter ||
+                             element.isField,
           message: 'Unexpected context element ${element}'));
       return element.computeType(compiler);
     }
@@ -628,12 +628,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   void checkPrivateAccess(Node node, Element element, String name) {
     if (name != null &&
         isPrivateName(name) &&
-        element.getLibrary() != currentLibrary) {
+        element.library != currentLibrary) {
       reportTypeWarning(
           node,
           MessageKind.PRIVATE_ACCESS,
           {'name': name,
-           'libraryName': element.getLibrary().getLibraryOrScriptName()});
+           'libraryName': element.library.getLibraryOrScriptName()});
     }
 
   }
@@ -658,6 +658,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         if (type == originalType) {
           type = compiler.objectClass.rawType;
         }
+      }
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
+        return types.dynamicType;
       }
       return type.unalias(compiler);
     }
@@ -687,6 +690,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // 'call' method into account.
     ElementAccess getAccess(Name name,
                             DartType unaliasedBound, InterfaceType interface) {
+      if (interface.treatAsDynamic) {
+        return new DynamicAccess();
+      }
       MemberSignature member = lookupMemberSignature(memberName, interface);
       if (member != null) {
         return new MemberAccess(member);
@@ -713,7 +719,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return access;
     }
     if (receiverElement != null &&
-        (receiverElement.isVariable() || receiverElement.isParameter())) {
+        (receiverElement.isVariable || receiverElement.isParameter)) {
       Link<TypePromotion> typePromotions = typePromotionsMap[receiverElement];
       if (typePromotions != null) {
         while (!typePromotions.isEmpty) {
@@ -865,7 +871,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         // members provide no access to there own name.
         if (element == null) {
           element = type.element;
-        } else if (type.element.isTypedef()) {
+        } else if (type.element.isTypedef) {
           if (element != null) {
             reportTypeInfo(element,
                            MessageKind.THIS_IS_THE_DECLARATION,
@@ -915,14 +921,14 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ElementAccess computeAccess(Send node, String name, Element element,
                               MemberKind memberKind,
                               {bool lookupClassMember: false}) {
-    if (element != null && element.isErroneous()) {
+    if (element != null && element.isErroneous) {
       // An error has already been reported for this node.
       return const DynamicAccess();
     }
     if (node.receiver != null) {
       Element receiverElement = elements[node.receiver];
       if (receiverElement != null) {
-        if (receiverElement.isPrefix()) {
+        if (receiverElement.isPrefix) {
           assert(invariant(node, element != null,
               message: 'Prefixed node has no element.'));
           return computeResolvedAccess(node, name, element, memberKind);
@@ -937,7 +943,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return lookupMember(node, receiverType, name, memberKind,
           elements[node.receiver],
           lookupClassMember: lookupClassMember ||
-              element != null && element.modifiers.isStatic());
+              element != null && element.isStatic);
     } else {
       return computeResolvedAccess(node, name, element, memberKind);
     }
@@ -952,10 +958,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (element == null) {
       // foo() where foo is unresolved.
       return lookupMember(node, thisType, name, memberKind, null);
-    } else if (element.isErroneous()) {
+    } else if (element.isErroneous) {
       // foo() where foo is erroneous.
       return const DynamicAccess();
-    } else if (element.impliesType()) {
+    } else if (element.impliesType) {
       // The literal `Foo` where Foo is a class, a typedef, or a type variable.
       if (elements.isTypeLiteral(node)) {
         assert(invariant(node, identical(compiler.typeClass,
@@ -965,19 +971,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return new TypeLiteralAccess(element);
       }
       return createResolvedAccess(node, name, element);
-    } else if (element.isMember()) {
+    } else if (element.isMember) {
       // foo() where foo is a member.
       return lookupMember(node, thisType, name, memberKind, null,
-          lookupClassMember: element.modifiers.isStatic());
-    } else if (element.isFunction()) {
+          lookupClassMember: element.isStatic);
+    } else if (element.isFunction) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);
-    } else if (element.isVariable() ||
-        element.isParameter() ||
-        element.isField()) {
+    } else if (element.isVariable ||
+        element.isParameter ||
+        element.isField) {
       // foo() where foo is a field in the same class.
       return createResolvedAccess(node, name, element);
-    } else if (element.isGetter() || element.isSetter()) {
+    } else if (element.isGetter || element.isSetter) {
       return createResolvedAccess(node, name, element);
     } else {
       compiler.internalError(element,
@@ -993,7 +999,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   ElementAccess createPromotedAccess(Element element) {
-    if (element.isVariable() || element.isParameter()) {
+    if (element.isVariable || element.isParameter) {
       TypePromotion typePromotion = getKnownTypePromotion(element);
       if (typePromotion != null) {
         return new PromotedAccess(element, typePromotion.type);
@@ -1056,7 +1062,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType visitSend(Send node) {
     Element element = elements[node];
 
-    if (element != null && element.isConstructor()) {
+    if (element != null && element.isConstructor) {
       DartType receiverType;
       if (node.receiver != null) {
         receiverType = analyze(node.receiver);
@@ -1102,7 +1108,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
 
         if (variable != null &&
-            (variable.isVariable() || variable.isParameter())) {
+            (variable.isVariable || variable.isParameter)) {
           DartType knownType = getKnownType(variable);
           if (!knownType.isDynamic) {
             DartType shownType = elements.getType(node.arguments.head);
@@ -1498,7 +1504,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       Node element = link.head;
       DartType elementType = analyze(element);
       checkAssignable(element, elementType, listElementType,
-          isConst: node.isConst());
+          isConst: node.isConst);
     }
     return listType;
   }
@@ -1531,7 +1537,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   /** Dart Programming Language Specification: 11.10 Return */
   DartType visitReturn(Return node) {
-    if (identical(node.getBeginToken().stringValue, 'native')) {
+    if (identical(node.beginToken.stringValue, 'native')) {
       return StatementType.RETURNING;
     }
     if (node.isRedirectingFactoryBody) {
@@ -1541,7 +1547,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
 
     final expression = node.expression;
-    final isVoidFunction = (identical(expectedReturnType, types.voidType));
+    final isVoidFunction = expectedReturnType.isVoid;
 
     // Executing a return statement return e; [...] It is a static type warning
     // if the type of e may not be assigned to the declared return type of the
@@ -1549,10 +1555,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (expression != null) {
       final expressionType = analyze(expression);
       Element element = elements.currentElement;
-      if (element != null && element.isGenerativeConstructor()) {
+      if (element != null && element.isGenerativeConstructor) {
         // The resolver already emitted an error for this expression.
       } else if (isVoidFunction
-          && !types.isAssignable(expressionType, types.voidType)) {
+          && !types.isAssignable(expressionType, const VoidType())) {
         reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {
         checkAssignable(expression, expressionType, expectedReturnType);
@@ -1563,7 +1569,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // hold:
     // - f is not a generative constructor.
     // - The return type of f may not be assigned to void.
-    } else if (!types.isAssignable(expectedReturnType, types.voidType)) {
+    } else if (!types.isAssignable(expectedReturnType, const VoidType())) {
       reportTypeWarning(node, MessageKind.RETURN_NOTHING,
                         {'returnType': expectedReturnType});
     }
@@ -1582,7 +1588,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitVariableDefinitions(VariableDefinitions node) {
     DartType type = analyzeWithDefault(node.type, types.dynamicType);
-    if (type == types.voidType) {
+    if (type.isVoid) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = types.dynamicType;
     }
@@ -1673,7 +1679,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     InterfaceType mapType = elements.getType(node);
     DartType mapKeyType = firstType(mapType.typeArguments);
     DartType mapValueType = secondType(mapType.typeArguments);
-    bool isConst = node.isConst();
+    bool isConst = node.isConst;
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {

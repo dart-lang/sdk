@@ -43,6 +43,9 @@ newFile(String path) => _file.newInstance(const Symbol(''), [path]).reflectee;
 /// Returns whether [error] is a `dart:io` HttpException.
 bool isHttpException(error) => reflect(error).type.isSubtypeOf(_httpException);
 
+/// Returns whether [client] is a `dart:io` HttpClient.
+bool isHttpClient(client) => reflect(client).type.isSubtypeOf(_httpClient);
+
 /// Tries to load `dart:io` and returns `null` if it fails.
 LibraryMirror _getLibrary() {
   try {

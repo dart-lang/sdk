@@ -6,6 +6,8 @@
 ///
 /// One can provide an instance of [HttpServer] as the `requests` parameter in
 /// [serveRequests].
+///
+/// The `dart:io` adapter supports request hijacking; see [Request.hijack].
 library shelf.io;
 
 import 'dart:async';
@@ -53,15 +55,38 @@ void serveRequests(Stream<HttpRequest> requests, Handler handler) {
 Future handleRequest(HttpRequest request, Handler handler) {
   var shelfRequest = _fromHttpRequest(request);
 
+  // TODO(nweiz): abstract out hijack handling to make it easier to implement an
+  // adapter.
   return syncFuture(() => handler(shelfRequest))
       .catchError((error, stackTrace) {
-    return _logError('Error thrown by handler\n$error', stackTrace);
+    if (error is HijackException) {
+      // A HijackException should bypass the response-writing logic entirely.
+      if (!shelfRequest.canHijack) throw error;
+
+      // If the request wasn't hijacked, we shouldn't be seeing this exception.
+      return _logError(
+          "Caught HijackException, but the request wasn't hijacked.",
+          stackTrace);
+    }
+
+    return _logError('Error thrown by handler.\n$error', stackTrace);
   }).then((response) {
     if (response == null) {
-      response = _logError('null response from handler');
+      response = _logError('null response from handler.');
+    } else if (!shelfRequest.canHijack) {
+      var message = new StringBuffer()
+          ..writeln("Got a response for hijacked request "
+              "${shelfRequest.method} ${shelfRequest.requestedUri}:")
+          ..writeln(response.statusCode);
+      response.headers.forEach((key, value) =>
+          message.writeln("${key}: ${value}"));
+      throw new Exception(message.toString().trim());
     }
 
     return _writeResponse(response, request.response);
+  }).catchError((error, stackTrace) {
+    // Ignore HijackExceptions.
+    if (error is! HijackException) throw error;
   });
 }
 
@@ -74,9 +99,14 @@ Request _fromHttpRequest(HttpRequest request) {
     headers[k] = v.join(',');
   });
 
+  onHijack(callback) {
+    return request.response.detachSocket(writeHeaders: false)
+        .then((socket) => callback(socket, socket));
+  }
+
   return new Request(request.method, request.requestedUri,
       protocolVersion: request.protocolVersion, headers: headers,
-      body: request);
+      body: request, onHijack: onHijack);
 }
 
 Future _writeResponse(Response response, HttpResponse httpResponse) {

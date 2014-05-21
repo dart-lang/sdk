@@ -159,7 +159,7 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
   const intptr_t kMinSize = 2 * kWordSize;
   uword* objects = new uword[kBlobSize / kMinSize];
   for (intptr_t i = 0; i < kBlobSize / kMinSize; ++i) {
-    objects[i] = NULL;
+    objects[i] = static_cast<uword>(NULL);
   }
 
   VirtualMemory* blob = VirtualMemory::ReserveAligned(kBlobSize, 4096);

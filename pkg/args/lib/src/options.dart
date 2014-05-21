@@ -2,9 +2,7 @@ library options;
 
 import 'package:collection/wrappers.dart';
 
-/**
- * A command-line option. Includes both flags and options which take a value.
- */
+/// A command-line option. Includes both flags and options which take a value.
 class Option {
   final String name;
   final String abbreviation;

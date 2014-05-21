@@ -130,7 +130,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
       ClassElement element = input.instructionType.singleClass(compiler);
-      if (element != null && element.isNative()) {
+      if (element != null && element.isNative) {
         constantInterceptor = element;
       }
     }
@@ -139,7 +139,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // If we just happen to be in an instance method of the constant
     // interceptor, `this` is a shorter alias.
-    if (constantInterceptor == work.element.getEnclosingClass() &&
+    if (constantInterceptor == work.element.enclosingClass &&
         graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
@@ -251,7 +251,18 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   }
 
   bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {
-    node.block.rewrite(node, receiver);
+    for (HInstruction user in node.usedBy.toList()) {
+      if (user is HIs) {
+        user.changeUse(node, receiver);
+      } else {
+        // Use the potentially self-argument as new receiver. Note that the
+        // self-argument could potentially have a tighter type than the
+        // receiver which was the input to the interceptor.
+        assert(user.inputs[0] == node);
+        assert(receiver.nonCheck() == user.inputs[1].nonCheck());
+        user.changeUse(node, user.inputs[1]);
+      }
+    }
     return false;
   }
 
@@ -263,13 +274,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     Selector selector = node.selector;
     HInstruction instruction;
-    if (selector.isGetter()) {
+    if (selector.isGetter) {
       instruction = new HInvokeDynamicGetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
           node.instructionType);
-    } else if (selector.isSetter()) {
+    } else if (selector.isSetter) {
       instruction = new HInvokeDynamicSetter(
           selector,
           node.element,

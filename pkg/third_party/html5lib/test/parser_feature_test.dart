@@ -11,7 +11,7 @@ main() {
   test('doctype is cloneable', () {
     var doc = parse('<!doctype HTML>');
     DocumentType doctype = doc.nodes[0];
-    expect(doctype.clone().toString(), '<!DOCTYPE html>');
+    expect(doctype.clone(false).toString(), '<!DOCTYPE html>');
   });
 
   test('line counter', () {

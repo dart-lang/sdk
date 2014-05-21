@@ -35,10 +35,11 @@ CallPattern::CallPattern(uword pc, const Code& code)
 
 
 int CallPattern::LengthInBytes() {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     return 5 * Instr::kInstrSize;
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     return 3 * Instr::kInstrSize;
   }
 }
@@ -80,7 +81,8 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t imm = 0;
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     ASSERT((instr & 0xfff00000) == 0xe3800000);  // orr rd, rd, byte0
     imm |= (instr & 0x000000ff);
 
@@ -102,7 +104,7 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
     *reg = static_cast<Register>((instr & 0x0000f000) >> 12);
     *value = imm;
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
       imm |= (instr & 0xf0000) << 12;
       imm |= (instr & 0xfff) << 16;
@@ -203,7 +205,8 @@ void CallPattern::SetTargetAddress(uword target_address) const {
 
 
 void CallPattern::InsertAt(uword pc, uword target_address) {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     const uint32_t byte0 = (target_address & 0x000000ff);
     const uint32_t byte1 = (target_address & 0x0000ff00) >> 8;
     const uint32_t byte2 = (target_address & 0x00ff0000) >> 16;
@@ -224,7 +227,7 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
     ASSERT(LengthInBytes() == 5 * Instr::kInstrSize);
     CPU::FlushICache(pc, LengthInBytes());
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     const uint16_t target_lo = target_address & 0xffff;
     const uint16_t target_hi = target_address >> 16;
 
@@ -248,17 +251,19 @@ JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
 
 
 int JumpPattern::pattern_length_in_bytes() {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     return 5 * Instr::kInstrSize;
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     return 3 * Instr::kInstrSize;
   }
 }
 
 
 bool JumpPattern::IsValid() const {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     Instr* mov_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));
     Instr* or1_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));
     Instr* or2_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
@@ -270,7 +275,7 @@ bool JumpPattern::IsValid() const {
            ((or3_ip->InstructionBits() & 0xffffff00) == 0xe38cc000) &&
            ((bx_ip->InstructionBits() & 0xffffffff) == 0xe12fff1c);
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
     Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
     Instr* bx_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
@@ -282,7 +287,8 @@ bool JumpPattern::IsValid() const {
 
 
 uword JumpPattern::TargetAddress() const {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     Instr* mov_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));
     Instr* or1_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));
     Instr* or2_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
@@ -294,7 +300,7 @@ uword JumpPattern::TargetAddress() const {
     imm |= mov_ip->Immed8Field() << 24;
     return imm;
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
     Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
     uint16_t target_lo = movw_ip->MovwField();
@@ -305,7 +311,8 @@ uword JumpPattern::TargetAddress() const {
 
 
 void JumpPattern::SetTargetAddress(uword target_address) const {
-  if (TargetCPUFeatures::arm_version() == ARMv6) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
     const uint32_t byte0 = (target_address & 0x000000ff);
     const uint32_t byte1 = (target_address & 0x0000ff00) >> 8;
     const uint32_t byte2 = (target_address & 0x00ff0000) >> 16;
@@ -322,7 +329,7 @@ void JumpPattern::SetTargetAddress(uword target_address) const {
     *reinterpret_cast<uword*>(pc_ + (3 * Instr::kInstrSize)) = or3_ip;
     CPU::FlushICache(pc_, 4 * Instr::kInstrSize);
   } else {
-    ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+    ASSERT(version == ARMv7);
     const uint16_t target_lo = target_address & 0xffff;
     const uint16_t target_hi = target_address >> 16;
 

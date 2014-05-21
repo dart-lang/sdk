@@ -251,7 +251,7 @@ class TreeBuilder {
     var name = token.name;
     var namespace = token.namespace;
     if (namespace == null) namespace = defaultNamespace;
-    var element = new Element(name, namespace)
+    var element = document.createElementNS(namespace, name)
         ..attributes = token.data
         ..sourceSpan = token.span;
     return element;
@@ -266,7 +266,7 @@ class TreeBuilder {
     var name = token.name;
     var namespace = token.namespace;
     if (namespace == null) namespace = defaultNamespace;
-    var element = new Element(name, namespace)
+    var element = document.createElementNS(namespace, name)
         ..attributes = token.data
         ..sourceSpan = token.span;
     openElements.last.nodes.add(element);
@@ -357,8 +357,8 @@ class TreeBuilder {
     if (lastTable != null) {
       // XXX - we should really check that this parent is actually a
       // node here
-      if (lastTable.parent != null) {
-        fosterParent = lastTable.parent;
+      if (lastTable.parentNode != null) {
+        fosterParent = lastTable.parentNode;
         insertBefore = lastTable;
       } else {
         fosterParent = openElements[openElements.indexOf(lastTable) - 1];

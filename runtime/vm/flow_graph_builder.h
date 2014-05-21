@@ -151,6 +151,12 @@ class FlowGraphBuilder: public ValueObject {
   ParsedFunction* parsed_function() const { return parsed_function_; }
   const Array& ic_data_array() const { return ic_data_array_; }
 
+  void WarnOnJSIntegralNumTypeTest(AstNode* node,
+                                   const AbstractType& type) const;
+
+  void Warning(intptr_t token_pos, const char* format, ...) const
+      PRINTF_ATTRIBUTE(3, 4);
+
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
@@ -285,8 +291,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   bool is_empty() const { return entry_ == NULL; }
   bool is_open() const { return is_empty() || exit_ != NULL; }
 
-  void Bailout(const char* reason);
-  void InlineBailout(const char* reason);
+  void Bailout(const char* reason) const;
+  void InlineBailout(const char* reason) const;
 
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);

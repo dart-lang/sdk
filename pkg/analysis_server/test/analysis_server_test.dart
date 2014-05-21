@@ -65,12 +65,13 @@ class AnalysisServerTest {
   static Future addContextToWorkQueue_whenRunning() {
     MockAnalysisContext context = new MockAnalysisContext();
     server.addContextToWorkQueue(context);
+    server.contextIdMap[context] = 'context-27';
     MockSource source = new MockSource();
     source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
     ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
     LineInfo lineInfo = new LineInfo([0]);
     AnalysisError analysisError = new AnalysisError.con1(source,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, []);
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, ['Foo']);
     changeNoticeImpl.setErrors([analysisError], lineInfo);
     context.when(callsTo('performAnalysisTask')).thenReturn(
         new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0));
@@ -78,14 +79,13 @@ class AnalysisServerTest {
         new AnalysisResult(null, 0, null, 0));
     return pumpEventQueue().then((_) {
       context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(2));
-      expect(channel.notificationsReceived, hasLength(2));
-      expect(channel.notificationsReceived[0].event, equals('server.connected')
-          );
-      expect(channel.notificationsReceived[1].event, equals('context.errors'));
-      expect(channel.notificationsReceived[1].params['source'], equals(
-          'foo.dart'));
-      List<AnalysisError> errors =
-          channel.notificationsReceived[1].params['errors'];
+      var notifications = channel.notificationsReceived;
+      expect(notifications, hasLength(2));
+      expect(notifications[0].event, equals('server.connected'));
+      expect(notifications[1].event, equals('context.errors'));
+      expect(notifications[1].params['source'], equals('foo.dart'));
+      expect(notifications[1].params['contextId'], equals('context-27'));
+      List<AnalysisError> errors = notifications[1].params['errors'];
       expect(errors, hasLength(1));
       expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
     });
@@ -106,7 +106,7 @@ class AnalysisServerTest {
     server.handlers = [new ServerDomainHandler(server)];
     var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
     request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    request.setParameter(ServerDomainHandler.CONTEXT_ID_PARAM, 'ctx');
+    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
     return channel.sendRequest(request)
         .then((Response response) {
           expect(response.id, equals('my27'));
@@ -142,14 +142,14 @@ class AnalysisServerTest {
     CompileTimeErrorCode errorCode =
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
     AnalysisError analysisError =
-        new AnalysisError.con2(source, 10, 5, errorCode, []);
+        new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
     Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
     expect(json, hasLength(5));
     expect(json['source'], equals('foo.dart'));
     expect(json['errorCode'], equals(errorCode.ordinal));
     expect(json['offset'], equals(analysisError.offset));
     expect(json['length'], equals(analysisError.length));
-    expect(json['message'], equals(errorCode.message));
+    expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));
   }
 
   static void errorToJson_withCorrection() {

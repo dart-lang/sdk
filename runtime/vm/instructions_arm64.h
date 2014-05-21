@@ -44,6 +44,13 @@ class InstructionPattern : public AllStatic {
   static uword DecodeLoadWordFromPool(uword end,
                                       Register* reg,
                                       intptr_t* index);
+
+  // Encodes a load sequence ending at 'end'. Encodes a fixed length two
+  // instruction load from the pool pointer in PP using the destination
+  // register reg as a temporary for the base address.
+  static void EncodeLoadWordFromPoolFixed(uword end, int32_t offset);
+
+  static intptr_t OffsetFromPPIndex(intptr_t index);
 };
 
 

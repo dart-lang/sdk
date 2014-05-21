@@ -37,7 +37,11 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
+DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
+            "Warn on incompatibilities between vm and dart2js.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, warning_as_error);
+DECLARE_FLAG(bool, silent_warnings);
 
 
 // TODO(srdjan): Allow compiler to add constants as they are encountered in
@@ -956,12 +960,12 @@ void TestGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-void EffectGraphVisitor::Bailout(const char* reason) {
+void EffectGraphVisitor::Bailout(const char* reason) const {
   owner()->Bailout(reason);
 }
 
 
-void EffectGraphVisitor::InlineBailout(const char* reason) {
+void EffectGraphVisitor::InlineBailout(const char* reason) const {
   owner()->parsed_function()->function().set_is_inlinable(false);
   if (owner()->IsInlining()) owner()->Bailout(reason);
 }
@@ -1403,6 +1407,39 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 }
 
 
+void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
+    AstNode* node, const AbstractType& type) const {
+  if (is_optimizing()) {
+    // Warnings for constants are issued when the graph is built for the first
+    // time only, i.e. just before generating unoptimized code.
+    // They should not be repeated when generating optimized code.
+    return;
+  }
+  if (!(node->IsLiteralNode() && (type.IsIntType() || type.IsDoubleType()))) {
+    return;
+  }
+  const Instance& instance = node->AsLiteralNode()->literal();
+  if (type.IsIntType()) {
+    if (instance.IsDouble()) {
+      const Double& double_instance = Double::Cast(instance);
+      double value = double_instance.value();
+      if (floor(value) == value) {
+        Warning(node->token_pos(),
+                "javascript compatibility warning: integral value of type "
+                "'double' is also considered to be of type 'int'");
+      }
+    }
+  } else {
+    ASSERT(type.IsDoubleType());
+    if (instance.IsInteger()) {
+      Warning(node->token_pos(),
+              "javascript compatibility warning: integer value is also "
+              "considered to be of type 'double'");
+    }
+  }
+}
+
+
 void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
@@ -1418,6 +1455,12 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
+
+  // Check for javascript compatibility.
+  if (FLAG_warn_on_javascript_compatibility) {
+    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
+  }
+
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -1462,6 +1505,12 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+
+  // Check for javascript compatibility.
+  if (FLAG_warn_on_javascript_compatibility) {
+    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
+  }
+
   ValueGraphVisitor for_value(owner());
   node->left()->Visit(&for_value);
   Append(for_value);
@@ -3889,18 +3938,40 @@ void FlowGraphBuilder::PruneUnreachable() {
 }
 
 
+void FlowGraphBuilder::Warning(intptr_t token_pos,
+                               const char* format, ...) const {
+  if (FLAG_silent_warnings) return;
+  const Function& function = parsed_function_->function();
+  va_list args;
+  va_start(args, format);
+  const Error& error = Error::Handle(
+      LanguageError::NewFormattedV(Error::Handle(),  // No previous error.
+                                   Script::Handle(function.script()),
+                                   token_pos, LanguageError::kWarning,
+                                   Heap::kNew, format, args));
+  va_end(args);
+  if (FLAG_warning_as_error) {
+    Isolate::Current()->long_jump_base()->Jump(1, error);
+    UNREACHABLE();
+  } else {
+    OS::Print("%s", error.ToErrorCString());
+  }
+}
+
+
 void FlowGraphBuilder::Bailout(const char* reason) const {
   const Function& function = parsed_function_->function();
   const Error& error = Error::Handle(
       LanguageError::NewFormatted(Error::Handle(),  // No previous error.
                                   Script::Handle(function.script()),
                                   function.token_pos(),
-                                  LanguageError::kError,
+                                  LanguageError::kBailout,
                                   Heap::kNew,
                                   "FlowGraphBuilder Bailout: %s %s",
                                   String::Handle(function.name()).ToCString(),
                                   reason));
   Isolate::Current()->long_jump_base()->Jump(1, error);
+  UNREACHABLE();
 }
 
 }  // namespace dart

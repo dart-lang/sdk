@@ -16,9 +16,6 @@ cc/Debug_StackTraceDump2: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
-[ $mode == debug ]
-cc/PrintJSON: Crash  # Issue 18652
-
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
@@ -77,9 +74,6 @@ cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
-
-[ $arch == simarm64 ]
-dart/*: Skip
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag

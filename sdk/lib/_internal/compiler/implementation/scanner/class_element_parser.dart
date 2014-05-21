@@ -34,6 +34,12 @@ class PartialClassElement extends ClassElementX {
     super.resolutionState = state;
   }
 
+  ClassNode get node {
+    assert(invariant(this, cachedNode != null,
+        message: "Node has not been computed for $this."));
+    return cachedNode;
+  }
+
   ClassNode parseNode(Compiler compiler) {
     if (cachedNode != null) return cachedNode;
     compiler.withCurrentElement(this, () {
@@ -57,7 +63,7 @@ class PartialClassElement extends ClassElementX {
     return cachedNode;
   }
 
-  Token position() => beginToken;
+  Token get position => beginToken;
 
   // TODO(johnniwinther): Ensure that modifiers are always available.
   Modifiers get modifiers =>
@@ -72,7 +78,7 @@ class MemberListener extends NodeListener {
   MemberListener(DiagnosticListener listener,
                  Element enclosingElement)
       : this.enclosingElement = enclosingElement,
-        super(listener, enclosingElement.getCompilationUnit());
+        super(listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement == null ||
@@ -121,21 +127,27 @@ class MemberListener extends NodeListener {
     pushNode(null);
     bool isConstructor = isConstructorName(method.name);
     String name = getMethodNameHack(method.name);
-    ElementKind kind = ElementKind.FUNCTION;
+    Element memberElement;
     if (isConstructor) {
       if (getOrSet != null) {
         recoverableError(getOrSet, 'illegal modifier');
       }
-      kind = ElementKind.GENERATIVE_CONSTRUCTOR;
-    } else if (getOrSet != null) {
-      kind = (identical(getOrSet.stringValue, 'get'))
-             ? ElementKind.GETTER : ElementKind.SETTER;
+      memberElement = new PartialConstructorElement(
+          name, beginToken, endToken,
+          ElementKind.GENERATIVE_CONSTRUCTOR,
+          method.modifiers,
+          enclosingElement);
+    } else {
+      ElementKind kind = ElementKind.FUNCTION;
+      if (getOrSet != null) {
+        kind = (identical(getOrSet.stringValue, 'get'))
+               ? ElementKind.GETTER : ElementKind.SETTER;
+      }
+      memberElement =
+          new PartialFunctionElement(name, beginToken, getOrSet, endToken,
+                                     kind, method.modifiers, enclosingElement,
+                                     !method.hasBody());
     }
-    bool hasNoBody = !isConstructor && !method.hasBody();
-    Element memberElement =
-        new PartialFunctionElement(name, beginToken, getOrSet, endToken,
-                                   kind, method.modifiers, enclosingElement,
-                                   hasNoBody);
     addMember(memberElement);
   }
 
@@ -153,9 +165,11 @@ class MemberListener extends NodeListener {
       }
     }
     ElementKind kind = ElementKind.FUNCTION;
-    Element memberElement =
-        new PartialFunctionElement(name, beginToken, null, endToken, kind,
-                                   method.modifiers, enclosingElement, false);
+    Element memberElement = new PartialConstructorElement(
+        name, beginToken, endToken,
+        ElementKind.FUNCTION,
+        method.modifiers,
+        enclosingElement);
     addMember(memberElement);
   }
 

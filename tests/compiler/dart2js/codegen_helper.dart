@@ -29,7 +29,7 @@ Future<Map<String, String>> generate(String code,
     Map<String, String> result = new Map<String, String>();
     var backend = compiler.backend;
     for (var element in backend.generatedCode.keys) {
-      if (element.getCompilationUnit().script.readableUri != uri) continue;
+      if (element.compilationUnit.script.readableUri != uri) continue;
       var name = element.name;
       var code = backend.assembleCode(element);
       result[name] = code;

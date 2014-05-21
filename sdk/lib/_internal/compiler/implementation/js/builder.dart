@@ -268,6 +268,16 @@ class JsBuilder {
   }
 
   /**
+   * Creates a Statement template without caching the result.
+   */
+  Template uncachedStatementTemplate(String source) {
+    MiniJsParser parser = new MiniJsParser(source);
+    Statement statement = parser.statement();
+    return new Template(
+        source, statement, isExpression: false, forceCopy: false);
+  }
+
+  /**
    * Create an Expression template which has [ast] as the result.  This is used
    * to wrap a generated AST in a zero-argument Template so it can be passed to
    * context that expects a template.

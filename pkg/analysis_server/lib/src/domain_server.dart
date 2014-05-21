@@ -38,11 +38,6 @@ class ServerDomainHandler implements RequestHandler {
   static const String VERSION_METHOD = 'server.version';
 
   /**
-   * The name of the contextId parameter.
-   */
-  static const String CONTEXT_ID_PARAM = 'contextId';
-
-  /**
    * The name of the packageMap parameter.
    */
   static const String PACKAGE_MAP_PARAM = 'packageMap';
@@ -95,7 +90,7 @@ class ServerDomainHandler implements RequestHandler {
     String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM).asString();
     Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM, {}).asStringMap();
 
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
+    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
     if (server.contextMap.containsKey(contextId)) {
       return new Response.contextAlreadyExists(request);
     }
@@ -116,6 +111,7 @@ class ServerDomainHandler implements RequestHandler {
       // new PackageUriResolver(),
     ]);
     server.contextMap[contextId] = context;
+    server.contextIdMap[context] = contextId;
 
     Response response = new Response(request.id);
     return response;
@@ -126,12 +122,13 @@ class ServerDomainHandler implements RequestHandler {
    * will result in an error being returned.
    */
   Response deleteContext(Request request) {
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
+    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
 
     AnalysisContext removedContext = server.contextMap.remove(contextId);
     if (removedContext == null) {
       return new Response.contextDoesNotExist(request);
     }
+    server.contextIdMap.remove(removedContext);
     Response response = new Response(request.id);
     return response;
   }

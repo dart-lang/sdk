@@ -53,6 +53,12 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
 }
 
 
+Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
+  return DartUtils::NewError(
+      "Unreachable code in Builtin::LoadLibrary (%d).", id);
+}
+
+
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
          kInvalidLibrary);

@@ -16,7 +16,7 @@ class Annotation {
 // Note there is no compile-time constant 'foo' in scope. In particular, A.foo
 // is not in scope here.
 @Annotation(foo)  /// 01: compile-time error
-class A {
+class A <@Annotation(foo) T> {
   @Annotation(foo)
   static foo() {}
 
@@ -25,7 +25,7 @@ class A {
 }
 
 @Annotation(B.foo)
-class B {
+class B <@Annotation(B.foo) T> {
   @Annotation(B.foo)
   static foo() {}
 
@@ -37,7 +37,7 @@ baz() {}
 
 // Note the top-level function baz is in scope here, not C.baz.
 @Annotation(baz)
-class C {
+class C <@Annotation(baz) T> {
   @Annotation(baz)
   static baz() {}
 }
@@ -48,13 +48,16 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
 
 main() {
   reflectClass(A).metadata;
+  checkMetadata(reflectClass(A).declarations[#T], [const Annotation(A.foo)]);
   checkMetadata(reflectClass(A).declarations[#foo], [const Annotation(A.foo)]);
   checkMetadata(reflectClass(A).declarations[#bar], [const Annotation(A.foo)]);
   checkMetadata(reflectClass(B), [const Annotation(B.foo)]);
+  checkMetadata(reflectClass(B).declarations[#T], [const Annotation(B.foo)]);
   checkMetadata(reflectClass(B).declarations[#foo], [const Annotation(B.foo)]);
   checkMetadata(reflectClass(B).declarations[#bar], [const Annotation(B.foo)]);
   // The top-level function baz, not C.baz.
   checkMetadata(reflectClass(C), [const Annotation(baz)]);
   // C.baz, not the top-level function baz.
+  checkMetadata(reflectClass(C).declarations[#T], [const Annotation(C.baz)]);
   checkMetadata(reflectClass(C).declarations[#baz], [const Annotation(C.baz)]);
 }

@@ -1,3 +1,16 @@
+##0.11.0
+
+* Deprecated methods have been removed:
+    * `expectAsync0`, `expectAsync1`, and `expectAsync2` - use `expectAsync`
+      instead
+    * `expectAsyncUntil0`, `expectAsyncUntil1`, and `expectAsyncUntil2` - use
+      `expectAsyncUntil` instead
+    * `guardAsync` - no longer needed
+    * `protectAsync0`, `protectAsync1`, and `protectAsync2` - no longer needed
+* `matcher.dart` and `mirror_matchers.dart` have been removed. They are now in
+  the `matcher` package.
+* `mock.dart` has been removed. It is now in the `mock` package.
+
 ##0.10.1+2
 
 * Fixed deprecation message for `mock`.

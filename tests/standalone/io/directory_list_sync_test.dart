@@ -6,8 +6,9 @@ import 'dart:io';
 
 void main() {
   File script = new File.fromUri(Platform.script);
-  // tests/standalone/io/../../..
-  Directory startingDir = script.parent.parent.parent.parent;
+  // tests/standalone/io/../..
+  Directory startingDir = script.parent.parent.parent;
+  print("Recursively listing entries in directory ${startingDir.path} ...");
   List<FileSystemEntity> each =
       startingDir.listSync(recursive: true, followLinks: false);
   print("Found: ${each.length} entities");

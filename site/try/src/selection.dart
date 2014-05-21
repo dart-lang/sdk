@@ -26,6 +26,10 @@ class TrySelection {
       : anchorNode = isCollapsed(selection) ? selection.anchorNode : null,
         anchorOffset = isCollapsed(selection) ? selection.anchorOffset : -1;
 
+  TrySelection.empty(this.root)
+      : anchorNode = null,
+        anchorOffset = -1;
+
   Text addNodeFromSubstring(int start,
                             int end,
                             List<Node> nodes,
@@ -53,6 +57,12 @@ class TrySelection {
   void updateText(String newText) {
     text = newText;
     globalOffset = computeGlobalOffset(root, anchorNode, anchorOffset);
+  }
+
+  TrySelection copyWithRoot(Node root) {
+    return new TrySelection.empty(root)
+        ..anchorNode = anchorNode
+        ..anchorOffset = anchorOffset;
   }
 
   /// Computes the global offset, that is, the offset from [root].

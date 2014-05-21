@@ -4,9 +4,6 @@
 
 [ $compiler == dart2analyzer ]
 
-LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash # Issue 18549
-LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # Issue 18549
-
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 
 # invalid argument for constant constructor
@@ -41,6 +38,9 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
+
+# co19 issue #685: Non-bool operand of && and || produces a static type warning
+Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: Fail, OK
 
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # co19-roll r706: Please triage this failure.
@@ -79,15 +79,6 @@ LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
 
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t10: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t11: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t12: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t13: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t14: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t15: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A02_t02: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: MissingStaticWarning
-Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t02: MissingStaticWarning
 Language/12_Expressions/29_Assignable_Expressions_A01_t09: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t07: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
@@ -226,3 +217,6 @@ WebPlatformTest/dom/nodes/Node-contains_t01: StaticWarning # co19-roll r722: Ple
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-replaceChild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+
+LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash
+LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash

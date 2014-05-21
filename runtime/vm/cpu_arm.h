@@ -19,6 +19,7 @@ namespace dart {
 // they may be altered for testing.
 
 enum ARMVersion {
+  ARMv5TE,
   ARMv6,
   ARMv7,
   ARMvUnknown,
@@ -36,9 +37,17 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     return integer_division_supported_;
   }
+  static bool vfp_supported() {
+    DEBUG_ASSERT(initialized_);
+    return vfp_supported_;
+  }
   static bool neon_supported() {
     DEBUG_ASSERT(initialized_);
     return neon_supported_;
+  }
+  static bool hardfp_supported() {
+    DEBUG_ASSERT(initialized_);
+    return hardfp_supported_;
   }
   static ARMVersion arm_version() {
     DEBUG_ASSERT(initialized_);
@@ -49,6 +58,10 @@ class HostCPUFeatures: public AllStatic {
   static void set_integer_division_supported(bool supported) {
     DEBUG_ASSERT(initialized_);
     integer_division_supported_ = supported;
+  }
+  static void set_vfp_supported(bool supported) {
+    DEBUG_ASSERT(initialized_);
+    vfp_supported_ = supported;
   }
   static void set_neon_supported(bool supported) {
     DEBUG_ASSERT(initialized_);
@@ -63,7 +76,9 @@ class HostCPUFeatures: public AllStatic {
  private:
   static const char* hardware_;
   static bool integer_division_supported_;
+  static bool vfp_supported_;
   static bool neon_supported_;
+  static bool hardfp_supported_;
   static ARMVersion arm_version_;
 #if defined(DEBUG)
   static bool initialized_;
@@ -84,8 +99,14 @@ class TargetCPUFeatures : public AllStatic {
   static bool integer_division_supported() {
     return HostCPUFeatures::integer_division_supported();
   }
+  static bool vfp_supported() {
+    return HostCPUFeatures::vfp_supported();
+  }
   static bool neon_supported() {
     return HostCPUFeatures::neon_supported();
+  }
+  static bool hardfp_supported() {
+    return HostCPUFeatures::hardfp_supported();
   }
   static const char* hardware() {
     return HostCPUFeatures::hardware();

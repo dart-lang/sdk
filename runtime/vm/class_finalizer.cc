@@ -2146,7 +2146,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   // Now clone the fields from the mixin class. There should be no
   // existing fields in the mixin application class.
   ASSERT(Array::Handle(cls.fields()).Length() == 0);
-  Array& fields = Array::Handle(isolate, mixin_cls.fields());
+  const Array& fields = Array::Handle(isolate, mixin_cls.fields());
   Field& field = Field::Handle(isolate);
   const GrowableObjectArray& cloned_fields =
       GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
@@ -2158,8 +2158,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       cloned_fields.Add(field);
     }
   }
-  fields = Array::MakeArray(cloned_fields);
-  cls.SetFields(fields);
+  cls.AddFields(cloned_fields);
 
   if (FLAG_trace_class_finalization) {
     OS::Print("Done applying mixin members of %s to %s\n",
@@ -2286,10 +2285,11 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (cls.IsTopLevel()) {
     FinalizeClass(cls);
   } else {
-    // This class should not contain any fields or functions yet, because it has
-    // not been compiled yet. Since 'ResolveAndFinalizeMemberTypes(cls)' has not
-    // been called yet, unfinalized member types could choke the snapshotter.
-    ASSERT(Array::Handle(cls.fields()).Length() == 0);
+    // This class should not contain any functions or user-defined fields yet,
+    // because it has not been compiled yet. There may however be metadata
+    // fields because type parameters are parsed before the class body. Since
+    // 'ResolveAndFinalizeMemberTypes(cls)' has not been called yet, unfinalized
+    // member types could choke the snapshotter.
     ASSERT(Array::Handle(cls.functions()).Length() == 0);
   }
 }

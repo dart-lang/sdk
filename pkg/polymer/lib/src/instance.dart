@@ -79,6 +79,26 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     (js.context['Polymer'] as JsFunction).apply([name]);
   }
 
+  /// Register a custom element that has no associated `<polymer-element>`.
+  /// Unlike [register] this will always perform synchronous registration and
+  /// by the time this method returns the element will be available using
+  /// [document.createElement] or by modifying the HTML to include the element.
+  static void registerSync(String name, Type type,
+      {String extendsTag, Document doc, Node template}) {
+
+    // Our normal registration, this will queue up the name->type association.
+    register(name, type);
+
+    // Build a polymer-element and initialize it to register
+    if (doc == null) doc = document;
+    var poly = doc.createElement('polymer-element');
+    poly.attributes['name'] = name;
+    if (extendsTag != null) poly.attributes['extends'] = extendsTag;
+    if (template != null) poly.append(template);
+
+    new JsObject.fromBrowserObject(poly).callMethod('init');
+  }
+
   /// The one syntax to rule them all.
   static final BindingDelegate _polymerSyntax =
       new PolymerExpressionsWithEvents();
@@ -626,14 +646,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     _observers = null;
   }
 
-  /// Bind a [property] in this object to a [path] in model. *Note* in Dart it
+  /// Bind the [name] property in this element to [bindable]. *Note* in Dart it
   /// is necessary to also define the field:
   ///
   ///     var myProperty;
   ///
   ///     ready() {
   ///       super.ready();
-  ///       bindProperty(#myProperty, this, 'myModel.path.to.otherProp');
+  ///       bindProperty(#myProperty,
+  ///           new PathObserver(this, 'myModel.path.to.otherProp'));
   ///     }
   Bindable bindProperty(Symbol name, Bindable bindable) {
     // Dart note: normally we only reach this code when we know it's a

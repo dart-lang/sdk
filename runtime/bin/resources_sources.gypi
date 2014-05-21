@@ -16,6 +16,7 @@
     'vmservice/client/deployed/web/packages/mutation_observer/mutation_observer.js',
     'vmservice/client/deployed/web/packages/mutation_observer/mutation_observer.min.js',
     'vmservice/client/deployed/web/packages/observatory/elements.html',
+    'vmservice/client/deployed/web/packages/observatory/src/elements/action_link.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/field_ref.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/json_view.html',
     'vmservice/client/deployed/web/packages/observatory/src/elements/isolate_ref.html',

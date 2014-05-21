@@ -865,6 +865,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
           } else {
             _close(WebSocketStatus.PROTOCOL_ERROR);
           }
+          // An error happened, set the close code set above.
+          _closeCode = _outCloseCode;
+          _closeReason = _outCloseReason;
           _controller.close();
         },
         onDone: () {
@@ -878,6 +881,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
             }
             _readyState = WebSocket.CLOSED;
           }
+          // Protocol close, use close code from transformer.
           _closeCode = transformer.closeCode;
           _closeReason = transformer.closeReason;
           _controller.close();
@@ -942,6 +946,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
     if (_closeTimer == null && !_controller.isClosed) {
       // When closing the web-socket, we no longer accept data.
       _closeTimer = new Timer(const Duration(seconds: 5), () {
+        // Reuse code and reason from the local close.
+        _closeCode = _outCloseCode;
+        _closeReason = _outCloseReason;
         _subscription.cancel();
         _controller.close();
       });

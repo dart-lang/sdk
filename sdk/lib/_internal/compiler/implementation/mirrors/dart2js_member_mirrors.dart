@@ -10,7 +10,7 @@ part of dart2js.mirrors;
 
 abstract class Dart2JsMemberMirror extends Dart2JsElementMirror {
 
-  Dart2JsMemberMirror(Dart2JsMirrorSystem system, Element element)
+  Dart2JsMemberMirror(Dart2JsMirrorSystem system, AstElement element)
       : super(system, element);
 
   bool get isStatic => false;
@@ -36,36 +36,6 @@ class Dart2JsMethodKind {
   String toString() => text;
 }
 
-
-String _getOperatorFromOperatorName(String name) {
-  Map<String, String> mapping = const {
-    'eq': '==',
-    'not': '~',
-    'index': '[]',
-    'indexSet': '[]=',
-    'mul': '*',
-    'div': '/',
-    'mod': '%',
-    'tdiv': '~/',
-    'add': '+',
-    'sub': '-',
-    'shl': '<<',
-    'shr': '>>',
-    'ge': '>=',
-    'gt': '>',
-    'le': '<=',
-    'lt': '<',
-    'and': '&',
-    'xor': '^',
-    'or': '|',
-  };
-  String newName = mapping[name];
-  if (newName == null) {
-    throw new Exception('Unhandled operator name: $name');
-  }
-  return newName;
-}
-
 class Dart2JsMethodMirror extends Dart2JsMemberMirror
     implements MethodMirror {
   final Dart2JsDeclarationMirror owner;
@@ -81,11 +51,9 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   factory Dart2JsMethodMirror(Dart2JsDeclarationMirror owner,
                               FunctionElement function) {
-    String realName = function.name;
+    String simpleName = function.name;
     // TODO(ahe): This method should not be calling
     // Elements.operatorNameToIdentifier.
-    String simpleName =
-        Elements.operatorNameToIdentifier(function.name);
     Dart2JsMethodKind kind;
     if (function.kind == ElementKind.GETTER) {
       kind = Dart2JsMethodKind.GETTER;
@@ -94,25 +62,16 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       simpleName = '$simpleName=';
     } else if (function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
-      if (function.modifiers.isConst()) {
+      if (function.isConst) {
         kind = Dart2JsMethodKind.CONST;
       } else {
         kind = Dart2JsMethodKind.GENERATIVE;
       }
-    } else if (function.modifiers.isFactory()) {
+    } else if (function.isFactoryConstructor) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
       kind = Dart2JsMethodKind.FACTORY;
-    } else if (realName == 'unary-') {
-      // TODO(johnniwinther): Use a constant for 'unary-'.
+    } else if (function.isOperator) {
       kind = Dart2JsMethodKind.OPERATOR;
-      // Simple name is 'unary-'.
-      simpleName = 'unary-';
-    } else if (simpleName.startsWith('operator\$')) {
-      // TODO(18740, johnniwinther): this fails for methods like `operator$foo`.
-      String str = simpleName.substring(9);
-      simpleName = 'operator';
-      kind = Dart2JsMethodKind.OPERATOR;
-      simpleName = _getOperatorFromOperatorName(str);
     } else {
       kind = Dart2JsMethodKind.REGULAR;
     }
@@ -133,7 +92,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   bool get isSynthetic => false;
 
-  bool get isStatic => _function.modifiers.isStatic();
+  bool get isStatic => _function.isStatic;
 
   List<ParameterMirror> get parameters {
     return _parametersFromFunctionSignature(this,
@@ -189,11 +148,11 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
 
   bool get isTopLevel => owner is LibraryMirror;
 
-  bool get isStatic => _variable.modifiers.isStatic();
+  bool get isStatic => _variable.isStatic;
 
-  bool get isFinal => _variable.modifiers.isFinal();
+  bool get isFinal => _variable.isFinal;
 
-  bool get isConst => _variable.modifiers.isConst();
+  bool get isConst => _variable.isConst;
 
   TypeMirror get type => owner._getTypeMirror(_variable.type);
 
@@ -227,9 +186,7 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
 
   ParameterElement get _element => super._element;
 
-  TypeMirror get type => owner._getTypeMirror(_element.type,
-                                              _element.functionSignature);
-
+  TypeMirror get type => owner._getTypeMirror(_element.type);
 
   bool get isFinal => false;
 

@@ -48,6 +48,7 @@ class Baz<E,F extends Foo> implements Bar<E> {
 
   bool operator==(Object other) => false;
   int operator-() => 0;
+  operator$foo() {}
 }
 
 class Boz extends Foo {

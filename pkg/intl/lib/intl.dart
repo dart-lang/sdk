@@ -230,18 +230,21 @@ class Intl {
    */
   static String canonicalizedLocale(String aLocale) {
     // Locales of length < 5 are presumably two-letter forms, or else malformed.
-    // Locales of length > 6 are likely to be malformed. In either case we
-    // return them unmodified and if correct they will be found.
+    // We return them unmodified and if correct they will be found.
+    // Locales longer than 6 might be malformed, but also do occur. Do as
+    // little as possible to them, but make the '-' be an '_' if it's there.
     // We treat C as a special case, and assume it wants en_ISO for formatting.
     // TODO(alanknight): en_ISO is probably not quite right for the C/Posix
     // locale for formatting. Consider adding C to the formats database.
     if (aLocale == null) return getCurrentLocale();
     if (aLocale == "C") return "en_ISO";
-    if ((aLocale.length < 5) || (aLocale.length > 6)) return aLocale;
+    if (aLocale.length < 5) return aLocale;
     if (aLocale[2] != '-' && (aLocale[2] != '_')) return aLocale;
-    var lastRegionLetter = aLocale.length == 5 ? "" : aLocale[5].toUpperCase();
-    return '${aLocale[0]}${aLocale[1]}_${aLocale[3].toUpperCase()}'
-           '${aLocale[4].toUpperCase()}$lastRegionLetter';
+    var region = aLocale.substring(3);
+    // If it's longer than three it's something odd, so don't touch it.
+    if (region.length <= 3) region = region.toUpperCase();
+    return
+        '${aLocale[0]}${aLocale[1]}_$region';
   }
 
   /**
@@ -355,7 +358,7 @@ class Intl {
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
     var oldLocale = getCurrentLocale();
-    defaultLocale = locale;
+    defaultLocale = Intl.canonicalizedLocale(locale);
     var result = message_function();
     defaultLocale = oldLocale;
     return result;

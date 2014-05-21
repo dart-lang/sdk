@@ -298,9 +298,10 @@ class FlowGraphAllocator : public ValueObject {
   // ranges that can be affected by future allocation decisions.
   // Those live ranges that end before the start of the current live range are
   // removed from the list and will not be affected.
-  GrowableArray<LiveRange*> registers_[kNumberOfCpuRegisters];
+  // The length of both arrays is 'number_of_registers_'
+  GrowableArray<ZoneGrowableArray<LiveRange*>*> registers_;
 
-  bool blocked_registers_[kNumberOfCpuRegisters];
+  GrowableArray<bool> blocked_registers_;
 
 
   // Worklist for register allocator. Always maintained sorted according

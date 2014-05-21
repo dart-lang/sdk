@@ -250,10 +250,13 @@ class InvalidParameterResponseMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    if (item is! Response) {
+    if (item is! RequestFailure) {
       return false;
     }
-    Response response = item;
+    var response = item.response;
+    if (response is! Response) {
+      return false;
+    }
     if (response.error is! RequestError) {
       return false;
     }
@@ -281,38 +284,61 @@ class RequestDatumTest {
     return new RequestDatum(request, 'myPath', datum);
   }
 
+  @runTest
   static void indexOperator_nonMap() {
+    setUp();
     expect(() => makeDatum(1)['foo'], _throwsInvalidParameter);
   }
 
+  @runTest
   static void indexOperator_missingKey() {
+    setUp();
     expect(() => makeDatum({
       'foo': 'bar'
     })['baz'], _throwsInvalidParameter);
   }
 
+  @runTest
   static void indexOperator_hasKey() {
+    setUp();
     var indexResult = makeDatum({
       'foo': 'bar'
     })['foo'];
     expect(indexResult, isRequestDatum);
     expect(indexResult.datum, equals('bar'));
-    expect(indexResult.path, equals('myPath.bar'));
+    expect(indexResult.path, equals('myPath.foo'));
   }
 
+  @runTest
+  static void hasKey() {
+    setUp();
+    var datum = makeDatum({
+      'foo': 'bar'
+    });
+    expect(datum.hasKey('foo'), isTrue);
+    expect(datum.hasKey('bar'), isFalse);
+    expect(datum.hasKey('baz'), isFalse);
+  }
+
+  @runTest
   static void forEachMap_nonMap() {
+    setUp();
     expect(() => makeDatum(1).forEachMap((key, value) {
       fail('Non-map should not be iterated');
     }), _throwsInvalidParameter);
   }
 
+  @runTest
   static void forEachMap_emptyMap() {
+    setUp();
     makeDatum({}).forEachMap((key, value) {
       fail('Empty map should not be iterated');
     });
   }
 
+  @runTest
   static void forEachMap_oneElementMap() {
+    setUp();
     int callCount = 0;
     makeDatum({
       'key': 'value'
@@ -325,7 +351,9 @@ class RequestDatumTest {
     expect(callCount, equals(1));
   }
 
+  @runTest
   static void forEachMap_twoElementMap() {
+    setUp();
     int callCount = 0;
     Map<String, String> map = {
       'key1': 'value1',
@@ -334,13 +362,16 @@ class RequestDatumTest {
     Map iterationResult = {};
     makeDatum(map).forEachMap((key, value) {
       callCount++;
-      iterationResult[key] = value;
+      expect(value, isRequestDatum);
+      iterationResult[key] = value.datum;
     });
     expect(callCount, equals(2));
     expect(iterationResult, equals(map));
   }
 
+  @runTest
   static void asBool() {
+    setUp();
     expect(makeDatum(true).asBool(), isTrue);
     expect(makeDatum(false).asBool(), isFalse);
     expect(makeDatum('true').asBool(), isTrue);
@@ -348,26 +379,34 @@ class RequestDatumTest {
     expect(() => makeDatum('abc').asBool(), _throwsInvalidParameter);
   }
 
+  @runTest
   static void asInt() {
+    setUp();
     expect(makeDatum(1).asInt(), equals(1));
     expect(makeDatum('2').asInt(), equals(2));
     expect(() => makeDatum('xxx').asInt(), _throwsInvalidParameter);
     expect(() => makeDatum(true).asInt(), _throwsInvalidParameter);
   }
 
+  @runTest
   static void asString() {
+    setUp();
     expect(makeDatum('foo').asString(), equals('foo'));
     expect(() => makeDatum(3).asString(), _throwsInvalidParameter);
   }
 
+  @runTest
   static void asStringList() {
+    setUp();
     expect(makeDatum(['foo', 'bar']).asStringList(), equals(['foo', 'bar']));
     expect(makeDatum([]).asStringList(), equals([]));
     expect(() => makeDatum(['foo', 1]).asStringList(), _throwsInvalidParameter);
     expect(() => makeDatum({}).asStringList(), _throwsInvalidParameter);
   }
 
+  @runTest
   static void asStringMap() {
+    setUp();
     expect(makeDatum({
       'key1': 'value1',
       'key2': 'value2'
@@ -383,10 +422,6 @@ class RequestDatumTest {
     expect(() => makeDatum({
       'key1': 1,
       'key2': 2
-    }).asStringMap(), _throwsInvalidParameter);
-    expect(() => makeDatum({
-      1: 'value1',
-      2: 'value2'
     }).asStringMap(), _throwsInvalidParameter);
     expect(() => makeDatum([]).asStringMap(), _throwsInvalidParameter);
   }
@@ -457,7 +492,6 @@ class ResponseTest {
     expect(response.getResult(resultName), same(resultValue));
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: null,
       Response.RESULT: {
         resultName: resultValue
       }

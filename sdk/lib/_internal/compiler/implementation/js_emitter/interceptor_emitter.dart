@@ -201,7 +201,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   jsAst.Statement fastPathForOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {
 
-    if (selector.isOperator()) {
+    if (selector.isOperator) {
       String name = selector.name;
       if (name == '==') {
         return js.statement('''{
@@ -238,7 +238,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
             return (~receiver) >>> 0;
           ''');
       }
-    } else if (selector.isIndex() || selector.isIndexSet()) {
+    } else if (selector.isIndex || selector.isIndexSet) {
       // For an index operation, this code generates:
       //
       //    if (receiver.constructor == Array || typeof receiver == "string") {
@@ -263,7 +263,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the
       // compiler has type assertions enabled.
-      if (selector.isIndexSet()
+      if (selector.isIndexSet
           && (compiler.enableTypeAssertions || !containsArray)) {
         return null;
       }
@@ -278,7 +278,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
         return left == null ? right : js('# || #', [left, right]);
       }
 
-      if (selector.isIndex()) {
+      if (selector.isIndex) {
         jsAst.Expression typeCheck;
         if (containsArray) {
           typeCheck = arrayCheck;
@@ -330,7 +330,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       List<String> parameterNames = <String>[];
       parameterNames.add('receiver');
 
-      if (selector.isSetter()) {
+      if (selector.isSetter) {
         parameterNames.add('value');
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {

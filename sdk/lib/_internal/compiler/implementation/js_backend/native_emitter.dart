@@ -91,7 +91,7 @@ class NativeEmitter {
     Map<ClassElement, ClassBuilder> builders =
         new Map<ClassElement, ClassBuilder>();
     for (ClassElement classElement in classes) {
-      if (classElement.isNative()) {
+      if (classElement.isNative) {
         ClassBuilder builder = generateNativeClass(classElement);
         builders[classElement] = builder;
       }
@@ -136,7 +136,7 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(classElement)) {
         needed = true;
       }
-      if (classElement.isNative() &&
+      if (classElement.isNative &&
           native.nativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonleafClasses.add(classElement);
@@ -157,7 +157,7 @@ class NativeEmitter {
         new Map<ClassElement, Set<String>>();
 
     for (ClassElement classElement in classes) {
-      if (!classElement.isNative()) continue;
+      if (!classElement.isNative) continue;
       List<String> nativeTags = native.nativeTagsOfClass(classElement);
 
       if (nonleafClasses.contains(classElement) ||
@@ -234,7 +234,7 @@ class NativeEmitter {
 
     // Emit the native class interceptors that were actually used.
     for (ClassElement classElement in classes) {
-      if (!classElement.isNative()) continue;
+      if (!classElement.isNative) continue;
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
         emitter.classEmitter.emitClassBuilderWithReflectionData(
@@ -255,7 +255,7 @@ class NativeEmitter {
       List<ClassElement> classes) {
     ClassElement nativeSuperclassOf(ClassElement element) {
       if (element == null) return null;
-      if (element.isNative()) return element;
+      if (element.isNative) return element;
       return nativeSuperclassOf(element.superclass);
     }
 
@@ -267,7 +267,7 @@ class NativeEmitter {
         new Map<ClassElement, List<ClassElement>>();
 
     for (ClassElement classElement in classes) {
-      if (classElement.isNative()) continue;
+      if (classElement.isNative) continue;
       ClassElement nativeAncestor = nativeAncestorOf(classElement);
       if (nativeAncestor != null) {
         map
@@ -376,7 +376,7 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = member.fixedBackendName();
+    target = member.fixedBackendName;
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -394,7 +394,7 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(Element element) {
-    if (element.isTypeVariable()) {
+    if (element.isTypeVariable) {
       compiler.internalError(element, "Is check for type variable.");
       return false;
     }
@@ -404,7 +404,7 @@ class NativeEmitter {
       return false;
     }
 
-    if (!element.isClass()) {
+    if (!element.isClass) {
       compiler.internalError(element, "Is check does not handle element.");
       return false;
     }
@@ -423,7 +423,7 @@ class NativeEmitter {
     // by a native class in case we get a native instance that tries to spoof
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
-    if (!element.isClass()) return false;
+    if (element == null || !element.isClass) return false;
     ClassElement cls = element;
     if (Elements.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);

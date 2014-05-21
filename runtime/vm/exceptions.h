@@ -21,6 +21,7 @@ class RawScript;
 class RawStacktrace;
 class RawObject;
 class Script;
+class StackFrame;
 class String;
 
 class Exceptions : AllStatic {
@@ -30,6 +31,13 @@ class Exceptions : AllStatic {
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);
   static void PropagateError(const Error& error);
+
+  // Report a Javascript compatibility warning at the call site given by
+  // caller_frame. Note that a JavascriptCompatibilityError is thrown
+  // if --warning_as_error is specified.
+  static void JSWarning(StackFrame* caller_frame, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+
   static RawStacktrace* CurrentStacktrace();
 
   // Helpers to create and throw errors.
@@ -55,6 +63,7 @@ class Exceptions : AllStatic {
     kIsolateSpawn,
     kIsolateUnhandledException,
     kJavascriptIntegerOverflowError,
+    kJavascriptCompatibilityError,
     kAssertion,
     kCast,
     kType,

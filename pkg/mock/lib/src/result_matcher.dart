@@ -21,7 +21,7 @@ class _ResultMatcher extends Matcher {
 
   bool matches(item, Map matchState) {
     if (item is! LogEntry) {
-     return false;
+      return false;
     }
     // normalize the action; _PROXY is like _RETURN.
     Action eaction = item.action;
@@ -33,10 +33,11 @@ class _ResultMatcher extends Matcher {
 
   Description describe(Description description) {
     description.add(' to ');
-    if (action == Action.RETURN || action == Action.PROXY)
+    if (action == Action.RETURN || action == Action.PROXY) {
       description.add('return ');
-    else
+    } else {
       description.add('throw ');
+    }
     return description.addDescriptionOf(value);
   }
 

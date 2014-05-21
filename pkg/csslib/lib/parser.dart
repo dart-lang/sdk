@@ -30,6 +30,7 @@ class ParserState extends TokenizerState {
       : super(tokenizer);
 }
 
+// TODO(jmesserly): this should not be global
 void _createMessages({List<Message> errors, List<String> options}) {
   if (errors == null) errors = [];
 
@@ -45,7 +46,7 @@ bool get isChecked => messages.options.checked;
 
 // TODO(terry): Remove nested name parameter.
 /** Parse and analyze the CSS file. */
-StyleSheet compile(var input, {List<Message> errors, List<String> options,
+StyleSheet compile(input, {List<Message> errors, List<String> options,
     bool nested: true,
     bool polyfill: false,
     List<StyleSheet> includes: null}) {
@@ -85,13 +86,12 @@ void analyze(List<StyleSheet> styleSheets,
  * or [List<int>] of bytes and returns a [StyleSheet] AST.  The optional
  * [errors] list will contain each error/warning as a [Message].
  */
-StyleSheet parse(var input, {List<Message> errors, List<String> options}) {
+StyleSheet parse(input, {List<Message> errors, List<String> options}) {
   var source = _inputAsString(input);
 
   _createMessages(errors: errors, options: options);
 
   var file = new SourceFile.text(null, source);
-
   return new _Parser(file, source).parse();
 }
 
@@ -100,17 +100,32 @@ StyleSheet parse(var input, {List<Message> errors, List<String> options}) {
  * or [List<int>] of bytes and returns a [StyleSheet] AST.  The optional
  * [errors] list will contain each error/warning as a [Message].
  */
-StyleSheet selector(var input, {List<Message> errors}) {
+// TODO(jmesserly): should rename "parseSelector" and return Selector
+StyleSheet selector(input, {List<Message> errors}) {
   var source = _inputAsString(input);
 
   _createMessages(errors: errors);
 
   var file = new SourceFile.text(null, source);
-
-  return new _Parser(file, source).parseSelector();
+  return (new _Parser(file, source)
+      ..tokenizer.inSelector = true)
+      .parseSelector();
 }
 
-String _inputAsString(var input) {
+SelectorGroup parseSelectorGroup(input, {List<Message> errors}) {
+  var source = _inputAsString(input);
+
+  _createMessages(errors: errors);
+
+  var file = new SourceFile.text(null, source);
+  return (new _Parser(file, source)
+      // TODO(jmesserly): this fix should be applied to the parser. It's tricky
+      // because by the time the flag is set one token has already been fetched.
+      ..tokenizer.inSelector = true)
+      .processSelectorGroup();
+}
+
+String _inputAsString(input) {
   String source;
 
   if (input is String) {
@@ -147,6 +162,7 @@ String _inputAsString(var input) {
 class Parser {
   final _Parser _parser;
 
+  // TODO(jmesserly): having file and text is redundant.
   Parser(SourceFile file, String text, {int start: 0, String baseUrl}) :
     _parser = new _Parser(file, text, start: start, baseUrl: baseUrl);
 
@@ -1174,6 +1190,7 @@ class _Parser {
   SelectorGroup processSelectorGroup() {
     List<Selector> selectors = [];
     int start = _peekToken.start;
+
     do {
       Selector selector = processSelector();
       if (selector != null) {
@@ -1413,17 +1430,31 @@ class _Parser {
     }
 
     // Functional pseudo?
-    if (_maybeEat(TokenKind.LPAREN)) {
+
+    if (_peekToken.kind == TokenKind.LPAREN) {
+
       if (!pseudoElement && pseudoName.name.toLowerCase() == 'not') {
+        _eat(TokenKind.LPAREN);
+
         // Negation :   ':NOT(' S* negation_arg S* ')'
         var negArg = simpleSelector();
 
         _eat(TokenKind.RPAREN);
         return new NegationSelector(negArg, _makeSpan(start));
       } else {
+        // Special parsing for expressions in pseudo functions.  Minus is used
+        // as operator not identifier.
+        // TODO(jmesserly): we need to flip this before we eat the "(" as the
+        // next token will be fetched when we do that. I think we should try to
+        // refactor so we don't need this boolean; it seems fragile.
+        tokenizer.inSelectorExpression = true;
+        _eat(TokenKind.LPAREN);
+
         // Handle function expression.
         var span = _makeSpan(start);
         var expr = processSelectorExpression();
+
+        tokenizer.inSelectorExpression = false;
 
         // Used during selector look-a-head if not a SelectorExpression is
         // bad.
@@ -1463,14 +1494,10 @@ class _Parser {
   processSelectorExpression() {
     var start = _peekToken.start;
 
-    var expression = new SelectorExpression(_makeSpan(start));
+    var expressions = [];
 
     Token termToken;
     var value;
-
-    // Special parsing for expressions in pseudo functions.  Minus is used as
-    // operator not identifier.
-    tokenizer.selectorExpression = true;
 
     var keepParsing = true;
     while (keepParsing) {
@@ -1478,12 +1505,12 @@ class _Parser {
         case TokenKind.PLUS:
           start = _peekToken.start;
           termToken = _next();
-          expression.add(new OperatorPlus(_makeSpan(start)));
+          expressions.add(new OperatorPlus(_makeSpan(start)));
           break;
         case TokenKind.MINUS:
           start = _peekToken.start;
           termToken = _next();
-          expression.add(new OperatorMinus(_makeSpan(start)));
+          expressions.add(new OperatorMinus(_makeSpan(start)));
           break;
         case TokenKind.INTEGER:
           termToken = _next();
@@ -1517,15 +1544,13 @@ class _Parser {
         if (unitTerm == null) {
           unitTerm = new LiteralTerm(value, value.name, _makeSpan(start));
         }
-        expression.add(unitTerm);
+        expressions.add(unitTerm);
 
         value = null;
       }
     }
 
-    tokenizer.selectorExpression = false;
-
-    return expression;
+    return new SelectorExpression(expressions, _makeSpan(start));
   }
 
   //  Attribute grammar:
@@ -2343,6 +2368,12 @@ class _Parser {
 
     // URI term sucks up everything inside of quotes(' or ") or between parens
     var stopToken = urlString ? TokenKind.RPAREN : -1;
+
+    // Note: disable skipping whitespace tokens inside a string.
+    // TODO(jmesserly): the layering here feels wrong.
+    var skipWhitespace = tokenizer._skipWhitespace;
+    tokenizer._skipWhitespace = false;
+
     switch (_peek()) {
     case TokenKind.SINGLE_QUOTE:
       stopToken = TokenKind.SINGLE_QUOTE;
@@ -2369,20 +2400,20 @@ class _Parser {
 
     // Gobble up everything until we hit our stop token.
     var runningStart = _peekToken.start;
+
+    var stringValue = new StringBuffer();
     while (_peek() != stopToken && _peek() != TokenKind.END_OF_FILE) {
-      var tok = _next();
+      stringValue.write(_next().text);
     }
 
-    // All characters between quotes is the string.
-    var end = _peekToken.end;
-    var stringValue = (_peekToken.span as FileSpan).file.getText(start,
-        end - 1);
+    tokenizer._skipWhitespace = skipWhitespace;
 
+    // All characters between quotes is the string.
     if (stopToken != TokenKind.RPAREN) {
       _next();    // Skip the SINGLE_QUOTE or DOUBLE_QUOTE;
     }
 
-    return stringValue;
+    return stringValue.toString();
   }
 
   // TODO(terry): Should probably understand IE's non-standard filter syntax to

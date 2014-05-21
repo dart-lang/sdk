@@ -943,7 +943,7 @@ void main(int argc, char** argv) {
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
-    fprintf(stderr, "Error determinig current directory: %s\n", err.message());
+    fprintf(stderr, "Error determining current directory: %s\n", err.message());
     fflush(stderr);
     exit(kErrorExitCode);
   }
@@ -979,6 +979,9 @@ void main(int argc, char** argv) {
   ASSERT(Dart_CurrentIsolate() == NULL);
   // Start the VM service isolate, if necessary.
   if (start_vm_service) {
+    if (!start_debugger) {
+      DebuggerConnectionHandler::InitForVmService();
+    }
     ASSERT(vm_service_server_ip != NULL && vm_service_server_port >= 0);
     bool r = VmService::Start(vm_service_server_ip , vm_service_server_port);
     if (!r) {

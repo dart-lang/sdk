@@ -12,22 +12,24 @@ import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show BaseClassElementX,
-         FunctionElementX,
+         ConstructorElementX,
          ErroneousElementX,
-         VariableElementX,
          FieldParameterElementX,
-         VariableList,
+         FunctionElementX,
          FunctionSignatureX,
          LabelElementX,
-         TargetElementX,
+         LocalFunctionElementX,
+         LocalVariableElementX,
+         MetadataAnnotationX,
          MixinApplicationElementX,
          ParameterElementX,
-         TypeVariableElementX,
-         TypedefElementX,
-         SynthesizedConstructorElementX,
-         MetadataAnnotationX,
          ParameterMetadataAnnotation,
-         MetadataContainer;
+         SynthesizedConstructorElementX,
+         TargetElementX,
+         TypedefElementX,
+         TypeVariableElementX,
+         VariableElementX,
+         VariableList;
 import '../util/util.dart';
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;

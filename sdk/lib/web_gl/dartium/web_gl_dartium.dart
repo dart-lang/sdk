@@ -15,6 +15,41 @@ import 'dart:_blink' as _blink;
 
 
 
+// FIXME: Can we make this private?
+const web_glBlinkMap = const {
+  'ANGLEInstancedArrays': AngleInstancedArrays,
+  'EXTFragDepth': ExtFragDepth,
+  'EXTTextureFilterAnisotropic': ExtTextureFilterAnisotropic,
+  'OESElementIndexUint': OesElementIndexUint,
+  'OESStandardDerivatives': OesStandardDerivatives,
+  'OESTextureFloat': OesTextureFloat,
+  'OESTextureFloatLinear': OesTextureFloatLinear,
+  'OESTextureHalfFloat': OesTextureHalfFloat,
+  'OESTextureHalfFloatLinear': OesTextureHalfFloatLinear,
+  'OESVertexArrayObject': OesVertexArrayObject,
+  'WebGLActiveInfo': ActiveInfo,
+  'WebGLBuffer': Buffer,
+  'WebGLCompressedTextureATC': CompressedTextureAtc,
+  'WebGLCompressedTexturePVRTC': CompressedTexturePvrtc,
+  'WebGLCompressedTextureS3TC': CompressedTextureS3TC,
+  'WebGLContextAttributes': ContextAttributes,
+  'WebGLContextEvent': ContextEvent,
+  'WebGLDebugRendererInfo': DebugRendererInfo,
+  'WebGLDebugShaders': DebugShaders,
+  'WebGLDepthTexture': DepthTexture,
+  'WebGLDrawBuffers': DrawBuffers,
+  'WebGLFramebuffer': Framebuffer,
+  'WebGLLoseContext': LoseContext,
+  'WebGLProgram': Program,
+  'WebGLRenderbuffer': Renderbuffer,
+  'WebGLRenderingContext': RenderingContext,
+  'WebGLShader': Shader,
+  'WebGLShaderPrecisionFormat': ShaderPrecisionFormat,
+  'WebGLTexture': Texture,
+  'WebGLUniformLocation': UniformLocation,
+  'WebGLVertexArrayObjectOES': VertexArrayObject,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

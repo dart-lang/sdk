@@ -2329,12 +2329,10 @@ class _Float32x4 implements Float32x4 {
     return _abs();
   }
   Float32x4 _abs() native "Float32x4_abs";
-  Float32x4 clamp(Float32x4 lowerLimit,
-                         Float32x4 upperLimit) {
+  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
     return _clamp(lowerLimit, upperLimit);
   }
-  Float32x4 _clamp(Float32x4 lowerLimit,
-                          Float32x4 upperLimit)
+  Float32x4 _clamp(Float32x4 lowerLimit, Float32x4 upperLimit)
       native "Float32x4_clamp";
   double get x native "Float32x4_getX";
   double get y native "Float32x4_getY";

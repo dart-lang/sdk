@@ -6,7 +6,7 @@
 #if defined(TARGET_ARCH_ARM64)
 
 #include "vm/code_patcher.h"
-
+#include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
@@ -46,16 +46,43 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 }
 
 
+class PoolPointerCall : public ValueObject {
+ public:
+  explicit PoolPointerCall(uword pc) : end_(pc) {
+    // Last instruction: blr ip0.
+    ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
+    InstructionPattern::DecodeLoadWordFromPool(
+        end_ - Instr::kInstrSize, &reg_, &index_);
+  }
+
+  int32_t pp_offset() const {
+    return InstructionPattern::OffsetFromPPIndex(index_);
+  }
+
+  void set_pp_offset(int32_t offset) const {
+    InstructionPattern::EncodeLoadWordFromPoolFixed(
+      end_ - Instr::kInstrSize, offset);
+    CPU::FlushICache(end_ - kCallPatternSize, kCallPatternSize);
+  }
+
+ private:
+  static const int kCallPatternSize = 3 * Instr::kInstrSize;
+  uword end_;
+  Register reg_;
+  intptr_t index_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
+};
+
+
 int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
-  // TODO(zra): Needed for debugger.
-  UNIMPLEMENTED();
-  return 0;
+  PoolPointerCall call(return_address);
+  return call.pp_offset();
 }
 
 
 void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
-  // TODO(zra): Needed for debugger.
-  UNIMPLEMENTED();
+  PoolPointerCall call(return_address);
+  call.set_pp_offset(offset);
 }
 
 

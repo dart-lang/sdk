@@ -128,7 +128,7 @@ void _moveDirectoryAndServe() {
 
   if (webDocsDir.existsSync()) {
     // Compile the code to JavaScript so we can run on any browser.
-    print('Compile app to JavaScript for viewing.');
+    print('Compiling the app to JavaScript.');
     var processResult = Process.runSync(gen.dartBinary, ['deploy.dart'],
         workingDirectory: path.join(_dartdocViewerDir.path, 'client'),
         runInShell: true);
@@ -141,7 +141,7 @@ void _moveDirectoryAndServe() {
 void _compile() {
   if (_webDocsDir.existsSync()) {
     // Compile the code to JavaScript so we can run on any browser.
-    print('Compile app to JavaScript for viewing.');
+    print('Compiling the app to JavaScript.');
     var processResult = Process.runSync(gen.dartBinary, ['deploy.dart'],
         workingDirectory: _viewerCodePath, runInShell: true);
     print('process output: ${processResult.stdout}');

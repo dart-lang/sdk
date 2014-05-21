@@ -495,7 +495,7 @@ class NewExpression extends Expression {
     if (send != null) send.accept(visitor);
   }
 
-  bool isConst() {
+  bool get isConst {
     return newToken == null || identical(newToken.stringValue, 'const');
   }
 
@@ -941,7 +941,7 @@ class LiteralList extends Expression {
 
   LiteralList(this.typeArguments, this.elements, this.constKeyword);
 
-  bool isConst() => constKeyword != null;
+  bool get isConst => constKeyword != null;
 
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -1314,13 +1314,13 @@ class Modifiers extends Node {
   accept(Visitor visitor) => visitor.visitModifiers(this);
   visitChildren(Visitor visitor) => nodes.accept(visitor);
 
-  bool isStatic() => (flags & FLAG_STATIC) != 0;
-  bool isAbstract() => (flags & FLAG_ABSTRACT) != 0;
-  bool isFinal() => (flags & FLAG_FINAL) != 0;
-  bool isVar() => (flags & FLAG_VAR) != 0;
-  bool isConst() => (flags & FLAG_CONST) != 0;
-  bool isFactory() => (flags & FLAG_FACTORY) != 0;
-  bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
+  bool get isStatic => (flags & FLAG_STATIC) != 0;
+  bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
+  bool get isFinal => (flags & FLAG_FINAL) != 0;
+  bool get isVar => (flags & FLAG_VAR) != 0;
+  bool get isConst => (flags & FLAG_CONST) != 0;
+  bool get isFactory => (flags & FLAG_FACTORY) != 0;
+  bool get isExternal => (flags & FLAG_EXTERNAL) != 0;
 
   Node getStatic() => findModifier('static');
 
@@ -1328,20 +1328,16 @@ class Modifiers extends Node {
    * Use this to check if the declaration is either explicitly or implicitly
    * final.
    */
-  bool isFinalOrConst() => isFinal() || isConst();
+  bool get isFinalOrConst => isFinal || isConst;
 
   String toString() {
-    LinkBuilder<String> builder = new LinkBuilder<String>();
-    if (isStatic()) builder.addLast('static');
-    if (isAbstract()) builder.addLast('abstract');
-    if (isFinal()) builder.addLast('final');
-    if (isVar()) builder.addLast('var');
-    if (isConst()) builder.addLast('const');
-    if (isFactory()) builder.addLast('factory');
-    if (isExternal()) builder.addLast('external');
-    StringBuffer buffer = new StringBuffer();
-    builder.toLink().printOn(buffer, ', ');
-    return buffer.toString();
+    return modifiersToString(isStatic: isStatic,
+                             isAbstract: isAbstract,
+                             isFinal: isFinal,
+                             isVar: isVar,
+                             isConst: isConst,
+                             isFactory: isFactory,
+                             isExternal: isExternal);
   }
 }
 
@@ -1477,7 +1473,7 @@ class LiteralMap extends Expression {
 
   LiteralMap(this.typeArguments, this.entries, this.constKeyword);
 
-  bool isConst() => constKeyword != null;
+  bool get isConst => constKeyword != null;
 
   LiteralMap asLiteralMap() => this;
 

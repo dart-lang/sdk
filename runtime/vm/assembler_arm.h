@@ -561,10 +561,6 @@ class Assembler : public ValueObject {
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const ExternalLabel* label);
 
-  // Branch and link to entry after storing return address at ad.
-  // Call sequence is never patched.
-  void BranchLinkStore(const ExternalLabel* label, Address ad);
-
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
 
@@ -574,9 +570,8 @@ class Assembler : public ValueObject {
                     Condition cond = AL);
   void AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                             Condition cond = AL);
-  void AddImmediateWithCarry(Register rd, Register rn, int32_t value,
-                             Condition cond = AL);
-
+  void SubImmediateSetFlags(Register rd, Register rn, int32_t value,
+                            Condition cond = AL);
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
 
   // Test rn and immediate. May clobber IP.
@@ -671,6 +666,13 @@ class Assembler : public ValueObject {
                               intptr_t count,
                               Register base,
                               int32_t offset);
+
+  void CopyDoubleField(Register dst, Register src,
+                       Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyFloat32x4Field(Register dst, Register src,
+                          Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyFloat64x2Field(Register dst, Register src,
+                          Register tmp1, Register tmp2, DRegister dtmp);
 
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);

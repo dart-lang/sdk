@@ -25,3 +25,9 @@ import 'dart:_blink' as _blink;
 $endif
 
 $!GENERATED_DART_FILES
+$if DART_USE_BLINK
+// FIXME: Can we make this private?
+const web_sqlBlinkMap = const {
+$!TYPE_MAP
+};
+$endif

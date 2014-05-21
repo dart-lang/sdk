@@ -112,6 +112,7 @@ class PatchFarJump : public AssemblerFixup {
 
 
 void Assembler::EmitFarJump(int32_t offset, bool link) {
+  ASSERT(!in_delay_slot_);
   ASSERT(use_far_branches());
   const uint16_t low = Utils::Low16Bits(offset);
   const uint16_t high = Utils::High16Bits(offset);
@@ -146,6 +147,7 @@ static Opcode OppositeBranchOpcode(Opcode b) {
 
 void Assembler::EmitFarBranch(Opcode b, Register rs, Register rt,
                               int32_t offset) {
+  ASSERT(!in_delay_slot_);
   EmitIType(b, rs, rt, 4);
   nop();
   EmitFarJump(offset, false);
@@ -167,6 +169,7 @@ static RtRegImm OppositeBranchNoLink(RtRegImm b) {
 
 
 void Assembler::EmitFarRegImmBranch(RtRegImm b, Register rs, int32_t offset) {
+  ASSERT(!in_delay_slot_);
   EmitRegImmType(REGIMM, rs, b, 4);
   nop();
   EmitFarJump(offset, (b == BLTZAL) || (b == BGEZAL));
@@ -174,6 +177,7 @@ void Assembler::EmitFarRegImmBranch(RtRegImm b, Register rs, int32_t offset) {
 
 
 void Assembler::EmitFarFpuBranch(bool kind, int32_t offset) {
+  ASSERT(!in_delay_slot_);
   const uint32_t b16 = kind ? (1 << 16) : 0;
   Emit(COP1 << kOpcodeShift | COP1_BC << kCop1SubShift | b16 | 4);
   nop();
@@ -182,6 +186,7 @@ void Assembler::EmitFarFpuBranch(bool kind, int32_t offset) {
 
 
 void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
+  ASSERT(!in_delay_slot_);
   if (label->IsBound()) {
     // Relative destination from an instruction after the branch.
     const int32_t dest =
@@ -207,6 +212,7 @@ void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
 
 
 void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
+  ASSERT(!in_delay_slot_);
   if (label->IsBound()) {
     // Relative destination from an instruction after the branch.
     const int32_t dest =
@@ -232,6 +238,7 @@ void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
 
 
 void Assembler::EmitFpuBranch(bool kind, Label *label) {
+  ASSERT(!in_delay_slot_);
   const int32_t b16 = kind ? (1 << 16) : 0;  // Bit 16 set for branch on true.
   if (label->IsBound()) {
     // Relative destination from an instruction after the branch.
@@ -348,6 +355,7 @@ void Assembler::Bind(Label* label) {
 
 
 void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+  ASSERT(!in_delay_slot_);
   ASSERT(rd != PP);
   if (Address::CanHoldOffset(offset)) {
     lw(rd, Address(PP, offset));
@@ -368,6 +376,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
                                    Register ro, Register scratch) {
+  ASSERT(!in_delay_slot_);
   ASSERT(rd != ro);
   ASSERT(rd != TMP);
   ASSERT(ro != TMP);
@@ -408,6 +417,7 @@ void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
 
 void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
                                    Register ro) {
+  ASSERT(!in_delay_slot_);
   ASSERT(rd != ro);
   ASSERT(rd != TMP);
   ASSERT(ro != TMP);
@@ -446,6 +456,7 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
+  ASSERT(!in_delay_slot_);
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
@@ -485,6 +496,7 @@ int32_t Assembler::AddObject(const Object& obj) {
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);
   Push(TMP);
 }
@@ -492,6 +504,7 @@ void Assembler::PushObject(const Object& object) {
 
 void Assembler::CompareObject(Register rd1, Register rd2,
                               Register rn, const Object& object) {
+  ASSERT(!in_delay_slot_);
   ASSERT(rn != TMP);
   ASSERT(rd1 != TMP);
   ASSERT(rd1 != rd2);
@@ -505,6 +518,7 @@ void Assembler::CompareObject(Register rd1, Register rd2,
 void Assembler::StoreIntoObjectFilterNoSmi(Register object,
                                            Register value,
                                            Label* no_update) {
+  ASSERT(!in_delay_slot_);
   COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                  (kOldObjectAlignmentOffset == 0), young_alignment);
 
@@ -523,6 +537,7 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
                                       Label* no_update) {
+  ASSERT(!in_delay_slot_);
   // For the value we are only interested in the new/old bit and the tag bit.
   // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
   sll(TMP, value, kObjectAlignmentLog2 - 1);
@@ -539,6 +554,7 @@ void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 bool can_value_be_smi) {
+  ASSERT(!in_delay_slot_);
   ASSERT(object != value);
   sw(value, dest);
   Label done;
@@ -575,6 +591,7 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
+  ASSERT(!in_delay_slot_);
   sw(value, dest);
 #if defined(DEBUG)
   Label done;
@@ -589,6 +606,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
+  ASSERT(!in_delay_slot_);
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
@@ -607,6 +625,7 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 
 void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(!in_delay_slot_);
   ASSERT(result != class_id);
   lw(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
@@ -619,6 +638,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 
 
 void Assembler::LoadClass(Register result, Register object) {
+  ASSERT(!in_delay_slot_);
   ASSERT(TMP != result);
   LoadClassId(TMP, object);
 
@@ -633,6 +653,7 @@ void Assembler::LoadClass(Register result, Register object) {
 
 
 void Assembler::EnterFrame() {
+  ASSERT(!in_delay_slot_);
   addiu(SP, SP, Immediate(-2 * kWordSize));
   sw(RA, Address(SP, 1 * kWordSize));
   sw(FP, Address(SP, 0 * kWordSize));
@@ -641,6 +662,7 @@ void Assembler::EnterFrame() {
 
 
 void Assembler::LeaveFrameAndReturn() {
+  ASSERT(!in_delay_slot_);
   mov(SP, FP);
   lw(RA, Address(SP, 1 * kWordSize));
   lw(FP, Address(SP, 0 * kWordSize));
@@ -650,6 +672,7 @@ void Assembler::LeaveFrameAndReturn() {
 
 
 void Assembler::EnterStubFrame(bool load_pp) {
+  ASSERT(!in_delay_slot_);
   SetPrologueOffset();
   addiu(SP, SP, Immediate(-4 * kWordSize));
   sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
@@ -665,6 +688,7 @@ void Assembler::EnterStubFrame(bool load_pp) {
 
 
 void Assembler::LeaveStubFrame() {
+  ASSERT(!in_delay_slot_);
   addiu(SP, FP, Immediate(-1 * kWordSize));
   lw(RA, Address(SP, 2 * kWordSize));
   lw(FP, Address(SP, 1 * kWordSize));
@@ -674,6 +698,7 @@ void Assembler::LeaveStubFrame() {
 
 
 void Assembler::LeaveStubFrameAndReturn(Register ra) {
+  ASSERT(!in_delay_slot_);
   addiu(SP, FP, Immediate(-1 * kWordSize));
   lw(RA, Address(SP, 2 * kWordSize));
   lw(FP, Address(SP, 1 * kWordSize));
@@ -686,6 +711,7 @@ void Assembler::LeaveStubFrameAndReturn(Register ra) {
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
                                       Heap::Space space) {
+  ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
   ASSERT(cid > 0);
@@ -723,6 +749,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Register temp_reg,
                                               Heap::Space space) {
+  ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(cid > 0);
   ASSERT(temp_reg != TMP);
@@ -773,6 +800,7 @@ void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             Register instance_reg,
                             Register temp_reg) {
+  ASSERT(!in_delay_slot_);
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
@@ -814,6 +842,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
+  ASSERT(!in_delay_slot_);
   const intptr_t offset = CodeSize();
 
   SetPrologueOffset();
@@ -851,6 +880,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  ASSERT(!in_delay_slot_);
   Comment("EnterOsrFrame");
 
   GetNextPC(TMP);  // TMP gets the address of the next instruction.
@@ -880,6 +910,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::LeaveDartFrame() {
+  ASSERT(!in_delay_slot_);
   addiu(SP, FP, Immediate(-kWordSize));
 
   lw(RA, Address(SP, 2 * kWordSize));
@@ -892,6 +923,7 @@ void Assembler::LeaveDartFrame() {
 
 
 void Assembler::LeaveDartFrameAndReturn() {
+  ASSERT(!in_delay_slot_);
   addiu(SP, FP, Immediate(-kWordSize));
 
   lw(RA, Address(SP, 2 * kWordSize));
@@ -905,6 +937,7 @@ void Assembler::LeaveDartFrameAndReturn() {
 
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  ASSERT(!in_delay_slot_);
   // Reserve space for arguments and align frame before entering
   // the C++ world.
   AddImmediate(SP, -frame_space);
@@ -916,6 +949,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
       2 * kWordSize +  // FP and RA.
@@ -958,6 +992,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
 
 
 void Assembler::LeaveCallRuntimeFrame() {
+  ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
       2 * kWordSize +  // FP and RA.

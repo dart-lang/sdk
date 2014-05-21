@@ -34,6 +34,12 @@ DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 DEFINE_FLAG(bool, verbose_stacktrace, false,
     "Stack traces will include methods marked invisible.");
+DEFINE_FLAG(int, stacktrace_depth_on_warning, 5,
+            "Maximal number of stack frames to print after a runtime warning.");
+DECLARE_FLAG(bool, silent_warnings);
+DECLARE_FLAG(bool, warning_as_error);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+
 
 const char* Exceptions::kCastErrorDstName = "type cast";
 
@@ -341,7 +347,7 @@ static RawField* LookupStacktraceField(const Instance& instance) {
     type = test_class.super_type();
     if (type.IsNull()) return Field::null();
     test_class = type.type_class();
-  };
+  }
   UNREACHABLE();
   return Field::null();
 }
@@ -689,6 +695,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::JavascriptIntegerOverflowError();
       break;
+    case kJavascriptCompatibilityError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::JavascriptCompatibilityError();
+      break;
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
@@ -724,6 +734,46 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           *class_name,
                                           *constructor_name,
                                           arguments);
+}
+
+
+// Throw JavascriptCompatibilityError exception.
+static void ThrowJavascriptCompatibilityError(const char* msg) {
+  const Array& exc_args = Array::Handle(Array::New(1));
+  const String& msg_str = String::Handle(String::New(msg));
+  exc_args.SetAt(0, msg_str);
+  Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
+}
+
+
+void Exceptions::JSWarning(StackFrame* caller_frame, const char* format, ...) {
+  ASSERT(caller_frame != NULL);
+  ASSERT(FLAG_warn_on_javascript_compatibility);
+  if (FLAG_silent_warnings) return;
+  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!caller_code.IsNull());
+  const uword caller_pc = caller_frame->pc();
+  const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
+  const Function& caller = Function::Handle(caller_code.function());
+  const Script& script = Script::Handle(caller.script());
+  va_list args;
+  va_start(args, format);
+  const Error& error = Error::Handle(
+      LanguageError::NewFormattedV(Error::Handle(),  // No previous error.
+                                   script, token_pos, LanguageError::kWarning,
+                                   Heap::kNew, format, args));
+  va_end(args);
+  if (FLAG_warning_as_error) {
+    ThrowJavascriptCompatibilityError(error.ToErrorCString());
+  } else {
+    OS::Print("javascript compatibility warning: %s", error.ToErrorCString());
+  }
+  const Stacktrace& stacktrace =
+     Stacktrace::Handle(Exceptions::CurrentStacktrace());
+  intptr_t idx = 0;
+  OS::Print("%s",
+            stacktrace.ToCStringInternal(&idx,
+                                         FLAG_stacktrace_depth_on_warning));
 }
 
 }  // namespace dart

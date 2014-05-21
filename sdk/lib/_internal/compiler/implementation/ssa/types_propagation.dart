@@ -233,7 +233,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           compiler.world.allFunctions.filter(instruction.selector);
       if (targets.length == 1) {
         Element target = targets.first;
-        ClassElement cls = target.getEnclosingClass();
+        ClassElement cls = target.enclosingClass;
         TypeMask type = new TypeMask.nonNullSubclass(cls.declaration);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
@@ -264,7 +264,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = instruction.inputs[2];
 
     Selector selector = instruction.selector;
-    if (selector.isOperator() && left.isNumber(compiler)) {
+    if (selector.isOperator && left.isNumber(compiler)) {
       if (right.isNumber(compiler)) return false;
       TypeMask type = right.isIntegerOrNull(compiler)
           ? right.instructionType.nonNullable()
@@ -308,11 +308,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // of [instruction] might move from number to dynamic.
       pendingOptimizations.putIfAbsent(instruction, () => () {
         Selector selector = instruction.selector;
-        if (selector.isOperator() && selector.name != '==') {
+        if (selector.isOperator && selector.name != '==') {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }
-          if (!selector.isUnaryOperator() && checkArgument(instruction)) {
+          if (!selector.isUnaryOperator && checkArgument(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[2]);
           }
         }
@@ -326,7 +326,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     // Try to specialize the receiver after this call.
     if (receiver.dominatedUsers(instruction).length != 1
-        && !selector.isClosureCall()) {
+        && !selector.isClosureCall) {
       TypeMask newType = compiler.world.allFunctions.receiverType(selector);
       newType = newType.intersection(receiverType, compiler);
       var next = instruction.next;

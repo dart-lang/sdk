@@ -219,6 +219,7 @@ enum OperandSize {
   kDoubleWord,
   kSWord,
   kDWord,
+  kQWord,
 };
 
 static inline int Log2OperandSizeBytes(OperandSize os) {
@@ -236,11 +237,34 @@ static inline int Log2OperandSizeBytes(OperandSize os) {
     case kDoubleWord:
     case kDWord:
       return 3;
+    case kQWord:
+      return 4;
     default:
       UNREACHABLE();
       break;
   }
   return -1;
+}
+
+static inline bool IsSignedOperand(OperandSize os) {
+  switch (os) {
+    case kByte:
+    case kHalfword:
+    case kWord:
+      return true;
+    case kUnsignedByte:
+    case kUnsignedHalfword:
+    case kUnsignedWord:
+    case kDoubleWord:
+    case kSWord:
+    case kDWord:
+    case kQWord:
+      return false;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return false;
 }
 
 // Opcodes from C3
@@ -337,8 +361,11 @@ enum LoadStoreRegOp {
   LoadStoreRegFixed = LoadStoreFixed | B29 | B28,
   STR = LoadStoreRegFixed,
   LDR = LoadStoreRegFixed | B22,
+  LDRS = LoadStoreRegFixed | B23,
   FSTR = STR | B26,
   FLDR = LDR | B26,
+  FSTRQ = STR | B26 | B23,
+  FLDRQ = LDR | B26 | B23,
 };
 
 // C3.4.1
@@ -439,6 +466,11 @@ enum FPOneSourceOp {
   FPOneSourceMask = 0x5f207c00,
   FPOneSourceFixed = FPFixed | B21 | B14,
   FMOVDD = FPOneSourceFixed | B22,
+  FABSD = FPOneSourceFixed | B22 | B15,
+  FNEGD = FPOneSourceFixed | B22 | B16,
+  FSQRTD = FPOneSourceFixed | B22 | B16 | B15,
+  FCVTDS = FPOneSourceFixed | B15 | B17,
+  FCVTSD = FPOneSourceFixed | B22 | B17,
 };
 
 // C3.6.26
@@ -578,6 +610,7 @@ enum InstructionFields {
   kImm9Bits = 9,
   kImm12Shift = 10,
   kImm12Bits = 12,
+  kImm12Mask = 0xfff << kImm12Shift,
   kImm12ShiftShift = 22,
   kImm12ShiftBits = 2,
   kImm14Shift = 5,
@@ -590,9 +623,11 @@ enum InstructionFields {
   kImm19Mask = 0x7ffff << kImm19Shift,
   kImm26Shift = 0,
   kImm26Bits = 26,
+  kImm26Mask = 0x03ffffff << kImm26Shift,
 
   kCondShift = 0,
   kCondBits = 4,
+  kCondMask = 0xf << kCondShift,
 
   kSelCondShift = 12,
   kSelCondBits = 4,
@@ -713,6 +748,11 @@ class Instr {
     SetInstructionBits(
         op |
         (static_cast<int32_t>(rn) << kRnShift));
+  }
+
+  inline void SetImm12Bits(int32_t orig, int32_t imm12) {
+    ASSERT((imm12 & 0xfffff000) == 0);
+    SetInstructionBits((orig & ~kImm12Mask) | (imm12 << kImm12Shift));
   }
 
   inline int NField() const { return Bit(22); }

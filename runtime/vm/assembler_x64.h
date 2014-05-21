@@ -671,6 +671,8 @@ class Assembler : public ValueObject {
   // PP should be passed for pp.
   void AddImmediate(Register reg, const Immediate& imm, Register pp);
   void AddImmediate(const Address& address, const Immediate& imm, Register pp);
+  void SubImmediate(Register reg, const Immediate& imm, Register pp);
+  void SubImmediate(const Address& address, const Immediate& imm, Register pp);
 
   void Drop(intptr_t stack_elements);
 

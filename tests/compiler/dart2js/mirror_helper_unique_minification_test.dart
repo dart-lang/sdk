@@ -86,8 +86,7 @@ class Foo {
   }
 }
 
-main() {
+main(hest) {
   new Foo().fisk();
-  var hest;
 }
 """};

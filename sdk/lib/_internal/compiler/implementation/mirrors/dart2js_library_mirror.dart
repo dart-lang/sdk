@@ -48,7 +48,7 @@ class Dart2JsLibraryMirror
   void _forEachElement(f(Element element)) => _element.forEachLocalMember(f);
 
   Iterable<Dart2JsDeclarationMirror> _getDeclarationMirrors(Element element) {
-    if (element.isClass() || element.isTypedef()) {
+    if (element.isClass || element.isTypedef) {
       return [mirrorSystem._getTypeDeclarationMirror(element)];
     } else {
       return super._getDeclarationMirrors(element);

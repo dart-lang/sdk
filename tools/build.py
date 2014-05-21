@@ -333,6 +333,23 @@ def NotifyBuildDone(build_config, success, start):
     else:
       icon = 'dialog-error'
     command = "notify-send -i '%s' '%s' '%s' &" % (icon, message, title)
+  elif HOST_OS == 'win32':
+    if success:
+      icon = 'info'
+    else:
+      icon = 'error'
+    command = ("powershell -command \"" 
+      "[reflection.assembly]::loadwithpartialname('System.Windows.Forms')"
+        "| Out-Null;"
+      "[reflection.assembly]::loadwithpartialname('System.Drawing')"
+        "| Out-Null;"
+      "$n = new-object system.windows.forms.notifyicon;"
+      "$n.icon = [system.drawing.systemicons]::information;"
+      "$n.visible = $true;"
+      "$n.showballoontip(%d, '%s', '%s', "
+      "[system.windows.forms.tooltipicon]::%s);\"") % (
+        5000, # Notification stays on for this many milliseconds
+        message, title, icon)
 
   if command:
     # Ignore return code, if this command fails, it doesn't matter.

@@ -344,8 +344,10 @@ static void HandleError(Handle* handle) {
   handle->set_last_error(WSAGetLastError());
   handle->MarkError();
   if (!handle->IsClosing()) {
-    int event_mask = 1 << kErrorEvent;
-    DartUtils::PostInt32(handle->port(), event_mask);
+    Dart_Port port = handle->port();
+    if (port != ILLEGAL_PORT) {
+      DartUtils::PostInt32(port, 1 << kErrorEvent);
+    }
   }
 }
 

@@ -281,9 +281,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
         extras_flags = extras_flags + ['--host-checked']
       TestStep('dart2js_extra', mode, system, 'dart2js', runtime, extras,
                extras_flags, arch)
-
-      TestStep('try_dart', mode, system, 'dart2js', runtime, ['try'],
-               extras_flags, arch)
+      if mode == 'release':
+        TestStep('try_dart', mode, system, 'dart2js', runtime, ['try'],
+                 extras_flags, arch)
 
 
 def GetHasHardCodedCheckedMode(build_info):
@@ -370,8 +370,13 @@ def BuildCompiler(build_info):
       build and test to be run.
   """
   with bot.BuildStep('Build SDK'):
+    target = 'dart2js_bot'
+    # Try-dart takes more than 20 min in debug mode and makes the bot time out.
+    # We use the debug target which does not include try
+    if build_info.mode == 'debug':
+      target = 'dart2js_bot_debug'
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-            '--arch=' + build_info.arch, 'dart2js_bot']
+            '--arch=' + build_info.arch, target]
     print 'Build SDK and d8: %s' % (' '.join(args))
     bot.RunProcess(args)
 

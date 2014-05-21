@@ -134,11 +134,23 @@ class DirectedGraph<N> {
   }
 
   /**
-   * Return a list of nodes that form a cycle, or `null` if there are no cycles in this graph.
-   *
-   * @return a list of nodes that form a cycle
+   * Run a topological sort of the graph. Since the graph may contain cycles, this results in a list
+   * of strongly connected components rather than a list of nodes. The nodes in each strongly
+   * connected components only have edges that point to nodes in the same component or earlier
+   * components.
    */
-  List<N> findCycle() => null;
+  List<List<N>> computeTopologicalSort() {
+    DirectedGraph_SccFinder<N> finder = new DirectedGraph_SccFinder<N>(this);
+    return finder.computeTopologicalSort();
+  }
+
+  /**
+   * Return true if the graph contains at least one path from `source` to `destination`.
+   */
+  bool containsPath(N source, N destination) {
+    Set<N> nodesVisited = new Set<N>();
+    return _containsPathInternal(source, destination, nodesVisited);
+  }
 
   /**
    * Return a list of nodes that form a cycle containing the given node. If the node is not part of
@@ -160,6 +172,11 @@ class DirectedGraph<N> {
    * @return the number of nodes in this graph
    */
   int get nodeCount => _edges.length;
+
+  /**
+   * Return a set of all nodes in the graph.
+   */
+  Set<N> get nodes => _edges.keys.toSet();
 
   /**
    * Return a set containing the tails of edges that have the given node as their head. The set will
@@ -243,6 +260,24 @@ class DirectedGraph<N> {
     return sink;
   }
 
+  bool _containsPathInternal(N source, N destination, Set<N> nodesVisited) {
+    if (identical(source, destination)) {
+      return true;
+    }
+    Set<N> tails = _edges[source];
+    if (tails != null) {
+      nodesVisited.add(source);
+      for (N tail in tails) {
+        if (!nodesVisited.contains(tail)) {
+          if (_containsPathInternal(tail, destination, nodesVisited)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Return one node that has no outgoing edges (that is, for which there are no edges that have
    * that node as the head of the edge), or `null` if there are no such nodes.
@@ -323,6 +358,13 @@ class DirectedGraph_SccFinder<N> {
   Map<N, DirectedGraph_NodeInfo<N>> _nodeMap = new Map<N, DirectedGraph_NodeInfo<N>>();
 
   /**
+   * A list of all strongly connected components found, in topological sort order (each node in a
+   * strongly connected component only has edges that point to nodes in the same component or
+   * earlier components).
+   */
+  List<List<N>> _allComponents = new List<List<N>>();
+
+  /**
    * Initialize a newly created finder.
    */
   DirectedGraph_SccFinder(this._graph) : super();
@@ -336,6 +378,21 @@ class DirectedGraph_SccFinder<N> {
    *         node
    */
   List<N> componentContaining(N node) => _strongConnect(node).component;
+
+  /**
+   * Run Tarjan's algorithm and return the resulting list of strongly connected components. The
+   * list is in topological sort order (each node in a strongly connected component only has edges
+   * that point to nodes in the same component or earlier components).
+   */
+  List<List<N>> computeTopologicalSort() {
+    for (N node in _graph._edges.keys.toSet()) {
+      DirectedGraph_NodeInfo<N> nodeInfo = _nodeMap[node];
+      if (nodeInfo == null) {
+        _strongConnect(node);
+      }
+    }
+    return _allComponents;
+  }
 
   /**
    * Remove and return the top-most element from the stack.
@@ -400,6 +457,7 @@ class DirectedGraph_SccFinder<N> {
         component.add(w);
         _nodeMap[w].component = component;
       } while (!identical(w, v));
+      _allComponents.add(component);
     }
     return vInfo;
   }

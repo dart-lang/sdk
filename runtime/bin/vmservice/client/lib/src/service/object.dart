@@ -37,6 +37,8 @@ abstract class ServiceObject extends Observable {
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
   bool _loaded = false;
+  // TODO(turnidge): Make loaded observable and get rid of loading
+  // from Isolate.
 
   /// Is this object cacheable?  That is, is it impossible for the [id]
   /// of this object to change?
@@ -487,15 +489,17 @@ class TagProfile {
 class Isolate extends ServiceObjectOwner {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
-  @observable ObservableMap counters = toObservable(new ObservableMap());
+  @observable ObservableMap counters = new ObservableMap();
 
   String get link => _id;
   String get hashLink => '#/$_id';
 
-  @observable bool pausedOnStart = false;
-  @observable bool pausedOnExit = false;
+  @observable ServiceMap pauseEvent = null;
+  bool get _isPaused => pauseEvent != null;
+
   @observable bool running = false;
   @observable bool idle = false;
+  @observable bool loading = true;
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -637,6 +641,7 @@ class Isolate extends ServiceObjectOwner {
       return;
     }
     _loaded = true;
+    loading = false;
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -695,10 +700,9 @@ class Isolate extends ServiceObjectOwner {
     oldHeapCapacity = map['heap']['capacityOld'];
 
     // Isolate status
-    pausedOnStart = map['pausedOnStart'];
-    pausedOnExit = map['pausedOnExit'];
-    running = map['topFrame'] != null;
-    idle = !pausedOnStart && !pausedOnExit && !running;
+    pauseEvent = map['pauseEvent'];
+    running = (!_isPaused && map['topFrame'] != null);
+    idle = (!_isPaused && map['topFrame'] == null);
     error = map['error'];
 
     libraries.clear();

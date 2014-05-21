@@ -392,6 +392,21 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
+  __ LoadImmediate(R1, 0xffffffff, kNoPP);
+  __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
+  __ ldr(R0, Address(SP), kWord);
+  __ ldr(R1, Address(SP, 4, Address::PostIndex, kWord), kWord);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, 43, 0);
@@ -808,7 +823,7 @@ ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
   __ LoadDImmediate(V0, 235.0, kNoPP);
   __ LoadDImmediate(V1, 233.0, kNoPP);
 
-  __ fcmpzd(V1);
+  __ fcmpdz(V1);
   __ b(&l, GT);
   __ LoadDImmediate(V0, 0.0, kNoPP);
   __ ret();
@@ -1551,6 +1566,45 @@ ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fcvtsd(V2, V1);
+  __ fstrs(V2, Address(SP, -1*kWordSize, Address::PreIndex));
+  __ fldrs(V3, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ fcvtds(V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
+  __ LoadDImmediate(V1, 21.0, kNoPP);
+  __ LoadDImmediate(V2, 21.0, kNoPP);
+  __ LoadImmediate(R1, 42, kNoPP);
+  __ Push(R1);
+  __ PushDouble(V1);
+  __ PushDouble(V2);
+  __ fldrq(V3, Address(SP, 2 * kWordSize, Address::PostIndex));
+  __ Pop(R0);
+  __ fstrq(V3, Address(SP, -2 * kWordSize, Address::PreIndex));
+  __ PopDouble(V0);
+  __ PopDouble(V1);
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Fcvtzds, assembler) {
   __ LoadDImmediate(V0, 42.0, kNoPP);
   __ fcvtzds(R0, V0);
@@ -1574,6 +1628,71 @@ ASSEMBLER_TEST_GENERATE(Scvtfd, assembler) {
 ASSEMBLER_TEST_RUN(Scvtfd, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fabsd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FabsdPos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
+  __ LoadDImmediate(V1, -42.0, kNoPP);
+  __ fabsd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FabsdNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ fnegd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FnegdPos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
+  __ LoadDImmediate(V1, -42.0, kNoPP);
+  __ fnegd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FnegdNeg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
+  __ LoadDImmediate(V1, 64.0, kNoPP);
+  __ fsqrtd(V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Fsqrtd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(8.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
 }
 
 

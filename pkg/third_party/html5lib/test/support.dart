@@ -90,7 +90,7 @@ class TestData extends IterableBase<Map> {
 }
 
 /// Serialize the [document] into the html5 test data format.
-testSerializer(Document document) {
+testSerializer(document) {
   return (new TestSerializer()..visit(document)).toString();
 }
 
@@ -134,11 +134,13 @@ class TestSerializer extends TreeVisitor {
     indent -= 2;
   }
 
-  visitDocument(Document node) {
+  visitDocument(node) {
     indent += 1;
     for (var child in node.nodes) visit(child);
     indent -= 1;
   }
+
+  visitDocumentFragment(DocumentFragment node) => visitDocument(node);
 
   visitElement(Element node) {
     _newline();

@@ -16,6 +16,9 @@ import 'asset_id.dart';
 class AssetSet extends IterableBase<Asset> {
   final _assets = new Map<AssetId, Asset>();
 
+  /// The ids of the assets in the set.
+  Iterable<AssetId> get ids => _assets.keys;
+
   AssetSet();
 
   /// Creates a new AssetSet from the contents of [other].

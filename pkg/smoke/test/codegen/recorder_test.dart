@@ -328,6 +328,49 @@ main() {
             '      },\n'
             '    }));\n');
     });
+
+    test('inherited field - recursive deep', () {
+      recorder.lookupMember(lib.getType('J3'), 'i', recursive: true,
+          includeAccessors: false);
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    parents: {\n'
+            '      smoke_0.J2: smoke_0.J1,\n'
+            '      smoke_0.J3: smoke_0.J2,\n'
+            '    },\n'
+            '    declarations: {\n'
+            '      smoke_0.J1: {\n'
+            '        #i: const Declaration(#i, int),\n'
+            '      },\n'
+            '      smoke_0.J2: const {},\n'
+            '      smoke_0.J3: const {},\n'
+            '    }));\n');
+    });
+
+    test('inherited field - recursive - includeUpTo', () {
+      recorder.lookupMember(lib.getType('J3'), 'i', recursive: true,
+          includeAccessors: false, includeUpTo: lib.getType('J1'));
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    parents: {\n'
+            '      smoke_0.J2: smoke_0.J1,\n'
+            '      smoke_0.J3: smoke_0.J2,\n'
+            '    },\n'
+            '    declarations: {\n'
+            '      smoke_0.J2: const {},\n'
+            '      smoke_0.J3: const {},\n'
+            '    }));\n');
+    });
   });
 
   group('query', () {
@@ -785,6 +828,14 @@ const _SOURCES = const {
         set i2(v) {}
         G get i3;
         G m4() {};
+      }
+
+      class J1 {
+        int i;
+      }
+      class J2 extends J1 {
+      }
+      class J3 extends J2 {
       }
       '''
 };

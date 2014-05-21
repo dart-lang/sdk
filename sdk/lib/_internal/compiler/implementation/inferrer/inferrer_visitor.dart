@@ -595,7 +595,7 @@ class LocalsHandler<T> {
 
 abstract class InferrerVisitor
     <T, E extends MinimalInferrerEngine<T>> extends ResolvedVisitor<T> {
-  final Element analyzedElement;
+  final AstElement analyzedElement;
   final TypeSystem<T> types;
   final E inferrer;
   final Map<TargetElement, List<LocalsHandler<T>>> breaksFor =
@@ -612,17 +612,17 @@ abstract class InferrerVisitor
 
   bool get inLoop => loopLevel > 0;
   bool get isThisExposed {
-    return analyzedElement.isGenerativeConstructor()
+    return analyzedElement.isGenerativeConstructor
         ? locals.fieldScope.isThisExposed
         : true;
   }
   void set isThisExposed(value) {
-    if (analyzedElement.isGenerativeConstructor()) {
+    if (analyzedElement.isGenerativeConstructor) {
       locals.fieldScope.isThisExposed = value;
     }
   }
 
-  InferrerVisitor(Element analyzedElement,
+  InferrerVisitor(AstElement analyzedElement,
                   this.inferrer,
                   this.types,
                   Compiler compiler,
@@ -632,9 +632,9 @@ abstract class InferrerVisitor
       super(compiler.enqueuer.resolution.getCachedElements(analyzedElement),
             compiler) {
     if (handler != null) return;
-    Node node = analyzedElement.parseNode(compiler);
+    Node node = analyzedElement.node;
     FieldInitializationScope<T> fieldScope =
-        analyzedElement.isGenerativeConstructor()
+        analyzedElement.isGenerativeConstructor
             ? new FieldInitializationScope<T>(types)
             : null;
     locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
@@ -718,12 +718,12 @@ abstract class InferrerVisitor
 
   T visitLiteralList(LiteralList node) {
     node.visitChildren(this);
-    return node.isConst() ? types.constListType : types.growableListType;
+    return node.isConst ? types.constListType : types.growableListType;
   }
 
   T visitLiteralMap(LiteralMap node) {
     node.visitChildren(this);
-    return node.isConst() ? types.constMapType : types.mapType;
+    return node.isConst ? types.constMapType : types.mapType;
   }
 
   T visitLiteralNull(LiteralNull node) {
@@ -744,14 +744,13 @@ abstract class InferrerVisitor
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
 
   Element get outermostElement {
-    return
-        analyzedElement.getOutermostEnclosingMemberOrTopLevel().implementation;
+    return analyzedElement.outermostEnclosingMemberOrTopLevel.implementation;
   }
 
   T _thisType;
   T get thisType {
     if (_thisType != null) return _thisType;
-    ClassElement cls = outermostElement.getEnclosingClass();
+    ClassElement cls = outermostElement.enclosingClass;
     if (compiler.world.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else if (compiler.world.hasAnySubclass(cls)) {
@@ -765,7 +764,7 @@ abstract class InferrerVisitor
   T get superType {
     if (_superType != null) return _superType;
     return _superType = types.nonNullExact(
-        outermostElement.getEnclosingClass().superclass);
+        outermostElement.enclosingClass.superclass);
   }
 
   T visitIdentifier(Identifier node) {
@@ -1081,7 +1080,9 @@ abstract class InferrerVisitor
     Node exception = node.exception;
     if (exception != null) {
       DartType type = elements.getType(node.type);
-      T mask = type == null || type.treatAsDynamic
+      T mask = type == null ||
+               type.treatAsDynamic ||
+               type.kind == TypeKind.TYPE_VARIABLE
           ? types.dynamicType
           : types.nonNullSubtype(type.element);
       locals.update(elements[exception], mask, node);

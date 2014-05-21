@@ -14,12 +14,12 @@ part of dart2js.helpers;
  * printed stack traces based on their content. For instance only print stack
  * traces that contain specific paths.
  */
-void trace(String message, [bool condition(String stackTrace)]) {
+void trace(String message, {bool condition(String stackTrace), int limit}) {
   try {
     throw '';
   } catch (e, s) {
     String stackTrace = prettifyStackTrace(
-        s, rangeStart: 1, filePrefix: stackTraceFilePrefix);
+        s, rangeStart: 1, rangeEnd: limit, filePrefix: stackTraceFilePrefix);
     if (condition != null) {
       if (!condition(stackTrace)) return;
     }
@@ -27,10 +27,10 @@ void trace(String message, [bool condition(String stackTrace)]) {
   }
 }
 
-void traceAndReport(Compiler compiler, Spannable node,
-                    String message, [bool condition(String stackTrace)]) {
+void traceAndReport(Compiler compiler, Spannable node, String message,
+                    {bool condition(String stackTrace), int limit}) {
 
-  trace(message, (String stackTrace) {
+  trace(message, condition: (String stackTrace) {
     bool result = condition != null ? condition(stackTrace) : true;
     if (result) {
       reportHere(compiler, node, message);

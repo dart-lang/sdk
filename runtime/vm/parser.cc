@@ -810,7 +810,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       if (!func.IsImplicitConstructor()) {
         parser.SkipFunctionPreamble();
       }
-      node_sequence = parser.ParseFunc(func, default_parameter_values);
+      node_sequence = parser.ParseFunc(func, &default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
       ASSERT(!func.is_static());
@@ -833,11 +833,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       node_sequence =
-          parser.ParseNoSuchMethodDispatcher(func, default_parameter_values);
+          parser.ParseNoSuchMethodDispatcher(func, &default_parameter_values);
       break;
     case RawFunction::kInvokeFieldDispatcher:
       node_sequence =
-          parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
+          parser.ParseInvokeFieldDispatcher(func, &default_parameter_values);
       break;
     default:
       UNREACHABLE();
@@ -1301,7 +1301,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 
 void Parser::BuildDispatcherScope(const Function& func,
                                   const ArgumentsDescriptor& desc,
-                                  Array& default_values) {
+                                  Array* default_values) {
   ParamList params;
   // Receiver first.
   intptr_t token_pos = func.token_pos();
@@ -1340,7 +1340,7 @@ void Parser::BuildDispatcherScope(const Function& func,
 }
 
 SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
-                                                  Array& default_values) {
+                                                  Array* default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
 
   ASSERT(func.IsNoSuchMethodDispatcher());
@@ -1385,7 +1385,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
 
 
 SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
-                                                 Array& default_values) {
+                                                 Array* default_values) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
 
   ASSERT(func.IsInvokeFieldDispatcher());
@@ -2476,13 +2476,13 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
   LocalVariable* receiver = new LocalVariable(
       Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
-  current_block_->scope->AddVariable(receiver);
+  current_block_->scope->InsertParameterAt(0, receiver);
 
   LocalVariable* phase_parameter =
       new LocalVariable(Scanner::kNoSourcePos,
                         Symbols::PhaseParameter(),
                         Type::ZoneHandle(Type::SmiType()));
-  current_block_->scope->AddVariable(phase_parameter);
+  current_block_->scope->InsertParameterAt(1, phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
   // initializer expression.
@@ -2523,7 +2523,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
           Scanner::kNoSourcePos,
           String::ZoneHandle(func.ParameterNameAt(i)),
           Type::ZoneHandle(Type::DynamicType()));
-      current_block_->scope->AddVariable(param);
+      current_block_->scope->InsertParameterAt(i, param);
       forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
     }
   }
@@ -2561,7 +2561,7 @@ void Parser::CheckRecursiveInvocation() {
 // Parser is at the opening parenthesis of the formal parameter declaration
 // of function. Parse the formal parameters, initializers and code.
 SequenceNode* Parser::ParseConstructor(const Function& func,
-                                       Array& default_parameter_values) {
+                                       Array* default_parameter_values) {
   TRACE_PARSER("ParseConstructor");
   ASSERT(func.IsConstructor());
   ASSERT(!func.IsFactory());
@@ -2853,7 +2853,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
 SequenceNode* Parser::ParseFunc(const Function& func,
-                                Array& default_parameter_values) {
+                                Array* default_parameter_values) {
   TRACE_PARSER("ParseFunc");
   Function& saved_innermost_function =
       Function::Handle(innermost_function().raw());
@@ -4047,12 +4047,10 @@ void Parser::ParseClassDefinition(const Class& cls) {
   const bool need_implicit_constructor =
       !members.has_constructor() && !cls.is_patch();
 
-  Array& array = Array::Handle();
-  array = Array::MakeArray(members.fields());
-  cls.SetFields(array);
+  cls.AddFields(members.fields());
 
   // Creating a new array for functions marks the class as parsed.
-  array = Array::MakeArray(members.functions());
+  const Array& array = Array::Handle(Array::MakeArray(members.functions()));
   cls.SetFunctions(array);
 
   // Add an implicit constructor if no explicit constructor is present.
@@ -5064,16 +5062,13 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   // Lookup the library URL.
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
+    // Create an empty library to mark that we have initiated loading of this
+    // library.
+    library = Library::New(canon_url);
+    library.Register();
     // Call the library tag handler to load the library.
     // TODO(hausner): do not load eagerly if import is deferred.
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
-    // If the library tag handler succeded without registering the
-    // library we create an empty library to import.
-    library = Library::LookupLibrary(canon_url);
-    if (library.IsNull()) {
-      library = Library::New(canon_url);
-      library.Register();
-    }
   }
 
   Namespace& ns =
@@ -5260,12 +5255,9 @@ void Parser::ParseTopLevel() {
     }
   }
   if ((top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
-    Array& array = Array::Handle();
+    toplevel_class.AddFields(top_level.fields);
 
-    array = Array::MakeArray(top_level.fields);
-    toplevel_class.SetFields(array);
-
-    array = Array::MakeArray(top_level.functions);
+    const Array& array = Array::Handle(Array::MakeArray(top_level.functions));
     toplevel_class.SetFunctions(array);
 
     library_.AddAnonymousClass(toplevel_class);
@@ -5340,15 +5332,15 @@ SequenceNode* Parser::CloseBlock() {
 
 // Set up default values for all optional parameters to the function.
 void Parser::SetupDefaultsForOptionalParams(const ParamList* params,
-                                            Array& default_values) {
+                                            Array* default_values) {
   if (params->num_optional_parameters > 0) {
     // Build array of default parameter values.
     ParamDesc* param =
       params->parameters->data() + params->num_fixed_parameters;
-    default_values = Array::New(params->num_optional_parameters);
+    *default_values = Array::New(params->num_optional_parameters);
     for (int i = 0; i < params->num_optional_parameters; i++) {
       ASSERT(param->default_value != NULL);
-      default_values.SetAt(i, *param->default_value);
+      default_values->SetAt(i, *param->default_value);
       param++;
     }
   }
@@ -5401,7 +5393,7 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     const String* name = param_desc.name;
     LocalVariable* parameter = new LocalVariable(
         param_desc.name_pos, *name, *param_desc.type);
-    if (!scope->AddVariable(parameter)) {
+    if (!scope->InsertParameterAt(i, parameter)) {
       ErrorMsg(param_desc.name_pos,
                "name '%s' already exists in scope",
                param_desc.name->ToCString());
@@ -5774,7 +5766,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Parse the local function.
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
-                                               default_parameter_values);
+                                               &default_parameter_values);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
@@ -9005,6 +8997,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
                          String::Handle(field.name()).ToCString());
         } else {
           isolate()->long_jump_base()->Jump(1, error);
+          UNREACHABLE();
         }
       }
       ASSERT(const_value.IsNull() || const_value.IsInstance());
@@ -9501,7 +9494,7 @@ RawAbstractType* Parser::ParseType(
 
 
 void Parser::CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor,
+    intptr_t pos, const Function& constructor,
     const TypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     const Class& constructor_class = Class::Handle(constructor.Owner());
@@ -10300,14 +10293,16 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
-  String& concatenated = String::ZoneHandle(isolate());
+  Object& result = Object::Handle(isolate());
   {
     PAUSETIMERSCOPE(isolate(), time_compilation);
-    concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
+    result = DartEntry::InvokeFunction(func, interpolate_arg);
   }
-  if (concatenated.IsUnhandledException()) {
-    ErrorMsg("Exception thrown in Parser::Interpolate");
+  if (result.IsUnhandledException()) {
+    ErrorMsg("%s", Error::Cast(result).ToErrorCString());
   }
+  String& concatenated = String::ZoneHandle(isolate());
+  concatenated ^= result.raw();
   concatenated = Symbols::New(concatenated);
   return concatenated;
 }

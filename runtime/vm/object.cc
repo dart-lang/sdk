@@ -700,9 +700,13 @@ void Object::InitOnce() {
 
   String& error_str = String::Handle();
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
-  *snapshot_writer_error_ = LanguageError::New(error_str, Heap::kOld);
+  *snapshot_writer_error_ = LanguageError::New(error_str,
+                                               LanguageError::kError,
+                                               Heap::kOld);
   error_str = String::New("Branch offset overflow", Heap::kOld);
-  *branch_offset_error_ = LanguageError::New(error_str, Heap::kOld);
+  *branch_offset_error_ = LanguageError::New(error_str,
+                                             LanguageError::kBailout,
+                                             Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_array_->IsSmi());
@@ -2791,6 +2795,30 @@ void Class::SetFields(const Array& value) const {
 #endif
   // The value of static fields is already initialized to null.
   StorePointer(&raw_ptr()->fields_, value.raw());
+}
+
+
+void Class::AddField(const Field& field) const {
+  const Array& arr = Array::Handle(fields());
+  const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
+  new_arr.SetAt(arr.Length(), field);
+  SetFields(new_arr);
+}
+
+
+void Class::AddFields(const GrowableObjectArray& new_fields) const {
+  const intptr_t num_new_fields = new_fields.Length();
+  if (num_new_fields == 0) return;
+  const Array& arr = Array::Handle(fields());
+  const intptr_t num_old_fields = arr.Length();
+  const Array& new_arr = Array::Handle(
+      Array::Grow(arr, num_old_fields + num_new_fields, Heap::kOld));
+  Field& field = Field::Handle();
+  for (intptr_t i = 0; i < num_new_fields; i++) {
+    field ^= new_fields.At(i);
+    new_arr.SetAt(i + num_old_fields, field);
+  }
+  SetFields(new_arr);
 }
 
 
@@ -5950,12 +5978,12 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
+  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
   }
 
-  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
   return result.raw();
 }
 
@@ -6798,7 +6826,8 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 
 
 bool Field::IsUnboxedField() const {
-  bool valid_class = (guarded_cid() == kDoubleCid) ||
+  bool valid_class = (FlowGraphCompiler::SupportsUnboxedDoubles() &&
+                      (guarded_cid() == kDoubleCid)) ||
                      (FlowGraphCompiler::SupportsUnboxedSimd128() &&
                       (guarded_cid() == kFloat32x4Cid)) ||
                      (FlowGraphCompiler::SupportsUnboxedSimd128() &&
@@ -7383,38 +7412,30 @@ class CompressedTokenStreamData : public ValueObject {
 
   // Add an IDENT token into the stream and the token objects array.
   void AddIdentToken(const String* ident) {
-    if (ident != NULL) {
-      // If the IDENT token is already in the tokens object array use the
-      // same index instead of duplicating it.
-      intptr_t index = FindIdentIndex(ident);
-      if (index == -1) {
-        WriteIndex(token_objects_.Length());
-        ASSERT(ident != NULL);
-        token_objects_.Add(*ident);
-      } else {
-        WriteIndex(index);
-      }
+    // If the IDENT token is already in the tokens object array use the
+    // same index instead of duplicating it.
+    intptr_t index = FindIdentIndex(ident);
+    if (index == -1) {
+      WriteIndex(token_objects_.Length());
+      ASSERT(ident != NULL);
+      token_objects_.Add(*ident);
     } else {
-      WriteIndex(0);
+      WriteIndex(index);
     }
   }
 
   // Add a LITERAL token into the stream and the token objects array.
   void AddLiteralToken(Token::Kind kind, const String* literal) {
-    if (literal != NULL) {
-      // If the literal token is already in the tokens object array use the
-      // same index instead of duplicating it.
-      intptr_t index = FindLiteralIndex(kind, literal);
-      if (index == -1) {
-        WriteIndex(token_objects_.Length());
-        ASSERT(literal != NULL);
-        literal_token_ = LiteralToken::New(kind, *literal);
-        token_objects_.Add(literal_token_);
-      } else {
-        WriteIndex(index);
-      }
+    // If the literal token is already in the tokens object array use the
+    // same index instead of duplicating it.
+    intptr_t index = FindLiteralIndex(kind, literal);
+    if (index == -1) {
+      WriteIndex(token_objects_.Length());
+      ASSERT(literal != NULL);
+      literal_token_ = LiteralToken::New(kind, *literal);
+      token_objects_.Add(literal_token_);
     } else {
-      WriteIndex(0);
+      WriteIndex(index);
     }
   }
 
@@ -7437,16 +7458,13 @@ class CompressedTokenStreamData : public ValueObject {
  private:
   intptr_t FindIdentIndex(const String* ident) {
     ASSERT(ident != NULL);
+    ASSERT(ident->IsSymbol());
     intptr_t hash_value = ident->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = ident_table_[hash_value];
     for (intptr_t i = 0; i < value.length(); i++) {
       intptr_t index = value[i];
-      token_obj_ = token_objects_.At(index);
-      if (token_obj_.IsString()) {
-        const String& ident_str = String::Cast(token_obj_);
-        if (ident->Equals(ident_str)) {
-          return index;
-        }
+      if (token_objects_.At(index) == ident->raw()) {
+        return index;
       }
     }
     value.Add(token_objects_.Length());
@@ -7455,17 +7473,15 @@ class CompressedTokenStreamData : public ValueObject {
 
   intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
     ASSERT(literal != NULL);
+    ASSERT(literal->IsSymbol());
     intptr_t hash_value = literal->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = literal_table_[hash_value];
     for (intptr_t i = 0; i < value.length(); i++) {
       intptr_t index = value[i];
       token_obj_ = token_objects_.At(index);
-      if (token_obj_.IsLiteralToken()) {
-        const LiteralToken& token = LiteralToken::Cast(token_obj_);
-        literal_str_ = token.literal();
-        if (kind == token.kind() && literal->Equals(literal_str_)) {
-          return index;
-        }
+      const LiteralToken& token = LiteralToken::Cast(token_obj_);
+      if ((kind == token.kind()) && (token.literal() == literal->raw())) {
+        return index;
       }
     }
     value.Add(token_objects_.Length());
@@ -8268,6 +8284,7 @@ void Library::AddMetadata(const Class& cls,
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
+  cls.AddField(field);
 }
 
 
@@ -8642,7 +8659,7 @@ void Library::AddClass(const Class& cls) const {
 }
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
-                              Script& candidate) {
+                              const Script& candidate) {
   if (candidate.IsNull()) {
     return;
   }
@@ -9641,6 +9658,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
   field.set_type(Type::Handle(Type::DynamicType()));
   field.set_value(Array::empty_array());
   set_metadata_field(field);
+  owner_class.AddField(field);
 }
 
 
@@ -10817,6 +10835,24 @@ bool ICData::IssuedJSWarning() const {
 void ICData::SetIssuedJSWarning() const {
   raw_ptr()->state_bits_ =
       IssuedJSWarningBit::update(true, raw_ptr()->state_bits_);
+}
+
+
+bool ICData::MayCheckForJSWarning() const {
+  const String& name = String::Handle(target_name());
+  // Warning issued from native code.
+  // Calling sequence is decoded to obtain ic data in order to check if a
+  // warning has already been issued.
+  if (name.Equals(Library::PrivateCoreLibName(Symbols::_instanceOf())) ||
+      name.Equals(Library::PrivateCoreLibName(Symbols::_as()))) {
+    return true;
+  }
+  // Warning issued in ic miss handler.
+  // No decoding necessary, so allow optimization if warning already issued.
+  if (name.Equals(Symbols::toString()) && !IssuedJSWarning()) {
+    return true;
+  }
+  return false;
 }
 
 
@@ -12384,6 +12420,7 @@ RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
 
 
 RawLanguageError* LanguageError::New(const String& formatted_message,
+                                     Kind kind,
                                      Heap::Space space) {
   ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
@@ -12395,6 +12432,7 @@ RawLanguageError* LanguageError::New(const String& formatted_message,
     result ^= raw;
   }
   result.set_formatted_message(formatted_message);
+  result.set_kind(kind);
   return result.raw();
 }
 
@@ -12440,6 +12478,7 @@ RawString* LanguageError::FormatMessage() const {
     case kError: message_header = "error"; break;
     case kMalformedType: message_header = "malformed type"; break;
     case kMalboundedType: message_header = "malbounded type"; break;
+    case kBailout: message_header = "bailout"; break;
     default: message_header = ""; UNREACHABLE();
   }
   String& result = String::Handle();
@@ -12682,7 +12721,7 @@ RawObject* Instance::Evaluate(const String& expr,
 
 
 
-bool Instance::Equals(const Instance& other) const {
+bool Instance::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
@@ -12793,7 +12832,7 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
     if (result.IsNull()) {
       break;
     }
-    if (this->Equals(result)) {
+    if (this->CanonicalizeEquals(result)) {
       return result.raw();
     }
     index++;
@@ -12899,13 +12938,22 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 }
 
 
+bool Instance::OperatorEquals(const Instance& other) const {
+  // TODO(koda): Optimize for all builtin classes and all classes
+  // that do not override operator==.
+  const Object& result =
+      Object::Handle(DartLibraryCalls::Equals(*this, other));
+  return result.raw() == Object::bool_true().raw();
+}
+
+
 bool Instance::IsIdenticalTo(const Instance& other) const {
   if (raw() == other.raw()) return true;
   if (IsInteger() && other.IsInteger()) {
-    return Equals(other);
+    return Integer::Cast(*this).Equals(other);
   }
   if (IsDouble() && other.IsDouble()) {
-    if (Equals(other)) return true;
+    if (Double::Cast(*this).CanonicalizeEquals(other)) return true;
     // Check for NaN.
     const Double& a_double = Double::Cast(*this);
     const Double& b_double = Double::Cast(other);
@@ -15431,7 +15479,7 @@ void Double::set_value(double value) const {
 }
 
 
-bool Double::EqualsToDouble(double value) const {
+bool Double::BitwiseEqualsToDouble(double value) const {
   intptr_t value_offset = Double::value_offset();
   void* this_addr = reinterpret_cast<void*>(
       reinterpret_cast<uword>(this->raw_ptr()) + value_offset);
@@ -15440,14 +15488,25 @@ bool Double::EqualsToDouble(double value) const {
 }
 
 
-bool Double::Equals(const Instance& other) const {
+bool Double::OperatorEquals(const Instance& other) const {
+  if (this->IsNull() || other.IsNull()) {
+    return (this->IsNull() && other.IsNull());
+  }
+  if (!other.IsDouble()) {
+    return false;
+  }
+  return this->value() == Double::Cast(other).value();
+}
+
+
+bool Double::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
   if (other.IsNull() || !other.IsDouble()) {
     return false;
   }
-  return EqualsToDouble(Double::Cast(other).value());
+  return BitwiseEqualsToDouble(Double::Cast(other).value());
 }
 
 
@@ -15489,7 +15548,7 @@ RawDouble* Double::NewCanonical(double value) {
     if (canonical_value.IsNull()) {
       break;
     }
-    if (canonical_value.EqualsToDouble(value)) {
+    if (canonical_value.BitwiseEqualsToDouble(value)) {
       return canonical_value.raw();
     }
     index++;
@@ -17390,7 +17449,7 @@ void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-bool Array::Equals(const Instance& other) const {
+bool Array::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
     return true;
@@ -17630,7 +17689,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
 }
 
 
-bool GrowableObjectArray::Equals(const Instance& other) const {
+bool GrowableObjectArray::CanonicalizeEquals(const Instance& other) const {
   // If both handles point to the same raw instance they are equal.
   if (this->raw() == other.raw()) {
     return true;
@@ -18540,7 +18599,7 @@ const char* JSRegExp::Flags() const {
 }
 
 
-bool JSRegExp::Equals(const Instance& other) const {
+bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }

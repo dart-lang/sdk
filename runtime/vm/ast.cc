@@ -119,13 +119,18 @@ bool LiteralNode::IsPotentiallyConst() const {
 }
 
 
-// TODO(srdjan): Add code for logical negation.
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kNEGATE) {
     if (literal().IsSmi()) {
       const Smi& smi = Smi::Cast(literal());
       const Instance& literal =
-          Instance::ZoneHandle(Integer::New(-smi.Value()));
+          Instance::ZoneHandle(Integer::New(-smi.Value(), Heap::kOld));
+      return new LiteralNode(this->token_pos(), literal);
+    }
+    if (literal().IsMint()) {
+      const Mint& mint = Mint::Cast(literal());
+      const Instance& literal =
+          Instance::ZoneHandle(Integer::New(-mint.value(), Heap::kOld));
       return new LiteralNode(this->token_pos(), literal);
     }
     if (literal().IsDouble()) {
@@ -135,6 +140,24 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
       const Double& double_instance =
           Double::ZoneHandle(Double::NewCanonical(new_value));
       return new LiteralNode(this->token_pos(), double_instance);
+    }
+  } else if (unary_op_kind == Token::kBIT_NOT) {
+    if (literal().IsSmi()) {
+      const Smi& smi = Smi::Cast(literal());
+      const Instance& literal =
+          Instance::ZoneHandle(Integer::New(~smi.Value(), Heap::kOld));
+      return new LiteralNode(this->token_pos(), literal);
+    }
+    if (literal().IsMint()) {
+      const Mint& mint = Mint::Cast(literal());
+      const Instance& literal =
+          Instance::ZoneHandle(Integer::New(~mint.value(), Heap::kOld));
+      return new LiteralNode(this->token_pos(), literal);
+    }
+  } else if (unary_op_kind == Token::kNOT) {
+    if (literal().IsBool()) {
+      const Bool& boolean = Bool::Cast(literal());
+      return new LiteralNode(this->token_pos(), Bool::Get(!boolean.value()));
     }
   }
   return NULL;

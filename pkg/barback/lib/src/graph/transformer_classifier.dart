@@ -10,7 +10,8 @@ import '../asset/asset_forwarder.dart';
 import '../asset/asset_node.dart';
 import '../errors.dart';
 import '../log.dart';
-import '../transformer/transformer.dart';
+import '../transformer/aggregate_transformer.dart';
+import '../transformer/wrapping_aggregate_transformer.dart';
 import '../utils.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
@@ -18,17 +19,17 @@ import 'phase.dart';
 import 'transform_node.dart';
 
 /// A class for classifying the primary inputs for a transformer according to
-/// its `classifyPrimary` method.
+/// its [AggregateTransformer.classifyPrimary] method.
 ///
-/// This is used for non-aggregate transformers; they're modeled as aggregate
-/// transformers that return the primary path if `isPrimary` is true and `null`
-/// if `isPrimary` is `null`.
+/// This is also used for non-aggregate transformers; they're modeled as
+/// aggregate transformers that return the primary path if `isPrimary` is true
+/// and `null` if `isPrimary` is `null`.
 class TransformerClassifier {
   /// The containing [Phase].
   final Phase _phase;
 
-  /// The [Transformer] to use to classify the inputs.
-  final Transformer transformer;
+  /// The [AggregateTransformer] used to classify the inputs.
+  final AggregateTransformer transformer;
 
   /// A string describing the location of [this] in the transformer graph.
   final String _location;
@@ -45,24 +46,26 @@ class TransformerClassifier {
   Stream<AssetNode> get onAsset => _streams.onAsset;
   Stream<LogEntry> get onLog => _streams.onLog;
 
-  /// The number of currently-active calls to [transformer.isPrimary].
+  /// The number of currently-active calls to [transformer.classifyPrimary].
   ///
   /// This is used to determine whether [this] is dirty.
-  var _activeIsPrimaries = 0;
+  var _activeClassifications = 0;
 
   /// How far along [this] is in processing its assets.
   NodeStatus get status {
-    if (_activeIsPrimaries > 0) return NodeStatus.RUNNING;
+    if (_activeClassifications > 0) return NodeStatus.RUNNING;
     return NodeStatus.dirtiest(
         _transforms.values.map((transform) => transform.status));
   }
 
-  TransformerClassifier(this._phase, this.transformer, this._location);
+  TransformerClassifier(this._phase, transformer, this._location)
+      : transformer = transformer is AggregateTransformer ?
+            transformer : new WrappingAggregateTransformer(transformer);
 
   /// Adds a new asset as an input for this transformer.
   void addInput(AssetNode input) {
-    _activeIsPrimaries++;
-    syncFuture(() => transformer.isPrimary(input.id)).catchError(
+    _activeClassifications++;
+    syncFuture(() => transformer.classifyPrimary(input.id)).catchError(
         (error, stackTrace) {
       if (input.state.isRemoved) return false;
 
@@ -77,18 +80,19 @@ class TransformerClassifier {
       _phase.cascade.reportError(error);
 
       return false;
-    }).then((isPrimary) {
+    }).then((key) {
       if (input.state.isRemoved) return;
-      if (!isPrimary) {
+      if (key == null) {
         var forwarder = new AssetForwarder(input);
         _passThroughForwarders.add(forwarder);
         forwarder.node.whenRemoved(
             () => _passThroughForwarders.remove(forwarder));
         _streams.onAssetController.add(forwarder.node);
+      } else if (_transforms.containsKey(key)) {
+        _transforms[key].addPrimary(input);
       } else {
-        var transform = new TransformNode(
-            _phase, transformer, input, _location);
-        _transforms[input.id.path] = transform;
+        var transform = new TransformNode(_phase, transformer, key, _location);
+        _transforms[key] = transform;
 
         transform.onStatusChange.listen(
             (_) => _streams.changeStatus(status),
@@ -96,9 +100,10 @@ class TransformerClassifier {
 
         _streams.onAssetPool.add(transform.onAsset);
         _streams.onLogPool.add(transform.onLog);
+        transform.addPrimary(input);
       }
     }).whenComplete(() {
-      _activeIsPrimaries--;
+      _activeClassifications--;
       if (!_streams.isClosed) _streams.changeStatus(status);
     });
   }

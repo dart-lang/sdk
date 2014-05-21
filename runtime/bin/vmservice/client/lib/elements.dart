@@ -1,6 +1,7 @@
 library observatory_elements;
 
 // Export elements.
+export 'package:observatory/src/elements/action_link.dart';
 export 'package:observatory/src/elements/breakpoint_list.dart';
 export 'package:observatory/src/elements/class_ref.dart';
 export 'package:observatory/src/elements/class_view.dart';

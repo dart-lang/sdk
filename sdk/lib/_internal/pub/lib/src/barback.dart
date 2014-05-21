@@ -22,16 +22,19 @@ import 'version.dart';
 /// pub.dartlang.org) when they implement their own transformers. Pub's plug-in
 /// API dynamically loads transformers into their own isolate.
 ///
-/// This includes a string literal of Dart code ([_TRANSFORMER_ISOLATE] in
-/// load_transformers.dart). That code imports "package:barback/barback.dart".
-/// This string is included in the SDK, but that import is resolved using the
-/// application’s version of Barback. That means it must tightly control which
-/// version of Barback the application is using so that it's one that pub
-/// supports.
+/// This includes a Dart file (`asset/dart/transformer_isolate.dart`) which
+/// imports "package:barback/barback.dart". This file is included in the SDK,
+/// but that import is resolved using the application’s version of Barback. That
+/// means pub must tightly control which version of Barback the application is
+/// using so that it's one that pub supports.
 ///
-/// Whenever a new non-patch version of barback is published, this *must* be
-/// incremented to synchronize with that.
-final supportedVersions = new VersionConstraint.parse(">=0.13.0-dev <0.14.0");
+/// Whenever a new minor or patch version of barback is published, this *must*
+/// be incremented to synchronize with that. See the barback [compatibility
+/// documentation][compat] for details on the relationship between this
+/// constraint and barback's version.
+///
+/// [compat]: https://gist.github.com/nex3/10942218
+final supportedVersions = new VersionConstraint.parse(">=0.13.0 <0.14.1");
 
 /// A list of the names of all built-in transformers that pub exposes.
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];

@@ -30,6 +30,7 @@ import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
+import 'dart:js' as js;
 import "dart:convert";
 import 'dart:math';
 import 'dart:mirrors';
@@ -108,24 +109,382 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Plumb arguments and return value through.
   return _Utils.spawnDomUri(uri.toString());
 }
-// FIXME: This should be generated.
-const _typeMap = const {
-  'EventTarget': EventTarget,
-  'Window': Window,
-  'Element': Element,
+// FIXME: Can we make this private?
+const htmlBlinkMap = const {
+  '_HistoryCrossFrame': _HistoryCrossFrame,
+  '_LocationCrossFrame': _LocationCrossFrame,
+  '_DOMWindowCrossFrame': _DOMWindowCrossFrame,
+  // FIXME: Move these to better locations.
+  'DateTime': DateTime,
+  'JsObject': js.JsObject,
+  'JsFunction': js.JsFunction,
+  'JsArray': js.JsArray,
+  'AbstractWorker': AbstractWorker,
+  'Algorithm': Algorithm,
+  'Animation': Animation,
+  'ApplicationCache': ApplicationCache,
+  'Attr': _Attr,
+  'AutocompleteErrorEvent': AutocompleteErrorEvent,
+  'BarProp': BarProp,
+  'BeforeLoadEvent': BeforeLoadEvent,
+  'BeforeUnloadEvent': BeforeUnloadEvent,
+  'Blob': Blob,
+  'CDATASection': CDataSection,
+  'CSS': Css,
+  'CSSCharsetRule': CssCharsetRule,
+  'CSSFontFaceLoadEvent': CssFontFaceLoadEvent,
+  'CSSFontFaceRule': CssFontFaceRule,
+  'CSSImportRule': CssImportRule,
+  'CSSKeyframeRule': CssKeyframeRule,
+  'CSSKeyframesRule': CssKeyframesRule,
+  'CSSMediaRule': CssMediaRule,
+  'CSSPageRule': CssPageRule,
+  'CSSPrimitiveValue': _CSSPrimitiveValue,
+  'CSSRule': CssRule,
+  'CSSRuleList': _CssRuleList,
+  'CSSStyleDeclaration': CssStyleDeclaration,
+  'CSSStyleRule': CssStyleRule,
+  'CSSStyleSheet': CssStyleSheet,
+  'CSSSupportsRule': CssSupportsRule,
+  'CSSUnknownRule': _CSSUnknownRule,
+  'CSSValue': _CSSValue,
+  'CSSValueList': _CssValueList,
+  'CSSViewportRule': CssViewportRule,
+  'Canvas2DContextAttributes': Canvas2DContextAttributes,
+  'CanvasGradient': CanvasGradient,
+  'CanvasPattern': CanvasPattern,
+  'CanvasRenderingContext': CanvasRenderingContext,
+  'CanvasRenderingContext2D': CanvasRenderingContext2D,
+  'CharacterData': CharacterData,
+  'ChildNode': ChildNode,
+  'ClientRect': _ClientRect,
+  'ClientRectList': _ClientRectList,
+  'Clipboard': DataTransfer,
+  'CloseEvent': CloseEvent,
+  'Comment': Comment,
+  'CompositionEvent': CompositionEvent,
   'Console': Console,
-  'Node': Node,
+  'ConsoleBase': ConsoleBase,
+  'Coordinates': Coordinates,
+  'Counter': _Counter,
+  'Crypto': Crypto,
+  'CustomEvent': CustomEvent,
+  'DOMError': DomError,
+  'DOMException': DomException,
+  'DOMFileSystem': FileSystem,
+  'DOMFileSystemSync': _DOMFileSystemSync,
+  'DOMImplementation': DomImplementation,
+  'DOMParser': DomParser,
+  'DOMSettableTokenList': DomSettableTokenList,
+  'DOMStringList': DomStringList,
+  'DOMStringMap': DomStringMap,
+  'DOMTokenList': DomTokenList,
+  'DataTransferItem': DataTransferItem,
+  'DataTransferItemList': DataTransferItemList,
+  'DatabaseSync': _DatabaseSync,
+  'DedicatedWorkerGlobalScope': DedicatedWorkerGlobalScope,
+  'DeprecatedStorageInfo': DeprecatedStorageInfo,
+  'DeprecatedStorageQuota': DeprecatedStorageQuota,
+  'DeviceAcceleration': DeviceAcceleration,
+  'DeviceMotionEvent': DeviceMotionEvent,
+  'DeviceOrientationEvent': DeviceOrientationEvent,
+  'DeviceRotationRate': DeviceRotationRate,
+  'DirectoryEntry': DirectoryEntry,
+  'DirectoryEntrySync': _DirectoryEntrySync,
+  'DirectoryReader': DirectoryReader,
+  'DirectoryReaderSync': _DirectoryReaderSync,
   'Document': Document,
-  'HTMLElement': HtmlElement,
+  'DocumentFragment': DocumentFragment,
+  'DocumentType': _DocumentType,
+  'Element': Element,
+  'Entry': Entry,
+  'EntrySync': _EntrySync,
+  'ErrorEvent': ErrorEvent,
+  'Event': Event,
+  'EventSource': EventSource,
+  'EventTarget': EventTarget,
+  'File': File,
+  'FileEntry': FileEntry,
+  'FileEntrySync': _FileEntrySync,
+  'FileError': FileError,
+  'FileList': FileList,
+  'FileReader': FileReader,
+  'FileReaderSync': _FileReaderSync,
+  'FileWriter': FileWriter,
+  'FileWriterSync': _FileWriterSync,
+  'FocusEvent': FocusEvent,
+  'FontFace': FontFace,
+  'FontFaceSet': FontFaceSet,
+  'FormData': FormData,
+  'Gamepad': Gamepad,
+  'GamepadList': _GamepadList,
+  'Geolocation': Geolocation,
+  'Geoposition': Geoposition,
+  'GlobalEventHandlers': GlobalEventHandlers,
+  'HTMLAllCollection': _HTMLAllCollection,
+  'HTMLAnchorElement': AnchorElement,
+  'HTMLAppletElement': _HTMLAppletElement,
+  'HTMLAreaElement': AreaElement,
+  'HTMLAudioElement': AudioElement,
+  'HTMLBRElement': BRElement,
+  'HTMLBaseElement': BaseElement,
+  'HTMLBodyElement': BodyElement,
+  'HTMLButtonElement': ButtonElement,
   'HTMLCanvasElement': CanvasElement,
+  'HTMLCollection': HtmlCollection,
+  'HTMLContentElement': ContentElement,
+  'HTMLDListElement': DListElement,
+  'HTMLDataListElement': DataListElement,
+  'HTMLDetailsElement': DetailsElement,
+  'HTMLDialogElement': DialogElement,
+  'HTMLDirectoryElement': _HTMLDirectoryElement,
+  'HTMLDivElement': DivElement,
   'HTMLDocument': HtmlDocument,
-};
+  'HTMLElement': HtmlElement,
+  'HTMLEmbedElement': EmbedElement,
+  'HTMLFieldSetElement': FieldSetElement,
+  'HTMLFontElement': _HTMLFontElement,
+  'HTMLFormControlsCollection': HtmlFormControlsCollection,
+  'HTMLFormElement': FormElement,
+  'HTMLFrameElement': _HTMLFrameElement,
+  'HTMLFrameSetElement': _HTMLFrameSetElement,
+  'HTMLHRElement': HRElement,
+  'HTMLHeadElement': HeadElement,
+  'HTMLHeadingElement': HeadingElement,
+  'HTMLHtmlElement': HtmlHtmlElement,
+  'HTMLIFrameElement': IFrameElement,
+  'HTMLImageElement': ImageElement,
+  'HTMLInputElement': InputElement,
+  'HTMLKeygenElement': KeygenElement,
+  'HTMLLIElement': LIElement,
+  'HTMLLabelElement': LabelElement,
+  'HTMLLegendElement': LegendElement,
+  'HTMLLinkElement': LinkElement,
+  'HTMLMapElement': MapElement,
+  'HTMLMarqueeElement': _HTMLMarqueeElement,
+  'HTMLMediaElement': MediaElement,
+  'HTMLMenuElement': MenuElement,
+  'HTMLMetaElement': MetaElement,
+  'HTMLMeterElement': MeterElement,
+  'HTMLModElement': ModElement,
+  'HTMLOListElement': OListElement,
+  'HTMLObjectElement': ObjectElement,
+  'HTMLOptGroupElement': OptGroupElement,
+  'HTMLOptionElement': OptionElement,
+  'HTMLOptionsCollection': HtmlOptionsCollection,
+  'HTMLOutputElement': OutputElement,
+  'HTMLParagraphElement': ParagraphElement,
+  'HTMLParamElement': ParamElement,
+  'HTMLPreElement': PreElement,
+  'HTMLProgressElement': ProgressElement,
+  'HTMLQuoteElement': QuoteElement,
+  'HTMLScriptElement': ScriptElement,
+  'HTMLSelectElement': SelectElement,
+  'HTMLShadowElement': ShadowElement,
+  'HTMLSourceElement': SourceElement,
+  'HTMLSpanElement': SpanElement,
+  'HTMLStyleElement': StyleElement,
+  'HTMLTableCaptionElement': TableCaptionElement,
+  'HTMLTableCellElement': TableCellElement,
+  'HTMLTableColElement': TableColElement,
+  'HTMLTableElement': TableElement,
+  'HTMLTableRowElement': TableRowElement,
+  'HTMLTableSectionElement': TableSectionElement,
+  'HTMLTemplateElement': TemplateElement,
+  'HTMLTextAreaElement': TextAreaElement,
+  'HTMLTitleElement': TitleElement,
+  'HTMLTrackElement': TrackElement,
+  'HTMLUListElement': UListElement,
+  'HTMLUnknownElement': UnknownElement,
+  'HTMLVideoElement': VideoElement,
+  'HashChangeEvent': HashChangeEvent,
+  'History': History,
+  'ImageBitmap': ImageBitmap,
+  'ImageData': ImageData,
+  'InputMethodContext': InputMethodContext,
+  'InstallEvent': InstallEvent,
+  'InstallPhaseEvent': InstallPhaseEvent,
+  'Key': CryptoKey,
+  'KeyPair': KeyPair,
+  'KeyboardEvent': KeyboardEvent,
+  'Location': Location,
+  'MIDIAccess': MidiAccess,
+  'MIDIAccessPromise': MidiAccessPromise,
+  'MIDIConnectionEvent': MidiConnectionEvent,
+  'MIDIInput': MidiInput,
+  'MIDIMessageEvent': MidiMessageEvent,
+  'MIDIOutput': MidiOutput,
+  'MIDIPort': MidiPort,
+  'MediaController': MediaController,
+  'MediaError': MediaError,
+  'MediaKeyError': MediaKeyError,
+  'MediaKeyEvent': MediaKeyEvent,
+  'MediaKeyMessageEvent': MediaKeyMessageEvent,
+  'MediaKeyNeededEvent': MediaKeyNeededEvent,
+  'MediaKeySession': MediaKeySession,
+  'MediaKeys': MediaKeys,
+  'MediaList': MediaList,
+  'MediaQueryList': MediaQueryList,
+  'MediaSource': MediaSource,
+  'MediaStream': MediaStream,
+  'MediaStreamEvent': MediaStreamEvent,
+  'MediaStreamTrack': MediaStreamTrack,
+  'MediaStreamTrackEvent': MediaStreamTrackEvent,
+  'MemoryInfo': MemoryInfo,
+  'MessageChannel': MessageChannel,
+  'MessageEvent': MessageEvent,
+  'MessagePort': MessagePort,
+  'Metadata': Metadata,
+  'MimeType': MimeType,
+  'MimeTypeArray': MimeTypeArray,
+  'MouseEvent': MouseEvent,
+  'MutationEvent': _MutationEvent,
+  'MutationObserver': MutationObserver,
+  'MutationRecord': MutationRecord,
+  'NamedNodeMap': _NamedNodeMap,
+  'Navigator': Navigator,
+  'NavigatorID': NavigatorID,
+  'NavigatorOnLine': NavigatorOnLine,
+  'NavigatorUserMediaError': NavigatorUserMediaError,
+  'Node': Node,
+  'NodeFilter': NodeFilter,
+  'NodeIterator': NodeIterator,
+  'NodeList': NodeList,
+  'Notation': _Notation,
+  'Notification': Notification,
+  'NotificationCenter': _NotificationCenter,
+  'OverflowEvent': OverflowEvent,
+  'PagePopupController': _PagePopupController,
+  'PageTransitionEvent': PageTransitionEvent,
+  'ParentNode': ParentNode,
+  'Path': Path,
+  'Performance': Performance,
+  'PerformanceEntry': PerformanceEntry,
+  'PerformanceMark': PerformanceMark,
+  'PerformanceMeasure': PerformanceMeasure,
+  'PerformanceNavigation': PerformanceNavigation,
+  'PerformanceResourceTiming': PerformanceResourceTiming,
+  'PerformanceTiming': PerformanceTiming,
+  'Player': Player,
+  'Plugin': Plugin,
+  'PluginArray': PluginArray,
+  'PopStateEvent': PopStateEvent,
+  'PositionError': PositionError,
+  'ProcessingInstruction': ProcessingInstruction,
+  'ProgressEvent': ProgressEvent,
+  'RGBColor': _RGBColor,
+  'RTCDTMFSender': RtcDtmfSender,
+  'RTCDTMFToneChangeEvent': RtcDtmfToneChangeEvent,
+  'RTCDataChannel': RtcDataChannel,
+  'RTCDataChannelEvent': RtcDataChannelEvent,
+  'RTCIceCandidate': RtcIceCandidate,
+  'RTCIceCandidateEvent': RtcIceCandidateEvent,
+  'RTCPeerConnection': RtcPeerConnection,
+  'RTCSessionDescription': RtcSessionDescription,
+  'RTCStatsReport': RtcStatsReport,
+  'RTCStatsResponse': RtcStatsResponse,
+  'RadioNodeList': _RadioNodeList,
+  'Range': Range,
+  'Rect': _Rect,
+  'ResourceProgressEvent': ResourceProgressEvent,
+  'Screen': Screen,
+  'SecurityPolicyViolationEvent': SecurityPolicyViolationEvent,
+  'Selection': Selection,
+  'ServiceWorker': _ServiceWorker,
+  'ServiceWorkerContainer': ServiceWorkerContainer,
+  'ServiceWorkerGlobalScope': ServiceWorkerGlobalScope,
+  'ShadowRoot': ShadowRoot,
+  'SharedWorker': SharedWorker,
+  'SharedWorkerGlobalScope': SharedWorkerGlobalScope,
+  'SourceBuffer': SourceBuffer,
+  'SourceBufferList': SourceBufferList,
+  'SourceInfo': SourceInfo,
+  'SpeechGrammar': SpeechGrammar,
+  'SpeechGrammarList': SpeechGrammarList,
+  'SpeechInputEvent': SpeechInputEvent,
+  'SpeechInputResult': SpeechInputResult,
+  'SpeechInputResultList': _SpeechInputResultList,
+  'SpeechRecognition': SpeechRecognition,
+  'SpeechRecognitionAlternative': SpeechRecognitionAlternative,
+  'SpeechRecognitionError': SpeechRecognitionError,
+  'SpeechRecognitionEvent': SpeechRecognitionEvent,
+  'SpeechRecognitionResult': SpeechRecognitionResult,
+  'SpeechRecognitionResultList': _SpeechRecognitionResultList,
+  'SpeechSynthesis': SpeechSynthesis,
+  'SpeechSynthesisEvent': SpeechSynthesisEvent,
+  'SpeechSynthesisUtterance': SpeechSynthesisUtterance,
+  'SpeechSynthesisVoice': SpeechSynthesisVoice,
+  'Storage': Storage,
+  'StorageEvent': StorageEvent,
+  'StorageInfo': StorageInfo,
+  'StorageQuota': StorageQuota,
+  'Stream': FileStream,
+  'StyleMedia': StyleMedia,
+  'StyleSheet': StyleSheet,
+  'StyleSheetList': _StyleSheetList,
+  'SubtleCrypto': _SubtleCrypto,
+  'Text': Text,
+  'TextEvent': TextEvent,
+  'TextMetrics': TextMetrics,
+  'TextTrack': TextTrack,
+  'TextTrackCue': TextTrackCue,
+  'TextTrackCueList': TextTrackCueList,
+  'TextTrackList': TextTrackList,
+  'TimeRanges': TimeRanges,
+  'TimedItem': TimedItem,
+  'Timeline': Timeline,
+  'Timing': Timing,
+  'Touch': Touch,
+  'TouchEvent': TouchEvent,
+  'TouchList': TouchList,
+  'TrackEvent': TrackEvent,
+  'TransitionEvent': TransitionEvent,
+  'TreeWalker': TreeWalker,
+  'UIEvent': UIEvent,
+  'URL': Url,
+  'URLUtils': UrlUtils,
+  'URLUtilsReadOnly': UrlUtilsReadOnly,
+  'VTTCue': VttCue,
+  'VTTRegion': VttRegion,
+  'VTTRegionList': VttRegionList,
+  'ValidityState': ValidityState,
+  'VideoPlaybackQuality': VideoPlaybackQuality,
+  'WebKitAnimationEvent': AnimationEvent,
+  'WebKitCSSFilterRule': CssFilterRule,
+  'WebKitCSSFilterValue': _WebKitCSSFilterValue,
+  'WebKitCSSMatrix': _WebKitCSSMatrix,
+  'WebKitCSSTransformValue': _WebKitCSSTransformValue,
+  'WebKitMediaSource': _WebKitMediaSource,
+  'WebKitNotification': _WebKitNotification,
+  'WebKitPoint': _DomPoint,
+  'WebKitSourceBuffer': _WebKitSourceBuffer,
+  'WebKitSourceBufferList': _WebKitSourceBufferList,
+  'WebSocket': WebSocket,
+  'WheelEvent': WheelEvent,
+  'Window': Window,
+  'WindowBase64': WindowBase64,
+  'WindowEventHandlers': WindowEventHandlers,
+  'WindowTimers': _WindowTimers,
+  'Worker': Worker,
+  'WorkerConsole': WorkerConsole,
+  'WorkerCrypto': WorkerCrypto,
+  'WorkerGlobalScope': WorkerGlobalScope,
+  'WorkerLocation': _WorkerLocation,
+  'WorkerNavigator': _WorkerNavigator,
+  'WorkerPerformance': WorkerPerformance,
+  'XMLDocument': XmlDocument,
+  'XMLHttpRequest': HttpRequest,
+  'XMLHttpRequestEventTarget': HttpRequestEventTarget,
+  'XMLHttpRequestProgressEvent': _XMLHttpRequestProgressEvent,
+  'XMLHttpRequestUpload': HttpRequestUpload,
+  'XMLSerializer': XmlSerializer,
+  'XPathEvaluator': XPathEvaluator,
+  'XPathExpression': XPathExpression,
+  'XPathNSResolver': XPathNSResolver,
+  'XPathResult': XPathResult,
+  'XSLTProcessor': XsltProcessor,
 
-Type _getType(String key) {
-  if (!_typeMap.containsKey(key))
-    return null;
-  return _typeMap[key];
-}
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -519,18 +878,6 @@ class ApplicationCache extends EventTarget {
   @DomName('ApplicationCache.update')
   @DocsEditable()
   void update() => _blink.Native_ApplicationCache_update_Callback(this);
-
-  @DomName('ApplicationCache.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_ApplicationCache_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('ApplicationCache.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_ApplicationCache_dispatchEvent_Callback(this, event);
-
-  @DomName('ApplicationCache.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_ApplicationCache_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `cached` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.oncached')
@@ -6631,7 +6978,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable()
-  void setDragImage(Element element, int x, int y) => _blink.Native_Clipboard_setDragImage_Callback(this, element, x, y);
+  void setDragImage(Element image, int x, int y) => _blink.Native_Clipboard_setDragImage_Callback(this, image, x, y);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12138,18 +12485,6 @@ class EventSource extends EventTarget {
   @DocsEditable()
   void close() => _blink.Native_EventSource_close_Callback(this);
 
-  @DomName('EventSource.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventSource_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('EventSource.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_EventSource_dispatchEvent_Callback(this, event);
-
-  @DomName('EventSource.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_EventSource_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `error` events handled by this [EventSource].
   @DomName('EventSource.onerror')
   @DocsEditable()
@@ -12694,18 +13029,6 @@ class FileReader extends EventTarget {
 
   void readAsText(Blob blob, [String encoding]) => _blink.Native_FileReader_readAsText(this, blob, encoding);
 
-  @DomName('FileReader.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileReader_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('FileReader.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_FileReader_dispatchEvent_Callback(this, event);
-
-  @DomName('FileReader.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileReader_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
   @DocsEditable()
@@ -12914,18 +13237,6 @@ class FileWriter extends EventTarget {
   @DomName('FileWriter.write')
   @DocsEditable()
   void write(Blob data) => _blink.Native_FileWriter_write_Callback(this, data);
-
-  @DomName('FileWriter.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileWriter_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('FileWriter.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_FileWriter_dispatchEvent_Callback(this, event);
-
-  @DomName('FileWriter.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FileWriter_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `abort` events handled by this [FileWriter].
   @DomName('FileWriter.onabort')
@@ -13136,21 +13447,6 @@ class FontFaceSet extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   bool has(FontFace fontFace) => _blink.Native_FontFaceSet_has_Callback(this, fontFace);
-
-  @DomName('FontFaceSet.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FontFaceSet_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('FontFaceSet.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_FontFaceSet_dispatchEvent_Callback(this, event);
-
-  @DomName('FontFaceSet.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_FontFaceSet_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15898,21 +16194,6 @@ class HttpRequestEventTarget extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
-  @DomName('XMLHttpRequestEventTarget.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_XMLHttpRequestEventTarget_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('XMLHttpRequestEventTarget.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_XMLHttpRequestEventTarget_dispatchEvent_Callback(this, event);
-
-  @DomName('XMLHttpRequestEventTarget.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_XMLHttpRequestEventTarget_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `abort` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
@@ -17301,21 +17582,6 @@ class InputMethodContext extends EventTarget {
   @DocsEditable()
   void confirmComposition() => _blink.Native_InputMethodContext_confirmComposition_Callback(this);
 
-  @DomName('InputMethodContext.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_InputMethodContext_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('InputMethodContext.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_InputMethodContext_dispatchEvent_Callback(this, event);
-
-  @DomName('InputMethodContext.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_InputMethodContext_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18041,18 +18307,6 @@ class MediaController extends EventTarget {
   @DomName('MediaController.unpause')
   @DocsEditable()
   void unpause() => _blink.Native_MediaController_unpause_Callback(this);
-
-  @DomName('MediaController.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaController_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MediaController.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MediaController_dispatchEvent_Callback(this, event);
-
-  @DomName('MediaController.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaController_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18956,18 +19210,6 @@ class MediaKeySession extends EventTarget {
   @DocsEditable()
   void update(Uint8List response) => _blink.Native_MediaKeySession_update_Callback(this, response);
 
-  @DomName('MediaKeySession.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaKeySession_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MediaKeySession.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MediaKeySession_dispatchEvent_Callback(this, event);
-
-  @DomName('MediaKeySession.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaKeySession_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19112,18 +19354,6 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   void removeSourceBuffer(SourceBuffer buffer) => _blink.Native_MediaSource_removeSourceBuffer_Callback(this, buffer);
 
-  @DomName('MediaSource.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaSource_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MediaSource.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MediaSource_dispatchEvent_Callback(this, event);
-
-  @DomName('MediaSource.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaSource_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19208,18 +19438,6 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.stop')
   @DocsEditable()
   void stop() => _blink.Native_MediaStream_stop_Callback(this);
-
-  @DomName('MediaStream.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStream_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MediaStream.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MediaStream_dispatchEvent_Callback(this, event);
-
-  @DomName('MediaStream.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStream_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `addtrack` events handled by this [MediaStream].
   @DomName('MediaStream.onaddtrack')
@@ -19356,18 +19574,6 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void stop() => _blink.Native_MediaStreamTrack_stop_Callback(this);
-
-  @DomName('MediaStreamTrack.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStreamTrack_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MediaStreamTrack.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MediaStreamTrack_dispatchEvent_Callback(this, event);
-
-  @DomName('MediaStreamTrack.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MediaStreamTrack_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `ended` events handled by this [MediaStreamTrack].
   @DomName('MediaStreamTrack.onended')
@@ -19585,18 +19791,6 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   void start() => _blink.Native_MessagePort_start_Callback(this);
 
-  @DomName('MessagePort.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MessagePort_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MessagePort.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MessagePort_dispatchEvent_Callback(this, event);
-
-  @DomName('MessagePort.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MessagePort_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `message` events handled by this [MessagePort].
   @DomName('MessagePort.onmessage')
   @DocsEditable()
@@ -19813,18 +20007,6 @@ class MidiAccess extends EventTarget {
   @DocsEditable()
   List<MidiOutput> outputs() => _blink.Native_MIDIAccess_outputs_Callback(this);
 
-  @DomName('MIDIAccess.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIAccess_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MIDIAccess.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MIDIAccess_dispatchEvent_Callback(this, event);
-
-  @DomName('MIDIAccess.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIAccess_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `connect` events handled by this [MidiAccess].
   @DomName('MIDIAccess.onconnect')
   @DocsEditable()
@@ -19993,18 +20175,6 @@ class MidiPort extends EventTarget {
   @DomName('MIDIPort.version')
   @DocsEditable()
   String get version => _blink.Native_MIDIPort_version_Getter(this);
-
-  @DomName('MIDIPort.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIPort_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('MIDIPort.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_MIDIPort_dispatchEvent_Callback(this, event);
-
-  @DomName('MIDIPort.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_MIDIPort_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `disconnect` events handled by this [MidiPort].
   @DomName('MIDIPort.ondisconnect')
@@ -21376,18 +21546,6 @@ class Node extends EventTarget {
   @DocsEditable()
   Node _replaceChild(Node newChild, Node oldChild) => _blink.Native_Node_replaceChild_Callback(this, newChild, oldChild);
 
-  @DomName('Node.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Node_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Node.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_Node_dispatchEvent_Callback(this, event);
-
-  @DomName('Node.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Node_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21676,18 +21834,6 @@ class Notification extends EventTarget {
         (value) { completer.complete(value); });
     return completer.future;
   }
-
-  @DomName('Notification.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Notification_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Notification.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_Notification_dispatchEvent_Callback(this, event);
-
-  @DomName('Notification.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Notification_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `click` events handled by this [Notification].
   @DomName('Notification.onclick')
@@ -22399,21 +22545,6 @@ class Performance extends EventTarget {
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) => _blink.Native_Performance_webkitSetResourceTimingBufferSize_Callback(this, maxSize);
-
-  @DomName('Performance.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Performance_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Performance.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_Performance_dispatchEvent_Callback(this, event);
-
-  @DomName('Performance.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Performance_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `resourcetimingbufferfull` events handled by this [Performance].
   @DomName('Performance.onwebkitresourcetimingbufferfull')
@@ -23523,18 +23654,6 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   void sendTypedData(TypedData data) => _blink.Native_RTCDataChannel_sendTypedData_Callback(this, data);
 
-  @DomName('RTCDataChannel.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDataChannel_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('RTCDataChannel.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_RTCDataChannel_dispatchEvent_Callback(this, event);
-
-  @DomName('RTCDataChannel.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDataChannel_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `close` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
@@ -23622,18 +23741,6 @@ class RtcDtmfSender extends EventTarget {
   MediaStreamTrack get track => _blink.Native_RTCDTMFSender_track_Getter(this);
 
   void insertDtmf(String tones, [int duration, int interToneGap]) => _blink.Native_RTCDTMFSender_insertDtmf(this, tones, duration, interToneGap);
-
-  @DomName('RTCDTMFSender.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDTMFSender_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('RTCDTMFSender.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_RTCDTMFSender_dispatchEvent_Callback(this, event);
-
-  @DomName('RTCDTMFSender.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCDTMFSender_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   @DomName('RTCDTMFSender.ontonechange')
@@ -23925,18 +24032,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable()
   void updateIce([Map configuration, Map mediaConstraints]) => _blink.Native_RTCPeerConnection_updateIce_Callback(this, configuration, mediaConstraints);
 
-  @DomName('RTCPeerConnection.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCPeerConnection_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('RTCPeerConnection.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_RTCPeerConnection_dispatchEvent_Callback(this, event);
-
-  @DomName('RTCPeerConnection.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_RTCPeerConnection_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `addstream` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable()
@@ -24145,21 +24240,6 @@ class Screen extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void unlockOrientation() => _blink.Native_Screen_unlockOrientation_Callback(this);
-
-  @DomName('Screen.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Screen_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Screen.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_Screen_dispatchEvent_Callback(this, event);
-
-  @DomName('Screen.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Screen_removeEventListener_Callback(this, type, listener, useCapture);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24710,11 +24790,11 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  bool get resetStyleInheritance => _blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
+  bool get _resetStyleInheritance => _blink.Native_ShadowRoot_resetStyleInheritance_Getter(this);
 
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  void set resetStyleInheritance(bool value) => _blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
+  void set _resetStyleInheritance(bool value) => _blink.Native_ShadowRoot_resetStyleInheritance_Setter(this, value);
 
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
@@ -24746,6 +24826,29 @@ class ShadowRoot extends DocumentFragment {
   Selection getSelection() => _blink.Native_ShadowRoot_getSelection_Callback(this);
 
   static final bool supported = true;
+
+  static bool _resetStyleInheritanceDeprecationReported = false;
+  static void _resetStyleInheritanceDeprecationReport() {
+    if (!_resetStyleInheritanceDeprecationReported) {
+      window.console.warn('''
+ShadowRoot.resetStyleInheritance is now deprecated in dart:html.
+Please remove from your code.
+''');
+      _resetStyleInheritanceDeprecationReported = true;
+    }
+  }
+
+  @deprecated
+  bool get resetStyleInheritance {
+    _resetStyleInheritanceDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    _resetStyleInheritanceDeprecationReport();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24779,21 +24882,6 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DocsEditable()
   @Experimental() // untriaged
   double get workerStart => _blink.Native_SharedWorker_workerStart_Getter(this);
-
-  @DomName('SharedWorker.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SharedWorker_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SharedWorker.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_SharedWorker_dispatchEvent_Callback(this, event);
-
-  @DomName('SharedWorker.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SharedWorker_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -24921,21 +25009,6 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void remove(num start, num end) => _blink.Native_SourceBuffer_remove_Callback(this, start, end);
 
-  @DomName('SourceBuffer.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBuffer_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SourceBuffer.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_SourceBuffer_dispatchEvent_Callback(this, event);
-
-  @DomName('SourceBuffer.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBuffer_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25005,18 +25078,6 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DomName('SourceBufferList.item')
   @DocsEditable()
   SourceBuffer item(int index) => _blink.Native_SourceBufferList_item_Callback(this, index);
-
-  @DomName('SourceBufferList.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBufferList_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SourceBufferList.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_SourceBufferList_dispatchEvent_Callback(this, event);
-
-  @DomName('SourceBufferList.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SourceBufferList_removeEventListener_Callback(this, type, listener, useCapture);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25469,18 +25530,6 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable()
   void stop() => _blink.Native_SpeechRecognition_stop_Callback(this);
 
-  @DomName('SpeechRecognition.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechRecognition_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SpeechRecognition.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_SpeechRecognition_dispatchEvent_Callback(this, event);
-
-  @DomName('SpeechRecognition.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechRecognition_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `audioend` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onaudioend')
   @DocsEditable()
@@ -25696,21 +25745,6 @@ class SpeechSynthesis extends EventTarget {
   @DocsEditable()
   void speak(SpeechSynthesisUtterance utterance) => _blink.Native_SpeechSynthesis_speak_Callback(this, utterance);
 
-  @DomName('SpeechSynthesis.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesis_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SpeechSynthesis.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_SpeechSynthesis_dispatchEvent_Callback(this, event);
-
-  @DomName('SpeechSynthesis.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesis_removeEventListener_Callback(this, type, listener, useCapture);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25876,21 +25910,6 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
   void set volume(num value) => _blink.Native_SpeechSynthesisUtterance_volume_Setter(this, value);
-
-  @DomName('SpeechSynthesisUtterance.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesisUtterance_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('SpeechSynthesisUtterance.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_SpeechSynthesisUtterance_dispatchEvent_Callback(this, event);
-
-  @DomName('SpeechSynthesisUtterance.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_SpeechSynthesisUtterance_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onboundary')
@@ -27082,18 +27101,6 @@ class TextTrack extends EventTarget {
   @Experimental() // untriaged
   void removeRegion(VttRegion region) => _blink.Native_TextTrack_removeRegion_Callback(this, region);
 
-  @DomName('TextTrack.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrack_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('TextTrack.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_TextTrack_dispatchEvent_Callback(this, event);
-
-  @DomName('TextTrack.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrack_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `cuechange` events handled by this [TextTrack].
   @DomName('TextTrack.oncuechange')
   @DocsEditable()
@@ -27170,18 +27177,6 @@ class TextTrackCue extends EventTarget {
   @DomName('TextTrackCue.track')
   @DocsEditable()
   TextTrack get track => _blink.Native_TextTrackCue_track_Getter(this);
-
-  @DomName('TextTrackCue.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackCue_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('TextTrackCue.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_TextTrackCue_dispatchEvent_Callback(this, event);
-
-  @DomName('TextTrackCue.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackCue_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `enter` events handled by this [TextTrackCue].
   @DomName('TextTrackCue.onenter')
@@ -27356,18 +27351,6 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DomName('TextTrackList.item')
   @DocsEditable()
   TextTrack item(int index) => _blink.Native_TextTrackList_item_Callback(this, index);
-
-  @DomName('TextTrackList.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackList_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('TextTrackList.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_TextTrackList_dispatchEvent_Callback(this, event);
-
-  @DomName('TextTrackList.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_TextTrackList_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `addtrack` events handled by this [TextTrackList].
   @DomName('TextTrackList.onaddtrack')
@@ -29080,16 +29063,7 @@ class WebSocket extends EventTarget {
 
   void close([int code, String reason]) => _blink.Native_WebSocket_close(this, code, reason);
 
-  /**
-   * Transmit data to the server over this connection.
-   *
-   * This method accepts data of type [Blob], [ByteBuffer], [String], or
-   * [TypedData]. Named variants [sendBlob], [sendByteBuffer], [sendString],
-   * or [sendTypedData], in constrast, only accept data of the specified type.
-   */
-  @DomName('WebSocket.send')
-  @DocsEditable()
-  void send(data) => _blink.Native_WebSocket_send_Callback(this, data);
+  void send(data) => _blink.Native_WebSocket_send(this, data);
 
   @DomName('WebSocket.sendBlob')
   @DocsEditable()
@@ -29106,18 +29080,6 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.sendTypedData')
   @DocsEditable()
   void sendTypedData(TypedData data) => _blink.Native_WebSocket_sendTypedData_Callback(this, data);
-
-  @DomName('WebSocket.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WebSocket_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('WebSocket.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_WebSocket_dispatchEvent_Callback(this, event);
-
-  @DomName('WebSocket.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WebSocket_removeEventListener_Callback(this, type, listener, useCapture);
 
   /// Stream of `close` events handled by this [WebSocket].
   @DomName('WebSocket.onclose')
@@ -30416,18 +30378,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return completer.future;
   }
 
-  @DomName('Window.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Window_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Window.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) => _blink.Native_Window_dispatchEvent_Callback(this, event);
-
-  @DomName('Window.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Window_removeEventListener_Callback(this, type, listener, useCapture);
-
   @DomName('Window.atob')
   @DocsEditable()
   String atob(String string) => _blink.Native_Window_atob_Callback(this, string);
@@ -30966,21 +30916,6 @@ class Worker extends EventTarget implements AbstractWorker {
   @DocsEditable()
   void terminate() => _blink.Native_Worker_terminate_Callback(this);
 
-  @DomName('Worker.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Worker_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('Worker.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_Worker_dispatchEvent_Callback(this, event);
-
-  @DomName('Worker.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_Worker_removeEventListener_Callback(this, type, listener, useCapture);
-
   /// Stream of `error` events handled by this [Worker].
   @DomName('Worker.onerror')
   @DocsEditable()
@@ -31162,21 +31097,6 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
         (error) { completer.completeError(error); });
     return completer.future;
   }
-
-  @DomName('WorkerGlobalScope.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WorkerGlobalScope_addEventListener_Callback(this, type, listener, useCapture);
-
-  @DomName('WorkerGlobalScope.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) => _blink.Native_WorkerGlobalScope_dispatchEvent_Callback(this, event);
-
-  @DomName('WorkerGlobalScope.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) => _blink.Native_WorkerGlobalScope_removeEventListener_Callback(this, type, listener, useCapture);
 
   @DomName('WorkerGlobalScope.atob')
   @DocsEditable()
@@ -33048,95 +32968,6 @@ abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Helper class to implement custom events which wrap DOM events.
- */
-class _WrappedEvent implements Event {
-  final Event wrapped;
-
-  /** The CSS selector involved with event delegation. */
-  String _selector;
-
-  _WrappedEvent(this.wrapped);
-
-  bool get bubbles => wrapped.bubbles;
-
-  bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
-  EventTarget get currentTarget => wrapped.currentTarget;
-
-  bool get defaultPrevented => wrapped.defaultPrevented;
-
-  int get eventPhase => wrapped.eventPhase;
-
-  EventTarget get target => wrapped.target;
-
-  int get timeStamp => wrapped.timeStamp;
-
-  String get type => wrapped.type;
-
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
-  }
-
-  void preventDefault() {
-    wrapped.preventDefault();
-  }
-
-  void stopImmediatePropagation() {
-    wrapped.stopImmediatePropagation();
-  }
-
-  void stopPropagation() {
-    wrapped.stopPropagation();
-  }
-
-  /**
-   * A pointer to the element whose CSS selector matched within which an event
-   * was fired. If this Event was not associated with any Event delegation,
-   * accessing this value will throw an [UnsupportedError].
-   */
-  Element get matchingTarget {
-    if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
-    }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
-    var matchedTarget;
-    do {
-      if (target.matches(_selector)) return target;
-      target = target.parent;
-    } while (target != null && target != currentTarget.parent);
-    throw new StateError('No selector matched for populating matchedTarget.');
-  }
-
-  /**
-   * This event's path, taking into account shadow DOM.
-   *
-   * ## Other resources
-   *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
-   */
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental()
-  List<Node> get path => wrapped.path;
-
-  dynamic get _get_currentTarget => wrapped._get_currentTarget;
-
-  dynamic get _get_target => wrapped._get_target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37172,7 +37003,8 @@ class _VMElementUpgrader implements ElementUpgrader {
     if (element.runtimeType != _nativeType) {
       throw new UnsupportedError('Element is incorrect type');
     }
-    return _Utils.changeElementWrapper(element, _type);
+    _Utils.changeElementWrapper(element, _type);
+    return null;
   }
 }
 
@@ -37410,6 +37242,91 @@ class Platform {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+
+  /** The CSS selector involved with event delegation. */
+  String _selector;
+
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
+
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    var currentTarget = this.currentTarget;
+    var target = this.target;
+    var matchedTarget;
+    do {
+      if (target.matches(_selector)) return target;
+      target = target.parent;
+    } while (target != null && target != currentTarget.parent);
+    throw new StateError('No selector matched for populating matchedTarget.');
+  }
+
+  /**
+   * This event's path, taking into account shadow DOM.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM extensions to Event]
+   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
+   * W3C.
+   */
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental()
+  List<Node> get path => wrapped.path;
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 _wrapZone(callback(arg)) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
@@ -37630,12 +37547,22 @@ class _Utils {
   /**
    * Header passed in from the Dartium Developer Tools when an expression is
    * evaluated in the console as opposed to the watch window or another context
-   * that does not expect REPL support.
+   * that does not expect REPL support in Dartium 34.
    */
-  static const _CONSOLE_API_SUPPORT_HEADER =
+  static const _CONSOLE_API_SUPPORT_HEADER_34 =
       'with ((console && console._commandLineAPI) || { __proto__: null }) {\n';
+  /**
+   * Header passed in from the Dartium Developer Tools when an expression is
+   * evaluated in the console as opposed to the watch window or another context
+   * that does not expect REPL support in Dartium 35.
+   */
+  static const _CONSOLE_API_SUPPORT_HEADER_35 =
+      'with (__commandLineAPI || { __proto__: null }) {\n';
+
+
   static bool expectsConsoleApi(String expression) {
-    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER_34) == 0 ||
+        expression.indexOf(_CONSOLE_API_SUPPORT_HEADER_35) == 0;
   }
 
   /**
@@ -37650,7 +37577,7 @@ class _Utils {
    * For example:
    * <code>
    * _consoleTempVariables = {'a' : someValue, 'b': someOtherValue}
-   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER}foo + bar + a",
+   * wrapExpressionAsClosure("${_CONSOLE_API_SUPPORT_HEADER35}foo + bar + a",
    *                         ["bar", 40, "foo", 2])
    * </code>
    * will return:

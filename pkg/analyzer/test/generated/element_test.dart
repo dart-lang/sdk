@@ -289,6 +289,47 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
   }
 
+  void test_lookUpInheritedMethod_declared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedMethod_declaredAndInherited() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpInheritedMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedMethod_inherited() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpInheritedMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedMethod_undeclared() {
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedMethod("m", library));
+  }
+
   void test_lookUpMethod_declared() {
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -452,6 +493,22 @@ class ClassElementImplTest extends EngineTestCase {
       _ut.test('test_lookUpGetter_undeclared_recursive', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_lookUpGetter_undeclared_recursive);
+      });
+      _ut.test('test_lookUpInheritedMethod_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedMethod_declared);
+      });
+      _ut.test('test_lookUpInheritedMethod_declaredAndInherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedMethod_declaredAndInherited);
+      });
+      _ut.test('test_lookUpInheritedMethod_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedMethod_inherited);
+      });
+      _ut.test('test_lookUpInheritedMethod_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedMethod_undeclared);
       });
       _ut.test('test_lookUpMethod_declared', () {
         final __test = new ClassElementImplTest();
@@ -1021,6 +1078,15 @@ class ElementLocationImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(encoding, location.encoding);
   }
 
+  /**
+   * For example unnamed constructor.
+   */
+  void test_create_encoding_emptyLast() {
+    String encoding = "a;b;c;";
+    ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
+    JUnitTestCase.assertEquals(encoding, location.encoding);
+  }
+
   void test_equals_equal() {
     String encoding = "a;b;c";
     ElementLocationImpl first = new ElementLocationImpl.con2(encoding);
@@ -1085,6 +1151,10 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_create_encoding', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_create_encoding);
+      });
+      _ut.test('test_create_encoding_emptyLast', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_create_encoding_emptyLast);
       });
       _ut.test('test_equals_equal', () {
         final __test = new ElementLocationImplTest();

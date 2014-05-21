@@ -191,14 +191,16 @@ main() {
       [declaring]
     ]});
 
-    // Start [declaring] running, because its input became available.
     declaring.pauseApply();
     updateSources(["app|foo.in"]);
     // Give the transformers time to declare their assets.
     schedule(pumpEventQueue);
 
+    // Start [declaring] running, because its input became available.
     expectAsset("app|out.one", "app|out.one");
-    expectAssetDoesNotComplete("app|out.three");
+
+    // Make sure we're blocking on [declaring.apply].
+    schedule(pumpEventQueue);
 
     // Now [declaring]'s input is dirty, so it shouldn't re-run without an
     // explicit request.
@@ -217,6 +219,42 @@ main() {
 
     // Now [declaring] should have run twice. This ensures that it didn't use
     // its original output for some reason.
+    expect(declaring.numRuns, completion(equals(2)));
+  });
+
+  test("a declaring transformer following a lazy transformer does re-run if "
+      "its input becomes available, it's forced, and then its input becomes "
+      "unavailable", () {
+    var declaring = new DeclaringRewriteTransformer("two", "three");
+    initGraph(["app|foo.in"], {"app": [
+      [new LazyAssetsTransformer(["app|out.one", "app|out.two"])],
+      [declaring]
+    ]});
+
+    declaring.pauseApply();
+    updateSources(["app|foo.in"]);
+
+    // Give the transformers time to declare their assets.
+    schedule(pumpEventQueue);
+
+    // Start [declaring] running, because its input became available.
+    expectAsset("app|out.one", "app|out.one");
+
+    // This shouldn't complete because [declaring.apply] is paused, but it
+    // should force the transformer.
+    expectAssetDoesNotComplete("app|out.three");
+
+    // Make sure we're blocking on [declaring.apply]
+    schedule(pumpEventQueue);
+
+    // Now [declaring]'s input is dirty, so it shouldn't re-run without an
+    // explicit request.
+    updateSources(["app|foo.in"]);
+    declaring.resumeApply();
+    buildShouldSucceed();
+
+    // [declaring] should have run twice, once for its original input and once
+    // after the input changed because it was forced.
     expect(declaring.numRuns, completion(equals(2)));
   });
 

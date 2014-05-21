@@ -221,6 +221,7 @@ class FlowGraph : public ZoneAllocated {
   friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
+  friend class DeadCodeElimination;
 
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);

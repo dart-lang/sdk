@@ -4,6 +4,9 @@ import "print_to_list.dart";
 import "package:unittest/unittest.dart";
 
 verifyResult(ignored) {
+  test("Verify message translation output", actuallyVerifyResult);
+}
+actuallyVerifyResult() {
   var lineIterator;
   verify(String s) {
     lineIterator.moveNext();

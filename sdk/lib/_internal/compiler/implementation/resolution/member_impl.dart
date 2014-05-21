@@ -15,15 +15,15 @@ class DeclaredMember implements Member {
                  this.declarer,
                  this.type, this.functionType);
 
-  bool get isStatic => !element.isInstanceMember();
+  bool get isStatic => !element.isInstanceMember;
 
-  bool get isGetter => element.isGetter() || (!isSetter && element.isField());
+  bool get isGetter => element.isGetter || (!isSetter && element.isField);
 
   bool get isSetter => name.isSetter;
 
-  bool get isMethod => element.isFunction();
+  bool get isMethod => element.isFunction;
 
-  bool get isDeclaredByField => element.isField();
+  bool get isDeclaredByField => element.isField;
 
   bool get isAbstract => false;
 

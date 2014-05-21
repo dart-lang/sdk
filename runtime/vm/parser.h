@@ -291,7 +291,7 @@ class Parser : public ValueObject {
   void SkipFunctionPreamble();
 
   void CheckConstructorCallTypeArguments(intptr_t pos,
-                                         Function& constructor,
+                                         const Function& constructor,
                                          const TypeArguments& type_arguments);
 
   // A null script means no source and a negative token_pos means no position.
@@ -436,7 +436,7 @@ class Parser : public ValueObject {
   AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
   static void SetupDefaultsForOptionalParams(const ParamList* params,
-                                             Array& default_values);
+                                             Array* default_values);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          intptr_t token_pos,
                                          AstNode* receiver);
@@ -445,9 +445,9 @@ class Parser : public ValueObject {
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func,
-                                 Array& default_parameter_values);
+                                 Array* default_parameter_values);
   SequenceNode* ParseFunc(const Function& func,
-                          Array& default_parameter_values);
+                          Array* default_parameter_values);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -457,12 +457,12 @@ class Parser : public ValueObject {
   SequenceNode* ParseStaticInitializer(const Function& func);
   SequenceNode* ParseMethodExtractor(const Function& func);
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
-                                            Array& default_values);
+                                            Array* default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
-                                           Array& default_values);
+                                           Array* default_values);
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
-                            Array& default_values);
+                            Array* default_values);
 
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();

@@ -2363,11 +2363,14 @@ void Assembler::PopRegister(Register r) {
 
 
 void Assembler::AddImmediate(Register reg, const Immediate& imm, Register pp) {
-  int64_t value = imm.value();
-  if (value > 0) {
+  const int64_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt64)) {
     if (value == 1) {
       incq(reg);
-    } else if (value != 0) {
+    } else {
       if (CanLoadImmediateFromPool(imm, pp)) {
         ASSERT(reg != TMP);
         LoadImmediate(TMP, imm, pp);
@@ -2376,31 +2379,22 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm, Register pp) {
         addq(reg, imm);
       }
     }
-  } else if (value < 0) {
-    value = -value;
-    if (value == 1) {
-      decq(reg);
-    } else if (value != 0) {
-      const Immediate& s = Immediate(value);
-      if (CanLoadImmediateFromPool(s, pp)) {
-        ASSERT(reg != TMP);
-        LoadImmediate(TMP, s, pp);
-        subq(reg, TMP);
-      } else {
-        subq(reg, Immediate(value));
-      }
-    }
+  } else {
+    SubImmediate(reg, Immediate(-value), pp);
   }
 }
 
 
 void Assembler::AddImmediate(const Address& address, const Immediate& imm,
                              Register pp) {
-  int64_t value = imm.value();
-  if (value > 0) {
+  const int64_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt64)) {
     if (value == 1) {
       incq(address);
-    } else if (value != 0) {
+    } else {
       if (CanLoadImmediateFromPool(imm, pp)) {
         LoadImmediate(TMP, imm, pp);
         addq(address, TMP);
@@ -2408,19 +2402,54 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm,
         addq(address, imm);
       }
     }
-  } else if (value < 0) {
-    value = -value;
+  } else {
+    SubImmediate(address, Immediate(-value), pp);
+  }
+}
+
+
+void Assembler::SubImmediate(Register reg, const Immediate& imm, Register pp) {
+  const int64_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt64)) {
     if (value == 1) {
-      decq(address);
-    } else if (value != 0) {
-      const Immediate& s = Immediate(value);
-      if (CanLoadImmediateFromPool(s, pp)) {
-        LoadImmediate(TMP, s, pp);
-        subq(address, TMP);
+      decq(reg);
+    } else {
+      if (CanLoadImmediateFromPool(imm, pp)) {
+        ASSERT(reg != TMP);
+        LoadImmediate(TMP, imm, pp);
+        subq(reg, TMP);
       } else {
-        subq(address, s);
+        subq(reg, imm);
       }
     }
+  } else {
+    AddImmediate(reg, Immediate(-value), pp);
+  }
+}
+
+
+void Assembler::SubImmediate(const Address& address, const Immediate& imm,
+                             Register pp) {
+  const int64_t value = imm.value();
+  if (value == 0) {
+    return;
+  }
+  if ((value > 0) || (value == kMinInt64)) {
+    if (value == 1) {
+      decq(address);
+    } else {
+      if (CanLoadImmediateFromPool(imm, pp)) {
+        LoadImmediate(TMP, imm, pp);
+        subq(address, TMP);
+      } else {
+        subq(address, imm);
+      }
+    }
+  } else {
+    AddImmediate(address, Immediate(-value), pp);
   }
 }
 

@@ -1980,7 +1980,7 @@ void setup() {
 
   compiler = new MockCompiler(coreSource: CORE_SOURCE);
   types = compiler.types;
-  voidType = compiler.types.voidType;
+  voidType = const VoidType();
   intType = compiler.intClass.computeType(compiler);
   doubleType = compiler.doubleClass.computeType(compiler);
   boolType = compiler.boolClass.computeType(compiler);
@@ -2013,7 +2013,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
        !elements.isEmpty;
        elements = elements.tail) {
     element = elements.head;
-    if (element.isClass()) {
+    if (element.isClass) {
       ClassElement classElement = element;
       classElement.ensureResolved(compiler);
       classElement.forEachLocalMember((Element e) {
@@ -2059,8 +2059,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   Node node = listener.popNode();
   Element compilationUnit =
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
-  Element function = new FunctionElementX(
-      '', ElementKind.FUNCTION, Modifiers.EMPTY, compilationUnit, false);
+  Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);

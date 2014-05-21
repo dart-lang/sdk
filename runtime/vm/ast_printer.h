@@ -18,8 +18,6 @@ class AstPrinter : public AstNodeVisitor {
   static void PrintNode(AstNode* node);
   static void PrintFunctionScope(const ParsedFunction& parsed_function);
   static void PrintFunctionNodes(const ParsedFunction& parsed_function);
-  static void PrintLocalScope(const LocalScope* scope, int variable_index);
-
 
 #define DECLARE_VISITOR_FUNCTION(BaseName)                                     \
   virtual void Visit##BaseName##Node(BaseName##Node* node);
@@ -30,6 +28,10 @@ class AstPrinter : public AstNodeVisitor {
  private:
   AstPrinter();
   ~AstPrinter();
+
+  static void PrintLocalScopeVariable(const LocalScope* scope,
+                                      LocalVariable* var);
+  static void PrintLocalScope(const LocalScope* scope, int variable_index);
 
   void VisitGenericAstNode(AstNode* node);
   void VisitGenericLocalNode(AstNode* node, const LocalVariable& local);

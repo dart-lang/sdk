@@ -14,6 +14,7 @@ void main() {
   test(new MapView(new HashMap()));
   test(new MapView(new SplayTreeMap()));
   test(new MapBaseMap());
+  test(new MapMixinMap());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -28,6 +29,7 @@ void main() {
   testWeirdStringKeys(new SplayTreeMap());
   testWeirdStringKeys(new SplayTreeMap<String, String>());
   testWeirdStringKeys(new MapBaseMap<String, String>());
+  testWeirdStringKeys(new MapMixinMap<String, String>());
 
   testNumericKeys(new Map());
   testNumericKeys(new Map<num, String>());
@@ -40,6 +42,7 @@ void main() {
   testNumericKeys(new LinkedHashMap.identity());
   testNumericKeys(new LinkedHashMap<num, String>.identity());
   testNumericKeys(new MapBaseMap<num, String>());
+  testNumericKeys(new MapMixinMap<num, String>());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -48,6 +51,7 @@ void main() {
   testNaNKeys(new LinkedHashMap());
   testNaNKeys(new LinkedHashMap<num, String>());
   testNaNKeys(new MapBaseMap<num, String>());
+  testNaNKeys(new MapMixinMap<num, String>());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -96,6 +100,7 @@ void main() {
                                   hashCode: (int v) => v.hashCode,
                                   isValidKey: (v) => v is int));
   testOtherKeys(new MapBaseMap<int, int>());
+  testOtherKeys(new MapMixinMap<int, int>());
 
   testUnmodifiableMap(const {1 : 37});
   testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
@@ -775,7 +780,7 @@ class Mutable {
 
 
 // Slow implementation of Map based on MapBase.
-class MapBaseMap<K, V> extends MapBase<K, V> {
+abstract class MapBaseOperations<K, V> {
   final List _keys = <K>[];
   final List _values = <V>[];
   int _modCount = 0;
@@ -823,6 +828,9 @@ class MapBaseMap<K, V> extends MapBase<K, V> {
     _modCount++;
   }
 }
+
+class MapBaseMap<K, V> = MapBase<K, V> with MapBaseOperations<K, V>;
+class MapMixinMap<K, V> = MapBaseOperations<K, V> with MapMixin<K, V>;
 
 class TestKeyIterable<K> extends IterableBase<K> {
   final _map;

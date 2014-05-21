@@ -142,9 +142,10 @@ def main():
     if options.unchecked: checkmodes.append('unchecked')
     if options.checked: checkmodes.append('checked')
 
+  # We are in src/dart/tools/dartium/test.py.
   pathname = os.path.dirname(sys.argv[0])
   fullpath = os.path.abspath(pathname)
-  srcpath = os.path.normpath(os.path.join(fullpath, '..'))
+  srcpath = os.path.normpath(os.path.join(fullpath, '..', '..', '..'))
 
   test_mode = ''
   timeout = 30000

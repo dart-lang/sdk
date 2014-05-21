@@ -66,6 +66,19 @@ bool LocalScope::AddVariable(LocalVariable* variable) {
 }
 
 
+bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
+  ASSERT(parameter != NULL);
+  if (LocalLookupVariable(parameter->name()) != NULL) {
+    return false;
+  }
+  variables_.InsertAt(pos, parameter);
+  // InsertParameterAt is not used to add aliases of parameters.
+  ASSERT(parameter->owner() == NULL);
+  parameter->set_owner(this);
+  return true;
+}
+
+
 bool LocalScope::AddLabel(SourceLabel* label) {
   if (LocalLookupLabel(label->name()) != NULL) {
     return false;
@@ -171,6 +184,10 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
     pos++;
+    // Parsing formal parameter default values may add local variable aliases
+    // to the local scope before the formal parameters are added. However,
+    // the parameters get inserted in front of the aliases, therefore, no
+    // aliases can be encountered among the first num_parameters variables.
     ASSERT(parameter->owner() == this);
     if (parameter->is_captured()) {
       // A captured parameter has a slot allocated in the frame and one in the
