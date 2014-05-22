@@ -5,6 +5,8 @@
 part of dart2js;
 
 abstract class ConstantVisitor<R> {
+  const ConstantVisitor();
+
   R visitFunction(FunctionConstant constant);
   R visitNull(NullConstant constant);
   R visitInt(IntConstant constant);

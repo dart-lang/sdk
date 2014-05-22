@@ -725,11 +725,18 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
+  bool isSupportedConst(Constant constant) {
+    return const SupportedConstantVisitor().visit(constant);
+  }
+
   ir.Primitive visitLiteralList(ast.LiteralList node) {
     assert(isOpen);
     ir.Primitive result;
     if (node.isConst) {
-      result = new ir.Constant(getConstantForNode(node));
+      // TODO(sigurdm): Remove when all constants are supported.
+      Constant constant = getConstantForNode(node);
+      if (!isSupportedConst(constant)) return giveup();
+      result = new ir.Constant(constant);
     } else {
       List<ir.Primitive> values = new List<ir.Primitive>();
       node.elements.nodes.forEach((ast.Node node) {
@@ -745,7 +752,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     ir.Primitive result;
     if (node.isConst) {
-      result = new ir.Constant(getConstantForNode(node));
+      // TODO(sigurdm): Remove when all constants are supported.
+      Constant constant = getConstantForNode(node);
+      if (!isSupportedConst(constant)) return giveup();
+      result = new ir.Constant(constant);
     } else {
       List<ir.Primitive> keys = new List<ir.Primitive>();
       List<ir.Primitive> values = new List<ir.Primitive>();
@@ -1128,6 +1138,32 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   void internalError(String reason, {ast.Node node}) {
     giveup();
   }
+}
+
+// While we don't support all constants we need to filter out the unsupported
+// ones:
+class SupportedConstantVisitor extends ConstantVisitor<bool> {
+  const SupportedConstantVisitor();
+
+  bool visit(Constant constant) => constant.accept(this);
+  bool visitFunction(FunctionConstant constant) => false;
+  bool visitNull(NullConstant constant) => true;
+  bool visitInt(IntConstant constant) => true;
+  bool visitDouble(DoubleConstant constant) => true;
+  bool visitTrue(TrueConstant constant) => true;
+  bool visitFalse(FalseConstant constant) => true;
+  bool visitString(StringConstant constant) => true;
+  bool visitList(ListConstant constant) {
+    return constant.entries.every(visit);
+  }
+  bool visitMap(MapConstant constant) {
+    return visit(constant.keys) && constant.values.every(visit);
+  }
+  bool visitConstructed(ConstructedConstant constant) => false;
+  bool visitType(TypeConstant constant) => false;
+  bool visitInterceptor(InterceptorConstant constant) => false;
+  bool visitDummy(DummyConstant constant) => false;
+  bool visitDeferred(DeferredConstant constant) => false;
 }
 
 // Verify that types are ones that can be reconstructed by the type emitter.
