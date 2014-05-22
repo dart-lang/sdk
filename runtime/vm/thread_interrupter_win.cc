@@ -16,11 +16,11 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 
 class ThreadInterrupterWin : public AllStatic {
  public:
-  static bool GrabRegisters(ThreadId thread, InterruptedThreadState* state) {
+  static bool GrabRegisters(HANDLE handle, InterruptedThreadState* state) {
     CONTEXT context;
     memset(&context, 0, sizeof(context));
     context.ContextFlags = CONTEXT_FULL;
-    if (GetThreadContext(thread, &context) != 0) {
+    if (GetThreadContext(handle, &context) != 0) {
 #if defined(TARGET_ARCH_IA32)
       state->pc = static_cast<uintptr_t>(context.Eip);
       state->fp = static_cast<uintptr_t>(context.Ebp);
@@ -39,33 +39,42 @@ class ThreadInterrupterWin : public AllStatic {
 
 
   static void Interrupt(InterruptableThreadState* state) {
-    ASSERT(GetCurrentThread() != state->id);
-    DWORD result = SuspendThread(state->id);
+    ASSERT(!Thread::Compare(GetCurrentThreadId(), state->id));
+    HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
+                               THREAD_SUSPEND_RESUME,
+                               false,
+                               state->id);
+    ASSERT(handle != NULL);
+    DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupted failed to suspend thread %p\n",
                   reinterpret_cast<void*>(state->id));
       }
+      CloseHandle(handle);
       return;
     }
     InterruptedThreadState its;
     its.tid = state->id;
-    if (!GrabRegisters(state->id, &its)) {
+    if (!GrabRegisters(handle, &its)) {
       // Failed to get thread registers.
-      ResumeThread(state->id);
+      ResumeThread(handle);
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupted failed to get registers for %p\n",
                   reinterpret_cast<void*>(state->id));
       }
+      CloseHandle(handle);
       return;
     }
     if (state->callback == NULL) {
       // No callback registered.
-      ResumeThread(state->id);
+      ResumeThread(handle);
+      CloseHandle(handle);
       return;
     }
     state->callback(its, state->data);
-    ResumeThread(state->id);
+    ResumeThread(handle);
+    CloseHandle(handle);
   }
 };
 

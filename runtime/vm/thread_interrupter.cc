@@ -86,25 +86,28 @@ void ThreadInterrupter::Startup() {
 
 
 void ThreadInterrupter::Shutdown() {
-  if (shutdown_) {
-    // Already shutdown.
-    return;
-  }
-  ASSERT(initialized_);
-  if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter shutting down.\n");
-  }
-  {
-    MonitorLocker ml(monitor_);
-    shutdown_ = true;
-  }
   {
     MonitorLocker shutdown_ml(monitor_);
+    if (shutdown_) {
+      // Already shutdown.
+      return;
+    }
+    shutdown_ = true;
+    ASSERT(initialized_);
+    if (FLAG_trace_thread_interrupter) {
+      OS::Print("ThreadInterrupter shutting down.\n");
+    }
     while (thread_running_) {
       shutdown_ml.Wait();
     }
+    // Join in the interrupter thread. On Windows, a thread's exit-code can
+    // leak into the process's exit-code, if exiting 'at same time' as the
+    // process ends.
+    if (interrupter_thread_id_ != Thread::kInvalidThreadId) {
+      Thread::Join(interrupter_thread_id_);
+      interrupter_thread_id_ = Thread::kInvalidThreadId;
+    }
   }
-  interrupter_thread_id_ = Thread::kInvalidThreadId;
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter shut down.\n");
   }
@@ -234,8 +237,8 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    thread_running_ = true;
     interrupter_thread_id_ = Thread::GetCurrentThreadId();
+    thread_running_ = true;
     startup_ml.Notify();
   }
   {
