@@ -10,6 +10,11 @@ part of dart.collection;
  * All other methods are implemented in terms of `iterator`.
  */
 abstract class IterableMixin<E> implements Iterable<E> {
+  // This class has methods copied verbatim into:
+  // - IterableBase
+  // - SetMixin
+  // If changing a method here, also change the other copies.
+
   Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);

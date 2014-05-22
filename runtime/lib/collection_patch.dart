@@ -634,10 +634,6 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     }
   }
 
-  void retainAll(Iterable<Object> objectsToRetain) {
-    super._retainAll(objectsToRetain, (o) => o is E);
-  }
-
   void _filterWhere(bool test(E element), bool removeMatching) {
     int length = _buckets.length;
     for (int index =  0; index < length; index++) {
@@ -755,10 +751,6 @@ class _CustomHashSet<E> extends _HashSet<E> {
         super._remove(element, _hasher(element));
       }
     }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
   }
 
   bool _equals(e1, e2) => _equality(e1, e2);
@@ -1223,10 +1215,6 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
         super._remove(element, _hasher(element));
       }
     }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
   }
 
   HashSet<E> _newSet() =>

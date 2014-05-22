@@ -639,8 +639,7 @@ class _SplayTreeNodeIterator<K>
  * method. Non-comparable objects (including `null`) will not work as an element
  * in that case.
  */
-class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
-                      implements Set<E> {
+class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
   Comparator _comparator;
   _Predicate _validKey;
 
@@ -683,18 +682,18 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
   bool get isNotEmpty => _root != null;
 
   E get first {
-    if (_count == 0) throw new StateError("no such element");
+    if (_count == 0) throw IterableElementError.noElement();
     return _first.key;
   }
 
   E get last {
-    if (_count == 0) throw new StateError("no such element");
+    if (_count == 0) throw IterableElementError.noElement();
     return _last.key;
   }
 
   E get single {
-    if (_count == 0) throw new StateError("no such element");
-    if (_count > 1) throw new StateError("too many elements");
+    if (_count == 0) throw IterableElementError.noElement();
+    if (_count > 1) throw IterableElementError.tooMany();
     return _root.key;
   }
 
@@ -730,9 +729,6 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
     }
   }
 
-  /**
-   * Removes all elements not in [elements].
-   */
   void retainAll(Iterable<Object> elements) {
     // Build a set with the same sense of equality as this set.
     SplayTreeSet<E> retainSet = new SplayTreeSet<E>(_comparator, _validKey);
@@ -751,30 +747,6 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
       _count = retainSet._count;
       _modificationCount++;
     }
-  }
-
-  void _filterWhere(bool test(E element), bool removeMatching) {
-    _SplayTreeNodeIterator it = new _SplayTreeNodeIterator(this);
-    while (it.moveNext()) {
-      _SplayTreeNode node = it.current;
-      int modificationCount = _modificationCount;
-      bool matches = test(node.key);
-      if (modificationCount != _modificationCount) {
-        throw new ConcurrentModificationError(this);
-      }
-      if (matches == removeMatching) {
-        _remove(node.key);
-        it = new _SplayTreeNodeIterator.startAt(this, node.key);
-      }
-    }
-  }
-
-  void removeWhere(bool test(E element)) {
-    _filterWhere(test, true);
-  }
-
-  void retainWhere(bool test(E element)) {
-    _filterWhere(test, false);
   }
 
   E lookup(Object object) {
@@ -815,13 +787,6 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
     if (node == null) return null;
     return new _SplayTreeNode<E>(node.key)..left = _cloneNode(node.left)
                                           ..right = _cloneNode(node.right);
-  }
-
-  bool containsAll(Iterable<Object> other) {
-    for (var element in other) {
-      if (!this.contains(element)) return false;
-    }
-    return true;
   }
 
   void clear() { _clear(); }

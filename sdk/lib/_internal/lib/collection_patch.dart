@@ -1126,24 +1126,6 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     return true;
   }
 
-  void removeAll(Iterable<Object> objectsToRemove) {
-    for (var each in objectsToRemove) {
-      remove(each);
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, (o) => o is E);
-  }
-
-  void removeWhere(bool test(E element)) {
-    removeAll(_computeElements().where(test));
-  }
-
-  void retainWhere(bool test(E element)) {
-    removeAll(_computeElements().where((E element) => !test(element)));
-  }
-
   void clear() {
     if (_length > 0) {
       _strings = _nums = _rest = _elements = null;
@@ -1347,25 +1329,6 @@ class _CustomHashSet<E> extends _HashSet<E> {
     if (!_validKey(object)) return false;
     return super._remove(object);
   }
-
-  bool containsAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (!_validKey(element) || !this.contains(element)) return false;
-    }
-    return true;
-  }
-
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (_validKey(element)) {
-        super._remove(element);
-      }
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
-  }
 }
 
 // TODO(kasperl): Share this code with HashMapKeyIterator<E>?
@@ -1568,12 +1531,6 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     return true;
   }
 
-  void addAll(Iterable<E> objects) {
-    for (E object in objects) {
-      add(object);
-    }
-  }
-
   bool remove(Object object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
@@ -1595,16 +1552,6 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
     _unlinkCell(cell);
     return true;
-  }
-
-  void removeAll(Iterable objectsToRemove) {
-    for (var each in objectsToRemove) {
-      remove(each);
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, (o) => o is E);
   }
 
   void removeWhere(bool test(E element)) {
@@ -1838,10 +1785,6 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
         super._remove(element);
       }
     }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
   }
 }
 

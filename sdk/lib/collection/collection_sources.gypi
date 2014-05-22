@@ -18,6 +18,7 @@
     'list.dart',
     'maps.dart',
     'queue.dart',
+    'set.dart',
     'splay_tree.dart',
   ],
 }
