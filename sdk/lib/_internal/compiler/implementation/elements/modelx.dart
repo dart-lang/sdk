@@ -61,7 +61,7 @@ abstract class ElementX extends Element {
     return null;
   }
 
-  void addMetadata(MetadataAnnotationX annotation) {
+  void addMetadata(MetadataAnnotation annotation) {
     assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
     addMetadataInternal(annotation);
@@ -202,9 +202,6 @@ abstract class ElementX extends Element {
 
   Element get outermostEnclosingMemberOrTopLevel {
     // TODO(lrn): Why is this called "Outermost"?
-    // TODO(johnniwinther): Clean up this method: This method does not return
-    // the outermost for elements in closure classses, but some call-sites rely
-    // on that behavior.
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isMember || e.isTopLevel) {
         return e;
@@ -265,9 +262,7 @@ abstract class ElementX extends Element {
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
-  TreeElements get treeElements => analyzableElement.treeElements;
-
-  AnalyzableElement get analyzableElement => outermostEnclosingMemberOrTopLevel;
+  TreeElements get treeElements => enclosingElement.treeElements;
 }
 
 /**
@@ -548,7 +543,7 @@ class ScopeX {
   }
 }
 
-class CompilationUnitElementX extends ElementX
+class CompilationUnitElementX extends ElementX with AnalyzableElement
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -616,8 +611,6 @@ class CompilationUnitElementX extends ElementX
     if (this == other) return 0;
     return '${script.readableUri}'.compareTo('${other.script.readableUri}');
   }
-
-  Element get analyzableElement => library;
 
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
 }
@@ -730,7 +723,7 @@ class ImportScope {
 }
 
 class LibraryElementX
-    extends ElementX with AnalyzableElementX, PatchMixin<LibraryElementX>
+    extends ElementX with AnalyzableElement, PatchMixin<LibraryElementX>
     implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
@@ -780,8 +773,6 @@ class LibraryElementX
   }
 
   CompilationUnitElement get compilationUnit => entryCompilationUnit;
-
-  Element get analyzableElement => this;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -1017,7 +1008,7 @@ class PrefixElementX extends ElementX implements PrefixElement {
 }
 
 class TypedefElementX extends ElementX
-    with AnalyzableElementX, TypeDeclarationElementX<TypedefType>
+    with AnalyzableElement, TypeDeclarationElementX<TypedefType>
     implements TypedefElement {
   Typedef cachedNode;
 
@@ -1100,7 +1091,7 @@ class VariableList {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX with AnalyzableElementX
+class VariableElementX extends ElementX with AnalyzableElement
     implements VariableElement {
   final Token token;
   final VariableList variables;
@@ -1456,7 +1447,7 @@ class FunctionSignatureX implements FunctionSignature {
 }
 
 abstract class FunctionElementX
-    extends ElementX with AnalyzableElementX, PatchMixin<FunctionElement>
+    extends ElementX with AnalyzableElement, PatchMixin<FunctionElement>
     implements FunctionElement {
   DartType typeCache;
   final Modifiers modifiers;
@@ -1821,7 +1812,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 }
 
 abstract class BaseClassElementX extends ElementX
-    with AnalyzableElementX,
+    with AnalyzableElement,
          TypeDeclarationElementX<InterfaceType>,
          PatchMixin<ClassElement>,
          ClassMemberMixin
