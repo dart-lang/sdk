@@ -254,8 +254,8 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
     Setlet<E> result = new Setlet<E>();
     if (_extra == null) {
       result._contents = _contents;
-    } else if (_extra == MARKER) {
-      result._extra = MARKER;
+    } else if (_extra == _MARKER) {
+      result._extra = _MARKER;
       result._contents = _contents.toSet();
     } else {
       result._extra = _extra;
