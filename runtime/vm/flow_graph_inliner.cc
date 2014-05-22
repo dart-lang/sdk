@@ -51,11 +51,12 @@ DEFINE_FLAG(bool, inline_recursive, true,
     "Inline recursive calls.");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
 
+DECLARE_FLAG(bool, compiler_stats);
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, verify_compiler);
-DECLARE_FLAG(bool, compiler_stats);
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -1663,6 +1664,11 @@ void FlowGraphInliner::Inline() {
   const Function& top = flow_graph_->parsed_function().function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
+    return;
+  }
+
+  if (FLAG_enable_type_checks) {
+    // TODO(srdjan): Fix out-of-memory crash in checked mode.
     return;
   }
 
