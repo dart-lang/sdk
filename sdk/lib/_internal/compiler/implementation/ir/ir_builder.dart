@@ -748,6 +748,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return receiver;
   }
 
+  ir.Primitive lookupLocal(Element element) {
+    int index = variableIndex[element];
+    ir.Primitive value = assignedVars[index];
+    return value == null ? freeVars[index] : value;
+  }
+
   // ==== Sends ====
   ir.Primitive visitAssert(ast.Send node) {
     assert(isOpen);
@@ -761,7 +767,31 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitClosureSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    Selector closureSelector = elements.getSelector(node);
+    Selector namedCallSelector = new Selector(closureSelector.kind,
+                     "call",
+                     closureSelector.library,
+                     closureSelector.argumentCount,
+                     closureSelector.namedArguments);
+    assert(node.receiver == null);
+    Element element = elements[node];
+    ir.Primitive closureTarget;
+    if (element == null) {
+      closureTarget = visit(node.selector);
+    } else {
+      assert(Elements.isLocal(element));
+      closureTarget = lookupLocal(element);
+    }
+    List<ir.Primitive> arguments = new List<ir.Primitive>();
+    for (ast.Node n in node.arguments) {
+      arguments.add(visit(n));
+    }
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.Expression invoke =
+        new ir.InvokeMethod(closureTarget, namedCallSelector, k, arguments);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
   ir.Primitive visitDynamicSend(ast.Send node) {
@@ -771,8 +801,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     Selector selector = elements.getSelector(node);
     ir.Primitive receiver = visit(node.receiver);
-    List arguments = node.arguments.toList(growable:false)
-                         .map(visit).toList(growable:false);
+    List<ir.Primitive> arguments = new List<ir.Primitive>();
+    for (ast.Node n in node.arguments) {
+      arguments.add(visit(n));
+    }
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
@@ -785,9 +817,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     if (Elements.isLocal(element)) {
-      int index = variableIndex[element];
-      ir.Primitive value = assignedVars[index];
-      return value == null ? freeVars[index] : value;
+      return lookupLocal(element);
     } else if (element == null || Elements.isInstanceField(element)) {
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);

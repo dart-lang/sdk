@@ -225,6 +225,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List<Argument> args = emitArguments(exp);
     switch (exp.selector.kind) {
       case SelectorKind.CALL:
+        if (exp.selector.name == "call") {
+          return new CallFunction(receiver, args);
+        }
         return new CallMethod(receiver, exp.selector.name, args);
 
       case SelectorKind.OPERATOR:
