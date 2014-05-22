@@ -1042,6 +1042,25 @@ abstract class ClassElement implements Element {
   bool get isValidMixin;
 
   /**
+   * Return the element representing the method that results from looking up the given method in
+   * this class with respect to the given library, ignoring abstract methods, or `null` if the
+   * look up fails. The behavior of this method is defined by the Dart Language Specification in
+   * section 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with
+   * respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in this class with respect to the given
+   *         library
+   */
+  MethodElement lookUpConcreteMethod(String methodName, LibraryElement library);
+
+  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or `null` if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
@@ -1060,6 +1079,65 @@ abstract class ClassElement implements Element {
    *         library
    */
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
+
+  /**
+   * Return the element representing the getter that results from looking up the given getter in the
+   * superclass of this class with respect to the given library, ignoring abstract getters, or
+   * `null` if the look up fails. The behavior of this method is defined by the Dart Language
+   * Specification in section 12.15.1: <blockquote>The result of looking up getter (respectively
+   * setter) <i>m</i> in class <i>C</i> with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param getterName the name of the getter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given getter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpInheritedConcreteGetter(String getterName, LibraryElement library);
+
+  /**
+   * Return the element representing the method that results from looking up the given method in the
+   * superclass of this class with respect to the given library, ignoring abstract methods, or
+   * `null` if the look up fails. The behavior of this method is defined by the Dart Language
+   * Specification in section 12.15.1: <blockquote> The result of looking up method <i>m</i> in
+   * class <i>C</i> with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in the superclass of this class with respect
+   *         to the given library
+   */
+  MethodElement lookUpInheritedConcreteMethod(String methodName, LibraryElement library);
+
+  /**
+   * Return the element representing the setter that results from looking up the given setter in the
+   * superclass of this class with respect to the given library, ignoring abstract setters, or
+   * `null` if the look up fails. The behavior of this method is defined by the Dart Language
+   * Specification in section 12.16: <blockquote> The result of looking up getter (respectively
+   * setter) <i>m</i> in class <i>C</i> with respect to library <i>L</i> is:
+   * * If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.
+   * </blockquote>
+   *
+   * @param setterName the name of the setter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given setter in this class with respect to the given
+   *         library
+   */
+  PropertyAccessorElement lookUpInheritedConcreteSetter(String setterName, LibraryElement library);
 
   /**
    * Return the element representing the method that results from looking up the given method in the
@@ -1406,32 +1484,19 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
 
   @override
-  PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin in currentElement.mixins) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          element = mixinElement.getGetter(getterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-    }
-    return null;
-  }
+  MethodElement lookUpConcreteMethod(String methodName, LibraryElement library) => _internalLookUpConcreteMethod(methodName, library, true);
+
+  @override
+  PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) => _internalLookUpGetter(getterName, library, true);
+
+  @override
+  PropertyAccessorElement lookUpInheritedConcreteGetter(String getterName, LibraryElement library) => _internalLookUpConcreteGetter(getterName, library, false);
+
+  @override
+  MethodElement lookUpInheritedConcreteMethod(String methodName, LibraryElement library) => _internalLookUpConcreteMethod(methodName, library, false);
+
+  @override
+  PropertyAccessorElement lookUpInheritedConcreteSetter(String setterName, LibraryElement library) => _internalLookUpConcreteSetter(setterName, library, false);
 
   @override
   MethodElement lookUpInheritedMethod(String methodName, LibraryElement library) => _internalLookUpMethod(methodName, library, false);
@@ -1440,32 +1505,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   MethodElement lookUpMethod(String methodName, LibraryElement library) => _internalLookUpMethod(methodName, library, true);
 
   @override
-  PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
-    ClassElement currentElement = this;
-    while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      visitedClasses.add(currentElement);
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-      for (InterfaceType mixin in currentElement.mixins) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          element = mixinElement.getSetter(setterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-    }
-    return null;
-  }
+  PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) => _internalLookUpSetter(setterName, library, true);
 
   /**
    * Set whether this class is abstract to correspond to the given value.
@@ -1624,6 +1664,74 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
+  PropertyAccessorElement _internalLookUpConcreteGetter(String getterName, LibraryElement library, bool includeThisClass) {
+    PropertyAccessorElement getter = _internalLookUpGetter(getterName, library, includeThisClass);
+    while (getter != null && getter.isAbstract) {
+      Element definingClass = getter.enclosingElement;
+      if (definingClass is! ClassElementImpl) {
+        return null;
+      }
+      getter = (definingClass as ClassElementImpl)._internalLookUpGetter(getterName, library, false);
+    }
+    return getter;
+  }
+
+  MethodElement _internalLookUpConcreteMethod(String methodName, LibraryElement library, bool includeThisClass) {
+    MethodElement method = _internalLookUpMethod(methodName, library, includeThisClass);
+    while (method != null && method.isAbstract) {
+      ClassElement definingClass = method.enclosingElement;
+      if (definingClass == null) {
+        return null;
+      }
+      method = definingClass.lookUpInheritedMethod(methodName, library);
+    }
+    return method;
+  }
+
+  PropertyAccessorElement _internalLookUpConcreteSetter(String setterName, LibraryElement library, bool includeThisClass) {
+    PropertyAccessorElement setter = _internalLookUpSetter(setterName, library, includeThisClass);
+    while (setter != null && setter.isAbstract) {
+      Element definingClass = setter.enclosingElement;
+      if (definingClass is! ClassElementImpl) {
+        return null;
+      }
+      setter = (definingClass as ClassElementImpl)._internalLookUpSetter(setterName, library, false);
+    }
+    return setter;
+  }
+
+  PropertyAccessorElement _internalLookUpGetter(String getterName, LibraryElement library, bool includeThisClass) {
+    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      PropertyAccessorElement element = currentElement.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin in currentElement.mixins) {
+        ClassElement mixinElement = mixin.element;
+        if (mixinElement != null) {
+          PropertyAccessorElement element = mixinElement.getGetter(getterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.element;
+      PropertyAccessorElement element = currentElement.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   MethodElement _internalLookUpMethod(String methodName, LibraryElement library, bool includeThisClass) {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
@@ -1649,6 +1757,38 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
       currentElement = supertype.element;
       MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  PropertyAccessorElement _internalLookUpSetter(String setterName, LibraryElement library, bool includeThisClass) {
+    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    ClassElement currentElement = this;
+    if (includeThisClass) {
+      PropertyAccessorElement element = currentElement.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    while (currentElement != null && visitedClasses.add(currentElement)) {
+      for (InterfaceType mixin in currentElement.mixins) {
+        ClassElement mixinElement = mixin.element;
+        if (mixinElement != null) {
+          PropertyAccessorElement element = mixinElement.getSetter(setterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
+        }
+      }
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
+        return null;
+      }
+      currentElement = supertype.element;
+      PropertyAccessorElement element = currentElement.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }

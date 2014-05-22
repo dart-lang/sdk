@@ -3075,7 +3075,7 @@ class CatchClause extends AstNode {
    * The type of exceptions caught by this catch clause, or `null` if this catch clause
    * catches every type of exception.
    */
-  TypeName exceptionType;
+  TypeName _exceptionType;
 
   /**
    * The token representing the 'catch' keyword, or `null` if there is no 'catch' keyword.
@@ -3128,7 +3128,7 @@ class CatchClause extends AstNode {
    * @param body the body of the catch block
    */
   CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, this.comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
-    this.exceptionType = becomeParentOf(exceptionType);
+    this._exceptionType = becomeParentOf(exceptionType);
     this._leftParenthesis = leftParenthesis;
     this._exceptionParameter = becomeParentOf(exceptionParameter);
     this._stackTraceParameter = becomeParentOf(stackTraceParameter);
@@ -3163,6 +3163,14 @@ class CatchClause extends AstNode {
    * @return the parameter whose value will be the exception that was thrown
    */
   SimpleIdentifier get exceptionParameter => _exceptionParameter;
+
+  /**
+   * Return the type of exceptions caught by this catch clause, or `null` if this catch clause
+   * catches every type of exception.
+   *
+   * @return the type of exceptions caught by this catch clause
+   */
+  TypeName get exceptionType => _exceptionType;
 
   /**
    * Return the left parenthesis.
@@ -3205,6 +3213,15 @@ class CatchClause extends AstNode {
   }
 
   /**
+   * Set the type of exceptions caught by this catch clause to the given type.
+   *
+   * @param exceptionType the type of exceptions caught by this catch clause
+   */
+  void set exceptionType(TypeName exceptionType) {
+    this._exceptionType = becomeParentOf(exceptionType);
+  }
+
+  /**
    * Set the left parenthesis to the given token.
    *
    * @param parenthesis the left parenthesis
@@ -3235,7 +3252,7 @@ class CatchClause extends AstNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    safelyVisitChild(exceptionType, visitor);
+    safelyVisitChild(_exceptionType, visitor);
     safelyVisitChild(_exceptionParameter, visitor);
     safelyVisitChild(_stackTraceParameter, visitor);
     safelyVisitChild(_body, visitor);
@@ -3273,7 +3290,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * The type parameters for the class, or `null` if the class does not have any type
    * parameters.
    */
-  TypeParameterList typeParameters;
+  TypeParameterList _typeParameters;
 
   /**
    * The extends clause for the class, or `null` if the class does not extend any other class.
@@ -3294,7 +3311,7 @@ class ClassDeclaration extends CompilationUnitMember {
   /**
    * The native clause for the class, or `null` if the class does not have a native clause.
    */
-  NativeClause nativeClause;
+  NativeClause _nativeClause;
 
   /**
    * The left curly bracket.
@@ -3330,7 +3347,7 @@ class ClassDeclaration extends CompilationUnitMember {
   ClassDeclaration(Comment comment, List<Annotation> metadata, this.abstractKeyword, this.classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, this.leftBracket, List<ClassMember> members, this.rightBracket) : super(comment, metadata) {
     this._members = new NodeList<ClassMember>(this);
     this._name = becomeParentOf(name);
-    this.typeParameters = becomeParentOf(typeParameters);
+    this._typeParameters = becomeParentOf(typeParameters);
     this._extendsClause = becomeParentOf(extendsClause);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
@@ -3440,6 +3457,22 @@ class ClassDeclaration extends CompilationUnitMember {
   SimpleIdentifier get name => _name;
 
   /**
+   * Return the native clause for this class, or `null` if the class does not have a native
+   * cluse.
+   *
+   * @return the native clause for this class
+   */
+  NativeClause get nativeClause => _nativeClause;
+
+  /**
+   * Return the type parameters for the class, or `null` if the class does not have any type
+   * parameters.
+   *
+   * @return the type parameters for the class
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
    * Return the with clause for the class, or `null` if the class does not have a with clause.
    *
    * @return the with clause for the class
@@ -3481,6 +3514,24 @@ class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * Set the native clause for this class to the given clause.
+   *
+   * @param nativeClause the native clause for this class
+   */
+  void set nativeClause(NativeClause nativeClause) {
+    this._nativeClause = becomeParentOf(nativeClause);
+  }
+
+  /**
+   * Set the type parameters for the class to the given list of type parameters.
+   *
+   * @param typeParameters the type parameters for the class
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    this._typeParameters = becomeParentOf(typeParameters);
+  }
+
+  /**
    * Set the with clause for the class to the given clause.
    *
    * @param withClause the with clause for the class
@@ -3493,11 +3544,11 @@ class ClassDeclaration extends CompilationUnitMember {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
-    safelyVisitChild(typeParameters, visitor);
+    safelyVisitChild(_typeParameters, visitor);
     safelyVisitChild(_extendsClause, visitor);
     safelyVisitChild(_withClause, visitor);
     safelyVisitChild(_implementsClause, visitor);
-    safelyVisitChild(nativeClause, visitor);
+    safelyVisitChild(_nativeClause, visitor);
     members.accept(visitor);
   }
 
@@ -3906,7 +3957,7 @@ class CommentReference extends AstNode {
    * @param identifier the identifier being referenced
    */
   void set identifier(Identifier identifier) {
-    identifier = becomeParentOf(identifier);
+    this._identifier = becomeParentOf(identifier);
   }
 
   @override
@@ -5290,6 +5341,15 @@ class DeclaredIdentifier extends Declaration {
   bool get isFinal => (keyword is KeywordToken) && (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
+   * Set the name of the variable being declared to the given name.
+   *
+   * @param identifier the new name of the variable being declared
+   */
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
+  }
+
+  /**
    * Set the name of the declared type of the parameter to the given type name.
    *
    * @param typeName the name of the declared type of the parameter
@@ -6415,7 +6475,7 @@ class FieldDeclaration extends ClassMember {
    * @param fieldList the fields being declared
    */
   void set fields(VariableDeclarationList fieldList) {
-    fieldList = becomeParentOf(fieldList);
+    this._fieldList = becomeParentOf(fieldList);
   }
 
   @override
@@ -6892,7 +6952,7 @@ class ForStatement extends Statement {
    * @param variableList the declaration of the loop variables
    */
   void set variables(VariableDeclarationList variableList) {
-    variableList = becomeParentOf(variableList);
+    this._variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -7265,7 +7325,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   void set functionExpression(FunctionExpression functionExpression) {
-    functionExpression = becomeParentOf(functionExpression);
+    this._functionExpression = becomeParentOf(functionExpression);
   }
 
   /**
@@ -7274,16 +7334,16 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param identifier the name of the function
    */
   void set name(SimpleIdentifier identifier) {
-    _name = becomeParentOf(identifier);
+    this._name = becomeParentOf(identifier);
   }
 
   /**
    * Set the return type of the function to the given name.
    *
-   * @param name the return type of the function
+   * @param returnType the return type of the function
    */
-  void set returnType(TypeName name) {
-    _returnType = becomeParentOf(name);
+  void set returnType(TypeName returnType) {
+    this._returnType = becomeParentOf(returnType);
   }
 
   @override
@@ -7350,7 +7410,7 @@ class FunctionDeclarationStatement extends Statement {
    *
    * @param functionDeclaration the function declaration being wrapped
    */
-  void set functionExpression(FunctionDeclaration functionDeclaration) {
+  void set functionDeclaration(FunctionDeclaration functionDeclaration) {
     this._functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
@@ -7578,7 +7638,7 @@ class FunctionExpressionInvocation extends Expression {
    * @param function the expression producing the function being invoked
    */
   void set function(Expression function) {
-    function = becomeParentOf(function);
+    this._function = becomeParentOf(function);
   }
 
   /**
@@ -9673,7 +9733,7 @@ class InstanceCreationExpression extends Expression {
   /**
    * The name of the constructor to be invoked.
    */
-  ConstructorName constructorName;
+  ConstructorName _constructorName;
 
   /**
    * The list of arguments to the constructor.
@@ -9699,7 +9759,7 @@ class InstanceCreationExpression extends Expression {
    * @param argumentList the list of arguments to the constructor
    */
   InstanceCreationExpression(this.keyword, ConstructorName constructorName, ArgumentList argumentList) {
-    this.constructorName = becomeParentOf(constructorName);
+    this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
 
@@ -9715,6 +9775,13 @@ class InstanceCreationExpression extends Expression {
 
   @override
   Token get beginToken => keyword;
+
+  /**
+   * Return the name of the constructor to be invoked.
+   *
+   * @return the name of the constructor to be invoked
+   */
+  ConstructorName get constructorName => _constructorName;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -9748,6 +9815,15 @@ class InstanceCreationExpression extends Expression {
   }
 
   /**
+   * Set the name of the constructor to be invoked to the given name.
+   *
+   * @param constructorName the name of the constructor to be invoked
+   */
+  void set constructorName(ConstructorName constructorName) {
+    this._constructorName = becomeParentOf(constructorName);
+  }
+
+  /**
    * Set the result of evaluating this expression as a compile-time constant expression to the given
    * result.
    *
@@ -9759,7 +9835,7 @@ class InstanceCreationExpression extends Expression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    safelyVisitChild(constructorName, visitor);
+    safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
@@ -11227,7 +11303,7 @@ class NativeClause extends AstNode {
   /**
    * The name of the native object that implements the class.
    */
-  StringLiteral name;
+  StringLiteral _name;
 
   /**
    * Initialize a newly created native clause.
@@ -11235,7 +11311,9 @@ class NativeClause extends AstNode {
    * @param keyword the token representing the 'native' keyword
    * @param name the name of the native object that implements the class.
    */
-  NativeClause(this.keyword, this.name);
+  NativeClause(this.keyword, StringLiteral name) {
+    this._name = becomeParentOf(name);
+  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitNativeClause(this);
@@ -11244,11 +11322,27 @@ class NativeClause extends AstNode {
   Token get beginToken => keyword;
 
   @override
-  Token get endToken => name.endToken;
+  Token get endToken => _name.endToken;
+
+  /**
+   * Return the name of the native object that implements the class.
+   *
+   * @return the name of the native object that implements the class
+   */
+  StringLiteral get name => _name;
+
+  /**
+   * Sets the name of the native object that implements the class.
+   *
+   * @param name the name of the native object that implements the class.
+   */
+  void set name(StringLiteral name) {
+    this._name = becomeParentOf(name);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
-    safelyVisitChild(name, visitor);
+    safelyVisitChild(_name, visitor);
   }
 }
 
@@ -11304,6 +11398,15 @@ class NativeFunctionBody extends FunctionBody {
    * @return the string literal representing the string after the 'native' token
    */
   StringLiteral get stringLiteral => _stringLiteral;
+
+  /**
+   * Set the string literal representing the string after the 'native' token to the given string.
+   *
+   * @param stringLiteral the string literal representing the string after the 'native' token
+   */
+  void set stringLiteral(StringLiteral stringLiteral) {
+    this._stringLiteral = becomeParentOf(stringLiteral);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11419,6 +11522,1121 @@ class NodeLocator_NodeFoundException extends RuntimeException {
 }
 
 /**
+ * Instances of the class `NodeReplacer` implement an object that will replace one child node
+ * in an AST node with another node.
+ */
+class NodeReplacer implements AstVisitor<bool> {
+  /**
+   * Replace the old node with the new node in the AST structure containing the old node.
+   *
+   * @param oldNode
+   * @param newNode
+   * @return `true` if the replacement was successful
+   * @throws IllegalArgumentException if either node is `null`, if the old node does not have
+   *           a parent node, or if the AST structure has been corrupted
+   */
+  static bool replace(AstNode oldNode, AstNode newNode) {
+    if (oldNode == null || newNode == null) {
+      throw new IllegalArgumentException("The old and new nodes must be non-null");
+    } else if (identical(oldNode, newNode)) {
+      return true;
+    }
+    AstNode parent = oldNode.parent;
+    if (parent == null) {
+      throw new IllegalArgumentException("The old node is not a child of another node");
+    }
+    NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
+    return parent.accept(replacer);
+  }
+
+  final AstNode _oldNode;
+
+  final AstNode _newNode;
+
+  NodeReplacer(this._oldNode, this._newNode);
+
+  @override
+  bool visitAdjacentStrings(AdjacentStrings node) {
+    if (_replaceInList(node.strings)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitAnnotatedNode(AnnotatedNode node) {
+    if (identical(node.documentationComment, _oldNode)) {
+      node.documentationComment = _newNode as Comment;
+      return true;
+    } else if (_replaceInList(node.metadata)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAnnotation(Annotation node) {
+    if (identical(node.arguments, _oldNode)) {
+      node.arguments = _newNode as ArgumentList;
+      return true;
+    } else if (identical(node.constructorName, _oldNode)) {
+      node.constructorName = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as Identifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitArgumentList(ArgumentList node) {
+    if (_replaceInList(node.arguments)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAsExpression(AsExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    } else if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAssertStatement(AssertStatement node) {
+    if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitAssignmentExpression(AssignmentExpression node) {
+    if (identical(node.leftHandSide, _oldNode)) {
+      node.leftHandSide = _newNode as Expression;
+      return true;
+    } else if (identical(node.rightHandSide, _oldNode)) {
+      node.rightHandSide = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitBinaryExpression(BinaryExpression node) {
+    if (identical(node.leftOperand, _oldNode)) {
+      node.leftOperand = _newNode as Expression;
+      return true;
+    } else if (identical(node.rightOperand, _oldNode)) {
+      node.rightOperand = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitBlock(Block node) {
+    if (_replaceInList(node.statements)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitBlockFunctionBody(BlockFunctionBody node) {
+    if (identical(node.block, _oldNode)) {
+      node.block = _newNode as Block;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
+
+  @override
+  bool visitBreakStatement(BreakStatement node) {
+    if (identical(node.label, _oldNode)) {
+      node.label = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitCascadeExpression(CascadeExpression node) {
+    if (identical(node.target, _oldNode)) {
+      node.target = _newNode as Expression;
+      return true;
+    } else if (_replaceInList(node.cascadeSections)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitCatchClause(CatchClause node) {
+    if (identical(node.exceptionType, _oldNode)) {
+      node.exceptionType = _newNode as TypeName;
+      return true;
+    } else if (identical(node.exceptionParameter, _oldNode)) {
+      node.exceptionParameter = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.stackTraceParameter, _oldNode)) {
+      node.stackTraceParameter = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitClassDeclaration(ClassDeclaration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.extendsClause, _oldNode)) {
+      node.extendsClause = _newNode as ExtendsClause;
+      return true;
+    } else if (identical(node.withClause, _oldNode)) {
+      node.withClause = _newNode as WithClause;
+      return true;
+    } else if (identical(node.implementsClause, _oldNode)) {
+      node.implementsClause = _newNode as ImplementsClause;
+      return true;
+    } else if (identical(node.nativeClause, _oldNode)) {
+      node.nativeClause = _newNode as NativeClause;
+      return true;
+    } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitClassTypeAlias(ClassTypeAlias node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.superclass, _oldNode)) {
+      node.superclass = _newNode as TypeName;
+      return true;
+    } else if (identical(node.withClause, _oldNode)) {
+      node.withClause = _newNode as WithClause;
+      return true;
+    } else if (identical(node.implementsClause, _oldNode)) {
+      node.implementsClause = _newNode as ImplementsClause;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitComment(Comment node) {
+    if (_replaceInList(node.references)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitCommentReference(CommentReference node) {
+    if (identical(node.identifier, _oldNode)) {
+      node.identifier = _newNode as Identifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitCompilationUnit(CompilationUnit node) {
+    if (identical(node.scriptTag, _oldNode)) {
+      node.scriptTag = _newNode as ScriptTag;
+      return true;
+    } else if (_replaceInList(node.directives)) {
+      return true;
+    } else if (_replaceInList(node.declarations)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitConditionalExpression(ConditionalExpression node) {
+    if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.thenExpression, _oldNode)) {
+      node.thenExpression = _newNode as Expression;
+      return true;
+    } else if (identical(node.elseExpression, _oldNode)) {
+      node.elseExpression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (identical(node.returnType, _oldNode)) {
+      node.returnType = _newNode as Identifier;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    } else if (identical(node.redirectedConstructor, _oldNode)) {
+      node.redirectedConstructor = _newNode as ConstructorName;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as FunctionBody;
+      return true;
+    } else if (_replaceInList(node.initializers)) {
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (identical(node.fieldName, _oldNode)) {
+      node.fieldName = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitConstructorName(ConstructorName node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitContinueStatement(ContinueStatement node) {
+    if (identical(node.label, _oldNode)) {
+      node.label = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitDeclaredIdentifier(DeclaredIdentifier node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    } else if (identical(node.identifier, _oldNode)) {
+      node.identifier = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (identical(node.parameter, _oldNode)) {
+      node.parameter = _newNode as NormalFormalParameter;
+      return true;
+    } else if (identical(node.defaultValue, _oldNode)) {
+      node.defaultValue = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitDoStatement(DoStatement node) {
+    if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Statement;
+      return true;
+    } else if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
+
+  @override
+  bool visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
+
+  @override
+  bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  bool visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
+
+  @override
+  bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitExpressionStatement(ExpressionStatement node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitExtendsClause(ExtendsClause node) {
+    if (identical(node.superclass, _oldNode)) {
+      node.superclass = _newNode as TypeName;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFieldDeclaration(FieldDeclaration node) {
+    if (identical(node.fields, _oldNode)) {
+      node.fields = _newNode as VariableDeclarationList;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitFieldFormalParameter(FieldFormalParameter node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    }
+    return visitNormalFormalParameter(node);
+  }
+
+  @override
+  bool visitForEachStatement(ForEachStatement node) {
+    if (identical(node.loopVariable, _oldNode)) {
+      node.loopVariable = _newNode as DeclaredIdentifier;
+      return true;
+    } else if (identical(node.identifier, _oldNode)) {
+      node.identifier = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.iterator, _oldNode)) {
+      node.iterator = _newNode as Expression;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Statement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFormalParameterList(FormalParameterList node) {
+    if (_replaceInList(node.parameters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitForStatement(ForStatement node) {
+    if (identical(node.variables, _oldNode)) {
+      node.variables = _newNode as VariableDeclarationList;
+      return true;
+    } else if (identical(node.initialization, _oldNode)) {
+      node.initialization = _newNode as Expression;
+      return true;
+    } else if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Statement;
+      return true;
+    } else if (_replaceInList(node.updaters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFunctionDeclaration(FunctionDeclaration node) {
+    if (identical(node.returnType, _oldNode)) {
+      node.returnType = _newNode as TypeName;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.functionExpression, _oldNode)) {
+      node.functionExpression = _newNode as FunctionExpression;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    if (identical(node.functionDeclaration, _oldNode)) {
+      node.functionDeclaration = _newNode as FunctionDeclaration;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFunctionExpression(FunctionExpression node) {
+    if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as FunctionBody;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (identical(node.function, _oldNode)) {
+      node.function = _newNode as Expression;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFunctionTypeAlias(FunctionTypeAlias node) {
+    if (identical(node.returnType, _oldNode)) {
+      node.returnType = _newNode as TypeName;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    if (identical(node.returnType, _oldNode)) {
+      node.returnType = _newNode as TypeName;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    }
+    return visitNormalFormalParameter(node);
+  }
+
+  @override
+  bool visitHideCombinator(HideCombinator node) {
+    if (_replaceInList(node.hiddenNames)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitIfStatement(IfStatement node) {
+    if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.thenStatement, _oldNode)) {
+      node.thenStatement = _newNode as Statement;
+      return true;
+    } else if (identical(node.elseStatement, _oldNode)) {
+      node.elseStatement = _newNode as Statement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitImplementsClause(ImplementsClause node) {
+    if (_replaceInList(node.interfaces)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitImportDirective(ImportDirective node) {
+    if (identical(node.prefix, _oldNode)) {
+      node.prefix = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNamespaceDirective(node);
+  }
+
+  @override
+  bool visitIndexExpression(IndexExpression node) {
+    if (identical(node.target, _oldNode)) {
+      node.target = _newNode as Expression;
+      return true;
+    } else if (identical(node.index, _oldNode)) {
+      node.index = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (identical(node.constructorName, _oldNode)) {
+      node.constructorName = _newNode as ConstructorName;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
+
+  @override
+  bool visitInterpolationExpression(InterpolationExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitInterpolationString(InterpolationString node) => visitNode(node);
+
+  @override
+  bool visitIsExpression(IsExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    } else if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitLabel(Label node) {
+    if (identical(node.label, _oldNode)) {
+      node.label = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node) {
+    if (identical(node.statement, _oldNode)) {
+      node.statement = _newNode as Statement;
+      return true;
+    } else if (_replaceInList(node.labels)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitLibraryDirective(LibraryDirective node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as LibraryIdentifier;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitLibraryIdentifier(LibraryIdentifier node) {
+    if (_replaceInList(node.components)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitListLiteral(ListLiteral node) {
+    if (_replaceInList(node.elements)) {
+      return true;
+    }
+    return visitTypedLiteral(node);
+  }
+
+  @override
+  bool visitMapLiteral(MapLiteral node) {
+    if (_replaceInList(node.entries)) {
+      return true;
+    }
+    return visitTypedLiteral(node);
+  }
+
+  @override
+  bool visitMapLiteralEntry(MapLiteralEntry node) {
+    if (identical(node.key, _oldNode)) {
+      node.key = _newNode as Expression;
+      return true;
+    } else if (identical(node.value, _oldNode)) {
+      node.value = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitMethodDeclaration(MethodDeclaration node) {
+    if (identical(node.returnType, _oldNode)) {
+      node.returnType = _newNode as TypeName;
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as FunctionBody;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitMethodInvocation(MethodInvocation node) {
+    if (identical(node.target, _oldNode)) {
+      node.target = _newNode as Expression;
+      return true;
+    } else if (identical(node.methodName, _oldNode)) {
+      node.methodName = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitNamedExpression(NamedExpression node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as Label;
+      return true;
+    } else if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitNamespaceDirective(NamespaceDirective node) {
+    if (_replaceInList(node.combinators)) {
+      return true;
+    }
+    return visitUriBasedDirective(node);
+  }
+
+  @override
+  bool visitNativeClause(NativeClause node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as StringLiteral;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitNativeFunctionBody(NativeFunctionBody node) {
+    if (identical(node.stringLiteral, _oldNode)) {
+      node.stringLiteral = _newNode as StringLiteral;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitNode(AstNode node) {
+    throw new IllegalArgumentException("The old node is not a child of it's parent");
+  }
+
+  bool visitNormalFormalParameter(NormalFormalParameter node) {
+    if (identical(node.documentationComment, _oldNode)) {
+      node.documentationComment = _newNode as Comment;
+      return true;
+    } else if (identical(node.identifier, _oldNode)) {
+      node.identifier = _newNode as SimpleIdentifier;
+      return true;
+    } else if (_replaceInList(node.metadata)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitNullLiteral(NullLiteral node) => visitNode(node);
+
+  @override
+  bool visitParenthesizedExpression(ParenthesizedExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitPartDirective(PartDirective node) => visitUriBasedDirective(node);
+
+  @override
+  bool visitPartOfDirective(PartOfDirective node) {
+    if (identical(node.libraryName, _oldNode)) {
+      node.libraryName = _newNode as LibraryIdentifier;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitPostfixExpression(PostfixExpression node) {
+    if (identical(node.operand, _oldNode)) {
+      node.operand = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (identical(node.prefix, _oldNode)) {
+      node.prefix = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.identifier, _oldNode)) {
+      node.identifier = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitPrefixExpression(PrefixExpression node) {
+    if (identical(node.operand, _oldNode)) {
+      node.operand = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitPropertyAccess(PropertyAccess node) {
+    if (identical(node.target, _oldNode)) {
+      node.target = _newNode as Expression;
+      return true;
+    } else if (identical(node.propertyName, _oldNode)) {
+      node.propertyName = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    if (identical(node.constructorName, _oldNode)) {
+      node.constructorName = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitRethrowExpression(RethrowExpression node) => visitNode(node);
+
+  @override
+  bool visitReturnStatement(ReturnStatement node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+
+  @override
+  bool visitShowCombinator(ShowCombinator node) {
+    if (_replaceInList(node.shownNames)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    }
+    return visitNormalFormalParameter(node);
+  }
+
+  @override
+  bool visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
+
+  @override
+  bool visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+
+  @override
+  bool visitStringInterpolation(StringInterpolation node) {
+    if (_replaceInList(node.elements)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (identical(node.constructorName, _oldNode)) {
+      node.constructorName = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSuperExpression(SuperExpression node) => visitNode(node);
+
+  @override
+  bool visitSwitchCase(SwitchCase node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitSwitchMember(node);
+  }
+
+  @override
+  bool visitSwitchDefault(SwitchDefault node) => visitSwitchMember(node);
+
+  bool visitSwitchMember(SwitchMember node) {
+    if (_replaceInList(node.labels)) {
+      return true;
+    } else if (_replaceInList(node.statements)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSwitchStatement(SwitchStatement node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
+
+  @override
+  bool visitThisExpression(ThisExpression node) => visitNode(node);
+
+  @override
+  bool visitThrowExpression(ThrowExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (identical(node.variables, _oldNode)) {
+      node.variables = _newNode as VariableDeclarationList;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitTryStatement(TryStatement node) {
+    if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Block;
+      return true;
+    } else if (identical(node.finallyBlock, _oldNode)) {
+      node.finallyBlock = _newNode as Block;
+      return true;
+    } else if (_replaceInList(node.catchClauses)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTypeArgumentList(TypeArgumentList node) {
+    if (_replaceInList(node.arguments)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitTypedLiteral(TypedLiteral node) {
+    if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTypeName(TypeName node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as Identifier;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTypeParameter(TypeParameter node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.bound, _oldNode)) {
+      node.bound = _newNode as TypeName;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitTypeParameterList(TypeParameterList node) {
+    if (_replaceInList(node.typeParameters)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitUriBasedDirective(UriBasedDirective node) {
+    if (identical(node.uri, _oldNode)) {
+      node.uri = _newNode as StringLiteral;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.initializer, _oldNode)) {
+      node.initializer = _newNode as Expression;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitVariableDeclarationList(VariableDeclarationList node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeName;
+      return true;
+    } else if (_replaceInList(node.variables)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    if (identical(node.variables, _oldNode)) {
+      node.variables = _newNode as VariableDeclarationList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitWhileStatement(WhileStatement node) {
+    if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Statement;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitWithClause(WithClause node) {
+    if (_replaceInList(node.mixinTypes)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool _replaceInList(NodeList list) {
+    int count = list.length;
+    for (int i = 0; i < count; i++) {
+      if (identical(_oldNode, list[i])) {
+        javaListSet(list, i, _newNode);
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/**
  * The abstract class `NormalFormalParameter` defines the behavior common to formal parameters
  * that are required (are not optional).
  *
@@ -11503,6 +12721,16 @@ abstract class NormalFormalParameter extends FormalParameter {
    */
   void set identifier(SimpleIdentifier identifier) {
     this._identifier = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the metadata associated with this node to the given metadata.
+   *
+   * @param metadata the metadata to be associated with this node
+   */
+  void set metadata(List<Annotation> metadata) {
+    this._metadata.clear();
+    this._metadata.addAll(metadata);
   }
 
   @override
@@ -16131,7 +17359,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param variableList the top-level variables being declared
    */
   void set variables(VariableDeclarationList variableList) {
-    variableList = becomeParentOf(variableList);
+    this._variableList = becomeParentOf(variableList);
   }
 
   @override
@@ -16649,7 +17877,7 @@ abstract class TypedLiteral extends Literal {
    * The type argument associated with this literal, or `null` if no type arguments were
    * declared.
    */
-  TypeArgumentList typeArguments;
+  TypeArgumentList _typeArguments;
 
   /**
    * Initialize a newly created typed literal.
@@ -16659,12 +17887,29 @@ abstract class TypedLiteral extends Literal {
    *          arguments were declared
    */
   TypedLiteral(this.constKeyword, TypeArgumentList typeArguments) {
-    this.typeArguments = becomeParentOf(typeArguments);
+    this._typeArguments = becomeParentOf(typeArguments);
+  }
+
+  /**
+   * Return the type argument associated with this literal, or `null` if no type arguments
+   * were declared.
+   *
+   * @return the type argument associated with this literal
+   */
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  /**
+   * Set the type argument associated with this literal to the given arguments.
+   *
+   * @param typeArguments the type argument associated with this literal
+   */
+  void set typeArguments(TypeArgumentList typeArguments) {
+    this._typeArguments = becomeParentOf(typeArguments);
   }
 
   @override
   void visitChildren(AstVisitor visitor) {
-    safelyVisitChild(typeArguments, visitor);
+    safelyVisitChild(_typeArguments, visitor);
   }
 }
 

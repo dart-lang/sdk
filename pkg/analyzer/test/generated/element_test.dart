@@ -252,7 +252,122 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(classA.hasStaticMember);
   }
 
+  void test_lookUpConcreteMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(method, classA.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_declaredAbstract() {
+    // class A {
+    //   m();
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElementImpl method = ElementFactory.methodElement(methodName, null, []);
+    method.abstract = true;
+    classA.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_declaredAbstractAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElementImpl method = ElementFactory.methodElement(methodName, null, []);
+    method.abstract = true;
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(method, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_declaredAndInheritedAbstract() {
+    // abstract class A {
+    //   m();
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.abstract = true;
+    String methodName = "m";
+    MethodElementImpl inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    inheritedMethod.abstract = true;
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(method, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpConcreteMethod_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpConcreteMethod("m", library));
+  }
+
   void test_lookUpGetter_declared() {
+    // class A {
+    //   get g {}
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
@@ -263,6 +378,11 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpGetter_inherited() {
+    // class A {
+    //   get g {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
@@ -274,6 +394,8 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpGetter_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
@@ -281,6 +403,10 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpGetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
@@ -289,7 +415,236 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertNull(classA.lookUpGetter("g", library));
   }
 
+  void test_lookUpInheritedConcreteGetter_declared() {
+    // class A {
+    //   get g {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String getterName = "g";
+    PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [getter];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteGetter(getterName, library));
+  }
+
+  void test_lookUpInheritedConcreteGetter_inherited() {
+    // class A {
+    //   get g {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String getterName = "g";
+    PropertyAccessorElement inheritedGetter = ElementFactory.getterElement(getterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [inheritedGetter];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedGetter, classB.lookUpInheritedConcreteGetter(getterName, library));
+  }
+
+  void test_lookUpInheritedConcreteGetter_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteGetter("g", library));
+  }
+
+  void test_lookUpInheritedConcreteGetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteGetter("g", library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_declaredAbstractAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElementImpl method = ElementFactory.methodElement(methodName, null, []);
+    method.abstract = true;
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_declaredAndInheritedAbstract() {
+    // abstract class A {
+    //   m();
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.abstract = true;
+    String methodName = "m";
+    MethodElementImpl inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    inheritedMethod.abstract = true;
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElement method = ElementFactory.methodElement(methodName, null, []);
+    classB.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_declaredAndInheritedWithAbstractBetween() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m();
+    // }
+    // class C extends B {
+    //   m() {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElementImpl abstractMethod = ElementFactory.methodElement(methodName, null, []);
+    abstractMethod.abstract = true;
+    classB.methods = <MethodElement> [abstractMethod];
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type, []);
+    MethodElementImpl method = ElementFactory.methodElement(methodName, null, []);
+    classC.methods = <MethodElement> [method];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB, classC];
+    JUnitTestCase.assertSame(inheritedMethod, classC.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElement inheritedMethod = ElementFactory.methodElement(methodName, null, []);
+    classA.methods = <MethodElement> [inheritedMethod];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(inheritedMethod, classB.lookUpInheritedConcreteMethod(methodName, library));
+  }
+
+  void test_lookUpInheritedConcreteMethod_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteMethod("m", library));
+  }
+
+  void test_lookUpInheritedConcreteSetter_declared() {
+    // class A {
+    //   set g(x) {}
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String setterName = "s";
+    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteSetter(setterName, library));
+  }
+
+  void test_lookUpInheritedConcreteSetter_inherited() {
+    // class A {
+    //   set g(x) {}
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String setterName = "s";
+    PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
+    classA.accessors = <PropertyAccessorElement> [setter];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(setter, classB.lookUpInheritedConcreteSetter(setterName, library));
+  }
+
+  void test_lookUpInheritedConcreteSetter_undeclared() {
+    // class A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteSetter("s", library));
+  }
+
+  void test_lookUpInheritedConcreteSetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
+    LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    classA.supertype = classB.type;
+    (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertNull(classA.lookUpInheritedConcreteSetter("s", library));
+  }
+
   void test_lookUpInheritedMethod_declared() {
+    // class A {
+    //   m() {}
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
@@ -300,6 +655,12 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpInheritedMethod_declaredAndInherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    //   m() {}
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
@@ -313,6 +674,11 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpInheritedMethod_inherited() {
+    // class A {
+    //   m() {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
@@ -324,6 +690,8 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpInheritedMethod_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
@@ -368,6 +736,9 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpSetter_declared() {
+    // class A {
+    //   set g(x) {}
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String setterName = "s";
@@ -378,6 +749,11 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpSetter_inherited() {
+    // class A {
+    //   set g(x) {}
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String setterName = "s";
@@ -389,6 +765,8 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpSetter_undeclared() {
+    // class A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     (library.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [classA];
@@ -396,6 +774,10 @@ class ClassElementImplTest extends EngineTestCase {
   }
 
   void test_lookUpSetter_undeclared_recursive() {
+    // class A extends B {
+    // }
+    // class B extends A {
+    // }
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
@@ -478,6 +860,34 @@ class ClassElementImplTest extends EngineTestCase {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_hasStaticMember_true_setter);
       });
+      _ut.test('test_lookUpConcreteMethod_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_declared);
+      });
+      _ut.test('test_lookUpConcreteMethod_declaredAbstract', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_declaredAbstract);
+      });
+      _ut.test('test_lookUpConcreteMethod_declaredAbstractAndInherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_declaredAbstractAndInherited);
+      });
+      _ut.test('test_lookUpConcreteMethod_declaredAndInherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_declaredAndInherited);
+      });
+      _ut.test('test_lookUpConcreteMethod_declaredAndInheritedAbstract', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_declaredAndInheritedAbstract);
+      });
+      _ut.test('test_lookUpConcreteMethod_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_inherited);
+      });
+      _ut.test('test_lookUpConcreteMethod_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpConcreteMethod_undeclared);
+      });
       _ut.test('test_lookUpGetter_declared', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_lookUpGetter_declared);
@@ -493,6 +903,66 @@ class ClassElementImplTest extends EngineTestCase {
       _ut.test('test_lookUpGetter_undeclared_recursive', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_lookUpGetter_undeclared_recursive);
+      });
+      _ut.test('test_lookUpInheritedConcreteGetter_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteGetter_declared);
+      });
+      _ut.test('test_lookUpInheritedConcreteGetter_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteGetter_inherited);
+      });
+      _ut.test('test_lookUpInheritedConcreteGetter_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteGetter_undeclared);
+      });
+      _ut.test('test_lookUpInheritedConcreteGetter_undeclared_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteGetter_undeclared_recursive);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_declared);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_declaredAbstractAndInherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_declaredAbstractAndInherited);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_declaredAndInherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_declaredAndInherited);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_declaredAndInheritedAbstract', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_declaredAndInheritedAbstract);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_declaredAndInheritedWithAbstractBetween', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_declaredAndInheritedWithAbstractBetween);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_inherited);
+      });
+      _ut.test('test_lookUpInheritedConcreteMethod_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteMethod_undeclared);
+      });
+      _ut.test('test_lookUpInheritedConcreteSetter_declared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteSetter_declared);
+      });
+      _ut.test('test_lookUpInheritedConcreteSetter_inherited', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteSetter_inherited);
+      });
+      _ut.test('test_lookUpInheritedConcreteSetter_undeclared', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteSetter_undeclared);
+      });
+      _ut.test('test_lookUpInheritedConcreteSetter_undeclared_recursive', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_lookUpInheritedConcreteSetter_undeclared_recursive);
       });
       _ut.test('test_lookUpInheritedMethod_declared', () {
         final __test = new ClassElementImplTest();

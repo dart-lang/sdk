@@ -133,7 +133,7 @@ class AnalysisServerTest {
     Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
 
     expect(json['message'],
-        equals("The element 'foo' is defined in the libraries 'bar' and 'baz'"));
+        equals("The name 'foo' is defined in the libraries 'bar' and 'baz'"));
   }
 
   static void errorToJson_noCorrection() {
