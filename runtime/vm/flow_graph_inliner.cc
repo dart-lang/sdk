@@ -49,6 +49,8 @@ DEFINE_FLAG(int, inlining_hotness, 10,
     "default 10%: calls above-equal 10% of max-count are inlined.");
 DEFINE_FLAG(bool, inline_recursive, true,
     "Inline recursive calls.");
+DEFINE_FLAG(int, max_inlined_per_depth, 500,
+    "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
 
 DECLARE_FLAG(bool, compiler_stats);
@@ -238,6 +240,12 @@ class CallSites : public ValueObject {
     return !(static_calls_.is_empty() &&
              closure_calls_.is_empty() &&
              instance_calls_.is_empty());
+  }
+
+  intptr_t NumCalls() const {
+    return instance_calls_.length() +
+           static_calls_.length() +
+           closure_calls_.length();
   }
 
   void Clear() {
@@ -516,6 +524,13 @@ class CallSiteInliner : public ValueObject {
     while (collected_call_sites_->HasCalls()) {
       TRACE_INLINING(OS::Print("  Depth %" Pd " ----------\n",
                                inlining_depth_));
+      if (collected_call_sites_->NumCalls() > FLAG_max_inlined_per_depth) {
+        break;
+      }
+      if (FLAG_print_inlining_tree) {
+        OS::Print("**Depth % " Pd " calls to inline %" Pd "\n",
+            inlining_depth_, collected_call_sites_->NumCalls());
+      }
       // Swap collected and inlining arrays and clear the new collecting array.
       call_sites_temp = collected_call_sites_;
       collected_call_sites_ = inlining_call_sites_;
@@ -1002,8 +1017,6 @@ class CallSiteInliner : public ValueObject {
       }
       if (target.IsNull()) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
-        PRINT_INLINING_TREE("Non-closure operator",
-            call_info[call_idx].caller, &target, call);
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -1664,11 +1677,6 @@ void FlowGraphInliner::Inline() {
   const Function& top = flow_graph_->parsed_function().function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
-    return;
-  }
-
-  if (FLAG_enable_type_checks) {
-    // TODO(srdjan): Fix out-of-memory crash in checked mode.
     return;
   }
 
