@@ -9173,6 +9173,11 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
+        if (parsing_metadata_) {
+          ErrorMsg(ident_pos,
+                   "'%s' is not a compile-time constant",
+                   ident.ToCString());
+        }
         if (!current_function().is_static() &&
             (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
           receiver = LoadReceiver(ident_pos);
