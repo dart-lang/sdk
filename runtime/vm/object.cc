@@ -62,6 +62,7 @@ DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
+DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 
 DECLARE_FLAG(bool, eliminate_type_checks);
@@ -6782,10 +6783,10 @@ RawField* Field::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
-  result.set_guarded_cid(kIllegalCid);
-  result.set_is_nullable(false);
+  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(FLAG_use_field_guards ? false : true);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final) {
+  if (is_final && FLAG_use_field_guards) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);

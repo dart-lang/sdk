@@ -29,6 +29,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
 
+DECLARE_FLAG(bool, enable_debugger);
 
 // Input parameters:
 //   ESP : points to return address.
@@ -1301,19 +1302,21 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  // Check single stepping.
-  Label not_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  if (FLAG_enable_debugger) {
+    // Check single stepping.
+    Label not_stepping;
+    __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+    __ cmpl(EAX, Immediate(0));
+    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
 
-  __ EnterStubFrame();
-  __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ Bind(&not_stepping);
+  }
 
   // ECX: IC data object (preserved).
   // Load arguments descriptor into EDX.
@@ -1526,19 +1529,21 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif  // DEBUG
-  // Check single stepping.
-  Label not_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  if (FLAG_enable_debugger) {
+    // Check single stepping.
+    Label not_stepping;
+    __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+    __ cmpl(EAX, Immediate(0));
+    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
 
-  __ EnterStubFrame();
-  __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ Bind(&not_stepping);
+  }
 
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
@@ -1620,17 +1625,19 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 
 // Called only from unoptimized code.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
-  // Check single stepping.
-  Label not_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  if (FLAG_enable_debugger) {
+    // Check single stepping.
+    Label not_stepping;
+    __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+    __ cmpl(EAX, Immediate(0));
+    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
 
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+    __ EnterStubFrame();
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ LeaveFrame();
+    __ Bind(&not_stepping);
+  }
   __ ret();
 }
 
@@ -1873,17 +1880,19 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Returns ZF set.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  // Check single stepping.
-  Label not_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  if (FLAG_enable_debugger) {
+    // Check single stepping.
+    Label not_stepping;
+    __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
+    __ cmpl(EAX, Immediate(0));
+    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
 
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+    __ EnterStubFrame();
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ LeaveFrame();
+    __ Bind(&not_stepping);
+  }
 
   const Register left = EAX;
   const Register right = EDX;

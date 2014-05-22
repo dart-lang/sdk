@@ -20,6 +20,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, use_osr);
@@ -5960,7 +5961,9 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    compiler->EmitEdgeCounter();
+    if (FLAG_emit_edge_counters) {
+      compiler->EmitEdgeCounter();
+    }
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching
     // code that matches backwards from the end of the pattern.
@@ -5981,7 +5984,9 @@ LocationSummary* GotoInstr::MakeLocationSummary(bool opt) const {
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
-    compiler->EmitEdgeCounter();
+    if (FLAG_emit_edge_counters) {
+      compiler->EmitEdgeCounter();
+    }
     // Add a deoptimization descriptor for deoptimizing instructions that
     // may be inserted before this instruction.  This descriptor points
     // after the edge counter for uniformity with ARM and MIPS, where we can

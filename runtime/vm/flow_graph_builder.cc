@@ -39,9 +39,12 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
             "Warn on incompatibilities between vm and dart2js.");
+
+DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, warning_as_error);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, silent_warnings);
+DECLARE_FLAG(bool, warning_as_error);
 
 
 // TODO(srdjan): Allow compiler to add constants as they are encountered in
@@ -999,7 +1002,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
   if ((node->token_pos() != Scanner::kNoSourcePos) &&
-      !function.is_native()) {
+      !function.is_native() && FLAG_enable_debugger) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
                                            PcDescriptors::kReturn));
   }
@@ -3108,8 +3111,10 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call.
   if (node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode()) {
-    AddInstruction(new DebugStepCheckInstr(node->token_pos(),
-                                           PcDescriptors::kRuntimeCall));
+    if (FLAG_enable_debugger) {
+      AddInstruction(new DebugStepCheckInstr(node->token_pos(),
+                                             PcDescriptors::kRuntimeCall));
+    }
   }
 
   ValueGraphVisitor for_value(owner());
@@ -3519,12 +3524,15 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
-    CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(function.token_pos(), 0);
-    // If we are inlining don't actually attach the stack check. We must still
-    // create the stack check in order to allocate a deopt id.
-    if (!owner()->IsInlining()) {
-      AddInstruction(check);
+    if (!function.IsImplicitGetterFunction() &&
+        !function.IsImplicitSetterFunction()) {
+      CheckStackOverflowInstr* check =
+          new CheckStackOverflowInstr(function.token_pos(), 0);
+      // If we are inlining don't actually attach the stack check. We must still
+      // create the stack check in order to allocate a deopt id.
+      if (!owner()->IsInlining()) {
+        AddInstruction(check);
+      }
     }
   }
 

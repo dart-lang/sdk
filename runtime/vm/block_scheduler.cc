@@ -10,11 +10,17 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, emit_edge_counters, true, "Emit edge counters at targets.");
+
 // Compute the edge count at the deopt id of a TargetEntry or Goto.
 static intptr_t ComputeEdgeCount(const Code& unoptimized_code,
                                  intptr_t deopt_id) {
   ASSERT(deopt_id != Isolate::kNoDeoptId);
 
+  if (!FLAG_emit_edge_counters) {
+    // Assume everything was visited once.
+    return 1;
+  }
   uword pc = unoptimized_code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt);
   Array& array = Array::Handle();
   array ^= CodePatcher::GetEdgeCounterAt(pc, unoptimized_code);
