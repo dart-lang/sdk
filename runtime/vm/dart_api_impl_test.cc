@@ -5264,7 +5264,7 @@ static void NativeArgumentAccess(Dart_NativeArguments args) {
 
     EXPECT(arg_values[1].as_int32 == 77);
 
-    EXPECT(arg_values[2].as_uint64 == 0xffffffffffffffff);
+    EXPECT(arg_values[2].as_uint64 == 0xffffffffffffffffLL);
 
     EXPECT(arg_values[3].as_bool == true);
 
