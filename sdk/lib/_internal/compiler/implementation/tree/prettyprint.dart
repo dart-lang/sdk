@@ -286,7 +286,7 @@ class PrettyPrinter implements Visitor {
 
   visitNodeList(NodeList node) {
     var params = { "delimiter" : node.delimiter };
-    if (node.nodes.toList().length == 0) {
+    if (node.isEmpty) {
       openAndCloseNode(node, "NodeList", params);
     } else {
       openNode(node, "NodeList", params);
