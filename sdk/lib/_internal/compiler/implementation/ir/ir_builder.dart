@@ -13,6 +13,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
+import '../util/util.dart' show Link;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -716,10 +717,49 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
+  Constant getConstantForNode(ast.Node node) {
+    Constant constant =
+        compiler.backend.constants.getConstantForNode(node, elements);
+    assert(invariant(node, constant != null,
+        message: 'No constant computed for $node'));
+    return constant;
+  }
+
+  ir.Primitive visitLiteralList(ast.LiteralList node) {
+    assert(isOpen);
+    ir.Primitive result;
+    if (node.isConst) {
+      result = new ir.Constant(getConstantForNode(node));
+    } else {
+      List<ir.Primitive> values = new List<ir.Primitive>();
+      node.elements.nodes.forEach((ast.Node node) {
+        values.add(visit(node));
+      });
+      result = new ir.LiteralList(values);
+    }
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
+  ir.Primitive visitLiteralMap(ast.LiteralMap node) {
+    assert(isOpen);
+    ir.Primitive result;
+    if (node.isConst) {
+      result = new ir.Constant(getConstantForNode(node));
+    } else {
+      List<ir.Primitive> keys = new List<ir.Primitive>();
+      List<ir.Primitive> values = new List<ir.Primitive>();
+      node.entries.nodes.forEach((ast.LiteralMapEntry node) {
+        keys.add(visit(node.key));
+        values.add(visit(node.value));
+      });
+      result = new ir.LiteralMap(keys, values);
+    }
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
   // TODO(kmillikin): other literals.
-  //   LiteralList
-  //   LiteralMap
-  //   LiteralMapEntry
   //   LiteralSymbol
 
   ir.Primitive visitParenthesizedExpression(

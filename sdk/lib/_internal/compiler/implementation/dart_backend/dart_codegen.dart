@@ -202,6 +202,19 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return emitConstant(exp.value);
   }
 
+  Expression visitLiteralList(tree.LiteralList exp) {
+    return new LiteralList(
+        exp.values.map(visitExpression).toList(growable: false));
+  }
+
+  Expression visitLiteralMap(tree.LiteralMap exp) {
+    List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
+        exp.values.length,
+        (i) => new LiteralMapEntry(visitExpression(exp.keys[i]),
+                                   visitExpression(exp.values[i])));
+    return new LiteralMap(entries);
+  }
+
   List<Argument> emitArguments(tree.Invoke exp) {
     List<tree.Expression> args = exp.arguments;
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
@@ -328,7 +341,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (constant is dart2js.PrimitiveConstant) {
       return new Literal(constant);
     } else if (constant is dart2js.ListConstant) {
-      return new LiteralList(constant.entries.map(emitConstant), isConst: true);
+      return new LiteralList(
+          constant.entries.map(emitConstant).toList(growable: false),
+          isConst: true);
     } else if (constant is dart2js.MapConstant) {
       List<LiteralMapEntry> entries = <LiteralMapEntry>[];
       for (var i = 0; i < constant.keys.length; i++) {

@@ -51,6 +51,8 @@ class BlockCollector extends Visitor {
   visitInvokeMethod(InvokeMethod node) {}
   visitInvokeConstructor(InvokeConstructor node) {}
   visitConcatenateStrings(ConcatenateStrings node) {}
+  visitLiteralList(LiteralList node) {}
+  visitLiteralMap(LiteralMap node) {}
   visitConstant(Constant node) {}
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
@@ -199,6 +201,14 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, expr(node));
   }
 
+  visitLiteralList(LiteralList node) {
+    printStatement(null, expr(node));
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    printStatement(null, expr(node));
+  }
+
   visitConditional(Conditional node) {
     printStatement(null, expr(node));
   }
@@ -294,6 +304,21 @@ class SubexpressionVisitor extends Visitor<String, String> {
   String visitConcatenateStrings(ConcatenateStrings node) {
     String args = node.arguments.map(visitExpression).join(', ');
     return "concat [$args]";
+  }
+
+  String visitLiteralList(LiteralList node) {
+    String values = node.values.map(visitExpression).join(', ');
+    return "list [$values]";
+  }
+
+  String visitLiteralMap(LiteralMap node) {
+    List<String> entries = new List<String>();
+    for (int i = 0; i < node.values.length; ++i) {
+      String key = visitExpression(node.keys[i]);
+      String value = visitExpression(node.values[i]);
+      entries.add("$key: $value");
+    }
+    return "map [${entries.join(', ')}]";
   }
 
   String visitConstant(Constant node) {
