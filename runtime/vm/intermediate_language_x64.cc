@@ -2264,6 +2264,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsd(FieldAddress(result, Double::value_offset()), value);
       __ jmp(&done);
     }
+
     {
       __ Bind(&load_float32x4);
       BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
@@ -2280,9 +2281,9 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
       __ jmp(&done);
     }
+
     {
       __ Bind(&load_float64x2);
-
       BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 

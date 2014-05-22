@@ -453,6 +453,28 @@ enum LogicalShiftOp {
   BICS = LogicalShiftFixed | B30 | B29 | B21,
 };
 
+// C.3.6.5
+enum SIMDCopyOp {
+  SIMDCopyMask = 0x9fe08400,
+  SIMDCopyFixed = DPSimd1Fixed | B10,
+  VDUP = SIMDCopyFixed | B30,
+  VINS = SIMDCopyFixed | B30 | B29,
+};
+
+// C.3.6.16
+enum SIMDThreeSameOp {
+  SIMDThreeSameMask = 0x9f200400,
+  SIMDThreeSameFixed = DPSimd1Fixed | B21 | B10,
+  VADDS = SIMDThreeSameFixed | B30 | B15 | B14 | B12,
+  VADDD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B12,
+  VSUBS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B12,
+  VSUBD = SIMDThreeSameFixed | B30 | B23 | B22 | B15 | B14 | B12,
+  VMULS = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B12 | B11,
+  VMULD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B12 | B11,
+  VDIVS = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13 | B12 | B11,
+  VDIVD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13 | B12 | B11,
+};
+
 // C.3.6.22
 enum FPCompareOp {
   FPCompareMask = 0xffa0fc07,
@@ -528,11 +550,13 @@ _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
+_V(SIMDCopy)                                                                   \
+_V(SIMDThreeSame)                                                              \
+_V(FPCompare)                                                                  \
 _V(FPOneSource)                                                                \
 _V(FPTwoSource)                                                                \
 _V(FPImm)                                                                      \
 _V(FPIntCvt)                                                                   \
-_V(FPCompare)                                                                  \
 
 
 enum Shift {
@@ -602,6 +626,10 @@ enum InstructionFields {
   // Immediates.
   kImm3Shift = 10,
   kImm3Bits = 3,
+  kImm4Shift = 11,
+  kImm4Bits = 4,
+  kImm5Shift = 16,
+  kImm5Bits = 5,
   kImm6Shift = 10,
   kImm6Bits = 6,
   kImm8Shift = 13,

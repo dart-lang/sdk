@@ -26,6 +26,8 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, enable_simd_inline);
+
 
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
@@ -47,7 +49,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
-  return false;
+  return FLAG_enable_simd_inline;
 }
 
 

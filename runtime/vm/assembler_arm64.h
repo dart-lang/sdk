@@ -733,6 +733,44 @@ class Assembler : public ValueObject {
     EmitFPTwoSourceOp(FSUBD, vd, vn, vm);
   }
 
+  // SIMD operations.
+  void vadds(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VADDS, vd, vn, vm);
+  }
+  void vaddd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VADDD, vd, vn, vm);
+  }
+  void vsubs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSUBS, vd, vn, vm);
+  }
+  void vsubd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSUBD, vd, vn, vm);
+  }
+  void vmuls(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMULS, vd, vn, vm);
+  }
+  void vmuld(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMULD, vd, vn, vm);
+  }
+  void vdivs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VDIVS, vd, vn, vm);
+  }
+  void vdivd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VDIVD, vd, vn, vm);
+  }
+  void vdups(VRegister vd, VRegister vn, int32_t idx) {
+    EmitSIMDCopyOp(VDUP, vd, vn, kSWord, 0, idx);
+  }
+  void vdupd(VRegister vd, VRegister vn, int32_t idx) {
+    EmitSIMDCopyOp(VDUP, vd, vn, kDWord, 0, idx);
+  }
+  void vinss(VRegister vd, int32_t didx, VRegister vn, int32_t sidx) {
+    EmitSIMDCopyOp(VINS, vd, vn, kSWord, sidx, didx);
+  }
+  void vinsd(VRegister vd, int32_t didx, VRegister vn, int32_t sidx) {
+    EmitSIMDCopyOp(VINS, vd, vn, kDWord, sidx, didx);
+  }
+
   // Aliases.
   void mov(Register rd, Register rn) {
     if ((rd == SP) || (rn == SP)) {
@@ -970,13 +1008,11 @@ class Assembler : public ValueObject {
   void LeaveStubFrame();
 
   void UpdateAllocationStats(intptr_t cid,
-                             Register temp_reg,
                              Register pp,
                              Heap::Space space = Heap::kNew);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Register temp_reg,
                                      Register pp,
                                      Heap::Space space = Heap::kNew);
 
@@ -987,7 +1023,6 @@ class Assembler : public ValueObject {
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
-                   Register temp_reg,
                    Register pp);
 
  private:
@@ -1402,6 +1437,30 @@ class Assembler : public ValueObject {
         op |
         (static_cast<int32_t>(vn) << kVnShift) |
         (static_cast<int32_t>(vm) << kVmShift);
+    Emit(encoding);
+  }
+
+  void EmitSIMDThreeSameOp(SIMDThreeSameOp op,
+                           VRegister vd, VRegister vn, VRegister vm) {
+    const int32_t encoding =
+        op |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift) |
+        (static_cast<int32_t>(vm) << kVmShift);
+    Emit(encoding);
+  }
+
+  void EmitSIMDCopyOp(SIMDCopyOp op, VRegister vd, VRegister vn, OperandSize sz,
+                      int32_t idx4, int32_t idx5) {
+    const int32_t shift = Log2OperandSizeBytes(sz);
+    const int32_t imm5 = ((idx5 << (shift + 1)) | (1 << shift)) & 0x1f;
+    const int32_t imm4 = (idx4 << shift) & 0xf;
+    const int32_t encoding =
+        op |
+        (imm5 << kImm5Shift) |
+        (imm4 << kImm4Shift) |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift);
     Emit(encoding);
   }
 
