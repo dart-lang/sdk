@@ -48,16 +48,20 @@ def PubSteps(build_info):
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
 
 
-  testing_options = ['', '--vm-options=--optimization-counter-threshold=5']
-  for options in testing_options:
-    if build_info.mode == 'release':
-      bot.RunTest('pub and pkg %s' % options, build_info,
-                  common_args + [options, 'pub', 'pkg', 'docs'])
-    else:
-      # Pub tests currently have a lot of timeouts when run in debug mode.
-      # See issue 18479
-      bot.RunTest('pub and pkg %s' % options, build_info,
-                  common_args + [options, 'pkg', 'docs'])
+  opt_threshold = '--vm-options=--optimization-counter-threshold=5'
+  if build_info.mode == 'release':
+    bot.RunTest('pub and pkg ', build_info,
+                common_args + ['pub', 'pkg', 'docs'])
+    bot.RunTest('pub and pkg optimization counter thresshold 5', build_info,
+                common_args + ['--append_logs', opt_threshold,
+                               'pub', 'pkg', 'docs'])
+  else:
+    # Pub tests currently have a lot of timeouts when run in debug mode.
+    # See issue 18479
+    bot.RunTest('pub and pkg %s', build_info,
+                common_args + ['pkg', 'docs'])
+    bot.RunTest('pub and pkg optimization counter threshold 5', build_info,
+                common_args + ['--append_logs', opt_threshold, 'pkg', 'docs'])
 
   if build_info.mode == 'release':
     pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
