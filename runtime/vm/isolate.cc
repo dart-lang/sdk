@@ -37,8 +37,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, report_usage_count, false,
-            "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DEFINE_FLAG(bool, pause_isolates_on_start, false,
@@ -762,11 +760,8 @@ void Isolate::Shutdown() {
     delete message_handler();
     set_message_handler(NULL);
 
-    // Dump all accumalated timer data for the isolate.
+    // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
-    if (FLAG_report_usage_count) {
-      PrintInvokedFunctions();
-    }
 
     // Write out profiler data if requested.
     Profiler::WriteProfile(this);

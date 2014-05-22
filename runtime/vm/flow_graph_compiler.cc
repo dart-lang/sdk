@@ -30,7 +30,6 @@ DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
-DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
@@ -168,8 +167,7 @@ void FlowGraphCompiler::InitCompiler() {
 
 
 bool FlowGraphCompiler::CanOptimize() {
-  return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0);
+  return FLAG_optimization_counter_threshold >= 0;
 }
 
 
@@ -771,7 +769,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 void FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimizeFunction()) return;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
