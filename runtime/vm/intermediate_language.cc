@@ -1633,8 +1633,20 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static bool HasTryBlockUse(Value* use_list) {
+  for (Value::Iterator it(use_list); !it.Done(); it.Advance()) {
+    Value* use = it.Current();
+    if (use->instruction()->MayThrow() &&
+        use->instruction()->GetBlock()->InsideTryBlock()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1669,7 +1681,7 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1692,7 +1704,7 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1716,7 +1728,7 @@ Definition* UnboxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
