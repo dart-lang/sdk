@@ -37,7 +37,7 @@ abstract class SetMixin<E> implements Set<E> {
 
   bool remove(Object element);
 
-  Iterable<E> get iterator;
+  Iterator<E> get iterator;
 
   Set<E> toSet();
 
