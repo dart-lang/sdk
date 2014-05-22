@@ -47,6 +47,8 @@ class BitmapBuilder : public ZoneAllocated {
   // Sets min..max (inclusive) to value.
   void SetRange(intptr_t min, intptr_t max, bool value);
 
+  void Print() const;
+
  private:
   static const intptr_t kInitialSizeInBytes = 16;
   static const intptr_t kIncrementSizeInBytes = 16;

@@ -43,7 +43,6 @@ Definition::Definition()
       ssa_temp_index_(-1),
       input_use_list_(NULL),
       env_use_list_(NULL),
-      use_kind_(kValue),  // Phis and parameters rely on this default.
       constant_value_(Object::ZoneHandle(ConstantPropagator::Unknown())) {
 }
 
@@ -1403,7 +1402,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
         new MathUnaryInstr(MathUnaryInstr::kDoubleSquare,
                            new Value(left()->definition()),
                            DeoptimizationTarget());
-    flow_graph->InsertBefore(this, math_unary, env(), Definition::kValue);
+    flow_graph->InsertBefore(this, math_unary, env(), FlowGraph::kValue);
     return math_unary;
   }
 
@@ -1661,7 +1660,7 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsDouble()) {
     UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
-    flow_graph->InsertBefore(this, uc, NULL, Definition::kValue);
+    flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
 
@@ -2132,7 +2131,6 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
       Value* value = InputAt(i);
       switch (value->definition()->representation()) {
         case kUnboxedDouble:
-        case kUnboxedMint:
           locations_[i] = Location::DoubleStackSlot(index);
           break;
         case kUnboxedFloat32x4:
@@ -2143,6 +2141,8 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
         default:
           UNREACHABLE();
       }
+    } else if (loc.IsPairLocation()) {
+      UNREACHABLE();
     } else if (loc.IsInvalid()) {
       // We currently only perform one iteration of allocation
       // sinking, so we do not expect to find materialized objects
@@ -2349,7 +2349,7 @@ Environment* Environment::DeepCopy(intptr_t length) const {
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
     if (locations_ != NULL) {
-      copy->locations_[i] = locations_[i];
+      copy->locations_[i] = locations_[i].Copy();
     }
   }
   return copy;

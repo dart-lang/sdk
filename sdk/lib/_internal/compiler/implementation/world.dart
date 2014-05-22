@@ -293,7 +293,7 @@ class World {
     // expressions. In such a case, we have to look at the original
     // function expressions's element.
     // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is SynthesizedCallMethodElementX) {
+    if (element is closureMapping.SynthesizedCallMethodElementX) {
       return getMightBePassedToApply(element.expression);
     }
     return functionsThatMightBePassedToApply.contains(element);

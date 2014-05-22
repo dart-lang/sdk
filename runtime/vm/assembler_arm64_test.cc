@@ -1846,6 +1846,407 @@ ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ LoadDImmediate(V2, 2.0, kNoPP);
+  __ LoadDImmediate(V3, 3.0, kNoPP);
+
+  __ fcvtsd(V0, V0);
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+  __ fcvtsd(V3, V3);
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vadds(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V0, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vadds, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(12.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ LoadDImmediate(V2, 2.0, kNoPP);
+  __ LoadDImmediate(V3, 3.0, kNoPP);
+  __ LoadDImmediate(V5, 0.0, kNoPP);
+
+  __ fcvtsd(V0, V0);
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+  __ fcvtsd(V3, V3);
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vsubs(V5, V5, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V0, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-6.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ LoadDImmediate(V2, 2.0, kNoPP);
+  __ LoadDImmediate(V3, 3.0, kNoPP);
+
+  __ fcvtsd(V0, V0);
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+  __ fcvtsd(V3, V3);
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vmuls(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V0, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vmuls, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(14.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
+  __ LoadDImmediate(V0, 0.0, kNoPP);
+  __ LoadDImmediate(V1, 1.0, kNoPP);
+  __ LoadDImmediate(V2, 2.0, kNoPP);
+  __ LoadDImmediate(V3, 3.0, kNoPP);
+
+  __ fcvtsd(V0, V0);
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+  __ fcvtsd(V3, V3);
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vdivs(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V1, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vdivs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(4.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+
+ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
+  __ LoadDImmediate(V0, 2.0, kNoPP);
+  __ LoadDImmediate(V1, 3.0, kNoPP);
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vaddd(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(10.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
+  __ LoadDImmediate(V0, 2.0, kNoPP);
+  __ LoadDImmediate(V1, 3.0, kNoPP);
+  __ LoadDImmediate(V5, 0.0, kNoPP);
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vsubd(V5, V5, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-5.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
+  __ LoadDImmediate(V0, 2.0, kNoPP);
+  __ LoadDImmediate(V1, 3.0, kNoPP);
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vmuld(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vmuld, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(13.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
+  __ LoadDImmediate(V0, 2.0, kNoPP);
+  __ LoadDImmediate(V1, 3.0, kNoPP);
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+
+  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
+  __ vdivd(V5, V4, V4);
+  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ faddd(V0, V0, V1);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vdivd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(2.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
+  __ LoadDImmediate(V0, 21.0, kNoPP);
+  __ vdupd(V1, V0, 0);
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V2, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V3, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ faddd(V0, V2, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vdupd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
+  __ LoadDImmediate(V0, 21.0, kNoPP);
+  __ fcvtsd(V0, V0);
+  __ vdups(V1, V0, 0);
+
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V1, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vdups, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(84.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
+  __ LoadDImmediate(V5, 42.0, kNoPP);
+  __ vinsd(V1, 1, V5, 0);  // V1[1] <- V0[0].
+
+  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrd(V2, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ fldrd(V3, Address(SP, 1 * dword_bytes, Address::PostIndex));
+
+  __ fmovdd(V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vinsd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
+  __ LoadDImmediate(V0, 21.0, kNoPP);
+  __ fcvtsd(V0, V0);
+  __ vinss(V1, 3, V0, 0);
+  __ vinss(V1, 1, V0, 0);
+
+  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
+  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+  __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
+
+  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+
+  __ fcvtds(V0, V0);
+  __ fcvtds(V1, V1);
+  __ fcvtds(V2, V2);
+  __ fcvtds(V3, V3);
+
+  __ faddd(V0, V0, V1);
+  __ faddd(V0, V0, V2);
+  __ faddd(V0, V0, V3);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vinss, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 // Called from assembler_test.cc.
 // LR: return address.
 // R0: context.

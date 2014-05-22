@@ -64,7 +64,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    Definition::UseKind use_kind) {
+                    FlowGraph::UseKind use_kind) {
     flow_graph_->InsertBefore(next, instr, env, use_kind);
   }
 

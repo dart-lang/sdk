@@ -104,7 +104,7 @@ void FlowGraph::AddToInitialDefinitions(Definition* defn) {
 void FlowGraph::InsertBefore(Instruction* next,
                              Instruction* instr,
                              Environment* env,
-                             Definition::UseKind use_kind) {
+                             UseKind use_kind) {
   InsertAfter(next->previous(), instr, env, use_kind);
 }
 
@@ -112,8 +112,8 @@ void FlowGraph::InsertBefore(Instruction* next,
 void FlowGraph::InsertAfter(Instruction* prev,
                             Instruction* instr,
                             Environment* env,
-                            Definition::UseKind use_kind) {
-  if (use_kind == Definition::kValue) {
+                            UseKind use_kind) {
+  if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
     AllocateSSAIndexes(instr->AsDefinition());
   }
@@ -126,8 +126,8 @@ void FlowGraph::InsertAfter(Instruction* prev,
 Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  Instruction* instr,
                                  Environment* env,
-                                 Definition::UseKind use_kind) {
-  if (use_kind == Definition::kValue) {
+                                 UseKind use_kind) {
+  if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
     AllocateSSAIndexes(instr->AsDefinition());
   }
@@ -892,7 +892,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         } else if (load != NULL) {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
-          ASSERT(definition->is_used());
+          ASSERT(definition->HasTemp());
           intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
           result = (*env)[index];
 
@@ -918,13 +918,13 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (drop->value() != NULL) {
             result = drop->value()->definition();
           }
-          ASSERT((drop->value() != NULL) || !drop->is_used());
+          ASSERT((drop->value() != NULL) || !drop->HasTemp());
         } else {
-          ASSERT(definition->is_used());
+          ASSERT(definition->HasTemp());
           result = GetConstant(constant->value());
         }
         // Update expression stack or remove from graph.
-        if (definition->is_used()) {
+        if (definition->HasTemp()) {
           ASSERT(result != NULL);
           env->Add(result);
           // We remove load/store/constant instructions when we find their
@@ -934,7 +934,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         }
       } else {
         // Not a load, store, or constant.
-        if (definition->is_used()) {
+        if (definition->HasTemp()) {
           // Assign fresh SSA temporary and update expression stack.
           AllocateSSAIndexes(definition);
           env->Add(definition);

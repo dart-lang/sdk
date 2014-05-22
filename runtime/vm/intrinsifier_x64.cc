@@ -1150,17 +1150,12 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
   __ movq(RBX, FieldAddress(RAX, state_field.Offset()));  // Field '_state'.
   // Addresses of _state[0] and _state[1].
-  Address addr_0 = FlowGraphCompiler::ElementAddressForIntIndex(
-      kTypedDataUint32ArrayCid,
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
-      RBX,
-      0);
-  Address addr_1 = FlowGraphCompiler::ElementAddressForIntIndex(
-      kTypedDataUint32ArrayCid,
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
-      RBX,
-      1);
-
+  const intptr_t index_scale =
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const intptr_t offset =
+      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid);
+  Address addr_0 = FieldAddress(RBX, 0 * index_scale + offset);
+  Address addr_1 = FieldAddress(RBX, 1 * index_scale + offset);
   __ movq(RAX, Immediate(a_int_value));
   __ movl(RCX, addr_0);
   __ imulq(RCX, RAX);

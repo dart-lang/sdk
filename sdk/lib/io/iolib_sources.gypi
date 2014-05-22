@@ -26,6 +26,7 @@
     'platform.dart',
     'platform_impl.dart',
     'process.dart',
+    'service_object.dart',
     'socket.dart',
     'stdio.dart',
     'string_transformer.dart',

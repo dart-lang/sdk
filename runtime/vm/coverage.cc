@@ -20,6 +20,7 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
 
 void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_arr) {
+  Isolate* isolate = Isolate::Current();
   if (!function.HasCode()) {
     // If the function should not be compiled or if the compilation failed,
     // then just skip this method.
@@ -35,7 +36,8 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       OS::Print("### Coverage skipped compiling: %s\n", function.ToCString());
       return;
     }
-    const Error& err = Error::Handle(Compiler::CompileFunction(function));
+    const Error& err = Error::Handle(
+        isolate, Compiler::CompileFunction(isolate, function));
     if (!err.IsNull()) {
       OS::Print("### Coverage failed compiling:\n%s\n", err.ToErrorCString());
       return;
@@ -43,7 +45,6 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   }
   ASSERT(function.HasCode());
 
-  Isolate* isolate = Isolate::Current();
   // Print the hit counts for all IC datas.
   const Script& script = Script::Handle(function.script());
   const Code& code = Code::Handle(function.unoptimized_code());

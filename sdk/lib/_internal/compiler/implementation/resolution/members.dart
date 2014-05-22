@@ -451,8 +451,9 @@ class ResolverTask extends CompilerTask {
       }
       if (element.isSynthesized) {
         if (isConstructor) {
+          ConstructorElement constructor = element.asFunctionElement();
           TreeElements elements = _ensureTreeElements(element);
-          Element target = element.targetConstructor;
+          ConstructorElement target = constructor.definingConstructor;
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
           // seeing this element.
@@ -4107,7 +4108,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         constructor.computeSignature(compiler).parameterCount == 0;
   }
 
-  FunctionElement createForwardingConstructor(FunctionElement target,
+  FunctionElement createForwardingConstructor(ConstructorElement target,
                                               ClassElement enclosing) {
     return new SynthesizedConstructorElementX(
         target.name, target, enclosing, false);

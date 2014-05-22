@@ -5223,10 +5223,16 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main}. 
 A script $S$ may be executed as follows:
 
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no formal parameters, it is invoked with no arguments. Otherwise \code{main} is invoked with a single actual argument whose type implements \code{List$<$String$>$}. It is a run time error if $S$ does not declare or import a top-level function \code{main}. It is a static warning if \code{main} has more than one required parameter.
+First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no positional parameters, it is invoked with no arguments. Otherwise if \code{main} has exactly one positional parameter, it is invoked with a single actual argument whose runtime type implements \code{List$<$String$>$}.  Otherwise \code{main} is invoked with the following two actual arguments:
+\begin{enumerate}
+\item An object whose runtime type implements \code{List$<$String$>$}.
+\item The initial message of the current isolate $i$ as determined by the invocation of \code{Isolate.spawnUri} that spawned $i$. 
+\end{enumerate}
+
+It is a run time error if $S$ does not declare or import a top-level function \code{main}. It is a static warning if \code{main} has more than two required parameters.
 
 \commentary {
-If \code{main} requires more than one argument, a run time error will occur.
+Note that if \code{main} requires more than two arguments, a run time error will occur. 
 }
 
 \rationale{

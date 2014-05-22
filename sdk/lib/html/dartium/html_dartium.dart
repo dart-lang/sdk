@@ -2229,11 +2229,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) => _blink.Native_CanvasRenderingContext2D__drawImage(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
 
-  @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawSystemFocusRing(Element element) => _blink.Native_CanvasRenderingContext2D_drawSystemFocusRing_Callback(this, element);
-
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
@@ -24234,7 +24229,10 @@ class Screen extends EventTarget {
   @DocsEditable()
   int get width => _blink.Native_Screen_width_Getter(this);
 
-  bool lockOrientation(orientation_OR_orientations) => _blink.Native_Screen_lockOrientation(this, orientation_OR_orientations);
+  @DomName('Screen.lockOrientation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool lockOrientation(String orientation) => _blink.Native_Screen_lockOrientation_Callback(this, orientation);
 
   @DomName('Screen.unlockOrientation')
   @DocsEditable()

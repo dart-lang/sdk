@@ -9,7 +9,6 @@ import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import '../dart2jslib.dart' as dart2js;
-import '../util/characters.dart' as characters;
 import '../elements/elements.dart' as elements;
 import '../dart_types.dart' as types;
 

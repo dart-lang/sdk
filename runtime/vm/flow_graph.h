@@ -133,18 +133,20 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* GetConstant(const Object& object);
   void AddToInitialDefinitions(Definition* defn);
 
+  enum UseKind { kEffect, kValue };
+
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    Definition::UseKind use_kind);
+                    UseKind use_kind);
   void InsertAfter(Instruction* prev,
                    Instruction* instr,
                    Environment* env,
-                   Definition::UseKind use_kind);
+                   UseKind use_kind);
   Instruction* AppendTo(Instruction* prev,
                         Instruction* instr,
                         Environment* env,
-                        Definition::UseKind use_kind);
+                        UseKind use_kind);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,

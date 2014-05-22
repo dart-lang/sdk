@@ -683,6 +683,40 @@ ASSEMBLER_TEST_RUN(AddSub, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
+  __ LoadImmediate(R2, 0xFFFFFFFF);
+  __ mov(R1, ShifterOperand(1));
+  __ mov(R0, ShifterOperand(0));
+  __ adds(R2, R2, ShifterOperand(R1));
+  __ adcs(R0, R0, ShifterOperand(R0));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(AddCarry, test) {
+  EXPECT(test != NULL);
+  typedef int (*AddCarry)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarry, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
+  __ LoadImmediate(R2, 0x0);
+  __ mov(R1, ShifterOperand(1));
+  __ mov(R0, ShifterOperand(0));
+  __ subs(R2, R2, ShifterOperand(R1));
+  __ sbcs(R0, R0, ShifterOperand(R0));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(SubCarry, test) {
+  EXPECT(test != NULL);
+  typedef int (*SubCarry)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarry, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
   __ mov(R1, ShifterOperand(40));
   __ mov(R2, ShifterOperand(0));

@@ -40,8 +40,14 @@ DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
+// TODO(zra): remove once arm64 has simd.
+#if defined(TARGET_ARCH_ARM64)
+DEFINE_FLAG(bool, enable_simd_inline, false,
+    "Enable inlining of SIMD related method calls.");
+#else
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+#endif
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -561,7 +567,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
       for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
-          bitmap->Set(bitmap->Length(), true);
+          bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
         }
       }
     }
@@ -632,7 +638,6 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
       Value* value = it.CurrentValue();
       switch (value->definition()->representation()) {
         case kUnboxedDouble:
-        case kUnboxedMint:
           it.SetCurrentLocation(Location::DoubleStackSlot(index));
           break;
         case kUnboxedFloat32x4:
@@ -643,6 +648,27 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
         default:
           UNREACHABLE();
       }
+    } else if (loc.IsPairLocation()) {
+      intptr_t representation =
+          it.CurrentValue()->definition()->representation();
+      ASSERT(representation == kUnboxedMint);
+      PairLocation* value_pair = loc.AsPairLocation();
+      intptr_t index_lo;
+      intptr_t index_hi;
+      if (value_pair->At(0).IsRegister()) {
+        index_lo = cpu_reg_slots[value_pair->At(0).reg()];
+      } else {
+        ASSERT(value_pair->At(0).IsStackSlot());
+        index_lo = value_pair->At(0).stack_index();
+      }
+      if (value_pair->At(1).IsRegister()) {
+        index_hi = cpu_reg_slots[value_pair->At(1).reg()];
+      } else {
+        ASSERT(value_pair->At(1).IsStackSlot());
+        index_hi = value_pair->At(1).stack_index();
+      }
+      it.SetCurrentLocation(Location::Pair(Location::StackSlot(index_lo),
+                                           Location::StackSlot(index_hi)));
     } else if (loc.IsInvalid()) {
       Definition* def =
           it.CurrentValue()->definition();

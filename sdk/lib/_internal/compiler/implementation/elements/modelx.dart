@@ -260,8 +260,6 @@ abstract class ElementX extends Element {
   bool get isAbstract => modifiers.isAbstract;
   bool isForeign(Compiler compiler) => library == compiler.foreignLibrary;
 
-  FunctionElement get targetConstructor => null;
-
   void diagnose(Element context, DiagnosticListener listener) {}
 
   TreeElements get treeElements => enclosingElement.treeElements;
@@ -317,6 +315,10 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get effectiveTarget => this;
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
+
+  get definingConstructor => this;
+
+  FunctionElement asFunctionElement() => this;
 
   String get message => '${messageKind.message(messageArguments)}';
 
@@ -1589,23 +1591,8 @@ abstract class ConstructorElementX extends FunctionElementX
                  '$this.'));
     return effectiveTargetType.substByContext(newType);
   }
-}
 
-class SynthesizedCallMethodElementX extends FunctionElementX {
-  final FunctionElement expression;
-
-  SynthesizedCallMethodElementX(String name,
-                                FunctionElementX other,
-                                Element enclosing)
-      : expression = other,
-        super.tooMuchOverloading(name, other.kind,
-                                 other.modifiers, enclosing,
-                                 other.functionSignature,
-                                 false);
-
-  FunctionExpression get node => expression.node;
-
-  FunctionExpression parseNode(DiagnosticListener listener) => node;
+  ConstructorElement get definingConstructor => null;
 }
 
 class DeferredLoaderGetterElementX extends FunctionElementX {
@@ -1686,11 +1673,11 @@ class ConstructorBodyElementX extends FunctionElementX
  * constructors for mixin applications.
  */
 class SynthesizedConstructorElementX extends ConstructorElementX {
-  final ConstructorElement superMember;
+  final ConstructorElement definingConstructor;
   final bool isDefaultConstructor;
 
   SynthesizedConstructorElementX(String name,
-                                 this.superMember,
+                                 this.definingConstructor,
                                  Element enclosing,
                                  this.isDefaultConstructor)
       : super(name,
@@ -1709,8 +1696,6 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   bool get isSynthesized => true;
 
-  FunctionElement get targetConstructor => superMember;
-
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     if (isDefaultConstructor) {
@@ -1719,17 +1704,15 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
           const <Element>[],
           new FunctionType(this, enclosingClass.thisType));
     }
-    if (superMember.isErroneous) {
+    if (definingConstructor.isErroneous) {
       return functionSignatureCache =
           compiler.objectClass.localLookup('').computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignatureCache = superMember.computeSignature(compiler);
+    return functionSignatureCache =
+        definingConstructor.computeSignature(compiler);
   }
-
-  get declaration => this;
-  get implementation => this;
 
   accept(ElementVisitor visitor) {
     return visitor.visitFunctionElement(this);

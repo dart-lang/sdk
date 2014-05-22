@@ -101,14 +101,17 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
   if (!func.IsConstructor()) return;
 
-  const Class& cls = Class::Handle(func.Owner());
-  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate, func.Owner());
+  const Error& error = Error::Handle(
+      isolate, cls.EnsureIsFinalized(Isolate::Current()));
   if (!error.IsNull()) {
     ThrowInvokeError(error);
     UNREACHABLE();
   }
   if (!func.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(func));
+    const Error& error = Error::Handle(
+        isolate, Compiler::CompileFunction(isolate, func));
     if (!error.IsNull()) {
       ThrowInvokeError(error);
       UNREACHABLE();

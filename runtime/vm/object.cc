@@ -2514,7 +2514,14 @@ class WeakCodeReferences : public ValueObject {
         function.SwitchToUnoptimizedCode();
       } else if (function.unoptimized_code() == code.raw()) {
         ReportSwitchingCode(code);
+        // Remove the code object from the function. The next time the
+        // function is invoked, it will be compiled again.
         function.ClearCode();
+        // Invalidate the old code object so existing references to it
+        // (from optimized code) will fail when invoked.
+        if (!CodePatcher::IsEntryPatched(code)) {
+          CodePatcher::PatchEntry(code);
+        }
       }
     }
   }
@@ -7847,7 +7854,7 @@ void Script::Tokenize(const String& private_key) const {
     return;
   }
   // Get the source, scan and allocate the token stream.
-  VMTagScope tagScope(isolate, VMTag::kCompileTagId);
+  VMTagScope tagScope(isolate, VMTag::kCompileScannerTagId);
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
   const String& src = String::Handle(isolate, Source());
   Scanner scanner(src, private_key);
@@ -9559,9 +9566,10 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("Prefix '%s': deleting %s code for function '%s'\n",
+      OS::PrintErr("Prefix '%s': deleting %s code for %s function '%s'\n",
         String::Handle(prefix_.name()).ToCString(),
         code.is_optimized() ? "optimized" : "unoptimized",
+        CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
         Function::Handle(code.function()).ToCString());
     }
   }
@@ -13830,7 +13838,7 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
     return true;
   }
   const TypeArguments& args = TypeArguments::Handle(arguments());
-  const intptr_t num_type_args = args.Length();
+  intptr_t num_type_args = args.Length();
   intptr_t len = num_type_args;  // Check the full vector of type args.
   ASSERT(num_type_args > 0);
   // This type is not instantiated if it refers to type parameters.
@@ -13841,8 +13849,10 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
   // arguments and not just at the type parameters.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
+    len = cls.NumTypeArguments();
+    ASSERT(num_type_args >= len);  // The vector may be longer than necessary.
+    num_type_args = len;
     len = cls.NumTypeParameters();  // Check the type parameters only.
-    ASSERT(num_type_args == cls.NumTypeArguments());
   }
   return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
 }

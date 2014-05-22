@@ -26,6 +26,8 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, enable_simd_inline);
+
 
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
@@ -47,7 +49,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
-  return false;
+  return FLAG_enable_simd_inline;
 }
 
 
@@ -717,7 +719,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
     return;
   }
   Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->is_used()) {
+  if ((defn != NULL) && defn->HasTemp()) {
     __ Push(defn->locs()->out(0).reg());
   }
 }
@@ -1527,22 +1529,20 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-// Do not implement or use this function.
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          intptr_t index) {
+Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     intptr_t index) {
   UNREACHABLE();
   return FieldAddress(array, index);
 }
 
 
-// Do not implement or use this function.
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          Register index) {
-  UNREACHABLE();  // No register indexed with offset addressing mode on ARM.
+Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

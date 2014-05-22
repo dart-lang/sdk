@@ -197,7 +197,7 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0, kNoPP);
   __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  __ UpdateAllocationStats(kGrowableObjectArrayCid, R1, kNoPP);
+  __ UpdateAllocationStats(kGrowableObjectArrayCid, kNoPP);
   __ ret();  // Returns the newly allocated object in R0.
 
   __ Bind(&fall_through);
@@ -409,7 +409,7 @@ static int GetScaleFactor(intptr_t size) {
   __ LoadImmediate(R3, heap->TopAddress(), kNoPP);                             \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);                              \
-  __ UpdateAllocationStatsWithSize(cid, R2, R4, kNoPP);                        \
+  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP);                            \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -959,7 +959,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   }
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1001,7 +1001,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ fmuld(V0, V0, V1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1019,7 +1019,7 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ scvtfd(V0, R0);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1099,7 +1099,7 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ fsqrtd(V0, V1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&is_smi);
@@ -1322,7 +1322,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(R3));
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, R2, R3, kNoPP);
+  __ UpdateAllocationStatsWithSize(kOneByteStringCid, R2, kNoPP);
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.

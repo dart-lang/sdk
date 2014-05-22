@@ -93,7 +93,9 @@ class SimulatorDebugger {
   Simulator* sim_;
 
   bool GetValue(char* desc, int64_t* value);
+  bool GetSValue(char* desc, int32_t* value);
   bool GetDValue(char* desc, int64_t* value);
+  bool GetQValue(char* desc, simd_value_t* value);
   // TODO(zra): Breakpoints.
 };
 
@@ -185,10 +187,30 @@ bool SimulatorDebugger::GetValue(char* desc, int64_t* value) {
 }
 
 
+bool SimulatorDebugger::GetSValue(char* desc, int32_t* value) {
+  VRegister vreg = LookupVRegisterByName(desc);
+  if (vreg != kNoVRegister) {
+    *value = sim_->get_vregisters(vreg, 0);
+    return true;
+  }
+  if (desc[0] == '*') {
+    int64_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<int32_t*>(addr));
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool SimulatorDebugger::GetDValue(char* desc, int64_t* value) {
   VRegister vreg = LookupVRegisterByName(desc);
   if (vreg != kNoVRegister) {
-    *value = sim_->get_vregisterd(vreg);
+    *value = sim_->get_vregisterd(vreg, 0);
     return true;
   }
   if (desc[0] == '*') {
@@ -198,6 +220,26 @@ bool SimulatorDebugger::GetDValue(char* desc, int64_t* value) {
         return false;
       }
       *value = *(reinterpret_cast<int64_t*>(addr));
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
+  VRegister vreg = LookupVRegisterByName(desc);
+  if (vreg != kNoVRegister) {
+    sim_->get_vregister(vreg, value);
+    return true;
+  }
+  if (desc[0] == '*') {
+    int64_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<simd_value_t*>(addr));
       return true;
     }
   }
@@ -259,7 +301,9 @@ void SimulatorDebugger::Debug() {
                   "gdb -- transfer control to gdb\n"
                   "h/help -- print this help string\n"
                   "p/print <reg or value or *addr> -- print integer value\n"
-                  "pd/printdouble <dreg or *addr> -- print double value\n"
+                  "pf/printfloat <vreg or *addr> --print float value\n"
+                  "pd/printdouble <vreg or *addr> -- print double value\n"
+                  "pq/printquad <vreg or *addr> -- print vector register\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
                   "q/quit -- Quit the debugger and exit the program\n");
@@ -284,6 +328,20 @@ void SimulatorDebugger::Debug() {
         } else {
           OS::Print("print <reg or value or *addr>\n");
         }
+      } else if ((strcmp(cmd, "pf") == 0) ||
+                 (strcmp(cmd, "printfloat") == 0)) {
+        if (args == 2) {
+          int32_t value;
+          if (GetSValue(arg1, &value)) {
+            float svalue = bit_cast<float, int32_t>(value);
+            OS::Print("%s: %d 0x%x %.8g\n",
+                arg1, value, value, svalue);
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("printfloat <vreg or *addr>\n");
+        }
       } else if ((strcmp(cmd, "pd") == 0) ||
                  (strcmp(cmd, "printdouble") == 0)) {
         if (args == 2) {
@@ -296,7 +354,36 @@ void SimulatorDebugger::Debug() {
             OS::Print("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printdouble <dreg or *addr>\n");
+          OS::Print("printdouble <vreg or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "pq") == 0) ||
+                 (strcmp(cmd, "printquad") == 0)) {
+        if (args == 2) {
+          simd_value_t quad_value;
+          if (GetQValue(arg1, &quad_value)) {
+            const int64_t d0 = quad_value.bits.i64[0];
+            const int64_t d1 = quad_value.bits.i64[1];
+            const double dval0 = bit_cast<double, int64_t>(d0);
+            const double dval1 = bit_cast<double, int64_t>(d1);
+            const int32_t s0 = quad_value.bits.i32[0];
+            const int32_t s1 = quad_value.bits.i32[1];
+            const int32_t s2 = quad_value.bits.i32[2];
+            const int32_t s3 = quad_value.bits.i32[3];
+            const float sval0 = bit_cast<float, int32_t>(s0);
+            const float sval1 = bit_cast<float, int32_t>(s1);
+            const float sval2 = bit_cast<float, int32_t>(s2);
+            const float sval3 = bit_cast<float, int32_t>(s3);
+            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n", arg1, d0, d0, dval0);
+            OS::Print("%s: %"Pu64" 0x%"Px64" %.8g\n", arg1, d1, d1, dval1);
+            OS::Print("%s: %d 0x%x %.8g\n", arg1, s0, s0, sval0);
+            OS::Print("%s: %d 0x%x %.8g\n", arg1, s1, s1, sval1);
+            OS::Print("%s: %d 0x%x %.8g\n", arg1, s2, s2, sval2);
+            OS::Print("%s: %d 0x%x %.8g\n", arg1, s3, s3, sval3);
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("printquad <vreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "po") == 0) ||
                  (strcmp(cmd, "printobject") == 0)) {
@@ -471,8 +558,8 @@ Simulator::Simulator() {
   v_flag_ = false;
 
   for (int i = 0; i < kNumberOfVRegisters; i++) {
-    vregisters_[i].lo = 0;
-    vregisters_[i].hi = 0;
+    vregisters_[i].bits.i64[0] = 0;
+    vregisters_[i].bits.i64[1] = 0;
   }
 
   // The sp is initialized to point to the bottom (high address) of the
@@ -616,30 +703,45 @@ int32_t Simulator::get_wregister(Register reg, R31Type r31t) const {
 }
 
 
-int64_t Simulator::get_vregisterd(VRegister reg) const {
+int32_t Simulator::get_vregisters(VRegister reg, int idx) const {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
-  return vregisters_[reg].lo;
+  ASSERT((idx >= 0) && (idx <= 3));
+  return vregisters_[reg].bits.i32[idx];
 }
 
 
-void Simulator::set_vregisterd(VRegister reg, int64_t value) {
+void Simulator::set_vregisters(VRegister reg, int idx, int32_t value) {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
-  vregisters_[reg].lo = value;
-  vregisters_[reg].hi = 0;
+  ASSERT((idx >= 0) && (idx <= 3));
+  vregisters_[reg].bits.i32[idx] = value;
+}
+
+
+int64_t Simulator::get_vregisterd(VRegister reg, int idx) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  ASSERT((idx == 0) || (idx == 1));
+  return vregisters_[reg].bits.i64[idx];
+}
+
+
+void Simulator::set_vregisterd(VRegister reg, int idx, int64_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
+  ASSERT((idx == 0) || (idx == 1));
+  vregisters_[reg].bits.i64[idx] = value;
 }
 
 
 void Simulator::get_vregister(VRegister reg, simd_value_t* value) const {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
-  value->lo = vregisters_[reg].lo;
-  value->hi = vregisters_[reg].hi;
+  value->bits.i64[0] = vregisters_[reg].bits.i64[0];
+  value->bits.i64[1] = vregisters_[reg].bits.i64[1];
 }
 
 
 void Simulator::set_vregister(VRegister reg, const simd_value_t& value) {
   ASSERT((reg >= 0) && (reg < kNumberOfVRegisters));
-  vregisters_[reg].lo = value.lo;
-  vregisters_[reg].hi = value.hi;
+  vregisters_[reg].bits.i64[0] = value.bits.i64[0];
+  vregisters_[reg].bits.i64[1] = value.bits.i64[1];
 }
 
 
@@ -1217,16 +1319,17 @@ void Simulator::DoRedirectedCall(Instr* instr) {
              (redirection->argument_count() <= 8));
       SimulatorLeafFloatRuntimeCall target =
           reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
-      const double d0 = bit_cast<double, int64_t>(get_vregisterd(V0));
-      const double d1 = bit_cast<double, int64_t>(get_vregisterd(V1));
-      const double d2 = bit_cast<double, int64_t>(get_vregisterd(V2));
-      const double d3 = bit_cast<double, int64_t>(get_vregisterd(V3));
-      const double d4 = bit_cast<double, int64_t>(get_vregisterd(V4));
-      const double d5 = bit_cast<double, int64_t>(get_vregisterd(V5));
-      const double d6 = bit_cast<double, int64_t>(get_vregisterd(V6));
-      const double d7 = bit_cast<double, int64_t>(get_vregisterd(V7));
+      const double d0 = bit_cast<double, int64_t>(get_vregisterd(V0, 0));
+      const double d1 = bit_cast<double, int64_t>(get_vregisterd(V1, 0));
+      const double d2 = bit_cast<double, int64_t>(get_vregisterd(V2, 0));
+      const double d3 = bit_cast<double, int64_t>(get_vregisterd(V3, 0));
+      const double d4 = bit_cast<double, int64_t>(get_vregisterd(V4, 0));
+      const double d5 = bit_cast<double, int64_t>(get_vregisterd(V5, 0));
+      const double d6 = bit_cast<double, int64_t>(get_vregisterd(V6, 0));
+      const double d7 = bit_cast<double, int64_t>(get_vregisterd(V7, 0));
       const double res = target(d0, d1, d2, d3, d4, d5, d6, d7);
-      set_vregisterd(V0, bit_cast<int64_t, double>(res));
+      set_vregisterd(V0, 0, bit_cast<int64_t, double>(res));
+      set_vregisterd(V0, 1, 0);
     } else if (redirection->call_kind() == kBootstrapNativeCall) {
       NativeArguments* arguments;
       arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
@@ -1477,7 +1580,7 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
   if (instr->Bit(26) == 1) {
     if (instr->Bit(22) == 0) {
       // Format(instr, "fstr'fsz 'vt, 'memop");
-      const int64_t vt_val = get_vregisterd(vt);
+      const int64_t vt_val = get_vregisterd(vt, 0);
       switch (size) {
         case 2:
           WriteW(address, vt_val & kWRegMask, instr);
@@ -1488,8 +1591,8 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
         case 4: {
           simd_value_t val;
           get_vregister(vt, &val);
-          WriteX(address, val.lo, instr);
-          WriteX(address + kWordSize, val.hi, instr);
+          WriteX(address, val.bits.i64[0], instr);
+          WriteX(address + kWordSize, val.bits.i64[1], instr);
           break;
         }
         default:
@@ -1500,15 +1603,17 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
       // Format(instr, "fldr'fsz 'vt, 'memop");
       switch (size) {
         case 2:
-          set_vregisterd(vt, static_cast<int64_t>(ReadWU(address, instr)));
+          set_vregisterd(vt, 0, static_cast<int64_t>(ReadWU(address, instr)));
+          set_vregisterd(vt, 1, 0);
           break;
         case 3:
-          set_vregisterd(vt, ReadX(address, instr));
+          set_vregisterd(vt, 0, ReadX(address, instr));
+          set_vregisterd(vt, 1, 0);
           break;
         case 4: {
           simd_value_t val;
-          val.lo = ReadX(address, instr);
-          val.hi = ReadX(address + kWordSize, instr);
+          val.bits.i64[0] = ReadX(address, instr);
+          val.bits.i64[1] = ReadX(address + kWordSize, instr);
           set_vregister(vt, val);
           break;
         }
@@ -2067,8 +2172,145 @@ void Simulator::DecodeDPRegister(Instr* instr) {
 }
 
 
+void Simulator::DecodeSIMDCopy(Instr* instr) {
+  const int32_t Q = instr->Bit(30);
+  const int32_t op = instr->Bit(29);
+  const int32_t imm4 = instr->Bits(11, 4);
+  const int32_t imm5 = instr->Bits(16, 5);
+
+  int32_t idx4 = -1;
+  int32_t idx5 = -1;
+  int32_t element_bytes;
+  if (imm5 & 0x1) {
+    idx4 = imm4;
+    idx5 = imm5 >> 1;
+    element_bytes = 1;
+  } else if (imm5 & 0x2) {
+    idx4 = imm4 >> 1;
+    idx5 = imm5 >> 2;
+    element_bytes = 2;
+  } else if (imm5 & 0x4) {
+    idx4 = imm4 >> 2;
+    idx5 = imm5 >> 3;
+    element_bytes = 4;
+  } else if (imm5 & 0x8) {
+    idx4 = imm4 >> 3;
+    idx5 = imm5 >> 4;
+    element_bytes = 8;
+  } else {
+    UnimplementedInstruction(instr);
+    return;
+  }
+  ASSERT((idx4 != -1) && (idx5 != -1));
+
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  if ((Q == 1)  && (op == 0) && (imm4 == 0)) {
+    // Format(instr, "vdup'csz 'vd, 'vn'idx5");
+    if (element_bytes == 4) {
+      for (int i = 0; i < 4; i++) {
+        set_vregisters(vd, i, get_vregisters(vn, idx5));
+      }
+    } else if (element_bytes == 8) {
+      for (int i = 0; i < 2; i++) {
+        set_vregisterd(vd, i, get_vregisterd(vn, idx5));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+      return;
+    }
+  } else if ((Q == 1) && (op == 1)) {
+    // Format(instr, "vins'csz 'vd'idx5, 'vn'idx4");
+    if (element_bytes == 4) {
+      set_vregisters(vd, idx5, get_vregisters(vn, idx4));
+    } else if (element_bytes == 8) {
+      set_vregisterd(vd, idx5, get_vregisterd(vn, idx4));
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+
+void Simulator::DecodeSIMDThreeSame(Instr* instr) {
+  const int Q = instr->Bit(30);
+  const int U = instr->Bit(29);
+  const int opcode = instr->Bits(11, 5);
+
+  if (Q == 0) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+  const VRegister vm = instr->VmField();
+  if (instr->Bit(22) == 0) {
+    // f32 case.
+    for (int idx = 0; idx < 4; idx++) {
+      const float vn_val = bit_cast<float, int32_t>(get_vregisters(vn, idx));
+      const float vm_val = bit_cast<float, int32_t>(get_vregisters(vm, idx));
+      float res = 0.0;
+      if ((U == 0) && (opcode == 0x1a)) {
+        if (instr->Bit(23) == 0) {
+          // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+          res = vn_val + vm_val;
+        } else {
+          // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+          res = vn_val - vm_val;
+        }
+      } else if ((U == 1) && (opcode == 0x1b)) {
+        // Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
+        res = vn_val * vm_val;
+      } else if ((U == 1) && (opcode == 0x1f)) {
+        // Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
+        res = vn_val / vm_val;
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_vregisters(vd, idx, bit_cast<int32_t, float>(res));
+    }
+  } else {
+    // f64 case.
+    for (int idx = 0; idx < 2; idx++) {
+      const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, idx));
+      const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm, idx));
+      double res = 0.0;
+      if ((U == 0) && (opcode == 0x1a)) {
+        if (instr->Bit(23) == 0) {
+          // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+          res = vn_val + vm_val;
+        } else {
+          // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+          res = vn_val - vm_val;
+        }
+      } else if ((U == 1) && (opcode == 0x1b)) {
+        // Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
+        res = vn_val * vm_val;
+      } else if ((U == 1) && (opcode == 0x1f)) {
+        // Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
+        res = vn_val / vm_val;
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_vregisterd(vd, idx, bit_cast<int64_t, double>(res));
+    }
+  }
+}
+
+
 void Simulator::DecodeDPSimd1(Instr* instr) {
-  UnimplementedInstruction(instr);
+  if (instr->IsSIMDCopyOp()) {
+    DecodeSIMDCopy(instr);
+  } else if (instr->IsSIMDThreeSameOp()) {
+    DecodeSIMDThreeSame(instr);
+  } else {
+    UnimplementedInstruction(instr);
+  }
 }
 
 
@@ -2083,7 +2325,8 @@ void Simulator::DecodeFPImm(Instr* instr) {
     // Format(instr, "fmovd 'vd, #'immd");
     const VRegister vd = instr->VdField();
     const int64_t immd = Instr::VFPExpandImm(instr->Imm8Field());
-    set_vregisterd(vd, immd);
+    set_vregisterd(vd, 0, immd);
+    set_vregisterd(vd, 1, 0);
   } else {
     // Single.
     UnimplementedInstruction(instr);
@@ -2106,18 +2349,20 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
     // Format(instr, "scvtfd 'vd, 'vn");
     const int64_t rn_val = get_register(rn, instr->RnMode());
     const double vn_dbl = static_cast<double>(rn_val);
-    set_vregisterd(vd, bit_cast<int64_t, double>(vn_dbl));
+    set_vregisterd(vd, 0, bit_cast<int64_t, double>(vn_dbl));
+    set_vregisterd(vd, 1, 0);
   } else if (instr->Bits(16, 5) == 6) {
     // Format(instr, "fmovrd 'rd, 'vn");
-    const int64_t vn_val = get_vregisterd(vn);
+    const int64_t vn_val = get_vregisterd(vn, 0);
     set_register(rd, vn_val, R31IsZR);
   } else if (instr->Bits(16, 5) == 7) {
     // Format(instr, "fmovdr 'vd, 'rn");
     const int64_t rn_val = get_register(rn, R31IsZR);
-    set_vregisterd(vd, rn_val);
+    set_vregisterd(vd, 0, rn_val);
+    set_vregisterd(vd, 1, 0);
   } else if (instr->Bits(16, 5) == 24) {
     // Format(instr, "fcvtzds 'rd, 'vn");
-    const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+    const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
     set_register(rd, static_cast<int64_t>(vn_val), instr->RdMode());
   } else {
     UnimplementedInstruction(instr);
@@ -2129,7 +2374,7 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
   const int opc = instr->Bits(15, 6);
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
-  const int64_t vn_val = get_vregisterd(vn);
+  const int64_t vn_val = get_vregisterd(vn, 0);
   const int32_t vn_val32 = vn_val & kWRegMask;
   const double vn_dbl = bit_cast<double, int64_t>(vn_val);
   const float vn_flt = bit_cast<float, int32_t>(vn_val32);
@@ -2145,7 +2390,7 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
   switch (opc) {
     case 0:
       // Format("fmovdd 'vd, 'vn");
-      res_val = get_vregisterd(vn);
+      res_val = get_vregisterd(vn, 0);
       break;
     case 1:
       // Format("fabsd 'vd, 'vn");
@@ -2175,7 +2420,8 @@ void Simulator::DecodeFPOneSource(Instr* instr) {
       break;
   }
 
-  set_vregisterd(vd, res_val);
+  set_vregisterd(vd, 0, res_val);
+  set_vregisterd(vd, 1, 0);
 }
 
 
@@ -2187,8 +2433,8 @@ void Simulator::DecodeFPTwoSource(Instr* instr) {
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
   const VRegister vm = instr->VmField();
-  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
-  const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm));
+  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
+  const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm, 0));
   const int opc = instr->Bits(12, 4);
   double result;
 
@@ -2214,19 +2460,20 @@ void Simulator::DecodeFPTwoSource(Instr* instr) {
       return;
   }
 
-  set_vregisterd(vd, bit_cast<int64_t, double>(result));
+  set_vregisterd(vd, 0, bit_cast<int64_t, double>(result));
+  set_vregisterd(vd, 1, 0);
 }
 
 
 void Simulator::DecodeFPCompare(Instr* instr) {
   const VRegister vn = instr->VnField();
   const VRegister vm = instr->VmField();
-  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn));
+  const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
   double vm_val;
 
   if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 0)) {
     // Format(instr, "fcmpd 'vn, 'vm");
-    vm_val = bit_cast<double, int64_t>(get_vregisterd(vm));
+    vm_val = bit_cast<double, int64_t>(get_vregisterd(vm, 0));
   } else if ((instr->Bit(22) == 1) && (instr->Bits(3, 2) == 1)) {
     if (instr->VmField() == V0) {
       // Format(instr, "fcmpd 'vn, #0.0");
@@ -2366,10 +2613,14 @@ int64_t Simulator::Call(int64_t entry,
 
   // Setup parameters.
   if (fp_args) {
-    set_vregisterd(V0, parameter0);
-    set_vregisterd(V1, parameter1);
-    set_vregisterd(V2, parameter2);
-    set_vregisterd(V3, parameter3);
+    set_vregisterd(V0, 0, parameter0);
+    set_vregisterd(V0, 1, 0);
+    set_vregisterd(V1, 0, parameter1);
+    set_vregisterd(V1, 1, 0);
+    set_vregisterd(V2, 0, parameter2);
+    set_vregisterd(V2, 1, 0);
+    set_vregisterd(V3, 0, parameter3);
+    set_vregisterd(V3, 1, 0);
   } else {
     set_register(R0, parameter0);
     set_register(R1, parameter1);
@@ -2408,8 +2659,9 @@ int64_t Simulator::Call(int64_t entry,
   int64_t preserved_dvals[kAbiPreservedFpuRegCount];
   for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
     const VRegister r = static_cast<VRegister>(i);
-    preserved_dvals[i - kAbiFirstPreservedFpuReg] = get_vregisterd(r);
-    set_vregisterd(r, callee_saved_value);
+    preserved_dvals[i - kAbiFirstPreservedFpuReg] = get_vregisterd(r, 0);
+    set_vregisterd(r, 0, callee_saved_value);
+    set_vregisterd(r, 1, 0);
   }
 
   // Start the simulation.
@@ -2425,15 +2677,16 @@ int64_t Simulator::Call(int64_t entry,
 
   for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
     const VRegister r = static_cast<VRegister>(i);
-    ASSERT(callee_saved_value == get_vregisterd(r));
-    set_vregisterd(r, preserved_dvals[i - kAbiFirstPreservedFpuReg]);
+    ASSERT(callee_saved_value == get_vregisterd(r, 0));
+    set_vregisterd(r, 0, preserved_dvals[i - kAbiFirstPreservedFpuReg]);
+    set_vregisterd(r, 1, 0);
   }
 
   // Restore the SP register and return R0.
   set_register(R31, sp_before_call, R31IsSP);
   int64_t return_value;
   if (fp_return) {
-    return_value = get_vregisterd(V0);
+    return_value = get_vregisterd(V0, 0);
   } else {
     return_value = get_register(R0);
   }

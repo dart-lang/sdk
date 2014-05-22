@@ -13,40 +13,41 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("works on the dart2js transformer", () {
+  integration("works on a lazy transformer", () {
     d.dir(appPath, [
       d.pubspec({
         "name": "myapp",
         "transformers": [
           {
-            "\$dart2js": {
-              "\$include": ["web/a.dart", "web/b.dart"],
-              "\$exclude": "web/a.dart"
+            "myapp": {
+              "\$include": ["web/a.txt", "web/b.txt"],
+              "\$exclude": "web/a.txt"
             }
           }
         ]
       }),
+      d.dir("lib", [d.file("transformer.dart", LAZY_TRANSFORMER)]),
       d.dir("web", [
-        d.file("a.dart", "void main() => print('hello');"),
-        d.file("b.dart", "void main() => print('hello');"),
-        d.file("c.dart", "void main() => print('hello');")
+        d.file("a.txt", "a"),
+        d.file("b.txt", "b"),
+        d.file("c.txt", "c")
       ])
     ]).create();
 
     createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
-    // Dart2js should remain lazy.
+    // The transformer should remain lazy.
     server.stdout.expect("Build completed successfully");
 
-    requestShould404("a.dart.js");
-    requestShouldSucceed("b.dart.js", isNot(isEmpty));
+    requestShould404("a.out");
+    requestShouldSucceed("b.out", isNot(isEmpty));
     server.stdout.expect(consumeThrough(emitsLines(
-        "[Info from Dart2JS]:\n"
-        "Compiling myapp|web/b.dart...")));
+        "[Info from LazyRewrite]:\n"
+        "Rewriting myapp|web/b.txt.")));
     server.stdout.expect(consumeThrough("Build completed successfully"));
 
-    requestShould404("c.dart.js");
+    requestShould404("c.out");
     endPubServe();
   });
 }

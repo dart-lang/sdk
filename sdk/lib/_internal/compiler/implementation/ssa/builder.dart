@@ -1738,7 +1738,7 @@ class SsaBuilder extends ResolvedVisitor {
    * Invariant: The [constructor] and elements in [constructors] must all be
    * implementation elements.
    */
-  void buildInitializers(FunctionElement constructor,
+  void buildInitializers(ConstructorElement constructor,
                          List<FunctionElement> constructors,
                          Map<Element, HInstruction> fieldValues) {
     assert(invariant(constructor, constructor.isImplementation));
@@ -1748,7 +1748,7 @@ class SsaBuilder extends ResolvedVisitor {
         return localsHandler.readLocal(element);
       }
 
-      Element target = constructor.targetConstructor.implementation;
+      Element target = constructor.definingConstructor.implementation;
       Selector.addForwardingElementArgumentsToList(
           constructor,
           arguments,

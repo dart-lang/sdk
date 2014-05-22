@@ -8,31 +8,6 @@ import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
 
-const LAZY_TRANSFORMER = """
-import 'dart:async';
-
-import 'package:barback/barback.dart';
-
-class LazyRewriteTransformer extends Transformer implements LazyTransformer {
-  LazyRewriteTransformer.asPlugin();
-
-  String get allowedExtensions => '.in';
-
-  Future apply(Transform transform) {
-    transform.logger.info('Rewriting \${transform.primaryInput.id}.');
-    return transform.primaryInput.readAsString().then((contents) {
-      var id = transform.primaryInput.id.changeExtension(".mid");
-      transform.addOutput(new Asset.fromString(id, "\$contents.mid"));
-    });
-  }
-
-  Future declareOutputs(DeclaringTransform transform) {
-    transform.declareOutput(transform.primaryId.changeExtension(".mid"));
-    return new Future.value();
-  }
-}
-""";
-
 const DECLARING_TRANSFORMER = """
 import 'dart:async';
 
@@ -42,7 +17,7 @@ class DeclaringRewriteTransformer extends Transformer
     implements DeclaringTransformer {
   DeclaringRewriteTransformer.asPlugin();
 
-  String get allowedExtensions => '.mid';
+  String get allowedExtensions => '.out';
 
   Future apply(Transform transform) {
     transform.logger.info('Rewriting \${transform.primaryInput.id}.');
@@ -75,7 +50,7 @@ main() {
         d.file("declaring.dart", DECLARING_TRANSFORMER)
       ])]),
       d.dir("web", [
-        d.file("foo.in", "foo")
+        d.file("foo.txt", "foo")
       ])
     ]).create();
 
@@ -85,12 +60,12 @@ main() {
     // The build should complete without either transformer logging anything.
     server.stdout.expect('Build completed successfully');
 
-    requestShouldSucceed("foo.final", "foo.mid.final");
+    requestShouldSucceed("foo.final", "foo.out.final");
     server.stdout.expect(emitsLines(
         '[Info from LazyRewrite]:\n'
-        'Rewriting myapp|web/foo.in.\n'
+        'Rewriting myapp|web/foo.txt.\n'
         '[Info from DeclaringRewrite]:\n'
-        'Rewriting myapp|web/foo.mid.'));
+        'Rewriting myapp|web/foo.out.'));
     endPubServe();
   });
 }

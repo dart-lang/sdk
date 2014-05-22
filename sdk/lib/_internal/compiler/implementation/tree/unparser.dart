@@ -391,7 +391,7 @@ class Unparser implements Visitor {
   }
 
   visitWhile(While node) {
-    addToken(node.whileKeyword);
+    add(node.whileKeyword.value);
     visit(node.condition);
     visit(node.body);
   }

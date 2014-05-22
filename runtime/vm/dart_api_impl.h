@@ -224,6 +224,22 @@ class Api : AllStatic {
                                        int arg_index,
                                        bool* value);
 
+  // Helper function to get the integer value of a Integer native argument.
+  static bool GetNativeIntegerArgument(NativeArguments* args,
+                                       int arg_index,
+                                       int64_t* value);
+
+  // Helper function to get the double value of a Double native argument.
+  static bool GetNativeDoubleArgument(NativeArguments* args,
+                                      int arg_index,
+                                      double* value);
+
+  // Helper function to get the native fields of an Instance native argument.
+  static bool GetNativeFieldsOfArgument(NativeArguments* args,
+                                        int arg_index,
+                                        int num_fields,
+                                        intptr_t* field_values);
+
   // Helper function to set the return value of native functions.
   static void SetReturnValue(NativeArguments* args, Dart_Handle retval) {
     args->SetReturnUnsafe(UnwrapHandle(retval));

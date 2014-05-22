@@ -331,9 +331,13 @@ class Location : public ValueObject {
   }
 
   intptr_t stack_index() const {
-    ASSERT(IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot());
+    ASSERT(HasStackIndex());
     // Decode stack index manually to preserve sign.
     return payload() - kStackIndexBias;
+  }
+
+  bool HasStackIndex() const {
+    return IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot();
   }
 
   // Return a memory operand for stack slot locations.
@@ -364,6 +368,8 @@ class Location : public ValueObject {
   Kind kind() const {
     return KindField::decode(value_);
   }
+
+  Location Copy() const;
 
  private:
   explicit Location(uword value) : value_(value) { }
@@ -428,15 +434,20 @@ class PairLocation : public ZoneAllocated {
 
 class RegisterSet : public ValueObject {
  public:
-  RegisterSet() : cpu_registers_(0), fpu_registers_(0) {
+  RegisterSet() : cpu_registers_(0), untagged_cpu_registers_(0),
+                  fpu_registers_(0) {
     ASSERT(kNumberOfCpuRegisters <= (kWordSize * kBitsPerByte));
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
 
-  void Add(Location loc) {
+  void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_ |= (1 << loc.reg());
+      if (rep != kTagged) {
+        // CPU register contains an untagged value.
+        MarkUntagged(loc);
+      }
     } else if (loc.IsFpuRegister()) {
       fpu_registers_ |= (1 << loc.fpu_reg());
     }
@@ -448,6 +459,32 @@ class RegisterSet : public ValueObject {
     } else if (loc.IsFpuRegister()) {
       fpu_registers_ &= ~(1 << loc.fpu_reg());
     }
+  }
+
+  void DebugPrint() {
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+      Register r = static_cast<Register>(i);
+      if (ContainsRegister(r)) {
+        OS::Print("%s %s\n", Assembler::RegisterName(r),
+                           IsTagged(r) ? "tagged" : "untagged");
+      }
+    }
+
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+      FpuRegister r = static_cast<FpuRegister>(i);
+      if (ContainsFpuRegister(r)) {
+        OS::Print("%s\n", Assembler::FpuRegisterName(r));
+      }
+    }
+  }
+
+  void MarkUntagged(Location loc) {
+    ASSERT(loc.IsRegister());
+    untagged_cpu_registers_ |= (1 << loc.reg());
+  }
+
+  bool IsTagged(Register reg) const {
+    return (untagged_cpu_registers_ & (1 << reg)) == 0;
   }
 
   bool ContainsRegister(Register reg) const {
@@ -468,6 +505,7 @@ class RegisterSet : public ValueObject {
 
  private:
   intptr_t cpu_registers_;
+  intptr_t untagged_cpu_registers_;
   intptr_t fpu_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterSet);
@@ -559,6 +597,10 @@ class LocationSummary : public ZoneAllocated {
 
   bool can_call() {
     return contains_call_ != kNoCall;
+  }
+
+  bool HasCallOnSlowPath() {
+    return can_call() && !always_calls();
   }
 
   void PrintTo(BufferFormatter* f) const;

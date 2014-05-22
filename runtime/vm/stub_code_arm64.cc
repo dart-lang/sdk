@@ -661,7 +661,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R8: Points to new space object.
   __ StoreToOffset(R7, R8, Scavenger::top_offset(), kNoPP);
   __ add(R0, R0, Operand(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, R3, R8, kNoPP);
+  __ UpdateAllocationStatsWithSize(kArrayCid, R3, kNoPP);
 
   // R0: new object start as a tagged pointer.
   // R1: array element type.
@@ -938,7 +938,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     __ str(R3, Address(R5));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(context_class.id(), R2, R5, kNoPP);
+    __ UpdateAllocationStatsWithSize(context_class.id(), R2, kNoPP);
 
     // Calculate the size tag.
     // R0: new object.
@@ -1120,7 +1120,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
     __ str(R3, Address(R5));
-    __ UpdateAllocationStats(cls.id(), R5, kNoPP);
+    __ UpdateAllocationStats(cls.id(), kNoPP);
 
     // R2: new object start.
     // R3: next object start.

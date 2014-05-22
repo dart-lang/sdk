@@ -961,16 +961,16 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (is_external) {
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
+        ? compiler->ExternalElementAddressForRegIndex(
             index_scale(), array, index.reg())
-        : FlowGraphCompiler::ExternalElementAddressForIntIndex(
+        : compiler->ExternalElementAddressForIntIndex(
             index_scale(), array, Smi::Cast(index.constant()).Value());
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ElementAddressForRegIndex(
+        ? compiler->ElementAddressForRegIndex(
             class_id(), index_scale(), array, index.reg())
-        : FlowGraphCompiler::ElementAddressForIntIndex(
+        : compiler->ElementAddressForIntIndex(
             class_id(), index_scale(), array,
             Smi::Cast(index.constant()).Value());
   }
@@ -1143,16 +1143,16 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Address element_address(kNoRegister, 0);
   if (is_external) {
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
+        ? compiler->ExternalElementAddressForRegIndex(
             index_scale(), array, index.reg())
-        : FlowGraphCompiler::ExternalElementAddressForIntIndex(
+        : compiler->ExternalElementAddressForIntIndex(
             index_scale(), array, Smi::Cast(index.constant()).Value());
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
     element_address = index.IsRegister()
-        ? FlowGraphCompiler::ElementAddressForRegIndex(
+        ? compiler->ElementAddressForRegIndex(
             class_id(), index_scale(), array, index.reg())
-        : FlowGraphCompiler::ElementAddressForIntIndex(
+        : compiler->ElementAddressForIntIndex(
             class_id(), index_scale(), array,
             Smi::Cast(index.constant()).Value());
   }
@@ -2264,6 +2264,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsd(FieldAddress(result, Double::value_offset()), value);
       __ jmp(&done);
     }
+
     {
       __ Bind(&load_float32x4);
       BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
@@ -2280,9 +2281,9 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
       __ jmp(&done);
     }
+
     {
       __ Bind(&load_float64x2);
-
       BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 

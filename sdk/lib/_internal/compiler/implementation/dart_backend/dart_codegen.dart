@@ -170,6 +170,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
+  void visitContinue(tree.Continue stmt) {
+    statementBuffer.add(new Continue(stmt.target.name));
+  }
+
   void visitIf(tree.If stmt) {
     Expression condition = visitExpression(stmt.condition);
     List<Statement> savedBuffer = statementBuffer;
@@ -179,6 +183,18 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(stmt.elseStatement);
     savedBuffer.add(
         new If(condition, new Block(thenBuffer), new Block(elseBuffer)));
+    statementBuffer = savedBuffer;
+  }
+
+  void visitWhile(tree.While stmt) {
+    Expression condition = new Literal(new dart2js.BoolConstant(true));
+    List<Statement> savedBuffer = statementBuffer;
+    statementBuffer = <Statement>[];
+    visitStatement(stmt.body);
+    savedBuffer.add(
+        new LabeledStatement(
+            stmt.label.name,
+            new While(condition, new Block(statementBuffer))));
     statementBuffer = savedBuffer;
   }
 

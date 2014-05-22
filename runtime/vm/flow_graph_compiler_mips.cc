@@ -737,7 +737,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (is_optimizing()) return;
   Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->is_used()) {
+  if ((defn != NULL) && defn->HasTemp()) {
     __ Push(defn->locs()->out(0).reg());
   }
 }
@@ -1597,19 +1597,19 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          intptr_t index) {
+Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     intptr_t index) {
   UNREACHABLE();
   return FieldAddress(array, index);
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          intptr_t index_scale,
-                                                          Register array,
-                                                          Register index) {
+Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
   UNREACHABLE();
   return FieldAddress(array, index);
 }

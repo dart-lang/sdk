@@ -2035,7 +2035,15 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
 
 
 // HTTP server waiting for socket connections.
-class _HttpServer extends Stream<HttpRequest> implements HttpServer {
+class _HttpServer
+    extends Stream<HttpRequest> with _ServiceObject
+    implements HttpServer {
+  // Use default Map so we keep order.
+  static Map<int, _HttpServer> _servers = new Map<int, _HttpServer>();
+
+  final String _serviceTypePath = 'io/http/servers';
+  final String _serviceTypeName = 'HttpServer';
+
   String serverHeader;
 
   Duration _idleTimeout;
@@ -2067,12 +2075,14 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     _controller = new StreamController<HttpRequest>(sync: true,
                                                     onCancel: close);
     idleTimeout = const Duration(seconds: 120);
+    _servers[_serviceId] = this;
   }
 
   _HttpServer.listenOn(this._serverSocket) : _closeServer = false {
     _controller = new StreamController<HttpRequest>(sync: true,
                                                     onCancel: close);
     idleTimeout = const Duration(seconds: 120);
+    _servers[_serviceId] = this;
   }
 
   Duration get idleTimeout => _idleTimeout;
@@ -2139,17 +2149,18 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     for (var c in _idleConnections.toList()) {
       c.destroy();
     }
-    _maybeCloseSessionManager();
+    _maybePerformCleanup();
     return result;
   }
 
-  void _maybeCloseSessionManager() {
+  void _maybePerformCleanup() {
     if (closed &&
         _idleConnections.isEmpty &&
         _activeConnections.isEmpty &&
         _sessionManagerInstance != null) {
       _sessionManagerInstance.close();
       _sessionManagerInstance = null;
+      _servers.remove(_serviceId);
     }
   }
 
@@ -2176,7 +2187,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   void _connectionClosed(_HttpConnection connection) {
     // Remove itself from either idle or active connections.
     connection.unlink();
-    _maybeCloseSessionManager();
+    _maybePerformCleanup();
   }
 
   void _markIdle(_HttpConnection connection) {
@@ -2213,6 +2224,24 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
       assert(conn._isIdle);
     });
     return result;
+  }
+
+  Map _toJSON(bool ref) {
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': '${address.host}:$port',
+      'user_name': '${address.host}:$port',
+    };
+    if (ref) {
+      return r;
+    }
+    r['port'] = port;
+    r['address'] = address.host;
+    r['active'] = _activeConnections.length;
+    r['idle'] = _idleConnections.length;
+    r['closed'] = closed;
+    return r;
   }
 
   _HttpSessionManager _sessionManagerInstance;

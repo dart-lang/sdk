@@ -351,7 +351,11 @@ class Assembler : public ValueObject {
 
   void adc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
 
+  void adcs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+
   void sbc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+
+  void sbcs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
 
   void rsc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
 
@@ -693,6 +697,9 @@ class Assembler : public ValueObject {
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
+
+  // Fill rd with the sign of rm.
+  void SignFill(Register rd, Register rm);
 
   void Vreciprocalqs(QRegister qd, QRegister qm);
   void VreciprocalSqrtqs(QRegister qd, QRegister qm);

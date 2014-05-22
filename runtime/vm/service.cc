@@ -851,6 +851,33 @@ static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
 }
 
 
+static bool ContainsNonInstance(const Object& obj) {
+  if (obj.IsArray()) {
+    const Array& array = Array::Cast(obj);
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < array.Length(); ++i) {
+      element = array.At(i);
+      if (!element.IsInstance()) {
+        return true;
+      }
+    }
+    return false;
+  } else if (obj.IsGrowableObjectArray()) {
+    const GrowableObjectArray& array = GrowableObjectArray::Cast(obj);
+    Object& element = Object::Handle();
+    for (intptr_t i = 0; i < array.Length(); ++i) {
+      element = array.At(i);
+      if (!element.IsInstance()) {
+        return true;
+      }
+    }
+    return false;
+  } else {
+    return !obj.IsInstance();
+  }
+}
+
+
 static bool HandleInstanceCommands(Isolate* isolate,
                                    const Object& obj,
                                    JSONStream* js,
@@ -874,6 +901,10 @@ static bool HandleInstanceCommands(Isolate* isolate,
       PrintErrorWithKind(js, "EvalExpired",
                          "attempt to evaluate against expired object\n",
                          js->num_arguments());
+      return true;
+    }
+    if (ContainsNonInstance(obj)) {
+      PrintError(js, "attempt to evaluate against internal VM object\n");
       return true;
     }
     const char* expr = js->LookupOption("expr");

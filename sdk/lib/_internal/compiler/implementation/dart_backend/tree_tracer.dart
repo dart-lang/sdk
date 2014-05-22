@@ -27,9 +27,10 @@ class BlockCollector extends Visitor {
   // the list.
   final List<Block> blocks = [new Block()..index = 0];
 
-  // Map tree [Label]s (break targets) and [Statement]s (if targets) to
-  // blocks.
+  // Map tree [Label]s (break or continue targets) and [Statement]s
+  // (if targets) to blocks.
   final Map<Label, Block> breakTargets = <Label, Block>{};
+  final Map<Label, Block> continueTargets = <Label, Block>{};
   final Map<Statement, Block> ifTargets = <Statement, Block>{};
 
   void _addStatement(Statement statement) {
@@ -77,6 +78,11 @@ class BlockCollector extends Visitor {
     blocks.last.addEdgeTo(breakTargets[node.target]);
   }
 
+  visitContinue(Continue node) {
+    _addStatement(node);
+    blocks.last.addEdgeTo(continueTargets[node.target]);
+  }
+
   visitIf(If node) {
     _addStatement(node);
     Block thenTarget = new Block();
@@ -89,6 +95,15 @@ class BlockCollector extends Visitor {
     visitStatement(node.thenStatement);
     _addBlock(elseTarget);
     visitStatement(node.elseStatement);
+  }
+
+  visitWhile(While node) {
+    Block continueTarget = new Block();
+    continueTargets[node.label] = continueTarget;
+    blocks.last.addEdgeTo(continueTarget);
+    _addBlock(continueTarget);
+    _addStatement(node);
+    visitStatement(node.body);
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -204,11 +219,20 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, "break ${collector.breakTargets[node.target].name}");
   }
 
+  visitContinue(Continue node) {
+    printStatement(null,
+        "continue ${collector.breakTargets[node.target].name}");
+  }
+
   visitIf(If node) {
     String condition = expr(node.condition);
     String thenTarget = collector.ifTargets[node.thenStatement].name;
     String elseTarget = collector.ifTargets[node.elseStatement].name;
     printStatement(null, "if $condition then $thenTarget else $elseTarget");
+  }
+
+  visitWhile(While node) {
+    printStatement(null, "while true do");
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -316,7 +340,9 @@ class SubexpressionVisitor extends Visitor<String, String> {
   String visitAssign(Assign node) => visitStatement(node);
   String visitReturn(Return node) => visitStatement(node);
   String visitBreak(Break node) => visitStatement(node);
+  String visitContinue(Continue node) => visitStatement(node);
   String visitIf(If node) => visitStatement(node);
+  String visitWhile(While node) => visitStatement(node);
   String visitExpressionStatement(ExpressionStatement node) {
     return visitStatement(node);
   }

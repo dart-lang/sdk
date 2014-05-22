@@ -384,11 +384,6 @@ abstract class Element implements Spannable {
 
   Scope buildScope();
 
-  /// If the element is a forwarding constructor, [targetConstructor] holds
-  /// the generative constructor that the forwarding constructor points to
-  /// (possibly via other forwarding constructors).
-  FunctionElement get targetConstructor;
-
   void diagnose(Element context, DiagnosticListener listener);
 
   TreeElements get treeElements;
@@ -986,6 +981,20 @@ abstract class ConstructorElement extends FunctionElement {
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].
   InterfaceType computeEffectiveTargetType(InterfaceType newType);
+
+  /// If this is a synthesized constructor [definingConstructor] points to
+  /// the generative constructor from which this constructor was created.
+  /// Otherwise [definingConstructor] is `null`.
+  ///
+  /// Consider for instance this hierarchy:
+  ///
+  ///     class C { C.c(a, {b});
+  ///     class D {}
+  ///     class E = C with D;
+  ///
+  /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
+  /// is `C.c`.
+  ConstructorElement get definingConstructor;
 }
 
 abstract class ConstructorBodyElement extends FunctionElement {

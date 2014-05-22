@@ -25,8 +25,10 @@ class Isolate;
 class SimulatorSetjmpBuffer;
 
 typedef struct {
-  int64_t lo;
-  int64_t hi;
+  union {
+    int64_t i64[2];
+    int32_t i32[4];
+  } bits;
 } simd_value_t;
 
 class Simulator {
@@ -51,10 +53,12 @@ class Simulator {
   void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsSP);
   int32_t get_wregister(Register reg, R31Type r31t = R31IsSP) const;
 
-  // Get and set a V register in double ('d') mode. Setting clears the high
-  // 64 bits of the V register. Getting ignores the high 64 bits.
-  int64_t get_vregisterd(VRegister reg) const;
-  void set_vregisterd(VRegister reg, int64_t value);
+  int32_t get_vregisters(VRegister reg, int idx) const;
+  void set_vregisters(VRegister reg, int idx, int32_t value);
+
+  int64_t get_vregisterd(VRegister reg, int idx) const;
+  void set_vregisterd(VRegister reg, int idx, int64_t value);
+
   void get_vregister(VRegister reg, simd_value_t* value) const;
   void set_vregister(VRegister reg, const simd_value_t& value);
 

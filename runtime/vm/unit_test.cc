@@ -241,7 +241,8 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
-  const Error& error = Error::Handle(Compiler::CompileFunction(function));
+  const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+                                                               function));
   return error.IsNull();
 }
 
