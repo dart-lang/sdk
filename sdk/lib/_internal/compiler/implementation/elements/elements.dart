@@ -386,7 +386,9 @@ abstract class Element implements Spannable {
 
   void diagnose(Element context, DiagnosticListener listener);
 
-  TreeElements get treeElements;
+  // TODO(johnniwinther): Move this to [AstElement].
+  /// Returns the [Element] that holds the [TreeElements] for this element.
+  AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor);
 }
@@ -782,7 +784,8 @@ abstract class CompilationUnitElement extends Element {
   int compareTo(CompilationUnitElement other);
 }
 
-abstract class LibraryElement extends Element implements ScopeContainerElement {
+abstract class LibraryElement extends Element
+    implements ScopeContainerElement, AnalyzableElement {
   /**
    * The canonical uri for this library.
    *
@@ -1226,9 +1229,6 @@ abstract class MetadataAnnotation implements Spannable {
   Token get beginToken;
   Token get endToken;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set annotatedElement(Element value);
-
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
@@ -1244,10 +1244,17 @@ abstract class FunctionTypedElement extends Element {
   FunctionSignature get functionSignature;
 }
 
+/// An [Element] that holds a [TreeElements] mapping.
+abstract class AnalyzableElement extends Element {
+  /// Returns the [TreeElements] that hold the resolution information for the
+  /// AST nodes of this element.
+  TreeElements get treeElements;
+}
+
 /// An [Element] that (potentially) has a node.
 ///
 /// Synthesized elements may return `null` from [node].
-abstract class AstElement extends Element {
+abstract class AstElement extends AnalyzableElement {
   Node get node;
 }
 
