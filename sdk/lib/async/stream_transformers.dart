@@ -171,6 +171,8 @@ class _BoundSinkStream<S, T> extends Stream<T> {
   final _SinkMapper<S, T> _sinkMapper;
   final Stream<S> _stream;
 
+  bool get isBroadcast => _stream.isBroadcast;
+
   _BoundSinkStream(this._stream, this._sinkMapper);
 
   StreamSubscription<T> listen(void onData(T event),
