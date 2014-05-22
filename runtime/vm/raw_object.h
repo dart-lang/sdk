@@ -259,7 +259,7 @@ class RawObject {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
-  private:
+   private:
     // The actual unscaled bit field used within the tag field.
     class SizeBits : public BitField<intptr_t, kSizeTagPos, kSizeTagSize> {};
 
@@ -1259,6 +1259,7 @@ class RawMint : public RawInteger {
 
   int64_t value_;
 
+  friend class Api;
   friend class SnapshotReader;
 };
 
@@ -1289,6 +1290,7 @@ class RawDouble : public RawNumber {
 
   double value_;
 
+  friend class Api;
   friend class SnapshotReader;
 };
 

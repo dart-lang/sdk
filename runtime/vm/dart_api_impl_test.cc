@@ -5208,7 +5208,204 @@ TEST_CASE(ThrowException) {
 }
 
 
-void NativeArgumentCounter(Dart_NativeArguments args) {
+static intptr_t kNativeArgumentNativeField1Value = 30;
+static intptr_t kNativeArgumentNativeField2Value = 40;
+static intptr_t native_arg_str_peer = 100;
+static void NativeArgumentCreate(Dart_NativeArguments args) {
+  Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
+  Dart_Handle type = Dart_GetType(lib, NewString("MyObject"), 0, NULL);
+  EXPECT_VALID(type);
+
+  // Allocate without a constructor.
+  Dart_Handle obj = Dart_Allocate(type);
+  EXPECT_VALID(obj);
+
+  // Setup native fields.
+  Dart_SetNativeInstanceField(obj, 0, kNativeArgumentNativeField1Value);
+  Dart_SetNativeInstanceField(obj, 1, kNativeArgumentNativeField2Value);
+  kNativeArgumentNativeField1Value *= 2;
+  kNativeArgumentNativeField2Value *= 2;
+  Dart_SetReturnValue(args, obj);
+}
+
+
+static void NativeArgumentAccess(Dart_NativeArguments args) {
+  const int kNumNativeFields = 2;
+
+  // Test different argument types with a valid descriptor set.
+  {
+    const char* cstr = NULL;
+    intptr_t native_fields1[kNumNativeFields];
+    intptr_t native_fields2[kNumNativeFields];
+    const Dart_NativeArgument_Descriptor arg_descriptors[9] = {
+      { Dart_NativeArgument_kNativeFields, 0 },
+      { Dart_NativeArgument_kInt32, 1 },
+      { Dart_NativeArgument_kUint64, 2 },
+      { Dart_NativeArgument_kBool, 3 },
+      { Dart_NativeArgument_kDouble, 4 },
+      { Dart_NativeArgument_kString, 5 },
+      { Dart_NativeArgument_kString, 6 },
+      { Dart_NativeArgument_kNativeFields, 7 },
+      { Dart_NativeArgument_kInstance, 7 },
+    };
+    Dart_NativeArgument_Value arg_values[9];
+    arg_values[0].as_native_fields.num_fields = kNumNativeFields;
+    arg_values[0].as_native_fields.values = native_fields1;
+    arg_values[7].as_native_fields.num_fields = kNumNativeFields;
+    arg_values[7].as_native_fields.values = native_fields2;
+    Dart_Handle result = Dart_GetNativeArguments(args,
+                                                 9,
+                                                 arg_descriptors,
+                                                 arg_values);
+    EXPECT_VALID(result);
+
+    EXPECT(arg_values[0].as_native_fields.values[0] == 30);
+    EXPECT(arg_values[0].as_native_fields.values[1] == 40);
+
+    EXPECT(arg_values[1].as_int32 == 77);
+
+    EXPECT(arg_values[2].as_uint64 == 0xffffffffffffffff);
+
+    EXPECT(arg_values[3].as_bool == true);
+
+    EXPECT(arg_values[4].as_double == 3.14);
+
+    EXPECT_VALID(arg_values[5].as_string.dart_str);
+    EXPECT(Dart_IsString(arg_values[5].as_string.dart_str));
+    EXPECT_VALID(Dart_StringToCString(arg_values[5].as_string.dart_str, &cstr));
+    EXPECT_STREQ("abcdefg", cstr);
+    EXPECT(arg_values[5].as_string.peer == NULL);
+
+    EXPECT(arg_values[6].as_string.dart_str == NULL);
+    EXPECT(arg_values[6].as_string.peer ==
+           reinterpret_cast<void*>(&native_arg_str_peer));
+
+    EXPECT(arg_values[7].as_native_fields.values[0] == 60);
+    EXPECT(arg_values[7].as_native_fields.values[1] == 80);
+
+    EXPECT_VALID(arg_values[8].as_instance);
+    EXPECT(Dart_IsInstance(arg_values[8].as_instance));
+    int field_count = 0;
+    EXPECT_VALID(Dart_GetNativeInstanceFieldCount(
+        arg_values[8].as_instance, &field_count));
+    EXPECT(field_count == 2);
+  }
+
+  // Test with an invalid descriptor set (invalid type).
+  {
+    const Dart_NativeArgument_Descriptor arg_descriptors[8] = {
+      { Dart_NativeArgument_kInt32, 1 },
+      { Dart_NativeArgument_kUint64, 2 },
+      { Dart_NativeArgument_kString, 3 },
+      { Dart_NativeArgument_kDouble, 4 },
+      { Dart_NativeArgument_kString, 5 },
+      { Dart_NativeArgument_kString, 6 },
+      { Dart_NativeArgument_kNativeFields, 0 },
+      { Dart_NativeArgument_kNativeFields, 7 },
+    };
+    Dart_NativeArgument_Value arg_values[8];
+    Dart_Handle result = Dart_GetNativeArguments(args,
+                                                 8,
+                                                 arg_descriptors,
+                                                 arg_values);
+    EXPECT(Dart_IsError(result));
+  }
+
+  // Test with an invalid range error.
+  {
+    const Dart_NativeArgument_Descriptor arg_descriptors[8] = {
+      { Dart_NativeArgument_kInt32, 2 },
+      { Dart_NativeArgument_kUint64, 2 },
+      { Dart_NativeArgument_kBool, 3 },
+      { Dart_NativeArgument_kDouble, 4 },
+      { Dart_NativeArgument_kString, 5 },
+      { Dart_NativeArgument_kString, 6 },
+      { Dart_NativeArgument_kNativeFields, 0 },
+      { Dart_NativeArgument_kNativeFields, 7 },
+    };
+    Dart_NativeArgument_Value arg_values[8];
+    Dart_Handle result = Dart_GetNativeArguments(args,
+                                                 8,
+                                                 arg_descriptors,
+                                                 arg_values);
+    EXPECT(Dart_IsError(result));
+  }
+
+  Dart_SetIntegerReturnValue(args, 0);
+}
+
+
+static Dart_NativeFunction native_args_lookup(Dart_Handle name,
+                                              int argument_count,
+                                              bool* auto_scope_setup) {
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  ASSERT(auto_scope_setup != NULL);
+  *auto_scope_setup = true;
+  const char* function_name = obj.ToCString();
+  ASSERT(function_name != NULL);
+  if (!strcmp(function_name, "NativeArgument_Create")) {
+    return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCreate);
+  } else if (!strcmp(function_name, "NativeArgument_Access")) {
+    return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentAccess);
+  }
+  return NULL;
+}
+
+
+TEST_CASE(GetNativeArguments) {
+  const char* kScriptChars =
+      "import 'dart:nativewrappers';"
+      "class MyObject extends NativeFieldWrapperClass2 {"
+      "  static MyObject createObject() native 'NativeArgument_Create';"
+      "  int accessFields(int arg1,"
+      "                   int arg2,"
+      "                   bool arg3,"
+      "                   double arg4,"
+      "                   String arg5,"
+      "                   String arg6,"
+      "                   MyObject arg7) native 'NativeArgument_Access';"
+      "}"
+      "int testMain(String extstr) {"
+      "  String str = 'abcdefg';"
+      "  MyObject obj1 = MyObject.createObject();"
+      "  MyObject obj2 = MyObject.createObject();"
+      "  return obj1.accessFields(77,"
+      "                           0xffffffffffffffff,"
+      "                           true,"
+      "                           3.14,"
+      "                           str,"
+      "                           extstr,"
+      "                           obj2);"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(
+      kScriptChars,
+      reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
+
+  intptr_t size;
+  Dart_Handle ascii_str = NewString("string");
+  EXPECT_VALID(ascii_str);
+  EXPECT_VALID(Dart_StringStorageSize(ascii_str, &size));
+  uint8_t ext_ascii_str[10];
+  Dart_Handle extstr = Dart_MakeExternalString(
+      ascii_str,
+      ext_ascii_str,
+      size,
+      reinterpret_cast<void*>(&native_arg_str_peer),
+      NULL);
+
+  Dart_Handle args[1];
+  args[0] = extstr;
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+}
+
+
+static void NativeArgumentCounter(Dart_NativeArguments args) {
   Dart_EnterScope();
   int count = Dart_GetNativeArgumentCount(args);
   Dart_SetReturnValue(args, Dart_NewInteger(count));

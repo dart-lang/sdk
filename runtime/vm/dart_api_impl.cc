@@ -81,6 +81,142 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 }
 
 
+static bool GetNativeStringArgument(NativeArguments* arguments,
+                                    int arg_index,
+                                    Dart_Handle* str,
+                                    void** peer) {
+  ASSERT(peer != NULL);
+  if (Api::StringGetPeerHelper(arguments, arg_index, peer)) {
+    *str = NULL;
+    return true;
+  }
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate == Isolate::Current());
+  *peer = NULL;
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
+  obj = arguments->NativeArgAt(arg_index);
+  if (RawObject::IsStringClassId(obj.GetClassId())) {
+    ASSERT(isolate->api_state() &&
+           isolate->api_state()->top_scope() != NULL);
+    *str = Api::NewHandle(isolate, obj.raw());
+    return true;
+  }
+  if (obj.IsNull()) {
+    *str = Api::Null();
+    return true;
+  }
+  return false;
+}
+
+
+static bool GetNativeIntegerArgument(NativeArguments* arguments,
+                                     int arg_index,
+                                     int64_t* value) {
+  ASSERT(value != NULL);
+  if (Api::GetNativeIntegerArgument(arguments, arg_index, value)) {
+    return true;
+  }
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate == Isolate::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
+  obj = arguments->NativeArgAt(arg_index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kBigintCid) {
+    const Bigint& bigint = Bigint::Cast(obj);
+    if (BigintOperations::FitsIntoInt64(bigint)) {
+      *value = BigintOperations::ToInt64(bigint);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
+                                             int arg_index,
+                                             uint64_t* value) {
+  ASSERT(value != NULL);
+  int64_t arg_value = 0;
+  if (Api::GetNativeIntegerArgument(arguments, arg_index, &arg_value)) {
+    *value = static_cast<uint64_t>(arg_value);
+    return true;
+  }
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate == Isolate::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
+  obj = arguments->NativeArgAt(arg_index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kBigintCid) {
+    const Bigint& bigint = Bigint::Cast(obj);
+    if (BigintOperations::FitsIntoUint64(bigint)) {
+      *value = BigintOperations::ToUint64(bigint);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+static bool GetNativeDoubleArgument(NativeArguments* arguments,
+                                    int arg_index,
+                                    double* value) {
+  ASSERT(value != NULL);
+  if (Api::GetNativeDoubleArgument(arguments, arg_index, value)) {
+    return true;
+  }
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate == Isolate::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
+  obj = arguments->NativeArgAt(arg_index);
+  intptr_t cid = obj.GetClassId();
+  if (cid == kBigintCid) {
+    *value = Bigint::Cast(obj).AsDoubleValue();
+    return true;
+  }
+  return false;
+}
+
+
+static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
+                                             int arg_index,
+                                             int num_fields,
+                                             intptr_t* field_values,
+                                             const char* current_func) {
+  ASSERT(field_values != NULL);
+  if (Api::GetNativeFieldsOfArgument(arguments,
+                                     arg_index,
+                                     num_fields,
+                                     field_values)) {
+    return Api::Success();
+  }
+  Isolate* isolate = arguments->isolate();
+  ASSERT(isolate == Isolate::Current());
+  REUSABLE_OBJECT_HANDLESCOPE(isolate);
+  Object& obj = isolate->ObjectHandle();
+  obj = arguments->NativeArgAt(arg_index);
+  if (obj.IsNull()) {
+    memset(field_values, 0, (num_fields * sizeof(field_values[0])));
+    return Api::Success();
+  }
+  // We did not succeed in extracting the native fields report the
+  // appropriate error.
+  if (!obj.IsInstance()) {
+    return Api::NewError("%s expects argument at index '%d' to be of"
+                         " type Instance.", current_func, arg_index);
+  }
+  const Instance& instance = Instance::Cast(obj);
+  int field_count = instance.NumNativeFields();
+  ASSERT(num_fields != field_count);
+  return Api::NewError(
+      "%s: expected %d 'num_fields' but was passed in %d.",
+      current_func, field_count, num_fields);
+}
+
+
 Heap::Space SpaceForExternal(Isolate* isolate, intptr_t size) {
   Heap* heap = isolate->heap();
   // If 'size' would be a significant fraction of new space, then use old.
@@ -351,6 +487,74 @@ bool Api::GetNativeBooleanArgument(NativeArguments* arguments,
         *value = false;
         return true;
       }
+  }
+  return false;
+}
+
+
+bool Api::GetNativeIntegerArgument(NativeArguments* arguments,
+                                   int arg_index,
+                                   int64_t* value) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (raw_obj->IsHeapObject()) {
+    intptr_t cid = raw_obj->GetClassId();
+    if (cid == kMintCid) {
+      *value = reinterpret_cast<RawMint*>(raw_obj)->ptr()->value_;
+      return true;
+    }
+    return false;
+  }
+  *value = Smi::Value(reinterpret_cast<RawSmi*>(raw_obj));
+  return true;
+}
+
+
+bool Api::GetNativeDoubleArgument(NativeArguments* arguments,
+                                  int arg_index,
+                                  double* value) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (raw_obj->IsHeapObject()) {
+    intptr_t cid = raw_obj->GetClassId();
+    if (cid == kDoubleCid) {
+      *value = reinterpret_cast<RawDouble*>(raw_obj)->ptr()->value_;
+      return true;
+    }
+    if (cid == kMintCid) {
+      *value = static_cast<double>(
+          reinterpret_cast<RawMint*>(raw_obj)->ptr()->value_);
+      return true;
+    }
+    return false;
+  }
+  *value = static_cast<double>(Smi::Value(reinterpret_cast<RawSmi*>(raw_obj)));
+  return true;
+}
+
+
+bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
+                                    int arg_index,
+                                    int num_fields,
+                                    intptr_t* field_values) {
+  NoGCScope no_gc_scope;
+  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (raw_obj->IsHeapObject()) {
+    intptr_t cid = raw_obj->GetClassId();
+    if (cid > kNumPredefinedCids) {
+      RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
+          RawObject::ToAddr(raw_obj) + sizeof(RawObject));
+      if (native_fields == TypedData::null()) {
+        memset(field_values, 0, (num_fields * sizeof(field_values[0])));
+      } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
+        intptr_t* native_values =
+            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+        memmove(field_values,
+                native_values,
+                (num_fields * sizeof(field_values[0])));
+      }
+      return true;
+    }
   }
   return false;
 }
@@ -4014,6 +4218,140 @@ DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetNativeArguments(
+    Dart_NativeArguments args,
+    int num_arguments,
+    const Dart_NativeArgument_Descriptor* argument_descriptors,
+    Dart_NativeArgument_Value* arg_values) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  ASSERT(arguments->isolate() == Isolate::Current());
+  if (arg_values == NULL) {
+    RETURN_NULL_ERROR(arg_values);
+  }
+  for (int i = 0; i < num_arguments; i++) {
+    Dart_NativeArgument_Descriptor desc = argument_descriptors[i];
+    Dart_NativeArgument_Type arg_type = static_cast<Dart_NativeArgument_Type>(
+        desc.type);
+    int arg_index = desc.index;
+    ASSERT(arg_index >= 0 && arg_index < arguments->NativeArgCount());
+    Dart_NativeArgument_Value* native_value = &(arg_values[i]);
+    switch (arg_type) {
+      case Dart_NativeArgument_kBool:
+        if (!Api::GetNativeBooleanArgument(arguments,
+                                           arg_index,
+                                           &(native_value->as_bool))) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Boolean.", CURRENT_FUNC, i);
+        }
+        break;
+
+      case Dart_NativeArgument_kInt32: {
+        int64_t value = 0;
+        if (!GetNativeIntegerArgument(arguments,
+                                      arg_index,
+                                      &value)) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Integer.", CURRENT_FUNC, i);
+        }
+        if (value < INT_MIN || value > INT_MAX) {
+          return Api::NewError("%s: argument value at index %d is out of range",
+                               CURRENT_FUNC, i);
+        }
+        native_value->as_int32 = static_cast<int32_t>(value);
+        break;
+      }
+
+      case Dart_NativeArgument_kUint32: {
+        int64_t value = 0;
+        if (!GetNativeIntegerArgument(arguments,
+                                      arg_index,
+                                      &value)) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Integer.", CURRENT_FUNC, i);
+        }
+        if (value < 0 || value > UINT_MAX) {
+          return Api::NewError("%s: argument value at index %d is out of range",
+                               CURRENT_FUNC, i);
+        }
+        native_value->as_uint32 = static_cast<uint32_t>(value);
+        break;
+      }
+
+      case Dart_NativeArgument_kInt64: {
+        int64_t value = 0;
+        if (!GetNativeIntegerArgument(arguments,
+                                      arg_index,
+                                      &value)) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Integer.", CURRENT_FUNC, i);
+        }
+        native_value->as_int64 = value;
+        break;
+      }
+
+      case Dart_NativeArgument_kUint64: {
+        uint64_t value = 0;
+        if (!GetNativeUnsignedIntegerArgument(arguments,
+                                              arg_index,
+                                              &value)) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Integer.", CURRENT_FUNC, i);
+        }
+        native_value->as_uint64 = value;
+        break;
+      }
+
+      case Dart_NativeArgument_kDouble:
+        if (!GetNativeDoubleArgument(arguments,
+                                     arg_index,
+                                     &(native_value->as_double))) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type Double.", CURRENT_FUNC, i);
+        }
+        break;
+
+      case Dart_NativeArgument_kString:
+        if (!GetNativeStringArgument(arguments,
+                                     arg_index,
+                                     &(native_value->as_string.dart_str),
+                                     &(native_value->as_string.peer))) {
+          return Api::NewError("%s: expects argument at index %d to be of"
+                               " type String.", CURRENT_FUNC, i);
+        }
+        break;
+
+      case Dart_NativeArgument_kNativeFields: {
+        Dart_Handle result = GetNativeFieldsOfArgument(
+            arguments,
+            arg_index,
+            native_value->as_native_fields.num_fields,
+            native_value->as_native_fields.values,
+            CURRENT_FUNC);
+        if (result != Api::Success()) {
+          return result;
+        }
+        break;
+      }
+
+      case Dart_NativeArgument_kInstance: {
+        Isolate* isolate = arguments->isolate();
+        ASSERT(isolate == Isolate::Current());
+        ASSERT(isolate->api_state() &&
+               isolate->api_state()->top_scope() != NULL);
+        native_value->as_instance =
+            Api::NewHandle(isolate, arguments->NativeArgAt(arg_index));
+        break;
+      }
+
+      default:
+        return Api::NewError("%s: invalid argument type %d.",
+                             CURRENT_FUNC, arg_type);
+    }
+  }
+  return Api::Success();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
   TRACE_API_CALL(CURRENT_FUNC);
@@ -4048,30 +4386,11 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
   if (field_values == NULL) {
     RETURN_NULL_ERROR(field_values);
   }
-  Isolate* isolate = arguments->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
-  obj = arguments->NativeArgAt(arg_index);
-  if (obj.IsNull()) {
-    for (intptr_t i = 0; i < num_fields; i++) {
-      field_values[i] = 0;
-    }
-    return Api::Success();
-  }
-  if (!obj.IsInstance()) {
-    return Api::NewError("%s expects argument at index '%d' to be of"
-                         " type Instance.", CURRENT_FUNC, arg_index);
-  }
-  const Instance& instance = Instance::Cast(obj);
-  uint16_t field_count = instance.NumNativeFields();
-  if (num_fields != field_count) {
-    return Api::NewError(
-        "%s: invalid 'field_values' array specified for returning field values",
-        CURRENT_FUNC);
-  }
-  instance.GetNativeFields(num_fields, field_values);
-  return Api::Success();
+  return GetNativeFieldsOfArgument(arguments,
+                                   arg_index,
+                                   num_fields,
+                                   field_values,
+                                   CURRENT_FUNC);
 }
 
 
@@ -4094,23 +4413,12 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
                                                      int arg_index,
                                                      void** peer) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
-  ASSERT(isolate == Isolate::Current());
-  if (Api::StringGetPeerHelper(arguments, arg_index, peer)) {
-    return Api::Success();
+  Dart_Handle result = Api::Null();
+  if (!GetNativeStringArgument(arguments, arg_index, &result, peer)) {
+    return Api::NewError("%s expects argument at %d to be of"
+                         " type String.", CURRENT_FUNC, arg_index);
   }
-  *peer = NULL;
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
-  obj = arguments->NativeArgAt(arg_index);
-  if (RawObject::IsStringClassId(obj.GetClassId())) {
-    return Api::NewHandle(isolate, obj.raw());
-  }
-  if (obj.IsNull()) {
-    return Api::Null();
-  }
-  return Api::NewError("%s expects argument to be of"
-                       " type String.", CURRENT_FUNC);
+  return result;
 }
 
 
@@ -4124,33 +4432,11 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  Isolate* isolate = arguments->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
-  obj = arguments->NativeArgAt(index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kSmiCid) {
-    *value = Smi::Cast(obj).Value();
-    return Api::Success();
+  if (!GetNativeIntegerArgument(arguments, index, value)) {
+    return Api::NewError("%s: expects argument at %d to be of"
+                         " type Integer.", CURRENT_FUNC, index);
   }
-  if (cid == kMintCid) {
-    *value = Mint::Cast(obj).value();
-    return Api::Success();
-  }
-  if (cid == kBigintCid) {
-    const Bigint& bigint = Bigint::Cast(obj);
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
-      return Api::Success();
-    }
-    return Api::NewError(
-        "%s: argument %d is a big integer that does not fit in 'value'.",
-        CURRENT_FUNC, index);
-  }
-  return Api::NewError(
-      "%s: argument %d is not an Integer argument.",
-      CURRENT_FUNC, index);
+  return Api::Success();
 }
 
 
@@ -4164,11 +4450,11 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  if (Api::GetNativeBooleanArgument(arguments, index, value)) {
-    return Api::Success();
+  if (!Api::GetNativeBooleanArgument(arguments, index, value)) {
+    return Api::NewError("%s: expects argument at %d to be of type Boolean.",
+                         CURRENT_FUNC, index);
   }
-  return Api::NewError("%s: argument %d is not a Boolean argument.",
-      CURRENT_FUNC, index);
+  return Api::Success();
 }
 
 
@@ -4182,31 +4468,11 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  Isolate* isolate = arguments->isolate();
-  ASSERT(isolate == Isolate::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(isolate);
-  Object& obj = isolate->ObjectHandle();
-  obj = arguments->NativeArgAt(index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kDoubleCid) {
-    *value = Double::Cast(obj).value();
-    return Api::Success();
+  if (!GetNativeDoubleArgument(arguments, index, value)) {
+    return Api::NewError("%s: expects argument at %d to be of"
+                         " type Double.", CURRENT_FUNC, index);
   }
-  if (cid == kSmiCid) {
-    *value = Smi::Cast(obj).AsDoubleValue();
-    return Api::Success();
-  }
-  if (cid == kMintCid) {
-    *value = Mint::Cast(obj).AsDoubleValue();
-    return Api::Success();
-  }
-  if (cid == kBigintCid) {
-    *value = Bigint::Cast(obj).AsDoubleValue();
-    return Api::Success();
-  }
-  return Api::NewError(
-      "%s: argument %d is not a Double argument.",
-      CURRENT_FUNC, index);
+  return Api::Success();
 }
 
 

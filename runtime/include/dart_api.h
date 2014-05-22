@@ -2155,6 +2155,81 @@ typedef struct _Dart_NativeArguments* Dart_NativeArguments;
  */
 DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args);
 
+typedef enum {
+  Dart_NativeArgument_kBool = 0,
+  Dart_NativeArgument_kInt32,
+  Dart_NativeArgument_kUint32,
+  Dart_NativeArgument_kInt64,
+  Dart_NativeArgument_kUint64,
+  Dart_NativeArgument_kDouble,
+  Dart_NativeArgument_kString,
+  Dart_NativeArgument_kInstance,
+  Dart_NativeArgument_kNativeFields,
+} Dart_NativeArgument_Type;
+
+typedef struct _Dart_NativeArgument_Descriptor {
+  uint8_t type;
+  uint8_t index;
+} Dart_NativeArgument_Descriptor;
+
+typedef union _Dart_NativeArgument_Value {
+  bool as_bool;
+  int32_t as_int32;
+  uint32_t as_uint32;
+  int64_t as_int64;
+  uint64_t as_uint64;
+  double as_double;
+  struct {
+    Dart_Handle dart_str;
+    void* peer;
+  } as_string;
+  struct {
+    intptr_t num_fields;
+    intptr_t* values;
+  } as_native_fields;
+  Dart_Handle as_instance;
+} Dart_NativeArgument_Value;
+
+enum {
+  kNativeArgNumberPos = 0,
+  kNativeArgNumberSize = 8,
+  kNativeArgTypePos = kNativeArgNumberPos + kNativeArgNumberSize,
+  kNativeArgTypeSize = 8,
+};
+
+#define BITMASK(size) ((1 << size) - 1)
+#define DART_NATIVE_ARG_DESCRIPTOR(type, position)                             \
+  (((type & BITMASK(kNativeArgTypeSize)) << kNativeArgTypePos) |               \
+    (position & BITMASK(kNativeArgNumberSize)))
+
+/**
+ * Gets the native arguments based on the types passed in and populates
+ * the passed arguments buffer with appropriate native values.
+ *
+ * \param args the Native arguments block passed into the native call.
+ * \param num_arguments length of argument descriptor array and argument
+ *   values array passed in.
+ * \param arg_descriptors an array that describes the arguments that
+ *   need to be retrieved. For each argument to be retrieved the descriptor
+ *   contains the argument number (0, 1 etc.) and the argument type
+ *   described using Dart_NativeArgument_Type, e.g:
+ *   DART_NATIVE_ARG_DESCRIPTOR(Dart_NativeArgument_kBool, 1) indicates
+ *   that the first argument is to be retrieved and it should be a boolean.
+ * \param arg_values array into which the native arguments need to be
+ *   extracted into, the array is allocated by the caller (it could be
+ *   stack allocated to avoid the malloc/free performance overhead).
+ *
+ * \return Success if all the arguments could be extracted correctly,
+ *   returns an error handle if there were any errors while extracting the
+ *   arguments (mismatched number of arguments, incorrect types, etc.).
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeArguments(
+    Dart_NativeArguments args,
+    int num_arguments,
+    const Dart_NativeArgument_Descriptor* arg_descriptors,
+    Dart_NativeArgument_Value* arg_values);
+
+
 /**
  * Gets the native argument at some index.
  */
