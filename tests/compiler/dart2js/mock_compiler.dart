@@ -420,20 +420,23 @@ class MockCompiler extends Compiler {
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
     ResolverVisitor visitor =
-        new ResolverVisitor(this, element, new CollectingTreeElements(element));
+        new ResolverVisitor(this, element,
+            new ResolutionRegistry.internal(this,
+                new CollectingTreeElements(element)));
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
     visitor.scope = new LibraryScope(element.library);
-    return visitor.mapping;
+    return visitor.registry.mapping;
   }
 
   resolverVisitor() {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
-                            new CollectingTreeElements(mockElement));
+          new ResolutionRegistry.internal(this,
+              new CollectingTreeElements(mockElement)));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }

@@ -38,5 +38,6 @@ import 'class_members.dart' show MembersCreator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 
 part 'members.dart';
+part 'registry.dart';
 part 'scope.dart';
 part 'signatures.dart';

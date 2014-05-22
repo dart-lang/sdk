@@ -127,7 +127,7 @@ testTypeVariables() {
   matchResolvedTypes(visitor, text, name, expectedElements) {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
-    InterfaceType type = visitor.mapping.getType(definition.type);
+    InterfaceType type = visitor.registry.mapping.getType(definition.type);
     Expect.equals(definition.type.typeArguments.slowLength(),
                   length(type.typeArguments));
     int index = 0;
@@ -194,7 +194,9 @@ testSuperCalls() {
   FunctionElement fooA = classA.lookupLocalMember("foo");
 
   ResolverVisitor visitor =
-      new ResolverVisitor(compiler, fooB, new CollectingTreeElements(fooB));
+      new ResolverVisitor(compiler, fooB,
+          new ResolutionRegistry.internal(compiler,
+              new CollectingTreeElements(fooB)));
   FunctionExpression node = fooB.parseNode(compiler);
   visitor.visit(node.body);
   Map mapping = map(visitor);
@@ -232,7 +234,8 @@ testThis() {
   FunctionElement funElement = fooElement.lookupLocalMember("foo");
   ResolverVisitor visitor =
       new ResolverVisitor(compiler, funElement,
-                          new CollectingTreeElements(funElement));
+          new ResolutionRegistry.internal(compiler,
+              new CollectingTreeElements(funElement)));
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
@@ -253,7 +256,8 @@ testThis() {
   fooElement = compiler.mainApp.find("Foo");
   funElement = fooElement.lookupLocalMember("foo");
   visitor = new ResolverVisitor(compiler, funElement,
-                                new CollectingTreeElements(funElement));
+      new ResolutionRegistry.internal(compiler,
+          new CollectingTreeElements(funElement)));
   function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
@@ -337,16 +341,18 @@ testLocalsFive() {
   List statements1 = thenPart.statements.nodes.toList();
   Node def1 = statements1[0].definitions.nodes.head;
   Node id1 = statements1[1].expression;
-  Expect.equals(visitor.mapping[def1], visitor.mapping[id1]);
+  Expect.equals(visitor.registry.mapping[def1], visitor.registry.mapping[id1]);
 
   Block elsePart = tree.elsePart;
   List statements2 = elsePart.statements.nodes.toList();
   Node def2 = statements2[0].definitions.nodes.head;
   Node id2 = statements2[1].expression;
-  Expect.equals(visitor.mapping[def2], visitor.mapping[id2]);
+  Expect.equals(visitor.registry.mapping[def2], visitor.registry.mapping[id2]);
 
-  Expect.notEquals(visitor.mapping[def1], visitor.mapping[def2]);
-  Expect.notEquals(visitor.mapping[id1], visitor.mapping[id2]);
+  Expect.notEquals(visitor.registry.mapping[def1],
+                   visitor.registry.mapping[def2]);
+  Expect.notEquals(visitor.registry.mapping[id1],
+                   visitor.registry.mapping[id2]);
 }
 
 testParametersOne() {
@@ -359,14 +365,14 @@ testParametersOne() {
   // Check that an element has been created for the parameter.
   VariableDefinitions vardef = tree.parameters.nodes.head;
   Node param = vardef.definitions.nodes.head;
-  Expect.equals(ElementKind.PARAMETER, visitor.mapping[param].kind);
+  Expect.equals(ElementKind.PARAMETER, visitor.registry.mapping[param].kind);
 
   // Check that 'a' in 'return a' is resolved to the parameter.
   Block body = tree.body;
   Return ret = body.statements.nodes.head;
   Send use = ret.expression;
-  Expect.equals(ElementKind.PARAMETER, visitor.mapping[use].kind);
-  Expect.equals(visitor.mapping[param], visitor.mapping[use]);
+  Expect.equals(ElementKind.PARAMETER, visitor.registry.mapping[use].kind);
+  Expect.equals(visitor.registry.mapping[param], visitor.registry.mapping[use]);
 }
 
 testFor() {
@@ -381,7 +387,7 @@ testFor() {
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
-  Element iElement = visitor.mapping[iNode];
+  Element iElement = visitor.registry.mapping[iNode];
 
   // Check that we have the expected nodes. This test relies on the mapping
   // field to be a linked hash map (preserving insertion order).
@@ -531,7 +537,9 @@ testOneInterface() {
   compiler.parseScript("abstract class Bar {}");
 
   ResolverVisitor visitor =
-      new ResolverVisitor(compiler, null, new CollectingTreeElements(null));
+      new ResolverVisitor(compiler, null,
+          new ResolutionRegistry.internal(compiler,
+              new CollectingTreeElements(null)));
   compiler.resolveStatement("Foo bar;");
 
   ClassElement fooElement = compiler.mainApp.find('Foo');
@@ -656,7 +664,8 @@ resolveConstructor(String script, String statement, String className,
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor =
       new ResolverVisitor(compiler, element,
-                          new CollectingTreeElements(element));
+          new ResolutionRegistry.internal(compiler,
+              new CollectingTreeElements(element)));
   new InitializerResolver(visitor).resolveInitializers(element, tree);
   visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
@@ -872,7 +881,7 @@ testInitializers() {
 }
 
 map(ResolverVisitor visitor) {
-  CollectingTreeElements elements = visitor.mapping;
+  CollectingTreeElements elements = visitor.registry.mapping;
   return elements.map;
 }
 
