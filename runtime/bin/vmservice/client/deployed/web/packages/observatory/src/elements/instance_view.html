@@ -55,7 +55,39 @@
           <div class="memberItem">
             <div class="memberName">retained size</div>
             <div class="memberValue">
-              <eval-link callback="{{ retainedSize }}"></eval-link>
+              <eval-link callback="{{ retainedSize }}"
+                         label="[calculate]">
+              </eval-link>
+            </div>
+          </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">retaining path</div>
+            <div class="memberValue">
+              <template if="{{ path == null }}">
+                <eval-link callback="{{ retainingPath }}"
+                           label="[find]"
+                           expr="10">
+                </eval-link>
+              </template>
+              <template if="{{ path != null }}">
+                <template repeat="{{ element in path['elements'] }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ element['index']}}]</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                  </div>
+                  </div>
+                </template>
+                <template if="{{ path['length'] > path['elements'].length }}">
+                  showing {{ path['elements'].length }} of {{ path['length'] }}
+                  <eval-link
+                    callback="{{ retainingPath }}"
+                    label="[find more]"
+                    expr="{{ path['elements'].length * 2 }}">
+                  </eval-link>
+                </template>
+              </template>
             </div>
           </div>
           <template if="{{ instance['type_class'] != null }}">

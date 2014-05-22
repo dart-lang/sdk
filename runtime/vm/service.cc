@@ -878,8 +878,9 @@ static bool ContainsNonInstance(const Object& obj) {
 }
 
 
+// Takes an Object* only because RetainingPath temporarily clears it.
 static bool HandleInstanceCommands(Isolate* isolate,
-                                   const Object& obj,
+                                   Object* obj,
                                    JSONStream* js,
                                    intptr_t arg_pos) {
   ASSERT(js->num_arguments() > arg_pos);
@@ -891,19 +892,19 @@ static bool HandleInstanceCommands(Isolate* isolate,
                  js->num_arguments());
       return true;
     }
-    if (obj.IsNull()) {
+    if (obj->IsNull()) {
       PrintErrorWithKind(js, "EvalCollected",
                          "attempt to evaluate against collected object\n",
                          js->num_arguments());
       return true;
     }
-    if (obj.raw() == Object::sentinel().raw()) {
+    if (obj->raw() == Object::sentinel().raw()) {
       PrintErrorWithKind(js, "EvalExpired",
                          "attempt to evaluate against expired object\n",
                          js->num_arguments());
       return true;
     }
-    if (ContainsNonInstance(obj)) {
+    if (ContainsNonInstance(*obj)) {
       PrintError(js, "attempt to evaluate against internal VM object\n");
       return true;
     }
@@ -914,8 +915,8 @@ static bool HandleInstanceCommands(Isolate* isolate,
       return true;
     }
     const String& expr_str = String::Handle(isolate, String::New(expr));
-    ASSERT(obj.IsInstance());
-    const Instance& instance = Instance::Cast(obj);
+    ASSERT(obj->IsInstance());
+    const Instance& instance = Instance::Cast(*obj);
     const Object& result =
         Object::Handle(instance.Evaluate(expr_str,
                                          Array::empty_array(),
@@ -924,9 +925,32 @@ static bool HandleInstanceCommands(Isolate* isolate,
     return true;
   } else if (strcmp(action, "retained") == 0) {
     ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+    intptr_t retained_size = graph.SizeRetainedByInstance(*obj);
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
+    return true;
+  } else if (strcmp(action, "retaining_path") == 0) {
+    intptr_t limit;
+    if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+      PrintError(js, "retaining_path expects a 'limit' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    ObjectGraph graph(isolate);
+    Array& path = Array::Handle(Array::New(limit));
+    intptr_t length = graph.RetainingPath(obj, path);
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "RetainingPath");
+    jsobj.AddProperty("id", "retaining_path");
+    jsobj.AddProperty("length", length);
+    JSONArray elements(&jsobj, "elements");
+    for (intptr_t i = 0; i < path.Length() && i < length; ++i) {
+      JSONObject jselement(&elements);
+      Object& element = Object::Handle();
+      element = path.At(i);
+      jselement.AddProperty("index", i);
+      jselement.AddProperty("value", element);
+    }
     return true;
   }
 
@@ -1095,7 +1119,7 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     type.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, type, js, 4);
+  return HandleInstanceCommands(isolate, &type, js, 4);
 }
 
 
@@ -1344,7 +1368,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     obj.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, obj, js, 2);
+  return HandleInstanceCommands(isolate, &obj, js, 2);
 }
 
 

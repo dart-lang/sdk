@@ -223,13 +223,14 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
       return kProceed;
     } else {
       HANDLESCOPE(Isolate::Current());
-      Object& parent = Object::Handle();
-      for (length_ = 0; it->MoveToParent(); ++length_) {
+      Object& current = Object::Handle();
+      do {
         if (!path_.IsNull() && length_ < path_.Length()) {
-          parent = it->Get();
-          path_.SetAt(length_, parent);
+          current = it->Get();
+          path_.SetAt(length_, current);
         }
-      }
+        ++length_;
+      } while (it->MoveToParent());
       return kAbort;
     }
   }

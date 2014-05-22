@@ -12,6 +12,7 @@ import 'package:polymer/polymer.dart';
 @CustomTag('instance-view')
 class InstanceViewElement extends ObservatoryElement {
   @published ServiceMap instance;
+  @published ServiceMap path;
 
   InstanceViewElement.created() : super.created();
 
@@ -21,8 +22,15 @@ class InstanceViewElement extends ObservatoryElement {
   }
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
-  Future<ServiceObject> retainedSize(String dummy) {
+  Future<ServiceObject> retainedSize(var dummy) {
     return instance.isolate.get(instance.id + "/retained");
+  }
+
+  Future<ServiceObject> retainingPath(var arg) {
+    return instance.isolate.get(instance.id + "/retaining_path?limit=$arg")
+        .then((ServiceObject obj) {
+          path = obj;
+        });
   }
 
   void refresh(var done) {

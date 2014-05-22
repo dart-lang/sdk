@@ -15,10 +15,10 @@
     </style>
 
     <template if="{{ busy }}">
-      <span class="busy">[evaluate]</span>
+      <span class="busy">{{ label }}</span>
     </template>
     <template if="{{ !busy }}">
-      <span class="idle"><a on-click="{{ evalNow }}">[evaluate]</a></span>
+      <span class="idle"><a on-click="{{ evalNow }}">{{ label }}</a></span>
     </template>
     <template if="{{ result != null }}">
       = <instance-ref ref="{{ result }}"></instance-ref>

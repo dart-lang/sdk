@@ -13138,6 +13138,15 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
 }
 
 
+void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+}
+
+
 void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 
