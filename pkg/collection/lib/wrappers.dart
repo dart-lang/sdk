@@ -254,6 +254,8 @@ class DelegatingSet<E> extends DelegatingIterable<E> implements Set<E> {
   }
 
   Set<E> union(Set<E> other) => _setBase.union(other);
+
+  Set<E> toSet() => new DelegatingSet<E>(_setBase.toSet());
 }
 
 /**

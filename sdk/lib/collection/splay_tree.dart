@@ -785,7 +785,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
   }
 
   Set<E> intersection(Set<E> other) {
-    Set<E> result = new SplayTreeSet<E>(_compare, _validKey);
+    Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (other.contains(element)) result.add(element);
     }
@@ -793,7 +793,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
   }
 
   Set<E> difference(Set<E> other) {
-    Set<E> result = new SplayTreeSet<E>(_compare, _validKey);
+    Set<E> result = new SplayTreeSet<E>(_comparator, _validKey);
     for (E element in this) {
       if (!other.contains(element)) result.add(element);
     }
@@ -805,7 +805,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
   }
 
   SplayTreeSet<E> _clone() {
-    var set = new SplayTreeSet<E>(_compare, _validKey);
+    var set = new SplayTreeSet<E>(_comparator, _validKey);
     set._count = _count;
     set._root = _cloneNode(_root);
     return set;
@@ -825,4 +825,6 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
   }
 
   void clear() { _clear(); }
+
+  Set<E> toSet() => _clone();
 }
