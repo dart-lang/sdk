@@ -28,7 +28,7 @@ DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 // Flags for inlining heuristics.
 DEFINE_FLAG(int, inline_getters_setters_smaller_than, 10,
     "Always inline getters and setters that have fewer instructions");
-DEFINE_FLAG(int, inlining_depth_threshold, 3,
+DEFINE_FLAG(int, inlining_depth_threshold, 5,
     "Inline function calls up to threshold nesting depth");
 DEFINE_FLAG(int, inlining_size_threshold, 25,
     "Always inline functions that have threshold or fewer instructions");
