@@ -18,9 +18,12 @@ const Map<String, List<String>> WHITE_LIST = const {
   // and classes, are used in production code.*/
   // Helper methods for debugging should never be called from production code:
   "implementation/helpers/": const [" is never "],
-  
+
   // Some things in dart_printer are not yet used
-  "implementation/dart_backend/dart_printer.dart" : const [" is never "]
+  "implementation/dart_backend/dart_printer.dart" : const [" is never "],
+
+  // Setlet implements the Set interface: Issue 18959.
+  "implementation/util/setlet.dart": const [" is never "],
 };
 
 void main() {
