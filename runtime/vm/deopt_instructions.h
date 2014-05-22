@@ -58,21 +58,29 @@ class DeoptContext {
 
   intptr_t RegisterValue(Register reg) const {
     ASSERT(cpu_registers_ != NULL);
+    ASSERT(reg >= 0);
+    ASSERT(reg < kNumberOfCpuRegisters);
     return cpu_registers_[reg];
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
     ASSERT(fpu_registers_ != NULL);
+    ASSERT(reg >= 0);
+    ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
   }
 
   int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
     ASSERT(fpu_registers_ != NULL);
+    ASSERT(reg >= 0);
+    ASSERT(reg < kNumberOfFpuRegisters);
     return *reinterpret_cast<int64_t*>(&fpu_registers_[reg]);
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
     ASSERT(fpu_registers_ != NULL);
+    ASSERT(reg >= 0);
+    ASSERT(reg < kNumberOfFpuRegisters);
     const float* address = reinterpret_cast<float*>(&fpu_registers_[reg]);
     return simd128_value_t().readFrom(address);
   }
@@ -216,16 +224,18 @@ class DeoptInstr : public ZoneAllocated {
     kConstant,
     kRegister,
     kFpuRegister,
-    kInt64FpuRegister,
+    kInt64RegisterPair,
     kFloat32x4FpuRegister,
     kFloat64x2FpuRegister,
     kInt32x4FpuRegister,
     kStackSlot,
     kDoubleStackSlot,
     kInt64StackSlot,
+    kInt64StackSlotPair,
     kFloat32x4StackSlot,
     kFloat64x2StackSlot,
     kInt32x4StackSlot,
+    kInt64StackSlotRegister,
     kPcMarker,
     kPp,
     kCallerFp,

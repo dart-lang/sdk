@@ -253,12 +253,13 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresFpuRegister());
-    locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
+    locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -392,22 +393,19 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
 static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
                                            Label* overflow,
-                                           XmmRegister result,
-                                           Register tmp) {
+                                           Register result_lo,
+                                           Register result_hi) {
   // Compare upper half.
   Label check_lower;
-  __ pextrd(tmp, result, Immediate(1));
-  __ cmpl(tmp, Immediate(0x00200000));
+  __ cmpl(result_hi, Immediate(0x00200000));
   __ j(GREATER, overflow);
   __ j(NOT_EQUAL, &check_lower);
 
-  __ pextrd(tmp, result, Immediate(0));
-  __ cmpl(tmp, Immediate(0));
+  __ cmpl(result_lo, Immediate(0));
   __ j(ABOVE, overflow);
 
   __ Bind(&check_lower);
-  __ pextrd(tmp, result, Immediate(1));
-  __ cmpl(tmp, Immediate(-0x00200000));
+  __ cmpl(result_hi, Immediate(-0x00200000));
   __ j(LESS, overflow);
   // Anything in the lower part would make the number bigger than the lower
   // bound, so we are done.
@@ -434,15 +432,20 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
                                            Token::Kind kind,
                                            BranchLabels labels) {
   ASSERT(Token::IsEqualityOperator(kind));
-  XmmRegister left = locs.in(0).fpu_reg();
-  XmmRegister right = locs.in(1).fpu_reg();
-  Register temp = locs.temp(0).reg();
-  __ movaps(XMM0, left);
-  __ pcmpeqq(XMM0, right);
-  __ movd(temp, XMM0);
-
+  PairLocation* left_pair = locs.in(0).AsPairLocation();
+  Register left1 = left_pair->At(0).reg();
+  Register left2 = left_pair->At(1).reg();
+  PairLocation* right_pair = locs.in(1).AsPairLocation();
+  Register right1 = right_pair->At(0).reg();
+  Register right2 = right_pair->At(1).reg();
+  Label done;
+  // Compare lower.
+  __ cmpl(left1, right1);
+  __ j(NOT_EQUAL, &done);
+  // Lower is equal, compare upper.
+  __ cmpl(left2, right2);
+  __ Bind(&done);
   Condition true_condition = TokenKindToMintCondition(kind);
-  __ cmpl(temp, Immediate(-1));
   return true_condition;
 }
 
@@ -451,10 +454,12 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
                                              const LocationSummary& locs,
                                              Token::Kind kind,
                                              BranchLabels labels) {
-  XmmRegister left = locs.in(0).fpu_reg();
-  XmmRegister right = locs.in(1).fpu_reg();
-  Register left_tmp = locs.temp(0).reg();
-  Register right_tmp = locs.temp(1).reg();
+  PairLocation* left_pair = locs.in(0).AsPairLocation();
+  Register left1 = left_pair->At(0).reg();
+  Register left2 = left_pair->At(1).reg();
+  PairLocation* right_pair = locs.in(1).AsPairLocation();
+  Register right1 = right_pair->At(0).reg();
+  Register right2 = right_pair->At(1).reg();
 
   Condition hi_cond = OVERFLOW, lo_cond = OVERFLOW;
   switch (kind) {
@@ -480,16 +485,12 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   ASSERT(hi_cond != OVERFLOW && lo_cond != OVERFLOW);
   Label is_true, is_false;
   // Compare upper halves first.
-  __ pextrd(left_tmp, left, Immediate(1));
-  __ pextrd(right_tmp, right, Immediate(1));
-  __ cmpl(left_tmp, right_tmp);
+  __ cmpl(left2, right2);
   __ j(hi_cond, labels.true_label);
   __ j(FlipCondition(hi_cond), labels.false_label);
 
   // If upper is equal, compare lower half.
-  __ pextrd(left_tmp, left, Immediate(0));
-  __ pextrd(right_tmp, right, Immediate(0));
-  __ cmpl(left_tmp, right_tmp);
+  __ cmpl(left1, right1);
   return lo_cond;
 }
 
@@ -688,13 +689,13 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 2;
+    const intptr_t kNumTemps = 0;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresFpuRegister());
-    locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_temp(1, Location::RequiresRegister());
+    locs->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
+    locs->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -1020,7 +1021,17 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(bool opt) const {
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
     locs->set_out(0, Location::RequiresFpuRegister());
+  } else if (representation() == kUnboxedMint) {
+    if (class_id() == kTypedDataInt32ArrayCid) {
+      locs->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
+                                      Location::RegisterLocation(EDX)));
+    } else {
+      ASSERT(class_id() == kTypedDataUint32ArrayCid);
+      locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                      Location::RequiresRegister()));
+    }
   } else {
+    ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
   }
   return locs;
@@ -1049,7 +1060,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if ((representation() == kUnboxedDouble) ||
-      (representation() == kUnboxedMint) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
@@ -1058,14 +1068,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(index.reg());
     }
     switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        __ movss(result, element_address);
-        __ pmovsxdq(result, result);
-        break;
-      case kTypedDataUint32ArrayCid:
-        __ xorpd(result, result);
-        __ movss(result, element_address);
-        break;
       case kTypedDataFloat32ArrayCid:
         __ movss(result, element_address);
         break;
@@ -1077,9 +1079,38 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat64x2ArrayCid:
         __ movups(result, element_address);
         break;
+      default:
+        UNREACHABLE();
     }
     return;
   }
+
+  if (representation() == kUnboxedMint) {
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    Register result1 = result_pair->At(0).reg();
+    Register result2 = result_pair->At(1).reg();
+    if ((index_scale() == 1) && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    switch (class_id()) {
+      case kTypedDataInt32ArrayCid:
+        ASSERT(result1 == EAX);
+        ASSERT(result2 == EDX);
+        __ movl(result1, element_address);
+        __ cdq();
+        break;
+      case kTypedDataUint32ArrayCid:
+        __ movl(result1, element_address);
+        __ xorl(result2, result2);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    return;
+  }
+
+  ASSERT(representation() == kTagged);
 
   Register result = locs()->out(0).reg();
   if ((index_scale() == 1) && index.IsRegister()) {
@@ -1212,11 +1243,16 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(bool opt) const {
       break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // Mints are stored in XMM registers. For smis, use a writable register
-      // because the value must be untagged before storing.
-      locs->set_in(2, value()->IsSmiValue()
-                      ? Location::WritableRegister()
-                      : Location::RequiresFpuRegister());
+      // For smis, use a writable register because the value must be untagged
+      // before storing. Mints are stored in registers pairs.
+      if (value()->IsSmiValue()) {
+        locs->set_in(2, Location::WritableRegister());
+      } else {
+        // We only move the lower 32-bits so we don't care where the high bits
+        // are located.
+        locs->set_in(2, Location::Pair(Location::RequiresRegister(),
+                                       Location::Any()));
+      }
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1333,7 +1369,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movl(element_address, value);
       } else {
         ASSERT(RequiredInputRepresentation(2) == kUnboxedMint);
-      __ movss(element_address, locs()->in(2).fpu_reg());
+        PairLocation* value_pair = locs()->in(2).AsPairLocation();
+        Register value1 = value_pair->At(0).reg();
+        __ movl(element_address, value1);
       }
       break;
     case kTypedDataFloat32ArrayCid:
@@ -5536,19 +5574,12 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxIntegerInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const bool needs_temp = ((value_cid != kSmiCid) && (value_cid != kMintCid));
-  const bool needs_writable_input = (value_cid == kSmiCid);
-  const intptr_t kNumTemps = needs_temp ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, needs_writable_input
-                     ? Location::WritableRegister()
-                     : Location::RequiresRegister());
-  if (needs_temp) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-  summary->set_out(0, Location::RequiresFpuRegister());
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::Pair(Location::RegisterLocation(EAX),
+                                     Location::RegisterLocation(EDX)));
   return summary;
 }
 
@@ -5556,30 +5587,39 @@ LocationSummary* UnboxIntegerInstr::MakeLocationSummary(bool opt) const {
 void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
-  const XmmRegister result = locs()->out(0).fpu_reg();
+  PairLocation* result_pair = locs()->out(0).AsPairLocation();
+  Register result_lo = result_pair->At(0).reg();
+  Register result_hi = result_pair->At(1).reg();
+
+  ASSERT(value != result_lo);
+  ASSERT(value != result_hi);
+  ASSERT(result_lo == EAX);
+  ASSERT(result_hi == EDX);
 
   if (value_cid == kMintCid) {
-    __ movsd(result, FieldAddress(value, Mint::value_offset()));
+    __ movl(result_lo, FieldAddress(value, Mint::value_offset()));
+    __ movl(result_hi, FieldAddress(value, Mint::value_offset() + kWordSize));
   } else if (value_cid == kSmiCid) {
-    __ SmiUntag(value);  // Untag input before conversion.
-    __ movd(result, value);
-    __ pmovsxdq(result, result);
+    __ movl(result_lo, value);
+    __ SmiUntag(result_lo);
+    // Sign extend into result_hi.
+    __ cdq();
   } else {
-    Register temp = locs()->temp(0).reg();
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptUnboxInteger);
     Label is_smi, done;
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, &is_smi);
-    __ CompareClassId(value, kMintCid, temp);
+    __ CompareClassId(value, kMintCid, result_lo);
     __ j(NOT_EQUAL, deopt);
-    __ movsd(result, FieldAddress(value, Mint::value_offset()));
+    __ movl(result_lo, FieldAddress(value, Mint::value_offset()));
+    __ movl(result_hi, FieldAddress(value, Mint::value_offset() + kWordSize));
     __ jmp(&done);
     __ Bind(&is_smi);
-    __ movl(temp, value);
-    __ SmiUntag(temp);
-    __ movd(result, temp);
-    __ pmovsxdq(result, result);
+    __ movl(result_lo, value);
+    __ SmiUntag(result_lo);
+    // Sign extend into result_hi.
+    __ cdq();
     __ Bind(&done);
   }
 }
@@ -5587,15 +5627,14 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxIntegerInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 2;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs,
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_temp(0, Location::RegisterLocation(EAX));
-  summary->set_temp(1, Location::RegisterLocation(EDX));
-  // TODO(fschneider): Save one temp by using result register as a temp.
+  summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
+  summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5637,30 +5676,32 @@ class BoxIntegerSlowPath : public SlowPathCode {
 void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
-
+  PairLocation* value_pair = locs()->in(0).AsPairLocation();
+  Register value_lo = value_pair->At(0).reg();
+  Register value_hi = value_pair->At(1).reg();
   Register out_reg = locs()->out(0).reg();
-  XmmRegister value = locs()->in(0).fpu_reg();
+
+  // Copy value_hi into out_reg as a temporary.
+  // We modify value_lo but restore it before using it.
+  __ movl(out_reg, value_hi);
 
   // Unboxed operations produce smis or mint-sized values.
   // Check if value fits into a smi.
   Label not_smi, done;
-  __ pextrd(EDX, value, Immediate(1));  // Upper half.
-  __ pextrd(EAX, value, Immediate(0));  // Lower half.
+
   // 1. Compute (x + -kMinSmi) which has to be in the range
   //    0 .. -kMinSmi+kMaxSmi for x to fit into a smi.
-  __ addl(EAX, Immediate(0x40000000));
-  __ adcl(EDX, Immediate(0));
+  __ addl(value_lo, Immediate(0x40000000));
+  __ adcl(out_reg, Immediate(0));
   // 2. Unsigned compare to -kMinSmi+kMaxSmi.
-  __ cmpl(EAX, Immediate(0x80000000));
-  __ sbbl(EDX, Immediate(0));
+  __ cmpl(value_lo, Immediate(0x80000000));
+  __ sbbl(out_reg, Immediate(0));
   __ j(ABOVE_EQUAL, &not_smi);
   // 3. Restore lower half if result is a smi.
-  __ subl(EAX, Immediate(0x40000000));
-
-  __ SmiTag(EAX);
-  __ movl(out_reg, EAX);
+  __ subl(value_lo, Immediate(0x40000000));
+  __ movl(out_reg, value_lo);
+  __ SmiTag(out_reg);
   __ jmp(&done);
-
   __ Bind(&not_smi);
   __ TryAllocate(
       Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
@@ -5669,7 +5710,10 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       out_reg,
       kNoRegister);
   __ Bind(slow_path->exit_label());
-  __ movsd(FieldAddress(out_reg, Mint::value_offset()), value);
+  // 3. Restore lower half of input before using it.
+  __ subl(value_lo, Immediate(0x40000000));
+  __ movl(FieldAddress(out_reg, Mint::value_offset()), value_lo);
+  __ movl(FieldAddress(out_reg, Mint::value_offset() + kWordSize), value_hi);
   __ Bind(&done);
 }
 
@@ -5680,27 +5724,25 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(bool opt) const {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR: {
-      const intptr_t kNumTemps =
-          FLAG_throw_on_javascript_int_overflow ? 1 : 0;
+      const intptr_t kNumTemps = 0;
       LocationSummary* summary =
           new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::RequiresFpuRegister());
-      summary->set_in(1, Location::RequiresFpuRegister());
-      if (FLAG_throw_on_javascript_int_overflow) {
-        summary->set_temp(0, Location::RequiresRegister());
-      }
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
       summary->set_out(0, Location::SameAsFirstInput());
       return summary;
     }
     case Token::kADD:
     case Token::kSUB: {
-      const intptr_t kNumTemps = 2;
+      const intptr_t kNumTemps = 0;
       LocationSummary* summary =
           new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::RequiresFpuRegister());
-      summary->set_in(1, Location::RequiresFpuRegister());
-      summary->set_temp(0, Location::RequiresRegister());
-      summary->set_temp(1, Location::RequiresRegister());
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
       summary->set_out(0, Location::SameAsFirstInput());
       return summary;
     }
@@ -5712,67 +5754,68 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(bool opt) const {
 
 
 void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister left = locs()->in(0).fpu_reg();
-  XmmRegister right = locs()->in(1).fpu_reg();
-
-  ASSERT(locs()->out(0).fpu_reg() == left);
+  PairLocation* left_pair = locs()->in(0).AsPairLocation();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
+  PairLocation* right_pair = locs()->in(1).AsPairLocation();
+  Register right_lo = right_pair->At(0).reg();
+  Register right_hi = right_pair->At(1).reg();
+  PairLocation* out_pair = locs()->out(0).AsPairLocation();
+  Register out_lo = out_pair->At(0).reg();
+  Register out_hi = out_pair->At(1).reg();
+  ASSERT(out_lo == left_lo);
+  ASSERT(out_hi == left_hi);
 
   Label* deopt = NULL;
   if (FLAG_throw_on_javascript_int_overflow) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   switch (op_kind()) {
-    case Token::kBIT_AND: __ andpd(left, right); break;
-    case Token::kBIT_OR:  __ orpd(left, right); break;
-    case Token::kBIT_XOR: __ xorpd(left, right); break;
+    case Token::kBIT_AND:
+      __ andl(left_lo, right_lo);
+      __ andl(left_hi, right_hi);
+      break;
+    case Token::kBIT_OR:
+      __ orl(left_lo, right_lo);
+      __ orl(left_hi, right_hi);
+      break;
+    case Token::kBIT_XOR:
+      __ xorl(left_lo, right_lo);
+      __ xorl(left_hi, right_hi);
+      break;
     case Token::kADD:
     case Token::kSUB: {
-      Register lo = locs()->temp(0).reg();
-      Register hi = locs()->temp(1).reg();
       if (!FLAG_throw_on_javascript_int_overflow) {
         deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
       }
-
-      Label done, overflow;
-      __ pextrd(lo, right, Immediate(0));  // Lower half
-      __ pextrd(hi, right, Immediate(1));  // Upper half
-      __ subl(ESP, Immediate(2 * kWordSize));
-      __ movq(Address(ESP, 0), left);
       if (op_kind() == Token::kADD) {
-        __ addl(Address(ESP, 0), lo);
-        __ adcl(Address(ESP, 1 * kWordSize), hi);
+        __ addl(left_lo, right_lo);
+        __ adcl(left_hi, right_hi);
       } else {
-        __ subl(Address(ESP, 0), lo);
-        __ sbbl(Address(ESP, 1 * kWordSize), hi);
+        __ subl(left_lo, right_lo);
+        __ sbbl(left_hi, right_hi);
       }
-      __ j(OVERFLOW, &overflow);
-      __ movq(left, Address(ESP, 0));
-      __ addl(ESP, Immediate(2 * kWordSize));
-      __ jmp(&done);
-      __ Bind(&overflow);
-      __ addl(ESP, Immediate(2 * kWordSize));
-      __ jmp(deopt);
-      __ Bind(&done);
+      __ j(OVERFLOW, deopt);
       break;
     }
     default: UNREACHABLE();
   }
   if (FLAG_throw_on_javascript_int_overflow) {
-    Register tmp = locs()->temp(0).reg();
-    EmitJavascriptIntOverflowCheck(compiler, deopt, left, tmp);
+    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
   }
 }
 
 
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = op_kind() == Token::kSHL ? 2 : 1;
+  const intptr_t kNumTemps = op_kind() == Token::kSHL ? 2 : 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
   summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_temp(0, Location::RequiresRegister());
   if (op_kind() == Token::kSHL) {
+    summary->set_temp(0, Location::RequiresRegister());
     summary->set_temp(1, Location::RequiresRegister());
   }
   summary->set_out(0, Location::SameAsFirstInput());
@@ -5781,16 +5824,19 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(bool opt) const {
 
 
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister left = locs()->in(0).fpu_reg();
-  ASSERT(locs()->in(1).reg() == ECX);
-  ASSERT(locs()->out(0).fpu_reg() == left);
+  PairLocation* left_pair = locs()->in(0).AsPairLocation();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
+  PairLocation* out_pair = locs()->out(0).AsPairLocation();
+  Register out_lo = out_pair->At(0).reg();
+  Register out_hi = out_pair->At(1).reg();
+  ASSERT(out_lo == left_lo);
+  ASSERT(out_hi == left_hi);
 
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
   Label done;
   __ testl(ECX, ECX);
   __ j(ZERO, &done);  // Shift by 0 is a nop.
-  __ subl(ESP, Immediate(2 * kWordSize));
-  __ movq(Address(ESP, 0), left);
   // Deoptimize if shift count is > 31.
   // sarl operation masks the count to 5 bits and
   // shrd is undefined with count > operand size (32)
@@ -5801,23 +5847,21 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(ABOVE, deopt);
   switch (op_kind()) {
     case Token::kSHR: {
-      Register temp = locs()->temp(0).reg();
-      __ movl(temp, Address(ESP, 1 * kWordSize));  // High half.
-      __ shrd(Address(ESP, 0), temp);  // Shift count in CL.
-      __ sarl(Address(ESP, 1 * kWordSize), ECX);  // Shift count in CL.
+      __ shrd(left_lo, left_hi);  // Shift count in CL.
+      __ sarl(left_hi, ECX);  // Shift count in CL.
       break;
     }
     case Token::kSHL: {
       Register temp1 = locs()->temp(0).reg();
       Register temp2 = locs()->temp(1).reg();
-      __ movl(temp1, Address(ESP, 0 * kWordSize));  // Low 32 bits.
-      __ movl(temp2, Address(ESP, 1 * kWordSize));  // High 32 bits.
-      __ shll(Address(ESP, 0 * kWordSize), ECX);  // Shift count in CL.
-      __ shld(Address(ESP, 1 * kWordSize), temp1);  // Shift count in CL.
+      __ movl(temp1, left_lo);  // Low 32 bits.
+      __ movl(temp2, left_hi);  // High 32 bits.
+      __ shll(left_lo, ECX);  // Shift count in CL.
+      __ shld(left_hi, temp1);  // Shift count in CL.
       // Check for overflow by shifting back the high 32 bits
       // and comparing with the input.
       __ movl(temp1, temp2);
-      __ movl(temp2, Address(ESP, 1 * kWordSize));
+      __ movl(temp2, left_hi);
       __ sarl(temp2, ECX);
       __ cmpl(temp1, temp2);
       __ j(NOT_EQUAL, deopt);
@@ -5827,23 +5871,20 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
-  __ movq(left, Address(ESP, 0));
-  __ addl(ESP, Immediate(2 * kWordSize));
   __ Bind(&done);
   if (FLAG_throw_on_javascript_int_overflow) {
-    Register tmp = locs()->temp(0).reg();
-    EmitJavascriptIntOverflowCheck(compiler, deopt, left, tmp);
+    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
   }
 }
 
 
 LocationSummary* UnaryMintOpInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      FLAG_throw_on_javascript_int_overflow ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
   summary->set_out(0, Location::SameAsFirstInput());
   if (FLAG_throw_on_javascript_int_overflow) {
     summary->set_temp(0, Location::RequiresRegister());
@@ -5854,17 +5895,25 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary(bool opt) const {
 
 void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(op_kind() == Token::kBIT_NOT);
-  XmmRegister value = locs()->in(0).fpu_reg();
-  ASSERT(value == locs()->out(0).fpu_reg());
+  PairLocation* left_pair = locs()->in(0).AsPairLocation();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
+  PairLocation* out_pair = locs()->out(0).AsPairLocation();
+  Register out_lo = out_pair->At(0).reg();
+  Register out_hi = out_pair->At(1).reg();
+  ASSERT(out_lo == left_lo);
+  ASSERT(out_hi == left_hi);
+
   Label* deopt = NULL;
   if (FLAG_throw_on_javascript_int_overflow) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
   }
-  __ pcmpeqq(XMM0, XMM0);  // Generate all 1's.
-  __ pxor(value, XMM0);
+
+  __ notl(left_lo);
+  __ notl(left_hi);
+
   if (FLAG_throw_on_javascript_int_overflow) {
-    Register tmp = locs()->temp(0).reg();
-    EmitJavascriptIntOverflowCheck(compiler, deopt, value, tmp);
+    EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
   }
 }
 

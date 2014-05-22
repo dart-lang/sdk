@@ -2131,7 +2131,6 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
       Value* value = InputAt(i);
       switch (value->definition()->representation()) {
         case kUnboxedDouble:
-        case kUnboxedMint:
           locations_[i] = Location::DoubleStackSlot(index);
           break;
         case kUnboxedFloat32x4:
@@ -2142,6 +2141,8 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
         default:
           UNREACHABLE();
       }
+    } else if (loc.IsPairLocation()) {
+      UNREACHABLE();
     } else if (loc.IsInvalid()) {
       // We currently only perform one iteration of allocation
       // sinking, so we do not expect to find materialized objects
@@ -2348,7 +2349,7 @@ Environment* Environment::DeepCopy(intptr_t length) const {
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
     if (locations_ != NULL) {
-      copy->locations_[i] = locations_[i];
+      copy->locations_[i] = locations_[i].Copy();
     }
   }
   return copy;

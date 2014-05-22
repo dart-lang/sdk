@@ -1446,23 +1446,25 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the lowest register number at the
+  // Store general purpose registers with the highest register number at the
   // lowest address.
-  const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
-  ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
-  if (cpu_registers != 0) {
-    __ PushList(cpu_registers);
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ Push(reg);
+    }
   }
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the lowest register number at the
+  // General purpose registers have the highest register number at the
   // lowest address.
-  const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
-  ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
-  if (cpu_registers != 0) {
-    __ PopList(cpu_registers);
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->ContainsRegister(reg)) {
+      __ Pop(reg);
+    }
   }
 
   const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();

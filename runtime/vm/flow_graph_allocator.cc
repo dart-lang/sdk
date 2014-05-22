@@ -398,10 +398,23 @@ void LiveRange::Print() {
     return;
   }
 
-  OS::Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ",
-            vreg(), Start(), End());
+  OS::Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(),
+                                                            Start(),
+                                                            End());
   assigned_location().Print();
+  if (spill_slot_.HasStackIndex()) {
+    intptr_t stack_slot = spill_slot_.stack_index();
+    OS::Print(" allocated spill slot: %" Pd "", stack_slot);
+  }
   OS::Print("\n");
+
+  SafepointPosition* safepoint = first_safepoint();
+  while (safepoint != NULL) {
+    OS::Print("    Safepoint [%" Pd "]: ", safepoint->pos());
+    safepoint->locs()->stack_bitmap()->Print();
+    OS::Print("\n");
+    safepoint = safepoint->next();
+  }
 
   UsePosition* use_pos = uses_;
   for (UseInterval* interval = first_use_interval_;
@@ -564,6 +577,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
   GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
   for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
     Definition* defn = (*graph_entry->initial_definitions())[i];
+    ASSERT(!defn->HasPairRepresentation());
     LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
@@ -612,11 +626,14 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     // in stack maps.
     spill_slots_.Add(range_end);
     quad_spill_slots_.Add(false);
+    untagged_spill_slots_.Add(false);
+    // Note, all incoming parameters are assumed to be tagged.
     MarkAsObjectAtSafepoints(range);
   } else if (defn->IsConstant() && block->IsCatchBlockEntry()) {
     // Constants at catch block entries consume spill slots.
     spill_slots_.Add(range_end);
     quad_spill_slots_.Add(false);
+    untagged_spill_slots_.Add(false);
   }
 }
 
@@ -632,7 +649,6 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 
 static Location::Kind RegisterKindForResult(Instruction* instr) {
   if ((instr->representation() == kUnboxedDouble) ||
-      (instr->representation() == kUnboxedMint) ||
       (instr->representation() == kUnboxedFloat32x4) ||
       (instr->representation() == kUnboxedInt32x4) ||
       (instr->representation() == kUnboxedFloat64x2) ||
@@ -802,8 +818,12 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
 
     for (intptr_t i = 0; i < env->Length(); ++i) {
       Value* value = env->ValueAt(i);
-      locations[i] = Location::Any();
       Definition* def = value->definition();
+      if (def->HasPairRepresentation()) {
+        locations[i] = Location::Pair(Location::Any(), Location::Any());
+      } else {
+        locations[i] = Location::Any();
+      }
 
       if (def->IsPushArgument()) {
         // Frame size is unknown until after allocation.
@@ -827,13 +847,23 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
-      LiveRange* range = GetLiveRange(def->ssa_temp_index());
-      range->AddUseInterval(block_start_pos, use_pos);
-      range->AddUse(use_pos, &locations[i]);
-
       if (def->HasPairRepresentation()) {
-        LiveRange* range =
+        PairLocation* location_pair = locations[i].AsPairLocation();
+        {
+          // First live range.
+          LiveRange* range = GetLiveRange(def->ssa_temp_index());
+          range->AddUseInterval(block_start_pos, use_pos);
+          range->AddUse(use_pos, location_pair->SlotAt(0));
+        }
+        {
+          // Second live range.
+          LiveRange* range =
             GetLiveRange(ToSecondPairVreg(def->ssa_temp_index()));
+          range->AddUseInterval(block_start_pos, use_pos);
+          range->AddUse(use_pos, location_pair->SlotAt(1));
+        }
+      } else {
+        LiveRange* range = GetLiveRange(def->ssa_temp_index());
         range->AddUseInterval(block_start_pos, use_pos);
         range->AddUse(use_pos, &locations[i]);
       }
@@ -869,13 +899,25 @@ void FlowGraphAllocator::ProcessMaterializationUses(
       continue;
     }
 
-    locations[i] = Location::Any();
-
-    LiveRange* range = GetLiveRange(def->ssa_temp_index());
-    range->AddUseInterval(block_start_pos, use_pos);
-    range->AddUse(use_pos, &locations[i]);
     if (def->HasPairRepresentation()) {
-      LiveRange* range = GetLiveRange(ToSecondPairVreg(def->ssa_temp_index()));
+      locations[i] = Location::Pair(Location::Any(), Location::Any());
+      PairLocation* location_pair = locations[i].AsPairLocation();
+      {
+        // First live range.
+        LiveRange* range = GetLiveRange(def->ssa_temp_index());
+        range->AddUseInterval(block_start_pos, use_pos);
+        range->AddUse(use_pos, location_pair->SlotAt(0));
+      }
+      {
+        // Second live range.
+        LiveRange* range =
+            GetLiveRange(ToSecondPairVreg(def->ssa_temp_index()));
+        range->AddUseInterval(block_start_pos, use_pos);
+        range->AddUse(use_pos, location_pair->SlotAt(1));
+      }
+    } else {
+      locations[i] = Location::Any();
+      LiveRange* range = GetLiveRange(def->ssa_temp_index());
       range->AddUseInterval(block_start_pos, use_pos);
       range->AddUse(use_pos, &locations[i]);
     }
@@ -889,7 +931,8 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
                                          intptr_t pos,
                                          Location* in_ref,
                                          Value* input,
-                                         intptr_t vreg) {
+                                         intptr_t vreg,
+                                         RegisterSet* live_registers) {
   ASSERT(in_ref != NULL);
   ASSERT(!in_ref->IsPairLocation());
   ASSERT(input != NULL);
@@ -903,6 +946,9 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
     //      value    --*
     //      register   [-----)
     //
+    if (live_registers != NULL) {
+      live_registers->Add(*in_ref, range->representation());
+    }
     MoveOperands* move =
         AddMoveAt(pos - 1, *in_ref, Location::Any());
     BlockLocation(*in_ref, pos - 1, pos + 1);
@@ -1114,6 +1160,12 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       locs->out(0).IsUnallocated() &&
       (locs->out(0).policy() == Location::kSameAsFirstInput);
 
+  // Output is same as first input which is a pair.
+  if (output_same_as_first_input && locs->in(0).IsPairLocation()) {
+    // Make out into a PairLocation.
+    locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
+  }
   // Add uses from the deoptimization environment.
   if (current->env() != NULL) ProcessEnvironmentUses(block, current);
 
@@ -1128,6 +1180,10 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       // the location is the first register or second register.
       Value* input = current->InputAt(j);
       Location* in_ref = locs->in_slot(j);
+      RegisterSet* live_registers = NULL;
+      if (locs->HasCallOnSlowPath()) {
+        live_registers = locs->live_registers();
+      }
       if (in_ref->IsPairLocation()) {
         ASSERT(input->definition()->HasPairRepresentation());
         PairLocation* pair = in_ref->AsPairLocation();
@@ -1135,12 +1191,12 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
         // Each element of the pair is assigned it's own virtual register number
         // and is allocated its own LiveRange.
         ProcessOneInput(block, pos, pair->SlotAt(0),
-                        input, vreg);
+                        input, vreg, live_registers);
         ProcessOneInput(block, pos, pair->SlotAt(1), input,
-                        ToSecondPairVreg(vreg));
+                        ToSecondPairVreg(vreg), live_registers);
       } else {
         ProcessOneInput(block, pos, in_ref, input,
-                        input->definition()->ssa_temp_index());
+                        input->definition()->ssa_temp_index(), live_registers);
       }
     }
   }
@@ -1522,6 +1578,16 @@ UsePosition* AllocationFinger::FirstRegisterBeneficialUse(intptr_t after) {
 }
 
 
+UsePosition* AllocationFinger::FirstInterferingUse(intptr_t after) {
+  if (IsInstructionEndPosition(after)) {
+    // If after is a position at the end of the instruction disregard
+    // any use occuring at it.
+    after += 1;
+  }
+  return FirstRegisterUse(after);
+}
+
+
 void AllocationFinger::UpdateAfterSplit(intptr_t first_use_after_split_pos) {
   if ((first_register_use_ != NULL) &&
       (first_register_use_->pos() >= first_use_after_split_pos)) {
@@ -1695,7 +1761,8 @@ LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
     split_pos = ToInstructionStart(to) - 1;
   }
 
-  ASSERT((split_pos != kIllegalPosition) && (from < split_pos));
+  ASSERT(split_pos != kIllegalPosition);
+  ASSERT(from < split_pos);
 
   return range->SplitAt(split_pos);
 }
@@ -1769,6 +1836,8 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
       ((range->representation() == kUnboxedFloat32x4) ||
        (range->representation() == kUnboxedInt32x4)   ||
        (range->representation() == kUnboxedFloat64x2));
+  const bool need_untagged = (register_kind_ == Location::kRegister) &&
+      ((range->representation() == kUntagged));
 
   // Search for a free spill slot among allocated: the value in it should be
   // dead and its type should match (e.g. it should not be a part of the quad if
@@ -1780,6 +1849,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
       : 0;
   for (; idx < spill_slots_.length(); idx++) {
     if ((need_quad == quad_spill_slots_[idx]) &&
+        (need_untagged == untagged_spill_slots_[idx]) &&
         (spill_slots_[idx] <= start)) {
       break;
     }
@@ -1789,9 +1859,11 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
     // No free spill slot found. Allocate a new one.
     spill_slots_.Add(0);
     quad_spill_slots_.Add(need_quad);
+    untagged_spill_slots_.Add(need_untagged);
     if (need_quad) {  // Allocate two double stack slots if we need quad slot.
       spill_slots_.Add(0);
       quad_spill_slots_.Add(need_quad);
+      untagged_spill_slots_.Add(need_untagged);
     }
   }
 
@@ -1822,8 +1894,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
       ASSERT(need_quad);
       location = Location::QuadStackSlot(slot_idx);
     } else {
-      ASSERT((range->representation() == kUnboxedDouble) ||
-             (range->representation() == kUnboxedMint));
+      ASSERT((range->representation() == kUnboxedDouble));
       location = Location::DoubleStackSlot(slot_idx);
     }
     range->set_spill_slot(location);
@@ -1841,6 +1912,7 @@ void FlowGraphAllocator::MarkAsObjectAtSafepoints(LiveRange* range) {
     for (SafepointPosition* safepoint = range->first_safepoint();
          safepoint != NULL;
          safepoint = safepoint->next()) {
+      // Mark the stack slot as having an object.
       safepoint->locs()->stack_bitmap()->Set(stack_index, true);
     }
     range = range->next_sibling();
@@ -2199,9 +2271,8 @@ bool FlowGraphAllocator::UpdateFreeUntil(intptr_t reg,
         return false;
       }
 
-      const UsePosition* use =
-          allocated->finger()->FirstRegisterBeneficialUse(unallocated->Start());
-
+      UsePosition* use =
+          allocated->finger()->FirstInterferingUse(start);
       if ((use != NULL) && ((ToInstructionStart(use->pos()) - start) <= 1)) {
         // This register is blocked by interval that is used
         // as register in the current instruction and can't
@@ -2281,7 +2352,7 @@ bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
   if (intersection == kMaxPosition) return false;
 
   const intptr_t spill_position = first_unallocated->start();
-  UsePosition* use = allocated->finger()->FirstRegisterUse(spill_position);
+  UsePosition* use = allocated->finger()->FirstInterferingUse(spill_position);
   if (use == NULL) {
     // No register uses after this point.
     SpillAfter(allocated, spill_position);
@@ -2316,6 +2387,7 @@ MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
 
 
 void FlowGraphAllocator::ConvertUseTo(UsePosition* use, Location loc) {
+  ASSERT(!loc.IsPairLocation());
   ASSERT(use->location_slot() != NULL);
   Location* slot = use->location_slot();
   ASSERT(slot->IsUnallocated());
@@ -2350,7 +2422,7 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
          safepoint = safepoint->next()) {
       if (!safepoint->locs()->always_calls()) {
         ASSERT(safepoint->locs()->can_call());
-        safepoint->locs()->live_registers()->Add(loc);
+        safepoint->locs()->live_registers()->Add(loc, range->representation());
       }
     }
   }
@@ -2669,12 +2741,22 @@ void FlowGraphAllocator::ResolveControlFlow() {
 }
 
 
+static Representation RepresentationForRange(Representation definition_rep) {
+  if (definition_rep == kUnboxedMint) {
+    // kUnboxedMint is split into two ranges, each of which are kUntagged.
+    return kUntagged;
+  }
+  return definition_rep;
+}
+
+
 void FlowGraphAllocator::CollectRepresentations() {
   // Parameters.
   GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
   for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); ++i) {
     Definition* def = (*graph_entry->initial_definitions())[i];
-    value_representations_[def->ssa_temp_index()] = def->representation();
+    value_representations_[def->ssa_temp_index()] =
+        RepresentationForRange(def->representation());
     ASSERT(!def->HasPairRepresentation());
   }
 
@@ -2690,7 +2772,9 @@ void FlowGraphAllocator::CollectRepresentations() {
            i < catch_entry->initial_definitions()->length();
            ++i) {
         Definition* def = (*catch_entry->initial_definitions())[i];
-        value_representations_[def->ssa_temp_index()] = def->representation();
+        ASSERT(!def->HasPairRepresentation());
+        value_representations_[def->ssa_temp_index()] =
+            RepresentationForRange(def->representation());
       }
     }
     // Phis.
@@ -2700,7 +2784,9 @@ void FlowGraphAllocator::CollectRepresentations() {
         // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
         PhiInstr* phi = it.Current();
         if ((phi != NULL) && (phi->ssa_temp_index() >= 0)) {
-          value_representations_[phi->ssa_temp_index()] = phi->representation();
+          ASSERT(!phi->HasPairRepresentation());
+          value_representations_[phi->ssa_temp_index()] =
+              RepresentationForRange(phi->representation());
         }
       }
     }
@@ -2711,9 +2797,11 @@ void FlowGraphAllocator::CollectRepresentations() {
       Definition* def = instr_it.Current()->AsDefinition();
       if ((def != NULL) && (def->ssa_temp_index() >= 0)) {
         const intptr_t vreg = def->ssa_temp_index();
-        value_representations_[vreg] = def->representation();
+        value_representations_[vreg] =
+            RepresentationForRange(def->representation());
         if (def->HasPairRepresentation()) {
-         value_representations_[ToSecondPairVreg(vreg)] = def->representation();
+         value_representations_[ToSecondPairVreg(vreg)] =
+            RepresentationForRange(def->representation());
         }
       }
     }
@@ -2761,6 +2849,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   cpu_spill_slot_count_ = spill_slots_.length();
   spill_slots_.Clear();
   quad_spill_slots_.Clear();
+  untagged_spill_slots_.Clear();
 
   PrepareForAllocation(Location::kFpuRegister,
                        kNumberOfFpuRegisters,

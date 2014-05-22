@@ -113,7 +113,8 @@ class FlowGraphAllocator : public ValueObject {
                        intptr_t pos,
                        Location* in_ref,
                        Value* input,
-                       intptr_t vreg);
+                       intptr_t vreg,
+                       RegisterSet* live_registers);
   void ProcessOneOutput(BlockEntryInstr* block,
                         Instruction* current,
                         intptr_t pos,
@@ -317,6 +318,11 @@ class FlowGraphAllocator : public ValueObject {
   // are disjoint.
   GrowableArray<bool> quad_spill_slots_;
 
+  // Track whether a spill slot is expected to hold a tagged or untagged value.
+  // This is used to keep tagged and untagged spill slots disjoint. See bug
+  // #18955 for details.
+  GrowableArray<bool> untagged_spill_slots_;
+
   intptr_t cpu_spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
@@ -498,6 +504,7 @@ class AllocationFinger : public ValueObject {
   Location FirstHint();
   UsePosition* FirstRegisterUse(intptr_t after_pos);
   UsePosition* FirstRegisterBeneficialUse(intptr_t after_pos);
+  UsePosition* FirstInterferingUse(intptr_t after_pos);
 
  private:
   UseInterval* first_pending_use_interval_;

@@ -210,6 +210,12 @@ void Location::PrintTo(BufferFormatter* f) const {
     f->Print("DS%+" Pd "", stack_index());
   } else if (kind() == kQuadStackSlot) {
     f->Print("QS%+" Pd "", stack_index());
+  } else if (IsPairLocation()) {
+    f->Print("(");
+    AsPairLocation()->At(0).PrintTo(f);
+    f->Print(", ");
+    AsPairLocation()->At(1).PrintTo(f);
+    f->Print(")");
   } else {
     f->Print("%s", Name());
   }
@@ -229,6 +235,19 @@ void Location::Print() const {
     OS::Print("S%+" Pd "", stack_index());
   } else {
     OS::Print("%s", Name());
+  }
+}
+
+
+Location Location::Copy() const {
+  if (IsPairLocation()) {
+    PairLocation* pair = AsPairLocation();
+    ASSERT(!pair->At(0).IsPairLocation());
+    ASSERT(!pair->At(1).IsPairLocation());
+    return Location::Pair(pair->At(0).Copy(), pair->At(1).Copy());
+  } else {
+    // Copy by value.
+    return *this;
   }
 }
 

@@ -1779,7 +1779,8 @@ class Definition : public Instruction {
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
     return (representation() == kPairOfTagged) ||
-           (representation() == kPairOfUnboxedDouble);
+           (representation() == kPairOfUnboxedDouble) ||
+           (representation() == kUnboxedMint);
   }
 
   // Compile time type of the definition, which may be requested before type

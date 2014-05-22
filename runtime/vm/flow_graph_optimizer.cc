@@ -602,7 +602,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
     ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kDoubleCid));
+           (use->Type()->ToCid() == kUnboxedMint));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     converted = new UnboxIntegerInstr(use->CopyWithType(), deopt_id);

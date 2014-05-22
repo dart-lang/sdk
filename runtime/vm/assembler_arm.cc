@@ -273,9 +273,21 @@ void Assembler::adc(Register rd, Register rn, ShifterOperand so,
 }
 
 
+void Assembler::adcs(Register rd, Register rn, ShifterOperand so,
+                    Condition cond) {
+  EmitType01(cond, so.type(), ADC, 1, rn, rd, so);
+}
+
+
 void Assembler::sbc(Register rd, Register rn, ShifterOperand so,
                     Condition cond) {
   EmitType01(cond, so.type(), SBC, 0, rn, rd, so);
+}
+
+
+void Assembler::sbcs(Register rd, Register rn, ShifterOperand so,
+                    Condition cond) {
+  EmitType01(cond, so.type(), SBC, 1, rn, rd, so);
 }
 
 
@@ -2158,6 +2170,11 @@ void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
 
 void Assembler::Rrx(Register rd, Register rm, Condition cond) {
   mov(rd, ShifterOperand(rm, ROR, 0), cond);
+}
+
+
+void Assembler::SignFill(Register rd, Register rm) {
+  Asr(rd, rm, 31);
 }
 
 
