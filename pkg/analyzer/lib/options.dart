@@ -24,6 +24,9 @@ class CommandLineOptions {
   /** Whether to display version information */
   final bool displayVersion;
 
+  /** A table mapping the names of defined variables to their values. */
+  final Map<String, String> definedVariables;
+
   /** Whether to report hints */
   final bool disableHints;
 
@@ -60,7 +63,7 @@ class CommandLineOptions {
   /**
    * Initialize options from the given parsed [args].
    */
-  CommandLineOptions._fromArgs(ArgResults args)
+  CommandLineOptions._fromArgs(ArgResults args, Map<String, String> definedVariables)
     : shouldBatch = args['batch'],
       machineFormat = args['machine'] || args['format'] == 'machine',
       displayVersion = args['version'],
@@ -74,7 +77,8 @@ class CommandLineOptions {
       dartSdkPath = args['dart-sdk'],
       packageRootPath = args['package-root'],
       log = args['log'],
-      sourceFiles = args.rest;
+      sourceFiles = args.rest,
+      this.definedVariables = definedVariables;
 
   /**
    * Parse [args] into [CommandLineOptions] describing the specified
@@ -146,7 +150,8 @@ class CommandLineOptions {
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
       args = args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
-      var results = parser.parse(args);
+      Map<String, String> definedVariables = <String, String>{};
+      var results = parser.parse(args, definedVariables);
       // help requests
       if (results['help']) {
         _showUsage(parser);
@@ -168,7 +173,7 @@ class CommandLineOptions {
           exit(15);
         }
       }
-      return new CommandLineOptions._fromArgs(results);
+      return new CommandLineOptions._fromArgs(results, definedVariables);
     } on FormatException catch (e) {
       print(e.message);
       _showUsage(parser);
@@ -249,11 +254,30 @@ class _CommandLineParser {
 
   /**
    * Parses [args], a list of command-line arguments, matches them against the
-   * flags and options defined by this parser, and returns the result.
+   * flags and options defined by this parser, and returns the result. The
+   * values of any defined variables are captured in the given map.
    *
    * See [ArgParser].
    */
-  ArgResults parse(List<String> args) => _parser.parse(_filterUnknowns(args));
+  ArgResults parse(List<String> args, Map<String, String> definedVariables) => _parser.parse(_filterUnknowns(parseDefinedVariables(args, definedVariables)));
+
+  List<String> parseDefinedVariables(List<String> args, Map<String, String> definedVariables) {
+    int count = args.length;
+    List<String> remainingArgs = <String>[];
+    for (int i = 0; i < count; i++) {
+      String arg = args[i];
+      if (arg == '--') {
+        while (i < count) {
+          remainingArgs.add(args[i++]);
+        }
+      } else if (arg.startsWith("-D")) {
+        definedVariables[arg.substring(2)] = args[++i];
+      } else {
+        remainingArgs.add(arg);
+      }
+    }
+    return remainingArgs;
+  }
 
   List<String> _filterUnknowns(args) {
 
