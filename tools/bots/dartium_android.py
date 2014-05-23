@@ -33,7 +33,7 @@ def GetOptionsParser():
 
 
 def UploadSetACL(gsutil, local, remote):
-  gsutil.upload(local, remote, public=true)
+  gsutil.upload(local, remote, public=True)
 
 
 def UploadAPKs(options):
