@@ -37,7 +37,7 @@ void main() {
   });
 
   test("create result error 2", () {
-    Result<bool> result = new ErrorResult<bool>("BAD", stack);
+    Result<bool> result = new ErrorResult("BAD", stack);
     expect(result.isValue, isFalse);
     expect(result.isError, isTrue);
     ErrorResult error = result.asError;
@@ -65,7 +65,7 @@ void main() {
   test("complete with error", () {
     Result<bool> result = new ErrorResult("BAD", stack);
     Completer c = new Completer<bool>();
-    c.future.then((bool v) { Expect.fail("Unexpected value $v"); },
+    c.future.then((bool v) { fail("Unexpected value $v"); },
                   onError: expectAsync((e, s) {
                     expect(e, equals("BAD"));
                     expect(s, same(stack));
@@ -100,7 +100,7 @@ void main() {
 
   test("error as future", () {
     Result<bool> result = new ErrorResult("BAD", stack);
-    result.asFuture.then((bool v) { Expect.fail("Unexpected value $v"); },
+    result.asFuture.then((bool v) { fail("Unexpected value $v"); },
                          onError: expectAsync((e, s) {
                            expect(e, equals("BAD"));
                            expect(s, same(stack));
@@ -115,7 +115,7 @@ void main() {
       ValueResult value = result.asValue;
       expect(value.value, equals(42));
     }), onError: (e, s) {
-      Expect.fail("Unexpected error: $e");
+      fail("Unexpected error: $e");
     });
   });
 
@@ -128,7 +128,7 @@ void main() {
       expect(error.error, equals("BAD"));
       expect(error.stackTrace, same(stack));
     }), onError: (e, s) {
-      Expect.fail("Unexpected error: $e");
+      fail("Unexpected error: $e");
     });
   });
 
@@ -138,7 +138,7 @@ void main() {
     Result.release(future).then(expectAsync((v) {
       expect(v, equals(42));
     }), onError: (e, s) {
-      Expect.fail("Unexpected error: $e");
+      fail("Unexpected error: $e");
     });
   });
 
@@ -147,7 +147,7 @@ void main() {
     Future<Result<bool>> future =
         new Future<Result<bool>>.value(new Result<bool>.error("BAD", stack));
     Result.release(future).then((v) {
-      Expect.fail("Unexpected value: $v");
+      fail("Unexpected value: $v");
     }, onError: expectAsync((e, s) {
       expect(e, equals("BAD"));
       expect(s, same(stack));
@@ -158,7 +158,7 @@ void main() {
     // An error in the error lane is passed through by release.
     Future<Result<bool>> future = new Future<Result<bool>>.error("BAD", stack);
     Result.release(future).then((v) {
-      Expect.fail("Unexpected value: $v");
+      fail("Unexpected value: $v");
     }, onError: expectAsync((e, s) {
       expect(e, equals("BAD"));
       expect(s, same(stack));
@@ -235,7 +235,8 @@ void main() {
 
   test("flatten error 1", () {
     Result<int> error = new Result<int>.error("BAD", stack);
-    Result<int> flattened = Result.flatten(error);
+    Result<int> flattened =
+        Result.flatten(new Result<Result<int>>.error(error));
     expectResult(flattened, error);
   });
 
@@ -277,9 +278,9 @@ class TestSink<T> implements EventSink<T> {
   void addError(error, [StackTrace stack]) { onError(error, stack); }
   void close() { onDone(); }
 
-  static void _nullData(value) { Expect.fail("Unexpected sink add: $value"); }
+  static void _nullData(value) { fail("Unexpected sink add: $value"); }
   static void _nullError(e, StackTrace s) {
-    Expect.fail("Unexpected sink addError: $e");
+    fail("Unexpected sink addError: $e");
   }
-  static void _nullDone() { Expect.fail("Unepxected sink close"); }
+  static void _nullDone() { fail("Unepxected sink close"); }
 }

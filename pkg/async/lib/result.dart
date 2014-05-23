@@ -198,10 +198,10 @@ class ErrorResult implements Result {
   bool get isError => true;
   ValueResult get asValue => null;
   ErrorResult get asError => this;
-  void complete(Completer<T> completer) {
+  void complete(Completer completer) {
     completer.completeError(error, stackTrace);
   }
-  void addTo(EventSink<T> sink) {
+  void addTo(EventSink sink) {
     sink.addError(error, stackTrace);
   }
   Future get asFuture => new Future.error(error, stackTrace);
@@ -238,7 +238,7 @@ class ReleaseStreamTransformer<T> implements StreamTransformer<Result<T>, T> {
     return new Stream<T>.eventTransformed(source, _createSink);
   }
 
-  static EventSink _createSink(EventSink<Result> sink) {
+  static EventSink<Result> _createSink(EventSink sink) {
     return new ReleaseSink(sink);
   }
 }
@@ -257,7 +257,7 @@ class CaptureSink<T> implements EventSink<T> {
 
   CaptureSink(EventSink<Result<T>> sink) : _sink = sink;
   void add(T value) { _sink.add(new ValueResult(value)); }
-  void addError(Object error, StackTrace stackTrace) {
+  void addError(Object error, [StackTrace stackTrace]) {
     _sink.add(new ErrorResult(error, stackTrace));
   }
   void close() { _sink.close(); }
@@ -281,7 +281,7 @@ class ReleaseSink<T> implements EventSink<Result<T>> {
       _sink.addError(error.error, error.stackTrace);
     }
   }
-  void addError(Object error, StackTrace stackTrace) {
+  void addError(Object error, [StackTrace stackTrace]) {
     // Errors may be added by intermediate processing, even if it is never
     // added by CaptureSink.
     _sink.addError(error, stackTrace);
