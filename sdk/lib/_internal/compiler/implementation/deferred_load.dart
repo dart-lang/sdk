@@ -81,7 +81,11 @@ class OutputUnit {
         ? compiler.outputUri.path
         : "out";
     String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
-    return "${outName}_$name";
+    if (this == compiler.deferredLoadTask.mainOutputUnit) {
+      return outName;
+    } else {
+      return "${outName}_$name";
+    }
   }
 
   String toString() => "OutputUnit($name)";

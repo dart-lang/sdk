@@ -852,6 +852,7 @@ class CodeEmitterTask extends CompilerTask {
                constantEmitter.referenceInInitializationContext(initialValue)]);
         buffer.write(jsAst.prettyPrint(init, compiler));
         buffer.write('$N');
+        compiler.dumpInfoTask.registerGeneratedCode(element, init);
       });
     }
   }
