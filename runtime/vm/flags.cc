@@ -98,6 +98,15 @@ Flag* Flags::Lookup(const char* name) {
 }
 
 
+bool Flags::IsSet(const char* name) {
+  Flag* flag = Lookup(name);
+  return (flag != NULL) &&
+         (flag->type_ == Flag::kBoolean) &&
+         (flag->bool_ptr_ != NULL) &&
+         (*flag->bool_ptr_ == true);
+}
+
+
 bool Flags::Register_bool(bool* addr,
                           const char* name,
                           bool default_value,

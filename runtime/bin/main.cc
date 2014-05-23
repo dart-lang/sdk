@@ -544,20 +544,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(data);
   ASSERT(isolate_data != NULL);
   ASSERT(isolate_data->script_url != NULL);
-  Dart_Handle library = DartUtils::LoadScript(isolate_data->script_url,
-                                              builtin_lib);
-  CHECK_RESULT(library);
-  if (!Dart_IsLibrary(library)) {
-    char errbuf[256];
-    snprintf(errbuf, sizeof(errbuf),
-             "Expected a library when loading script: %s",
-             script_uri);
-    *error = strdup(errbuf);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    return NULL;
-  }
+  result = DartUtils::LoadScript(isolate_data->script_url, builtin_lib);
+  CHECK_RESULT(result);
 
+  result = Dart_RunLoop();
+  CHECK_RESULT(result);
 
   Platform::SetPackageRoot(package_root);
   Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);

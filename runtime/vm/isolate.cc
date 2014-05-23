@@ -187,7 +187,12 @@ RawFunction* IsolateMessageHandler::ResolveCallbackFunction() {
       Function::Handle(isolate_, lib.LookupLocalFunction(callback_name));
   if (func.IsNull()) {
     lib = isolate_->object_store()->root_library();
-    func = lib.LookupLocalFunction(callback_name);
+    // Note: bootstrap code in builtin library may attempt to resolve a
+    // callback function before the script is fully loaded, in which case
+    // the root library may not be registered yet.
+    if (!lib.IsNull()) {
+      func = lib.LookupLocalFunction(callback_name);
+    }
   }
   return func.raw();
 }

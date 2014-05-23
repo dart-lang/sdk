@@ -53,6 +53,11 @@ LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 # These flaky tests also fail with dart2dart.
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
 
+# With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
+Language/14_Libraries_and_Scripts/1_Imports_A04_t02: Fail
+Language/14_Libraries_and_Scripts/2_Exports_A05_t02: Fail
+Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
+
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 

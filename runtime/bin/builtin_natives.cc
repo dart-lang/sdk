@@ -62,7 +62,11 @@ namespace bin {
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
-  V(Logger_PrintString, 1)
+  V(Logger_PrintString, 1)                                                     \
+  V(Builtin_LoadScript, 2)                                                     \
+  V(Builtin_LoadLibrarySource, 4)                                              \
+  V(Builtin_AsyncLoadError, 2)                                                 \
+
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 

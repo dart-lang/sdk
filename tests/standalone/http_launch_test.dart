@@ -74,10 +74,18 @@ checkResults(List<ProcessResult> results) {
   // Exited cleanly.
   for (int i = 0; i < results.length; i++) {
     ProcessResult result = results[i];
+    if (result.exitCode != 0) {
+      print("Exit code for process $i = ${result.exitCode}");
+      print("---stdout:---\n${result.stdout}");
+      print("---stderr:---\n${result.stderr}\n---");
+    }
     Expect.equals(0, result.exitCode);
   }
   String stdout = results[0].stdout;
   // Output is the string 'hello'. Use startsWith to avoid new line differences.
+  if (!stdout.startsWith('hello')) {
+    print("---- stdout of remote process:\n$stdout\n----");
+  }
   Expect.isTrue(stdout.startsWith('hello'));
   // Same output from all three process runs.
   for (int i = 0; i < results.length; i++) {
