@@ -500,6 +500,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool running = false;
   @observable bool idle = false;
   @observable bool loading = true;
+  @observable bool ioEnabled = false;
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -699,6 +700,14 @@ class Isolate extends ServiceObjectOwner {
     newHeapCapacity = map['heap']['capacityNew'];
     oldHeapCapacity = map['heap']['capacityOld'];
 
+    List features = map['features'];
+    if (features != null) {
+      for (var feature in features) {
+        if (feature == 'io') {
+          ioEnabled = true;
+        }
+      }
+    }
     // Isolate status
     pauseEvent = map['pauseEvent'];
     running = (!_isPaused && map['topFrame'] != null);

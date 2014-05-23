@@ -971,17 +971,29 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     typeargsRef.AddProperty("id", "typearguments");
     typeargsRef.AddProperty("name", "canonical type arguments");
   }
+  bool is_io_enabled = false;
   {
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
-    Library &lib = Library::Handle();
+    Library& lib = Library::Handle();
+    String& name = String::Handle();
 
     JSONArray lib_array(&jsobj, "libraries");
     for (intptr_t i = 0; i < num_libs; i++) {
       lib ^= libs.At(i);
+      name = lib.name();
+      if (name.Equals(Symbols::DartIOLibName())) {
+        is_io_enabled = true;
+      }
       ASSERT(!lib.IsNull());
       lib_array.AddValue(lib);
+    }
+  }
+  {
+    JSONArray features_array(&jsobj, "features");
+    if (is_io_enabled) {
+      features_array.AddValue("io");
     }
   }
 }

@@ -124,47 +124,52 @@
         <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
       </div>
       <div class="flex-item-40-percent">
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberName">new heap</div>
-              <div class="memberValue">
-                {{ isolate.newHeapUsed | formatSize }}
-                of
-                {{ isolate.newHeapCapacity | formatSize }}
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberName">old heap</div>
-              <div class="memberValue">
-                {{ isolate.oldHeapUsed | formatSize }}
-                of
-                {{ isolate.oldHeapCapacity | formatSize }}
-              </div>
-            </div>
-          </div>
-          <br>
+        <div class="memberList">
           <div class="memberItem">
+            <div class="memberName">new heap</div>
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+              {{ isolate.newHeapUsed | formatSize }}
+              of
+              {{ isolate.newHeapCapacity | formatSize }}
             </div>
           </div>
           <div class="memberItem">
+            <div class="memberName">old heap</div>
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+              {{ isolate.oldHeapUsed | formatSize }}
+              of
+              {{ isolate.oldHeapCapacity | formatSize }}
             </div>
           </div>
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-              </div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+          </div>
+        </div>
+        <template if="{{ isolate.ioEnabled }}">
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('io') }}">dart:io</a>
             </div>
           </div>
+        </template>
       </div>
       <div class="flex-item-10-percent">
       </div>
