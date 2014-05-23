@@ -360,8 +360,8 @@
           'inputs': [
             '../tools/create_resources.py',
             # The following two files are used to trigger a rebuild.
-            'bin/vmservice/client/deployed/web/index.html',
-            'bin/vmservice/client/deployed/web/index.html_bootstrap.dart.js',
+            'vmservice/client/deployed/web/index.html',
+            'vmservice/client/deployed/web/index.html_bootstrap.dart.js',
             '<@(_sources)',
           ],
           'outputs': [
