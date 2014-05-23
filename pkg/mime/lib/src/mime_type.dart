@@ -12,8 +12,7 @@ final MimeTypeResolver _globalResolver = new MimeTypeResolver();
 /**
  * The maximum number of bytes needed, to match all default magic-numbers.
  */
-// NOTE: this is not formatted AS_A_CONST to avoid a breaking change
-const int defaultMagicNumbersMaxLength = 12;
+int get defaultMagicNumbersMaxLength => _globalResolver.magicNumbersMaxLength;
 
 /**
  * Extract the extension from [path] and use that for MIME-type lookup, using
@@ -49,7 +48,7 @@ class MimeTypeResolver {
    */
   MimeTypeResolver() :
       _useDefault = true,
-      _magicNumbersMaxLength = defaultMagicNumbersMaxLength;
+      _magicNumbersMaxLength = DEFAULT_MAGIC_NUMBERS_MAX_LENGTH;
 
   /**
    * Get the maximum number of bytes required to match all magic numbers, when
@@ -82,7 +81,7 @@ class MimeTypeResolver {
     result = _extensionMap[ext];
     if (result != null) return result;
     if (_useDefault) {
-      result = DEFAULT_EXTENSION_MAP[ext];
+      result = defaultExtensionMap[ext];
       if (result != null) return result;
     }
     return null;
