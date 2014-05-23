@@ -1203,7 +1203,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!IsExternal()) {
       ASSERT(this->array()->definition()->representation() == kTagged);
       __ AddImmediate(idx,
-          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+                      Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
     }
     Address element_address(idx);
     const QRegister result = locs()->out(0).fpu_reg();
@@ -1239,7 +1239,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kSmiTagShift == 1);
   const intptr_t offset = IsExternal()
       ? 0
-      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+      : Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
   switch (index_scale()) {
     case 1: {
       __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
@@ -1250,7 +1250,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // No scaling needed, since index is a smi.
       if (!IsExternal()) {
         __ AddImmediate(index.reg(), index.reg(),
-            FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+            Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
         element_address = Address(array, index.reg(), LSL, 0);
       } else {
         element_address = Address(array, index.reg(), LSL, 0);
@@ -1470,7 +1470,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!IsExternal()) {
       ASSERT(this->array()->definition()->representation() == kTagged);
       __ AddImmediate(idx,
-          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+                      Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
     }
     switch (class_id()) {
       case kTypedDataFloat32ArrayCid: {
@@ -1508,7 +1508,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kSmiTagShift == 1);
   const intptr_t offset = IsExternal()
       ? 0
-      : FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+      : Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
   switch (index_scale()) {
     case 1: {
       __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));

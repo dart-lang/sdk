@@ -1010,7 +1010,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t offset = 0;
   if (!IsExternal()) {
     ASSERT(this->array()->definition()->representation() == kTagged);
-    offset = FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+    offset = Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
   }
 
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
@@ -1204,7 +1204,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t offset = 0;
   if (!IsExternal()) {
     ASSERT(this->array()->definition()->representation() == kTagged);
-    offset = FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag;
+    offset = Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
   }
 
   // Note that index is expected smi-tagged, (i.e, times 2) for all arrays

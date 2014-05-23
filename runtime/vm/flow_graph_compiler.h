@@ -447,24 +447,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  // Array/list element address computations.
-  static intptr_t DataOffsetFor(intptr_t cid);
-  static intptr_t ElementSizeFor(intptr_t cid);
-  Address ElementAddressForIntIndex(intptr_t cid,
-                                    intptr_t index_scale,
-                                    Register array,
-                                    intptr_t offset);
-  Address ElementAddressForRegIndex(intptr_t cid,
-                                    intptr_t index_scale,
-                                    Register array,
-                                    Register index);
-  Address ExternalElementAddressForIntIndex(intptr_t index_scale,
-                                            Register array,
-                                            intptr_t offset);
-  Address ExternalElementAddressForRegIndex(intptr_t index_scale,
-                                            Register array,
-                                            Register index);
-
   // Returns 'sorted' array in decreasing count order.
   static void SortICDataByCount(const ICData& ic_data,
                                 GrowableArray<CidTarget>* sorted);

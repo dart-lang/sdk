@@ -1165,7 +1165,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // mode, then we must load the offset into a register and add it to the
     // index.
     element_address = Address(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+        Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
 
   if ((representation() == kUnboxedDouble) ||
@@ -1186,7 +1186,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kTypedDataFloat64ArrayCid:
         __ LoadDFromOffset(result, index.reg(),
-            FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+            Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
         break;
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
@@ -1371,7 +1371,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(this->array()->definition()->representation() == kTagged);
     element_address = Address(index.reg(),
-        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+        Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
   }
 
   switch (class_id()) {
@@ -1455,7 +1455,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataFloat64ArrayCid:
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
-          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+          Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
       break;
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:

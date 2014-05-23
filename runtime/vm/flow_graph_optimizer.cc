@@ -311,7 +311,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
 void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                                     intptr_t ix,
                                                     intptr_t cid) {
-  const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(cid);
+  const intptr_t index_scale = Instance::ElementSizeFor(cid);
   ConstantInstr* index_instr =
       flow_graph()->GetConstant(Smi::Handle(Smi::New(ix)));
   LoadIndexedInstr* load = new LoadIndexedInstr(new Value(instr),
@@ -1301,7 +1301,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                     FlowGraph::kValue);
   }
 
-  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
+  const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
   *last = new StoreIndexedInstr(new Value(array),
                                 new Value(index),
                                 new Value(stored_value),
@@ -1653,7 +1653,7 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   }
 
   // Array load and return.
-  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
+  intptr_t index_scale = Instance::ElementSizeFor(array_cid);
   *last = new LoadIndexedInstr(new Value(array),
                                new Value(index),
                                index_scale,
@@ -2724,7 +2724,7 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
   LoadIndexedInstr* load_indexed = new LoadIndexedInstr(
       new Value(str),
       new Value(index),
-      FlowGraphCompiler::ElementSizeFor(cid),
+      Instance::ElementSizeFor(cid),
       cid,
       Isolate::kNoDeoptId,
       call->token_pos());
@@ -3708,7 +3708,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
                                    NULL,
                                    FlowGraph::kValue);
 
-  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(array_cid);
+  intptr_t element_size = Instance::ElementSizeFor(array_cid);
   ConstantInstr* bytes_per_element =
       flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes =
@@ -3721,7 +3721,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 
   ConstantInstr* length_adjustment =
       flow_graph()->GetConstant(Smi::Handle(Smi::New(
-          FlowGraphCompiler::ElementSizeFor(view_cid) - 1)));
+          Instance::ElementSizeFor(view_cid) - 1)));
   // adjusted_length = len_in_bytes - (element_size - 1).
   BinarySmiOpInstr* adjusted_length =
       new BinarySmiOpInstr(Token::kSUB,

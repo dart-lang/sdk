@@ -2197,7 +2197,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
           for_value.value()->BindsToConstant()
               ? kNoStoreBarrier
               : kEmitStoreBarrier;
-      intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
+      const intptr_t index_scale = Instance::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new StoreIndexedInstr(
           array, index, for_value.value(), emit_store_barrier,
           index_scale, class_id, deopt_id, node->token_pos());

@@ -4212,6 +4212,10 @@ class Instance : public Object {
 
   static RawInstance* New(const Class& cls, Heap::Space space = Heap::kNew);
 
+  // Array/list element address computations.
+  static intptr_t DataOffsetFor(intptr_t cid);
+  static intptr_t ElementSizeFor(intptr_t cid);
+
  protected:
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
 

@@ -1511,11 +1511,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
     Label next_test;
-    assembler()->CompareImmediate(class_id_reg, sorted[i].cid);
+    __ CompareImmediate(class_id_reg, sorted[i].cid);
     if (is_last_check) {
-      assembler()->b(deopt, NE);
+      __ b(deopt, NE);
     } else {
-      assembler()->b(&next_test, NE);
+      __ b(&next_test, NE);
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
@@ -1528,47 +1528,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     AddStaticCallTarget(function);
     __ Drop(argument_count);
     if (!is_last_check) {
-      assembler()->b(&match_found);
+      __ b(&match_found);
     }
-    assembler()->Bind(&next_test);
+    __ Bind(&next_test);
   }
-  assembler()->Bind(&match_found);
-}
-
-
-Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     intptr_t index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     Register index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t index_scale,
-    Register array,
-    intptr_t index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t index_scale,
-    Register array,
-    Register index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
+  __ Bind(&match_found);
 }
 
 

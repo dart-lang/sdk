@@ -1529,42 +1529,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     intptr_t index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     Register index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t index_scale,
-    Register array,
-    intptr_t index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t index_scale,
-    Register array,
-    Register index) {
-  UNREACHABLE();
-  return FieldAddress(array, index);
-}
-
-
 #undef __
 #define __ compiler_->assembler()->
 

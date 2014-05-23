@@ -1289,50 +1289,6 @@ ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
 }
 
 
-intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
-    return ExternalTypedData::ElementSizeInBytes(cid);
-  } else if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::ElementSizeInBytes(cid);
-  }
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Array::kBytesPerElement;
-    case kOneByteStringCid:
-      return OneByteString::kBytesPerElement;
-    case kTwoByteStringCid:
-      return TwoByteString::kBytesPerElement;
-    default:
-      UNIMPLEMENTED();
-      return 0;
-  }
-}
-
-
-intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
-    // Elements start at offset 0 of the external data.
-    return 0;
-  }
-  if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
-  }
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Array::data_offset();
-    case kOneByteStringCid:
-      return OneByteString::data_offset();
-    case kTwoByteStringCid:
-      return TwoByteString::data_offset();
-    default:
-      UNIMPLEMENTED();
-      return Array::data_offset();
-  }
-}
-
-
 static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
   // Negative if 'a' should sort before 'b'.
   return b->count - a->count;
