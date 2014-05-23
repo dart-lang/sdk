@@ -236,7 +236,7 @@ void main() {
   test("flatten error 1", () {
     Result<int> error = new Result<int>.error("BAD", stack);
     Result<int> flattened =
-        Result.flatten(new Result<Result<int>>.error(error));
+        Result.flatten(new Result<Result<int>>.error("BAD", stack));
     expectResult(flattened, error);
   });
 
