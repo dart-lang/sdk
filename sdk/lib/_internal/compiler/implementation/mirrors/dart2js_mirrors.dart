@@ -476,9 +476,13 @@ class BackDoor {
     Compiler compiler = declaration.mirrorSystem.compiler;
     return declaration._element.metadata.toList().map((metadata) {
       var node = metadata.parseNode(compiler);
-      var treeElements = metadata.annotatedElement.treeElements;
+      Element annotatedElement = metadata.annotatedElement;
+      var context = annotatedElement.enclosingElement;
+      if (context == null) {
+        context = annotatedElement;
+      }
       return new ResolvedNode(
-          node, treeElements, declaration.mirrorSystem);
+          node, context.treeElements, declaration.mirrorSystem);
     });
   }
 
@@ -492,7 +496,8 @@ class BackDoor {
   static ResolvedNode defaultValueSyntaxOf(Dart2JsParameterMirror parameter) {
     if (!parameter.hasDefaultValue) return null;
     var node = parameter._element.initializer;
-    var treeElements = parameter._element.treeElements;
-    return new ResolvedNode(node, treeElements, parameter.mirrorSystem);
+    return new ResolvedNode(node,
+        (parameter.owner as Dart2JsElementMirror)._element.treeElements,
+        parameter.mirrorSystem);
   }
 }

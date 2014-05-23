@@ -54,7 +54,7 @@ import 'tree/tree.dart' as ast;
 
 import 'resolution/resolution.dart' show
     TreeElements,
-    AnalyzableElementX;
+    AnalyzableElement;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -456,7 +456,7 @@ class DeferredLoadTask extends CompilerTask {
       // TODO(sigurdm): Unresolved elements should just answer false when
       // asked isNeededForReflection. Instead an internal error is triggered.
       // So we have to filter them out here.
-      if (element is AnalyzableElementX && !element.hasTreeElements) return;
+      if (element is AnalyzableElement && !element.hasTreeElements) return;
       if (compiler.backend.isNeededForReflection(element)) {
         _mapDependencies(element, deferredImport);
       }

@@ -259,11 +259,8 @@ class ResolverTask extends CompilerTask {
     return measure(() {
       if (Elements.isErroneousElement(element)) return null;
 
-      processMetadata([result]) {
-        for (MetadataAnnotation metadata in element.metadata) {
-          metadata.ensureResolved(compiler);
-        }
-        return result;
+      for (MetadataAnnotation metadata in element.metadata) {
+        metadata.ensureResolved(compiler);
       }
 
       ElementKind kind = element.kind;
@@ -271,19 +268,18 @@ class ResolverTask extends CompilerTask {
           identical(kind, ElementKind.FUNCTION) ||
           identical(kind, ElementKind.GETTER) ||
           identical(kind, ElementKind.SETTER)) {
-        return processMetadata(resolveMethodElement(element));
+        return resolveMethodElement(element);
       }
 
-      if (identical(kind, ElementKind.FIELD)) {
-        return processMetadata(resolveField(element));
-      }
+      if (identical(kind, ElementKind.FIELD)) return resolveField(element);
+
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
-        return processMetadata();
+        return null;
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
-        return processMetadata(resolveTypedef(typdef));
+        return resolveTypedef(typdef);
       }
 
       compiler.unimplemented(element, "resolve($element)");
@@ -550,16 +546,11 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  /// Creates a [ResolverVisitor] for resolving an AST in context of [element].
-  /// If [useEnclosingScope] is `true` then the initial scope of the visitor
-  /// does not include inner scope of [element].
-  ///
   /// This method should only be used by this library (or tests of
   /// this library).
-  ResolverVisitor visitorFor(Element element, {bool useEnclosingScope: false}) {
+  ResolverVisitor visitorFor(Element element) {
     return new ResolverVisitor(compiler, element,
-        new ResolutionRegistry(compiler, element),
-        useEnclosingScope: useEnclosingScope);
+        new ResolutionRegistry(compiler, element));
   }
 
   TreeElements resolveField(VariableElementX element) {
@@ -1202,12 +1193,14 @@ class ResolverTask extends CompilerTask {
       annotation.resolutionState = STATE_STARTED;
 
       Node node = annotation.parseNode(compiler);
+      // TODO(johnniwinther): Find the right analyzable element to hold the
+      // [TreeElements] for the annotation.
       Element annotatedElement = annotation.annotatedElement;
-      AnalyzableElement context = annotatedElement.analyzableElement;
-      assert(invariant(node, context != null,
-          message: "No context found for metadata annotation "
-                   "on $annotatedElement."));
-      ResolverVisitor visitor = visitorFor(context, useEnclosingScope: true);
+      Element context = annotatedElement.enclosingElement;
+      if (context == null) {
+        context = annotatedElement;
+      }
+      ResolverVisitor visitor = visitorFor(context);
       ResolutionRegistry registry = visitor.registry;
       node.accept(visitor);
       // TODO(johnniwinther): Avoid passing the [TreeElements] to
@@ -1215,8 +1208,8 @@ class ResolverTask extends CompilerTask {
       annotation.value =
           constantCompiler.compileMetadata(annotation, node, registry.mapping);
       // TODO(johnniwinther): Register the relation between the annotation
-      // and the annotated element instead. This will allow the backend to
-      // retrieve the backend constant and only register metadata on the
+      // and the annotated element instead. This will allow the backed to
+      // retrieve the backend constant and only registered metadata on the
       // elements for which it is needed. (Issue 17732).
       registry.registerMetadataConstant(annotation.value);
       annotation.resolutionState = STATE_DONE;
@@ -2009,8 +2002,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   ResolverVisitor(Compiler compiler,
                   Element element,
-                  ResolutionRegistry registry,
-                  {bool useEnclosingScope: false})
+                  ResolutionRegistry registry)
     : this.enclosingElement = element,
       // When the element is a field, we are actually resolving its
       // initial value, which should not have access to instance
@@ -2020,8 +2012,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       this.currentClass = element.isMember ? element.enclosingClass
                                              : null,
       this.statementScope = new StatementScope(),
-      scope = useEnclosingScope
-          ? Scope.buildEnclosingScope(element) : element.buildScope(),
+      scope = element.buildScope(),
       // The type annotations on a typedef do not imply type checks.
       // TODO(karlklose): clean this up (dartbug.com/8870).
       inCheckContext = compiler.enableTypeAssertions &&
@@ -4665,14 +4656,14 @@ Element lookupInScope(Compiler compiler, Node node,
   return Elements.unwrap(scope.lookup(name), compiler, node);
 }
 
-TreeElements _ensureTreeElements(AnalyzableElementX element) {
+TreeElements _ensureTreeElements(AnalyzableElement element) {
   if (element._treeElements == null) {
     element._treeElements = new TreeElementMapping(element);
   }
   return element._treeElements;
 }
 
-abstract class AnalyzableElementX implements AnalyzableElement {
+abstract class AnalyzableElement implements Element {
   TreeElements _treeElements;
 
   bool get hasTreeElements => _treeElements != null;
