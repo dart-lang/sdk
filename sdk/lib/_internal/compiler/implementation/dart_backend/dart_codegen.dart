@@ -190,12 +190,15 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     Expression condition = new Literal(new dart2js.BoolConstant(true));
     List<Statement> savedBuffer = statementBuffer;
     statementBuffer = <Statement>[];
+    tree.Statement savedFallthrough = fallthrough;
+    fallthrough = stmt.body;
     visitStatement(stmt.body);
     savedBuffer.add(
         new LabeledStatement(
             stmt.label.name,
             new While(condition, new Block(statementBuffer))));
     statementBuffer = savedBuffer;
+    fallthrough = savedFallthrough;
   }
 
   Expression visitConstant(tree.Constant exp) {
