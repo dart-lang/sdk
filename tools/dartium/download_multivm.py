@@ -36,7 +36,8 @@ def main():
   target_dir = sys.argv[2]
   archive_dir = (os.environ['BUILDBOT_BUILDERNAME']
                    .replace('linux', 'lucid64')
-                   .replace('multivm', 'multivm-dartium'))
+                   .replace('multivm', 'multivm-dartium')
+                   .replace('perf', 'build'))
   utils = imp.load_source('utils', os.path.join(TOOLS_DIR, 'utils.py'))
   with utils.TempDir() as temp_dir:
     archive_file = archive_dir + '-' + revision + '.zip'
