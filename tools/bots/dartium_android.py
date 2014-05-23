@@ -23,8 +23,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_DIR, '..'))
 import utils
 
-
-APK_LOCATION = 'apks/Chrome.apk'
 CS_LOCATION = 'apks/ContentShell.apk'
 
 def GetOptionsParser():
@@ -35,31 +33,16 @@ def GetOptionsParser():
 
 
 def UploadSetACL(gsutil, local, remote):
-  gsutil.upload(local, remote)
-  gsutil.setGroupReadACL(remote, 'google.com')
-  gsutil.setContentType(remote, 'application/vnd.android.package-archive')
-  
+  gsutil.upload(local, remote, public=true)
+
 
 def UploadAPKs(options):
   with bot.BuildStep('Upload apk'):
     revision = utils.GetSVNRevision()
-    namer = bot_utils.GCSNamer(internal=True)
-    # The version of gsutil we have on the bots is not new enough to support
-    # the acl set commands.
-    bot_utils.GSUtil.USE_DART_REPO_VERSION = True
+    namer = bot_utils.GCSNamer()
     gsutil = bot_utils.GSUtil()
 
-    # Archive dartuim
-    local = os.path.join(options.build_products_dir, APK_LOCATION)
-    # TODO(whesse): pass in arch and mode from reciepe
-    remote = namer.dartium_android_apk_filepath(revision,
-                                                'dartium-android',
-                                                'arm',
-                                                'release')
     web_link_prefix = 'https://storage.cloud.google.com/'
-    dartium_link = string.replace(remote, 'gs://', web_link_prefix)
-    UploadSetACL(gsutil, local, remote)
-    print "Uploaded dartium, available from: %s" % dartium_link
 
     # Archive content shell
     local = os.path.join(options.build_products_dir, CS_LOCATION)
