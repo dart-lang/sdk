@@ -231,6 +231,26 @@ void main() {
     c.add(new Result.value(37));
     c.close();
   });
+
+
+  test("flatten error 1", () {
+    Result<int> error = new Result<int>.error("BAD", stack);
+    Result<int> flattened = Result.flatten(error);
+    expectResult(flattened, error);
+  });
+
+  test("flatten error 2", () {
+    Result<int> error = new Result<int>.error("BAD", stack);
+    Result<Result<int>> result = new Result<Result<int>>.value(error);
+    Result<int> flattened = Result.flatten(result);
+    expectResult(flattened, error);
+  });
+
+  test("flatten value", () {
+    Result<Result<int>> result =
+        new Result<Result<int>>.value(new Result<int>.value(42));
+    expectResult(Result.flatten(result), new Result<int>.value(42));
+  });
 }
 
 void expectResult(Result actual, Result expected) {

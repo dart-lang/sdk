@@ -27,7 +27,7 @@ abstract class Result<T> {
    * calling `computation`, or an [ErrorResult] with an error thrown by
    * the call.
    */
-  Result(T computation()) {
+  factory Result(T computation()) {
     try {
       return new ValueResult(computation());
     } catch (e, s) {
@@ -71,7 +71,7 @@ abstract class Result<T> {
   /**
    * Release the result of a captured future.
    *
-   * Converts the [Result] value of the given [future] to a result or error
+   * Converts the [Result] value of the given [future] to a value or error
    * completion of the returned future.
    *
    * If [future] completes with an error, the returned future completes with
@@ -104,6 +104,19 @@ abstract class Result<T> {
    */
   static Stream releaseStream(Stream<Result> source) {
     return source.transform(const ReleaseStreamTransformer());
+  }
+
+  /**
+   * Converts a result of a result to a single result.
+   *
+   * If the result is an error, or it is a `Result` value
+   * which is then an error, then a result with that error is returned.
+   * Otherwise both levels of results are value results, and a single
+   * result with the value is returned.
+   */
+  static Result flatten(Result<Result> result) {
+    if (result.isError) return result;
+    return result.asValue.value;
   }
 
   /**
