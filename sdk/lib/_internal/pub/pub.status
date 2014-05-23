@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Load error message has changed, test expects old message format:
+test/transformer/fails_to_load_a_transform_with_an_import_error_test: Fail
+test/transformer/fails_to_load_a_non_existent_transform_test: Fail
+
 test/hosted/version_negotiation_test: Pass, Timeout # Issue 14346
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 
