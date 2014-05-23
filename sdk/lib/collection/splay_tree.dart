@@ -792,4 +792,6 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
   void clear() { _clear(); }
 
   Set<E> toSet() => _clone();
+
+  String toString() => _setToString(this);
 }

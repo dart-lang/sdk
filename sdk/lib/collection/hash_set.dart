@@ -32,7 +32,7 @@ abstract class _HashSetBase<E> extends SetBase<E> {
   // Subclasses can optimize this further.
   Set<E> toSet() => _newSet()..addAll(this);
 
-  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
+  String toString() => _setToString(this);
 }
 
 /**

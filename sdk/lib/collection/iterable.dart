@@ -408,20 +408,27 @@ abstract class IterableBase<E> implements Iterable<E> {
   String toString() => _iterableToString(this);
 }
 
-String _iterableToString(Iterable iterable) {
-  if (_toStringVisiting.contains(iterable)) return "(...)";
+String _setToString(Set set) => _collectionToString(set, "{" , "}");
+
+String _iterableToString(Iterable iterable) =>
+    _collectionToString(iterable, "(", ")");
+
+String _collectionToString(Iterable iterable, String before, String after) {
+  if (_toStringVisiting.contains(iterable)) return "$before...$after";
   _toStringVisiting.add(iterable);
   List parts = [];
   try {
-    _iterablePartsToStrings(iterable, parts);
+    _collectionPartsToStrings(iterable, parts);
   } finally {
     _toStringVisiting.remove(iterable);
   }
-  return (new StringBuffer("(")..writeAll(parts, ", ")..write(")")).toString();
+  return (new StringBuffer(before)
+              ..writeAll(parts, ", ")
+              ..write(after)).toString();
 }
 
 /** Convert elments of [iterable] to strings and store them in [parts]. */
-void _iterablePartsToStrings(Iterable iterable, List parts) {
+void _collectionPartsToStrings(Iterable iterable, List parts) {
   /// Try to stay below this many characters.
   const int LENGTH_LIMIT = 80;
   /// Always at least this many elements at the start.
@@ -435,14 +442,15 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
   // number.
   const int OVERHEAD = 2;
   const int ELLIPSIS_SIZE = 3;  // "...".length.
-
   int length = 0;
   int count = 0;
   Iterator it = iterable.iterator;
   // Initial run of elements, at least HEAD_COUNT, and then continue until
   // passing at most LENGTH_LIMIT characters.
   while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
-    if (!it.moveNext()) return;
+    if (!it.moveNext()) {
+      return;
+    }
     String next = "${it.current}";
     parts.add(next);
     length += next.length + OVERHEAD;
@@ -516,7 +524,8 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
   // HEAD_COUNT elements in the initial run, drop some to make room for
   // the last two.
   while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-    length -= parts.removeLast().length + OVERHEAD;
+    String lastPart = parts.removeLast();
+    length -= lastPart.length + OVERHEAD;
     if (elision == null) {
       elision = "...";
       length += ELLIPSIS_SIZE + OVERHEAD;

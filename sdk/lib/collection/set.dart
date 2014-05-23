@@ -131,7 +131,7 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  String toString() => IterableMixinWorkaround.toStringIterable(this, '{', '}');
+  String toString() => _setToString(this);
 
   // Copied from IterableMixin.
   // Should be inherited if we had multi-level mixins.
