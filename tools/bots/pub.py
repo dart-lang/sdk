@@ -51,24 +51,28 @@ def PubSteps(build_info):
   opt_threshold = '--vm-options=--optimization-counter-threshold=5'
   if build_info.mode == 'release':
     bot.RunTest('pub and pkg ', build_info,
-                common_args + ['pub', 'pkg', 'docs'])
+                common_args + ['pub', 'pkg', 'docs'],
+                swallow_error=True)
     bot.RunTest('pub and pkg optimization counter thresshold 5', build_info,
                 common_args + ['--append_logs', opt_threshold,
-                               'pub', 'pkg', 'docs'])
+                               'pub', 'pkg', 'docs'],
+                swallow_error=True)
   else:
     # Pub tests currently have a lot of timeouts when run in debug mode.
     # See issue 18479
-    bot.RunTest('pub and pkg %s', build_info,
-                common_args + ['pkg', 'docs'])
+    bot.RunTest('pub and pkg', build_info, common_args + ['pkg', 'docs'],
+                swallow_error=True)
     bot.RunTest('pub and pkg optimization counter threshold 5', build_info,
-                common_args + ['--append_logs', opt_threshold, 'pkg', 'docs'])
+                common_args + ['--append_logs', opt_threshold, 'pkg', 'docs'],
+                swallow_error=True)
 
   if build_info.mode == 'release':
     pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
                                         build_info.system, checked=False)
     bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
-        common_args + ['--append_logs', '--use-repository-packages',
-                       'pkgbuild'])
+                common_args + ['--append_logs', '--use-repository-packages',
+                               'pkgbuild'],
+                swallow_error=True)
 
     # We are seeing issues with pub get calls on the windows bots.
     # Experiment with not running concurrent calls.
