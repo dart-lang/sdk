@@ -541,10 +541,18 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       if (format[1] == 's') {
         ASSERT(STRING_STARTS_WITH(format, "vsz"));
         char const* sz_str;
-        if (instr->Bit(22) == 0) {
-          sz_str = "f32";
+        if (instr->Bits(14, 2) == 3) {
+          switch (instr->Bit(22)) {
+            case 0: sz_str = "s"; break;
+            case 1: sz_str = "d"; break;
+            default: UNREACHABLE(); break;
+          }
         } else {
-          sz_str = "f64";
+          switch (instr->Bit(22)) {
+            case 0: sz_str = "w"; break;
+            case 1: sz_str = "x"; break;
+            default: UNREACHABLE(); break;
+          }
         }
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                    remaining_size_in_buffer(),
@@ -1028,8 +1036,18 @@ void ARM64Decoder::DecodeSIMDCopy(Instr* instr) {
   const int32_t op = instr->Bit(29);
   const int32_t imm4 = instr->Bits(11, 4);
 
-  if ((Q == 1)  && (op == 0) && (imm4 == 0)) {
+  if ((op == 0) && (imm4 == 7)) {
+    if (Q == 0) {
+      Format(instr, "vmovrs 'rd, 'vn'idx5");
+    } else {
+      Format(instr, "vmovrd 'rd, 'vn'idx5");
+    }
+  } else if ((Q == 1)  && (op == 0) && (imm4 == 0)) {
     Format(instr, "vdup'csz 'vd, 'vn'idx5");
+  } else if ((Q == 1) && (op == 0) && (imm4 == 3)) {
+    Format(instr, "vins'csz 'vd'idx5, 'rn");
+  } else if ((Q == 1) && (op == 0) && (imm4 == 1)) {
+    Format(instr, "vdup'csz 'vd, 'rn");
   } else if ((Q == 1) && (op == 1)) {
     Format(instr, "vins'csz 'vd'idx5, 'vn'idx4");
   } else {
@@ -1048,7 +1066,19 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
     return;
   }
 
-  if ((U == 0) && (opcode == 0x1a)) {
+  if ((U == 0) && (opcode == 0x3)) {
+    if (instr->Bit(23) == 0) {
+      Format(instr, "vand 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vorr 'vd, 'vn, 'vm");
+    }
+  } else if ((U == 1) && (opcode == 0x3)) {
+    Format(instr, "veor 'vd, 'vn, 'vm");
+  } else if ((U == 0) && (opcode == 0x10)) {
+    Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 1) && (opcode == 0x10)) {
+    Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 0) && (opcode == 0x1a)) {
     if (instr->Bit(23) == 0) {
       Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
     } else {
@@ -1064,11 +1094,48 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
+  const int32_t Q = instr->Bit(30);
+  const int32_t U = instr->Bit(29);
+  const int32_t op = instr->Bits(12, 5);
+  const int32_t sz = instr->Bits(22, 2);
+
+  if (Q == 0) {
+    Unknown(instr);
+    return;
+  }
+
+  if ((U == 1) && (op == 0x5)) {
+    Format(instr, "vnot 'vd, 'vn");
+  } else if ((U == 0) && (op == 0xf)) {
+    if (sz == 2) {
+      Format(instr, "vabss 'vd, 'vn");
+    } else if (sz == 3) {
+      Format(instr, "vabsd 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
+  } else if ((U == 1) && (op == 0xf)) {
+    if (sz == 2) {
+      Format(instr, "vnegs 'vd, 'vn");
+    } else if (sz == 3) {
+      Format(instr, "vnegd 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
+  } else {
+    Unknown(instr);
+  }
+}
+
+
 void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {
     DecodeSIMDThreeSame(instr);
+  } else if (instr->IsSIMDTwoRegOp()) {
+    DecodeSIMDTwoReg(instr);
   } else {
     Unknown(instr);
   }

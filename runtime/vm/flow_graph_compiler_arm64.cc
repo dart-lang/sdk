@@ -1440,8 +1440,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
                   reg_idx >= 0; --reg_idx) {
       VRegister fpu_reg = static_cast<VRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        // TODO(zra): Save the whole V register.
-        __ PushDouble(fpu_reg);
+        __ PushQuad(fpu_reg);
       }
     }
   }
@@ -1473,8 +1472,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfVRegisters; ++reg_idx) {
       VRegister fpu_reg = static_cast<VRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        // TODO(zra): Restore the whole V register.
-        __ PopDouble(fpu_reg);
+        __ PopQuad(fpu_reg);
       }
     }
   }
@@ -1559,7 +1557,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
-      __ fmovdd(destination.fpu_reg(), source.fpu_reg());
+      __ vmov(destination.fpu_reg(), source.fpu_reg());
     } else {
       if (destination.IsDoubleStackSlot()) {
         const intptr_t dest_offset = destination.ToStackSlotOffset();
@@ -1567,7 +1565,8 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ StoreDToOffset(src, FP, dest_offset, PP);
       } else {
         ASSERT(destination.IsQuadStackSlot());
-        UNIMPLEMENTED();
+        const intptr_t dest_offset = destination.ToStackSlotOffset();
+        __ StoreQToOffset(source.fpu_reg(), FP, dest_offset, PP);
       }
     }
   } else if (source.IsDoubleStackSlot()) {
@@ -1583,7 +1582,16 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ StoreDToOffset(VTMP, FP, dest_offset, PP);
     }
   } else if (source.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
+    if (destination.IsFpuRegister()) {
+      const intptr_t dest_offset = source.ToStackSlotOffset();
+      __ LoadQFromOffset(destination.fpu_reg(), FP, dest_offset, PP);
+    } else {
+      ASSERT(destination.IsQuadStackSlot());
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadQFromOffset(VTMP, FP, source_offset, PP);
+      __ StoreQToOffset(VTMP, FP, dest_offset, PP);
+    }
   } else {
     ASSERT(source.IsConstant());
     const Object& constant = source.constant();

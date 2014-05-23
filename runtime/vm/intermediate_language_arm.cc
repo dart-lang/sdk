@@ -3900,6 +3900,10 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const DRegister dvalue0 = EvenDRegisterOf(value);
   const DRegister dvalue1 = OddDRegisterOf(value);
+  const SRegister svalue0 = EvenSRegisterOf(dvalue0);
+  const SRegister svalue1 = OddSRegisterOf(dvalue0);
+  const SRegister svalue2 = EvenSRegisterOf(dvalue1);
+  const SRegister svalue3 = OddSRegisterOf(dvalue1);
 
   const DRegister dtemp0 = DTMP;
   const DRegister dtemp1 = OddDRegisterOf(QTMP);
@@ -3909,20 +3913,16 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleX:
-      __ vdup(kWord, result, dvalue0, 0);
-      __ vcvtds(dresult0, sresult0);
+      __ vcvtds(dresult0, svalue0);
       break;
     case MethodRecognizer::kFloat32x4ShuffleY:
-      __ vdup(kWord, result, dvalue0, 1);
-      __ vcvtds(dresult0, sresult0);
+      __ vcvtds(dresult0, svalue1);
       break;
     case MethodRecognizer::kFloat32x4ShuffleZ:
-      __ vdup(kWord, result, dvalue1, 0);
-      __ vcvtds(dresult0, sresult0);
+      __ vcvtds(dresult0, svalue2);
       break;
     case MethodRecognizer::kFloat32x4ShuffleW:
-      __ vdup(kWord, result, dvalue1, 1);
-      __ vcvtds(dresult0, sresult0);
+      __ vcvtds(dresult0, svalue3);
       break;
     case MethodRecognizer::kInt32x4Shuffle:
     case MethodRecognizer::kFloat32x4Shuffle:
@@ -4919,24 +4919,11 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const QRegister right = locs()->in(1).fpu_reg();
   const QRegister result = locs()->out(0).fpu_reg();
   switch (op_kind()) {
-    case Token::kBIT_AND: {
-      __ vandq(result, left, right);
-      break;
-    }
-    case Token::kBIT_OR: {
-      __ vorrq(result, left, right);
-      break;
-    }
-    case Token::kBIT_XOR: {
-      __ veorq(result, left, right);
-      break;
-    }
-    case Token::kADD:
-      __ vaddqi(kWord, result, left, right);
-      break;
-    case Token::kSUB:
-      __ vsubqi(kWord, result, left, right);
-      break;
+    case Token::kBIT_AND: __ vandq(result, left, right); break;
+    case Token::kBIT_OR: __ vorrq(result, left, right); break;
+    case Token::kBIT_XOR: __ veorq(result, left, right); break;
+    case Token::kADD: __ vaddqi(kWord, result, left, right); break;
+    case Token::kSUB: __ vsubqi(kWord, result, left, right); break;
     default: UNREACHABLE();
   }
 }
