@@ -2033,10 +2033,56 @@ void Assembler::Bind(Label* label) {
 }
 
 
-bool Address::CanHoldLoadOffset(OperandSize type,
+OperandSize Address::OperandSizeFor(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return kWord;
+    case kOneByteStringCid:
+      return kByte;
+    case kTwoByteStringCid:
+      return kHalfword;
+    case kTypedDataInt8ArrayCid:
+      return kByte;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnsignedByte;
+    case kTypedDataInt16ArrayCid:
+      return kHalfword;
+    case kTypedDataUint16ArrayCid:
+      return kUnsignedHalfword;
+    case kTypedDataInt32ArrayCid:
+      return kWord;
+    case kTypedDataUint32ArrayCid:
+      return kUnsignedWord;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      UNREACHABLE();
+      return kByte;
+    case kTypedDataFloat32ArrayCid:
+      return kSWord;
+    case kTypedDataFloat64ArrayCid:
+      return kDWord;
+    case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+      return kRegList;
+    case kTypedDataInt8ArrayViewCid:
+      UNREACHABLE();
+      return kByte;
+    default:
+      UNREACHABLE();
+      return kByte;
+  }
+}
+
+
+bool Address::CanHoldLoadOffset(OperandSize size,
                                 int32_t offset,
                                 int32_t* offset_mask) {
-  switch (type) {
+  switch (size) {
     case kByte:
     case kHalfword:
     case kUnsignedHalfword:
@@ -2045,7 +2091,8 @@ bool Address::CanHoldLoadOffset(OperandSize type,
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
     case kUnsignedByte:
-    case kWord: {
+    case kWord:
+    case kUnsignedWord: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
@@ -2054,6 +2101,10 @@ bool Address::CanHoldLoadOffset(OperandSize type,
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
       return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+    }
+    case kRegList: {
+      *offset_mask = 0x0;
+      return offset == 0;
     }
     default: {
       UNREACHABLE();
@@ -2063,17 +2114,20 @@ bool Address::CanHoldLoadOffset(OperandSize type,
 }
 
 
-bool Address::CanHoldStoreOffset(OperandSize type,
+bool Address::CanHoldStoreOffset(OperandSize size,
                                  int32_t offset,
                                  int32_t* offset_mask) {
-  switch (type) {
+  switch (size) {
     case kHalfword:
+    case kUnsignedHalfword:
     case kWordPair: {
       *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
     }
     case kByte:
-    case kWord: {
+    case kUnsignedByte:
+    case kWord:
+    case kUnsignedWord: {
       *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
     }
@@ -2082,6 +2136,10 @@ bool Address::CanHoldStoreOffset(OperandSize type,
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
       return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+    }
+    case kRegList: {
+      *offset_mask = 0x0;
+      return offset == 0;
     }
     default: {
       UNREACHABLE();
@@ -2354,19 +2412,19 @@ void Assembler::LoadDImmediate(DRegister dd,
 }
 
 
-void Assembler::LoadFromOffset(OperandSize type,
+void Assembler::LoadFromOffset(OperandSize size,
                                Register reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldLoadOffset(type, offset, &offset_mask)) {
+  if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (type) {
+  switch (size) {
     case kByte:
       ldrsb(reg, Address(base, offset), cond);
       break;
@@ -2391,20 +2449,20 @@ void Assembler::LoadFromOffset(OperandSize type,
 }
 
 
-void Assembler::StoreToOffset(OperandSize type,
+void Assembler::StoreToOffset(OperandSize size,
                               Register reg,
                               Register base,
                               int32_t offset,
                               Condition cond) {
   int32_t offset_mask = 0;
-  if (!Address::CanHoldStoreOffset(type, offset, &offset_mask)) {
+  if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
     ASSERT(reg != IP);
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (type) {
+  switch (size) {
     case kByte:
       strb(reg, Address(base, offset), cond);
       break;

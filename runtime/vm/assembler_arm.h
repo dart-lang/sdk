@@ -168,6 +168,7 @@ enum OperandSize {
   kWordPair,
   kSWord,
   kDWord,
+  kRegList,
 };
 
 
@@ -214,6 +215,10 @@ class Address : public ValueObject {
     return *this;
   }
 
+  bool Equals(const Address& other) const {
+    return (encoding_ == other.encoding_) && (kind_ == other.kind_);
+  }
+
   explicit Address(Register rn, int32_t offset = 0, Mode am = Offset) {
     ASSERT(Utils::IsAbsoluteUint(12, offset));
     kind_ = Immediate;
@@ -237,10 +242,12 @@ class Address : public ValueObject {
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
-  static bool CanHoldLoadOffset(OperandSize type,
+  static OperandSize OperandSizeFor(intptr_t cid);
+
+  static bool CanHoldLoadOffset(OperandSize size,
                                 int32_t offset,
                                 int32_t* offset_mask);
-  static bool CanHoldStoreOffset(OperandSize type,
+  static bool CanHoldStoreOffset(OperandSize size,
                                  int32_t offset,
                                  int32_t* offset_mask);
 

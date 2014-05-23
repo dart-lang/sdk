@@ -1138,6 +1138,34 @@ Representation LoadIndexedInstr::representation() const {
 }
 
 
+static bool CanBeImmediateIndex(Value* value,
+                                intptr_t cid,
+                                bool is_external,
+                                bool is_load) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
+  const intptr_t scale = Instance::ElementSizeFor(cid);
+  const int64_t offset = index * scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  if (!Utils::IsAbsoluteUint(12, offset)) {
+    return false;
+  }
+  int32_t offset_mask = 0;
+  if (is_load) {
+    return Address::CanHoldLoadOffset(Address::OperandSizeFor(cid),
+                                      offset,
+                                      &offset_mask);
+  } else {
+    return Address::CanHoldStoreOffset(Address::OperandSizeFor(cid),
+                                       offset,
+                                       &offset_mask);
+  }
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1145,13 +1173,11 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  // TODO(regis): Revisit and see if the index can be immediate.
-  if (index_scale() == 2 && IsExternal()) {
-    locs->set_in(1, Location::RequiresRegister());
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal(), true /*load*/)) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
-    locs->set_in(1, Location::WritableRegister());
+    locs->set_in(1, Location::RequiresRegister());
   }
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
@@ -1176,36 +1202,81 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static Address ElementAddressForIntIndex(bool is_external,
+                                         intptr_t cid,
+                                         intptr_t index_scale,
+                                         Register array,
+                                         intptr_t index) {
+  const int64_t offset = static_cast<int64_t>(index) * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  ASSERT(Utils::IsInt(32, offset));
+  return Address(array, static_cast<int32_t>(offset));
+}
+
+
+static Address ElementAddressForRegIndex(Assembler* assembler,
+                                         bool is_load,
+                                         bool is_external,
+                                         intptr_t cid,
+                                         intptr_t index_scale,
+                                         Register array,
+                                         Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const OperandSize size = Address::OperandSizeFor(cid);
+  ASSERT(array != IP);
+  ASSERT(index != IP);
+  const Register base = is_load ? IP : index;
+  if ((offset != 0) ||
+      (size == kSWord) || (size == kDWord) || (size == kRegList)) {
+    if (shift < 0) {
+      ASSERT(shift == -1);
+      assembler->add(base, array, ShifterOperand(index, ASR, 1));
+    } else {
+      assembler->add(base, array, ShifterOperand(index, LSL, shift));
+    }
+  } else {
+    if (shift < 0) {
+      ASSERT(shift == -1);
+      return Address(array, index, ASR, 1);
+    } else {
+      return Address(array, index, LSL, shift);
+    }
+  }
+  int32_t offset_mask = 0;
+  if ((is_load && !Address::CanHoldLoadOffset(size,
+                                              offset,
+                                              &offset_mask)) ||
+      (!is_load && !Address::CanHoldStoreOffset(size,
+                                                offset,
+                                                &offset_mask))) {
+    assembler->AddImmediate(base, offset & ~offset_mask);
+    offset = offset & offset_mask;
+  }
+  return Address(base, offset);
+}
+
+
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
+
+  Address element_address(kNoRegister, 0);
+  element_address = index.IsRegister()
+      ? ElementAddressForRegIndex(compiler->assembler(),
+                                  true,  // Load.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, index.reg())
+      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value());
+  // Warning: element_address may use register IP as base.
+
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)   ||
       (representation() == kUnboxedFloat64x2)) {
-    const Register array = locs()->in(0).reg();
-    const Register idx = locs()->in(1).reg();
-    switch (index_scale()) {
-      case 1:
-        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
-        break;
-      case 4:
-        __ add(idx, array, ShifterOperand(idx, LSL, 1));
-        break;
-      case 8:
-        __ add(idx, array, ShifterOperand(idx, LSL, 2));
-        break;
-      case 16:
-        __ add(idx, array, ShifterOperand(idx, LSL, 3));
-        break;
-      default:
-        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
-        UNREACHABLE();
-    }
-    if (!IsExternal()) {
-      ASSERT(this->array()->definition()->representation() == kTagged);
-      __ AddImmediate(idx,
-                      Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
-    }
-    Address element_address(idx);
     const QRegister result = locs()->out(0).fpu_reg();
     const DRegister dresult0 = EvenDRegisterOf(result);
     switch (class_id()) {
@@ -1221,7 +1292,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat64x2ArrayCid:
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
-        __ vldmd(IA, idx, dresult0, 2);
+        ASSERT(element_address.Equals(Address(IP)));
+        __ vldmd(IA, IP, dresult0, 2);
         break;
       default:
         UNREACHABLE();
@@ -1229,65 +1301,27 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  const Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-  Address element_address(kNoRegister, 0);
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-  // index is expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  const intptr_t offset = IsExternal()
-      ? 0
-      : Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
-  switch (index_scale()) {
-    case 1: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
-    case 2: {
-      // No scaling needed, since index is a smi.
-      if (!IsExternal()) {
-        __ AddImmediate(index.reg(), index.reg(),
-            Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
-        element_address = Address(array, index.reg(), LSL, 0);
-      } else {
-        element_address = Address(array, index.reg(), LSL, 0);
-      }
-      break;
-    }
-    case 4: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
-    // Cases 8 and 16 are only for unboxed values and are handled above.
-    default:
-      UNREACHABLE();
-  }
-
   if (representation() == kUnboxedMint) {
     ASSERT(locs()->out(0).IsPairLocation());
     PairLocation* result_pair = locs()->out(0).AsPairLocation();
-    Register result1 = result_pair->At(0).reg();
-    Register result2 = result_pair->At(1).reg();
+    const Register result1 = result_pair->At(0).reg();
+    const Register result2 = result_pair->At(1).reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         // Load low word.
         __ ldr(result1, element_address);
         // Sign extend into high word.
         __ SignFill(result2, result1);
-      break;
+        break;
       case kTypedDataUint32ArrayCid:
         // Load low word.
         __ ldr(result1, element_address);
         // Zero high word.
         __ eor(result2, result2, ShifterOperand(result2));
-      break;
+        break;
       default:
         UNREACHABLE();
-      break;
+        break;
     }
     return;
   }
@@ -1390,10 +1424,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  // TODO(regis): Revisit and see if the index can be immediate.
-  locs->set_in(1, Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal(), false /*store*/)) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+  } else {
+    locs->set_in(1, Location::WritableRegister());
+  }
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
@@ -1442,98 +1478,17 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if ((class_id() == kTypedDataFloat32ArrayCid) ||
-      (class_id() == kTypedDataFloat64ArrayCid) ||
-      (class_id() == kTypedDataFloat32x4ArrayCid) ||
-      (class_id() == kTypedDataFloat64x2ArrayCid) ||
-      (class_id() == kTypedDataInt32x4ArrayCid)) {
-    const Register array = locs()->in(0).reg();
-    const Register idx = locs()->in(1).reg();
-    Location value = locs()->in(2);
-    switch (index_scale()) {
-      case 1:
-        __ add(idx, array, ShifterOperand(idx, ASR, kSmiTagSize));
-        break;
-      case 4:
-        __ add(idx, array, ShifterOperand(idx, LSL, 1));
-        break;
-      case 8:
-        __ add(idx, array, ShifterOperand(idx, LSL, 2));
-        break;
-      case 16:
-        __ add(idx, array, ShifterOperand(idx, LSL, 3));
-        break;
-      default:
-        // Case 2 is not reachable: We don't have unboxed 16-bit sized loads.
-        UNREACHABLE();
-    }
-    if (!IsExternal()) {
-      ASSERT(this->array()->definition()->representation() == kTagged);
-      __ AddImmediate(idx,
-                      Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
-    }
-    switch (class_id()) {
-      case kTypedDataFloat32ArrayCid: {
-        const SRegister value_reg =
-            EvenSRegisterOf(EvenDRegisterOf(value.fpu_reg()));
-        __ StoreSToOffset(value_reg, idx, 0);
-        break;
-      }
-      case kTypedDataFloat64ArrayCid: {
-        const DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
-        __ StoreDToOffset(value_reg, idx, 0);
-        break;
-      }
-      case kTypedDataFloat64x2ArrayCid:
-      case kTypedDataInt32x4ArrayCid:
-      case kTypedDataFloat32x4ArrayCid: {
-        const DRegister value_reg = EvenDRegisterOf(value.fpu_reg());
-        __ vstmd(IA, idx, value_reg, 2);
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
   const Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
   Address element_address(kNoRegister, 0);
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-  // index is expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  const intptr_t offset = IsExternal()
-      ? 0
-      : Instance::DataOffsetFor(class_id()) - kHeapObjectTag;
-  switch (index_scale()) {
-    case 1: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), ASR, kSmiTagSize));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
-    case 2: {
-      // No scaling needed, since index is a smi.
-      if (!IsExternal()) {
-        __ AddImmediate(index.reg(), index.reg(), offset);
-        element_address = Address(array, index.reg(), LSL, 0);
-      } else {
-        element_address = Address(array, index.reg(), LSL, 0);
-      }
-      break;
-    }
-    case 4: {
-      __ add(index.reg(), array, ShifterOperand(index.reg(), LSL, 1));
-      element_address = Address(index.reg(), offset);
-      break;
-    }
-    // Cases 8 and 16 are only for unboxed values and are handled above.
-    default:
-      UNREACHABLE();
-  }
+  element_address = index.IsRegister()
+  ? ElementAddressForRegIndex(compiler->assembler(),
+                              false,  // Store.
+                              IsExternal(), class_id(), index_scale(),
+                              array, index.reg())
+  : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
+                              array, Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:
@@ -1610,6 +1565,25 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Register value1 = value_pair->At(0).reg();
         __ str(value1, element_address);
       }
+      break;
+    }
+    case kTypedDataFloat32ArrayCid: {
+      const SRegister value_reg =
+          EvenSRegisterOf(EvenDRegisterOf(locs()->in(2).fpu_reg()));
+      __ vstrs(value_reg, element_address);
+      break;
+    }
+    case kTypedDataFloat64ArrayCid: {
+      const DRegister value_reg = EvenDRegisterOf(locs()->in(2).fpu_reg());
+      __ vstrd(value_reg, element_address);
+      break;
+    }
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid: {
+      ASSERT(element_address.Equals(Address(index.reg())));
+      const DRegister value_reg = EvenDRegisterOf(locs()->in(2).fpu_reg());
+      __ vstmd(IA, index.reg(), value_reg, 2);
       break;
     }
     default:
