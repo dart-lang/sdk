@@ -106,6 +106,9 @@ class CodeEmitterTask extends CompilerTask {
     typeTestEmitter.task = this;
     interceptorEmitter.task = this;
     metadataEmitter.task = this;
+    // TODO(18886): Remove this call (and the show in the import) once the
+    // memory-leak in the VM is fixed.
+    templateManager.clear();
   }
 
   void addComment(String comment, CodeBuffer buffer) {
