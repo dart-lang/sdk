@@ -284,7 +284,6 @@ WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01:
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-007_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Skip # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Skip # co19-roll r722: Please triage this failure.
@@ -305,7 +304,6 @@ LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Iss
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Issue 18931
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
@@ -378,6 +376,7 @@ WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
