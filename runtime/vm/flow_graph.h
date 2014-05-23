@@ -102,6 +102,8 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
+  Isolate* isolate() const { return isolate_; }
+
   intptr_t max_block_id() const { return max_block_id_; }
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }
   intptr_t allocate_block_id() { return ++max_block_id_; }
@@ -174,7 +176,7 @@ class FlowGraph : public ZoneAllocated {
   // have to keep deoptimization environment at gotos for LICM purposes.
   void CopyDeoptTarget(Instruction* to, Instruction* from) {
     if (is_licm_allowed()) {
-      to->InheritDeoptTarget(from);
+      to->InheritDeoptTarget(isolate(), from);
     }
   }
 
@@ -265,6 +267,8 @@ class FlowGraph : public ZoneAllocated {
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
   ZoneGrowableArray<BlockEntryInstr*>* ComputeLoops();
+
+  Isolate* isolate_;
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.

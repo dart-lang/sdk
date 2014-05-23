@@ -804,25 +804,26 @@ void Instruction::UnuseAllInputs() {
 }
 
 
-void Instruction::InheritDeoptTargetAfter(Instruction* other) {
+void Instruction::InheritDeoptTargetAfter(Isolate* isolate,
+                                          Instruction* other) {
   ASSERT(other->env() != NULL);
   deopt_id_ = Isolate::ToDeoptAfter(other->deopt_id_);
-  other->env()->DeepCopyTo(this);
+  other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
 
 
-void Instruction::InheritDeoptTarget(Instruction* other) {
+void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(other->env() != NULL);
   deopt_id_ = other->deopt_id_;
-  other->env()->DeepCopyTo(this);
+  other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
 
 
-void BranchInstr::InheritDeoptTarget(Instruction* other) {
+void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(env() == NULL);
-  Instruction::InheritDeoptTarget(other);
+  Instruction::InheritDeoptTarget(isolate, other);
   comparison()->SetDeoptId(GetDeoptId());
 }
 
@@ -1866,6 +1867,7 @@ static bool RecognizeTestPattern(Value* left, Value* right) {
 
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
+  Isolate* isolate = flow_graph->isolate();
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     bool negated = false;
@@ -1925,10 +1927,11 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       if (FLAG_trace_optimization) {
         OS::Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
-      TestSmiInstr* test = new TestSmiInstr(comparison()->token_pos(),
-                                            comparison()->kind(),
-                                            bit_and->left()->Copy(),
-                                            bit_and->right()->Copy());
+      TestSmiInstr* test = new TestSmiInstr(
+          comparison()->token_pos(),
+          comparison()->kind(),
+          bit_and->left()->Copy(isolate),
+          bit_and->right()->Copy(isolate));
       ASSERT(!CanDeoptimize());
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, bit_and);
@@ -2343,37 +2346,38 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-Environment* Environment::From(const GrowableArray<Definition*>& definitions,
+Environment* Environment::From(Isolate* isolate,
+                               const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const Code& code) {
   Environment* env =
-      new Environment(definitions.length(),
-                      fixed_parameter_count,
-                      Isolate::kNoDeoptId,
-                      code,
-                      NULL);
+      new(isolate) Environment(definitions.length(),
+                               fixed_parameter_count,
+                               Isolate::kNoDeoptId,
+                               code,
+                               NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
-    env->values_.Add(new Value(definitions[i]));
+    env->values_.Add(new(isolate) Value(definitions[i]));
   }
   return env;
 }
 
 
-Environment* Environment::DeepCopy(intptr_t length) const {
+Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
   ASSERT(length <= values_.length());
   Environment* copy =
-      new Environment(length,
-                      fixed_parameter_count_,
-                      deopt_id_,
-                      code_,
-                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
+      new(isolate) Environment(
+          length,
+          fixed_parameter_count_,
+          deopt_id_,
+          code_,
+          (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
   if (locations_ != NULL) {
-    Location* new_locations =
-        Isolate::Current()->current_zone()->Alloc<Location>(length);
+    Location* new_locations = isolate->current_zone()->Alloc<Location>(length);
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
-    copy->values_.Add(values_[i]->Copy());
+    copy->values_.Add(values_[i]->Copy(isolate));
     if (locations_ != NULL) {
       copy->locations_[i] = locations_[i].Copy();
     }
@@ -2383,12 +2387,12 @@ Environment* Environment::DeepCopy(intptr_t length) const {
 
 
 // Copies the environment and updates the environment use lists.
-void Environment::DeepCopyTo(Instruction* instr) const {
+void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
   for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy();
+  Environment* copy = DeepCopy(isolate);
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
@@ -2399,12 +2403,12 @@ void Environment::DeepCopyTo(Instruction* instr) const {
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Instruction* instr) const {
+void Environment::DeepCopyToOuter(Isolate* isolate, Instruction* instr) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(values_.length() - argument_count);
+  Environment* copy = DeepCopy(isolate, values_.length() - argument_count);
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {

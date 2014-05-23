@@ -291,7 +291,9 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
-      if (instr->env() != NULL) call_->env()->DeepCopyToOuter(instr);
+      if (instr->env() != NULL) {
+        call_->env()->DeepCopyToOuter(callee_graph->isolate(), instr);
+      }
     }
     if (instr->IsGoto()) {
       instr->AsGoto()->adjust_edge_weight(scale_factor);
@@ -348,7 +350,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
         new JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
-    join->InheritDeoptTargetAfter(call_);
+    join->InheritDeoptTargetAfter(isolate(), call_);
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -367,7 +369,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     for (intptr_t i = 0; i < num_exits; ++i) {
       // Add the control-flow edge.
       GotoInstr* goto_instr = new GotoInstr(join);
-      goto_instr->InheritDeoptTarget(ReturnAt(i));
+      goto_instr->InheritDeoptTarget(isolate(), ReturnAt(i));
       LastInstructionAt(i)->LinkTo(goto_instr);
       ExitBlockAt(i)->set_last_instruction(LastInstructionAt(i)->next());
       join->predecessors_.Add(ExitBlockAt(i));
@@ -452,7 +454,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     TargetEntryInstr* false_block =
         new TargetEntryInstr(caller_graph_->allocate_block_id(),
                              call_block->try_index());
-    false_block->InheritDeoptTargetAfter(call_);
+    false_block->InheritDeoptTargetAfter(isolate(), call_);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 
@@ -463,7 +465,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
                                                new Value(true_const),
                                                new Value(true_const),
                                                false));  // No number check.
-    branch->InheritDeoptTarget(call_);
+    branch->InheritDeoptTarget(isolate(), call_);
     *branch->true_successor_address() = callee_entry;
     *branch->false_successor_address() = false_block;
 

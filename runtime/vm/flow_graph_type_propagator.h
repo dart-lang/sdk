@@ -50,6 +50,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   void StrengthenAsserts(BlockEntryInstr* block);
   void StrengthenAssertWith(Instruction* check);
 
+  Isolate* isolate() const { return flow_graph_->isolate(); }
+
   FlowGraph* flow_graph_;
 
   BitVector* visited_blocks_;

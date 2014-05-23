@@ -21,7 +21,8 @@ DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
-  : parent_(),
+  : isolate_(Isolate::Current()),
+    parent_(),
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
     builder_(builder),
@@ -119,7 +120,7 @@ void FlowGraph::InsertAfter(Instruction* prev,
   }
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
-  if (env != NULL) env->DeepCopyTo(instr);
+  if (env != NULL) env->DeepCopyTo(isolate(), instr);
 }
 
 
@@ -132,7 +133,7 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
     AllocateSSAIndexes(instr->AsDefinition());
   }
   ASSERT(instr->env() == NULL);
-  if (env != NULL) env->DeepCopyTo(instr);
+  if (env != NULL) env->DeepCopyTo(isolate(), instr);
   return prev->AppendInstruction(instr);
 }
 
@@ -754,7 +755,8 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
   Environment* deopt_env =
-      Environment::From(*env,
+      Environment::From(isolate(),
+                        *env,
                         num_non_copied_params_,
                         Code::Handle(parsed_function_.code()));
   // TODO(fschneider): Add predicates CanEagerlyDeoptimize and
@@ -764,7 +766,8 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
   // also don't have an eager deoptimziation point, so the environment attached
   // here is only used for after the call.
   if (instr->IsClosureCall()) {
-    deopt_env = deopt_env->DeepCopy(deopt_env->Length() - instr->InputCount());
+    deopt_env = deopt_env->DeepCopy(isolate(),
+                                    deopt_env->Length() - instr->InputCount());
   }
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {

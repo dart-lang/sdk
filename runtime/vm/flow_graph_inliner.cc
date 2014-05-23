@@ -87,19 +87,6 @@ static bool IsCallRecursive(const Code& code, Definition* call) {
 }
 
 
-// Helper to create a parameter stub from an actual argument.
-static Definition* CreateParameterStub(intptr_t i,
-                                       Value* argument,
-                                       FlowGraph* graph) {
-  ConstantInstr* constant = argument->definition()->AsConstant();
-  if (constant != NULL) {
-    return new ConstantInstr(constant->value());
-  } else {
-    return new ParameterInstr(i, graph->graph_entry());
-  }
-}
-
-
 // Helper to get the default value of a formal parameter.
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
@@ -446,6 +433,8 @@ class PolymorphicInliner : public ValueObject {
 
   TargetEntryInstr* BuildDecisionGraph();
 
+  Isolate* isolate() const;
+
   CallSiteInliner* const owner_;
   PolymorphicInstanceCallInstr* const call_;
   const intptr_t num_variants_;
@@ -474,6 +463,8 @@ class CallSiteInliner : public ValueObject {
         inlined_info_() { }
 
   FlowGraph* caller_graph() const { return caller_graph_; }
+
+  Isolate* isolate() const { return caller_graph_->isolate(); }
 
   // Inlining heuristics based on Cooper et al. 2008.
   bool ShouldWeInline(const Function& callee,
@@ -554,6 +545,18 @@ class CallSiteInliner : public ValueObject {
         static_cast<double>(initial_size_);
   }
 
+  // Helper to create a parameter stub from an actual argument.
+  Definition* CreateParameterStub(intptr_t i,
+                                  Value* argument,
+                                  FlowGraph* graph) {
+    ConstantInstr* constant = argument->definition()->AsConstant();
+    if (constant != NULL) {
+      return new(isolate()) ConstantInstr(constant->value());
+    } else {
+      return new(isolate()) ParameterInstr(i, graph->graph_entry());
+    }
+  }
+
   bool TryInlining(const Function& function,
                    const Array& argument_names,
                    InlinedCallData* call_data) {
@@ -619,10 +622,9 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    Isolate* isolate = Isolate::Current();
     // Save and clear deopt id.
-    const intptr_t prev_deopt_id = isolate->deopt_id();
-    isolate->set_deopt_id(0);
+    const intptr_t prev_deopt_id = isolate()->deopt_id();
+    isolate()->set_deopt_id(0);
     // Install bailout jump.
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -632,7 +634,7 @@ class CallSiteInliner : public ValueObject {
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_parse_timer,
-                         isolate);
+                         isolate());
         parsed_function = GetParsedFunction(function, &in_cache);
       }
 
@@ -646,7 +648,7 @@ class CallSiteInliner : public ValueObject {
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
-          new InlineExitCollector(caller_graph_, call);
+          new(isolate()) InlineExitCollector(caller_graph_, call);
       FlowGraphBuilder builder(parsed_function,
                                ic_data_array,
                                exit_collector,
@@ -657,7 +659,7 @@ class CallSiteInliner : public ValueObject {
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
-                         isolate);
+                         isolate());
         callee_graph = builder.BuildGraph();
       }
 
@@ -666,7 +668,8 @@ class CallSiteInliner : public ValueObject {
       // without linking between the caller and callee graphs.
       // TODO(zerny): Put more information in the stubs, eg, type information.
       ZoneGrowableArray<Definition*>* param_stubs =
-          new ZoneGrowableArray<Definition*>(function.NumParameters());
+          new(isolate()) ZoneGrowableArray<Definition*>(
+              function.NumParameters());
 
       // Create a parameter stub for each fixed positional parameter.
       for (intptr_t i = 0; i < function.num_fixed_parameters(); ++i) {
@@ -701,7 +704,7 @@ class CallSiteInliner : public ValueObject {
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_ssa_timer,
-                         isolate);
+                         isolate());
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  param_stubs);
@@ -711,7 +714,7 @@ class CallSiteInliner : public ValueObject {
       {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_opt_timer,
-                         isolate);
+                         isolate());
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
@@ -753,7 +756,7 @@ class CallSiteInliner : public ValueObject {
             (size > FLAG_inlining_constant_arguments_size_threshold)) {
           function.set_is_inlinable(false);
         }
-        isolate->set_deopt_id(prev_deopt_id);
+        isolate()->set_deopt_id(prev_deopt_id);
         TRACE_INLINING(OS::Print("     Bailout: heuristics with "
                                  "code size:  %" Pd ", "
                                  "call sites: %" Pd ", "
@@ -787,7 +790,7 @@ class CallSiteInliner : public ValueObject {
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
       inlined_size_ += size;
-      isolate->set_deopt_id(prev_deopt_id);
+      isolate()->set_deopt_id(prev_deopt_id);
 
       call_data->callee_graph = callee_graph;
       call_data->parameter_stubs = param_stubs;
@@ -809,9 +812,9 @@ class CallSiteInliner : public ValueObject {
       return true;
     } else {
       Error& error = Error::Handle();
-      error = isolate->object_store()->sticky_error();
-      isolate->object_store()->clear_sticky_error();
-      isolate->set_deopt_id(prev_deopt_id);
+      error = isolate()->object_store()->sticky_error();
+      isolate()->object_store()->clear_sticky_error();
+      isolate()->set_deopt_id(prev_deopt_id);
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       PRINT_INLINING_TREE("Bailout",
           &call_data->caller, &function, call);
@@ -949,7 +952,7 @@ class CallSiteInliner : public ValueObject {
       }
     }
     *in_cache = false;
-    ParsedFunction* parsed_function = new ParsedFunction(function);
+    ParsedFunction* parsed_function = new(isolate()) ParsedFunction(function);
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
     return parsed_function;
@@ -1103,7 +1106,7 @@ class CallSiteInliner : public ValueObject {
             Object::ZoneHandle(
                 parsed_function.default_parameter_values().At(
                     i - fixed_param_count));
-        ConstantInstr* constant = new ConstantInstr(object);
+        ConstantInstr* constant = new(isolate()) ConstantInstr(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);
       }
@@ -1188,8 +1191,14 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       inlined_variants_(num_variants_),
       non_inlined_variants_(num_variants_),
       inlined_entries_(num_variants_),
-      exit_collector_(new InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new(isolate())
+          InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {
+}
+
+
+Isolate* PolymorphicInliner::isolate() const {
+  return owner_->caller_graph()->isolate();
 }
 
 
@@ -1220,7 +1229,8 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
         // the graph anymore. A new target be created instead.
         inlined_entries_[i]->AsGraphEntry()->UnuseAllInputs();
 
-        JoinEntryInstr* new_join = BranchSimplifier::ToJoinEntry(old_target);
+        JoinEntryInstr* new_join =
+            BranchSimplifier::ToJoinEntry(isolate(), old_target);
         old_target->ReplaceAsPredecessorWith(new_join);
         for (intptr_t j = 0; j < old_target->dominated_blocks().length(); ++j) {
           BlockEntryInstr* block = old_target->dominated_blocks()[j];
@@ -1230,9 +1240,9 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
         TargetEntryInstr* new_target =
             new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                  old_target->try_index());
-        new_target->InheritDeoptTarget(new_join);
-        GotoInstr* new_goto = new GotoInstr(new_join);
-        new_goto->InheritDeoptTarget(new_join);
+        new_target->InheritDeoptTarget(isolate(), new_join);
+        GotoInstr* new_goto = new(isolate()) GotoInstr(new_join);
+        new_goto->InheritDeoptTarget(isolate(), new_join);
         new_target->LinkTo(new_goto);
         new_target->set_last_instruction(new_goto);
         new_join->predecessors_.Add(new_target);
@@ -1296,7 +1306,8 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
   // hoisted above the inlined entry.
   ASSERT(arguments.length() > 0);
   Value* actual = arguments[0];
-  RedefinitionInstr* redefinition = new RedefinitionInstr(actual->Copy());
+  RedefinitionInstr* redefinition = new(isolate())
+      RedefinitionInstr(actual->Copy(isolate()));
   redefinition->set_ssa_temp_index(
       owner_->caller_graph()->alloc_ssa_temp_index());
   redefinition->InsertAfter(callee_graph->graph_entry()->normal_entry());
@@ -1344,7 +1355,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   GrowableArray<Definition*> arguments(call_->ArgumentCount());
   Definition* receiver = call_->ArgumentAt(0);
     RedefinitionInstr* redefinition =
-        new RedefinitionInstr(new Value(receiver));
+        new(isolate()) RedefinitionInstr(new(isolate()) Value(receiver));
     redefinition->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
   if (optimizer.TryInlineRecognizedMethod(receiver_cid,
@@ -1357,11 +1368,11 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
-        new InlineExitCollector(owner_->caller_graph(), call_);
+        new(isolate()) InlineExitCollector(owner_->caller_graph(), call_);
 
     ReturnInstr* result =
-        new ReturnInstr(call_->instance_call()->token_pos(),
-                        new Value(last));
+        new(isolate()) ReturnInstr(call_->instance_call()->token_pos(),
+            new(isolate()) Value(last));
     owner_->caller_graph()->AppendTo(
         last,
         result,
@@ -1370,9 +1381,9 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     entry->set_last_instruction(result);
     exit_collector->AddExit(result);
     GraphEntryInstr* graph_entry =
-        new GraphEntryInstr(NULL,  // No parsed function.
-                            entry,
-                            Isolate::kNoDeoptId);  // No OSR id.
+        new(isolate()) GraphEntryInstr(NULL,  // No parsed function.
+                                       entry,
+                                       Isolate::kNoDeoptId);  // No OSR id.
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);
@@ -1391,9 +1402,10 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
 TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   // Start with a fresh target entry.
   TargetEntryInstr* entry =
-      new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
-                           call_->GetBlock()->try_index());
-  entry->InheritDeoptTarget(call_);
+      new(isolate()) TargetEntryInstr(
+          owner_->caller_graph()->allocate_block_id(),
+          call_->GetBlock()->try_index());
+  entry->InheritDeoptTarget(isolate(), call_);
 
   // This function uses a cursor (a pointer to the 'current' instruction) to
   // build the graph.  The next instruction will be inserted after the
@@ -1404,7 +1416,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
   Definition* receiver = call_->ArgumentAt(0);
   // There are at least two variants including non-inlined ones, so we have
   // at least one branch on the class id.
-  LoadClassIdInstr* load_cid = new LoadClassIdInstr(new Value(receiver));
+  LoadClassIdInstr* load_cid =
+      new(isolate()) LoadClassIdInstr(new(isolate()) Value(receiver));
   load_cid->set_ssa_temp_index(owner_->caller_graph()->alloc_ssa_temp_index());
   cursor = AppendInstruction(cursor, load_cid);
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
@@ -1416,7 +1429,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       // body.  Check a redefinition of the receiver, to prevent the check
       // from being hoisted.
       RedefinitionInstr* redefinition =
-          new RedefinitionInstr(new Value(receiver));
+          new(isolate()) RedefinitionInstr(new(isolate()) Value(receiver));
       redefinition->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
       cursor = AppendInstruction(cursor, redefinition);
@@ -1425,7 +1438,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             new CheckSmiInstr(new Value(redefinition),
                               call_->deopt_id(),
                               call_->token_pos());
-        check_smi->InheritDeoptTarget(call_);
+        check_smi->InheritDeoptTarget(isolate(), call_);
         cursor = AppendInstruction(cursor, check_smi);
       } else {
         const ICData& old_checks = call_->ic_data();
@@ -1442,7 +1455,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                 call_->deopt_id(),
                                 new_checks,
                                 call_->token_pos());
-        check_class->InheritDeoptTarget(call_);
+        check_class->InheritDeoptTarget(isolate(), call_);
         cursor = AppendInstruction(cursor, check_class);
       }
       // The next instruction is the first instruction of the inlined body.
@@ -1475,7 +1488,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         JoinEntryInstr* join = callee_entry->AsJoinEntry();
         ASSERT(join->dominator() != NULL);
         GotoInstr* goto_join = new GotoInstr(join);
-        goto_join->InheritDeoptTarget(join);
+        goto_join->InheritDeoptTarget(isolate(), join);
         cursor->LinkTo(goto_join);
         current_block->set_last_instruction(goto_join);
       } else {
@@ -1498,7 +1511,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                  new Value(cid_constant),
                                  false);  // No number check.
       BranchInstr* branch = new BranchInstr(compare);
-      branch->InheritDeoptTarget(call_);
+      branch->InheritDeoptTarget(isolate(), call_);
       AppendInstruction(AppendInstruction(cursor, cid_constant), branch);
       current_block->set_last_instruction(branch);
       cursor = NULL;
@@ -1530,9 +1543,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         true_target =
             new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                  call_->GetBlock()->try_index());
-        true_target->InheritDeoptTarget(join);
+        true_target->InheritDeoptTarget(isolate(), join);
         GotoInstr* goto_join = new GotoInstr(join);
-        goto_join->InheritDeoptTarget(join);
+        goto_join->InheritDeoptTarget(isolate(), join);
         true_target->LinkTo(goto_join);
         true_target->set_last_instruction(goto_join);
       }
@@ -1544,7 +1557,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       TargetEntryInstr* false_target =
           new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
                                call_->GetBlock()->try_index());
-      false_target->InheritDeoptTarget(call_);
+      false_target->InheritDeoptTarget(isolate(), call_);
       *branch->false_successor_address() = false_target;
       current_block->AddDominatedBlock(false_target);
       cursor = current_block = false_target;
@@ -1579,11 +1592,11 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                          true);  // With checks.
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
-    fallback_call->InheritDeoptTarget(call_);
+    fallback_call->InheritDeoptTarget(isolate(), call_);
     ReturnInstr* fallback_return =
         new ReturnInstr(call_->instance_call()->token_pos(),
                         new Value(fallback_call));
-    fallback_return->InheritDeoptTargetAfter(call_);
+    fallback_return->InheritDeoptTargetAfter(isolate(), call_);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
                       fallback_return);
     exit_collector_->AddExit(fallback_return);

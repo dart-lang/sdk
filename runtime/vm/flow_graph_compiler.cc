@@ -592,7 +592,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     return NULL;
   }
 
-  Environment* env = instruction->env()->DeepCopy();
+  Environment* env = instruction->env()->DeepCopy(isolate());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize();
