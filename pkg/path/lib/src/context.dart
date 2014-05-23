@@ -472,6 +472,48 @@ class Context {
     }
   }
 
+  /// Returns a terse, human-readable representation of [uri].
+  ///
+  /// [uri] can be a [String] or a [Uri]. If it can be made relative to the
+  /// current working directory, that's done. Otherwise, it's returned as-is.
+  /// This gracefully handles non-`file:` URIs for [Style.posix] and
+  /// [Style.windows].
+  ///
+  /// The returned value is meant for human consumption, and may be either URI-
+  /// or path-formatted.
+  ///
+  ///     // POSIX
+  ///     var context = new Context(current: '/root/path');
+  ///     context.prettyUri('file:///root/path/a/b.dart'); // -> 'a/b.dart'
+  ///     context.prettyUri('http://dartlang.org/'); // -> 'http://dartlang.org'
+  ///
+  ///     // Windows
+  ///     var context = new Context(current: r'C:\root\path');
+  ///     context.prettyUri('file:///C:/root/path/a/b.dart'); // -> r'a\b.dart'
+  ///     context.prettyUri('http://dartlang.org/'); // -> 'http://dartlang.org'
+  ///
+  ///     // URL
+  ///     var context = new Context(current: 'http://dartlang.org/root/path');
+  ///     context.prettyUri('http://dartlang.org/root/path/a/b.dart');
+  ///         // -> r'a/b.dart'
+  ///     context.prettyUri('file:///root/path'); // -> 'file:///root/path'
+  String prettyUri(uri) {
+    if (uri is String) uri = Uri.parse(uri);
+    if (uri.scheme == 'file' && style == Style.url) return uri.toString();
+    if (uri.scheme != 'file' && uri.scheme != '' && style != Style.url) {
+      return uri.toString();
+    }
+
+    var path = normalize(fromUri(uri));
+    var rel = relative(path);
+    var components = split(rel);
+
+    // Only return a relative path if it's actually shorter than the absolute
+    // path. This avoids ugly things like long "../" chains to get to the root
+    // and then go back down.
+    return split(rel).length > split(path).length ? path : rel;
+  }
+
   ParsedPath _parse(String path) => new ParsedPath.parse(path, style);
 }
 

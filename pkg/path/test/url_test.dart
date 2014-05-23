@@ -741,4 +741,34 @@ main() {
     expect(context.toUri(r'_%7B_%7D_%60_%5E_%20_%22_%25_'),
         Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_'));
   });
+
+  group('prettyUri', () {
+    test('with a file: URI', () {
+      expect(context.prettyUri(Uri.parse('file:///root/path/a/b')),
+          'file:///root/path/a/b');
+    });
+
+    test('with an http: URI', () {
+      expect(context.prettyUri('http://dartlang.org/root/path/a/b'), 'a/b');
+      expect(context.prettyUri('http://dartlang.org/root/path/a/../b'), 'b');
+      expect(context.prettyUri('http://dartlang.org/other/path/a/b'),
+          'http://dartlang.org/other/path/a/b');
+      expect(context.prettyUri('http://pub.dartlang.org/root/path'),
+          'http://pub.dartlang.org/root/path');
+      expect(context.prettyUri('http://dartlang.org/root/other'),
+          '../other');
+    });
+
+    test('with a relative URI', () {
+      expect(context.prettyUri('a/b'), 'a/b');
+    });
+
+    test('with a root-relative URI', () {
+      expect(context.prettyUri('/a/b'), '/a/b');
+    });
+
+    test('with a Uri object', () {
+      expect(context.prettyUri(Uri.parse('a/b')), 'a/b');
+    });
+  });
 }

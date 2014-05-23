@@ -366,3 +366,26 @@ String fromUri(uri) => _context.fromUri(uri);
 ///     path.toUri('path/to/foo')
 ///       // -> Uri.parse('path/to/foo')
 Uri toUri(String path) => _context.toUri(path);
+
+/// Returns a terse, human-readable representation of [uri].
+///
+/// [uri] can be a [String] or a [Uri]. If it can be made relative to the
+/// current working directory, that's done. Otherwise, it's returned as-is. This
+/// gracefully handles non-`file:` URIs for [Style.posix] and [Style.windows].
+///
+/// The returned value is meant for human consumption, and may be either URI-
+/// or path-formatted.
+///
+///     // POSIX at "/root/path"
+///     path.prettyUri('file:///root/path/a/b.dart'); // -> 'a/b.dart'
+///     path.prettyUri('http://dartlang.org/'); // -> 'http://dartlang.org'
+///
+///     // Windows at "C:\root\path"
+///     path.prettyUri('file:///C:/root/path/a/b.dart'); // -> r'a\b.dart'
+///     path.prettyUri('http://dartlang.org/'); // -> 'http://dartlang.org'
+///
+///     // URL at "http://dartlang.org/root/path"
+///     path.prettyUri('http://dartlang.org/root/path/a/b.dart');
+///         // -> r'a/b.dart'
+///     path.prettyUri('file:///root/path'); // -> 'file:///root/path'
+String prettyUri(uri) => _context.prettyUri(uri);
