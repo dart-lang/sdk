@@ -13,7 +13,6 @@ custom/template_wrappers_test: Pass # Issue 16656 Override others
 form_data_test/functional: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 indexeddb_5_test: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-websql_test/functional: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
