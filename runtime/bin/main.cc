@@ -547,8 +547,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::LoadScript(isolate_data->script_url, builtin_lib);
   CHECK_RESULT(result);
 
-  result = Dart_RunLoop();
-  CHECK_RESULT(result);
+  if (Dart_IsVMFlagSet("load_async")) {
+    result = Dart_RunLoop();
+    CHECK_RESULT(result);
+  }
 
   Platform::SetPackageRoot(package_root);
   Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
