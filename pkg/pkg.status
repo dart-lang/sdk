@@ -16,6 +16,7 @@ polymer/example/scoped_style/*: Skip
 
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
+scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
