@@ -7,7 +7,8 @@ library dart2js.cmdline;
 import 'dart:async'
     show Future, EventSink;
 import 'dart:io'
-    show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException;
+    show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException,
+         stdin, stderr;
 import 'dart:math' as math;
 
 import '../compiler.dart' as api;
@@ -16,6 +17,7 @@ import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
+import 'util/command_line.dart';
 import '../../libraries.dart';
 
 const String LIBRARY_ROOT = '../../../../..';
@@ -640,6 +642,12 @@ void helpAndFail(String message) {
 }
 
 void main(List<String> arguments) {
+  // Since the sdk/bin/dart2js script adds its own arguments in front of
+  // user-supplied arguments we search for '--batch' at the end of the list.
+  if (arguments.length > 0 && arguments.last == "--batch") {
+    batchMain(arguments.sublist(0, arguments.length - 1));
+    return;
+  }
   internalMain(arguments);
 }
 
@@ -669,4 +677,44 @@ Future internalMain(List<String> arguments) {
     onError(exception, trace);
     return new Future.value();
   }
+}
+
+void batchMain(List<String> batchArguments) {
+  int exitCode;
+
+  exitFunc = (errorCode) {
+    // Crash shadows any other error code.
+    if (exitCode == 253) return;
+    exitCode = errorCode;
+  };
+
+  runJob() {
+    new Future.sync(() {
+      exitCode = 0;
+      String line = stdin.readLineSync();
+      if (line == null) exit(0);
+      List<String> args = <String>[];
+      args.addAll(batchArguments);
+      args.addAll(splitLine(line));
+      return internalMain(args);
+    })
+    .catchError((exception, trace) {
+      exitCode = 253;
+    })
+    .whenComplete(() {
+      // The testing framework waits for a status line on stdout and stderr
+      // before moving to the next test.
+      if (exitCode == 0){
+        print(">>> TEST OK");
+      } else if (exitCode == 253) {
+        print(">>> TEST CRASH");
+      } else {
+        print(">>> TEST FAIL");
+      }
+      stderr.writeln(">>> EOF STDERR");
+      runJob();
+    });
+  }
+
+  runJob();
 }
