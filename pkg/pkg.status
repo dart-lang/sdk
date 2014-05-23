@@ -36,6 +36,8 @@ polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
+polymer/test/register_test: Pass, RuntimeError # Issue 18931
 polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
 
