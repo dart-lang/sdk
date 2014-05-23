@@ -211,7 +211,7 @@
             ['_toolset=="target"', {
               'defines': [
                 # Needed for sources outside of nss that include pr and ssl
-                # header files. 
+                # header files.
                 'MDCPUCFG="md/_linux.cfg"',
               ],
             }],
@@ -359,6 +359,9 @@
           'action_name': 'generate_resources_cc',
           'inputs': [
             '../tools/create_resources.py',
+            # The following two files are used to trigger a rebuild.
+            'bin/vmservice/client/deployed/web/index.html',
+            'bin/vmservice/client/deployed/web/index.html_bootstrap.dart.js',
             '<@(_sources)',
           ],
           'outputs': [
@@ -372,6 +375,7 @@
             '--inner_namespace', 'bin',
             '--table_name', 'service_bin',
             '--root_prefix', 'bin/',
+            '--client_root', 'bin/vmservice/client/deployed/',
             '<@(_sources)'
           ],
           'message': 'Generating ''<(resources_cc_file)'' file.'

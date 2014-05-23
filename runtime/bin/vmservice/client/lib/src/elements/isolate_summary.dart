@@ -89,10 +89,17 @@ class IsolateCounterChartElement extends ObservatoryElement {
   IsolateCounterChartElement.created() : super.created();
 
   @published ObservableMap counters;
-  CounterChart chart = new CounterChart();
+  CounterChart chart;
 
   void countersChanged(oldValue) {
     if (counters == null) {
+      return;
+    }
+    // Lazily create the chart.
+    if (GoogleChart.ready && chart == null) {
+      chart = new CounterChart();
+    }
+    if (chart == null) {
       return;
     }
     chart.update(counters);

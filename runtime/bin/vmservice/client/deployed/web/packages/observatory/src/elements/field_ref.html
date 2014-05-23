@@ -5,7 +5,7 @@
 </head>
 <polymer-element name="field-ref" extends="service-ref">
   <template>
-  <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+  <link rel="stylesheet" href="css/shared.css">
     <div>
       <template if="{{ ref['static'] }}">static</template>
       <template if="{{ ref['final'] }}">final</template>
@@ -20,5 +20,5 @@
       <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
     </div>
   </template>
-  <script type="application/dart" src="field_ref.dart"></script>
+  <script type="application/dart;component=1" src="field_ref.dart"></script>
 </polymer-element>

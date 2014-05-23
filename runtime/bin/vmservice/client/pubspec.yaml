@@ -1,8 +1,7 @@
 name: observatory
-version: 0.1.9
+version: 0.2.1
 dependencies:
-  polymer: any
-  logging: any
+  polymer: '>= 0.10.0-pre.12'
 transformers:
 - polymer:
     entry_points: 

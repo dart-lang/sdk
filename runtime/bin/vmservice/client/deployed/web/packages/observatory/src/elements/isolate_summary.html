@@ -8,10 +8,10 @@
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <div class="flex-row">
       <div class="flex-item-10-percent">
-        <img src="../../../../packages/observatory/src/elements/img/isolate_icon.png">
+        <img src="img/isolate_icon.png">
       </div>
       <div class="flex-item-10-percent">
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
@@ -110,7 +110,7 @@
         white-space: pre;
       }
     </style>
-    <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <template if="{{ isolate.error != null }}">
       <div class="content-centered">
         <pre class="errorBox">{{ isolate.error.message }}</pre>
@@ -178,4 +178,4 @@
   </template>
 </polymer-element>
 
-<script type="application/dart" src="isolate_summary.dart"></script>
+<script type="application/dart;component=1" src="isolate_summary.dart"></script>

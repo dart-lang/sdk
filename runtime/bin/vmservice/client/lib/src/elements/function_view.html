@@ -10,7 +10,7 @@
 </head>
 <polymer-element name="function-view" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
@@ -115,5 +115,5 @@
 
     <br>
   </template>
-  <script type="application/dart" src="function_view.dart"></script>
+  <script type="application/dart;component=1" src="function_view.dart"></script>
 </polymer-element>

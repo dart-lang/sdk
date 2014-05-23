@@ -3,7 +3,7 @@
 </head>
 <polymer-element name="code-ref" extends="service-ref">
   <template>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <template if="{{ code.isDartCode }}">
         <template if="{{ code.isOptimized }}">
           <a href="{{ url }}">*{{ name }}</a>
@@ -16,5 +16,5 @@
       <span>{{ name }}</span>
     </template>
   </template>
-<script type="application/dart" src="code_ref.dart"></script>
+<script type="application/dart;component=1" src="code_ref.dart"></script>
 </polymer-element>

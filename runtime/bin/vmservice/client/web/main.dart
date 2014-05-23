@@ -6,7 +6,8 @@ import 'package:logging/logging.dart';
 import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
-main() {
+@initMethod
+init() {
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
       if (rec.level == Level.WARNING &&
@@ -19,9 +20,7 @@ main() {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
   Logger.root.info('Starting Observatory');
-  GoogleChart.initOnce().then((_) {
-    // Charts loaded, initialize polymer.
-    Logger.root.info('Initializing Polymer');
-    initPolymer();
-  });
+  Polymer.onReady.then((_) => GoogleChart.initOnce().then((_) {
+    Logger.root.info('Polymer Ready.');
+  }));
 }

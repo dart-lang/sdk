@@ -102,6 +102,9 @@ def main(args):
     parser.add_option("--table_name",
                       action="store", type="string",
                       help="name of table")
+    parser.add_option("--client_root",
+                      action="store", type="string",
+                      help="root directory client resources")
     (options, args) = parser.parse_args()
     if not options.output:
       sys.stderr.write('--output not specified\n')
@@ -114,6 +117,18 @@ def main(args):
       return -1
 
     files = [ ]
+
+    if options.client_root != None:
+      for dirname, dirnames, filenames in os.walk(options.client_root):
+        # strip out all dot files.
+        filenames = [f for f in filenames if not f[0] == '.']
+        dirnames[:] = [d for d in dirnames if not d[0] == '.']
+        for f in filenames:
+          src_path = os.path.join(dirname, f)
+          if (os.path.isdir(src_path)):
+              continue
+          files.append(src_path)
+
     for arg in args:
       files.append(arg)
 

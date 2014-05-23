@@ -20,6 +20,10 @@ class ObservatoryElement extends PolymerElement {
     super.leftView();
   }
 
+  void ready() {
+    super.ready();
+  }
+
   void attributeChanged(String name, var oldValue, var newValue) {
     super.attributeChanged(name, oldValue, newValue);
   }

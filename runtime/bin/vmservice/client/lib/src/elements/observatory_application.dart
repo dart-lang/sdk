@@ -14,9 +14,12 @@ import 'package:polymer/polymer.dart';
 @CustomTag('observatory-application')
 class ObservatoryApplicationElement extends ObservatoryElement {
   @published bool devtools = false;
-  @observable ObservatoryApplication app;
+  @published ObservatoryApplication app;
 
-  ObservatoryApplicationElement.created() : super.created() {
+  ObservatoryApplicationElement.created() : super.created();
+
+  enteredView() {
+    super.enteredView();
     if (devtools) {
       app = new ObservatoryApplication.devtools();
     } else {

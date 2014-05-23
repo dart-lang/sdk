@@ -13,17 +13,22 @@ class GoogleChart {
     return _api;
   }
 
+  static Completer _completer = new Completer();
+
+  static Future get onReady => _completer.future;
+
+  static bool get ready => _completer.isCompleted;
+
   /// Load the Google Chart API. Returns a [Future] which completes
   /// when the API is loaded.
   static Future initOnce() {
-    Completer c = new Completer();
     Logger.root.info('Loading Google Charts API');
     context['google'].callMethod('load',
         ['visualization', '1', new JsObject.jsify({
           'packages': ['corechart', 'table'],
-          'callback': new JsFunction.withThis(c.complete)
+          'callback': new JsFunction.withThis(_completer.complete)
     })]);
-    return c.future.then(_initOnceOnComplete);
+    return _completer.future.then(_initOnceOnComplete);
   }
 
   static _initOnceOnComplete(_) {

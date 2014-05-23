@@ -11,7 +11,7 @@
 </head>
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
@@ -59,7 +59,6 @@
                          label="[calculate]">
               </eval-link>
             </div>
-          </div>
           </div>
           <div class="memberItem">
             <div class="memberName">retaining path</div>
@@ -180,7 +179,8 @@
       </div>
       <br><br><br><br>
       <br><br><br><br>
+
     </template>
   </template>
-  <script type="application/dart" src="instance_view.dart"></script>
+  <script type="application/dart;component=1" src="instance_view.dart"></script>
 </polymer-element>
