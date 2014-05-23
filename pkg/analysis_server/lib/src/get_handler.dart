@@ -7,6 +7,7 @@ library get.handler;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 
 import 'package:analysis_server/src/socket_server.dart';
 
@@ -66,14 +67,14 @@ class GetHandler {
           ['Context', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
           true);
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
-        AnalysisContentStatistics statistics =
+        AnalysisContextStatistics statistics =
             (context as AnalysisContextImpl).statistics;
         int errorCount = 0;
         int flushedCount = 0;
         int inProcessCount = 0;
         int invalidCount = 0;
         int validCount = 0;
-        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
+        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
           errorCount += row.errorCount;
           flushedCount += row.flushedCount;
           inProcessCount += row.inProcessCount;
@@ -91,13 +92,13 @@ class GetHandler {
       response.write('</table>');
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
         response.write('<h2><a name="context_$key">Analysis Context: $key</a></h2>');
-        AnalysisContentStatistics statistics = (context as AnalysisContextImpl).statistics;
+        AnalysisContextStatistics statistics = (context as AnalysisContextImpl).statistics;
         response.write('<table>');
         _writeRow(
             response,
             ['Item', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
             true);
-        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
+        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
           _writeRow(
               response,
               [row.name,
@@ -108,11 +109,11 @@ class GetHandler {
                row.validCount]);
         });
         response.write('</table>');
-        List<AnalysisException> exceptions = statistics.exceptions;
+        List<CaughtException> exceptions = statistics.exceptions;
         if (!exceptions.isEmpty) {
           response.write('<h2>Exceptions</h2>');
-          exceptions.forEach((AnalysisException exception) {
-            response.write('<p>${exception.message}</p>');
+          exceptions.forEach((CaughtException exception) {
+            response.write('<p>${exception.exception}</p>');
           });
         }
       });
