@@ -5295,21 +5295,22 @@ void Parser::OpenFunctionBlock(const Function& func) {
   if (current_block_ == NULL) {
     if (!func.IsLocalFunction()) {
       // We are compiling a non-nested function.
-      outer_scope = new LocalScope(NULL, 0, 0);
+      outer_scope = new(isolate()) LocalScope(NULL, 0, 0);
     } else {
       // We are compiling the function of an invoked closure.
       // Restore the outer scope containing all captured variables.
       const ContextScope& context_scope =
-          ContextScope::Handle(func.context_scope());
+          ContextScope::Handle(isolate(), func.context_scope());
       ASSERT(!context_scope.IsNull());
-      outer_scope =
-          new LocalScope(LocalScope::RestoreOuterScope(context_scope), 0, 0);
+      outer_scope = new(isolate()) LocalScope(
+          LocalScope::RestoreOuterScope(context_scope), 0, 0);
     }
   } else {
     // We are parsing a nested function while compiling the enclosing function.
-    outer_scope = new LocalScope(current_block_->scope,
-                                 current_block_->scope->function_level() + 1,
-                                 0);
+    outer_scope =
+        new(isolate()) LocalScope(current_block_->scope,
+                                  current_block_->scope->function_level() + 1,
+                                  0);
   }
   ChainNewBlock(outer_scope);
 }

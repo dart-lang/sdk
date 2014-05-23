@@ -717,7 +717,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(incoming_arg_count);
+  DeoptInfoBuilder builder(isolate(), incoming_arg_count);
 
   const Array& array =
       Array::Handle(Array::New(DeoptTable::SizeFor(deopt_infos_.length()),

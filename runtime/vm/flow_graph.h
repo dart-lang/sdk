@@ -354,6 +354,10 @@ class LivenessAnalysis : public ValueObject {
   // for blocks until they stop changing.
   void ComputeLiveInAndLiveOutSets();
 
+  Isolate* isolate() const { return isolate_; }
+
+  Isolate* isolate_;
+
   const intptr_t variable_count_;
 
   const GrowableArray<BlockEntryInstr*>& postorder_;

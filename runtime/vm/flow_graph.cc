@@ -87,7 +87,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
     }
   }
   // Otherwise, allocate and add it to the pool.
-  ConstantInstr* constant = new ConstantInstr(object);
+  ConstantInstr* constant = new(isolate()) ConstantInstr(object);
   constant->set_ssa_temp_index(alloc_ssa_temp_index());
   AddToInitialDefinitions(constant);
   return constant;
@@ -271,7 +271,8 @@ bool FlowGraph::VerifyUseLists() {
 LivenessAnalysis::LivenessAnalysis(
   intptr_t variable_count,
   const GrowableArray<BlockEntryInstr*>& postorder)
-    : variable_count_(variable_count),
+    : isolate_(Isolate::Current()),
+      variable_count_(variable_count),
       postorder_(postorder),
       live_out_(postorder.length()),
       kill_(postorder.length()),
@@ -327,9 +328,9 @@ void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
 void LivenessAnalysis::Analyze() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
-    live_out_.Add(new BitVector(variable_count_));
-    kill_.Add(new BitVector(variable_count_));
-    live_in_.Add(new BitVector(variable_count_));
+    live_out_.Add(new(isolate()) BitVector(variable_count_));
+    kill_.Add(new(isolate()) BitVector(variable_count_));
+    live_in_.Add(new(isolate()) BitVector(variable_count_));
   }
 
   ComputeInitialSets();
@@ -440,7 +441,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
 void VariableLivenessAnalysis::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
 
-  BitVector* last_loads = new BitVector(variable_count_);
+  BitVector* last_loads = new(isolate()) BitVector(variable_count_);
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
 
@@ -564,7 +565,7 @@ void FlowGraph::ComputeDominators(
     idom.Add(parent_[i]);
     semi.Add(i);
     label.Add(i);
-    dominance_frontier->Add(new BitVector(size));
+    dominance_frontier->Add(new(isolate()) BitVector(size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
@@ -727,7 +728,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     // are unknown and so treated like parameters.
     intptr_t count = IsCompiledForOsr() ? variable_count() : parameter_count();
     for (intptr_t i = 0; i < count; ++i) {
-      ParameterInstr* param = new ParameterInstr(i, entry);
+      ParameterInstr* param = new(isolate()) ParameterInstr(i, entry);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
       AddToInitialDefinitions(param);
       env.Add(param);
@@ -808,7 +809,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   } else if (block_entry->IsCatchBlockEntry()) {
     // Add real definitions for all locals and parameters.
     for (intptr_t i = 0; i < env->length(); ++i) {
-      ParameterInstr* param = new ParameterInstr(i, block_entry);
+      ParameterInstr* param = new(isolate()) ParameterInstr(i, block_entry);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
       (*env)[i] = param;
       block_entry->AsCatchBlockEntry()->initial_definitions()->Add(param);
@@ -973,7 +974,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
           // Rename input operand.
-          Value* use = new Value((*env)[i]);
+          Value* use = new(isolate()) Value((*env)[i]);
           phi->SetInputAt(pred_index, use);
         }
       }
@@ -1029,7 +1030,7 @@ void FlowGraph::RemoveRedefinitions() {
 // Design & Implementation" (Muchnick) p192.
 BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
   GrowableArray<BlockEntryInstr*> stack;
-  BitVector* loop = new BitVector(preorder_.length());
+  BitVector* loop = new(isolate()) BitVector(preorder_.length());
 
   loop->Add(n->preorder_number());
   if (n != m) {
@@ -1053,7 +1054,7 @@ BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
 
 ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
-      new ZoneGrowableArray<BlockEntryInstr*>();
+      new(isolate()) ZoneGrowableArray<BlockEntryInstr*>();
 
   for (BlockIterator it = postorder_iterator();
        !it.Done();
@@ -1129,7 +1130,7 @@ intptr_t FlowGraph::InstructionCount() const {
 
 
 void FlowGraph::ComputeBlockEffects() {
-  block_effects_ = new BlockEffects(this);
+  block_effects_ = new(isolate()) BlockEffects(this);
 }
 
 
@@ -1137,11 +1138,11 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
     : available_at_(flow_graph->postorder().length()) {
   // We are tracking a single effect.
   ASSERT(EffectSet::kLastEffect == 1);
-
+  Isolate* isolate = flow_graph->isolate();
   const intptr_t block_count = flow_graph->postorder().length();
 
   // Set of blocks that contain side-effects.
-  BitVector* kill = new BitVector(block_count);
+  BitVector* kill = new(isolate) BitVector(block_count);
 
   // Per block available-after sets. Block A is available after the block B if
   // and only if A is either equal to B or A is available at B and B contains no
@@ -1167,7 +1168,7 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
     }
   }
 
-  BitVector* temp = new BitVector(block_count);
+  BitVector* temp = new(isolate) BitVector(block_count);
 
   // Recompute available-at based on predecessors' available-after until the fix
   // point is reached.
@@ -1199,8 +1200,10 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
       if ((current == NULL) || !current->Equals(*temp)) {
         // Available-at changed: update it and recompute available-after.
         if (available_at_[block_num] == NULL) {
-          current = available_at_[block_num] = new BitVector(block_count);
-          available_after[block_num] = new BitVector(block_count);
+          current = available_at_[block_num] =
+              new(isolate) BitVector(block_count);
+          available_after[block_num] =
+              new(isolate) BitVector(block_count);
           // Block is always available after itself.
           available_after[block_num]->Add(block_num);
         }

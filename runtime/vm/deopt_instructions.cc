@@ -1392,12 +1392,13 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 };
 
 
-DeoptInfoBuilder::DeoptInfoBuilder(const intptr_t num_args)
-    : instructions_(),
+DeoptInfoBuilder::DeoptInfoBuilder(Isolate* isolate, const intptr_t num_args)
+    : isolate_(isolate),
+      instructions_(),
       object_table_(GrowableObjectArray::Handle(
           GrowableObjectArray::New(Heap::kOld))),
       num_args_(num_args),
-      trie_root_(new TrieNode()),
+      trie_root_(new(isolate) TrieNode()),
       current_info_number_(0),
       frame_start_(-1),
       materializations_() {
@@ -1436,7 +1437,8 @@ void DeoptInfoBuilder::AddReturnAddress(const Code& code,
 #endif
   const intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptRetAddressInstr(object_table_index, deopt_id));
+  instructions_.Add(
+      new(isolate()) DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 
@@ -1444,7 +1446,7 @@ void DeoptInfoBuilder::AddPcMarker(const Code& code,
                                    intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptPcMarkerInstr(object_table_index));
+  instructions_.Add(new(isolate()) DeoptPcMarkerInstr(object_table_index));
 }
 
 
@@ -1452,7 +1454,7 @@ void DeoptInfoBuilder::AddPp(const Code& code,
                              intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptPpInstr(object_table_index));
+  instructions_.Add(new(isolate()) DeoptPpInstr(object_table_index));
 }
 
 
@@ -1462,42 +1464,45 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   DeoptInstr* deopt_instr = NULL;
   if (source_loc.IsConstant()) {
     intptr_t object_table_index = FindOrAddObjectInTable(source_loc.constant());
-    deopt_instr = new DeoptConstantInstr(object_table_index);
+    deopt_instr = new(isolate()) DeoptConstantInstr(object_table_index);
   } else if (source_loc.IsRegister()) {
     ASSERT(value->definition()->representation() == kTagged);
-    deopt_instr = new DeoptRegisterInstr(source_loc.reg());
+    deopt_instr = new(isolate()) DeoptRegisterInstr(source_loc.reg());
   } else if (source_loc.IsFpuRegister()) {
     if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new DeoptFpuRegisterInstr(source_loc.fpu_reg());
+      deopt_instr = new(isolate()) DeoptFpuRegisterInstr(source_loc.fpu_reg());
     } else if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr = new DeoptFloat32x4FpuRegisterInstr(source_loc.fpu_reg());
+      deopt_instr =
+          new(isolate()) DeoptFloat32x4FpuRegisterInstr(source_loc.fpu_reg());
     } else if (value->definition()->representation() == kUnboxedInt32x4) {
-      deopt_instr = new DeoptInt32x4FpuRegisterInstr(source_loc.fpu_reg());
+      deopt_instr =
+          new(isolate()) DeoptInt32x4FpuRegisterInstr(source_loc.fpu_reg());
     } else {
       ASSERT(value->definition()->representation() == kUnboxedFloat64x2);
-      deopt_instr = new DeoptFloat64x2FpuRegisterInstr(source_loc.fpu_reg());
+      deopt_instr =
+          new(isolate()) DeoptFloat64x2FpuRegisterInstr(source_loc.fpu_reg());
     }
   } else if (source_loc.IsStackSlot()) {
     ASSERT(value->definition()->representation() == kTagged);
     intptr_t source_index = CalculateStackIndex(source_loc);
-    deopt_instr = new DeoptStackSlotInstr(source_index);
+    deopt_instr = new(isolate()) DeoptStackSlotInstr(source_index);
   } else if (source_loc.IsDoubleStackSlot()) {
     intptr_t source_index = CalculateStackIndex(source_loc);
     if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new DeoptDoubleStackSlotInstr(source_index);
+      deopt_instr = new(isolate()) DeoptDoubleStackSlotInstr(source_index);
     } else {
       ASSERT(value->definition()->representation() == kUnboxedMint);
-      deopt_instr = new DeoptInt64StackSlotInstr(source_index);
+      deopt_instr = new(isolate()) DeoptInt64StackSlotInstr(source_index);
     }
   } else if (source_loc.IsQuadStackSlot()) {
     intptr_t source_index = CalculateStackIndex(source_loc);
     if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr = new DeoptFloat32x4StackSlotInstr(source_index);
+      deopt_instr = new(isolate()) DeoptFloat32x4StackSlotInstr(source_index);
     } else if (value->definition()->representation() == kUnboxedInt32x4) {
-      deopt_instr = new DeoptInt32x4StackSlotInstr(source_index);
+      deopt_instr = new(isolate()) DeoptInt32x4StackSlotInstr(source_index);
     } else {
       ASSERT(value->definition()->representation() == kUnboxedFloat64x2);
-      deopt_instr = new DeoptFloat64x2StackSlotInstr(source_index);
+      deopt_instr = new(isolate()) DeoptFloat64x2StackSlotInstr(source_index);
     }
   } else if (source_loc.IsPairLocation()) {
     ASSERT(value->definition()->representation() == kUnboxedMint);
@@ -1509,20 +1514,21 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     // 4) S, R.
     PairLocation* pair = source_loc.AsPairLocation();
     if (pair->At(0).IsRegister() && pair->At(1).IsRegister()) {
-      deopt_instr = new DeoptInt64RegisterPairInstr(pair->At(0).reg(),
-                                                    pair->At(1).reg());
+      deopt_instr =
+          new(isolate()) DeoptInt64RegisterPairInstr(pair->At(0).reg(),
+                                                     pair->At(1).reg());
     } else if (pair->At(0).IsStackSlot() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new DeoptInt64StackSlotPairInstr(
+      deopt_instr = new(isolate()) DeoptInt64StackSlotPairInstr(
           CalculateStackIndex(pair->At(0)),
           CalculateStackIndex(pair->At(1)));
     } else if (pair->At(0).IsRegister() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new DeoptInt64StackSlotRegisterInstr(
+      deopt_instr = new(isolate()) DeoptInt64StackSlotRegisterInstr(
           CalculateStackIndex(pair->At(1)),
           pair->At(0).reg(),
           true);
     } else {
       ASSERT(pair->At(0).IsStackSlot() && pair->At(1).IsRegister());
-      deopt_instr = new DeoptInt64StackSlotRegisterInstr(
+      deopt_instr = new(isolate()) DeoptInt64StackSlotRegisterInstr(
           CalculateStackIndex(pair->At(0)),
           pair->At(1).reg(),
           false);
@@ -1532,7 +1538,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     const intptr_t index = FindMaterialization(
         value->definition()->AsMaterializeObject());
     ASSERT(index >= 0);
-    deopt_instr = new DeoptMaterializedObjectRefInstr(index);
+    deopt_instr = new(isolate()) DeoptMaterializedObjectRefInstr(index);
   } else {
     UNREACHABLE();
   }
@@ -1544,26 +1550,26 @@ void DeoptInfoBuilder::AddCopy(Value* value,
 
 void DeoptInfoBuilder::AddCallerFp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptCallerFpInstr());
+  instructions_.Add(new(isolate()) DeoptCallerFpInstr());
 }
 
 
 void DeoptInfoBuilder::AddCallerPp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptCallerPpInstr());
+  instructions_.Add(new(isolate()) DeoptCallerPpInstr());
 }
 
 
 void DeoptInfoBuilder::AddCallerPc(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
-  instructions_.Add(new DeoptCallerPcInstr());
+  instructions_.Add(new(isolate()) DeoptCallerPcInstr());
 }
 
 
 void DeoptInfoBuilder::AddConstant(const Object& obj, intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   intptr_t object_table_index = FindOrAddObjectInTable(obj);
-  instructions_.Add(new DeoptConstantInstr(object_table_index));
+  instructions_.Add(new(isolate()) DeoptConstantInstr(object_table_index));
 }
 
 
@@ -1584,7 +1590,8 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
     }
   }
 
-  instructions_.Add(new DeoptMaterializeObjectInstr(non_null_fields));
+  instructions_.Add(
+      new(isolate()) DeoptMaterializeObjectInstr(non_null_fields));
 }
 
 
@@ -1642,7 +1649,8 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   // Allocate space for the translation.  If the shared suffix is longer
   // than one instruction, we replace it with a single suffix instruction.
   if (suffix_length > 1) length -= (suffix_length - 1);
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(DeoptInfo::New(length));
+  const DeoptInfo& deopt_info =
+      DeoptInfo::Handle(isolate(), DeoptInfo::New(length));
 
   // Write the unshared instructions and build their sub-tree.
   TrieNode* node = NULL;
@@ -1651,14 +1659,14 @@ RawDeoptInfo* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     DeoptInstr* instr = instructions_[i];
     deopt_info.SetAt(i, instr->kind(), instr->source_index());
     TrieNode* child = node;
-    node = new TrieNode(instr, current_info_number_);
+    node = new(isolate()) TrieNode(instr, current_info_number_);
     node->AddChild(child);
   }
 
   if (suffix_length > 1) {
     suffix->AddChild(node);
     DeoptInstr* instr =
-        new DeoptSuffixInstr(suffix->info_number(), suffix_length);
+        new(isolate()) DeoptSuffixInstr(suffix->info_number(), suffix_length);
     deopt_info.SetAt(length - 1, instr->kind(), instr->source_index());
   } else {
     trie_root_->AddChild(node);

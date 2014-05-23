@@ -11089,9 +11089,10 @@ intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(index < NumberOfChecks());
-  const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+  NoGCScope no_gc;
+  RawArray* raw_data = ic_data();
+  return Smi::Value(Smi::RawCast(raw_data->ptr()->data()[data_pos]));
 }
 
 
