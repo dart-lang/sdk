@@ -64,6 +64,8 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
       // web/, test/, example/, etc) are resolved as an asset in another
       // package. 'packages' can be used anywhere, there is no need to walk up
       // where the entrypoint file was.
+      // TODO(sigmund): this needs to change: Only resolve when index == 1 &&
+      // topFolder == segment[0], otherwise give a warning (dartbug.com/17596).
       return _extractOtherPackageId(index, segments, logger, span);
     } else if (index == 1 && segments[0] == '..') {
       // Relative URLs of the form "../../packages/foo/bar" in an asset under

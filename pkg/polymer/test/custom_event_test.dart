@@ -42,8 +42,7 @@ class TestCustomEvent extends PolymerElement {
   barBazHandler(e) => events.add(['barbaz', e]);
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -67,4 +66,4 @@ main() {
     expect(events.map((e) => e[0]), ['foo', 'barbaz', 'foo']);
     expect(events.map((e) => e[1].detail), [123, 42, 777]);
   });
-}
+});

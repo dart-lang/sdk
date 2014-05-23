@@ -29,8 +29,7 @@ class XInner extends PolymerElement {
   }
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
   Polymer.register('x-inner', XInner);
   Polymer.register('x-outer', XOuter);
@@ -49,4 +48,4 @@ main() {
       });
     });
   });
-}
+});

@@ -25,8 +25,9 @@ class XMenuButton extends PolymerElement {
   XMenuButton.created() : super.created();
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
+  useHtmlConfiguration();
+
   // TODO(sigmund): use @CustomTag instead of Polymer.regsiter. A bug is making
   // this code sensitive to the order in which we register elements (e.g. if
   // x-menu is registered before x-selector). See dartbug.com/17926.
@@ -34,8 +35,6 @@ main() {
   Polymer.register('x-overlay', XOverlay);
   Polymer.register('x-menu', XMenu);
   Polymer.register('x-menu-button', XMenuButton);
-
-  useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
@@ -81,4 +80,4 @@ main() {
 
     item1.dispatchEvent(new Event('x', canBubble: true));
   });
-}
+});

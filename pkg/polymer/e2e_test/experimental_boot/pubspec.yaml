@@ -1,0 +1,5 @@
+name: experimental_boot
+dependencies:
+  polymer: any
+dev_dependencies:
+  unittest: any

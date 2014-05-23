@@ -45,12 +45,11 @@ class XTest extends XBase {
   }
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
   test('bar change detected', () => _bar.future);
   test('zonk change detected', () => _zonk.future);
-}
+});

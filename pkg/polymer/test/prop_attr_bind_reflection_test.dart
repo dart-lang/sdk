@@ -29,8 +29,7 @@ class MyElement extends PolymerElement {
   MyElement.created() : super.created();
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -44,4 +43,4 @@ main() {
     expect('11', child.attributes['lowercase']);
     expect('11', child.attributes['camelcase']);
   });
-}
+});

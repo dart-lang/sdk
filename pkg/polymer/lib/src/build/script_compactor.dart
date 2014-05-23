@@ -74,6 +74,9 @@ class _ScriptCompactor extends PolymerTransformer {
   /// included on each custom element definition).
   List<AssetId> entryLibraries;
 
+  /// Whether we are using the experimental bootstrap logic.
+  bool experimentalBootstrap;
+
   /// Initializers that will register custom tags or invoke `initMethod`s.
   final List<_Initializer> initializers = [];
 
@@ -111,12 +114,14 @@ class _ScriptCompactor extends PolymerTransformer {
 
   /// Populates [entryLibraries] as a list containing the asset ids of each
   /// library loaded on a script tag. The actual work of computing this is done
-  /// in an earlier phase and emited in the `entrypoint.scriptUrls` asset.
+  /// in an earlier phase and emited in the `entrypoint._data` asset.
   Future _loadEntryLibraries(_) =>
-      transform.readInputAsString(docId.addExtension('.scriptUrls'))
-          .then((libraryIds) {
-        entryLibraries = (JSON.decode(libraryIds) as Iterable)
-            .map((data) => new AssetId.deserialize(data)).toList();
+      transform.readInputAsString(docId.addExtension('._data')).then((data) {
+        var map = JSON.decode(data);
+        experimentalBootstrap = map['experimental_bootstrap'];
+        entryLibraries = map['script_ids']
+              .map((id) => new AssetId.deserialize(id))
+              .toList();
       });
 
   /// Removes unnecessary script tags, and identifies the main entry point Dart
@@ -128,7 +133,7 @@ class _ScriptCompactor extends PolymerTransformer {
         tag.remove();
         continue;
       }
-      if (tag.attributes['type'] == 'application/dart;component=1') {
+      if (tag.attributes['type'] == 'application/dart') {
         logger.warning('unexpected script. The '
           'ScriptCompactor transformer should run after running the '
           'ImportInliner', span: tag.sourceSpan);
@@ -350,7 +355,11 @@ class _ScriptCompactor extends PolymerTransformer {
     generator.writeTopLevelDeclarations(code);
     code.writeln('\nvoid main() {');
     generator.writeInitCall(code);
-    code.write('  startPolymer([');
+    if (experimentalBootstrap) {
+      code.write('  startPolymer([');
+    } else {
+      code.write('  configureForDeployment([');
+    }
 
     // Include initializers to switch from mirrors_loader to static_loader.
     if (!initializers.isEmpty) {
@@ -361,8 +370,11 @@ class _ScriptCompactor extends PolymerTransformer {
       }
       code.writeln('    ]);');
     } else {
-      logger.warning(NO_INITIALIZERS_ERROR);
+      if (experimentalBootstrap) logger.warning(NO_INITIALIZERS_ERROR);
       code.writeln(']);');
+    }
+    if (!experimentalBootstrap) {
+      code.writeln('  i${entryLibraries.length - 1}.main();');
     }
     code.writeln('}');
     transform.addOutput(new Asset.fromString(bootstrapId, code.toString()));

@@ -103,6 +103,7 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
+polymer/e2e_test: Skip # Uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
@@ -179,16 +180,14 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 # them in the analyzer.
 mock/test/mock_regexp_negative_test: Skip
 mock/test/mock_stepwise_negative_test: Skip
-polymer/example/canonicalization: Skip
-polymer/example/canonicalization2: Skip
-polymer/example/canonicalization3: Skip
+polymer/e2e_test/canonicalization: Skip
+polymer/e2e_test/experimental_boot: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
 [ $compiler == dart2js && $runtime == none]
-polymer/example/canonicalization: Skip
-polymer/example/canonicalization2: Skip
-polymer/example/canonicalization3: Skip
+polymer/e2e_test/canonicalization: Skip
+polymer/e2e_test/experimental_boot: Skip
 
 [ $compiler == dart2js && $csp ]
 polymer/test/noscript_test: Fail # Issue 17326
@@ -209,6 +208,14 @@ stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
+polymer/e2e_test/canonicalization/test/dev1_test: Fail, OK # tests development only behavior
+polymer/e2e_test/canonicalization/test/dev2_test: Fail, OK # tests development only behavior
+polymer/e2e_test/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
+polymer/e2e_test/canonicalization/test/dir/dev1_test: Fail, OK # tests development only behavior
+polymer/e2e_test/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
+polymer/e2e_test/bad_import1: RuntimeError # Issue 17596
+polymer/e2e_test/bad_import2: RuntimeError # Issue 17596
+polymer/e2e_test/bad_import3: Fail, OK # tests broken import
 polymer/test/mirror_loader_test: Skip # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
@@ -314,6 +321,12 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
+polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
+polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
 polymer/test/custom_event_test: Pass, Crash # 14360
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]

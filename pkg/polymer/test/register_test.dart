@@ -40,8 +40,7 @@ class XButtonElement extends ButtonElement with Polymer, Observable {
 }
 
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -78,4 +77,4 @@ main() {
           reason: 'elements on page should be upgraded');
     });
   });
-}
+});

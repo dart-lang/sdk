@@ -39,14 +39,13 @@ class XTest extends PolymerElement {
   bool get isBarValid => validBar == bar;
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
   test('unbind', unbindTests);
-}
+});
 
 Future testAsync(List<Function> tests, int delayMs, [List args]) {
   if (tests.length == 0) return new Future.value();

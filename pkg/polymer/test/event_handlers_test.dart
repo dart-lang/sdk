@@ -96,7 +96,9 @@ class MiniModel extends Observable {
   String toString() => "<mini-model $index>";
 }
 
-@initMethod main() {
+main() => initPolymer();
+
+@initMethod init() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

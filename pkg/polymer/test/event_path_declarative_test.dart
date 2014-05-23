@@ -18,6 +18,8 @@ import 'package:polymer/polymer.dart';
 var _observedEvents = [];
 var _testFired;
 
+main() => initPolymer();
+
 @reflectable
 class XZug extends PolymerElement {
 
@@ -77,7 +79,7 @@ class XBar extends PolymerElement {
   }
 }
 
-@initMethod main() {
+@initMethod init() {
   useHtmlConfiguration();
   // TODO(sigmund): switch back to use @CustomTag. We seem to be running into a
   // problem where using @CustomTag doesn't guarantee that we register the tags

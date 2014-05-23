@@ -18,8 +18,7 @@ Future<List<MutationRecord>> onMutation(Node node) {
   return completer.future;
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   var ready = Polymer.onReady.then((_) {
@@ -36,4 +35,4 @@ main() {
     expect(querySelector('x-b').shadowRoot.nodes.first.text, 'b');
     expect(querySelector('x-d').shadowRoot.nodes.first.text, 'd');
   });
-}
+});
