@@ -446,7 +446,6 @@ bool PageSpace::ShouldCollectCode() {
 
 
 void PageSpace::WriteProtectCode(bool read_only) {
-  // TODO(koda): Is this flag still useful?
   if (FLAG_write_protect_code) {
     HeapPage* current_page = pages_;
     while (current_page != NULL) {

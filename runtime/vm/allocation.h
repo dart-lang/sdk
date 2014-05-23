@@ -96,6 +96,10 @@ class ZoneAllocated {
   // Implicitly allocate the object in the current zone.
   void* operator new(uword size);
 
+  // Implicitly allocate the object in the current zone given the current
+  // isolate.
+  void* operator new(uword size, BaseIsolate* isolate);
+
   // Ideally, the delete operator should be protected instead of
   // public, but unfortunately the compiler sometimes synthesizes
   // (unused) destructors for classes derived from ZoneObject, which

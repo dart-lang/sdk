@@ -82,7 +82,8 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
                                      FlowGraph* flow_graph,
                                      bool is_optimizing)
-    : assembler_(assembler),
+    : isolate_(Isolate::Current()),
+      assembler_(assembler),
       parsed_function_(flow_graph->parsed_function()),
       flow_graph_(*flow_graph),
       block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
@@ -98,13 +99,13 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       is_optimizing_(is_optimizing),
       may_reoptimize_(false),
       double_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->double_class())),
+          isolate_->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->float32x4_class())),
+          isolate_->object_store()->float32x4_class())),
       float64x2_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->float64x2_class())),
+          isolate_->object_store()->float64x2_class())),
       int32x4_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->int32x4_class())),
+          isolate_->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(
           Library::Handle(Library::CoreLibrary()).
               LookupClass(Symbols::List()))),
@@ -349,7 +350,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
                                   "FlowGraphCompiler Bailout: %s %s",
                                   String::Handle(function.name()).ToCString(),
                                   reason));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -393,7 +394,7 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     move_instr->AddMove(dest, src);
     // Update safepoint bitmap to indicate that the target location
     // now contains a pointer.
-    instr->locs()->stack_bitmap()->Set(dest_index, true);
+    instr->locs()->SetStackBit(dest_index);
   }
   parallel_move_resolver()->EmitNativeCode(move_instr);
 }
@@ -973,7 +974,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
-  instr->InitializeLocationSummary(false);  // Not optimizing.
+  instr->InitializeLocationSummary(isolate(), false);  // Not optimizing.
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];

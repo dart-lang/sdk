@@ -23,12 +23,13 @@ intptr_t RegisterSet::RegisterCount(intptr_t registers) {
 }
 
 
-LocationSummary::LocationSummary(intptr_t input_count,
+LocationSummary::LocationSummary(Isolate* isolate,
+                                 intptr_t input_count,
                                  intptr_t temp_count,
                                  LocationSummary::ContainsCall contains_call)
-    : input_locations_(input_count),
-      temp_locations_(temp_count),
-      output_locations_(1),
+    : input_locations_(isolate, input_count),
+      temp_locations_(isolate, temp_count),
+      output_locations_(isolate, 1),
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
@@ -40,19 +41,17 @@ LocationSummary::LocationSummary(intptr_t input_count,
   }
   output_locations_.Add(Location());
   ASSERT(output_locations_.length() == 1);
-  if (contains_call_ != kNoCall) {
-    stack_bitmap_ = new BitmapBuilder();
-  }
 }
 
 
-LocationSummary::LocationSummary(intptr_t input_count,
-                                intptr_t temp_count,
-                                intptr_t output_count,
-                                LocationSummary::ContainsCall contains_call)
-    : input_locations_(input_count),
-      temp_locations_(temp_count),
-      output_locations_(output_count),
+LocationSummary::LocationSummary(Isolate* isolate,
+                                 intptr_t input_count,
+                                 intptr_t temp_count,
+                                 intptr_t output_count,
+                                 LocationSummary::ContainsCall contains_call)
+    : input_locations_(isolate, input_count),
+      temp_locations_(isolate, temp_count),
+      output_locations_(isolate, output_count),
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
@@ -68,9 +67,6 @@ LocationSummary::LocationSummary(intptr_t input_count,
   for (intptr_t i = 0; i < output_count; i++) {
     output_locations_.Add(Location());
   }
-  if (contains_call_ != kNoCall) {
-    stack_bitmap_ = new BitmapBuilder();
-  }
 }
 
 
@@ -78,7 +74,8 @@ LocationSummary* LocationSummary::Make(
     intptr_t input_count,
     Location out,
     LocationSummary::ContainsCall contains_call) {
-  LocationSummary* summary = new LocationSummary(input_count, 0, contains_call);
+  LocationSummary* summary = new LocationSummary(
+      Isolate::Current(), input_count, 0, contains_call);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }

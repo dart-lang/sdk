@@ -797,7 +797,8 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual type##Instr* As##type() { return this; }                             \
   virtual const char* DebugName() const { return #type; }                      \
-  virtual LocationSummary* MakeLocationSummary(bool optimizing) const;         \
+  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,               \
+                                               bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
 
 
@@ -923,11 +924,12 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return locs_;
   }
 
-  virtual LocationSummary* MakeLocationSummary(bool is_optimizing) const = 0;
+  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,
+                                               bool is_optimizing) const = 0;
 
-  void InitializeLocationSummary(bool optimizing) {
+  void InitializeLocationSummary(Isolate* isolate, bool optimizing) {
     ASSERT(locs_ == NULL);
-    locs_ = MakeLocationSummary(optimizing);
+    locs_ = MakeLocationSummary(isolate, optimizing);
   }
 
   static LocationSummary* MakeCallSummary();

@@ -1611,11 +1611,12 @@ Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-LocationSummary* DebugStepCheckInstr::MakeLocationSummary(bool opt) const {
+LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
   return locs;
 }
 
@@ -2024,13 +2025,15 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 
 #define __ compiler->assembler()->
 
-LocationSummary* GraphEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* GraphEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
 
 
-LocationSummary* JoinEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* JoinEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2049,7 +2052,8 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* TargetEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* TargetEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                       bool optimizing) const {
   // FlowGraphCompiler::EmitInstructionPrologue is not called for block
   // entry instructions, so this function is unused.  If it becomes
   // reachable, note that the deoptimization descriptor in unoptimized code
@@ -2061,7 +2065,8 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary(bool optimizing) const {
 }
 
 
-LocationSummary* PhiInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* PhiInstr::MakeLocationSummary(Isolate* isolate,
+                                               bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2072,7 +2077,8 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* RedefinitionInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* RedefinitionInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2083,7 +2089,8 @@ void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParameterInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ParameterInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2094,7 +2101,8 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParallelMoveInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ParallelMoveInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   return NULL;
 }
 
@@ -2104,7 +2112,8 @@ void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstraintInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ConstraintInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2116,7 +2125,7 @@ void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MaterializeObjectInstr::MakeLocationSummary(
-    bool optimizing) const {
+    Isolate* isolate, bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2165,17 +2174,19 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
 }
 
 
-LocationSummary* StoreContextInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
 }
 
 
-LocationSummary* PushTempInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* PushTempInstr::MakeLocationSummary(Isolate* isolate,
+                                                    bool optimizing) const {
   return LocationSummary::Make(1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
@@ -2188,7 +2199,8 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* DropTempsInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   return (InputCount() == 1)
       ? LocationSummary::Make(1,
                               Location::SameAsFirstInput(),
@@ -2224,7 +2236,8 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
 }
 
 
-LocationSummary* InstanceCallInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   return MakeCallSummary();
 }
 
@@ -2297,7 +2310,8 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
 }
 
 
-LocationSummary* StaticCallInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   return MakeCallSummary();
 }
 

@@ -11608,13 +11608,12 @@ RawCode* Code::FinalizeCode(const char* name,
       // GrowableObjectArray in new space.
       instrs.set_object_pool(Array::MakeArray(object_pool));
     }
-    bool status =
-        VirtualMemory::Protect(reinterpret_cast<void*>(instrs.raw_ptr()),
-                               instrs.raw()->Size(),
-                               FLAG_write_protect_code
-                                   ? VirtualMemory::kReadExecute
-                                   : VirtualMemory::kReadWriteExecute);
-    ASSERT(status);
+    if (FLAG_write_protect_code) {
+      bool status = VirtualMemory::Protect(
+          reinterpret_cast<void*>(instrs.raw_ptr()), instrs.raw()->Size(),
+          VirtualMemory::kReadExecute);
+      ASSERT(status);
+    }
   }
   code.set_comments(assembler->GetCodeComments());
   return code.raw();

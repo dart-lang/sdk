@@ -472,6 +472,8 @@ class FlowGraphCompiler : public ValueObject {
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
+  Isolate* isolate() const { return isolate_; }
+
   void EmitFrameEntry();
 
   void AddStaticCallTarget(const Function& function);
@@ -574,7 +576,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitSourceLine(Instruction* instr);
 
-  class Assembler* assembler_;
+  Isolate* isolate_;
+  Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
