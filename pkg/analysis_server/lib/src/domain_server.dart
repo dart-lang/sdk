@@ -6,11 +6,6 @@ library domain.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -18,34 +13,24 @@ import 'package:analyzer/src/generated/source_io.dart';
  */
 class ServerDomainHandler implements RequestHandler {
   /**
-   * The name of the server.createContext request.
+   * The name of the `server.getVersion` request.
    */
-  static const String CREATE_CONTEXT_METHOD = 'server.createContext';
+  static const String GET_VERSION_METHOD = 'server.getVersion';
 
   /**
-   * The name of the server.deleteContext request.
+   * The name of the `server.setSubscriptions` request.
    */
-  static const String DELETE_CONTEXT_METHOD = 'server.deleteContext';
+  static const String SET_SUBSCRIPTIONS_METHOD = 'server.setSubscriptions';
 
   /**
-   * The name of the server.shutdown request.
+   * The name of the `server.shutdown` request.
    */
   static const String SHUTDOWN_METHOD = 'server.shutdown';
 
   /**
-   * The name of the server.version request.
+   * The name of the `subscriptions` parameter.
    */
-  static const String VERSION_METHOD = 'server.version';
-
-  /**
-   * The name of the packageMap parameter.
-   */
-  static const String PACKAGE_MAP_PARAM = 'packageMap';
-
-  /**
-   * The name of the sdkDirectory parameter.
-   */
-  static const String SDK_DIRECTORY_PARAM = 'sdkDirectory';
+  static const String SUBSCRIPTIONS_PARAMETER = 'subscriptions';
 
   /**
    * The name of the version result value.
@@ -66,14 +51,12 @@ class ServerDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == CREATE_CONTEXT_METHOD) {
-        return createContext(request);
-      } else if (requestName == DELETE_CONTEXT_METHOD) {
-        return deleteContext(request);
+      if (requestName == GET_VERSION_METHOD) {
+        return getVersion(request);
+      } else if (requestName == SET_SUBSCRIPTIONS_METHOD) {
+          return setSubscriptions(request);
       } else if (requestName == SHUTDOWN_METHOD) {
         return shutdown(request);
-      } else if (requestName == VERSION_METHOD) {
-        return version(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
@@ -82,56 +65,68 @@ class ServerDomainHandler implements RequestHandler {
   }
 
   /**
-   * Create a new context in which analysis can be performed. The context that
-   * is created will persist until server.deleteContext is used to delete it.
-   * Clients, therefore, are responsible for managing the lifetime of contexts.
+   * Subscribe for services.
+   *
+   * All previous subscriptions are replaced by the given set of subscriptions.
    */
-  Response createContext(Request request) {
-    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM).asString();
-    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM, {}).asStringMap();
-
-    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
-    if (server.contextMap.containsKey(contextId)) {
-      return new Response.contextAlreadyExists(request);
-    }
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    // TODO(brianwilkerson) Use the information from the request to set the
-    // source factory in the context.
-    DirectoryBasedDartSdk sdk;
-    try {
-      sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDirectory));
-    } on Exception catch (e) {
-      // TODO what error code should be returned here?
-      return new Response(request.id, new RequestError(
-          RequestError.CODE_SDK_ERROR, 'Failed to access sdk: $e'));
-    }
-    context.sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new FileUriResolver(),
-      // new PackageUriResolver(),
-    ]);
-    server.contextMap[contextId] = context;
-    server.contextIdMap[context] = contextId;
-
-    Response response = new Response(request.id);
-    return response;
+  Response setSubscriptions(Request request) {
+    RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS_PARAMETER);
+    server.serverServices = subDatum.asEnumSet(ServerService.VALUES);
+    return new Response(request.id);
   }
 
-  /**
-   * Delete the context with the given id. Future attempts to use the context id
-   * will result in an error being returned.
-   */
-  Response deleteContext(Request request) {
-    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
-
-    AnalysisContext removedContext = server.contextMap.remove(contextId);
-    if (removedContext == null) {
-      return new Response.contextDoesNotExist(request);
-    }
-    server.contextIdMap.remove(removedContext);
-    Response response = new Response(request.id);
-    return response;
-  }
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  /**
+//   * Create a new context in which analysis can be performed. The context that
+//   * is created will persist until server.deleteContext is used to delete it.
+//   * Clients, therefore, are responsible for managing the lifetime of contexts.
+//   */
+//  Response createContext(Request request) {
+//    String sdkDirectory = request.getRequiredParameter(SDK_DIRECTORY_PARAM).asString();
+//    Map<String, String> packageMap = request.getParameter(PACKAGE_MAP_PARAM, {}).asStringMap();
+//
+//    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
+//    if (server.contextMap.containsKey(contextId)) {
+//      return new Response.contextAlreadyExists(request);
+//    }
+//    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+//    // TODO(brianwilkerson) Use the information from the request to set the
+//    // source factory in the context.
+//    DirectoryBasedDartSdk sdk;
+//    try {
+//      sdk = new DirectoryBasedDartSdk(new JavaFile(sdkDirectory));
+//    } on Exception catch (e) {
+//      // TODO what error code should be returned here?
+//      return new Response(request.id, new RequestError(
+//          RequestError.CODE_SDK_ERROR, 'Failed to access sdk: $e'));
+//    }
+//    context.sourceFactory = new SourceFactory([
+//      new DartUriResolver(sdk),
+//      new FileUriResolver(),
+//      // new PackageUriResolver(),
+//    ]);
+//    server.contextMap[contextId] = context;
+//    server.contextIdMap[context] = contextId;
+//
+//    Response response = new Response(request.id);
+//    return response;
+//  }
+//
+//  /**
+//   * Delete the context with the given id. Future attempts to use the context id
+//   * will result in an error being returned.
+//   */
+//  Response deleteContext(Request request) {
+//    String contextId = request.getRequiredParameter(AnalysisServer.CONTEXT_ID_PARAM).asString();
+//
+//    AnalysisContext removedContext = server.contextMap.remove(contextId);
+//    if (removedContext == null) {
+//      return new Response.contextDoesNotExist(request);
+//    }
+//    server.contextIdMap.remove(removedContext);
+//    Response response = new Response(request.id);
+//    return response;
+//  }
 
   /**
    * Cleanly shutdown the analysis server.
@@ -145,7 +140,7 @@ class ServerDomainHandler implements RequestHandler {
   /**
    * Return the version number of the analysis server.
    */
-  Response version(Request request) {
+  Response getVersion(Request request) {
     Response response = new Response(request.id);
     response.setResult(VERSION_RESULT, '0.0.1');
     return response;

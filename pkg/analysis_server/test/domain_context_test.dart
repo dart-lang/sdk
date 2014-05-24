@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_context.dart';
-import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
@@ -17,39 +16,42 @@ import 'mocks.dart';
 
 main() {
   group('ContextDomainHandlerTest', () {
-    test('applyChanges', ContextDomainHandlerTest.applyChanges);
+    // TODO(scheglov) remove or move to the 'analysis' domain
+//    test('applyChanges', ContextDomainHandlerTest.applyChanges);
     test('createChangeSet', ContextDomainHandlerTest.createChangeSet);
     test('createChangeSet_onlyAdded', ContextDomainHandlerTest.createChangeSet_onlyAdded);
-    test('setOptions', ContextDomainHandlerTest.setOptions);
-    test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
-    test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
+    // TODO(scheglov) remove or move to the 'analysis' domain
+//    test('setOptions', ContextDomainHandlerTest.setOptions);
+//    test('setPrioritySources_empty', ContextDomainHandlerTest.setPrioritySources_empty);
+//    test('setPrioritySources_nonEmpty', ContextDomainHandlerTest.setPrioritySources_nonEmpty);
   });
 }
 
 class ContextDomainHandlerTest {
   static int contextIdCounter = 0;
 
-  static void applyChanges() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
-    String contextId = _createContext(server);
-    ChangeSet changeSet = new ChangeSet();
-    ContextDomainHandler handler = new ContextDomainHandler(server);
-
-    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
-    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    request.setParameter(ContextDomainHandler.SOURCES_PARAM, []);
-    request.setParameter(ContextDomainHandler.CHANGES_PARAM, {
-      ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
-      ContextDomainHandler.MODIFIED_PARAM : ['ffile:/two.dart'],
-      ContextDomainHandler.REMOVED_PARAM : ['ffile:/three.dart']
-    });
-    expect(server.contextWorkQueue, isEmpty);
-    Response response = handler.handleRequest(request);
-    expect(server.contextWorkQueue, hasLength(1));
-    expect(response.toJson(), equals({
-      Response.ID: '0'
-    }));
-  }
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static void applyChanges() {
+//    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+//    String contextId = _createContext(server);
+//    ChangeSet changeSet = new ChangeSet();
+//    ContextDomainHandler handler = new ContextDomainHandler(server);
+//
+//    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
+//    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
+//    request.setParameter(ContextDomainHandler.SOURCES_PARAM, []);
+//    request.setParameter(ContextDomainHandler.CHANGES_PARAM, {
+//      ContextDomainHandler.ADDED_PARAM : ['ffile:/one.dart'],
+//      ContextDomainHandler.MODIFIED_PARAM : ['ffile:/two.dart'],
+//      ContextDomainHandler.REMOVED_PARAM : ['ffile:/three.dart']
+//    });
+//    expect(server.contextWorkQueue, isEmpty);
+//    Response response = handler.handleRequest(request);
+//    expect(server.contextWorkQueue, hasLength(1));
+//    expect(response.toJson(), equals({
+//      Response.ID: '0'
+//    }));
+//  }
 
   static void createChangeSet() {
     AnalysisServer server = new AnalysisServer(new MockServerChannel());
@@ -82,62 +84,66 @@ class ContextDomainHandlerTest {
     expect(changeSet.removedSources, hasLength(equals(0)));
   }
 
-  static void setOptions() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
-    String contextId = _createContext(server);
-    Map<String, Object> options = new Map<String, Object>();
-    ContextDomainHandler handler = new ContextDomainHandler(server);
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static void setOptions() {
+//    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+//    String contextId = _createContext(server);
+//    Map<String, Object> options = new Map<String, Object>();
+//    ContextDomainHandler handler = new ContextDomainHandler(server);
+//
+//    Request request = new Request('0', ContextDomainHandler.SET_OPTIONS_NAME);
+//    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
+//    request.setParameter(ContextDomainHandler.OPTIONS_PARAM, options);
+//    Response response = handler.handleRequest(request);
+//    expect(response.toJson(), equals({
+//      Response.ID: '0'
+//    }));
+//  }
 
-    Request request = new Request('0', ContextDomainHandler.SET_OPTIONS_NAME);
-    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    request.setParameter(ContextDomainHandler.OPTIONS_PARAM, options);
-    Response response = handler.handleRequest(request);
-    expect(response.toJson(), equals({
-      Response.ID: '0'
-    }));
-  }
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static void setPrioritySources_empty() {
+//    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+//    String contextId = _createContext(server);
+//    List<String> sources = new List<String>();
+//    ContextDomainHandler handler = new ContextDomainHandler(server);
+//
+//    Request request = new Request('0', ContextDomainHandler.SET_PRIORITY_SOURCES_NAME);
+//    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
+//    request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
+//    Response response = handler.handleRequest(request);
+//    expect(response.toJson(), equals({
+//      Response.ID: '0'
+//    }));
+//  }
 
-  static void setPrioritySources_empty() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
-    String contextId = _createContext(server);
-    List<String> sources = new List<String>();
-    ContextDomainHandler handler = new ContextDomainHandler(server);
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static void setPrioritySources_nonEmpty() {
+//    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+//    String contextId = _createContext(server);
+//    List<String> sources = new List<String>();
+//    sources.add("foo.dart");
+//    ContextDomainHandler handler = new ContextDomainHandler(server);
+//
+//    Request request = new Request('0', ContextDomainHandler.SET_PRIORITY_SOURCES_NAME);
+//    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
+//    request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
+//    Response response = handler.handleRequest(request);
+//    expect(response.toJson(), equals({
+//      Response.ID: '0'
+//    }));
+//  }
 
-    Request request = new Request('0', ContextDomainHandler.SET_PRIORITY_SOURCES_NAME);
-    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
-    Response response = handler.handleRequest(request);
-    expect(response.toJson(), equals({
-      Response.ID: '0'
-    }));
-  }
-
-  static void setPrioritySources_nonEmpty() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
-    String contextId = _createContext(server);
-    List<String> sources = new List<String>();
-    sources.add("foo.dart");
-    ContextDomainHandler handler = new ContextDomainHandler(server);
-
-    Request request = new Request('0', ContextDomainHandler.SET_PRIORITY_SOURCES_NAME);
-    request.setParameter(ContextDomainHandler.CONTEXT_ID_PARAM, contextId);
-    request.setParameter(ContextDomainHandler.SOURCES_PARAM, sources);
-    Response response = handler.handleRequest(request);
-    expect(response.toJson(), equals({
-      Response.ID: '0'
-    }));
-  }
-
-  static String _createContext(AnalysisServer server) {
-    String contextId = "context${contextIdCounter++}";
-    ServerDomainHandler handler = new ServerDomainHandler(server);
-    Request request = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
-    Response response = handler.handleRequest(request);
-    if (response.error != null) {
-      fail('Unexpected error: ${response.error.toJson()}');
-    }
-    return contextId;
-  }
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static String _createContext(AnalysisServer server) {
+//    String contextId = "context${contextIdCounter++}";
+//    ServerDomainHandler handler = new ServerDomainHandler(server);
+//    Request request = new Request('0', ServerDomainHandler.CREATE_CONTEXT_METHOD);
+//    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+//    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, contextId);
+//    Response response = handler.handleRequest(request);
+//    if (response.error != null) {
+//      fail('Unexpected error: ${response.error.toJson()}');
+//    }
+//    return contextId;
+//  }
 }

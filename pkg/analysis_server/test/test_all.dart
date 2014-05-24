@@ -14,6 +14,7 @@ import 'socket_server_test.dart' as socket_server_test;
 /// Utility for manually running all tests
 main() {
   group('analysis_server', () {
+    groupSep = ' | ';
     analysis_server_test.main();
     channel_test.main();
     domain_context_test.main();

@@ -83,6 +83,11 @@ class AnalysisServer {
   final List<AnalysisContext> contextWorkQueue = new List<AnalysisContext>();
 
   /**
+   * A set of the [ServerService]s to send notifications for.
+   */
+  Set<ServerService> serverServices = new Set<ServerService>();
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
@@ -240,4 +245,16 @@ class AnalysisServer {
       AnalysisEngine.instance.logger.logError("${ex}\n${st}");
     });
   }
+}
+
+
+/**
+ * An enumeration of the services provided by the server domain.
+ */
+class ServerService extends Enum2<ServerService> {
+  static const ServerService STATUS = const ServerService('STATUS', 0);
+
+  static const List<ServerService> VALUES = const [STATUS];
+
+  const ServerService(String name, int ordinal) : super(name, ordinal);
 }

@@ -26,7 +26,8 @@ main() {
         AnalysisServerTest.addContextToWorkQueue_whenNotRunning);
     test('addContextToWorkQueue_whenRunning',
         AnalysisServerTest.addContextToWorkQueue_whenRunning);
-    test('createContext', AnalysisServerTest.createContext);
+    // TODO(scheglov) remove or move to the 'analysis' domain
+//    test('createContext', AnalysisServerTest.createContext);
     test('echo', AnalysisServerTest.echo);
     test('errorToJson_formattingApplied',
         AnalysisServerTest.errorToJson_formattingApplied);
@@ -102,17 +103,18 @@ class AnalysisServerTest {
         context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(1)));
   }
 
-  static Future createContext() {
-    server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
-    return channel.sendRequest(request)
-        .then((Response response) {
-          expect(response.id, equals('my27'));
-          expect(response.error, isNull);
-        });
-  }
+  // TODO(scheglov) remove or move to the 'analysis' domain
+//  static Future createContext() {
+//    server.handlers = [new ServerDomainHandler(server)];
+//    var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
+//    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
+//    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
+//    return channel.sendRequest(request)
+//        .then((Response response) {
+//          expect(response.id, equals('my27'));
+//          expect(response.error, isNull);
+//        });
+//  }
 
   static Future echo() {
     server.handlers = [new EchoHandler()];
@@ -182,7 +184,6 @@ class AnalysisServerTest {
   static Future shutdown() {
     server.handlers = [new ServerDomainHandler(server)];
     var request = new Request('my28', ServerDomainHandler.SHUTDOWN_METHOD);
-    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, '');
     return channel.sendRequest(request)
         .then((Response response) {
           expect(response.id, equals('my28'));
