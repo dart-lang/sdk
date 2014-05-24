@@ -503,7 +503,7 @@ void main() {
 
     test('returns the relative path for file URIs', () {
       expect(new Frame.parseVM('#0 Foo (foo/bar.dart:0:0)').library,
-          equals('foo/bar.dart'));
+          equals(path.join('foo', 'bar.dart')));
     });
   });
 
@@ -514,7 +514,7 @@ void main() {
               '(http://dartlang.org/thing.dart:5:10)').location,
           equals('http://dartlang.org/thing.dart 5:10'));
       expect(new Frame.parseVM('#0 Foo (foo/bar.dart:1:2)').location,
-          equals('foo/bar.dart 1:2'));
+          equals('${path.join('foo', 'bar.dart')} 1:2'));
     });
   });
 
