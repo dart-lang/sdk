@@ -136,7 +136,7 @@ class Request {
    * Return the value of the parameter with the given [name], or [defaultValue]
    * if there is no such parameter associated with this request.
    */
-  RequestDatum getParameter(String name, dynamic defaultValue) {
+  RequestDatum getParameter(String name, defaultValue) {
     Object value = params[name];
     if (value == null) {
       return new RequestDatum(this, "default for $name", defaultValue);
@@ -243,7 +243,7 @@ class RequestDatum {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
-    datum.forEach((String key, dynamic value) {
+    datum.forEach((String key, value) {
       f(key, new RequestDatum(request, "$path.$key", value));
     });
   }
@@ -467,12 +467,12 @@ class Response {
    */
   factory Response.fromJson(Map<String, Object> json) {
     try {
-      var id = json[Response.ID];
+      Object id = json[Response.ID];
       if (id is! String) {
         return null;
       }
-      var error = json[Response.ERROR];
-      var result = json[Response.RESULT];
+      Object error = json[Response.ERROR];
+      Object result = json[Response.RESULT];
       Response response;
       if (error is Map) {
         response = new Response(id, new RequestError.fromJson(error));
@@ -729,7 +729,7 @@ class Notification {
   factory Notification.fromJson(Map<String, Object> json) {
     try {
       String event = json[Notification.EVENT];
-      var params = json[Notification.PARAMS];
+      Object params = json[Notification.PARAMS];
       Notification notification = new Notification(event);
       if (params is Map) {
         params.forEach((String key, Object value) {

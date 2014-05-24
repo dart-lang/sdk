@@ -29,7 +29,7 @@ class SocketServer {
    */
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      var error = new RequestError.serverAlreadyStarted();
+      RequestError error = new RequestError.serverAlreadyStarted();
       serverChannel.sendResponse(new Response('', error));
       serverChannel.listen((Request request) {
         serverChannel.sendResponse(new Response(request.id, error));
