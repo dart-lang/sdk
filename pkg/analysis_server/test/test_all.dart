@@ -11,7 +11,9 @@ import 'domain_server_test.dart' as domain_server_test;
 import 'protocol_test.dart' as protocol_test;
 import 'socket_server_test.dart' as socket_server_test;
 
-/// Utility for manually running all tests
+/**
+ * Utility for manually running all tests.
+ */
 main() {
   group('analysis_server', () {
     groupSep = ' | ';

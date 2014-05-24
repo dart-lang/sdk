@@ -4,24 +4,30 @@ import 'dart:mirrors';
 
 import 'package:unittest/unittest.dart' show group, test;
 
-/// Use [runTest] annotation to indicate that method is a test method.
-/// Alternatively method name can have the `test` prefix.
+/**
+ * Use [runTest] annotation to indicate that method is a test method.
+ * Alternatively method name can have the `test` prefix.
+ */
 const runTest = const _RunTest();
 
 class _RunTest {
   const _RunTest();
 }
 
-/// Creates a new named group of tests with the name of the given [Type], then
-/// adds new tests using [addTestMethods].
+/**
+ * Creates a new named group of tests with the name of the given [Type], then
+ * adds new tests using [addTestMethods].
+ */
 addTestSuite(Type type) {
   group(type.toString(), () {
     addTestMethods(type);
   });
 }
 
-/// Creates a new test case for the each static method with the name starting
-/// with `test` or having the [runTest] annotation.
+/**
+ * Creates a new test case for the each static method with the name starting
+ * with `test` or having the [runTest] annotation.
+ */
 addTestMethods(Type type) {
   var typeMirror = reflectClass(type);
   typeMirror.staticMembers.forEach((methodSymbol, method) {
