@@ -134,6 +134,8 @@ class Request extends Message {
       throw new ArgumentError('requstedUri must be an absolute URI.');
     }
 
+    // TODO(kevmoo) if defined, check that scriptName is a fully-encoded, valid
+    // path component
     if (this.scriptName.isNotEmpty && !this.scriptName.startsWith('/')) {
       throw new ArgumentError('scriptName must be empty or start with "/".');
     }
@@ -168,13 +170,33 @@ class Request extends Message {
   ///
   /// All other context and header values from the [Request] will be included
   /// in the copied [Request] unchanged.
-  Request change({Map<String, String> headers, Map<String, Object> context}) {
+  ///
+  /// If [scriptName] is provided and [url] is not, [scriptName] must be a
+  /// prefix of [this.url]. [url] will default to [this.url] with this prefix
+  /// removed. Useful for routing middleware that sends requests to an inner
+  /// [Handler].
+  Request change({Map<String, String> headers, Map<String, Object> context,
+    String scriptName, Uri url}) {
     headers = updateMap(this.headers, headers);
     context = updateMap(this.context, context);
 
+    if (scriptName != null && url == null) {
+      var path = this.url.path;
+      if (path.startsWith(scriptName)) {
+        path = path.substring(scriptName.length);
+        url = new Uri(path: path, query: this.url.query);
+      } else {
+        throw new ArgumentError('If scriptName is provided without url, it must'
+            ' be a prefix of the existing url path.');
+      }
+    }
+
+    if (url == null) url = this.url;
+    if (scriptName == null) scriptName = this.scriptName;
+
     return new Request(this.method, this.requestedUri,
-        protocolVersion: this.protocolVersion, headers: headers, url: this.url,
-        scriptName: this.scriptName, body: this.read(), context: context);
+        protocolVersion: this.protocolVersion, headers: headers, url: url,
+        scriptName: scriptName, body: this.read(), context: context);
   }
 
   /// Takes control of the underlying request socket.
@@ -233,8 +255,7 @@ class _OnHijack {
 /// [ArgumentError].
 Uri _computeUrl(Uri requestedUri, Uri url, String scriptName) {
   if (url == null && scriptName == null) {
-    return new Uri(path: requestedUri.path, query: requestedUri.query,
-        fragment: requestedUri.fragment);
+    return new Uri(path: requestedUri.path, query: requestedUri.query);
   }
 
   if (url != null && scriptName != null) {

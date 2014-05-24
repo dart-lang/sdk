@@ -1,3 +1,7 @@
+## 0.5.3
+
+* Add new named parameters to `Request.change`: `scriptName` and `url`.
+
 ## 0.5.2
 
 * Add a `Cascade` helper that runs handlers in sequence until one returns a
