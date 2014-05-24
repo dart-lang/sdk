@@ -59,7 +59,7 @@ Future<Set> loadTransformers(AssetEnvironment environment,
       if (error.type != 'IsolateSpawnException') throw error;
       // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
       // are fixed.
-      if (!error.message.split('\n')[1].endsWith("import '$uri';")) {
+      if (!error.message.split('\n')[1].startsWith("Failure getting $uri:")) {
         throw error;
       }
 
