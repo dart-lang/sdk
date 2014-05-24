@@ -2231,8 +2231,8 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 }
 
 
-void Assembler::SignFill(Register rd, Register rm) {
-  Asr(rd, rm, 31);
+void Assembler::SignFill(Register rd, Register rm, Condition cond) {
+  Asr(rd, rm, 31, cond);
 }
 
 

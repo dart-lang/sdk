@@ -1447,7 +1447,10 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   }
 
   // Store general purpose registers with the highest register number at the
-  // lowest address.
+  // lowest address. The order in which the registers are pushed must match the
+  // order in which the registers are encoded in the safe point's stack map.
+  // NOTE: Using ARM's multi-register push, pushes the registers in the wrong
+  // order.
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {
@@ -1459,7 +1462,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   // General purpose registers have the highest register number at the
-  // lowest address.
+  // lowest address. The order in which the registers are popped must match the
+  // order in which the registers are pushed in SaveLiveRegisters.
   for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
     Register reg = static_cast<Register>(reg_idx);
     if (locs->live_registers()->ContainsRegister(reg)) {

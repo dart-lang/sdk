@@ -706,7 +706,7 @@ class Assembler : public ValueObject {
   void Rrx(Register rd, Register rm, Condition cond = AL);
 
   // Fill rd with the sign of rm.
-  void SignFill(Register rd, Register rm);
+  void SignFill(Register rd, Register rm, Condition cond = AL);
 
   void Vreciprocalqs(QRegister qd, QRegister qm);
   void VreciprocalSqrtqs(QRegister qd, QRegister qm);
