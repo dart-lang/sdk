@@ -249,6 +249,22 @@ class AnalysisServer {
 
 
 /**
+ * An enumeration of the services provided by the analysis domain.
+ */
+class AnalysisService extends Enum2<AnalysisService> {
+  static const AnalysisService ERRORS = const AnalysisService('ERRORS', 0);
+  static const AnalysisService HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
+  static const AnalysisService NAVIGATION = const AnalysisService('NAVIGATION', 2);
+  static const AnalysisService OUTLINE = const AnalysisService('OUTLINE', 3);
+
+  static const List<AnalysisService> VALUES =
+      const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
+
+  const AnalysisService(String name, int ordinal) : super(name, ordinal);
+}
+
+
+/**
  * An enumeration of the services provided by the server domain.
  */
 class ServerService extends Enum2<ServerService> {
