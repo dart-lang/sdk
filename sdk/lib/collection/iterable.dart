@@ -195,7 +195,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw new RangeError.value(index);
   }
 
-  String toString() => _iterableToString(this);
+  String toString() => IterableBase.iterableToShortString(this, '(', ')');
 }
 
 /**
@@ -402,138 +402,186 @@ abstract class IterableBase<E> implements Iterable<E> {
    * included from the start of the iterable.
    *
    * The conversion may omit calling `toString` on some elements if they
-   * are known to now occur in the output, and it may stop iterating after
+   * are known to not occur in the output, and it may stop iterating after
    * a hundred elements.
    */
-  String toString() => _iterableToString(this);
-}
+  String toString() => iterableToShortString(this, '(', ')');
 
-String _setToString(Set set) => _collectionToString(set, "{" , "}");
-
-String _iterableToString(Iterable iterable) =>
-    _collectionToString(iterable, "(", ")");
-
-String _collectionToString(Iterable iterable, String before, String after) {
-  if (_toStringVisiting.contains(iterable)) return "$before...$after";
-  _toStringVisiting.add(iterable);
-  List parts = [];
-  try {
-    _collectionPartsToStrings(iterable, parts);
-  } finally {
-    _toStringVisiting.remove(iterable);
-  }
-  return (new StringBuffer(before)
-              ..writeAll(parts, ", ")
-              ..write(after)).toString();
-}
-
-/** Convert elments of [iterable] to strings and store them in [parts]. */
-void _collectionPartsToStrings(Iterable iterable, List parts) {
-  /// Try to stay below this many characters.
-  const int LENGTH_LIMIT = 80;
-  /// Always at least this many elements at the start.
-  const int HEAD_COUNT = 3;
-  /// Always at least this many elements at the end.
-  const int TAIL_COUNT = 2;
-  /// Stop iterating after this many elements. Iterables can be infinite.
-  const int MAX_COUNT = 100;
-  // Per entry length overhead. It's for ", " for all after the first entry,
-  // and for "(" and ")" for the initial entry. By pure luck, that's the same
-  // number.
-  const int OVERHEAD = 2;
-  const int ELLIPSIS_SIZE = 3;  // "...".length.
-  int length = 0;
-  int count = 0;
-  Iterator it = iterable.iterator;
-  // Initial run of elements, at least HEAD_COUNT, and then continue until
-  // passing at most LENGTH_LIMIT characters.
-  while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
-    if (!it.moveNext()) {
-      return;
-    }
-    String next = "${it.current}";
-    parts.add(next);
-    length += next.length + OVERHEAD;
-    count++;
-  }
-
-  String penultimateString;
-  String ultimateString;
-
-  // Find last two elements. One or more of them may already be in the
-  // parts array. Include their length in `length`.
-  var penultimate = null;
-  var ultimate = null;
-  if (!it.moveNext()) {
-    if (count <= HEAD_COUNT + TAIL_COUNT) return;
-    ultimateString = parts.removeLast();
-    penultimateString = parts.removeLast();
-  } else {
-    penultimate = it.current;
-    count++;
-    if (!it.moveNext()) {
-      if (count <= HEAD_COUNT + 1) {
-        parts.add("$penultimate");
-        return;
+  /**
+   * Convert an `Iterable` to a string like [IterableBase.toString].
+   *
+   * Allows using other delimiters than '(' and ')'.
+   *
+   * Handles circular references where converting one of the elements
+   * to a string ends up converting [iterable] to a string again.
+   */
+  static String iterableToShortString(Iterable iterable,
+                                      [String leftDelimiter = '(',
+                                       String rightDelimiter = ')']) {
+    if (_toStringVisiting.contains(iterable)) {
+      if (leftDelimiter == "(" && rightDelimiter == ")") {
+        // Avoid creating a new string in the "common" case.
+        return "(...)";
       }
-      ultimateString = "$penultimate";
-      penultimateString = parts.removeLast();
-      length += ultimateString.length + OVERHEAD;
-    } else {
-      ultimate = it.current;
-      count++;
-      // Then keep looping, keeping the last two elements in variables.
-      assert(count < MAX_COUNT);
-      while (it.moveNext()) {
-        penultimate = ultimate;
-        ultimate = it.current;
-        count++;
-        if (count > MAX_COUNT) {
-          // If we haven't found the end before MAX_COUNT, give up.
-          // This cannot happen in the code above because each entry
-          // increases length by at least two, so there is no way to
-          // visit more than ~40 elements before this loop.
+      return "$leftDelimiter...$rightDelimiter";
+    }
+    List parts = [];
+    _toStringVisiting.add(iterable);
+    try {
+      _iterablePartsToStrings(iterable, parts);
+    } finally {
+      _toStringVisiting.remove(iterable);
+    }
+    return (new StringBuffer(leftDelimiter)
+                ..writeAll(parts, ", ")
+                ..write(rightDelimiter)).toString();
+  }
 
-          // Remove any surplus elements until length, including ", ...)",
-          // is at most LENGTH_LIMIT.
-          while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
-                 count > HEAD_COUNT) {
-            length -= parts.removeLast().length + OVERHEAD;
-            count--;
-          }
-          parts.add("...");
+  /**
+   * Converts an `Iterable` to a string.
+   *
+   * Converts each elements to a string, and separates the results by ", ".
+   * Then wraps the result in [leftDelimiter] and [rightDelimiter].
+   *
+   * Unlike [iterableToShortString], this conversion doesn't omit any
+   * elements or puts any limit on the size of the result.
+   *
+   * Handles circular references where converting one of the elements
+   * to a string ends up converting [iterable] to a string again.
+   */
+  static String iterableToFullString(Iterable iterable,
+                                     [String leftDelimiter = '(',
+                                      String rightDelimiter = ')']) {
+    if (_toStringVisiting.contains(iterable)) {
+      return "$leftDelimiter...$rightDelimiter";
+    }
+    StringBuffer buffer = new StringBuffer(leftDelimiter);
+    _toStringVisiting.add(iterable);
+    try {
+      buffer.writeAll(iterable, ", ");
+    } finally {
+      _toStringVisiting.remove(iterable);
+    }
+    buffer.write(rightDelimiter);
+    return buffer.toString();
+  }
+
+  /** A set used to identify cyclic lists during toString() calls. */
+  static Set _toStringVisiting = new HashSet.identity();
+
+  /**
+   * Convert elments of [iterable] to strings and store them in [parts].
+   */
+  static void _iterablePartsToStrings(Iterable iterable, List parts) {
+    /*
+     * This is the complicated part of [iterableToShortString].
+     * It is extracted as a separate function to avoid having too much code
+     * inside the try/finally.
+     */
+    /// Try to stay below this many characters.
+    const int LENGTH_LIMIT = 80;
+    /// Always at least this many elements at the start.
+    const int HEAD_COUNT = 3;
+    /// Always at least this many elements at the end.
+    const int TAIL_COUNT = 2;
+    /// Stop iterating after this many elements. Iterables can be infinite.
+    const int MAX_COUNT = 100;
+    // Per entry length overhead. It's for ", " for all after the first entry,
+    // and for "(" and ")" for the initial entry. By pure luck, that's the same
+    // number.
+    const int OVERHEAD = 2;
+    const int ELLIPSIS_SIZE = 3;  // "...".length.
+
+    int length = 0;
+    int count = 0;
+    Iterator it = iterable.iterator;
+    // Initial run of elements, at least HEAD_COUNT, and then continue until
+    // passing at most LENGTH_LIMIT characters.
+    while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
+      if (!it.moveNext()) return;
+      String next = "${it.current}";
+      parts.add(next);
+      length += next.length + OVERHEAD;
+      count++;
+    }
+
+    String penultimateString;
+    String ultimateString;
+
+    // Find last two elements. One or more of them may already be in the
+    // parts array. Include their length in `length`.
+    var penultimate = null;
+    var ultimate = null;
+    if (!it.moveNext()) {
+      if (count <= HEAD_COUNT + TAIL_COUNT) return;
+      ultimateString = parts.removeLast();
+      penultimateString = parts.removeLast();
+    } else {
+      penultimate = it.current;
+      count++;
+      if (!it.moveNext()) {
+        if (count <= HEAD_COUNT + 1) {
+          parts.add("$penultimate");
           return;
         }
+        ultimateString = "$penultimate";
+        penultimateString = parts.removeLast();
+        length += ultimateString.length + OVERHEAD;
+      } else {
+        ultimate = it.current;
+        count++;
+        // Then keep looping, keeping the last two elements in variables.
+        assert(count < MAX_COUNT);
+        while (it.moveNext()) {
+          penultimate = ultimate;
+          ultimate = it.current;
+          count++;
+          if (count > MAX_COUNT) {
+            // If we haven't found the end before MAX_COUNT, give up.
+            // This cannot happen in the code above because each entry
+            // increases length by at least two, so there is no way to
+            // visit more than ~40 elements before this loop.
+
+            // Remove any surplus elements until length, including ", ...)",
+            // is at most LENGTH_LIMIT.
+            while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
+                   count > HEAD_COUNT) {
+              length -= parts.removeLast().length + OVERHEAD;
+              count--;
+            }
+            parts.add("...");
+            return;
+          }
+        }
+        penultimateString = "$penultimate";
+        ultimateString = "$ultimate";
+        length +=
+            ultimateString.length + penultimateString.length + 2 * OVERHEAD;
       }
-      penultimateString = "$penultimate";
-      ultimateString = "$ultimate";
-      length +=
-          ultimateString.length + penultimateString.length + 2 * OVERHEAD;
     }
-  }
 
-  // If there is a gap between the initial run and the last two,
-  // prepare to add an ellipsis.
-  String elision = null;
-  if (count > parts.length + TAIL_COUNT) {
-    elision = "...";
-    length += ELLIPSIS_SIZE + OVERHEAD;
-  }
-
-  // If the last two elements were very long, and we have more than
-  // HEAD_COUNT elements in the initial run, drop some to make room for
-  // the last two.
-  while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-    String lastPart = parts.removeLast();
-    length -= lastPart.length + OVERHEAD;
-    if (elision == null) {
+    // If there is a gap between the initial run and the last two,
+    // prepare to add an ellipsis.
+    String elision = null;
+    if (count > parts.length + TAIL_COUNT) {
       elision = "...";
       length += ELLIPSIS_SIZE + OVERHEAD;
     }
+
+    // If the last two elements were very long, and we have more than
+    // HEAD_COUNT elements in the initial run, drop some to make room for
+    // the last two.
+    while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
+      length -= parts.removeLast().length + OVERHEAD;
+      if (elision == null) {
+        elision = "...";
+        length += ELLIPSIS_SIZE + OVERHEAD;
+      }
+    }
+    if (elision != null) {
+      parts.add(elision);
+    }
+    parts.add(penultimateString);
+    parts.add(ultimateString);
   }
-  if (elision != null) {
-    parts.add(elision);
-  }
-  parts.add(penultimateString);
-  parts.add(ultimateString);
 }

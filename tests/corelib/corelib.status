@@ -56,8 +56,6 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
-collection_to_string_test/none: Pass,Fail # bug 13647 (test is random, and might not encounter the error on every run)
-collection_to_string_test/01: Pass # Should be Pass,Fail,OK when the test above stops failing.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
@@ -83,8 +81,6 @@ unicode_test: Fail # Issue 14694
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533
-collection_to_string_test/none: Pass, Fail # Issue 13648 (test is random, and might not encounter the error on every run)
-collection_to_string_test/01: Pass # Should be Pass,Fail,OK when the test above stops failing.
 
 big_integer_vm_test: RuntimeError, OK # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.

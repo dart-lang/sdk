@@ -326,7 +326,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool get isNotEmpty => !isEmpty;
 
-  String toString() => IterableMixinWorkaround.toStringIterable(this, '[', ']');
+  String toString() => ListBase.listToString(this);
 
   List<E> toList({ bool growable: true }) {
     if (growable) {

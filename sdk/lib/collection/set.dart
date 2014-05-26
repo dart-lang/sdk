@@ -131,7 +131,7 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  String toString() => _setToString(this);
+  String toString() => IterableBase.iterableToFullString(this, '{', '}');
 
   // Copied from IterableMixin.
   // Should be inherited if we had multi-level mixins.
@@ -298,4 +298,13 @@ abstract class SetMixin<E> implements Set<E> {
  * `clear` in constant time. The default implementation works by removing every
  * element.
  */
-abstract class SetBase<E> = Object with SetMixin<E>;
+abstract class SetBase<E> extends SetMixin<E> {
+  /**
+   * Convert a `Set` to a string as `{each, element, as, string}`.
+   *
+   * Handles circular references where converting one of the elements
+   * to a string ends up converting [set] to a string again.
+   */
+  static String setToString(Set set) =>
+      IterableBase.iterableToFullString(set, '{', '}');
+}

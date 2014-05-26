@@ -23,6 +23,7 @@ main() {
   rand = new Math.Random();
   smokeTest();
   exactTest();
+  inexactTest();
 }
 
 
@@ -85,11 +86,34 @@ void exactTest() {
 
     StringBuffer stringRep = new StringBuffer();
     Object o = randomCollection(size, stringRep, exact:true);
-    String expected = stringRep.toString();
-    String actual = o.toString();
-    print("Expect: $expected");
-    print("Actual: $actual");
-    Expect.equals(expected, actual);
+    print(stringRep);
+    print(o);
+    Expect.equals(o.toString(), stringRep.toString());
+  }
+}
+
+/**
+ * Generate a bunch of random collections (including Maps), and test that
+ * there string form is as expected. The collections include collections
+ * as elements, keys, and values, and include recursive references.
+ *
+ * This test includes collections with ill-defined iteration orders (i.e.,
+ * HashSet, HashMap). As a consequence, it can't use equality tests on the
+ * string form. Instead, it performs equality tests on their "alphagrams."
+ * This might allow false positives, but it does give a fair amount of
+ * confidence.
+ */
+void inexactTest() {
+  for (int i = 0; i < NUM_TESTS; i++) {
+    // Choose a size from 0 to MAX_COLLECTION_SIZE, favoring larger sizes
+    int size =
+        Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
+
+    StringBuffer stringRep = new StringBuffer();
+    Object o = randomCollection(size, stringRep, exact:false);
+    print(stringRep);
+    print(o);
+    Expect.equals(alphagram(o.toString()), alphagram(stringRep.toString()));
   }
 }
 
@@ -114,7 +138,7 @@ Object randomCollection(int size, StringBuffer stringRep, {bool exact}) {
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
 Object randomCollectionHelper(int size, bool exact, StringBuffer stringRep,
-                              List beingMade) {
+    List beingMade) {
   double interfaceFrac = rand.nextDouble();
 
   if (exact) {
@@ -164,8 +188,7 @@ Queue randomQueue(int size, bool exact, StringBuffer stringRep, List beingMade){
  */
 Set randomSet(int size, bool exact, StringBuffer stringRep, List beingMade) {
   // Until we have LinkedHashSet, method will only be called with exact==true
-  return populateRandomCollection(
-      size, exact, stringRep, beingMade, new Set(), "{}");
+  return populateRandomSet(size, exact, stringRep, beingMade, new Set());
 }
 
 /**
@@ -188,7 +211,7 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
  * recursive references.
  *
  * If exact is true, the elements of the returned collections will not be,
- * and will not contain, a collection with undefined iteration order
+ * and will not contain a collection with ill-defined iteration order
  * (i.e., a HashSet or HashMap).
  */
 populateRandomCollection(int size, bool exact,
@@ -204,19 +227,15 @@ populateRandomCollection(int size, bool exact,
     if (i != 0) stringRep.write(', ');
     coll.add(randomElement(random(size), exact, stringRep, beingMade));
   }
-  if (size > 5 && coll is! Map
-      // Lists don't yet use ListMixin or its toString.
-      // Remove this line when they do.
-          && coll is! List          /// 01: ok
-     ) {
+  if (size > 5 && delimiters == "()") {
     const int MAX_LENGTH = 80;
     const int MIN_COUNT = 3;
     const int MAX_COUNT = 100;
-    // It may omit some elements.
+    // It's an iterable, it may omit some elements.
     int end = stringRep.length;
     if (size > MAX_COUNT) {
-      // Last two elements are also omitted, just find the first three elements
-      // or first 60 characters.
+      // Last two elements are also omitted, just find the first three or
+      // first 60 characters.
       for (int i = MIN_COUNT; i < size; i++) {
         int startIndex = indices[i];
         if (startIndex - start > MAX_LENGTH - 6) {  // Limit - ", ...)".length.
@@ -238,9 +257,6 @@ populateRandomCollection(int size, bool exact,
         if (lengthAfter + ellipsisSize + lastTwoLength > MAX_LENGTH - 1) {
           // Omit this element and everything up to the last two.
           int elementStart = indices[i];
-          if (elementStart + ellipsisSize + lastTwoLength >= stringRep.length) {
-            break;
-          }
           // Rewrite string buffer by copying it out, clearing, and putting
           // the parts back in.
           String buffer = stringRep.toString();
@@ -260,6 +276,22 @@ populateRandomCollection(int size, bool exact,
   beingMade.removeLast();
   return coll;
 }
+
+/** Like populateRandomCollection, but for sets (elements must be hashable) */
+Set populateRandomSet(int size, bool exact, StringBuffer stringRep,
+    List beingMade, Set set) {
+  stringRep.write('{');
+
+  for (int i = 0; i < size; i++) {
+    if (i != 0) stringRep.write(', ');
+    set.add(i);
+    stringRep.write(i);
+  }
+
+  stringRep.write('}');
+  return set;
+}
+
 
 /** Like populateRandomCollection, but for maps. */
 Map populateRandomMap(int size, bool exact, StringBuffer stringRep,
@@ -322,4 +354,12 @@ int random(int max) {
 /** Returns a random boolean value. */
 bool randomBool() {
   return rand.nextBool();
+}
+
+/** Returns the alphabetized characters in a string. */
+String alphagram(String s) {
+  // Calling [toList] to convert unmodifiable list to normal list.
+  List<int> chars = s.codeUnits.toList();
+  chars.sort((int a, int b) => a - b);
+  return new String.fromCharCodes(chars);
 }
