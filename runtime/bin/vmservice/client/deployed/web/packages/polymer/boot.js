@@ -2,55 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Bootstrap to initialize polymer applications. This library is will be
-/// replaced by boot.dart in the near future (see dartbug.com/18007).
+/// Experimental bootstrap to initialize polymer applications. This library is
+/// not used by default, and may be replaced by Dart code in the near future.
 ///
 /// This script contains logic to bootstrap polymer apps during development. It
-/// internally discovers special Dart script tags through HTML imports, and
-/// constructs a new entrypoint for the application that is then launched in an
-/// isolate.
+/// internally discovers Dart script tags through HTML imports, and constructs
+/// a new entrypoint for the application that is then launched in an isolate.
 ///
 /// For each script tag found, we will load the corresponding Dart library and
 /// execute all methods annotated with `@initMethod` and register all classes
 /// labeled with `@CustomTag`. We keep track of the order of imports and execute
 /// initializers in the same order.
 ///
-/// All polymer applications use this bootstrap logic. It is included
-/// automatically when you include the polymer.html import:
+/// You can this experimental bootstrap logic by including the
+/// polymer_experimental.html import, instead of polymer.html:
 ///
-///    <link rel="import" href="packages/polymer/polymer.html">
+///    <link rel="import" href="packages/polymer/polymer_experimental.html">
 ///
-/// There are two important changes compared to previous versions of polymer
-/// (0.10.0-pre.6 and older):
-///
-///   * Use 'application/dart;component=1' instead of 'application/dart':
-///   Dartium already limits to have a single script tag per document, but it
-///   will be changing semantics soon and make them even stricter. Multiple
-///   script tags are not going to be running on the same isolate after this
-///   change. For polymer applications we'll use a parameter on the script tags
-///   mime-type to prevent Dartium from loading them separately. Instead this
-///   bootstrap script combines those special script tags and creates the
-///   application Dartium needs to run.
-///
-//    If you had:
-///
-///      <polymer-element name="x-foo"> ...
-///      <script type="application/dart" src="x_foo.dart'></script>
-///
-///   Now you need to write:
-///
-///      <polymer-element name="x-foo"> ...
-///      <script type="application/dart;component=1" src="x_foo.dart'></script>
-///
-///   * `initPolymer` is gone: we used to initialize applications in two
-///   possible ways: using `init.dart` or invoking initPolymer in your main. Any
-///   of these initialization patterns can be replaced to use an `@initMethod`
-///   instead. For example, If you need to run some initialization code before
-///   any other code is executed, include a "application/dart;component=1"
-///   script tag that contains an initializer method with the body of your old
-///   main, and make sure this tag is placed above other html-imports that load
-///   the rest of the application. Initialization methods are executed in the
-///   order in which they are discovered in the HTML document.
+/// This bootstrap replaces `initPolymer` so Dart code might need to be changed
+/// too. If you loaded init.dart directly, you can remove it. But if you invoke
+/// initPolymer in your main, you should remove that call and change to use
+/// `@initMethod` instead. The current bootstrap doesn't support having Dart
+/// script tags in the main page, so you may need to move some code into an HTML
+/// import. For example, If you need to run some initialization code before any
+/// other code is executed, include an HTML import to an html file with a
+/// "application/dart" script tag that contains an initializer
+/// method with the body of your old main, and make sure this tag is placed
+/// above other html-imports that load the rest of the application.
+/// Initialization methods are executed in the order in which they are
+/// discovered in the HTML document.
 (function() {
   // Only run in Dartium.
   if (navigator.userAgent.indexOf('(Dart)') === -1) return;
@@ -91,7 +71,7 @@
         '}\n');
   }
 
-  function discoverScripts(content, state) {
+  function discoverScripts(content, state, importedDoc) {
     if (!state) {
       // internal state tracking documents we've visited, the resulting list of
       // scripts, and any tags with the incorrect mime-type.
@@ -111,12 +91,12 @@
 
         if (state.seen[node.href]) continue;
         state.seen[node.href] = node;
-        discoverScripts(node.import, state);
+        discoverScripts(node.import, state, true);
       } else if (node instanceof HTMLScriptElement) {
-        if (node.type == 'application/dart;component=1') {
+        if (node.type != 'application/dart') continue;
+        if (importedDoc) {
           state.scripts.push(getScriptUrl(node));
-        }
-        if (node.type == 'application/dart') {
+        } else {
           state.badTags.push(node);
         }
       }
@@ -133,11 +113,11 @@
 
     var results = discoverScripts(document);
     if (results.badTags.length > 0) {
-      console.warn('Dartium currently only allows a single Dart script tag '
-        + 'per application, and in the future it will run them in '
-        + 'separtate isolates.  To prepare for this all the following '
-        + 'script tags need to be updated to use the mime-type '
-        + '"application/dart;component=1" instead of "application/dart":');
+      console.warn('The experimental polymer boostrap does not support '
+        + 'having script tags in the main document. You can move the script '
+        + 'tag to an HTML import instead. Also make sure your script tag '
+        + 'doesn\'t have a main, but a top-level method marked with '
+        + '@initMethod instead');
       for (var i = 0; i < results.badTags.length; i++) {
         console.warn(results.badTags[i]);
       }

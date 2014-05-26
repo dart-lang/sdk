@@ -10,25 +10,24 @@ feature follow the steps:
 
 1. Open runtime/bin/vmservice/client in the Dart Editor
 2. Run pub upgrade
-3. Run pub serve in runtime/bin/vmservice/client
-4. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
-5. Connect to http://localhost:8080 in Dartium.
+3. Run dart --enable-vm-service --pause-isolates-on-exit script.dart
+4. Run index.html in Dartium
 
 At this point you should see the initial Observatory UI and that
-it is communicating with the VM you launched in step 4.
+it is communicating with the VM you launched in step 3.
 
 Continue to develop and iterate until you're ready to upload your change
 for review. Upload your change and get an LGTM.
 
-6. Run pub build
-7. Run ./deploy.sh
+5. Run pub build
+6. Run ./deploy.sh
 
 At this point you should rebuild your VM and:
 
-8. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
+7. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
 
 In a non-Dart enabled browser navigate to localhost:8181 and ensure
 that your feature works after being compiled to JavaScript.
 
-9. Commit your change
+8. Commit your change
 
