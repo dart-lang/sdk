@@ -19,7 +19,7 @@ class ThreadInterrupterWin : public AllStatic {
   static bool GrabRegisters(HANDLE handle, InterruptedThreadState* state) {
     CONTEXT context;
     memset(&context, 0, sizeof(context));
-    context.ContextFlags = CONTEXT_FULL;
+    context.ContextFlags = CONTEXT_CONTROL;
     if (GetThreadContext(handle, &context) != 0) {
 #if defined(TARGET_ARCH_IA32)
       state->pc = static_cast<uintptr_t>(context.Eip);
@@ -41,6 +41,7 @@ class ThreadInterrupterWin : public AllStatic {
   static void Interrupt(InterruptableThreadState* state) {
     ASSERT(!Thread::Compare(GetCurrentThreadId(), state->id));
     HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
+                               THREAD_QUERY_INFORMATION |
                                THREAD_SUSPEND_RESUME,
                                false,
                                state->id);

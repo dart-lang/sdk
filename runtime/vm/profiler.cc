@@ -1687,7 +1687,7 @@ class ProfilerNativeStackWalker : public ValueObject {
       // Stack pointer should not be above frame pointer.
       return 1;
     }
-    intptr_t gap = original_fp_ - original_sp_;
+    const intptr_t gap = original_fp_ - original_sp_;
     if (gap >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
@@ -1698,8 +1698,19 @@ class ProfilerNativeStackWalker : public ValueObject {
       // the isolates stack limit.
       lower_bound_ = original_sp_;
     }
-    // Store the PC marker for the top frame.
-    sample_->set_pc_marker(GetCurrentFramePcMarker(fp));
+#if defined(TARGET_OS_WINDOWS)
+    // If the original_fp_ is at the beginning of a page, it may be unsafe
+    // to access the pc marker, because we are reading it from a different
+    // thread on Windows. The next page may be a guard page.
+    const intptr_t kPageMask = kMaxStep - 1;
+    bool safe_to_read_pc_marker = (original_fp_ & kPageMask) != 0;
+#else
+    bool safe_to_read_pc_marker = true;
+#endif
+    if (safe_to_read_pc_marker && (gap > 0)) {
+      // Store the PC marker for the top frame.
+      sample_->set_pc_marker(GetCurrentFramePcMarker(fp));
+    }
     int i = 0;
     for (; i < FLAG_profile_depth; i++) {
       if (FLAG_profile_verify_stack_walk) {
