@@ -151,6 +151,7 @@ void Profiler::BeginExecution(Isolate* isolate) {
     return;
   }
   ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
+  ThreadInterrupter::WakeUp();
 }
 
 
