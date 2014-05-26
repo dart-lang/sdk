@@ -974,25 +974,27 @@ CompileType LoadFieldInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
+  const AbstractType* abstract_type = NULL;
   if (FLAG_enable_type_checks) {
     ASSERT(!type().HasResolvedTypeClass() ||
            !Field::IsExternalizableCid(Class::Handle(
                 type().type_class()).id()));
-    return CompileType::FromAbstractType(type());
+    abstract_type = &type();
   }
 
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
+    bool is_nullable = field_->is_nullable();
     intptr_t field_cid =  field_->guarded_cid();
     if (Field::IsExternalizableCid(field_cid)) {
       // We cannot assume that the type of the value in the field has not
       // changed on the fly.
       field_cid = kDynamicCid;
     }
-    return CompileType::CreateNullable(field_->is_nullable(), field_cid);
+    return CompileType(is_nullable, field_cid, abstract_type);
   }
 
   ASSERT(!Field::IsExternalizableCid(result_cid_));
-  return CompileType::FromCid(result_cid_);
+  return CompileType::Create(result_cid_, *abstract_type);
 }
 
 

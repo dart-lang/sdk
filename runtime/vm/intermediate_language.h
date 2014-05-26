@@ -366,7 +366,7 @@ class CompileType : public ValueObject {
   // Create a new CompileType representing given abstract type. By default
   // values as assumed to be nullable.
   static CompileType FromAbstractType(const AbstractType& type,
-                                       bool is_nullable = kNullable);
+                                      bool is_nullable = kNullable);
 
   // Create a new CompileType representing an value with the given class id.
   // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
