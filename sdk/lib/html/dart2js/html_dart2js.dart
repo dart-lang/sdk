@@ -23345,9 +23345,10 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @DocsEditable()
   final Element activeElement;
 
+  @JSName('applyAuthorStyles')
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  bool applyAuthorStyles;
+  bool _applyAuthorStyles;
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
@@ -23414,6 +23415,14 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @deprecated
   void set resetStyleInheritance(bool value) {
     this._resetStyleInheritance = value;
+  }
+
+  @deprecated
+  bool get applyAuthorStyles => this._applyAuthorStyles;
+
+  @deprecated
+  void set applyAuthorStyles(bool value) {
+    this._applyAuthorStyles = value;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

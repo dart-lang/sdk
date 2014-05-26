@@ -24818,11 +24818,11 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  bool get applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
+  bool get _applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  void set applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
+  void set _applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
@@ -24881,27 +24881,39 @@ class ShadowRoot extends DocumentFragment {
 
   static final bool supported = true;
 
-  static bool _resetStyleInheritanceDeprecationReported = false;
-  static void _resetStyleInheritanceDeprecationReport() {
-    if (!_resetStyleInheritanceDeprecationReported) {
+  static bool _shadowRootDeprecationReported = false;
+  static void _shadowRootDeprecationReport() {
+    if (!_shadowRootDeprecationReported) {
       window.console.warn('''
-ShadowRoot.resetStyleInheritance is now deprecated in dart:html.
-Please remove from your code.
+ShadowRoot.resetStyleInheritance and ShadowRoot.applyAuthorStyles now deprecated in dart:html.
+Please remove them from your code.
 ''');
-      _resetStyleInheritanceDeprecationReported = true;
+      _shadowRootDeprecationReported = true;
     }
   }
 
   @deprecated
   bool get resetStyleInheritance {
-    _resetStyleInheritanceDeprecationReport();
+    _shadowRootDeprecationReport();
     // Default value from when it was specified.
     return false;
   }
 
   @deprecated
   void set resetStyleInheritance(bool value) {
-    _resetStyleInheritanceDeprecationReport();
+    _shadowRootDeprecationReport();
+  }
+
+  @deprecated
+  bool get applyAuthorStyles {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set applyAuthorStyles(bool value) {
+    _shadowRootDeprecationReport();
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
