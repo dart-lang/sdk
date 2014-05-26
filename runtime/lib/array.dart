@@ -14,7 +14,7 @@ class _List<E> implements List<E> {
   void operator []=(int index, E value) native "List_setIndexed";
 
   String toString() {
-    return IterableMixinWorkaround.toStringIterable(this,'[' , ']');
+    return ListBase.listToString(this);
   }
 
   int get length native "List_getLength";
@@ -443,7 +443,7 @@ class _ImmutableList<E> implements List<E> {
   }
 
   String toString() {
-    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
+    return ListBase.listToString(this);
   }
 
   int indexOf(Object element, [int start = 0]) {

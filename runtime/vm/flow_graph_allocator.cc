@@ -135,7 +135,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       Instruction* current = it.Current();
 
       // Initialize location summary for instruction.
-      current->InitializeLocationSummary(true);  // Optimizing.
+      current->InitializeLocationSummary(Isolate::Current(), true);  // opt
       LocationSummary* locs = current->locs();
 
       // Handle definitions.
@@ -1913,7 +1913,7 @@ void FlowGraphAllocator::MarkAsObjectAtSafepoints(LiveRange* range) {
          safepoint != NULL;
          safepoint = safepoint->next()) {
       // Mark the stack slot as having an object.
-      safepoint->locs()->stack_bitmap()->Set(stack_index, true);
+      safepoint->locs()->SetStackBit(stack_index);
     }
     range = range->next_sibling();
   }

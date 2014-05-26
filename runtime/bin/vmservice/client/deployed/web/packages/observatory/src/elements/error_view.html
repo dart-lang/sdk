@@ -4,7 +4,7 @@
 </head>
 <polymer-element name="error-view" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
     </nav-bar>
@@ -14,5 +14,5 @@
       <div class="well">{{ error.message }}</div>
     </div>
   </template>
-  <script type="application/dart" src="error_view.dart"></script>
+  <script type="application/dart;component=1" src="error_view.dart"></script>
 </polymer-element>

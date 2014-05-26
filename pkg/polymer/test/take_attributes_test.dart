@@ -49,8 +49,7 @@ class XObj extends PolymerElement {
   @observable var values = {};
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -119,4 +118,4 @@ main() {
     expect(queryXTag("#obj3").values, { 'movie': 'Buckaroo Banzai',
         'DOB': '07/31/1978' });
   });
-}
+});

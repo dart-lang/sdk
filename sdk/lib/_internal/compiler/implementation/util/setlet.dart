@@ -249,6 +249,20 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
 
   Setlet<E> difference(Set<E> other) =>
       new Setlet<E>.from(this.where((e) => !other.contains(e)));
+
+  Setlet<E> toSet() {
+    Setlet<E> result = new Setlet<E>();
+    if (_extra == null) {
+      result._contents = _contents;
+    } else if (_extra == _MARKER) {
+      result._extra = _MARKER;
+      result._contents = _contents.toSet();
+    } else {
+      result._extra = _extra;
+      result._contents = _contents.toList();
+    }
+    return result;
+  }
 }
 
 class _SetletMarker {

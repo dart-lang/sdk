@@ -20,6 +20,7 @@ export 'package:observatory/src/elements/heap_map.dart';
 export 'package:observatory/src/elements/heap_profile.dart';
 export 'package:observatory/src/elements/instance_ref.dart';
 export 'package:observatory/src/elements/instance_view.dart';
+export 'package:observatory/src/elements/io_view.dart';
 export 'package:observatory/src/elements/isolate_profile.dart';
 export 'package:observatory/src/elements/isolate_ref.dart';
 export 'package:observatory/src/elements/isolate_summary.dart';

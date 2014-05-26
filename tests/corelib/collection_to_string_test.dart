@@ -330,10 +330,10 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
     result = random(1000);
     stringRep.write(result);
   } else if (elementTypeFrac < 2/3) {
-    // Element Is a random (new) collection
+    // Element is a random (new) collection
     result = randomCollectionHelper(size, exact, stringRep, beingMade);
   } else {
-    // Element Is a random recursive ref
+    // Element is a random recursive ref
     result = beingMade[random(beingMade.length)];
     if (result is List) {
       stringRep.write('[...]');

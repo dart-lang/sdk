@@ -27,6 +27,8 @@ class MagicNumber {
 
 }
 
+const int DEFAULT_MAGIC_NUMBERS_MAX_LENGTH = 12;
+
 const List<MagicNumber> DEFAULT_MAGIC_NUMBERS = const [
   const MagicNumber('application/pdf', const [0x25, 0x50, 0x44, 0x46]),
   const MagicNumber('application/postscript', const [0x25, 0x51]),

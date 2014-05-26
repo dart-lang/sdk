@@ -577,10 +577,7 @@ class Object {
   RawObject* raw_;  // The raw object reference.
 
  protected:
-  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const {
-    JSONObject jsobj(stream);
-    jsobj.AddProperty("type", JSONType(ref));
-  }
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
 
  private:
   static intptr_t NextFieldOffset() {
@@ -4214,6 +4211,10 @@ class Instance : public Object {
   }
 
   static RawInstance* New(const Class& cls, Heap::Space space = Heap::kNew);
+
+  // Array/list element address computations.
+  static intptr_t DataOffsetFor(intptr_t cid);
+  static intptr_t ElementSizeFor(intptr_t cid);
 
  protected:
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;

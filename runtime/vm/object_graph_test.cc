@@ -98,7 +98,6 @@ TEST_CASE(ObjectGraph) {
     b = Array::null();
     ObjectGraph graph(isolate);
     // A retaining path should end like this: c <- b <- a <- ...
-    // c itself is not included in the returned path and length.
     {
       HANDLESCOPE(isolate);
       // Test null, empty, and length 1 array.
@@ -108,17 +107,20 @@ TEST_CASE(ObjectGraph) {
       intptr_t one_length = graph.RetainingPath(&c, path);
       EXPECT_EQ(null_length, empty_length);
       EXPECT_EQ(null_length, one_length);
-      EXPECT_LE(2, null_length);
+      EXPECT_LE(3, null_length);
     }
     {
       HANDLESCOPE(isolate);
-      Array& path = Array::Handle(Array::New(2, Heap::kNew));
+      Array& path = Array::Handle(Array::New(3, Heap::kNew));
       intptr_t length = graph.RetainingPath(&c, path);
-      EXPECT_LE(2, length);
+      EXPECT_LE(3, length);
+      Array& expected_c = Array::Handle();
+      expected_c ^= path.At(0);
       Array& expected_b = Array::Handle();
-      expected_b ^= path.At(0);
+      expected_b ^= path.At(1);
       Array& expected_a = Array::Handle();
-      expected_a ^= path.At(1);
+      expected_a ^= path.At(2);
+      EXPECT(expected_c.raw() == c.raw());
       EXPECT(expected_b.raw() == a.At(0));
       EXPECT(expected_a.raw() == a.raw());
     }

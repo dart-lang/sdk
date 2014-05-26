@@ -2205,7 +2205,17 @@ void Simulator::DecodeSIMDCopy(Instr* instr) {
 
   const VRegister vd = instr->VdField();
   const VRegister vn = instr->VnField();
-  if ((Q == 1)  && (op == 0) && (imm4 == 0)) {
+  const Register rn = instr->RnField();
+  const Register rd = instr->RdField();
+  if ((op == 0) && (imm4 == 7)) {
+    if (Q == 0) {
+      // Format(instr, "vmovrs 'rd, 'vn'idx5");
+      set_wregister(rd, get_vregisters(vn, idx5), R31IsZR);
+    } else {
+      // Format(instr, "vmovrd 'rd, 'vn'idx5");
+      set_register(rd, get_vregisterd(vn, idx5), R31IsZR);
+    }
+  } else if ((Q == 1)  && (op == 0) && (imm4 == 0)) {
     // Format(instr, "vdup'csz 'vd, 'vn'idx5");
     if (element_bytes == 4) {
       for (int i = 0; i < 4; i++) {
@@ -2214,6 +2224,29 @@ void Simulator::DecodeSIMDCopy(Instr* instr) {
     } else if (element_bytes == 8) {
       for (int i = 0; i < 2; i++) {
         set_vregisterd(vd, i, get_vregisterd(vn, idx5));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+      return;
+    }
+  } else if ((Q == 1) && (op == 0) && (imm4 == 3)) {
+    // Format(instr, "vins'csz 'vd'idx5, 'rn");
+    if (element_bytes == 4) {
+      set_vregisters(vd, idx5, get_wregister(rn, R31IsZR));
+    } else if (element_bytes == 8) {
+      set_vregisterd(vd, idx5, get_register(rn, R31IsZR));
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else if ((Q == 1) && (op == 0) && (imm4 == 1)) {
+    // Format(instr, "vdup'csz 'vd, 'rn");
+    if (element_bytes == 4) {
+      for (int i = 0; i < 4; i++) {
+        set_vregisters(vd, i, get_wregister(rn, R31IsZR));
+      }
+    } else if (element_bytes == 8) {
+      for (int i = 0; i < 2; i++) {
+        set_vregisterd(vd, i, get_register(rn, R31IsZR));
       }
     } else {
       UnimplementedInstruction(instr);
@@ -2250,55 +2283,148 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
   if (instr->Bit(22) == 0) {
     // f32 case.
     for (int idx = 0; idx < 4; idx++) {
-      const float vn_val = bit_cast<float, int32_t>(get_vregisters(vn, idx));
-      const float vm_val = bit_cast<float, int32_t>(get_vregisters(vm, idx));
-      float res = 0.0;
-      if ((U == 0) && (opcode == 0x1a)) {
+      const int32_t vn_val = get_vregisters(vn, idx);
+      const int32_t vm_val = get_vregisters(vm, idx);
+      const float vn_flt = bit_cast<float, int32_t>(vn_val);
+      const float vm_flt = bit_cast<float, int32_t>(vm_val);
+      int32_t res = 0.0;
+      if ((U == 0) && (opcode == 0x3)) {
+        if (instr->Bit(23) == 0) {
+          // Format(instr, "vand 'vd, 'vn, 'vm");
+          res = vn_val & vm_val;
+        } else {
+          // Format(instr, "vorr 'vd, 'vn, 'vm");
+          res = vn_val | vm_val;
+        }
+      } else if ((U == 1) && (opcode == 0x3)) {
+        // Format(instr, "veor 'vd, 'vn, 'vm");
+        res = vn_val ^ vm_val;
+      } else if ((U == 0) && (opcode == 0x10)) {
+        // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+        res = vn_val + vm_val;
+      } else if ((U == 1) && (opcode == 0x10)) {
+        // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+        res = vn_val - vm_val;
+      } else if ((U == 0) && (opcode == 0x1a)) {
         if (instr->Bit(23) == 0) {
           // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
-          res = vn_val + vm_val;
+          res = bit_cast<int32_t, float>(vn_flt + vm_flt);
         } else {
           // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
-          res = vn_val - vm_val;
+          res = bit_cast<int32_t, float>(vn_flt - vm_flt);
         }
       } else if ((U == 1) && (opcode == 0x1b)) {
         // Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
-        res = vn_val * vm_val;
+        res = bit_cast<int32_t, float>(vn_flt * vm_flt);
       } else if ((U == 1) && (opcode == 0x1f)) {
         // Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
-        res = vn_val / vm_val;
+        res = bit_cast<int32_t, float>(vn_flt / vm_flt);
       } else {
         UnimplementedInstruction(instr);
         return;
       }
-      set_vregisters(vd, idx, bit_cast<int32_t, float>(res));
+      set_vregisters(vd, idx, res);
     }
   } else {
     // f64 case.
     for (int idx = 0; idx < 2; idx++) {
-      const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, idx));
-      const double vm_val = bit_cast<double, int64_t>(get_vregisterd(vm, idx));
-      double res = 0.0;
-      if ((U == 0) && (opcode == 0x1a)) {
+      const int64_t vn_val = get_vregisterd(vn, idx);
+      const int64_t vm_val = get_vregisterd(vm, idx);
+      const double vn_dbl = bit_cast<double, int64_t>(vn_val);
+      const double vm_dbl = bit_cast<double, int64_t>(vm_val);
+      int64_t res = 0.0;
+      if ((U == 0) && (opcode == 0x3)) {
+        if (instr->Bit(23) == 0) {
+          // Format(instr, "vand 'vd, 'vn, 'vm");
+          res = vn_val & vm_val;
+        } else {
+          // Format(instr, "vorr 'vd, 'vn, 'vm");
+          res = vn_val | vm_val;
+        }
+      } else if ((U == 1) && (opcode == 0x3)) {
+        // Format(instr, "veor 'vd, 'vn, 'vm");
+        res = vn_val ^ vm_val;
+      } else if ((U == 0) && (opcode == 0x10)) {
+        // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+        res = vn_val + vm_val;
+      } else if ((U == 1) && (opcode == 0x10)) {
+        // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+        res = vn_val - vm_val;
+      } else if ((U == 0) && (opcode == 0x1a)) {
         if (instr->Bit(23) == 0) {
           // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
-          res = vn_val + vm_val;
+          res = bit_cast<int64_t, double>(vn_dbl + vm_dbl);
         } else {
           // Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
-          res = vn_val - vm_val;
+          res = bit_cast<int64_t, double>(vn_dbl - vm_dbl);
         }
       } else if ((U == 1) && (opcode == 0x1b)) {
         // Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
-        res = vn_val * vm_val;
+        res = bit_cast<int64_t, double>(vn_dbl * vm_dbl);
       } else if ((U == 1) && (opcode == 0x1f)) {
         // Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
-        res = vn_val / vm_val;
+        res = bit_cast<int64_t, double>(vn_dbl / vm_dbl);
       } else {
         UnimplementedInstruction(instr);
         return;
       }
-      set_vregisterd(vd, idx, bit_cast<int64_t, double>(res));
+      set_vregisterd(vd, idx, res);
     }
+  }
+}
+
+
+void Simulator::DecodeSIMDTwoReg(Instr* instr) {
+  const int32_t Q = instr->Bit(30);
+  const int32_t U = instr->Bit(29);
+  const int32_t op = instr->Bits(12, 5);
+  const int32_t sz = instr->Bits(22, 2);
+  const VRegister vd = instr->VdField();
+  const VRegister vn = instr->VnField();
+
+  if ((Q == 1) && (U == 1) && (op == 5)) {
+    // Format(instr, "vnot 'vd, 'vn");
+    for (int i = 0; i < 2; i++) {
+      set_vregisterd(vd, i, ~get_vregisterd(vn, i));
+    }
+  } else if ((U == 0) && (op == 0xf)) {
+    if (sz == 2) {
+      // Format(instr, "vabss 'vd, 'vn");
+      for (int i = 0; i < 4; i++) {
+        const int32_t vn_val = get_vregisters(vn, i);
+        const float vn_flt = bit_cast<float, int32_t>(vn_val);
+        set_vregisters(vd, i, bit_cast<int32_t, float>(fabsf(vn_flt)));
+      }
+    } else if (sz == 3) {
+      // Format(instr, "vabsd 'vd, 'vn");
+      for (int i = 0; i < 2; i++) {
+        const int64_t vn_val = get_vregisterd(vn, i);
+        const double vn_dbl = bit_cast<double, int64_t>(vn_val);
+        set_vregisterd(vd, i, bit_cast<int64_t, double>(fabs(vn_dbl)));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else if ((U == 1) && (op == 0xf)) {
+    if (sz == 2) {
+      // Format(instr, "vnegs 'vd, 'vn");
+      for (int i = 0; i < 4; i++) {
+        const int32_t vn_val = get_vregisters(vn, i);
+        const float vn_flt = bit_cast<float, int32_t>(vn_val);
+        set_vregisters(vd, i, bit_cast<int32_t, float>(-vn_flt));
+      }
+    } else if (sz == 3) {
+      // Format(instr, "vnegd 'vd, 'vn");
+      for (int i = 0; i < 2; i++) {
+        const int64_t vn_val = get_vregisterd(vn, i);
+        const double vn_dbl = bit_cast<double, int64_t>(vn_val);
+        set_vregisterd(vd, i, bit_cast<int64_t, double>(-vn_dbl));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else {
+    UnimplementedInstruction(instr);
   }
 }
 
@@ -2308,6 +2434,8 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {
     DecodeSIMDThreeSame(instr);
+  } else if (instr->IsSIMDTwoRegOp()) {
+    DecodeSIMDTwoReg(instr);
   } else {
     UnimplementedInstruction(instr);
   }

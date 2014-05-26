@@ -52,8 +52,7 @@ class XQux extends XBaz {
   XQux.created() : super.created();
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -68,4 +67,4 @@ main() {
     expect(published('x-squid'), ['Foo', 'baz', 'Bar', 'zot', 'squid']);
     expect(published('x-qux'), ['qux']);
   });
-}
+});

@@ -589,9 +589,7 @@ abstract class _TypedListBase {
 
   // Method(s) implementing Object interface.
 
-  String toString() {
-    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
-  }
+  String toString() => ListBase.listToString(this);
 
 
   // Internal utility methods.

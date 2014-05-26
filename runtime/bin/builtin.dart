@@ -5,6 +5,7 @@
 library builtin;
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 // import 'root_library'; happens here from C Code
 
 // The root library (aka the script) is imported into this library. The
@@ -99,6 +100,47 @@ void _makeHttpRequest(String uri) {
         });
   } catch (error) {
     _requestFailed(error);
+  }
+  // TODO(floitsch): remove this line. It's just here to push an event on the
+  // event loop so that we invoke the scheduled microtasks. Also remove the
+  // import of dart:async when this line is not needed anymore.
+  Timer.run(() {});
+}
+
+
+void _httpGet(Uri uri, loadCallback(List<int> data)) {
+  var httpClient = new HttpClient();
+  try {
+    httpClient.getUrl(uri)
+      .then((HttpClientRequest request) {
+        request.persistentConnection = false;
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        // Only create a ByteBuilder if multiple chunks are received.
+        var builder = new BytesBuilder(copy: false);
+        response.listen(
+            builder.add,
+            onDone: () {
+              if (response.statusCode != 200) {
+                var msg = 'Failure getting $uri: '
+                          '${response.statusCode} ${response.reasonPhrase}';
+                _asyncLoadError(uri.toString(), msg);
+              }
+
+              List<int> data = builder.takeBytes();
+              httpClient.close();
+              loadCallback(data);
+            },
+            onError: (error) {
+              _asyncLoadError(uri.toString(), error);
+            });
+      })
+      .catchError((error) {
+        _asyncLoadError(uri.toString(), error);
+      });
+  } catch (error) {
+    _asyncLoadError(uri.toString(), error);
   }
   // TODO(floitsch): remove this line. It's just here to push an event on the
   // event loop so that we invoke the scheduled microtasks. Also remove the
@@ -263,6 +305,59 @@ String _filePathFromPackageUri(Uri uri) {
                     _entryPointScript.resolve('packages/') :
                     _packageRoot;
   return _filePathFromUri(packageRoot.resolve(uri.path).toString());
+}
+
+
+void _loadScript(String uri, List<int> data) native "Builtin_LoadScript";
+
+void _asyncLoadError(uri, error) native "Builtin_AsyncLoadError";
+
+
+// Asynchronously loads script data (source or snapshot) through
+// an http or file uri.
+_loadDataAsync(String uri) {
+  uri = _resolveScriptUri(uri);
+  Uri sourceUri = Uri.parse(uri);
+  if (sourceUri.scheme == 'http') {
+    _httpGet(sourceUri, (data) {
+      _loadScript(uri, data);
+    });
+  } else {
+    _loadDataFromFileAsync(uri);
+  }
+}
+
+_loadDataFromFileAsync(String uri) {
+  var sourceFile = new File(_filePathFromUri(uri));
+  sourceFile.readAsBytes().then((data) {
+    _loadScript(uri, data);
+  },
+  onError: (e) {
+    _asyncLoadError(uri, e);
+  });
+}
+
+
+void _loadLibrarySource(tag, uri, libraryUri, text)
+    native "Builtin_LoadLibrarySource";
+
+_loadSourceAsync(int tag, String uri, String libraryUri) {
+  var filePath = _filePathFromUri(uri);
+  Uri sourceUri = Uri.parse(filePath);
+  if (sourceUri.scheme == 'http') {
+    _httpGet(sourceUri, (data) {
+      var text = UTF8.decode(data);
+      _loadLibrarySource(tag, uri, libraryUri, text);
+    });
+  } else {
+    var sourceFile = new File(filePath);
+    sourceFile.readAsString().then((text) {
+      _loadLibrarySource(tag, uri, libraryUri, text);
+    },
+    onError: (e) {
+      _asyncLoadError(uri, e);
+    });
+  }
 }
 
 

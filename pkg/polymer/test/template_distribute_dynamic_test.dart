@@ -52,11 +52,10 @@ class XTest extends PolymerElement {
   }
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
   test('inserted called', () => (querySelector('x-test') as XTest).onTestDone);
-}
+});

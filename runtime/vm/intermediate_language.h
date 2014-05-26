@@ -556,7 +556,7 @@ class Value : public ZoneAllocated {
   inline void BindTo(Definition* definition);
   inline void BindToEnvironment(Definition* definition);
 
-  Value* Copy() { return new Value(definition_); }
+  Value* Copy(Isolate* isolate) { return new(isolate) Value(definition_); }
 
   // This function must only be used when the new Value is dominated by
   // the original Value.
@@ -797,7 +797,8 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual type##Instr* As##type() { return this; }                             \
   virtual const char* DebugName() const { return #type; }                      \
-  virtual LocationSummary* MakeLocationSummary(bool optimizing) const;         \
+  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,               \
+                                               bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
 
 
@@ -923,11 +924,12 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return locs_;
   }
 
-  virtual LocationSummary* MakeLocationSummary(bool is_optimizing) const = 0;
+  virtual LocationSummary* MakeLocationSummary(Isolate* isolate,
+                                               bool is_optimizing) const = 0;
 
-  void InitializeLocationSummary(bool optimizing) {
+  void InitializeLocationSummary(Isolate* isolate, bool optimizing) {
     ASSERT(locs_ == NULL);
-    locs_ = MakeLocationSummary(optimizing);
+    locs_ = MakeLocationSummary(isolate, optimizing);
   }
 
   static LocationSummary* MakeCallSummary();
@@ -1024,7 +1026,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
-  virtual void InheritDeoptTarget(Instruction* other);
+  virtual void InheritDeoptTarget(Isolate* isolate, Instruction* other);
 
   bool NeedsEnvironment() const {
     return CanDeoptimize() || CanBecomeDeoptimizationTarget();
@@ -1034,7 +1036,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
-  void InheritDeoptTargetAfter(Instruction* other);
+  void InheritDeoptTargetAfter(Isolate* isolate, Instruction* other);
 
   virtual bool MayThrow() const = 0;
 
@@ -2414,7 +2416,7 @@ class BranchInstr : public Instruction {
     return constant_target_;
   }
 
-  virtual void InheritDeoptTarget(Instruction* other);
+  virtual void InheritDeoptTarget(Isolate* isolate, Instruction* other);
 
   virtual bool MayThrow() const {
     return comparison()->MayThrow();
@@ -7846,7 +7848,8 @@ class Environment : public ZoneAllocated {
   };
 
   // Construct an environment by constructing uses from an array of definitions.
-  static Environment* From(const GrowableArray<Definition*>& definitions,
+  static Environment* From(Isolate* isolate,
+                           const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
                            const Code& code);
 
@@ -7890,10 +7893,12 @@ class Environment : public ZoneAllocated {
 
   const Code& code() const { return code_; }
 
-  Environment* DeepCopy() const { return DeepCopy(Length()); }
+  Environment* DeepCopy(Isolate* isolate) const {
+    return DeepCopy(isolate, Length());
+  }
 
-  void DeepCopyTo(Instruction* instr) const;
-  void DeepCopyToOuter(Instruction* instr) const;
+  void DeepCopyTo(Isolate* isolate, Instruction* instr) const;
+  void DeepCopyToOuter(Isolate* isolate, Instruction* instr) const;
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
@@ -7901,7 +7906,7 @@ class Environment : public ZoneAllocated {
   // Deep copy an environment.  The 'length' parameter may be less than the
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
-  Environment* DeepCopy(intptr_t length) const;
+  Environment* DeepCopy(Isolate* isolate, intptr_t length) const;
 
  private:
   friend class ShallowIterator;

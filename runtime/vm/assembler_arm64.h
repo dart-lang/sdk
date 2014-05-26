@@ -442,8 +442,6 @@ class Assembler : public ValueObject {
   }
 
   // Logical immediate operations.
-  // TODO(zra): Add macros that check IsImmLogical, and fall back on a longer
-  // sequence on failure.
   void andi(Register rd, Register rn, uint64_t imm) {
     Operand imm_op;
     const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
@@ -734,6 +732,27 @@ class Assembler : public ValueObject {
   }
 
   // SIMD operations.
+  void vand(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VAND, vd, vn, vm);
+  }
+  void vorr(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VORR, vd, vn, vm);
+  }
+  void veor(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VEOR, vd, vn, vm);
+  }
+  void vaddw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VADDW, vd, vn, vm);
+  }
+  void vaddx(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VADDX, vd, vn, vm);
+  }
+  void vsubw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSUBW, vd, vn, vm);
+  }
+  void vsubx(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSUBX, vd, vn, vm);
+  }
   void vadds(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VADDS, vd, vn, vm);
   }
@@ -758,17 +777,56 @@ class Assembler : public ValueObject {
   void vdivd(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VDIVD, vd, vn, vm);
   }
+  void vnot(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VNOT, vd, vn);
+  }
+  void vabss(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VABSS, vd, vn);
+  }
+  void vabsd(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VABSD, vd, vn);
+  }
+  void vnegs(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VNEGS, vd, vn);
+  }
+  void vnegd(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VNEGD, vd, vn);
+  }
+  void vdupw(VRegister vd, Register rn) {
+    const VRegister vn = static_cast<VRegister>(rn);
+    EmitSIMDCopyOp(VDUPI, vd, vn, kWord, 0, 0);
+  }
+  void vdupx(VRegister vd, Register rn) {
+    const VRegister vn = static_cast<VRegister>(rn);
+    EmitSIMDCopyOp(VDUPI, vd, vn, kDoubleWord, 0, 0);
+  }
   void vdups(VRegister vd, VRegister vn, int32_t idx) {
     EmitSIMDCopyOp(VDUP, vd, vn, kSWord, 0, idx);
   }
   void vdupd(VRegister vd, VRegister vn, int32_t idx) {
     EmitSIMDCopyOp(VDUP, vd, vn, kDWord, 0, idx);
   }
+  void vinsw(VRegister vd, int32_t didx, Register rn) {
+    const VRegister vn = static_cast<VRegister>(rn);
+    EmitSIMDCopyOp(VINSI, vd, vn, kWord, 0, didx);
+  }
+  void vinsx(VRegister vd, int32_t didx, Register rn) {
+    const VRegister vn = static_cast<VRegister>(rn);
+    EmitSIMDCopyOp(VINSI, vd, vn, kDoubleWord, 0, didx);
+  }
   void vinss(VRegister vd, int32_t didx, VRegister vn, int32_t sidx) {
     EmitSIMDCopyOp(VINS, vd, vn, kSWord, sidx, didx);
   }
   void vinsd(VRegister vd, int32_t didx, VRegister vn, int32_t sidx) {
     EmitSIMDCopyOp(VINS, vd, vn, kDWord, sidx, didx);
+  }
+  void vmovrs(Register rd, VRegister vn, int32_t sidx) {
+    const VRegister vd = static_cast<VRegister>(rd);
+    EmitSIMDCopyOp(VMOVW, vd, vn, kWord, 0, sidx);
+  }
+  void vmovrd(Register rd, VRegister vn, int32_t sidx) {
+    const VRegister vd = static_cast<VRegister>(rd);
+    EmitSIMDCopyOp(VMOVX, vd, vn, kDoubleWord, 0, sidx);
   }
 
   // Aliases.
@@ -778,6 +836,9 @@ class Assembler : public ValueObject {
     } else {
       orr(rd, ZR, Operand(rn));
     }
+  }
+  void vmov(VRegister vd, VRegister vn) {
+    vorr(vd, vn, vn);
   }
   void mvn(Register rd, Register rm) {
     orn(rd, ZR, Operand(rm));
@@ -799,11 +860,23 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
+  void PushFloat(VRegister reg) {
+    fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));
+  }
   void PushDouble(VRegister reg) {
-    fstrd(reg, Address(SP, -1 * kWordSize, Address::PreIndex));
+    fstrd(reg, Address(SP, -1 * kDoubleSize, Address::PreIndex));
+  }
+  void PushQuad(VRegister reg) {
+    fstrq(reg, Address(SP, -1 * kQuadSize, Address::PreIndex));
+  }
+  void PopFloat(VRegister reg) {
+    fldrs(reg, Address(SP, 1 * kFloatSize, Address::PostIndex));
   }
   void PopDouble(VRegister reg) {
-    fldrd(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
+    fldrd(reg, Address(SP, 1 * kDoubleSize, Address::PostIndex));
+  }
+  void PopQuad(VRegister reg) {
+    fldrq(reg, Address(SP, 1 * kQuadSize, Address::PostIndex));
   }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
@@ -1459,6 +1532,14 @@ class Assembler : public ValueObject {
         op |
         (imm5 << kImm5Shift) |
         (imm4 << kImm4Shift) |
+        (static_cast<int32_t>(vd) << kVdShift) |
+        (static_cast<int32_t>(vn) << kVnShift);
+    Emit(encoding);
+  }
+
+  void EmitSIMDTwoRegOp(SIMDTwoRegOp op, VRegister vd, VRegister vn) {
+    const int32_t encoding =
+        op |
         (static_cast<int32_t>(vd) << kVdShift) |
         (static_cast<int32_t>(vn) << kVnShift);
     Emit(encoding);

@@ -1,0 +1,103 @@
+<head>
+  <link rel="import" href="nav_bar.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="service_ref.html">
+</head>
+<polymer-element name="io-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>dart:io</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/http/servers')}}">HTTP Servers</a>
+        </li>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-list-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>HttpServers</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ httpServer in list['members'] }}">
+          <li class="list-group-item">
+            <io-http-server-ref ref="{{ httpServer }}"></io-http-server-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>HttpServer</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Address</div>
+          <div class="memberValue">{{ httpServer['address'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Port</div>
+          <div class="memberValue">{{ httpServer['port'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Active connections</div>
+          <div class="memberValue">{{ httpServer['active'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Idle connections</div>
+          <div class="memberValue">{{ httpServer['idle'] }}</div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<script type="application/dart;component=1" src="io_view.dart"></script>

@@ -30,7 +30,6 @@ DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
-DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
@@ -83,7 +82,8 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
                                      FlowGraph* flow_graph,
                                      bool is_optimizing)
-    : assembler_(assembler),
+    : isolate_(Isolate::Current()),
+      assembler_(assembler),
       parsed_function_(flow_graph->parsed_function()),
       flow_graph_(*flow_graph),
       block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
@@ -99,13 +99,13 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       is_optimizing_(is_optimizing),
       may_reoptimize_(false),
       double_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->double_class())),
+          isolate_->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->float32x4_class())),
+          isolate_->object_store()->float32x4_class())),
       float64x2_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->float64x2_class())),
+          isolate_->object_store()->float64x2_class())),
       int32x4_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->int32x4_class())),
+          isolate_->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(
           Library::Handle(Library::CoreLibrary()).
               LookupClass(Symbols::List()))),
@@ -168,8 +168,7 @@ void FlowGraphCompiler::InitCompiler() {
 
 
 bool FlowGraphCompiler::CanOptimize() {
-  return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0);
+  return FLAG_optimization_counter_threshold >= 0;
 }
 
 
@@ -351,7 +350,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
                                   "FlowGraphCompiler Bailout: %s %s",
                                   String::Handle(function.name()).ToCString(),
                                   reason));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -395,7 +394,7 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     move_instr->AddMove(dest, src);
     // Update safepoint bitmap to indicate that the target location
     // now contains a pointer.
-    instr->locs()->stack_bitmap()->Set(dest_index, true);
+    instr->locs()->SetStackBit(dest_index);
   }
   parallel_move_resolver()->EmitNativeCode(move_instr);
 }
@@ -593,7 +592,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     return NULL;
   }
 
-  Environment* env = instruction->env()->DeepCopy();
+  Environment* env = instruction->env()->DeepCopy(isolate());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize();
@@ -718,7 +717,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
   const Function& function = parsed_function().function();
   const intptr_t incoming_arg_count =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  DeoptInfoBuilder builder(incoming_arg_count);
+  DeoptInfoBuilder builder(isolate(), incoming_arg_count);
 
   const Array& array =
       Array::Handle(Array::New(DeoptTable::SizeFor(deopt_infos_.length()),
@@ -771,7 +770,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 void FlowGraphCompiler::TryIntrinsify() {
-  if (!CanOptimizeFunction()) return;
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !FLAG_enable_type_checks) {
@@ -976,7 +974,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
-  instr->InitializeLocationSummary(false);  // Not optimizing.
+  instr->InitializeLocationSummary(isolate(), false);  // Not optimizing.
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
@@ -1287,50 +1285,6 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
 ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
   if (spilled_) {
     resolver_->RestoreScratch(reg_);
-  }
-}
-
-
-intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
-    return ExternalTypedData::ElementSizeInBytes(cid);
-  } else if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::ElementSizeInBytes(cid);
-  }
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Array::kBytesPerElement;
-    case kOneByteStringCid:
-      return OneByteString::kBytesPerElement;
-    case kTwoByteStringCid:
-      return TwoByteString::kBytesPerElement;
-    default:
-      UNIMPLEMENTED();
-      return 0;
-  }
-}
-
-
-intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
-    // Elements start at offset 0 of the external data.
-    return 0;
-  }
-  if (RawObject::IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
-  }
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Array::data_offset();
-    case kOneByteStringCid:
-      return OneByteString::data_offset();
-    case kTwoByteStringCid:
-      return TwoByteString::data_offset();
-    default:
-      UNIMPLEMENTED();
-      return Array::data_offset();
   }
 }
 

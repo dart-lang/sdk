@@ -9,6 +9,7 @@
 #include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
+#include "vm/flow_graph.h"
 #include "vm/growable_array.h"
 #include "vm/intermediate_language.h"
 #include "vm/raw_object.h"
@@ -19,7 +20,6 @@ class AbstractType;
 class Array;
 class Class;
 class Field;
-class FlowGraph;
 class LocalVariable;
 class ParsedFunction;
 class String;
@@ -128,6 +128,8 @@ class InlineExitCollector: public ZoneAllocated {
 
   Definition* JoinReturns(BlockEntryInstr** exit_block,
                           Instruction** last_instruction);
+
+  Isolate* isolate() const { return caller_graph_->isolate(); }
 
   FlowGraph* caller_graph_;
   Definition* call_;

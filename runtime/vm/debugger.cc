@@ -27,11 +27,12 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
-DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
-            "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool, enable_debugger, true, "Enables debugger step checks");
 DEFINE_FLAG(bool, show_invisible_frames, false,
             "Show invisible frames in debugger stack traces");
+DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
+            "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;

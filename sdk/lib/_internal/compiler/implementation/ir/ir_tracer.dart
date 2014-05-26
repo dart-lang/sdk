@@ -127,6 +127,23 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "ConcatenateStrings ($args) $kont");
   }
 
+  visitLiteralList(ir.LiteralList node) {
+    String dummy = names.name(node);
+    String values = node.values.map(formatReference).join(', ');
+    printStmt(dummy, "LiteralList ($values)");
+  }
+
+  visitLiteralMap(ir.LiteralMap node) {
+    String dummy = names.name(node);
+    List<String> entries = new List<String>();
+    for (int i = 0; i < node.values.length; ++i) {
+      String key = formatReference(node.keys[i]);
+      String value = formatReference(node.values[i]);
+      entries.add("$key: $value");
+    }
+    printStmt(dummy, "LiteralMap (${entries.join(', ')})");
+  }
+
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);

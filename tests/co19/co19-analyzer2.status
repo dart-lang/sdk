@@ -42,6 +42,14 @@ LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
 # co19 issue #685: Non-bool operand of && and || produces a static type warning
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: Fail, OK
 
+# co19 issue #686: Abstract methods are allowed in concrete classes if they override a concrete method
+Language/07_Classes/07_Classes_A03_t06: Fail, OK
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail, OK
+Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail, OK
+Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail, OK
+
+Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # Issue 18914
+
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # co19-roll r706: Please triage this failure.
 LibTest/isolate/IsolateStream/contains_A01_t01: Fail # co19-roll r706: Please triage this failure.

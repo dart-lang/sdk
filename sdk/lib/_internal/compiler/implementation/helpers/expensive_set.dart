@@ -120,5 +120,13 @@ class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
     retainWhere(retainSet.contains);
   }
 
+  Set<E> toSet() {
+    var result = new ExpensiveSet<E>(_sets.length);
+    for (int i = 0; i < _sets.length; i++) {
+      result._sets[i] = _sets[i].toSet();
+    }
+    return result;
+  }
+
   String toString() => "expensive(${_sets[0]}x${_sets.length})";
 }

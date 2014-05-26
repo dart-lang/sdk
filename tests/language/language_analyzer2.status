@@ -15,8 +15,6 @@ method_override7_test/03: Fail # Issue 11496
 
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
 
-call_closurization_test: StaticWarning # Issue 17476
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -165,7 +163,6 @@ override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 override_inheritance_generic_test/08: MissingStaticWarning # Issue 17983
 override_inheritance_field_test/32: MissingStaticWarning # Issue 17983
 override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
-override_inheritance_abstract_test/27: StaticWarning # Issue 17983
 
 # missing warning for override
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
@@ -175,8 +172,6 @@ override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
 override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
-
-abstract_object_method_test: StaticWarning # Issue 14527
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #

@@ -327,9 +327,7 @@ class _GrowableList<T> implements List<T> {
     IterableMixinWorkaround.shuffleList(this, random);
   }
 
-  String toString() {
-    return IterableMixinWorkaround.toStringIterable(this, '[', ']');
-  }
+  String toString() => ListBase.listToString(this);
 
   Iterator<T> get iterator {
     return new ListIterator<T>(this);

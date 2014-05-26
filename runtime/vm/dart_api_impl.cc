@@ -44,6 +44,7 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
             "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
+DEFINE_FLAG(bool, load_async, true, "load source code asynchronously");
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -1193,10 +1194,7 @@ DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
 
 
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
-  if (Flags::Lookup(flag_name) != NULL) {
-    return true;
-  }
-  return false;
+  return Flags::IsSet(flag_name);
 }
 
 

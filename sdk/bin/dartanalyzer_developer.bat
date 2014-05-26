@@ -24,4 +24,4 @@ set "JAR_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\dartanalyzer"
 
 set "JAR_FILE=%JAR_DIR%\dartanalyzer.jar"
 
-java -jar %JAR_FILE% --dart-sdk %SDK_DIR% %arguments%
+java -jar "%JAR_FILE%" --dart-sdk "%SDK_DIR%" %arguments%

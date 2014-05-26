@@ -224,7 +224,7 @@ void main() {
 ''');
 
     expect(trace.toString(), equals('''
-foo/bar.dart 42:21                        Foo._bar
+${path.join('foo', 'bar.dart')} 42:21                        Foo._bar
 dart:async/future.dart 0:2                zip.<fn>.zap
 http://pub.dartlang.org/thing.dart 1:100  zip.<fn>.zap
 '''));

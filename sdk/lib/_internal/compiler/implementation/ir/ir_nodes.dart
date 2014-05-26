@@ -122,7 +122,7 @@ class InvokeStatic extends Expression implements Invoke {
   InvokeStatic(this.target, this.selector, Continuation cont,
                List<Definition> args)
       : continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
+        arguments = _referenceList(args) {
     assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
@@ -144,7 +144,7 @@ class InvokeMethod extends Expression implements Invoke {
                List<Definition> args)
       : receiver = new Reference(receiver),
         continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
+        arguments = _referenceList(args) {
     assert(selector != null);
     assert(selector.kind == SelectorKind.CALL ||
            selector.kind == SelectorKind.OPERATOR ||
@@ -179,7 +179,7 @@ class InvokeConstructor extends Expression implements Invoke {
                     Continuation cont,
                     List<Definition> args)
       : continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false) {
+        arguments = _referenceList(args) {
     assert(target.isConstructor);
     assert(type.element == target.enclosingElement);
   }
@@ -194,7 +194,7 @@ class ConcatenateStrings extends Expression {
 
   ConcatenateStrings(Continuation cont, List<Definition> args)
       : continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false);
+        arguments = _referenceList(args);
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
@@ -211,7 +211,7 @@ class InvokeContinuation extends Expression {
   InvokeContinuation(Continuation cont, List<Definition> args,
                      {recursive: false})
       : continuation = new Reference(cont),
-        arguments = args.map((t) => new Reference(t)).toList(growable: false),
+        arguments = _referenceList(args),
         isRecursive = recursive {
     if (recursive) cont.isRecursive = true;
   }
@@ -252,6 +252,26 @@ class Constant extends Primitive {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
+class LiteralList extends Primitive {
+  List<Reference> values;
+
+  LiteralList(List<Primitive> values)
+      : this.values = _referenceList(values);
+
+  accept(Visitor visitor) => visitor.visitLiteralList(this);
+}
+
+class LiteralMap extends Primitive {
+  List<Reference> keys;
+  List<Reference> values;
+
+  LiteralMap(List<Primitive> keys, List<Primitive> values)
+      : this.keys = _referenceList(keys),
+        this.values = _referenceList(values);
+
+  accept(Visitor visitor) => visitor.visitLiteralMap(this);
+}
+
 class Parameter extends Primitive {
   final ParameterElement element;
 
@@ -289,6 +309,10 @@ class FunctionDefinition extends Node {
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }
 
+List<Reference> _referenceList(List<Definition> definitions) {
+  return definitions.map((e) => new Reference(e)).toList(growable: false);
+}
+
 abstract class Visitor<T> {
   T visit(Node node) => node.accept(this);
   // Abstract classes.
@@ -312,6 +336,8 @@ abstract class Visitor<T> {
   T visitBranch(Branch node) => visitExpression(node);
 
   // Definitions.
+  T visitLiteralList(LiteralList node) => visitPrimitive(node);
+  T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);

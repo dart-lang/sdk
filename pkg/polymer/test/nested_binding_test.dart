@@ -28,12 +28,11 @@ class MyTest extends PolymerElement {
   }
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
 
   test('ready called',
       () => (querySelector('my-test') as MyTest)._testDone.future);
-}
+});

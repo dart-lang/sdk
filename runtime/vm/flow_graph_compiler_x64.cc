@@ -1550,11 +1550,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
     Label next_test;
-    assembler()->cmpl(class_id_reg, Immediate(sorted[i].cid));
+    __ cmpl(class_id_reg, Immediate(sorted[i].cid));
     if (is_last_check) {
-      assembler()->j(NOT_EQUAL, deopt);
+      __ j(NOT_EQUAL, deopt);
     } else {
-      assembler()->j(NOT_EQUAL, &next_test);
+      __ j(NOT_EQUAL, &next_test);
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
@@ -1567,67 +1567,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     AddStaticCallTarget(function);
     __ Drop(argument_count);
     if (!is_last_check) {
-      assembler()->jmp(&match_found);
+      __ jmp(&match_found);
     }
-    assembler()->Bind(&next_test);
+    __ Bind(&next_test);
   }
-  assembler()->Bind(&match_found);
-}
-
-
-Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     intptr_t index) {
-  const int64_t disp =
-      static_cast<int64_t>(index) * index_scale + DataOffsetFor(cid);
-  ASSERT(Utils::IsInt(32, disp));
-  return FieldAddress(array, static_cast<int32_t>(disp));
-}
-
-
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
-  }
-}
-
-
-Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     Register index) {
-  return FieldAddress(array,
-                      index,
-                      ToScaleFactor(index_scale),
-                      DataOffsetFor(cid));
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t index_scale,
-    Register array,
-    intptr_t index) {
-  return Address(array, index * index_scale);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t index_scale,
-    Register array,
-    Register index) {
-  return Address(array, index, ToScaleFactor(index_scale), 0);
+  __ Bind(&match_found);
 }
 
 

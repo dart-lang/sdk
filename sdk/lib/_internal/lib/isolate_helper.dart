@@ -956,6 +956,8 @@ class IsolateNatives {
       throw new UnsupportedError(
           "Currently spawnUri is not supported without web workers.");
     }
+    message = _serializeMessage(message);
+    args = _serializeMessage(args);  // Or just args.toList() ?
     _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate(func, args, message, isSpawnUri, startPaused, replyPort);

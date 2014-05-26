@@ -8,10 +8,10 @@
 </head>
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <div class="flex-row">
       <div class="flex-item-10-percent">
-        <img src="packages/observatory/src/elements/img/isolate_icon.png">
+        <img src="img/isolate_icon.png">
       </div>
       <div class="flex-item-10-percent">
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
@@ -110,7 +110,7 @@
         white-space: pre;
       }
     </style>
-    <link rel="stylesheet" href="packages/observatory/src/elements/css/shared.css">
+    <link rel="stylesheet" href="css/shared.css">
     <template if="{{ isolate.error != null }}">
       <div class="content-centered">
         <pre class="errorBox">{{ isolate.error.message }}</pre>
@@ -124,47 +124,52 @@
         <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
       </div>
       <div class="flex-item-40-percent">
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberName">new heap</div>
-              <div class="memberValue">
-                {{ isolate.newHeapUsed | formatSize }}
-                of
-                {{ isolate.newHeapCapacity | formatSize }}
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberName">old heap</div>
-              <div class="memberValue">
-                {{ isolate.oldHeapUsed | formatSize }}
-                of
-                {{ isolate.oldHeapCapacity | formatSize }}
-              </div>
-            </div>
-          </div>
-          <br>
+        <div class="memberList">
           <div class="memberItem">
+            <div class="memberName">new heap</div>
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+              {{ isolate.newHeapUsed | formatSize }}
+              of
+              {{ isolate.newHeapCapacity | formatSize }}
             </div>
           </div>
           <div class="memberItem">
+            <div class="memberName">old heap</div>
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+              {{ isolate.oldHeapUsed | formatSize }}
+              of
+              {{ isolate.oldHeapCapacity | formatSize }}
             </div>
           </div>
-          <div class="memberList">
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberValue">
-                See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
-              </div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+          </div>
+        </div>
+        <template if="{{ isolate.ioEnabled }}">
+          <div class="memberItem">
+            <div class="memberValue">
+              See <a href="{{ isolate.relativeHashLink('io') }}">dart:io</a>
             </div>
           </div>
+        </template>
       </div>
       <div class="flex-item-10-percent">
       </div>
@@ -178,4 +183,4 @@
   </template>
 </polymer-element>
 
-<script type="application/dart" src="isolate_summary.dart"></script>
+<script type="application/dart;component=1" src="isolate_summary.dart"></script>

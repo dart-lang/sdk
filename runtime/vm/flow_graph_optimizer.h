@@ -71,6 +71,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
  private:
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
+  const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 
@@ -125,6 +126,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
+
+  LoadFieldInstr* BuildLoadStringLength(Definition* str);
 
   Definition* PrepareInlineStringIndexOp(Instruction* call,
                                          intptr_t cid,
@@ -243,6 +246,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
+  Isolate* isolate() const { return flow_graph_->isolate(); }
+
   FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
@@ -358,6 +363,8 @@ class ConstantPropagator : public FlowGraphVisitor {
   FOR_EACH_INSTRUCTION(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
+  Isolate* isolate() const { return graph_->isolate(); }
+
   FlowGraph* graph_;
 
   // Sentinels for unknown constant and non-constant values.
@@ -389,7 +396,8 @@ class BranchSimplifier : public AllStatic {
   // Replace a target entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
-  static JoinEntryInstr* ToJoinEntry(TargetEntryInstr* target);
+  static JoinEntryInstr* ToJoinEntry(Isolate* isolate,
+                                     TargetEntryInstr* target);
 
  private:
   // Match an instance of the pattern to rewrite.  See the implementation
@@ -398,7 +406,8 @@ class BranchSimplifier : public AllStatic {
 
   // Duplicate a branch while replacing its comparison's left and right
   // inputs.
-  static BranchInstr* CloneBranch(BranchInstr* branch,
+  static BranchInstr* CloneBranch(Isolate* isolate,
+                                  BranchInstr* branch,
                                   Value* new_left,
                                   Value* new_right);
 };
@@ -431,6 +440,8 @@ class AllocationSinking : public ZoneAllocated {
       AllocateObjectInstr* alloc,
       const Class& cls,
       const ZoneGrowableArray<const Object*>& fields);
+
+  Isolate* isolate() const { return flow_graph_->isolate(); }
 
   FlowGraph* flow_graph_;
 

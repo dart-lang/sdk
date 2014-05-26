@@ -61,10 +61,10 @@ testInstanceReflective() {
                 im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);    /// named: continued
   Expect.equals('DNU',
                 im.invoke(#doesNotExist, [17, 18]).reflectee);
-  Expect.throws(() => im.invoke(#closure, ['wrong arity']),  /// getter_call_stub: ok
-                (e) => e is NoSuchMethodError);              /// getter_call_stub: continued
-  Expect.throws(() => im.invoke(#notAClosure, []),           /// getter_call_stub: continued
-                (e) => e is NoSuchMethodError);              /// getter_call_stub: continued
+  Expect.throws(() => im.invoke(#closure, ['wrong arity']),
+                (e) => e is NoSuchMethodError);
+  Expect.throws(() => im.invoke(#notAClosure, []),
+                (e) => e is NoSuchMethodError);
 }
 
 class D {

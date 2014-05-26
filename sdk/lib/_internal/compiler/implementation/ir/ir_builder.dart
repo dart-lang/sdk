@@ -13,6 +13,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
+import '../util/util.dart' show Link;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -716,10 +717,59 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
+  Constant getConstantForNode(ast.Node node) {
+    Constant constant =
+        compiler.backend.constants.getConstantForNode(node, elements);
+    assert(invariant(node, constant != null,
+        message: 'No constant computed for $node'));
+    return constant;
+  }
+
+  bool isSupportedConst(Constant constant) {
+    return const SupportedConstantVisitor().visit(constant);
+  }
+
+  ir.Primitive visitLiteralList(ast.LiteralList node) {
+    assert(isOpen);
+    ir.Primitive result;
+    if (node.isConst) {
+      // TODO(sigurdm): Remove when all constants are supported.
+      Constant constant = getConstantForNode(node);
+      if (!isSupportedConst(constant)) return giveup();
+      result = new ir.Constant(constant);
+    } else {
+      List<ir.Primitive> values = new List<ir.Primitive>();
+      node.elements.nodes.forEach((ast.Node node) {
+        values.add(visit(node));
+      });
+      result = new ir.LiteralList(values);
+    }
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
+  ir.Primitive visitLiteralMap(ast.LiteralMap node) {
+    assert(isOpen);
+    ir.Primitive result;
+    if (node.isConst) {
+      // TODO(sigurdm): Remove when all constants are supported.
+      Constant constant = getConstantForNode(node);
+      if (!isSupportedConst(constant)) return giveup();
+      result = new ir.Constant(constant);
+    } else {
+      List<ir.Primitive> keys = new List<ir.Primitive>();
+      List<ir.Primitive> values = new List<ir.Primitive>();
+      node.entries.nodes.forEach((ast.LiteralMapEntry node) {
+        keys.add(visit(node.key));
+        values.add(visit(node.value));
+      });
+      result = new ir.LiteralMap(keys, values);
+    }
+    add(new ir.LetPrim(result));
+    return result;
+  }
+
   // TODO(kmillikin): other literals.
-  //   LiteralList
-  //   LiteralMap
-  //   LiteralMapEntry
   //   LiteralSymbol
 
   ir.Primitive visitParenthesizedExpression(
@@ -748,6 +798,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return receiver;
   }
 
+  ir.Primitive lookupLocal(Element element) {
+    int index = variableIndex[element];
+    ir.Primitive value = assignedVars[index];
+    return value == null ? freeVars[index] : value;
+  }
+
   // ==== Sends ====
   ir.Primitive visitAssert(ast.Send node) {
     assert(isOpen);
@@ -761,7 +817,31 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitClosureSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    Selector closureSelector = elements.getSelector(node);
+    Selector namedCallSelector = new Selector(closureSelector.kind,
+                     "call",
+                     closureSelector.library,
+                     closureSelector.argumentCount,
+                     closureSelector.namedArguments);
+    assert(node.receiver == null);
+    Element element = elements[node];
+    ir.Primitive closureTarget;
+    if (element == null) {
+      closureTarget = visit(node.selector);
+    } else {
+      assert(Elements.isLocal(element));
+      closureTarget = lookupLocal(element);
+    }
+    List<ir.Primitive> arguments = new List<ir.Primitive>();
+    for (ast.Node n in node.arguments) {
+      arguments.add(visit(n));
+    }
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.Expression invoke =
+        new ir.InvokeMethod(closureTarget, namedCallSelector, k, arguments);
+    add(new ir.LetCont(k, invoke));
+    return v;
   }
 
   ir.Primitive visitDynamicSend(ast.Send node) {
@@ -771,8 +851,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     Selector selector = elements.getSelector(node);
     ir.Primitive receiver = visit(node.receiver);
-    List arguments = node.arguments.toList(growable:false)
-                         .map(visit).toList(growable:false);
+    List<ir.Primitive> arguments = new List<ir.Primitive>();
+    for (ast.Node n in node.arguments) {
+      arguments.add(visit(n));
+    }
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
@@ -785,9 +867,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     if (Elements.isLocal(element)) {
-      int index = variableIndex[element];
-      ir.Primitive value = assignedVars[index];
-      return value == null ? freeVars[index] : value;
+      return lookupLocal(element);
     } else if (element == null || Elements.isInstanceField(element)) {
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
@@ -1058,6 +1138,32 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   void internalError(String reason, {ast.Node node}) {
     giveup();
   }
+}
+
+// While we don't support all constants we need to filter out the unsupported
+// ones:
+class SupportedConstantVisitor extends ConstantVisitor<bool> {
+  const SupportedConstantVisitor();
+
+  bool visit(Constant constant) => constant.accept(this);
+  bool visitFunction(FunctionConstant constant) => false;
+  bool visitNull(NullConstant constant) => true;
+  bool visitInt(IntConstant constant) => true;
+  bool visitDouble(DoubleConstant constant) => true;
+  bool visitTrue(TrueConstant constant) => true;
+  bool visitFalse(FalseConstant constant) => true;
+  bool visitString(StringConstant constant) => true;
+  bool visitList(ListConstant constant) {
+    return constant.entries.every(visit);
+  }
+  bool visitMap(MapConstant constant) {
+    return visit(constant.keys) && constant.values.every(visit);
+  }
+  bool visitConstructed(ConstructedConstant constant) => false;
+  bool visitType(TypeConstant constant) => false;
+  bool visitInterceptor(InterceptorConstant constant) => false;
+  bool visitDummy(DummyConstant constant) => false;
+  bool visitDeferred(DeferredConstant constant) => false;
 }
 
 // Verify that types are ones that can be reconstructed by the type emitter.

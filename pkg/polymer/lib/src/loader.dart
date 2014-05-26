@@ -20,38 +20,53 @@ class InitMethodAnnotation {
   const InitMethodAnnotation();
 }
 
-/// This method is deprecated. It used to be where polymer initialization
-/// happens, now this is done automatically from bootstrap.dart.
-@deprecated
+/// Initializes a polymer application as follows:
+///   * if running in development mode, set up a dirty-checking zone that polls
+///     for observable changes
+///   * initialize template binding and polymer-element
+///   * for each library included transitively from HTML and HTML imports,
+///   register custom elements declared there (labeled with [CustomTag]) and
+///   invoke the initialization method on it (top-level functions annotated with
+///   [initMethod]).
 Zone initPolymer() {
-  window.console.error(_ERROR);
-  return Zone.current;
+  if (loader.deployMode) {
+    startPolymer(loader.initializers, loader.deployMode);
+    return Zone.current;
+  }
+  return dirtyCheckZone()..run(
+      () => startPolymer(loader.initializers, loader.deployMode));
 }
-
-const _ERROR = '''
-initPolymer is now deprecated. To initialize a polymer app:
-  * add to your page: <link rel="import" href="packages/polymer/polymer.html">
-  * replace "application/dart" mime-types with "application/dart;component=1"
-  * if you use "init.dart", remove it
-  * if you have a main, change it into a method annotated with @initMethod
-''';
 
 /// True if we're in deployment mode.
 bool _deployMode = false;
 
+bool _startPolymerCalled = false;
+
 /// Starts polymer by running all [initializers] and hooking the polymer.js
 /// code. **Note**: this function is not meant to be invoked directly by
-/// application developers. It is invoked by a bootstrap entry point that is
-/// automatically generated. During development, this entry point is generated
-/// dynamically in `boot.js`. Similarly, pub-build generates this entry point
-/// for deployment.
+/// application developers. It is invoked either by [initPolymer] or, if you are
+/// using the experimental bootstrap API, this would be invoked by an entry
+/// point that is automatically generated somehow. In particular, during
+/// development, the entry point would be generated dynamically in `boot.js`.
+/// Similarly, pub-build would generate the entry point for deployment.
 void startPolymer(List<Function> initializers, [bool deployMode = true]) {
+  if (_startPolymerCalled) throw 'Initialization was already done.';
+  _startPolymerCalled = true;
   _hookJsPolymer();
   _deployMode = deployMode;
 
   for (var initializer in initializers) {
     initializer();
   }
+}
+
+/// Configures [initPolymer] making it optimized for deployment to the internet.
+/// With this setup the initializer list is supplied instead of searched for
+/// at runtime. Additionally, after this method is called [initPolymer] omits
+/// the [Zone] that automatically invokes [Observable.dirtyCheck].
+void configureForDeployment(List<Function> initializers) {
+  loader.initializers = initializers;
+  loader.deployMode = true;
 }
 
 /// To ensure Dart can interoperate with polymer-element registered by

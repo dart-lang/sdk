@@ -1846,6 +1846,191 @@ ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(VinswVmovrs, assembler) {
+  __ LoadImmediate(R0, 42, kNoPP);
+  __ LoadImmediate(R1, 43, kNoPP);
+  __ LoadImmediate(R2, 44, kNoPP);
+  __ LoadImmediate(R3, 45, kNoPP);
+
+  __ vinsw(V0, 0, R0);
+  __ vinsw(V0, 1, R1);
+  __ vinsw(V0, 2, R2);
+  __ vinsw(V0, 3, R3);
+
+  __ vmovrs(R4, V0, 0);
+  __ vmovrs(R5, V0, 1);
+  __ vmovrs(R6, V0, 2);
+  __ vmovrs(R7, V0, 3);
+
+  __ add(R0, R4, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ add(R0, R0, Operand(R7));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(VinswVmovrs, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(174, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(VinsxVmovrd, assembler) {
+  __ LoadImmediate(R0, 42, kNoPP);
+  __ LoadImmediate(R1, 43, kNoPP);
+
+  __ vinsx(V0, 0, R0);
+  __ vinsx(V0, 1, R1);
+
+  __ vmovrd(R2, V0, 0);
+  __ vmovrd(R3, V0, 1);
+
+  __ add(R0, R2, Operand(R3));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(VinsxVmovrd, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(85, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vnot, assembler) {
+  __ LoadImmediate(R0, 0xfffffffe, kNoPP);
+  __ LoadImmediate(R1, 0xffffffff, kNoPP);
+  __ vinsw(V1, 0, R1);
+  __ vinsw(V1, 1, R0);
+  __ vinsw(V1, 2, R1);
+  __ vinsw(V1, 3, R0);
+
+  __ vnot(V0, V1);
+
+  __ vmovrs(R2, V0, 0);
+  __ vmovrs(R3, V0, 1);
+  __ vmovrs(R4, V0, 2);
+  __ vmovrs(R5, V0, 3);
+  __ add(R0, R2, Operand(R3));
+  __ add(R0, R0, Operand(R4));
+  __ add(R0, R0, Operand(R5));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vnot, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vabss, assembler) {
+  __ LoadDImmediate(V1, 21.0, kNoPP);
+  __ LoadDImmediate(V2, -21.0, kNoPP);
+
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+
+  __ veor(V3, V3, V3);
+  __ vinss(V3, 1, V1, 0);
+  __ vinss(V3, 3, V2, 0);
+
+  __ vabss(V4, V3);
+
+  __ vinss(V5, 0, V4, 1);
+  __ vinss(V6, 0, V4, 3);
+
+  __ fcvtds(V5, V5);
+  __ fcvtds(V6, V6);
+
+  __ faddd(V0, V5, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vabss, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vabsd, assembler) {
+  __ LoadDImmediate(V1, 21.0, kNoPP);
+  __ LoadDImmediate(V2, -21.0, kNoPP);
+
+  __ vinsd(V3, 0, V1, 0);
+  __ vinsd(V3, 1, V2, 0);
+
+  __ vabsd(V4, V3);
+
+  __ vinsd(V5, 0, V4, 0);
+  __ vinsd(V6, 0, V4, 1);
+
+  __ faddd(V0, V5, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vabsd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ LoadDImmediate(V2, -84.0, kNoPP);
+
+  __ fcvtsd(V1, V1);
+  __ fcvtsd(V2, V2);
+
+  __ veor(V3, V3, V3);
+  __ vinss(V3, 1, V1, 0);
+  __ vinss(V3, 3, V2, 0);
+
+  __ vnegs(V4, V3);
+
+  __ vinss(V5, 0, V4, 1);
+  __ vinss(V6, 0, V4, 3);
+
+  __ fcvtds(V5, V5);
+  __ fcvtds(V6, V6);
+  __ faddd(V0, V5, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vnegs, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vnegd, assembler) {
+  __ LoadDImmediate(V1, 42.0, kNoPP);
+  __ LoadDImmediate(V2, -84.0, kNoPP);
+
+  __ vinsd(V3, 0, V1, 0);
+  __ vinsd(V3, 1, V2, 0);
+
+  __ vnegd(V4, V3);
+
+  __ vinsd(V5, 0, V4, 0);
+  __ vinsd(V6, 0, V4, 1);
+
+  __ faddd(V0, V5, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vnegd, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
   __ LoadDImmediate(V0, 0.0, kNoPP);
   __ LoadDImmediate(V1, 1.0, kNoPP);
@@ -1857,21 +2042,17 @@ ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
   __ fcvtsd(V2, V2);
   __ fcvtsd(V3, V3);
 
-  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ vinss(V4, 0, V0, 0);
+  __ vinss(V4, 1, V1, 0);
+  __ vinss(V4, 2, V2, 0);
+  __ vinss(V4, 3, V3, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vadds(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ vinss(V0, 0, V5, 0);
+  __ vinss(V1, 0, V5, 1);
+  __ vinss(V2, 0, V5, 2);
+  __ vinss(V3, 0, V5, 3);
 
   __ fcvtds(V0, V0);
   __ fcvtds(V1, V1);
@@ -1903,21 +2084,17 @@ ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
   __ fcvtsd(V2, V2);
   __ fcvtsd(V3, V3);
 
-  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ vinss(V4, 0, V0, 0);
+  __ vinss(V4, 1, V1, 0);
+  __ vinss(V4, 2, V2, 0);
+  __ vinss(V4, 3, V3, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vsubs(V5, V5, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ vinss(V0, 0, V5, 0);
+  __ vinss(V1, 0, V5, 1);
+  __ vinss(V2, 0, V5, 2);
+  __ vinss(V3, 0, V5, 3);
 
   __ fcvtds(V0, V0);
   __ fcvtds(V1, V1);
@@ -1948,21 +2125,17 @@ ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
   __ fcvtsd(V2, V2);
   __ fcvtsd(V3, V3);
 
-  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ vinss(V4, 0, V0, 0);
+  __ vinss(V4, 1, V1, 0);
+  __ vinss(V4, 2, V2, 0);
+  __ vinss(V4, 3, V3, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vmuls(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ vinss(V0, 0, V5, 0);
+  __ vinss(V1, 0, V5, 1);
+  __ vinss(V2, 0, V5, 2);
+  __ vinss(V3, 0, V5, 3);
 
   __ fcvtds(V0, V0);
   __ fcvtds(V1, V1);
@@ -1993,21 +2166,17 @@ ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
   __ fcvtsd(V2, V2);
   __ fcvtsd(V3, V3);
 
-  const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrs(V0, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V1, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V2, Address(SP, -1 * sword_bytes, Address::PreIndex));
-  __ fstrs(V3, Address(SP, -1 * sword_bytes, Address::PreIndex));
+  __ vinss(V4, 0, V0, 0);
+  __ vinss(V4, 1, V1, 0);
+  __ vinss(V4, 2, V2, 0);
+  __ vinss(V4, 3, V3, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vdivs(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V2, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V1, Address(SP, 1 * sword_bytes, Address::PostIndex));
-  __ fldrs(V0, Address(SP, 1 * sword_bytes, Address::PostIndex));
+  __ vinss(V0, 0, V5, 0);
+  __ vinss(V1, 0, V5, 1);
+  __ vinss(V2, 0, V5, 2);
+  __ vinss(V3, 0, V5, 3);
 
   __ fcvtds(V0, V0);
   __ fcvtds(V1, V1);
@@ -2027,22 +2196,17 @@ ASSEMBLER_TEST_RUN(Vdivs, test) {
 }
 
 
-
 ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
   __ LoadDImmediate(V0, 2.0, kNoPP);
   __ LoadDImmediate(V1, 3.0, kNoPP);
 
-  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
-  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ vinsd(V4, 0, V0, 0);
+  __ vinsd(V4, 1, V1, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vaddd(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
-  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ vinsd(V0, 0, V5, 0);
+  __ vinsd(V1, 0, V5, 1);
 
   __ faddd(V0, V0, V1);
   __ ret();
@@ -2060,17 +2224,13 @@ ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
   __ LoadDImmediate(V1, 3.0, kNoPP);
   __ LoadDImmediate(V5, 0.0, kNoPP);
 
-  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
-  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ vinsd(V4, 0, V0, 0);
+  __ vinsd(V4, 1, V1, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vsubd(V5, V5, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
-  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ vinsd(V0, 0, V5, 0);
+  __ vinsd(V1, 0, V5, 1);
 
   __ faddd(V0, V0, V1);
   __ ret();
@@ -2087,17 +2247,13 @@ ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
   __ LoadDImmediate(V0, 2.0, kNoPP);
   __ LoadDImmediate(V1, 3.0, kNoPP);
 
-  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
-  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ vinsd(V4, 0, V0, 0);
+  __ vinsd(V4, 1, V1, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vmuld(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
-  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ vinsd(V0, 0, V5, 0);
+  __ vinsd(V1, 0, V5, 1);
 
   __ faddd(V0, V0, V1);
   __ ret();
@@ -2114,17 +2270,13 @@ ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
   __ LoadDImmediate(V0, 2.0, kNoPP);
   __ LoadDImmediate(V1, 3.0, kNoPP);
 
-  const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
-  const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
-  __ fstrd(V0, Address(SP, -1 * dword_bytes, Address::PreIndex));
-  __ fstrd(V1, Address(SP, -1 * dword_bytes, Address::PreIndex));
+  __ vinsd(V4, 0, V0, 0);
+  __ vinsd(V4, 1, V1, 0);
 
-  __ fldrq(V4, Address(SP, 1 * qword_bytes, Address::PostIndex));
   __ vdivd(V5, V4, V4);
-  __ fstrq(V5, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
-  __ fldrd(V1, Address(SP, 1 * dword_bytes, Address::PostIndex));
-  __ fldrd(V0, Address(SP, 1 * dword_bytes, Address::PostIndex));
+  __ vinsd(V0, 0, V5, 0);
+  __ vinsd(V1, 0, V5, 1);
 
   __ faddd(V0, V0, V1);
   __ ret();
@@ -2244,6 +2396,209 @@ ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
 ASSEMBLER_TEST_RUN(Vinss, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vand, assembler) {
+  __ LoadDImmediate(V1, 21.0, kNoPP);
+  __ LoadImmediate(R0, 0xffffffff, kNoPP);
+
+  // V0 <- (0, 0xffffffff, 0, 0xffffffff)
+  __ fmovdr(V0, R0);
+  __ vinss(V0, 2, V0, 0);
+
+  // V1 <- (21.0, 21.0, 21.0, 21.0)
+  __ fcvtsd(V1, V1);
+  __ vdups(V1, V1, 0);
+
+  __ vand(V2, V1, V0);
+
+  __ vinss(V3, 0, V2, 0);
+  __ vinss(V4, 0, V2, 1);
+  __ vinss(V5, 0, V2, 2);
+  __ vinss(V6, 0, V2, 3);
+
+  __ fcvtds(V3, V3);
+  __ fcvtds(V4, V4);
+  __ fcvtds(V5, V5);
+  __ fcvtds(V6, V6);
+
+  __ vaddd(V0, V3, V4);
+  __ vaddd(V0, V0, V5);
+  __ vaddd(V0, V0, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vand, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vorr, assembler) {
+  __ LoadDImmediate(V1, 10.5, kNoPP);
+  __ fcvtsd(V1, V1);
+
+  // V0 <- (0, 10.5, 0, 10.5)
+  __ fmovdd(V0, V1);
+  __ vinss(V0, 2, V0, 0);
+
+  // V1 <- (10.5, 0, 10.5, 0)
+  __ veor(V1, V1, V1);
+  __ vinss(V1, 1, V0, 0);
+  __ vinss(V1, 3, V0, 0);
+
+  __ vorr(V2, V1, V0);
+
+  __ vinss(V3, 0, V2, 0);
+  __ vinss(V4, 0, V2, 1);
+  __ vinss(V5, 0, V2, 2);
+  __ vinss(V6, 0, V2, 3);
+
+  __ fcvtds(V3, V3);
+  __ fcvtds(V4, V4);
+  __ fcvtds(V5, V5);
+  __ fcvtds(V6, V6);
+
+  __ vaddd(V0, V3, V4);
+  __ vaddd(V0, V0, V5);
+  __ vaddd(V0, V0, V6);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vorr, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Veor, assembler) {
+  __ LoadImmediate(R1, 0xffffffff, kNoPP);
+  __ LoadImmediate(R2, ~21, kNoPP);
+
+  __ vinsw(V1, 0, R1);
+  __ vinsw(V1, 1, R2);
+  __ vinsw(V1, 2, R1);
+  __ vinsw(V1, 3, R2);
+
+  __ vinsw(V2, 0, R1);
+  __ vinsw(V2, 1, R1);
+  __ vinsw(V2, 2, R1);
+  __ vinsw(V2, 3, R1);
+
+  __ veor(V0, V1, V2);
+
+  __ vmovrs(R3, V0, 0);
+  __ vmovrs(R4, V0, 1);
+  __ vmovrs(R5, V0, 2);
+  __ vmovrs(R6, V0, 3);
+
+  __ add(R0, R3, Operand(R4));
+  __ add(R0, R0, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Veor, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddw, assembler) {
+  __ LoadImmediate(R4, 21, kNoPP);
+
+  __ vdupw(V1, R4);
+  __ vdupw(V2, R4);
+
+  __ vaddw(V0, V1, V2);
+
+  __ vmovrs(R0, V0, 0);
+  __ vmovrs(R1, V0, 1);
+  __ vmovrs(R2, V0, 2);
+  __ vmovrs(R3, V0, 3);
+  __ add(R0, R0, Operand(R1));
+  __ add(R0, R0, Operand(R2));
+  __ add(R0, R0, Operand(R3));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddw, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(168, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
+  __ LoadImmediate(R4, 31, kNoPP);
+  __ LoadImmediate(R5, 10, kNoPP);
+
+  __ vdupw(V1, R4);
+  __ vdupw(V2, R5);
+
+  __ vsubw(V0, V1, V2);
+
+  __ vmovrs(R0, V0, 0);
+  __ vmovrs(R1, V0, 1);
+  __ vmovrs(R2, V0, 2);
+  __ vmovrs(R3, V0, 3);
+  __ add(R0, R0, Operand(R1));
+  __ add(R0, R0, Operand(R2));
+  __ add(R0, R0, Operand(R3));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubw, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vaddx, assembler) {
+  __ LoadImmediate(R4, 21, kNoPP);
+
+  __ vdupx(V1, R4);
+  __ vdupx(V2, R4);
+
+  __ vaddx(V0, V1, V2);
+
+  __ vmovrd(R0, V0, 0);
+  __ vmovrd(R1, V0, 1);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vaddx, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Vsubx, assembler) {
+  __ LoadImmediate(R4, 31, kNoPP);
+  __ LoadImmediate(R5, 10, kNoPP);
+
+  __ vdupx(V1, R4);
+  __ vdupx(V2, R5);
+
+  __ vsubx(V0, V1, V2);
+
+  __ vmovrd(R0, V0, 0);
+  __ vmovrd(R1, V0, 1);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Vsubx, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
 }
 
 

@@ -76,8 +76,7 @@ class Linter extends Transformer with PolymerTransformer {
       var href = tag.attributes['href'];
       var span = tag.sourceSpan;
       var id = uriToAssetId(sourceId, href, logger, span);
-      if (id == null ||
-          (id.package == 'polymer' && id.path == 'lib/init.html')) continue;
+      if (id == null) continue;
       importIds.add(assetExists(id, transform).then((exists) {
         if (exists) return id;
         if (sourceId == transform.primaryInput.id) {
@@ -141,6 +140,7 @@ class _LinterVisitor extends TreeVisitor {
   bool _inPolymerElement = false;
   bool _dartTagSeen = false;
   bool _polymerHtmlSeen = false;
+  bool _polymerExperimentalHtmlSeen = false;
   bool _isEntrypoint;
   Map<String, _ElementSummary> _elements;
 
@@ -170,8 +170,12 @@ class _LinterVisitor extends TreeVisitor {
   void run(Document doc) {
     visit(doc);
 
-    if (_isEntrypoint && !_polymerHtmlSeen) {
+    if (_isEntrypoint && !_polymerHtmlSeen && !_polymerExperimentalHtmlSeen) {
       _logger.warning(USE_POLYMER_HTML, span: doc.body.sourceSpan);
+    }
+
+    if (_isEntrypoint && !_dartTagSeen && !_polymerExperimentalHtmlSeen) {
+      _logger.warning(USE_INIT_DART, span: doc.body.sourceSpan);
     }
   }
 
@@ -181,8 +185,7 @@ class _LinterVisitor extends TreeVisitor {
     if (rel != 'import' && rel != 'stylesheet') return;
 
     if (rel == 'import' && _dartTagSeen) {
-      _logger.warning(
-          "Move HTML imports above your Dart script tag.",
+      _logger.warning("Move HTML imports above your Dart script tag.",
           span: node.sourceSpan);
     }
 
@@ -194,6 +197,8 @@ class _LinterVisitor extends TreeVisitor {
 
     if (href == 'packages/polymer/polymer.html') {
       _polymerHtmlSeen = true;
+    } else if (href == POLYMER_EXPERIMENTAL_HTML) {
+      _polymerExperimentalHtmlSeen = true;
     }
     // TODO(sigmund): warn also if href can't be resolved.
   }
@@ -251,21 +256,29 @@ class _LinterVisitor extends TreeVisitor {
 
   /// Checks for multiple Dart script tags in the same page, which is invalid.
   void _validateScriptElement(Element node) {
+    var scriptType = node.attributes['type'];
+    var isDart = scriptType == 'application/dart';
     var src = node.attributes['src'];
+
+    if (isDart) {
+      if (_dartTagSeen) _logger.warning(ONLY_ONE_TAG, span: node.sourceSpan);
+      if (_isEntrypoint && _polymerExperimentalHtmlSeen) {
+        _logger.warning(NO_DART_SCRIPT_AND_EXPERIMENTAL, span: node.sourceSpan);
+      }
+      _dartTagSeen = true;
+    }
+
     if (src == null) return;
-    var type = node.attributes['type'];
-    bool isDart = type == 'application/dart;component=1' ||
-        type == 'application/dart';
 
     if (src.endsWith('.dart') && !isDart) {
-      _logger.warning('Wrong script type, expected type="application/dart" '
-          'or type="application/dart;component=1".', span: node.sourceSpan);
+      _logger.warning('Wrong script type, expected type="application/dart".',
+          span: node.sourceSpan);
       return;
     }
 
     if (!src.endsWith('.dart') && isDart) {
-      _logger.warning('"$type" scripts should use the .dart file extension.',
-          span: node.sourceSpan);
+      _logger.warning('"application/dart" scripts should use the .dart file '
+          'extension.', span: node.sourceSpan);
       return;
     }
 
@@ -377,10 +390,22 @@ class _LinterVisitor extends TreeVisitor {
   }
 }
 
-const String USE_POLYMER_HTML =
-    'To run a polymer application you need to include the following HTML '
-    'import: <link rel="import" href="packages/polymer/polymer.html">. This '
-    'will include the common polymer logic needed to boostrap your '
-    'application. The old style of initializing polymer with boot.js or '
-    'initPolymer are now deprecated. ';
+const String ONLY_ONE_TAG =
+    'Only one "application/dart" script tag per document is allowed.';
 
+const String USE_POLYMER_HTML =
+    'Besides the initPolymer invocation, to run a polymer application you need '
+    'to include the following HTML import: '
+    '<link rel="import" href="packages/polymer/polymer.html">. This will '
+    'include the common polymer logic needed to boostrap your application.';
+
+const String USE_INIT_DART =
+    'To run a polymer application, you need to call "initPolymer". You can '
+    'either include a generic script tag that does this for you:'
+    '\'<script type="application/dart">export "package:polymer/init.dart";'
+    '</script>\' or add your own script tag and call that function. '
+    'Make sure the script tag is placed after all HTML imports.';
+
+const String NO_DART_SCRIPT_AND_EXPERIMENTAL =
+    'The experimental bootstrap feature doesn\'t support script tags on '
+    'the main document (for now).';

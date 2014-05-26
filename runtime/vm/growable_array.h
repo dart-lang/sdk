@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Defines growable array classes, that differ where they are allocated:
-// - GrowableArray: allocate on stack.
+// - GrowableArray: allocated on stack.
 // - ZoneGrowableArray: allocated in the zone.
 
 #ifndef VM_GROWABLE_ARRAY_H_
@@ -122,10 +122,12 @@ void BaseGrowableArray<T, B>::Resize(intptr_t new_length) {
 template<typename T>
 class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
+  GrowableArray(Isolate* isolate, intptr_t initial_capacity)
+      : BaseGrowableArray<T, ValueObject>(
+          initial_capacity, isolate->current_zone()) {}
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
-          initial_capacity,
-          Isolate::Current()->current_zone()) {}
+          initial_capacity, Isolate::Current()->current_zone()) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject>(
           Isolate::Current()->current_zone()) {}
@@ -135,6 +137,9 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
 template<typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
+  ZoneGrowableArray(Isolate* isolate, intptr_t initial_capacity)
+      : BaseGrowableArray<T, ZoneAllocated>(
+          initial_capacity, isolate->current_zone()) {}
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,

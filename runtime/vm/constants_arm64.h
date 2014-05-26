@@ -457,6 +457,10 @@ enum LogicalShiftOp {
 enum SIMDCopyOp {
   SIMDCopyMask = 0x9fe08400,
   SIMDCopyFixed = DPSimd1Fixed | B10,
+  VDUPI = SIMDCopyFixed | B30 | B11,
+  VINSI = SIMDCopyFixed | B30 | B12 | B11,
+  VMOVW = SIMDCopyFixed | B13 | B12 | B11,
+  VMOVX = SIMDCopyFixed | B30 | B13 | B12 | B11,
   VDUP = SIMDCopyFixed | B30,
   VINS = SIMDCopyFixed | B30 | B29,
 };
@@ -465,6 +469,13 @@ enum SIMDCopyOp {
 enum SIMDThreeSameOp {
   SIMDThreeSameMask = 0x9f200400,
   SIMDThreeSameFixed = DPSimd1Fixed | B21 | B10,
+  VAND = SIMDThreeSameFixed | B30 | B12 | B11,
+  VORR = SIMDThreeSameFixed | B30 | B23 | B12 | B11,
+  VEOR = SIMDThreeSameFixed | B30 | B29 | B12 | B11,
+  VADDW = SIMDThreeSameFixed | B30 | B23 | B15,
+  VADDX = SIMDThreeSameFixed | B30 | B23 | B22 | B15,
+  VSUBW = SIMDThreeSameFixed | B30 | B29 | B23 | B15,
+  VSUBX = SIMDThreeSameFixed | B30 | B29 | B23 | B22 | B15,
   VADDS = SIMDThreeSameFixed | B30 | B15 | B14 | B12,
   VADDD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B12,
   VSUBS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B12,
@@ -473,6 +484,17 @@ enum SIMDThreeSameOp {
   VMULD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B12 | B11,
   VDIVS = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13 | B12 | B11,
   VDIVD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13 | B12 | B11,
+};
+
+// C.3.6.17
+enum SIMDTwoRegOp {
+  SIMDTwoRegMask = 0x9f3e0c00,
+  SIMDTwoRegFixed = DPSimd1Fixed | B21 | B11,
+  VNOT = SIMDTwoRegFixed | B30 | B29 | B14 | B12,
+  VABSS = SIMDTwoRegFixed | B30 | B23 | B15 | B14 | B13 | B12,
+  VNEGS = SIMDTwoRegFixed | B30 | B29 | B23 | B15 | B14 | B13 | B12,
+  VABSD = SIMDTwoRegFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
+  VNEGD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13 | B12,
 };
 
 // C.3.6.22
@@ -552,6 +574,7 @@ _V(MiscDP3Source)                                                              \
 _V(LogicalShift)                                                               \
 _V(SIMDCopy)                                                                   \
 _V(SIMDThreeSame)                                                              \
+_V(SIMDTwoReg)                                                                 \
 _V(FPCompare)                                                                  \
 _V(FPOneSource)                                                                \
 _V(FPTwoSource)                                                                \

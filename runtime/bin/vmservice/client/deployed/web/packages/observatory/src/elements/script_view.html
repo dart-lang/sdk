@@ -5,7 +5,7 @@
 </head>
 <polymer-element name="script-view" extends="observatory-element">
 <template>
-  <link rel="stylesheet" href="../../../../packages/observatory/src/elements/css/shared.css">
+  <link rel="stylesheet" href="css/shared.css">
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ script.isolate }}">
@@ -25,5 +25,5 @@
   <h1>script {{ script.name }}</h1>
   </script-inset>
 </template>
-<script type="application/dart" src="script_view.dart"></script>
+<script type="application/dart;component=1" src="script_view.dart"></script>
 </polymer-element>

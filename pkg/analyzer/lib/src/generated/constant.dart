@@ -1722,6 +1722,78 @@ class DartObjectImpl implements DartObject {
 }
 
 /**
+ * Instances of the class `DeclaredVariables` provide access to the values of variables that
+ * have been defined on the command line using the `-D` option.
+ */
+class DeclaredVariables {
+  /**
+   * A table mapping the names of declared variables to their values.
+   */
+  Map<String, String> _declaredVariables = new Map<String, String>();
+
+  /**
+   * Define a variable with the given name to have the given value.
+   *
+   * @param variableName the name of the variable being defined
+   * @param value the value of the variable
+   */
+  void define(String variableName, String value) {
+    _declaredVariables[variableName] = value;
+  }
+
+  /**
+   * Return the value of the variable with the given name interpreted as a boolean value, or
+   * `null` if the variable is not defined.
+   *
+   * @param typeProvider the type provider used to find the type 'bool'
+   * @param variableName the name of the variable whose value is to be returned
+   */
+  DartObject getBool(TypeProvider typeProvider, String variableName) {
+    String value = _declaredVariables[variableName];
+    if (value == null) {
+      return null;
+    }
+    if (value == "true") {
+      return new DartObjectImpl(typeProvider.boolType, BoolState.from(true));
+    } else if (value == "false") {
+      return new DartObjectImpl(typeProvider.boolType, BoolState.from(false));
+    }
+    return null;
+  }
+
+  /**
+   * Return the value of the variable with the given name interpreted as an integer value, or
+   * `null` if the variable is not defined.
+   *
+   * @param typeProvider the type provider used to find the type 'int'
+   * @param variableName the name of the variable whose value is to be returned
+   * @throws NumberFormatException if the value of the variable is not a valid integer value
+   */
+  DartObject getInt(TypeProvider typeProvider, String variableName) {
+    String value = _declaredVariables[variableName];
+    if (value == null) {
+      return null;
+    }
+    return new DartObjectImpl(typeProvider.intType, new IntState(int.parse(value)));
+  }
+
+  /**
+   * Return the value of the variable with the given name interpreted as a String value, or
+   * `null` if the variable is not defined.
+   *
+   * @param typeProvider the type provider used to find the type 'String'
+   * @param variableName the name of the variable whose value is to be returned
+   */
+  DartObject getString(TypeProvider typeProvider, String variableName) {
+    String value = _declaredVariables[variableName];
+    if (value == null) {
+      return null;
+    }
+    return new DartObjectImpl(typeProvider.stringType, new StringState(value));
+  }
+}
+
+/**
  * Instances of the class `DoubleState` represent the state of an object representing a
  * double.
  */

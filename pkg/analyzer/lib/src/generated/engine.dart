@@ -21,6 +21,7 @@ import 'sdk.dart' show DartSdk;
 import 'element.dart';
 import 'resolver.dart';
 import 'html.dart' as ht;
+import 'package:analyzer/src/generated/constant.dart';
 
 /**
  * Instances of the class `AnalysisCache` implement an LRU cache of information related to
@@ -239,9 +240,11 @@ abstract class AnalysisContext {
 
   /**
    * Return the documentation comment for the given element as it appears in the original source
-   * (complete with the beginning and ending delimiters), or `null` if the element does not
-   * have a documentation comment associated with it. This can be a long-running operation if the
-   * information needed to access the comment is not cached.
+   * (complete with the beginning and ending delimiters) for block documentation comments, or lines
+   * starting with `"///"` and separated with `"\n"` characters for end-of-line
+   * documentation comments, or `null` if the element does not have a documentation comment
+   * associated with it. This can be a long-running operation if the information needed to access
+   * the comment is not cached.
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    *
@@ -397,6 +400,13 @@ abstract class AnalysisContext {
    * @throws Exception if the contents of the source could not be accessed
    */
   TimestampedData<String> getContents(Source source);
+
+  /**
+   * Return the set of declared variables used when computing constant values.
+   *
+   * @return the set of declared variables used when computing constant values
+   */
+  DeclaredVariables get declaredVariables;
 
   /**
    * Return the element referenced by the given location, or `null` if the element is not
@@ -829,6 +839,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceFactory _sourceFactory;
 
   /**
+   * The set of declared variables used when computing constant values.
+   */
+  DeclaredVariables _declaredVariables = new DeclaredVariables();
+
+  /**
    * A source representing the core library.
    */
   Source _coreLibrarySource;
@@ -1033,7 +1048,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         List<Token> tokens = comment.tokens;
         for (int i = 0; i < tokens.length; i++) {
           if (i > 0) {
-            builder.append('\n');
+            builder.append("\n");
           }
           builder.append(tokens[i].lexeme);
         }
@@ -1231,6 +1246,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return source.contents;
   }
+
+  @override
+  DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
   Element getElement(ElementLocation location) {
@@ -4985,12 +5003,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry == null) {
       sourceEntry = _createSourceEntry(source, true);
     } else {
-      SourceEntryImpl sourceCopy = sourceEntry.writableCopy;
-      int newTime = getModificationStamp(source);
-      sourceCopy.modificationTime = newTime;
-      sourceCopy.explicitlyAdded = true;
-      // TODO(brianwilkerson) Understand why we're not invalidating the cached data.
-      _cache.put(source, sourceCopy);
+      _sourceChanged(source);
+      sourceEntry = _cache.get(source);
     }
     if (sourceEntry is HtmlEntry) {
       _workManager.add(source, SourcePriority.HTML);
@@ -5027,7 +5041,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _computeAllLibrariesDependingOn(containingLibrary, librariesToInvalidate);
       }
       for (Source library in librariesToInvalidate) {
-        //    for (Source library : containingLibraries) {
         _invalidateLibraryResolution(library);
       }
       _removeFromParts(source, _cache.get(source) as DartEntry);
@@ -11750,6 +11763,9 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TimestampedData<String> getContents(Source source) => _basis.getContents(source);
+
+  @override
+  DeclaredVariables get declaredVariables => _basis.declaredVariables;
 
   @override
   Element getElement(ElementLocation location) {

@@ -22,6 +22,7 @@ import 'dart:_internal' as _symbol_dev;
 
 import 'dart:_js_helper' show
     BoundClosure,
+    CachedInvocation,
     Closure,
     JSInvocationMirror,
     JsCache,
@@ -29,6 +30,7 @@ import 'dart:_js_helper' show
     Primitives,
     ReflectionInfo,
     RuntimeError,
+    TearOffClosure,
     TypeVariable,
     UnimplementedNoSuchMethodError,
     createRuntimeType,
@@ -36,7 +38,6 @@ import 'dart:_js_helper' show
     getMangledTypeName,
     getMetadata,
     getRuntimeType,
-    hasReflectableProperty,
     runtimeTypeToString,
     setRuntimeTypeInfo,
     throwInvalidReflectionError;
@@ -50,6 +51,10 @@ import 'dart:_interceptors' show
 import 'dart:_js_names';
 
 const String METHODS_WITH_OPTIONAL_ARGUMENTS = r'$methodsWithOptionalArguments';
+
+bool hasReflectableProperty(var jsFunction) {
+  return JS('bool', '# in #', JS_GET_NAME("REFLECTABLE"), jsFunction);
+}
 
 /// No-op method that is called to inform the compiler that tree-shaking needs
 /// to be disabled.
@@ -941,6 +946,13 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return cacheEntry;
   }
 
+  bool _isReflectable(CachedInvocation cachedInvocation) {
+    // TODO(floitsch): tear-off closure does not guarantee that the
+    // function is reflectable.
+    var method = cachedInvocation.jsFunction;
+    return hasReflectableProperty(method) || reflectee is TearOffClosure;
+  }
+
   /// Invoke the member specified through name and type on the reflectee.
   /// As a side-effect, this populates the class-specific invocation cache
   /// for the reflectee.
@@ -959,7 +971,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     var cacheEntry = _getCachedInvocation(
         name, type, reflectiveName, positionalArguments, namedArguments);
 
-    if (cacheEntry.isNoSuchMethod) {
+    if (cacheEntry.isNoSuchMethod || !_isReflectable(cacheEntry)) {
       // Could be that we want to invoke a getter, or get a method.
       if (type == JSInvocationMirror.METHOD && _instanceFieldExists(name)) {
         return getField(name).invoke(
@@ -969,6 +981,11 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       if (type == JSInvocationMirror.SETTER) {
         // For setters we report the setter name "field=".
         name = s("${n(name)}=");
+      }
+
+      if (!cacheEntry.isNoSuchMethod) {
+        // Not reflectable.
+        throwInvalidReflectionError(reflectiveName);
       }
 
       String mangledName = reflectiveNames[reflectiveName];

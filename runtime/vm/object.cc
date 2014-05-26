@@ -62,6 +62,7 @@ DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
+DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 
 DECLARE_FLAG(bool, eliminate_type_checks);
@@ -6782,10 +6783,10 @@ RawField* Field::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
-  result.set_guarded_cid(kIllegalCid);
-  result.set_is_nullable(false);
+  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(FLAG_use_field_guards ? false : true);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final) {
+  if (is_final && FLAG_use_field_guards) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
@@ -11088,9 +11089,10 @@ intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(index < NumberOfChecks());
-  const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+  NoGCScope no_gc;
+  RawArray* raw_data = ic_data();
+  return Smi::Value(Smi::RawCast(raw_data->ptr()->data()[data_pos]));
 }
 
 
@@ -11607,13 +11609,12 @@ RawCode* Code::FinalizeCode(const char* name,
       // GrowableObjectArray in new space.
       instrs.set_object_pool(Array::MakeArray(object_pool));
     }
-    bool status =
-        VirtualMemory::Protect(reinterpret_cast<void*>(instrs.raw_ptr()),
-                               instrs.raw()->Size(),
-                               FLAG_write_protect_code
-                                   ? VirtualMemory::kReadExecute
-                                   : VirtualMemory::kReadWriteExecute);
-    ASSERT(status);
+    if (FLAG_write_protect_code) {
+      bool status = VirtualMemory::Protect(
+          reinterpret_cast<void*>(instrs.raw_ptr()), instrs.raw()->Size(),
+          VirtualMemory::kReadExecute);
+      ASSERT(status);
+    }
   }
   code.set_comments(assembler->GetCodeComments());
   return code.raw();
@@ -13054,6 +13055,50 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 }
 
 
+intptr_t Instance::ElementSizeFor(intptr_t cid) {
+  if (RawObject::IsExternalTypedDataClassId(cid)) {
+    return ExternalTypedData::ElementSizeInBytes(cid);
+  } else if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::ElementSizeInBytes(cid);
+  }
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::kBytesPerElement;
+    case kOneByteStringCid:
+      return OneByteString::kBytesPerElement;
+    case kTwoByteStringCid:
+      return TwoByteString::kBytesPerElement;
+    default:
+      UNIMPLEMENTED();
+      return 0;
+  }
+}
+
+
+intptr_t Instance::DataOffsetFor(intptr_t cid) {
+  if (RawObject::IsExternalTypedDataClassId(cid)) {
+    // Elements start at offset 0 of the external data.
+    return 0;
+  }
+  if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::data_offset();
+  }
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::data_offset();
+    case kOneByteStringCid:
+      return OneByteString::data_offset();
+    case kTwoByteStringCid:
+      return TwoByteString::data_offset();
+    default:
+      UNIMPLEMENTED();
+      return Array::data_offset();
+  }
+}
+
+
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
@@ -13135,6 +13180,15 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
       jsfield.AddProperty("value", value);
     }
   }
+}
+
+
+void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
 }
 
 

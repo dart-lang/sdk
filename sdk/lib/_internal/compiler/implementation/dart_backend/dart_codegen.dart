@@ -190,16 +190,32 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     Expression condition = new Literal(new dart2js.BoolConstant(true));
     List<Statement> savedBuffer = statementBuffer;
     statementBuffer = <Statement>[];
+    tree.Statement savedFallthrough = fallthrough;
+    fallthrough = stmt.body;
     visitStatement(stmt.body);
     savedBuffer.add(
         new LabeledStatement(
             stmt.label.name,
             new While(condition, new Block(statementBuffer))));
     statementBuffer = savedBuffer;
+    fallthrough = savedFallthrough;
   }
 
   Expression visitConstant(tree.Constant exp) {
     return emitConstant(exp.value);
+  }
+
+  Expression visitLiteralList(tree.LiteralList exp) {
+    return new LiteralList(
+        exp.values.map(visitExpression).toList(growable: false));
+  }
+
+  Expression visitLiteralMap(tree.LiteralMap exp) {
+    List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
+        exp.values.length,
+        (i) => new LiteralMapEntry(visitExpression(exp.keys[i]),
+                                   visitExpression(exp.values[i])));
+    return new LiteralMap(entries);
   }
 
   List<Argument> emitArguments(tree.Invoke exp) {
@@ -225,6 +241,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List<Argument> args = emitArguments(exp);
     switch (exp.selector.kind) {
       case SelectorKind.CALL:
+        if (exp.selector.name == "call") {
+          return new CallFunction(receiver, args);
+        }
         return new CallMethod(receiver, exp.selector.name, args);
 
       case SelectorKind.OPERATOR:
@@ -325,7 +344,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (constant is dart2js.PrimitiveConstant) {
       return new Literal(constant);
     } else if (constant is dart2js.ListConstant) {
-      return new LiteralList(constant.entries.map(emitConstant), isConst: true);
+      return new LiteralList(
+          constant.entries.map(emitConstant).toList(growable: false),
+          isConst: true);
     } else if (constant is dart2js.MapConstant) {
       List<LiteralMapEntry> entries = <LiteralMapEntry>[];
       for (var i = 0; i < constant.keys.length; i++) {

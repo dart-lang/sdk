@@ -40,8 +40,7 @@ Future onAttributeChange(Element node) {
   return completer.future;
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -116,4 +115,4 @@ main() {
           'reflect property based on current type');
     });
   });
-}
+});

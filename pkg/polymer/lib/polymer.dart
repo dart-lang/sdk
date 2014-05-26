@@ -52,8 +52,9 @@ import 'dart:js' hide context;
 // *** Important Note ***
 // This import is automatically replaced when calling pub build by the
 // mirrors_remover transformer. The transformer will remove any dependencies on
-// dart:mirrors in deployed polymer apps. This should be updated in sync with
-// changed in lib/src/build/mirrors_remover.dart.
+// dart:mirrors in deployed polymer apps. This and the import to
+// mirror_loader.dart below should be updated in sync with changed in
+// lib/src/build/mirrors_remover.dart.
 //
 // Technically this annotation is not needed now that we have codegen for
 // expressions, but our test bots don't run pub-build yet. Until then, tests
@@ -69,12 +70,14 @@ import 'dart:mirrors' show MirrorsUsed;    // ** see important note above
 
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
+import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:polymer_expressions/polymer_expressions.dart'
     show PolymerExpressions;
 import 'package:smoke/smoke.dart' as smoke;
 import 'package:template_binding/template_binding.dart';
 
 import 'deserialize.dart' as deserialize;
+import 'src/mirror_loader.dart' as loader; // ** see important note above
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';

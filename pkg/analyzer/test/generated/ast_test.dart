@@ -186,6 +186,8 @@ class AstFactory {
 
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
+  static ForEachStatement forEachStatement2(SimpleIdentifier identifier, Expression iterator, Statement body) => new ForEachStatement.con2(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
   static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), null, initialization, TokenFactory.tokenFromType(TokenType.SEMICOLON), condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
@@ -282,7 +284,7 @@ class AstFactory {
 
   static ListLiteral listLiteral(List<Expression> elements) => listLiteral2(null, null, elements);
 
-  static ListLiteral listLiteral2(Keyword keyword, TypeArgumentList typeArguments, List<Expression> elements) => new ListLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), null, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), list(elements), TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+  static ListLiteral listLiteral2(Keyword keyword, TypeArgumentList typeArguments, List<Expression> elements) => new ListLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), list(elements), TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments, List<MapLiteralEntry> entries) => new MapLiteral(keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(entries), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 

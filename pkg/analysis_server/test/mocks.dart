@@ -90,7 +90,9 @@ class MockSocket<T> implements WebSocket {
 }
 
 class NoResponseException implements Exception {
-  /// The request that was not responded to.
+  /**
+   * The request that was not responded to.
+   */
   final Request request;
 
   NoResponseException(this.request);
@@ -126,7 +128,9 @@ class MockServerChannel implements ServerCommunicationChannel {
     new Future(() => notificationController.add(notification));
   }
 
-  /// Simulate request/response pair
+  /**
+   * Simulate request/response pair.
+   */
   Future<Response> sendRequest(Request request) {
     var id = request.id;
     // Wrap send request in future to simulate websocket

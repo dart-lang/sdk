@@ -13,7 +13,7 @@ convert/ascii_test: Skip # http://dartbug.com/15498
 convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498
 convert/streamed_conversion_utf8_encode_test: Skip # http://dartbug.com/15498
 
-mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+mirrors/mirrors_reader_test: Skip # Issue 16589
 
 [ $csp ]
 mirrors/delegate_test: RuntimeError # Issue 13864
@@ -35,7 +35,6 @@ mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
-mirrors/delegate_call_through_getter_test: RuntimeError # Issue 15138
 mirrors/equality_test/02: RuntimeError # Issue 12785
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
@@ -60,11 +59,8 @@ mirrors/instantiate_abstract_class_test: RuntimeError # Issue 6490
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_call_on_closure_test: RuntimeError # 6490
 mirrors/invoke_call_through_getter_test/named: RuntimeError # Issue 12863. When updating the status, remove the "///" in the test.
-mirrors/invoke_call_through_getter_test/getter_call_stub: RuntimeError # Issue 17451. When updating the status, remove the "///" in the test.
 mirrors/invoke_call_through_getter_previously_accessed_test/named: RuntimeError # Issue 12863. When updating the status, remove the "///" in the test.
-mirrors/invoke_call_through_getter_previously_accessed_test/getter_call_stub: RuntimeError # Issue 17451. When updating the status, remove the "///" in the test.
 mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: RuntimeError # Issue 12863. When updating the status, remove the "///" in the test.
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/getter_call_stub: RuntimeError # Issue 17451. When updating the status, remove the "///" in the test.
 mirrors/invoke_call_through_implicit_getter_test: RuntimeError # Issue 17638
 mirrors/invoke_named_test/none: RuntimeError # Issue 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
@@ -180,6 +176,7 @@ async/future_timeout_test: Fail # Timer interface not supported: dartbug.com/772
 async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
@@ -220,11 +217,11 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 [ $runtime == ie9 ]
 # IE9 doesn't support typed arrays.
 typed_data/*: Fail # Issue 11971
-convert/chunked_conversion_utf88_test: Pass, Slow, Timeout  # Issue 12029
-convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
-async/deferred/*: Pass, Fail, Timeout # http://dartbug.com/12635
+convert/chunked_conversion_utf88_test: Skip  # Issue 12029
+convert/streamed_conversion_json_utf8_decode_test: Skip # Issue 12029
+async/deferred/*: Skip # http://dartbug.com/12635
 mirrors/deferred*: Pass, Fail # http://dartbug.com/12635
-convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
+convert/streamed_conversion_utf8_decode_test: Skip # http://dartbug.com/12768
 convert/utf85_test: Skip # Issue 12029.
 convert/json_util_test: Fail # Issue 16109
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589

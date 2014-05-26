@@ -17,8 +17,7 @@ class MyElement extends PolymerElement {
   get attributes => super.attributes;
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -36,4 +35,4 @@ main() {
     expect(text, " foo: 123 bar: hi baz: world ",
         reason: 'text should match expected HTML template');
   });
-}
+});

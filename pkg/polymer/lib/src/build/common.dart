@@ -211,3 +211,5 @@ bool isCustomTagName(String name) {
 /// Regex to split names in the 'attributes' attribute, which supports 'a b c',
 /// 'a,b,c', or even 'a b,c'. This is the same as in `lib/src/declaration.dart`.
 final ATTRIBUTES_REGEX = new RegExp(r'\s|,');
+
+const POLYMER_EXPERIMENTAL_HTML = 'packages/polymer/polymer_experimental.html';

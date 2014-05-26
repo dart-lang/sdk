@@ -16,8 +16,7 @@ class DartElement extends PolymerElement {
   DartElement.created() : super.created();
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -32,7 +31,7 @@ main() {
 
   test('js-element in dart-element', () => testInterop(
       querySelector('dart-element').shadowRoot.querySelector('js-element')));
-}
+});
 
 testInterop(jsElem) {
   expect(jsElem.shadowRoot.text, 'FOOBAR');

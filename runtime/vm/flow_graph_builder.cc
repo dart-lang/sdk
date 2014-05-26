@@ -39,9 +39,12 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
             "Warn on incompatibilities between vm and dart2js.");
+
+DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, warning_as_error);
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, silent_warnings);
+DECLARE_FLAG(bool, warning_as_error);
 
 
 // TODO(srdjan): Allow compiler to add constants as they are encountered in
@@ -288,7 +291,9 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       // TODO(zerny): Avoid creating unnecessary environments. Note that some
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
-      if (instr->env() != NULL) call_->env()->DeepCopyToOuter(instr);
+      if (instr->env() != NULL) {
+        call_->env()->DeepCopyToOuter(callee_graph->isolate(), instr);
+      }
     }
     if (instr->IsGoto()) {
       instr->AsGoto()->adjust_edge_weight(scale_factor);
@@ -345,7 +350,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
         new JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
-    join->InheritDeoptTargetAfter(call_);
+    join->InheritDeoptTargetAfter(isolate(), call_);
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -364,7 +369,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     for (intptr_t i = 0; i < num_exits; ++i) {
       // Add the control-flow edge.
       GotoInstr* goto_instr = new GotoInstr(join);
-      goto_instr->InheritDeoptTarget(ReturnAt(i));
+      goto_instr->InheritDeoptTarget(isolate(), ReturnAt(i));
       LastInstructionAt(i)->LinkTo(goto_instr);
       ExitBlockAt(i)->set_last_instruction(LastInstructionAt(i)->next());
       join->predecessors_.Add(ExitBlockAt(i));
@@ -449,7 +454,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     TargetEntryInstr* false_block =
         new TargetEntryInstr(caller_graph_->allocate_block_id(),
                              call_block->try_index());
-    false_block->InheritDeoptTargetAfter(call_);
+    false_block->InheritDeoptTargetAfter(isolate(), call_);
     false_block->LinkTo(call_->next());
     call_block->ReplaceAsPredecessorWith(false_block);
 
@@ -460,7 +465,7 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
                                                new Value(true_const),
                                                new Value(true_const),
                                                false));  // No number check.
-    branch->InheritDeoptTarget(call_);
+    branch->InheritDeoptTarget(isolate(), call_);
     *branch->true_successor_address() = callee_entry;
     *branch->false_successor_address() = false_block;
 
@@ -999,7 +1004,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
   if ((node->token_pos() != Scanner::kNoSourcePos) &&
-      !function.is_native()) {
+      !function.is_native() && FLAG_enable_debugger) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
                                            PcDescriptors::kReturn));
   }
@@ -2194,7 +2199,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
           for_value.value()->BindsToConstant()
               ? kNoStoreBarrier
               : kEmitStoreBarrier;
-      intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
+      const intptr_t index_scale = Instance::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new StoreIndexedInstr(
           array, index, for_value.value(), emit_store_barrier,
           index_scale, class_id, deopt_id, node->token_pos());
@@ -3108,8 +3113,10 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call.
   if (node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode()) {
-    AddInstruction(new DebugStepCheckInstr(node->token_pos(),
-                                           PcDescriptors::kRuntimeCall));
+    if (FLAG_enable_debugger) {
+      AddInstruction(new DebugStepCheckInstr(node->token_pos(),
+                                             PcDescriptors::kRuntimeCall));
+    }
   }
 
   ValueGraphVisitor for_value(owner());
@@ -3519,12 +3526,15 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       !function.is_native()) {
     // Always allocate CheckOverflowInstr so that deopt-ids match regardless
     // if we inline or not.
-    CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(function.token_pos(), 0);
-    // If we are inlining don't actually attach the stack check. We must still
-    // create the stack check in order to allocate a deopt id.
-    if (!owner()->IsInlining()) {
-      AddInstruction(check);
+    if (!function.IsImplicitGetterFunction() &&
+        !function.IsImplicitSetterFunction()) {
+      CheckStackOverflowInstr* check =
+          new CheckStackOverflowInstr(function.token_pos(), 0);
+      // If we are inlining don't actually attach the stack check. We must still
+      // create the stack check in order to allocate a deopt id.
+      if (!owner()->IsInlining()) {
+        AddInstruction(check);
+      }
     }
   }
 

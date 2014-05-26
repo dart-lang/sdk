@@ -522,11 +522,13 @@ class LocationSummary : public ZoneAllocated {
   };
 
   // Defaults to 1 output.
-  LocationSummary(intptr_t input_count,
+  LocationSummary(Isolate* isolate,
+                  intptr_t input_count,
                   intptr_t temp_count,
                   LocationSummary::ContainsCall contains_call);
 
-  LocationSummary(intptr_t input_count,
+  LocationSummary(Isolate* isolate,
+                  intptr_t input_count,
                   intptr_t temp_count,
                   intptr_t output_count,
                   LocationSummary::ContainsCall contains_call);
@@ -589,7 +591,15 @@ class LocationSummary : public ZoneAllocated {
     output_locations_[index] = loc;
   }
 
-  BitmapBuilder* stack_bitmap() const { return stack_bitmap_; }
+  BitmapBuilder* stack_bitmap() {
+    if (stack_bitmap_ == NULL) {
+      stack_bitmap_ = new BitmapBuilder();
+    }
+    return stack_bitmap_;
+  }
+  void SetStackBit(intptr_t index) {
+    stack_bitmap()->Set(index, true);
+  }
 
   bool always_calls() const {
     return contains_call_ == kCall;
@@ -614,9 +624,9 @@ class LocationSummary : public ZoneAllocated {
   }
 
  private:
-  ZoneGrowableArray<Location> input_locations_;
-  ZoneGrowableArray<Location> temp_locations_;
-  ZoneGrowableArray<Location> output_locations_;
+  GrowableArray<Location> input_locations_;
+  GrowableArray<Location> temp_locations_;
+  GrowableArray<Location> output_locations_;
 
   BitmapBuilder* stack_bitmap_;
 

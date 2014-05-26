@@ -74,7 +74,7 @@ class JsonPrettyPrinter {
 
   void _writeIndent(int depth) {
     const tab = '  ';  // 2 spaces.
-    _buffer.write(depth * tab);
+    _buffer.write(tab * depth);
   }
 
   final _buffer = new StringBuffer();

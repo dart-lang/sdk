@@ -188,6 +188,9 @@ class DartUtils {
                                 Dart_Handle url,
                                 Dart_Handle builtin_lib);
 
+  static Dart_Handle LoadScriptDataAsync(Dart_Handle script_uri,
+                                         Dart_Handle builtin_lib);
+
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
   // the return value is an updated pointer to the text_buffer pointing past

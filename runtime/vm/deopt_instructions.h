@@ -295,7 +295,7 @@ class DeoptInstr : public ZoneAllocated {
 // the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
-  explicit DeoptInfoBuilder(const intptr_t num_args);
+  DeoptInfoBuilder(Isolate* isolate, const intptr_t num_args);
 
   // 'object_table' holds all objects referred to by DeoptInstr in
   // all DeoptInfo instances for a single Code object.
@@ -349,6 +349,10 @@ class DeoptInfoBuilder : public ValueObject {
   }
 
   void AddConstant(const Object& obj, intptr_t dest_index);
+
+  Isolate* isolate() const { return isolate_; }
+
+  Isolate* isolate_;
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;

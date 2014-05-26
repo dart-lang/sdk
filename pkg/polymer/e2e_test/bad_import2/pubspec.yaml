@@ -1,0 +1,8 @@
+name: bad_import2
+dependencies:
+  polymer: any
+dev_dependencies:
+  unittest: any
+transformers:
+  - polymer:
+      entry_points: test/import_test.html

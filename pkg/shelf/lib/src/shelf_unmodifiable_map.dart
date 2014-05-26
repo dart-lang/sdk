@@ -6,12 +6,13 @@ library shelf.shelf_unmodifiable_map;
 
 import 'dart:collection';
 
-// TODO(kevmoo): use UnmodifiableMapView from SDK once 1.4 ships
+// TODO(kevmoo): MapView lacks a const ctor, so we have to use DelegatingMap
+// from pkg/collection - https://codereview.chromium.org/294093003/
 import 'package:collection/wrappers.dart' as pc;
 
 /// A simple wrapper over [pc.UnmodifiableMapView] which avoids re-wrapping
 /// itself.
-class ShelfUnmodifiableMap<V> extends pc.UnmodifiableMapView<String, V> {
+class ShelfUnmodifiableMap<V> extends UnmodifiableMapView<String, V> {
   /// If [source] is a [ShelfUnmodifiableMap] with matching [ignoreKeyCase],
   /// then [source] is returned.
   ///

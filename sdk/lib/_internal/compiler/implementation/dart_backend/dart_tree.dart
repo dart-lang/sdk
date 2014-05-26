@@ -178,6 +178,23 @@ class Constant extends Expression {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
+class LiteralList extends Expression {
+  final List<Expression> values;
+
+  LiteralList(this.values) ;
+
+  accept(Visitor visitor) => visitor.visitLiteralList(this);
+}
+
+class LiteralMap extends Expression {
+  final List<Expression> keys;
+  final List<Expression> values;
+
+  LiteralMap(this.keys, this.values) ;
+
+  accept(Visitor visitor) => visitor.visitLiteralMap(this);
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -364,6 +381,8 @@ abstract class Visitor<S, E> {
   E visitConditional(Conditional node);
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
+  E visitLiteralList(LiteralList node);
+  E visitLiteralMap(LiteralMap node);
 
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
@@ -629,6 +648,16 @@ class Builder extends ir.Visitor<Node> {
 
   Expression visitConstant(ir.Constant node) {
     return new Constant(node.value);
+  }
+
+  Expression visitLiteralList(ir.LiteralList node) {
+    return new LiteralList(translateArguments(node.values));
+  }
+
+  Expression visitLiteralMap(ir.LiteralMap node) {
+    return new LiteralMap(
+        translateArguments(node.keys),
+        translateArguments(node.values));
   }
 
   Expression visitParameter(ir.Parameter node) {
@@ -948,6 +977,23 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitConstant(Constant node) {
+    return node;
+  }
+
+  Expression visitLiteralList(LiteralList node) {
+    // Process values right-to-left, the opposite of evaluation order.
+    for (int i = node.values.length - 1; i >= 0; --i) {
+      node.values[i] = visitExpression(node.values[i]);
+    }
+    return node;
+  }
+
+  Expression visitLiteralMap(LiteralMap node) {
+    // Process arguments right-to-left, the opposite of evaluation order.
+    for (int i = node.values.length - 1; i >= 0; --i) {
+      node.values[i] = visitExpression(node.values[i]);
+      node.keys[i] = visitExpression(node.keys[i]);
+    }
     return node;
   }
 
@@ -1280,31 +1326,34 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitInvokeStatic(InvokeStatic node) {
-    for (int i = 0; i < node.arguments.length; i++) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitInvokeMethod(InvokeMethod node) {
     node.receiver = visitExpression(node.receiver);
-    for (int i = 0; i < node.arguments.length; i++) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
-    for (int i = 0; i < node.arguments.length; i++) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitConcatenateStrings(ConcatenateStrings node) {
-    for (int i = 0; i < node.arguments.length; i++) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
+    return node;
+  }
+
+  Expression visitLiteralList(LiteralList node) {
+    _rewriteList(node.values);
+    return node;
+  }
+
+  Expression visitLiteralMap(LiteralMap node) {
+    _rewriteList(node.keys);
+    _rewriteList(node.values);
     return node;
   }
 
@@ -1522,4 +1571,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     }
   }
 
+  /// Destructively updates each entry of [l] with the result of visiting it.
+  void _rewriteList(List<Expression> l) {
+    for (int i = 0; i < l.length; i++) {
+      l[i] = visitExpression(l[i]);
+    }
+  }
 }

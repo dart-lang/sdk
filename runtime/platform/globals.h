@@ -279,6 +279,7 @@ typedef uintptr_t uword;
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
 const int kFloatSize = sizeof(float);  // NOLINT
+const int kQuadSize = 4 * kFloatSize;
 const int kSimd128Size = sizeof(simd128_value_t);  // NOLINT
 #ifdef ARCH_IS_32_BIT
 const int kWordSizeLog2 = 2;

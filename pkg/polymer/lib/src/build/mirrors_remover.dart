@@ -32,9 +32,13 @@ class MirrorsRemover extends Transformer {
       var end = code.indexOf('show MirrorsUsed;', start);
       if (end == -1) _error();
       end = code.indexOf('\n', end);
+      var loaderImport = code.indexOf(
+          "import 'src/mirror_loader.dart' as loader;", end);
+      if (loaderImport == -1) _error();
       var sb = new StringBuffer()
           ..write(code.substring(0, start))
-          ..write(code.substring(end));
+          ..write(code.substring(end)
+              .replaceAll('src/mirror_loader.dart', 'src/static_loader.dart'));
 
       transform.addOutput(new Asset.fromString(id, sb.toString()));
     });

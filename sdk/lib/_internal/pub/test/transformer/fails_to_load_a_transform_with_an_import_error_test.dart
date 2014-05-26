@@ -28,7 +28,8 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
     var pub = startPubServe();
-    pub.stderr.expect(endsWith("error: line 1 pos 1: library handler failed"));
+    pub.stderr.expect("'Unhandled exception:");
+    pub.stderr.expect(startsWith("Failure getting "));
     pub.shouldExit(1);
   });
 }

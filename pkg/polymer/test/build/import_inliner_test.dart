@@ -27,7 +27,7 @@ void importTests() {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
     });
 
   testPhases('empty import', phases, {
@@ -43,11 +43,11 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
     });
 
   testPhases('shallow, no elements', phases, {
@@ -62,11 +62,11 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
     });
 
   testPhases('shallow, elements, one import', phases,
@@ -84,11 +84,11 @@ void importTests() {
           '</head><body>'
           '<polymer-element>2</polymer-element>'
           '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body><polymer-element>2</polymer-element></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
     });
 
   testPhases('preserves order of scripts', phases,
@@ -114,58 +114,26 @@ void importTests() {
           '<polymer-element>2</polymer-element>'
           '<script>/*forth*/</script>'
           '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
           '<!DOCTYPE html><html><head><script>/*third*/</script>'
           '</head><body><polymer-element>2</polymer-element></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
       'a|web/second.js': '/*second*/'
     });
 
-  testPhases('preserves order of scripts, including Dart scripts', phases,
+  testPhases('preserves order of scripts, extract Dart scripts', phases,
     {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="text/javascript">/*first*/</script>'
           '<script src="second.js"></script>'
           '<link rel="import" href="test2.html">'
+          '<script type="application/dart">/*fifth*/</script>'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
           '<script type="application/dart">/*forth*/</script>'
-          '</head></html>',
-      'a|web/test2.html':
-          '<!DOCTYPE html><html><head><script>/*third*/</script>'
-          '</head><body><polymer-element>2</polymer-element></html>',
-      'a|web/second.js': '/*second*/'
-    }, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<script type="text/javascript">/*first*/</script>'
-          '<script src="second.js"></script>'
-          '<script>/*third*/</script>'
-          '<polymer-element>2</polymer-element>'
-          '<script type="application/dart" src="test.html.0.dart"></script>'
-          '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
-      'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*forth*/',
-      'a|web/test2.html':
-          '<!DOCTYPE html><html><head><script>/*third*/</script>'
-          '</head><body><polymer-element>2</polymer-element></html>',
-      'a|web/test2.html.scriptUrls': '[]',
-      'a|web/second.js': '/*second*/'
-    });
-
-  testPhases('preserves order, extract component scripts', phases,
-    {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<script type="text/javascript">/*first*/</script>'
-          '<script src="second.js"></script>'
-          '<link rel="import" href="test2.html">'
-          '<script type="application/dart;component=1">/*forth*/</script>'
-          '<script type="application/dart;component=1">/*fifth*/</script>'
-          '</head></html>',
-      'a|web/test2.html':
-          '<!DOCTYPE html><html><head><script>/*third*/</script>'
           '</head><body><polymer-element>2</polymer-element></html>',
       'a|web/second.js': '/*second*/'
     }, {
@@ -177,14 +145,15 @@ void importTests() {
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
           '</body></html>',
-      'a|web/test.html.scriptUrls':
-          '[["a","web/test.html.0.dart"],["a","web/test.html.1.dart"]]',
-      'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*forth*/',
-      'a|web/test.html.1.dart': 'library a.web.test_html_1;\n/*fifth*/',
+      'a|web/test.html._data': expectedData([
+          'web/test.html.1.dart','web/test.html.0.dart']),
+      'a|web/test.html.1.dart': 'library a.web.test2_html_1;\n/*forth*/',
+      'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*fifth*/',
       'a|web/test2.html':
-          '<!DOCTYPE html><html><head><script>/*third*/</script>'
-          '</head><body><polymer-element>2</polymer-element></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+          '<!DOCTYPE html><html><head></head><body><script>/*third*/</script>'
+          '<polymer-element>2</polymer-element></body></html>',
+      'a|web/test2.html._data': expectedData(['web/test2.html.0.dart']),
+      'a|web/test2.html.0.dart': 'library a.web.test2_html_0;\n/*forth*/',
       'a|web/second.js': '/*second*/'
     });
 
@@ -402,7 +371,7 @@ void importTests() {
           '<script src="s2"></script>'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script></body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -410,7 +379,7 @@ void importTests() {
           '<script src="s2"></script>'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script></body></html>',
-      'a|web/test_1.html.scriptUrls': '[]',
+      'a|web/test_1.html._data': EMPTY_DATA,
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -418,7 +387,7 @@ void importTests() {
           '<script src="s1"></script>'
           '<polymer-element>2</polymer-element>'
           '<script src="s2"></script></body></html>',
-      'a|web/test_2.html.scriptUrls': '[]',
+      'a|web/test_2.html._data': EMPTY_DATA,
     });
 
   testPhases('imports cycle, 1-step lasso, Dart scripts too', phases, {
@@ -430,60 +399,13 @@ void importTests() {
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_2.html">'
           '</head><body><polymer-element>1</polymer-element>'
-          '<script type="application/dart" src="s1.dart"></script></html>',
-      'a|web/test_2.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="test_1.html">'
-          '</head><body><polymer-element>2</polymer-element>'
-          '<script type="application/dart" src="s2.dart"></script></html>',
-      'a|web/s1.dart': '',
-      'a|web/s2.dart': '',
-    }, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<polymer-element>2</polymer-element>'
-          '<script type="application/dart" src="s2.dart"></script>'
-          '<polymer-element>1</polymer-element>'
-          '<script type="application/dart" src="s1.dart"></script>'
-          '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
-      'a|web/test_1.html':
-          '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<polymer-element>2</polymer-element>'
-          '<script type="application/dart" src="s2.dart"></script>'
-          '<polymer-element>1</polymer-element>'
-          '<script type="application/dart" src="s1.dart"></script>'
-          '</body></html>',
-      'a|web/test_1.html.scriptUrls': '[]',
-      'a|web/test_2.html':
-          '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<polymer-element>1</polymer-element>'
-          '<script type="application/dart" src="s1.dart"></script>'
-          '<polymer-element>2</polymer-element>'
-          '<script type="application/dart" src="s2.dart"></script>'
-          '</body></html>',
-      'a|web/test_2.html.scriptUrls': '[]',
-    });
-
-  testPhases('imports cycle, 1-step lasso, Dart components scripts', phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="test_1.html">'
-          '</head></html>',
-      'a|web/test_1.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="test_2.html">'
-          '</head><body><polymer-element>1</polymer-element>'
-          '<script type="application/dart;component=1" src="s1.dart">'
+          '<script type="application/dart" src="s1.dart">'
           '</script></html>',
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test_1.html">'
           '</head><body><polymer-element>2'
-          '<script type="application/dart;component=1" src="s2.dart"></script>'
+          '<script type="application/dart" src="s2.dart"></script>'
           '</polymer-element>'
           '</html>',
       'a|web/s1.dart': '',
@@ -495,23 +417,22 @@ void importTests() {
           '<polymer-element>2</polymer-element>'
           '<polymer-element>1</polymer-element>'
           '</body></html>',
-      'a|web/test.html.scriptUrls': '[["a","web/s2.dart"],["a","web/s1.dart"]]',
+      'a|web/test.html._data': expectedData(['web/s2.dart', 'web/s1.dart']),
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
           '<polymer-element>2</polymer-element>'
           '<polymer-element>1</polymer-element>'
           '</body></html>',
-      'a|web/test_1.html.scriptUrls':
-          '[["a","web/s2.dart"],["a","web/s1.dart"]]',
+      'a|web/test_1.html._data': expectedData(['web/s2.dart', 'web/s1.dart']),
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
           '<polymer-element>1</polymer-element>'
-          '<polymer-element>2</polymer-element>'
+          '<polymer-element>2'
+          '</polymer-element>'
           '</body></html>',
-      'a|web/test_2.html.scriptUrls':
-          '[["a","web/s1.dart"],["a","web/s2.dart"]]',
+      'a|web/test_2.html._data': expectedData(['web/s1.dart', 'web/s2.dart']),
     });
 
   testPhases('imports with Dart script after JS script', phases, {
@@ -526,7 +447,7 @@ void importTests() {
           '<foo>42</foo><bar-baz></bar-baz>'
           '<polymer-element>1'
           '<script src="s1.js"></script>'
-          '<script type="application/dart;component=1" src="s1.dart"></script>'
+          '<script type="application/dart" src="s1.dart"></script>'
           '</polymer-element>'
           'FOO</body></html>',
       'a|web/s1.dart': '',
@@ -539,7 +460,7 @@ void importTests() {
           '<script src="s1.js"></script>'
           '</polymer-element>'
           'FOO</body></html>',
-      'a|web/test.html.scriptUrls': '[["a","web/s1.dart"]]',
+      'a|web/test.html._data': expectedData(['web/s1.dart']),
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -548,7 +469,7 @@ void importTests() {
           '<script src="s1.js"></script>'
           '</polymer-element>'
           'FOO</body></html>',
-      'a|web/test_1.html.scriptUrls': '[["a","web/s1.dart"]]',
+      'a|web/test_1.html._data': expectedData(['web/s1.dart']),
     });
 
   testPhases('imports cycle, 2-step lasso', phases, {
@@ -672,12 +593,12 @@ void stylesheetTests() {
         '<!DOCTYPE html><html><head>'
         '<link rel="stylesheet" href="">' // empty href
         '</head></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
         '<!DOCTYPE html><html><head>'
         '<link rel="stylesheet">'         // no href
         '</head></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
     });
 
   testPhases('absolute uri', phases, {
@@ -694,12 +615,12 @@ void stylesheetTests() {
           '<!DOCTYPE html><html><head>'
           '<link rel="stylesheet" href="/foo.css">'
           '</head></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="stylesheet" href="http://example.com/bar.css">'
           '</head></html>',
-      'a|web/test2.html.scriptUrls': '[]',
+      'a|web/test2.html._data': EMPTY_DATA,
     });
 
   testPhases('shallow, inlines css', phases, {
@@ -714,7 +635,7 @@ void stylesheetTests() {
           '<!DOCTYPE html><html><head></head><body>'
           '<style>h1 { font-size: 70px; }</style>'
           '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
     });
@@ -814,7 +735,7 @@ void stylesheetTests() {
           '<style>h1 { font-size: 70px; }</style>'
           '<style>.second { color: black }</style>'
           '</body></html>',
-      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
     });

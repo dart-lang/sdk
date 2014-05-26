@@ -46,8 +46,7 @@ class XSquid extends XZot {
   @published int squid = 7;
 }
 
-@initMethod
-main() {
+main() => initPolymer().run(() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady.then((_) {
@@ -64,4 +63,4 @@ main() {
     // TODO(sigmund): uncomment, see above
     // expect(published('x-squid'), [#Foo, #Bar, #zot, #zap, #baz, #squid]);
   });
-}
+});

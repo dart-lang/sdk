@@ -5,3 +5,4 @@
 library dart.pkg.async;
 
 export "stream_zip.dart";
+export "result.dart";

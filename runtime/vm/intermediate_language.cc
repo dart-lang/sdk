@@ -804,25 +804,26 @@ void Instruction::UnuseAllInputs() {
 }
 
 
-void Instruction::InheritDeoptTargetAfter(Instruction* other) {
+void Instruction::InheritDeoptTargetAfter(Isolate* isolate,
+                                          Instruction* other) {
   ASSERT(other->env() != NULL);
   deopt_id_ = Isolate::ToDeoptAfter(other->deopt_id_);
-  other->env()->DeepCopyTo(this);
+  other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
 
 
-void Instruction::InheritDeoptTarget(Instruction* other) {
+void Instruction::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(other->env() != NULL);
   deopt_id_ = other->deopt_id_;
-  other->env()->DeepCopyTo(this);
+  other->env()->DeepCopyTo(isolate, this);
   env()->set_deopt_id(deopt_id_);
 }
 
 
-void BranchInstr::InheritDeoptTarget(Instruction* other) {
+void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
   ASSERT(env() == NULL);
-  Instruction::InheritDeoptTarget(other);
+  Instruction::InheritDeoptTarget(isolate, other);
   comparison()->SetDeoptId(GetDeoptId());
 }
 
@@ -1611,11 +1612,12 @@ Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-LocationSummary* DebugStepCheckInstr::MakeLocationSummary(bool opt) const {
+LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
   return locs;
 }
 
@@ -1633,8 +1635,20 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static bool HasTryBlockUse(Value* use_list) {
+  for (Value::Iterator it(use_list); !it.Done(); it.Advance()) {
+    Value* use = it.Current();
+    if (use->instruction()->MayThrow() &&
+        use->instruction()->GetBlock()->InsideTryBlock()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1669,7 +1683,7 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1692,7 +1706,7 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1716,7 +1730,7 @@ Definition* UnboxFloat64x2Instr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  if (input_use_list() == NULL) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
@@ -1853,6 +1867,7 @@ static bool RecognizeTestPattern(Value* left, Value* right) {
 
 
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
+  Isolate* isolate = flow_graph->isolate();
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     bool negated = false;
@@ -1912,10 +1927,11 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       if (FLAG_trace_optimization) {
         OS::Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
-      TestSmiInstr* test = new TestSmiInstr(comparison()->token_pos(),
-                                            comparison()->kind(),
-                                            bit_and->left()->Copy(),
-                                            bit_and->right()->Copy());
+      TestSmiInstr* test = new TestSmiInstr(
+          comparison()->token_pos(),
+          comparison()->kind(),
+          bit_and->left()->Copy(isolate),
+          bit_and->right()->Copy(isolate));
       ASSERT(!CanDeoptimize());
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, bit_and);
@@ -2012,13 +2028,15 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 
 #define __ compiler->assembler()->
 
-LocationSummary* GraphEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* GraphEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
 
 
-LocationSummary* JoinEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* JoinEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2037,7 +2055,8 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* TargetEntryInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* TargetEntryInstr::MakeLocationSummary(Isolate* isolate,
+                                                       bool optimizing) const {
   // FlowGraphCompiler::EmitInstructionPrologue is not called for block
   // entry instructions, so this function is unused.  If it becomes
   // reachable, note that the deoptimization descriptor in unoptimized code
@@ -2049,7 +2068,8 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary(bool optimizing) const {
 }
 
 
-LocationSummary* PhiInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* PhiInstr::MakeLocationSummary(Isolate* isolate,
+                                               bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2060,7 +2080,8 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* RedefinitionInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* RedefinitionInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2071,7 +2092,8 @@ void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParameterInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ParameterInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2082,7 +2104,8 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParallelMoveInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ParallelMoveInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   return NULL;
 }
 
@@ -2092,7 +2115,8 @@ void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstraintInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* ConstraintInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2104,7 +2128,7 @@ void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MaterializeObjectInstr::MakeLocationSummary(
-    bool optimizing) const {
+    Isolate* isolate, bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -2153,17 +2177,19 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
 }
 
 
-LocationSummary* StoreContextInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
 }
 
 
-LocationSummary* PushTempInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* PushTempInstr::MakeLocationSummary(Isolate* isolate,
+                                                    bool optimizing) const {
   return LocationSummary::Make(1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
@@ -2176,7 +2202,8 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* DropTempsInstr::MakeLocationSummary(Isolate* isolate,
+                                                     bool optimizing) const {
   return (InputCount() == 1)
       ? LocationSummary::Make(1,
                               Location::SameAsFirstInput(),
@@ -2212,7 +2239,8 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
 }
 
 
-LocationSummary* InstanceCallInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool optimizing) const {
   return MakeCallSummary();
 }
 
@@ -2285,7 +2313,8 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
 }
 
 
-LocationSummary* StaticCallInstr::MakeLocationSummary(bool optimizing) const {
+LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool optimizing) const {
   return MakeCallSummary();
 }
 
@@ -2317,37 +2346,38 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-Environment* Environment::From(const GrowableArray<Definition*>& definitions,
+Environment* Environment::From(Isolate* isolate,
+                               const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
                                const Code& code) {
   Environment* env =
-      new Environment(definitions.length(),
-                      fixed_parameter_count,
-                      Isolate::kNoDeoptId,
-                      code,
-                      NULL);
+      new(isolate) Environment(definitions.length(),
+                               fixed_parameter_count,
+                               Isolate::kNoDeoptId,
+                               code,
+                               NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
-    env->values_.Add(new Value(definitions[i]));
+    env->values_.Add(new(isolate) Value(definitions[i]));
   }
   return env;
 }
 
 
-Environment* Environment::DeepCopy(intptr_t length) const {
+Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
   ASSERT(length <= values_.length());
   Environment* copy =
-      new Environment(length,
-                      fixed_parameter_count_,
-                      deopt_id_,
-                      code_,
-                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
+      new(isolate) Environment(
+          length,
+          fixed_parameter_count_,
+          deopt_id_,
+          code_,
+          (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
   if (locations_ != NULL) {
-    Location* new_locations =
-        Isolate::Current()->current_zone()->Alloc<Location>(length);
+    Location* new_locations = isolate->current_zone()->Alloc<Location>(length);
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
-    copy->values_.Add(values_[i]->Copy());
+    copy->values_.Add(values_[i]->Copy(isolate));
     if (locations_ != NULL) {
       copy->locations_[i] = locations_[i].Copy();
     }
@@ -2357,12 +2387,12 @@ Environment* Environment::DeepCopy(intptr_t length) const {
 
 
 // Copies the environment and updates the environment use lists.
-void Environment::DeepCopyTo(Instruction* instr) const {
+void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
   for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy();
+  Environment* copy = DeepCopy(isolate);
   instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
@@ -2373,12 +2403,12 @@ void Environment::DeepCopyTo(Instruction* instr) const {
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Instruction* instr) const {
+void Environment::DeepCopyToOuter(Isolate* isolate, Instruction* instr) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(values_.length() - argument_count);
+  Environment* copy = DeepCopy(isolate, values_.length() - argument_count);
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {

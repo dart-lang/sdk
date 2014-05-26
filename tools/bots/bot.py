@@ -151,7 +151,7 @@ def RunBot(parse_name, custom_steps, build_step=BuildSDK):
 
   try:
     Clobber()
-    if build_step: 
+    if build_step:
       build_step(build_info)
 
     custom_steps(build_info)
@@ -204,7 +204,7 @@ def Clobber(force=None):
     RunProcess(cmd)
 
 
-def RunTest(name, build_info, targets, flags=None):
+def RunTest(name, build_info, targets, flags=None, swallow_error=False):
   """
   Runs test.py with the given settings.
   """
@@ -212,7 +212,7 @@ def RunTest(name, build_info, targets, flags=None):
     flags = []
 
   step_name = GetStepName(name, flags)
-  with BuildStep(step_name):
+  with BuildStep(step_name, swallow_error=swallow_error):
     sys.stdout.flush()
 
     cmd = [

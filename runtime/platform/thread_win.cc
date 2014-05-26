@@ -33,18 +33,12 @@ class ThreadStartData {
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
 static unsigned int __stdcall ThreadEntry(void* data_ptr) {
-  ThreadStartData* data =  reinterpret_cast<ThreadStartData*>(data_ptr);
+  ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
   Thread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
-  ASSERT(ThreadInlineImpl::thread_id_key != Thread::kUnsetThreadLocalKey);
-
-  ThreadId thread_id = ThreadInlineImpl::CreateThreadId();
-  // Set thread ID in TLS.
-  Thread::SetThreadLocal(ThreadInlineImpl::thread_id_key,
-                         reinterpret_cast<DWORD>(thread_id));
   MonitorData::GetMonitorWaitDataForThread();
 
   // Call the supplied thread start function handing it its parameters.
@@ -52,10 +46,6 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 
   // Clean up the monitor wait data for this thread.
   MonitorWaitData::ThreadExit();
-
-  // Clear thread ID in TLS.
-  Thread::SetThreadLocal(ThreadInlineImpl::thread_id_key, NULL);
-  ThreadInlineImpl::DestroyThreadId(thread_id);
 
   return 0;
 }
@@ -73,34 +63,14 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
     return errno;
   }
 
+  // Close the handle, so we don't leak the thread object.
+  CloseHandle(reinterpret_cast<HANDLE>(thread));
+
   return 0;
 }
 
-
-ThreadId ThreadInlineImpl::CreateThreadId() {
-  // Create an ID for this thread that can be shared with other threads.
-  HANDLE thread_id = OpenThread(THREAD_GET_CONTEXT |
-                                THREAD_SUSPEND_RESUME |
-                                THREAD_QUERY_INFORMATION,
-                                false,
-                                GetCurrentThreadId());
-  ASSERT(thread_id != NULL);
-  return thread_id;
-}
-
-
-void ThreadInlineImpl::DestroyThreadId(ThreadId thread_id) {
-  ASSERT(thread_id != NULL);
-  // Destroy thread ID.
-  CloseHandle(thread_id);
-}
-
-
-ThreadLocalKey ThreadInlineImpl::thread_id_key = Thread::kUnsetThreadLocalKey;
-
 ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId Thread::kInvalidThreadId =
-    reinterpret_cast<ThreadId>(INVALID_HANDLE_VALUE);
+ThreadId Thread::kInvalidThreadId = 0;
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   ThreadLocalKey key = TlsAlloc();
@@ -127,16 +97,24 @@ intptr_t Thread::GetMaxStackSize() {
 
 
 ThreadId Thread::GetCurrentThreadId() {
-  ThreadId id = reinterpret_cast<ThreadId>(
-      Thread::GetThreadLocal(ThreadInlineImpl::thread_id_key));
-  ASSERT(id != NULL);
-  return id;
+  return ::GetCurrentThreadId();
+}
+
+
+bool Thread::Join(ThreadId id) {
+  HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  DWORD res = WaitForSingleObject(handle, INFINITE);
+  CloseHandle(handle);
+  return res == WAIT_OBJECT_0;
 }
 
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
-  return reinterpret_cast<intptr_t>(id);
+  ASSERT(sizeof(id) <= sizeof(intptr_t));
+  return static_cast<intptr_t>(id);
 }
 
 
@@ -163,11 +141,13 @@ void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   TimeStamp exited;
   TimeStamp kernel;
   TimeStamp user;
-  BOOL result = GetThreadTimes(thread_id,
+  HANDLE handle = OpenThread(THREAD_QUERY_INFORMATION, false, thread_id);
+  BOOL result = GetThreadTimes(handle,
                                &created.ft_,
                                &exited.ft_,
                                &kernel.ft_,
                                &user.ft_);
+  CloseHandle(handle);
   if (!result) {
     FATAL1("GetThreadCpuUsage failed %d\n", GetLastError());
   }

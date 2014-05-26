@@ -249,6 +249,12 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
   ASSERT(buffer != NULL);
   ASSERT(buffer_len != NULL);
   ASSERT(!Dart_HasLivePorts());
+
+  // MakeHttpRequest uses the event loop (Dart_RunLoop) to handle the
+  // asynchronous request. This interferes with the use of Dart_RunLoop
+  // for asynchronous loading.
+  ASSERT(!Dart_IsVMFlagSet("load_async"));
+
   SingleArgDart_Invoke(builtin_lib, "_makeHttpRequest", uri);
   // Run until all ports to isolate are closed.
   Dart_Handle result = Dart_RunLoop();
@@ -529,6 +535,20 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                      library);
   } else {
     // Handle 'import' or 'part' requests for all other URIs.
+
+    if (Dart_IsVMFlagSet("load_async")) {
+      // Call dart code to read the source code asynchronously.
+      const int kNumArgs = 3;
+      Dart_Handle dart_args[kNumArgs];
+      dart_args[0] = Dart_NewInteger(tag);
+      dart_args[1] = url;
+      dart_args[2] = library_url;
+      return Dart_Invoke(builtin_lib,
+                         NewString("_loadSourceAsync"),
+                         kNumArgs,
+                         dart_args);
+    }
+
     // Get the file path out of the url.
     Dart_Handle file_path = DartUtils::FilePathFromUri(url, builtin_lib);
     if (Dart_IsError(file_path)) {
@@ -590,8 +610,25 @@ Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
 }
 
 
+Dart_Handle DartUtils::LoadScriptDataAsync(Dart_Handle script_uri,
+                     Dart_Handle builtin_lib) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = script_uri;
+  return Dart_Invoke(builtin_lib,
+                     NewString("_loadDataAsync"),
+                     kNumArgs,
+                     dart_args);
+}
+
+
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
+  if (Dart_IsVMFlagSet("load_async")) {
+    Dart_Handle uri_handle = Dart_NewStringFromCString(script_uri);
+    return LoadScriptDataAsync(uri_handle, builtin_lib);
+  }
+
   Dart_Handle resolved_script_uri =
       ResolveScriptUri(NewString(script_uri), builtin_lib);
   if (Dart_IsError(resolved_script_uri)) {
@@ -631,6 +668,74 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   }
   free(const_cast<uint8_t *>(buffer));
   return returnValue;
+}
+
+
+// Callback function that gets called from asynchronous script loading code
+// when the data has been read. Loads the script or snapshot into the VM.
+void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
+  Dart_Handle resolved_script_uri = Dart_GetNativeArgument(args, 0);
+  Dart_Handle data = Dart_GetNativeArgument(args, 1);
+
+  intptr_t num_bytes = 0;
+  Dart_Handle result = Dart_ListLength(data, &num_bytes);
+  DART_CHECK_VALID(result);
+
+  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(num_bytes));
+  Dart_ListGetAsBytes(data, 0, buffer, num_bytes);
+
+  bool is_snapshot = false;
+  const uint8_t *payload =
+      DartUtils::SniffForMagicNumber(buffer, &num_bytes, &is_snapshot);
+
+  if (is_snapshot) {
+    result = Dart_LoadScriptFromSnapshot(payload, num_bytes);
+  } else {
+    Dart_Handle source = Dart_NewStringFromUTF8(buffer, num_bytes);
+    if (Dart_IsError(source)) {
+      result = DartUtils::NewError("%s is not a valid UTF-8 script",
+                                   resolved_script_uri);
+    } else {
+      result = Dart_LoadScript(resolved_script_uri, source, 0, 0);
+    }
+  }
+  free(const_cast<uint8_t *>(buffer));
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+}
+
+
+// Callback function, gets called from asynchronous script and library
+// reading code when there is an i/o error.
+void FUNCTION_NAME(Builtin_AsyncLoadError)(Dart_NativeArguments args) {
+  // Dart_Handle script_uri = Dart_GetNativeArgument(args, 0);
+  Dart_Handle error = Dart_GetNativeArgument(args, 1);
+  Dart_Handle res = Dart_NewUnhandledExceptionError(error);
+  Dart_PropagateError(res);
+}
+
+
+// Callback function that gets called from dartutils when the library
+// source has been read. Loads the library or part into the VM.
+void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
+  Dart_Handle tag_in = Dart_GetNativeArgument(args, 0);
+  Dart_Handle resolved_script_uri = Dart_GetNativeArgument(args, 1);
+  Dart_Handle library_uri = Dart_GetNativeArgument(args, 2);
+  Dart_Handle sourceText = Dart_GetNativeArgument(args, 3);
+
+  int64_t tag = DartUtils::GetIntegerValue(tag_in);
+
+  Dart_Handle result;
+  if (tag == Dart_kImportTag) {
+    result = Dart_LoadLibrary(resolved_script_uri, sourceText);
+  } else {
+    ASSERT(tag == Dart_kSourceTag);
+    Dart_Handle library = Dart_LookupLibrary(library_uri);
+    DART_CHECK_VALID(library);
+    result = Dart_LoadSource(library, resolved_script_uri, sourceText);
+  }
+  if (Dart_IsError(result)) Dart_PropagateError(result);
 }
 
 

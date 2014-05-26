@@ -7,6 +7,45 @@ library protocol;
 import 'dart:convert' show JsonDecoder;
 
 /**
+ * An abstract enumeration.
+ */
+abstract class Enum2<E extends Enum2> implements Comparable<E> {
+  /**
+   * The name of this enum constant, as declared in the enum declaration.
+   */
+  final String name;
+
+  /**
+   * The position in the enum declaration.
+   */
+  final int ordinal;
+
+  const Enum2(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  String toString() => name;
+
+  int compareTo(E other) => ordinal - other.ordinal;
+
+  /**
+   * Returns the enum constant with the given [name], `null` if not found.
+   */
+  static Enum2 valueOf(List<Enum2> values, String name) {
+    for (int i = 0; i < values.length; i++) {
+      Enum2 value = values[i];
+      if (value.name == name) {
+        return value;
+      }
+    }
+    return null;
+  }
+}
+
+
+/**
  * Instances of the class [Request] represent a request that was received.
  */
 class Request {
@@ -97,7 +136,7 @@ class Request {
    * Return the value of the parameter with the given [name], or [defaultValue]
    * if there is no such parameter associated with this request.
    */
-  RequestDatum getParameter(String name, dynamic defaultValue) {
+  RequestDatum getParameter(String name, defaultValue) {
     Object value = params[name];
     if (value == null) {
       return new RequestDatum(this, "default for $name", defaultValue);
@@ -204,7 +243,7 @@ class RequestDatum {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
     }
-    datum.forEach((String key, dynamic value) {
+    datum.forEach((String key, value) {
       f(key, new RequestDatum(request, "$path.$key", value));
     });
   }
@@ -280,6 +319,22 @@ class RequestDatum {
           "be a list of strings"));
     }
     return datum;
+  }
+
+  /**
+   * Validate that the datum is a list of strings, and convert it into [Enum]s.
+   */
+  Set<Enum2> asEnumSet(List<Enum2> allValues) {
+    Set values = new Set();
+    for (String name in asStringList()) {
+      Enum2 value = Enum2.valueOf(allValues, name);
+      if (value == null) {
+        throw new RequestFailure(new Response.invalidParameter(request, path,
+            "be a list of names from the list $allValues"));
+      }
+      values.add(value);
+    }
+    return values;
   }
 
   /**
@@ -412,12 +467,12 @@ class Response {
    */
   factory Response.fromJson(Map<String, Object> json) {
     try {
-      var id = json[Response.ID];
+      Object id = json[Response.ID];
       if (id is! String) {
         return null;
       }
-      var error = json[Response.ERROR];
-      var result = json[Response.RESULT];
+      Object error = json[Response.ERROR];
+      Object result = json[Response.RESULT];
       Response response;
       if (error is Map) {
         response = new Response(id, new RequestError.fromJson(error));
@@ -674,7 +729,7 @@ class Notification {
   factory Notification.fromJson(Map<String, Object> json) {
     try {
       String event = json[Notification.EVENT];
-      var params = json[Notification.PARAMS];
+      Object params = json[Notification.PARAMS];
       Notification notification = new Notification(event);
       if (params is Map) {
         params.forEach((String key, Object value) {

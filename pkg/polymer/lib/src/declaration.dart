@@ -448,7 +448,7 @@ String _cssTextFromSheet(LinkElement sheet) {
 
   // In deploy mode we should never do a sync XHR; link rel=stylesheet will
   // be inlined into a <style> tag by ImportInliner.
-  if (_deployMode) return '';
+  if (loader.deployMode) return '';
 
   // TODO(jmesserly): sometimes the href property is wrong after deployment.
   var href = sheet.href;

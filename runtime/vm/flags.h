@@ -64,6 +64,8 @@ class Flags {
 
   static Flag* Lookup(const char* name);
 
+  static bool IsSet(const char* name);
+
   static bool Initialized() { return initialized_; }
 
  private:

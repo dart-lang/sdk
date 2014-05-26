@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/dump_info.dart';
 
 const String TEST_ONE = r"""
 library main;
@@ -15,36 +15,56 @@ int a = 2;
 
 class c {
   final int m;
-  c(this.m);
+  c(this.m) {
+    () {} ();  // TODO (sigurdm): Empty closure, hack to avoid inlining.
+    a = 1;
+  }
+  foo() {
+    () {} ();
+    k = 2;
+    print(k);
+    print(p);
+  }
+  var k = (() => 10)();
+  final static p = 20;
 }
 
 void f() {
-  () {} (); // TODO (sigurdm): Empty closure, hack to avoid inlining.
-  a = 2;
+  () {} ();
+  a = 3;
 }
 
 main() {
+  print(a);
   f();
-  new c(2);
+  print(new c(2).foo());
 }
 """;
 
 main() {
-  var compiler = compilerFor({'main.dart': TEST_ONE});
+  var compiler = compilerFor({'main.dart': TEST_ONE}, options: ["--dump-info"]);
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    var info = compiler.dumpInfoTask.collectDumpInfo();
+    var visitor = compiler.dumpInfoTask.infoDumpVisitor;
+    var info = visitor.collectDumpInfo();
     var mainlib = info.libraries[0];
     Expect.stringEquals("main", mainlib.name);
-    var contents = mainlib.contents;
+    List contents = mainlib.contents;
     Expect.stringEquals("main", mainlib.name);
-    Expect.stringEquals("a", contents[0].name);
-    Expect.stringEquals("c", contents[1].name);
-    Expect.stringEquals("f", contents[2].name);
-    Expect.stringEquals("main", contents[3].name);
+    print(mainlib.contents.map((e)=> e.name));
+    var a = contents.singleWhere((e) => e.name == "a");
+    var c = contents.singleWhere((e) => e.name == "c");
+    var f = contents.singleWhere((e) => e.name == "f");
+    var main = contents.singleWhere((e) => e.name == "main");
     Expect.stringEquals("library", mainlib.kind);
-    Expect.stringEquals("field", contents[0].kind);
-    Expect.stringEquals("class", contents[1].kind);
-    Expect.stringEquals("function", contents[2].kind);
-    Expect.stringEquals("function", contents[3].kind);
+    Expect.stringEquals("field", a.kind);
+    Expect.stringEquals("class", c.kind);
+    var constructor = c.contents.singleWhere((e) => e.name == "c");
+    Expect.stringEquals("constructor", constructor.kind);
+    var method = c.contents.singleWhere((e) => e.name == "foo");
+    Expect.stringEquals("method", method.kind);
+    var field = c.contents.singleWhere((e) => e.name == "m");
+    Expect.stringEquals("field", field.kind);
+    Expect.stringEquals("function", f.kind);
+    Expect.stringEquals("function", main.kind);
   }));
 }

@@ -372,13 +372,13 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   Instruction* check_clone = NULL;
   if (check->IsCheckSmi()) {
     check_clone =
-        new CheckSmiInstr(assert->value()->Copy(),
+        new CheckSmiInstr(assert->value()->Copy(isolate()),
                           assert->env()->deopt_id(),
                           check->token_pos());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
-        new CheckClassInstr(assert->value()->Copy(),
+        new CheckClassInstr(assert->value()->Copy(isolate()),
                             assert->env()->deopt_id(),
                             check->AsCheckClass()->unary_checks(),
                             check->token_pos());
@@ -386,7 +386,7 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
   check_clone->InsertBefore(assert);
-  assert->env()->DeepCopyTo(check_clone);
+  assert->env()->DeepCopyTo(isolate(), check_clone);
 
   (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }

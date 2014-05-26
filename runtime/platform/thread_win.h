@@ -15,7 +15,7 @@
 namespace dart {
 
 typedef DWORD ThreadLocalKey;
-typedef HANDLE ThreadId;
+typedef DWORD ThreadId;
 
 
 class ThreadInlineImpl {
@@ -23,9 +23,6 @@ class ThreadInlineImpl {
   ThreadInlineImpl() {}
   ~ThreadInlineImpl() {}
 
-  static ThreadLocalKey thread_id_key;
-  static ThreadId CreateThreadId();
-  static void DestroyThreadId(ThreadId);
   static uword GetThreadLocal(ThreadLocalKey key) {
     static ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
     ASSERT(key != kUnsetThreadLocalKey);
@@ -33,7 +30,6 @@ class ThreadInlineImpl {
   }
 
   friend class Thread;
-  friend class OS;
   friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();

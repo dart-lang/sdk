@@ -285,8 +285,10 @@ class TreePrinter {
       precedence = CALLEE;
       tree.Node selector;
       Expression callee = exp.callee;
+      elements.Element element;
       if (callee is Identifier) {
         selector = makeIdentifier(callee.name);
+        element = callee.element;
       } else {
         selector = makeExp(callee, CALLEE, beginStmt: beginStmt);
       }
@@ -294,6 +296,9 @@ class TreePrinter {
           null,
           selector,
           argList(exp.arguments.map(makeArgument)));
+      if (callee is Identifier) {
+        setElement(result, element, exp);
+      }
     } else if (exp is CallMethod) {
       precedence = CALLEE;
       result = new tree.Send(

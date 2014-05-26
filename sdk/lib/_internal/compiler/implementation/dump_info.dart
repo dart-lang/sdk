@@ -4,9 +4,10 @@
 
 library dump_info;
 
+import 'dart:convert' show HtmlEscape;
+
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'dart:convert' show HtmlEscape;
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
@@ -14,6 +15,9 @@ import 'dart2jslib.dart' show
 import 'dart_types.dart' show DartType;
 import 'types/types.dart' show TypeMask;
 import 'util/util.dart' show modifiersToString;
+import 'deferred_load.dart' show OutputUnit;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js/js.dart' as jsAst;
 
 // TODO (sigurdm): A search function.
 // TODO (sigurdm): Output size of classes.
@@ -23,6 +27,21 @@ import 'util/util.dart' show modifiersToString;
 // TODO (sigurdm): Write each function with parameter names.
 // TODO (sigurdm): Write how much space the boilerplate takes.
 // TODO (sigurdm): Include javascript names of entities in the output.
+
+const List<String> COLORS = const [
+    "#fff",
+    "#8dd3c7",
+    "#ffffb3",
+    "#bebada",
+    "#fb8072",
+    "#80b1d3",
+    "#fdb462",
+    "#b3de69",
+    "#fccde5",
+    "#d9d9d9",
+    "#bc80bd",
+    "#ccebc5",
+    "#ffed6f"];
 
 class CodeSizeCounter {
   final Map<Element, int> generatedSize = new Map<Element, int>();
@@ -98,13 +117,18 @@ class ElementInfoNode implements InfoNode {
   /// [Element], and its members.
   List<InfoNode> contents;
 
+  /// Subnodes containing more detailed information about the represented
+  /// [Element], and its members.
+  int outputUnitId;
+
   ElementInfoNode({this.name: "",
       this.kind: "",
       this.type,
       this.modifiers: "",
       this.size,
       this.contents,
-      this.extra: ""});
+      this.extra: "",
+      this.outputUnitId});
 
   void emitHtml(ProgramInfo programInfo, StringSink buffer,
       [String indentation = '']) {
@@ -125,8 +149,11 @@ class ElementInfoNode implements InfoNode {
         extraString].join(' ');
 
     if (contents != null) {
+      String outputUnitClass = outputUnitId == null
+          ? ""
+          : " outputUnit${outputUnitId % COLORS.length}";
       buffer.write(indentation);
-      buffer.write('<div class="container">\n');
+      buffer.write('<div class="container$outputUnitClass">\n');
       buffer.write('$indentation  ');
       buffer.write(div('+$describe', cls: "details"));
       buffer.write('\n');
@@ -218,22 +245,61 @@ class ProgramInfo {
   /// The version of dart2js used to compile the program.
   final String dart2jsVersion;
 
+  final Map<OutputUnit, int> outputUnitNumbering;
+
   ProgramInfo({this.libraries,
                this.size,
                this.compilationMoment,
                this.compilationDuration,
-               this.dart2jsVersion});
+               this.dart2jsVersion,
+               this.outputUnitNumbering: null});
 }
 
 class InfoDumpVisitor extends ElementVisitor<InfoNode> {
   final Compiler compiler;
 
   /// Contains the elements visited on the path from the library to here.
-  List<Element> stack = new List<Element>();
+  final List<Element> stack = new List<Element>();
+
+  final Map<OutputUnit, int> outputUnitNumbering = new Map<OutputUnit, int>();
 
   Element get currentElement => stack.last;
 
   InfoDumpVisitor(Compiler this.compiler);
+
+  ProgramInfo collectDumpInfo() {
+    JavaScriptBackend backend = compiler.backend;
+
+    int counter = 0;
+    for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
+      outputUnitNumbering[outputUnit] = counter;
+      counter += 1;
+    }
+
+    List<LibraryElement> sortedLibraries = compiler.libraries.values.toList();
+    sortedLibraries.sort((LibraryElement l1, LibraryElement l2) {
+      if (l1.isPlatformLibrary && !l2.isPlatformLibrary) {
+        return 1;
+      } else if (!l1.isPlatformLibrary && l2.isPlatformLibrary) {
+        return -1;
+      }
+      return l1.getLibraryName().compareTo(l2.getLibraryName());
+    });
+
+    List<InfoNode> libraryInfos = new List<InfoNode>();
+    libraryInfos.addAll(sortedLibraries
+        .map((library) => visit(library))
+        .where((info) => info != null));
+
+    return new ProgramInfo(
+        compilationDuration: compiler.totalCompileTime.elapsed,
+        // TODO (sigurdm): Also count the size of deferred code
+        size: compiler.assembledCode.length,
+        libraries: libraryInfos,
+        compilationMoment: new DateTime.now(),
+        dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
+        outputUnitNumbering: outputUnitNumbering);
+  }
 
   InfoNode visitElement(Element element) {
     compiler.internalError(element,
@@ -285,15 +351,16 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
   }
 
   InfoNode visitFieldElement(FieldElement element) {
-    CodeBuffer emittedCode = compiler.backend.codeOf(element);
+    CodeBuffer emittedCode = compiler.dumpInfoTask.codeOf(element);
     TypeMask inferredType = compiler.typesTask
         .getGuaranteedTypeOfElement(element);
     // If a field has an empty inferred type it is never used.
-    if ((inferredType == null || inferredType.isEmpty) && emittedCode == null) {
+    // Also constant fields do not get output as fields.
+    if (inferredType == null || inferredType.isEmpty || element.isConst) {
       return null;
     }
     int size = 0;
-    DartType type = element.computeType(compiler);
+    DartType type = element.type;
     List<InfoNode> contents = new List<InfoNode>();
     if (emittedCode != null) {
       contents.add(new CodeInfoNode(
@@ -324,13 +391,20 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
         modifiers: modifiersToString(isStatic: element.isStatic,
                                      isFinal: element.isFinal,
                                      isConst: element.isConst),
-        contents: contents);
+        contents: contents,
+        outputUnitId: outputUnitId(element));
+  }
+
+  int outputUnitId(Element element) {
+    OutputUnit outputUnit =
+            compiler.deferredLoadTask.outputUnitForElement(element);
+    return outputUnitNumbering[outputUnit];
   }
 
   InfoNode visitClassElement(ClassElement element) {
-    // If the element is not resolved it is not used in the program, and we omit
-    // it from the output.
-    if (!element.isResolved) return null;
+    // If the element is not emitted in the program, we omit it from the output.
+    JavaScriptBackend backend = compiler.backend;
+    if (!backend.emitter.neededClasses.contains(element)) return null;
     String modifiersString = modifiersToString(isAbstract: element.isAbstract);
     String supersString = element.allSupertypes == null ? "" :
         "implements ${element.allSupertypes}";
@@ -343,11 +417,6 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
       }
     });
     stack.removeLast();
-    if (contents.isEmpty) {
-      // TODO (sigurdm): Only return here if the class is never used in type
-      // checks.
-      return null;
-    }
     contents.sort((InfoNode n1, InfoNode n2) {
       return n1.name.compareTo(n2.name);
     });
@@ -356,11 +425,12 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
         name: element.name,
         extra: supersString,
         modifiers: modifiersString,
-        contents: contents);
+        contents: contents,
+        outputUnitId: outputUnitId(element));
   }
 
   InfoNode visitFunctionElement(FunctionElement element) {
-    CodeBuffer emittedCode = compiler.backend.codeOf(element);
+    CodeBuffer emittedCode = compiler.dumpInfoTask.codeOf(element);
     int size = 0;
     String nameString = element.name;
     String modifiersString = modifiersToString(
@@ -418,13 +488,15 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     if (size == 0) {
       return null;
     }
+
     return new ElementInfoNode(
         type: element.computeType(compiler).toString(),
         kind: kindString,
         name: nameString,
         size: size,
         modifiers: modifiersString,
-        contents: contents);
+        contents: contents,
+        outputUnitId: outputUnitId(element));
   }
 }
 
@@ -439,40 +511,33 @@ class DumpInfoTask extends CompilerTask {
 
   final InfoDumpVisitor infoDumpVisitor;
 
+  final Map<Element, jsAst.Expression>_generatedCode =
+      new Map<Element, jsAst.Expression>();
+
+  /// Registers that [code] has been generated for [element] so that it can be
+  /// emitted in the info.html.
+  void registerGeneratedCode(Element element, jsAst.Expression code) {
+    if (compiler.dumpInfo) {
+      _generatedCode[element] = code;
+    }
+  }
+
+  CodeBuffer codeOf(Element element) {
+    jsAst.Expression code = _generatedCode[element];
+    return code != null
+        ? jsAst.prettyPrint(code, compiler)
+        : compiler.backend.codeOf(element);
+  }
+
   void dumpInfo() {
     measure(() {
-      ProgramInfo info = collectDumpInfo();
+      ProgramInfo info = infoDumpVisitor.collectDumpInfo();
       StringBuffer buffer = new StringBuffer();
       dumpInfoHtml(info, buffer);
       compiler.outputProvider('', 'info.html')
         ..add(buffer.toString())
         ..close();
     });
-  }
-
-  ProgramInfo collectDumpInfo() {
-    List<LibraryElement> sortedLibraries = compiler.libraries.values.toList();
-    sortedLibraries.sort((LibraryElement l1, LibraryElement l2) {
-      if (l1.isPlatformLibrary && !l2.isPlatformLibrary) {
-        return 1;
-      } else if (!l1.isPlatformLibrary && l2.isPlatformLibrary) {
-        return -1;
-      }
-      return l1.getLibraryName().compareTo(l2.getLibraryName());
-    });
-
-    List<InfoNode> libraryInfos = new List<InfoNode>();
-    libraryInfos.addAll(sortedLibraries
-        .map((library) => infoDumpVisitor.visit(library))
-        .where((info) => info != null));
-
-    return new ProgramInfo(
-        compilationDuration: compiler.totalCompileTime.elapsed,
-        // TODO (sigurdm): Also count the size of deferred code
-        size: compiler.assembledCode.length,
-        libraries: libraryInfos,
-        compilationMoment: new DateTime.now(),
-        dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null);
   }
 
   void dumpInfoHtml(ProgramInfo info, StringSink buffer) {
@@ -500,10 +565,27 @@ class DumpInfoTask extends CompilerTask {
         span.modifiers {font-weight:bold;}
         span.name {font-weight:bold; font-family: monospace;}
         span.type {font-family: monospace; color:blue;}
+""");
+    for (int i = 0; i < COLORS.length; i++) {
+      buffer.writeln("        .outputUnit$i "
+          "{border-left: 4px solid ${COLORS[i]}}");
+    }
+    buffer.writeln("""
        </style>
      </head>
      <body>
        <h1>Dart2js compilation information</h1>""");
+    if (info.outputUnitNumbering.length > 1) {
+      for (OutputUnit outputUnit in info.outputUnitNumbering.keys) {
+        String color = COLORS[info.outputUnitNumbering[outputUnit]
+             % COLORS.length];
+        JavaScriptBackend backend = compiler.backend;
+        int size = backend.emitter.outputBuffers[outputUnit].length;
+        buffer.writeln('<div style='
+            '"background:$color;">'
+            '${outputUnit.partFileName(compiler)} $size bytes</div>');
+      }
+    }
     buffer.writeln(h2('Compilation took place: '
                       '${info.compilationMoment}'));
     buffer.writeln(h2('Compilation took: '

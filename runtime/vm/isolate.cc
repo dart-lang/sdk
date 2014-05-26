@@ -37,8 +37,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, report_usage_count, false,
-            "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DEFINE_FLAG(bool, pause_isolates_on_start, false,
@@ -189,7 +187,12 @@ RawFunction* IsolateMessageHandler::ResolveCallbackFunction() {
       Function::Handle(isolate_, lib.LookupLocalFunction(callback_name));
   if (func.IsNull()) {
     lib = isolate_->object_store()->root_library();
-    func = lib.LookupLocalFunction(callback_name);
+    // Note: bootstrap code in builtin library may attempt to resolve a
+    // callback function before the script is fully loaded, in which case
+    // the root library may not be registered yet.
+    if (!lib.IsNull()) {
+      func = lib.LookupLocalFunction(callback_name);
+    }
   }
   return func.raw();
 }
@@ -443,8 +446,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
-  result->message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
-  result->message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
@@ -544,6 +545,10 @@ bool Isolate::MakeRunnable() {
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   is_runnable_ = true;
+  if (!Service::IsServiceIsolate(this)) {
+    message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
+    message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
+  }
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     ASSERT(this == state->isolate());
@@ -762,11 +767,8 @@ void Isolate::Shutdown() {
     delete message_handler();
     set_message_handler(NULL);
 
-    // Dump all accumalated timer data for the isolate.
+    // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
-    if (FLAG_report_usage_count) {
-      PrintInvokedFunctions();
-    }
 
     // Write out profiler data if requested.
     Profiler::WriteProfile(this);
@@ -976,17 +978,29 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     typeargsRef.AddProperty("id", "typearguments");
     typeargsRef.AddProperty("name", "canonical type arguments");
   }
+  bool is_io_enabled = false;
   {
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
-    Library &lib = Library::Handle();
+    Library& lib = Library::Handle();
+    String& name = String::Handle();
 
     JSONArray lib_array(&jsobj, "libraries");
     for (intptr_t i = 0; i < num_libs; i++) {
       lib ^= libs.At(i);
+      name = lib.name();
+      if (name.Equals(Symbols::DartIOLibName())) {
+        is_io_enabled = true;
+      }
       ASSERT(!lib.IsNull());
       lib_array.AddValue(lib);
+    }
+  }
+  {
+    JSONArray features_array(&jsobj, "features");
+    if (is_io_enabled) {
+      features_array.AddValue("io");
     }
   }
 }

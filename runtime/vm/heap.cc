@@ -103,7 +103,7 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
     ASSERT(space == kOld);
     old_space_->AllocateExternal(size);
     if (old_space_->NeedsGarbageCollection()) {
-      CollectGarbage(kOld);
+      CollectAllGarbage();
     }
   }
 }

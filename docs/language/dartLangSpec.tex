@@ -1744,16 +1744,15 @@ However, if the above rules would cause multiple members $m_1, \ldots,  m_k$ wit
 If some but not all of the $m_i, 1 \le i \le k$ are getters none of the $m_i$ are inherited, and a static warning is issued.
 
 Otherwise, if the static types $T_1, \ldots,  T_k$ of the members $m_1, \ldots,  m_k$  are not identical, then there must be a member $m_x$ such that $T_x <: T_i, 1 \le x \le k$ for all  $i  \in 1..k$, or a static type warning occurs. The member that is inherited  is $m_x$, if it exists; otherwise:
-\begin{itemize}
-\item Let $numberOfPositionals(f)$ denote the number of positional parameters of a function $f$, and let $numberOfRequiredParams(f)$ denote the number of required parameters of a function $f$. Furthermore, let $s$ denote the set of all named parameters of the $m_1, \ldots,  m_k$.  Then let 
+ let $numberOfPositionals(f)$ denote the number of positional parameters of a function $f$, and let $numberOfRequiredParams(f)$ denote the number of required parameters of a function $f$. Furthermore, let $s$ denote the set of all named parameters of the $m_1, \ldots,  m_k$.  Then let 
 
 $h = max(numberOfPositionals(m_i)), $
 
 $r = min(numberOfRequiredParams(m_i)), i \in 1..k$. 
 
-If $r \le h$ then $I$ has a method named $n$, with $r$ required parameters of type \DYNAMIC{}, $h$  positional parameters of type \DYNAMIC{}, named parameters $s$ of type  \DYNAMIC{} and  return type  \DYNAMIC{}.  
-\item Otherwise none of the members $m_1, \ldots,  m_k$ is inherited.
-\end{itemize}
+Then $I$ has a method named $n$, with $r$ required parameters of type \DYNAMIC{}, $h$  positional parameters of type \DYNAMIC{}, named parameters $s$ of type  \DYNAMIC{} and  return type  \DYNAMIC{}.  
+
+
 
 \commentary{The only situation where the runtime would be concerned with this would be during reflection, if a mirror attempted to obtain the signature of an interface member. 
 }

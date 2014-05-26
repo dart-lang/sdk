@@ -1539,62 +1539,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-Address FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     intptr_t index) {
-  const int64_t disp =
-      static_cast<int64_t>(index) * index_scale + DataOffsetFor(cid);
-  ASSERT(Utils::IsInt(32, disp));
-  return FieldAddress(array, static_cast<int32_t>(disp));
-}
-
-
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
-  }
-}
-
-
-Address FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                     intptr_t index_scale,
-                                                     Register array,
-                                                     Register index) {
-  return FieldAddress(array,
-                      index,
-                      ToScaleFactor(index_scale),
-                      DataOffsetFor(cid));
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t index_scale,
-    Register array,
-    intptr_t index) {
-  return Address(array, index * index_scale);
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t index_scale,
-    Register array,
-    Register index) {
-  return Address(array, index, ToScaleFactor(index_scale), 0);
-}
-
-
 #undef __
 #define __ compiler_->assembler()->
 

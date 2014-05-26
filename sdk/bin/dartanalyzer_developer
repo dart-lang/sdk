@@ -65,4 +65,4 @@ else
   fi
 fi
 
-exec java $EXTRA_JVMARGS -jar $JAR_FILE --dart-sdk "$SDK_DIR" "$@"
+exec java $EXTRA_JVMARGS -jar "$JAR_FILE" --dart-sdk "$SDK_DIR" "$@"

@@ -17,7 +17,7 @@ String _serviceObjectHandler(List<String> paths,
     throw "Invalid path '${paths.join("/")}'";
   }
   if (paths.isEmpty) {
-    badPath();
+    return JSON.encode(_ioServiceObject());
   }
   int i = 0;
   var current = _servicePathMap;
@@ -33,6 +33,15 @@ String _serviceObjectHandler(List<String> paths,
     query[keys[i]] = values[i];
   }
   return JSON.encode(current(paths.sublist(i)));
+}
+
+Map _ioServiceObject() {
+  return {
+    'id': 'io',
+    'type': 'IO',
+    'name': 'io',
+    'user_name': 'io',
+  };
 }
 
 Map _httpServersServiceObject(args) {

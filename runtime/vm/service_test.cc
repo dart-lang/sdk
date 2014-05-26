@@ -563,6 +563,25 @@ TEST_CASE(Service_Objects) {
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    arr.raw()->Size() + arr.At(0)->Size());
 
+  // Retaining path to 'arr', limit 1.
+  service_msg = Eval(
+      lib,
+      "[port, ['objects', '$validId', 'retaining_path'], ['limit'], ['1']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":1,"
+      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@Array\"");
+
+  // Retaining path missing limit.
+  service_msg = Eval(
+      lib,
+      "[port, ['objects', '$validId', 'retaining_path'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(), "{\"type\":\"Error\"");
+
   // eval against list containing an internal object.
   Object& internal_object = Object::Handle();
   internal_object = LiteralToken::New();

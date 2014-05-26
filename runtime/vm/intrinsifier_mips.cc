@@ -1275,12 +1275,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ lw(T1, FieldAddress(T0, state_field.Offset()));  // Field '_state'.
 
   // Addresses of _state[0] and _state[1].
-  const Address& addr_0 = FieldAddress(T1,
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid));
-
-  const Address& addr_1 = FieldAddress(T1,
-      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid) +
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid));
+  const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
+  const intptr_t offset = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
+  const Address& addr_0 = FieldAddress(T1, 0 * scale + offset);
+  const Address& addr_1 = FieldAddress(T1, 1 * scale + offset);
 
   __ LoadImmediate(T0, a_int32_value);
   __ lw(T2, addr_0);

@@ -149,4 +149,17 @@ main() {
     go('typed_arrays_list', typed_arrays_list);
   });
 
+  group('iframe', () {
+    test('postMessage clones data', () {
+      var iframe = new IFrameElement();
+      var future = iframe.onLoad.first.then((_) {
+        iframe.contentWindow.postMessage(new HashMap<String,num>(), '*');
+      });
+      iframe.src = 'about:blank';
+      document.body.append(iframe);
+
+      return future;
+    });
+  });
+
 }

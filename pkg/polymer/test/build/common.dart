@@ -137,14 +137,31 @@ testPhases(String testName, List<List<Transformer>> phases,
   });
 }
 
+solo_testPhases(String testName, List<List<Transformer>> phases,
+    Map<String, String> inputFiles, Map<String, String> expectedFiles,
+    [List<String> expectedMessages]) =>
+  testPhases(testName, phases, inputFiles, expectedFiles, expectedMessages,
+      true);
+
+/// Generate an expected ._data file, where all files are assumed to be in the
+/// same [package].
+String expectedData(List<String> urls, {package: 'a', experimental: false}) {
+  var ids = urls.map((e) => '["$package","$e"]').join(',');
+  return '{"experimental_bootstrap":$experimental,"script_ids":[$ids]}';
+}
+
+const EMPTY_DATA = '{"experimental_bootstrap":false,"script_ids":[]}';
+
 const WEB_COMPONENTS_TAG =
     '<script src="packages/web_components/platform.js"></script>\n'
     '<script src="packages/web_components/dart_support.js"></script>\n';
 
+const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';
 
 const POLYMER_MOCKS = const {
-  'polymer|lib/polymer.html': '<!DOCTYPE html><html></html>',
+  'polymer|lib/polymer.html': '<!DOCTYPE html><html>',
+  'polymer|lib/polymer_experimental.html': '<!DOCTYPE html><html>',
   'polymer|lib/polymer.dart':
       'library polymer;\n'
       'import "dart:html";\n'

@@ -50,7 +50,7 @@ class AnalysisManager {
    */
   Future<AnalysisManager> _launchServer(String pathToServer) {
     // TODO dynamically allocate port and/or allow client to specify port
-    var serverArgs = [pathToServer, '--port', PORT.toString()];
+    List<String> serverArgs = [pathToServer, '--port', PORT.toString()];
     return Process.start(Platform.executable, serverArgs)
         .catchError((error) {
           exitCode = 1;
@@ -81,7 +81,7 @@ class AnalysisManager {
         })
         .then((String line) {
           String port = line.substring(pattern.length).trim();
-          var url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$port/';
+          String url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$port/';
           return _openConnection(url);
         });
   }
@@ -90,7 +90,7 @@ class AnalysisManager {
    * Open a connection to the analysis server using the given URL.
    */
   Future<AnalysisManager> _openConnection(String serverUrl) {
-    var onError = (error) {
+    Function onError = (error) {
       exitCode = 1;
       if (process != null) {
         process.kill();

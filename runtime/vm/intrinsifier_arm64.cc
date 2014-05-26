@@ -1134,8 +1134,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 
   // Addresses of _state[0].
   const int64_t disp =
-      FlowGraphCompiler::DataOffsetFor(kTypedDataUint32ArrayCid) -
-      kHeapObjectTag;
+      Instance::DataOffsetFor(kTypedDataUint32ArrayCid) - kHeapObjectTag;
 
   __ LoadImmediate(R0, a_int_value, kNoPP);
   __ LoadFromOffset(R2, R1, disp, kNoPP);

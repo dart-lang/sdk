@@ -166,12 +166,6 @@ override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
 
 # missing warning for override
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
-override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
-
-# flaky override tests
-override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
-override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
-override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
 
 # The following tests are currently assumed to be failing because the test is wrong.
 #

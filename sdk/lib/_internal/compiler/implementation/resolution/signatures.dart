@@ -20,13 +20,13 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   SignatureResolver(Compiler compiler,
                     Element enclosingElement,
-                    TreeElementMapping treeElements,
+                    ResolutionRegistry registry,
                     {this.defaultValuesError})
       : this.enclosingElement = enclosingElement,
         this.scope = enclosingElement.buildScope(),
         this.resolver =
-            new ResolverVisitor(compiler, enclosingElement, treeElements),
-        super(compiler, treeElements);
+            new ResolverVisitor(compiler, enclosingElement, registry),
+        super(compiler, registry);
 
   bool get defaultValuesAllowed => defaultValuesError == null;
 
@@ -90,7 +90,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     void computeFunctionType(FunctionExpression functionExpression) {
       FunctionSignature functionSignature = SignatureResolver.analyze(
           compiler, functionExpression.parameters,
-          functionExpression.returnType, element, mapping,
+          functionExpression.returnType, element, registry,
           defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
       element.functionSignatureCache = functionSignature;
       element.typeCache = functionSignature.type;
@@ -244,10 +244,10 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
                                    NodeList formalParameters,
                                    Node returnNode,
                                    Element element,
-                                   TreeElementMapping mapping,
+                                   ResolutionRegistry registry,
                                    {MessageKind defaultValuesError}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
-        mapping, defaultValuesError: defaultValuesError);
+        registry, defaultValuesError: defaultValuesError);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {
@@ -274,7 +274,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {
-        compiler.enqueuer.resolution.registerIsCheck(returnType, mapping);
+        registry.registerIsCheck(returnType);
       }
     } else {
       returnType = visitor.resolveReturnType(returnNode);

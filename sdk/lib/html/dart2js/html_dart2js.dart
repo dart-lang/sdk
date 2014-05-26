@@ -35344,9 +35344,12 @@ class _DOMWindowCrossFrame implements WindowBase {
 
   void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
-      JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
+      JS('void', '#.postMessage(#,#)', _window,
+          convertDartToNative_SerializedScriptValue(message), targetOrigin);
     } else {
-      JS('void', '#.postMessage(#,#,#)', _window, message, targetOrigin, messagePorts);
+      JS('void', '#.postMessage(#,#,#)', _window,
+          convertDartToNative_SerializedScriptValue(message), targetOrigin,
+          messagePorts);
     }
   }
 

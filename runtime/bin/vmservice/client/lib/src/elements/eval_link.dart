@@ -12,8 +12,9 @@ class EvalLinkElement extends PolymerElement {
   EvalLinkElement.created() : super.created();
 
   @observable bool busy = false;
+  @published String label = "[evaluate]";
   @published var callback = null;
-  @published String expr = '';
+  @published var expr = '';
   @published ServiceObject result = null;
 
   void evalNow(var a, var b, var c) {

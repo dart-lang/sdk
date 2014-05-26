@@ -67,7 +67,7 @@ main() {
   test("broadcast stream timeout",  () {
     StreamController c = new StreamController.broadcast();
     Stream tos = c.stream.timeout(ms5);
-    expect(tos.isBroadcast, false);
+    expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);
@@ -77,7 +77,7 @@ main() {
   test("asBroadcast stream timeout",  () {
     StreamController c = new StreamController.broadcast();
     Stream tos = c.stream.asBroadcastStream().timeout(ms5);
-    expect(tos.isBroadcast, false);
+    expect(tos.isBroadcast, true);
     tos.handleError(expectAsync((e, s) {
       expect(e, new isInstanceOf<TimeoutException>());
       expect(s, null);

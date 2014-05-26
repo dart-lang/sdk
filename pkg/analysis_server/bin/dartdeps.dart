@@ -78,7 +78,7 @@ class _DartDependencyAnalyzer {
    * Return `null` if the command line arguments are invalid.
    */
   Future<AnalysisManager> start() {
-    var parser = new ArgParser();
+    ArgParser parser = new ArgParser();
     parser.addOption(
         DART_SDK_OPTION,
         help: '[sdkPath] path to Dart SDK');

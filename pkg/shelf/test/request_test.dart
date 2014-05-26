@@ -168,5 +168,42 @@ void main() {
           ..close();
       });
     });
+
+    group('with just scriptName', () {
+      test('updates url if scriptName matches existing url', () {
+        var uri = Uri.parse('https://test.example.com/static/file.html');
+        var request = new Request('GET', uri);
+        var copy = request.change(scriptName: '/static');
+
+        expect(copy.scriptName, '/static');
+        expect(copy.url, Uri.parse('/file.html'));
+      });
+
+      test('throws if striptName does not match existing url', () {
+        var uri = Uri.parse('https://test.example.com/static/file.html');
+        var request = new Request('GET', uri);
+
+        expect(() => request.change(scriptName: '/nope'), throwsArgumentError);
+      });
+    });
+
+    test('url', () {
+      var uri = Uri.parse('https://test.example.com/static/file.html');
+      var request = new Request('GET', uri);
+      var copy = request.change(url: Uri.parse('/other_path/file.html'));
+
+      expect(copy.scriptName, '');
+      expect(copy.url, Uri.parse('/other_path/file.html'));
+    });
+
+    test('scriptName and url', () {
+      var uri = Uri.parse('https://test.example.com/static/file.html');
+      var request = new Request('GET', uri);
+      var copy = request.change(scriptName: '/dynamic',
+          url: Uri.parse('/other_path/file.html'));
+
+      expect(copy.scriptName, '/dynamic');
+      expect(copy.url, Uri.parse('/other_path/file.html'));
+    });
   });
 }

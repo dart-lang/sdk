@@ -11,6 +11,8 @@ import "dart:collection";
 void testMain(Set create()) {
   testInts(create);
   testStrings(create);
+  testInts(() => create().toSet());
+  testStrings(() => create().toSet());
 }
 
 void testInts(Set create()) {
@@ -190,6 +192,29 @@ void testInts(Set create()) {
   testLength(0, set);
   Expect.isTrue(set.add(11));
   testLength(1, set);
+
+  // Test Set.toSet.
+  set.add(1);
+  set.add(21);
+  testLength(3, set);
+  var set2 = set.toSet();
+  testLength(3, set2);
+  Expect.listEquals(set.toList(), set2.toList());
+  set.add(31);
+  testLength(4, set);
+  testLength(3, set2);
+
+  set2 = set.toSet()..clear();
+  testLength(0, set2);
+  Expect.isTrue(set2.add(11));
+  Expect.isTrue(set2.add(1));
+  Expect.isTrue(set2.add(21));
+  Expect.isTrue(set2.add(31));
+  testLength(4, set2);
+  Expect.listEquals(set.toList(), set2.toList());
+
+  set2 = (set.toSet()..clear()).toSet();  // Cloning empty set shouldn't fail.
+  testLength(0, set2);
 }
 
 void testLength(int length, Set set) {
@@ -359,9 +384,35 @@ int identityCompare(e1, e2) {
   return i1 - i2;
 }
 
+void testIdentity(Set create()) {
+  Set set = create();
+  var e1 = new CE(0);
+  var e2 = new CE(0);
+  Expect.equals(e1, e2);
+  Expect.isFalse(identical(e1, e2));
+
+  testLength(0, set);
+  set.add(e1);
+  testLength(1, set);
+  Expect.isTrue(set.contains(e1));
+  Expect.isFalse(set.contains(e2));
+
+  set.add(e2);
+  testLength(2, set);
+  Expect.isTrue(set.contains(e1));
+  Expect.isTrue(set.contains(e2));
+
+  var set2 = set.toSet();
+  testLength(2, set2);
+  Expect.isTrue(set2.contains(e1));
+  Expect.isTrue(set2.contains(e2));
+}
+
 main() {
   testMain(() => new HashSet());
   testMain(() => new LinkedHashSet());
+  testMain(() => new HashSet.identity());
+  testMain(() => new LinkedHashSet.identity());
   testMain(() => new HashSet(equals: identical));
   testMain(() => new LinkedHashSet(equals: identical));
   testMain(() => new HashSet(equals: (a, b) => a == b,
@@ -372,6 +423,12 @@ main() {
       hashCode: (a) => -a.hashCode,
       isValidKey: (a) => true));
   testMain(() => new SplayTreeSet());
+
+  testIdentity(() => new HashSet.identity());
+  testIdentity(() => new LinkedHashSet.identity());
+  testIdentity(() => new HashSet(equals: identical));
+  testIdentity(() => new LinkedHashSet(equals: identical));
+  testIdentity(() => new SplayTreeSet(identityCompare));
 
   testTypeAnnotations(new HashSet<int>());
   testTypeAnnotations(new LinkedHashSet<int>());
@@ -400,5 +457,4 @@ main() {
                         isValidKey: validKey));
   testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
       new SplayTreeSet(comparator, validKey));
-
 }
