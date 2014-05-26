@@ -22,5 +22,8 @@ class B {
 
 main() {
   Expect.equals(42, new B().foo(0));
-  Expect.throws(() => new A().foo('foo'), (e) => e is UnsupportedError);
+  // In checked mode we should get a type error. In unchecked mode it should be
+  // an argument error.
+  Expect.throws(() => new A().foo('foo'),
+                (e) => e is ArgumentError || e is TypeError);
 }
