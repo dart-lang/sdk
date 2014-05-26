@@ -1734,7 +1734,7 @@ RawClass* Class::New() {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::NextFieldOffset());
-  ASSERT((FakeObject::kClassId != kInstanceCid));
+  COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
   if (FakeObject::kClassId < kInstanceCid) {
@@ -4659,7 +4659,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   }
   // The zero array should have been initialized.
   ASSERT(Object::zero_array().raw() != Array::null());
-  COMPILE_ASSERT(StubCode::kNoInstantiator == 0, kNoInstantiator_must_be_zero);
+  COMPILE_ASSERT(StubCode::kNoInstantiator == 0);
   result.set_instantiations(Object::zero_array());
   return result.raw();
 }

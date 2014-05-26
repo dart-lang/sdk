@@ -274,25 +274,24 @@ void DynamicAssertionHelper::NotNull(const T p) {
 // expression is true. For example, you could use it to verify the
 // size of a static array:
 //
-//   COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES,
-//                  content_type_names_incorrect_size);
+//   COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES);
 //
 // or to make sure a struct is smaller than a certain size:
 //
-//   COMPILE_ASSERT(sizeof(foo) < 128, foo_too_large);
+//   COMPILE_ASSERT(sizeof(foo) < 128);
 //
-// The second argument to the macro is the name of the variable. If
-// the expression is false, most compilers will issue a warning/error
-// containing the name of the variable.
 
 template <bool>
 struct CompileAssert {
 };
-
-#define COMPILE_ASSERT(expr, msg)                                              \
+// Macro to concatenate two tokens. The helper is need to proper expansion
+// in case an argument is a macro itself.
+#define COMPILE_ASSERT_JOIN(a, b) COMPILE_ASSERT_JOIN_HELPER(a, b)
+#define COMPILE_ASSERT_JOIN_HELPER(a, b) a##b
+#define COMPILE_ASSERT(expr)                                                   \
   DART_UNUSED typedef CompileAssert<(static_cast<bool>(expr))>                 \
-  msg[static_cast<bool>(expr) ? 1 : -1]
-
+  COMPILE_ASSERT_JOIN(CompileAssertTypeDef, __LINE__)[static_cast<bool>(expr)  \
+  ? 1 : -1]
 
 #if defined(TESTING)
 

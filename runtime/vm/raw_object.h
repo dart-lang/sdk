@@ -1642,62 +1642,62 @@ class RawUserTag : public RawInstance {
 
 inline bool RawObject::IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  ASSERT(kApiErrorCid == kErrorCid + 1 &&
-         kLanguageErrorCid == kErrorCid + 2 &&
-         kUnhandledExceptionCid == kErrorCid + 3 &&
-         kUnwindErrorCid == kErrorCid + 4 &&
-         kInstanceCid == kErrorCid + 5);
+  COMPILE_ASSERT(kApiErrorCid == kErrorCid + 1 &&
+                 kLanguageErrorCid == kErrorCid + 2 &&
+                 kUnhandledExceptionCid == kErrorCid + 3 &&
+                 kUnwindErrorCid == kErrorCid + 4 &&
+                 kInstanceCid == kErrorCid + 5);
   return (index >= kErrorCid && index < kInstanceCid);
 }
 
 
 inline bool RawObject::IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
-  ASSERT(kIntegerCid == kNumberCid + 1 &&
-         kSmiCid == kNumberCid + 2 &&
-         kMintCid == kNumberCid + 3 &&
-         kBigintCid == kNumberCid + 4 &&
-         kDoubleCid == kNumberCid + 5);
+  COMPILE_ASSERT(kIntegerCid == kNumberCid + 1 &&
+                 kSmiCid == kNumberCid + 2 &&
+                 kMintCid == kNumberCid + 3 &&
+                 kBigintCid == kNumberCid + 4 &&
+                 kDoubleCid == kNumberCid + 5);
   return (index >= kNumberCid && index < kBoolCid);
 }
 
 
 inline bool RawObject::IsIntegerClassId(intptr_t index) {
   // Make sure this function is updated when new Integer types are added.
-  ASSERT(kSmiCid == kIntegerCid + 1 &&
-         kMintCid == kIntegerCid + 2 &&
-         kBigintCid == kIntegerCid + 3 &&
-         kDoubleCid == kIntegerCid + 4);
+  COMPILE_ASSERT(kSmiCid == kIntegerCid + 1 &&
+                 kMintCid == kIntegerCid + 2 &&
+                 kBigintCid == kIntegerCid + 3 &&
+                 kDoubleCid == kIntegerCid + 4);
   return (index >= kIntegerCid && index < kDoubleCid);
 }
 
 
 inline bool RawObject::IsStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
-  ASSERT(kOneByteStringCid == kStringCid + 1 &&
-         kTwoByteStringCid == kStringCid + 2 &&
-         kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4);
+  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
+                 kTwoByteStringCid == kStringCid + 2 &&
+                 kExternalOneByteStringCid == kStringCid + 3 &&
+                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index >= kStringCid && index <= kExternalTwoByteStringCid);
 }
 
 
 inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
-  ASSERT(kOneByteStringCid == kStringCid + 1 &&
-         kTwoByteStringCid == kStringCid + 2 &&
-         kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4);
+  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
+                 kTwoByteStringCid == kStringCid + 2 &&
+                 kExternalOneByteStringCid == kStringCid + 3 &&
+                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
 }
 
 
 inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
-  ASSERT(kOneByteStringCid == kStringCid + 1 &&
-         kTwoByteStringCid == kStringCid + 2 &&
-         kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4);
+  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
+                 kTwoByteStringCid == kStringCid + 2 &&
+                 kExternalOneByteStringCid == kStringCid + 3 &&
+                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kOneByteStringCid ||
           index == kTwoByteStringCid ||
           index == kExternalOneByteStringCid ||
@@ -1707,10 +1707,10 @@ inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
 
 inline bool RawObject::IsExternalStringClassId(intptr_t index) {
   // Make sure this function is updated when new StringCid types are added.
-  ASSERT(kOneByteStringCid == kStringCid + 1 &&
-         kTwoByteStringCid == kStringCid + 2 &&
-         kExternalOneByteStringCid == kStringCid + 3 &&
-         kExternalTwoByteStringCid == kStringCid + 4);
+  COMPILE_ASSERT(kOneByteStringCid == kStringCid + 1 &&
+                 kTwoByteStringCid == kStringCid + 2 &&
+                 kExternalOneByteStringCid == kStringCid + 3 &&
+                 kExternalTwoByteStringCid == kStringCid + 4);
   return (index == kExternalOneByteStringCid ||
           index == kExternalTwoByteStringCid);
 }
@@ -1718,7 +1718,7 @@ inline bool RawObject::IsExternalStringClassId(intptr_t index) {
 
 inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
-  ASSERT(kImmutableArrayCid == kArrayCid + 1);
+  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
   return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
           (index == kGrowableObjectArrayCid) ||
           IsTypedDataClassId(index) ||
@@ -1729,20 +1729,20 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
 
 inline bool RawObject::IsTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kTypedDataUint8ArrayCid == kTypedDataInt8ArrayCid + 1 &&
-         kTypedDataUint8ClampedArrayCid == kTypedDataInt8ArrayCid + 2 &&
-         kTypedDataInt16ArrayCid == kTypedDataInt8ArrayCid + 3 &&
-         kTypedDataUint16ArrayCid == kTypedDataInt8ArrayCid + 4 &&
-         kTypedDataInt32ArrayCid == kTypedDataInt8ArrayCid + 5 &&
-         kTypedDataUint32ArrayCid == kTypedDataInt8ArrayCid + 6 &&
-         kTypedDataInt64ArrayCid == kTypedDataInt8ArrayCid + 7 &&
-         kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
-         kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
-         kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
-         kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
-         kTypedDataInt32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
-         kTypedDataFloat64x2ArrayCid == kTypedDataInt8ArrayCid + 13 &&
-         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kTypedDataUint8ArrayCid == kTypedDataInt8ArrayCid + 1 &&
+                 kTypedDataUint8ClampedArrayCid == kTypedDataInt8ArrayCid + 2 &&
+                 kTypedDataInt16ArrayCid == kTypedDataInt8ArrayCid + 3 &&
+                 kTypedDataUint16ArrayCid == kTypedDataInt8ArrayCid + 4 &&
+                 kTypedDataInt32ArrayCid == kTypedDataInt8ArrayCid + 5 &&
+                 kTypedDataUint32ArrayCid == kTypedDataInt8ArrayCid + 6 &&
+                 kTypedDataInt64ArrayCid == kTypedDataInt8ArrayCid + 7 &&
+                 kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
+                 kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
+                 kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
+                 kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
+                 kTypedDataInt32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
+                 kTypedDataFloat64x2ArrayCid == kTypedDataInt8ArrayCid + 13 &&
+                 kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
   return (index >= kTypedDataInt8ArrayCid &&
           index <= kTypedDataFloat64x2ArrayCid);
 }
@@ -1750,21 +1750,22 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
 
 inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kTypedDataUint8ArrayViewCid == kTypedDataInt8ArrayViewCid + 1 &&
-         kTypedDataUint8ClampedArrayViewCid == kTypedDataInt8ArrayViewCid + 2 &&
-         kTypedDataInt16ArrayViewCid == kTypedDataInt8ArrayViewCid + 3 &&
-         kTypedDataUint16ArrayViewCid == kTypedDataInt8ArrayViewCid + 4 &&
-         kTypedDataInt32ArrayViewCid == kTypedDataInt8ArrayViewCid + 5 &&
-         kTypedDataUint32ArrayViewCid == kTypedDataInt8ArrayViewCid + 6 &&
-         kTypedDataInt64ArrayViewCid == kTypedDataInt8ArrayViewCid + 7 &&
-         kTypedDataUint64ArrayViewCid == kTypedDataInt8ArrayViewCid + 8 &&
-         kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
-         kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
-         kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
-         kTypedDataInt32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
-         kTypedDataFloat64x2ArrayViewCid == kTypedDataInt8ArrayViewCid + 13 &&
-         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 14 &&
-         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
+  COMPILE_ASSERT(
+      kTypedDataUint8ArrayViewCid == kTypedDataInt8ArrayViewCid + 1 &&
+      kTypedDataUint8ClampedArrayViewCid == kTypedDataInt8ArrayViewCid + 2 &&
+      kTypedDataInt16ArrayViewCid == kTypedDataInt8ArrayViewCid + 3 &&
+      kTypedDataUint16ArrayViewCid == kTypedDataInt8ArrayViewCid + 4 &&
+      kTypedDataInt32ArrayViewCid == kTypedDataInt8ArrayViewCid + 5 &&
+      kTypedDataUint32ArrayViewCid == kTypedDataInt8ArrayViewCid + 6 &&
+      kTypedDataInt64ArrayViewCid == kTypedDataInt8ArrayViewCid + 7 &&
+      kTypedDataUint64ArrayViewCid == kTypedDataInt8ArrayViewCid + 8 &&
+      kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
+      kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
+      kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
+      kTypedDataInt32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
+      kTypedDataFloat64x2ArrayViewCid == kTypedDataInt8ArrayViewCid + 13 &&
+      kByteDataViewCid == kTypedDataInt8ArrayViewCid + 14 &&
+      kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
   return (index >= kTypedDataInt8ArrayViewCid &&
           index <= kByteDataViewCid);
 }
@@ -1772,33 +1773,34 @@ inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
 
 inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new ExternalTypedData types are added.
-  ASSERT((kExternalTypedDataUint8ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 1) &&
-         (kExternalTypedDataUint8ClampedArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 2) &&
-         (kExternalTypedDataInt16ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 3) &&
-         (kExternalTypedDataUint16ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 4) &&
-         (kExternalTypedDataInt32ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 5) &&
-         (kExternalTypedDataUint32ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 6) &&
-         (kExternalTypedDataInt64ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 7) &&
-         (kExternalTypedDataUint64ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 8) &&
-         (kExternalTypedDataFloat32ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 9) &&
-         (kExternalTypedDataFloat64ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 10) &&
-         (kExternalTypedDataFloat32x4ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 11) &&
-         (kExternalTypedDataInt32x4ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 12) &&
-         (kExternalTypedDataFloat64x2ArrayCid ==
-          kExternalTypedDataInt8ArrayCid + 13) &&
-         (kNullCid == kExternalTypedDataInt8ArrayCid + 14));
+  COMPILE_ASSERT(
+      (kExternalTypedDataUint8ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 1) &&
+      (kExternalTypedDataUint8ClampedArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 2) &&
+      (kExternalTypedDataInt16ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 3) &&
+      (kExternalTypedDataUint16ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 4) &&
+      (kExternalTypedDataInt32ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 5) &&
+      (kExternalTypedDataUint32ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 6) &&
+      (kExternalTypedDataInt64ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 7) &&
+      (kExternalTypedDataUint64ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 8) &&
+      (kExternalTypedDataFloat32ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 9) &&
+      (kExternalTypedDataFloat64ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 10) &&
+      (kExternalTypedDataFloat32x4ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 11) &&
+      (kExternalTypedDataInt32x4ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 12) &&
+      (kExternalTypedDataFloat64x2ArrayCid ==
+       kExternalTypedDataInt8ArrayCid + 13) &&
+      (kNullCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
 }
@@ -1835,9 +1837,10 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
-  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
-  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid ==
+                 kTypedDataInt8ArrayViewCid + 15);
+  COMPILE_ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 14);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

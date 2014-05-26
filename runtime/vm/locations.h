@@ -97,47 +97,31 @@ class Location : public ValueObject {
   Location() : value_(kInvalidLocation) {
     // Verify that non-tagged location kinds do not interfere with location tags
     // (kConstantTag and kPairLocationTag).
-    COMPILE_ASSERT(((kInvalid & kLocationTagMask) != kConstantTag),
-                   invalid_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kInvalid & kLocationTagMask) != kPairLocationTag),
-                   invalid_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kInvalid & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kInvalid & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kUnallocated & kLocationTagMask) != kConstantTag),
-                   unallocated_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kUnallocated & kLocationTagMask) != kPairLocationTag),
-                   unallocated_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kUnallocated & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kUnallocated & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kStackSlot & kLocationTagMask) != kConstantTag),
-                   stackslot_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kStackSlot & kLocationTagMask) != kPairLocationTag),
-                   stackslot_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kStackSlot & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kStackSlot & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kDoubleStackSlot & kLocationTagMask) != kConstantTag),
-                   doublestackslot_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kDoubleStackSlot & kLocationTagMask) != kPairLocationTag),
-                   doublestackslot_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kDoubleStackSlot & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kDoubleStackSlot & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kQuadStackSlot & kLocationTagMask) != kConstantTag),
-                   quadstackslot_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kQuadStackSlot & kLocationTagMask) != kPairLocationTag),
-                   quadstackslot_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kQuadStackSlot & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kQuadStackSlot & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kRegister & kLocationTagMask) != kConstantTag),
-                   register_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kRegister & kLocationTagMask) != kPairLocationTag),
-                   register_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kRegister & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kRegister & kLocationTagMask) != kPairLocationTag);
 
-    COMPILE_ASSERT(((kFpuRegister & kLocationTagMask) != kConstantTag),
-                   fpuregister_conflicts_with_constant_tag);
-    COMPILE_ASSERT(((kFpuRegister & kLocationTagMask) != kPairLocationTag),
-                   fpuregister_conflicts_with_pair_tag);
+    COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kConstantTag);
+    COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
 
     // Verify tags and tagmask.
-    COMPILE_ASSERT(((kConstantTag & kLocationTagMask) == kConstantTag),
-                   bad_constant_tag);
+    COMPILE_ASSERT((kConstantTag & kLocationTagMask) == kConstantTag);
 
-    COMPILE_ASSERT(((kPairLocationTag & kLocationTagMask) == kPairLocationTag),
-                  bad_pair_tag);
+    COMPILE_ASSERT((kPairLocationTag & kLocationTagMask) == kPairLocationTag);
 
     ASSERT(IsInvalid());
   }

@@ -5472,7 +5472,7 @@ class Alias : public ValueObject {
     kConstantIndex = 4,
     kNumKinds = kConstantIndex + 1
   };
-  COMPILE_ASSERT(kNumKinds < ((1 << kBitsForKind) - 1), InvalidBitFieldSize);
+  COMPILE_ASSERT(kNumKinds < ((1 << kBitsForKind) - 1));
 
   explicit Alias(intptr_t alias) : alias_(alias) { }
 
@@ -7585,7 +7585,7 @@ class CSEInstructionMap : public ValueObject {
   // strings.
   // Other effects like modifications of fields are tracked in a separate load
   // forwarding pass via Alias structure.
-  COMPILE_ASSERT(EffectSet::kLastEffect == 1, single_effect_is_tracked);
+  COMPILE_ASSERT(EffectSet::kLastEffect == 1);
 
   CSEInstructionMap() : independent_(), dependent_() { }
   explicit CSEInstructionMap(const CSEInstructionMap& other)

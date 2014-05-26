@@ -520,7 +520,7 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
                                            Label* no_update) {
   ASSERT(!in_delay_slot_);
   COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
-                 (kOldObjectAlignmentOffset == 0), young_alignment);
+                 (kOldObjectAlignmentOffset == 0));
 
   // Write-barrier triggers if the value is in the new space (has bit set) and
   // the object is in the old space (has bit cleared).
