@@ -143,6 +143,12 @@ class II {}
 @a[0]  /// 26: compile-time error
 class JJ {}
 
+@kk  /// 27: compile-time error
+class KK {
+  const KK();
+}
+get kk => const KK();
+
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   Expect.listEquals(expectedMetadata.map(reflect).toList(), mirror.metadata);
 }
@@ -184,4 +190,5 @@ main() {
   reflectClass(HH).metadata;
   reflectClass(II).metadata;
   reflectClass(JJ).metadata;
+  reflectClass(KK).metadata;
 }
