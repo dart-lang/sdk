@@ -25,6 +25,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
@@ -1310,6 +1311,28 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   Isolate::SetCurrent(iso);
+}
+
+
+DART_EXPORT void Dart_IsolateBlocked() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  profiler_data->Block();
+}
+
+
+DART_EXPORT void Dart_IsolateUnblocked() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  profiler_data->Unblock();
 }
 
 

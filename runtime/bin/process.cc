@@ -7,6 +7,7 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/socket.h"
+#include "bin/utils.h"
 
 #include "include/dart_api.h"
 
@@ -227,6 +228,7 @@ void FUNCTION_NAME(Process_GetExitCode)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
+  ScopedBlockingCall blocker;
   int64_t milliseconds = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &milliseconds);

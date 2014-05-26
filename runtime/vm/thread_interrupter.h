@@ -19,10 +19,9 @@ struct InterruptedThreadState {
   uintptr_t fp;
 };
 
-// When a thread is interrupted the thread specific interrupt
-// callback will be invoked at the interrupt period. Each callback is given an
-// InterruptedThreadState and the thread specific data pointer. When inside a
-// thread interrupt callback doing any of the following
+// When a thread is interrupted the thread specific interrupt callback will be
+// invoked. Each callback is given an InterruptedThreadState and the user data
+// pointer. When inside a thread interrupt callback doing any of the following
 // is forbidden:
 //   * Accessing TLS.
 //   * Allocating memory.
@@ -48,6 +47,9 @@ class ThreadInterrupter : public AllStatic {
   // Delay between interrupts.
   static void SetInterruptPeriod(intptr_t period);
 
+  // Wake up the thread interrupter thread.
+  static void WakeUp();
+
   // Register the currently running thread for interrupts. If the current thread
   // is already registered, callback and data will be updated.
   static InterruptableThreadState* Register(ThreadInterruptCallback callback,
@@ -72,7 +74,12 @@ class ThreadInterrupter : public AllStatic {
   static ThreadId interrupter_thread_id_;
   static Monitor* monitor_;
   static intptr_t interrupt_period_;
+  static intptr_t current_wait_time_;
   static ThreadLocalKey thread_state_key_;
+
+  static bool InDeepSleep() {
+    return current_wait_time_ == Monitor::kNoTimeout;
+  }
 
   static InterruptableThreadState* _EnsureThreadStateCreated();
   static void UpdateStateObject(ThreadInterruptCallback callback, void* data);

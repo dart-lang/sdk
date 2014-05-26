@@ -1006,15 +1006,24 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 
 
-void Isolate::ProfileInterrupt() {
+intptr_t Isolate::ProfileInterrupt() {
+  if (profiler_data() == NULL) {
+    // Profiler not setup for isolate.
+    return 0;
+  }
+  if (profiler_data()->blocked()) {
+    // Profiler blocked for this isolate.
+    return 0;
+  }
   InterruptableThreadState* state = thread_state();
   if (state == NULL) {
     // Isolate is not scheduled on a thread.
     ProfileIdle();
-    return;
+    return 1;
   }
   ASSERT(state->id != Thread::kInvalidThreadId);
   ThreadInterrupter::InterruptThread(state);
+  return 1;
 }
 
 

@@ -75,9 +75,18 @@ class IsolateProfilerData {
     sample_buffer_ = sample_buffer;
   }
 
+  bool blocked() const {
+    return block_count_ > 0;
+  }
+
+  void Block();
+
+  void Unblock();
+
  private:
   SampleBuffer* sample_buffer_;
   bool own_sample_buffer_;
+  intptr_t block_count_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateProfilerData);
 };
