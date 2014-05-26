@@ -10597,59 +10597,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  num get offsetHeight => Native_Element_offsetHeight_Getter(this);
+  num get offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  num get offsetLeft => Native_Element_offsetLeft_Getter(this);
+  num get offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  num get offsetTop => Native_Element_offsetTop_Getter(this);
+  num get offsetTop => _blink.Native_Element_offsetTop_Getter(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  num get offsetWidth => Native_Element_offsetWidth_Getter(this);
+  num get offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  num get clientHeight => Native_Element_clientHeight_Getter(this);
+  num get clientHeight => _blink.Native_Element_clientHeight_Getter(this);
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  num get clientLeft => Native_Element_clientLeft_Getter(this);
+  num get clientLeft => _blink.Native_Element_clientLeft_Getter(this);
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  num get clientTop => Native_Element_clientTop_Getter(this);
+  num get clientTop => _blink.Native_Element_clientTop_Getter(this);
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  num get clientWidth => Native_Element_clientWidth_Getter(this);
+  num get clientWidth => _blink.Native_Element_clientWidth_Getter(this);
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  num get scrollHeight => Native_Element_scrollHeight_Getter(this);
+  num get scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  num get scrollLeft => Native_Element_scrollLeft_Getter(this);
+  num get scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(num value) => Native_Element_scrollLeft_Setter(this, value);
+  void set scrollLeft(num value) => _blink.Native_Element_scrollLeft_Setter(this, value);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  num get scrollTop => Native_Element_scrollTop_Getter(this);
+  num get scrollTop => _blink.Native_Element_scrollTop_Getter(this);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(num value) => Native_Element_scrollTop_Setter(this, value);
+  void set scrollTop(num value) => _blink.Native_Element_scrollTop_Setter(this, value);
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  num get scrollWidth => Native_Element_scrollWidth_Getter(this);
+  num get scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
