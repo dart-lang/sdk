@@ -11,6 +11,7 @@
 #include "vm/handles_impl.h"
 #include "vm/locations.h"
 #include "vm/object.h"
+#include "vm/parser.h"
 
 namespace dart {
 
@@ -1758,7 +1759,7 @@ class Definition : public Instruction {
   bool IsComparison() { return (AsComparison() != NULL); }
   virtual ComparisonInstr* AsComparison() { return NULL; }
 
-  // Overridden by definitions that push arguments.
+  // Overridden by definitions that have pushed arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
 
   // Overridden by definitions that have call counts.
@@ -1931,6 +1932,34 @@ inline void Value::BindToEnvironment(Definition* def) {
 }
 
 
+template<intptr_t N>
+class TemplateDefinition : public Definition {
+ public:
+  TemplateDefinition<N>() : inputs_() { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  friend class BranchInstr;
+  friend class IfThenElseInstr;
+
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+};
+
+
+struct BranchLabels {
+  Label* true_label;
+  Label* false_label;
+  Label* fall_through;
+};
+
+
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -2066,7 +2095,7 @@ class ParameterInstr : public Definition {
 };
 
 
-class PushArgumentInstr : public Definition {
+class PushArgumentInstr : public TemplateDefinition<1> {
  public:
   explicit PushArgumentInstr(Value* value) {
     SetInputAt(0, value);
@@ -2074,22 +2103,11 @@ class PushArgumentInstr : public Definition {
 
   DECLARE_INSTRUCTION(PushArgument)
 
-  intptr_t InputCount() const { return 1; }
-  Value* InputAt(intptr_t i) const {
-    ASSERT(i == 0);
-    return value_;
-  }
-
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual CompileType ComputeType() const;
 
-  Value* value() const { return value_; }
-
-  virtual intptr_t Hashcode() const {
-    UNREACHABLE();
-    return 0;
-  }
+  Value* value() const { return InputAt(0); }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -2100,13 +2118,6 @@ class PushArgumentInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    ASSERT(i == 0);
-    value_ = value;
-  }
-
-  Value* value_;
-
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
@@ -2257,34 +2268,6 @@ class GotoInstr : public TemplateInstruction<0> {
   // Parallel move that will be used by linear scan register allocator to
   // connect live ranges at the end of the block and resolve phis.
   ParallelMoveInstr* parallel_move_;
-};
-
-
-template<intptr_t N>
-class TemplateDefinition : public Definition {
- public:
-  TemplateDefinition<N>() : inputs_() { }
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  friend class BranchInstr;
-  friend class IfThenElseInstr;
-
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    inputs_[i] = value;
-  }
-};
-
-
-struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
 };
 
 
@@ -7851,7 +7834,7 @@ class Environment : public ZoneAllocated {
   static Environment* From(Isolate* isolate,
                            const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
-                           const Code& code);
+                           const ParsedFunction* parsed_function);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
@@ -7891,7 +7874,7 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
-  const Code& code() const { return code_; }
+  const Code& code() const { return parsed_function_->code(); }
 
   Environment* DeepCopy(Isolate* isolate) const {
     return DeepCopy(isolate, Length());
@@ -7914,13 +7897,13 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t deopt_id,
-              const Code& code,
+              const ParsedFunction* parsed_function,
               Environment* outer)
       : values_(length),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
-        code_(code),
+        parsed_function_(parsed_function),
         outer_(outer) { }
 
 
@@ -7928,7 +7911,7 @@ class Environment : public ZoneAllocated {
   Location* locations_;
   const intptr_t fixed_parameter_count_;
   intptr_t deopt_id_;
-  const Code& code_;
+  const ParsedFunction* parsed_function_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

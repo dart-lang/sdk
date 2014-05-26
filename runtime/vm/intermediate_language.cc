@@ -2349,12 +2349,12 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Isolate* isolate,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const Code& code) {
+                               const ParsedFunction* parsed_function) {
   Environment* env =
       new(isolate) Environment(definitions.length(),
                                fixed_parameter_count,
                                Isolate::kNoDeoptId,
-                               code,
+                               parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new(isolate) Value(definitions[i]));
@@ -2365,13 +2365,12 @@ Environment* Environment::From(Isolate* isolate,
 
 Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy =
-      new(isolate) Environment(
-          length,
-          fixed_parameter_count_,
-          deopt_id_,
-          code_,
-          (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
+  Environment* copy = new(isolate) Environment(
+      length,
+      fixed_parameter_count_,
+      deopt_id_,
+      parsed_function_,
+      (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
   if (locations_ != NULL) {
     Location* new_locations = isolate->current_zone()->Alloc<Location>(length);
     copy->set_locations(new_locations);

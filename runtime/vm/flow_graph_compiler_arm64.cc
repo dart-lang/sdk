@@ -146,9 +146,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
   }
 
-  const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(builder->CreateDeoptInfo(deopt_table));
-  return deopt_info.raw();
+  return builder->CreateDeoptInfo(deopt_table);
 }
 
 

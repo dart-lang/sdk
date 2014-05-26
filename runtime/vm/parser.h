@@ -56,7 +56,7 @@ class ParsedFunction : public ZoneAllocated {
   }
 
   const Function& function() const { return function_; }
-  RawCode* code() const { return code_.raw(); }
+  const Code& code() const { return code_; }
 
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
