@@ -446,8 +446,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->BuildName(name_prefix);
-  result->message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
-  result->message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
@@ -547,6 +545,10 @@ bool Isolate::MakeRunnable() {
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   is_runnable_ = true;
+  if (!Service::IsServiceIsolate(this)) {
+    message_handler()->set_pause_on_start(FLAG_pause_isolates_on_start);
+    message_handler()->set_pause_on_exit(FLAG_pause_isolates_on_exit);
+  }
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     ASSERT(this == state->isolate());

@@ -329,9 +329,6 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (isolate == NULL) {
     return NULL;
   }
-  // We don't want to pause the service isolate.
-  isolate->message_handler()->set_pause_on_start(false);
-  isolate->message_handler()->set_pause_on_exit(false);
   Isolate::SetCurrent(isolate);
   {
     // Install the dart:vmservice library.
