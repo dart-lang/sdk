@@ -113,6 +113,16 @@ class ServiceObjectViewElement extends ObservatoryElement {
         IsolateProfileElement element = new Element.tag('isolate-profile');
         element.profile = object;
         return element;
+      case 'RandomAccessFileList':
+        IORandomAccessFileListViewElement element =
+            new Element.tag('io-random-access-file-list-view');
+        element.list = object;
+        return element;
+      case 'RandomAccessFile':
+        IORandomAccessFileViewElement element =
+            new Element.tag('io-random-access-file-view');
+        element.file = object;
+        return element;
       case 'ServiceError':
         ServiceErrorViewElement element =
             new Element.tag('service-error-view');

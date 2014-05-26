@@ -71,3 +71,54 @@ class IOHttpServerViewElement extends ObservatoryElement {
     }
   }
 }
+
+@CustomTag('io-random-access-file-list-view')
+class IORandomAccessFileListViewElement extends ObservatoryElement {
+  @published ServiceMap list;
+
+  IORandomAccessFileListViewElement.created() : super.created();
+
+  void refresh(var done) {
+    list.reload().whenComplete(done);
+  }
+}
+
+@CustomTag('io-random-access-file-ref')
+class IORandomAccessFileRefElement extends ServiceRefElement {
+  IORandomAccessFileRefElement.created() : super.created();
+}
+
+@CustomTag('io-random-access-file-view')
+class IORandomAccessFileViewElement extends ObservatoryElement {
+  // TODO(ajohnsen): Create a RandomAccessFile object.
+  @published ServiceMap file;
+  Timer _updateTimer;
+
+  IORandomAccessFileViewElement.created() : super.created();
+
+  void refresh(var done) {
+    file.reload().whenComplete(done);
+  }
+
+  void _updateFile() {
+    refresh(() {
+      if (_updateTimer != null) {
+        _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
+      }
+    });
+  }
+
+  void enteredView() {
+    super.enteredView();
+    // Start a timer to update the isolate summary once a second.
+    _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
+  }
+
+  void leftView() {
+    super.leftView();
+    if (_updateTimer != null) {
+      _updateTimer.cancel();
+      _updateTimer = null;
+    }
+  }
+}

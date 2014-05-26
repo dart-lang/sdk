@@ -6,6 +6,9 @@
 final Map _servicePathMap = {
   'http' : {
     'servers' : _httpServersServiceObject
+  },
+  'file' : {
+    'randomaccessfiles' : _randomAccessFilesServiceObject
   }
 };
 
@@ -59,3 +62,20 @@ Map _httpServersServiceObject(args) {
         .map((server) => server._toJSON(true)).toList(),
   };
 }
+
+Map _randomAccessFilesServiceObject(args) {
+  if (args.length == 1) {
+    var raf = _RandomAccessFile._files[int.parse(args.first)];
+    if (raf == null) {
+      return {};
+    }
+    return raf._toJSON(false);
+  }
+  return {
+    'id': 'io/file/randomaccessfiles',
+    'type': 'RandomAccessFileList',
+    'members': _RandomAccessFile._files.values
+        .map((raf) => raf._toJSON(true)).toList(),
+  };
+}
+

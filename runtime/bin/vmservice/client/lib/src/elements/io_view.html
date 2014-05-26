@@ -22,6 +22,15 @@
           <a href="{{io.isolate.relativeHashLink('io/http/servers')}}">HTTP Servers</a>
         </li>
       </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/file/randomaccessfiles')}}">Random Access Files</a>
+        </li>
+      </ul>
+
     </div>
     <br>
     <hr>
@@ -92,6 +101,75 @@
         <div class="memberItem">
           <div class="memberName">Idle connections</div>
           <div class="memberValue">{{ httpServer['idle'] }}</div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="io-random-access-file-list-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Random Access Files</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ file in list['members'] }}">
+          <li class="list-group-item">
+            <io-random-access-file-ref ref="{{ file }}"></io-random-access-file-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-random-access-file-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-random-access-file-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Random Access File</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Path</div>
+          <div class="memberValue">{{ file['name'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Pending Operation</div>
+          <div class="memberValue">{{ file['asyncDispatched'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">File Descriptor</div>
+          <div class="memberValue">{{ file['fd'] }}</div>
         </div>
       </div>
     </div>
