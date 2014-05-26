@@ -1325,6 +1325,113 @@ $endif
    */
   ElementEvents get on => new ElementEvents(this);
 
+$if DART2JS
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  final num offsetHeight;
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  final num offsetLeft;
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  final num offsetTop;
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  final num offsetWidth;
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  final num clientHeight;
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  final num clientLeft;
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  final num clientTop;
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  final num clientWidth;
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  final num scrollHeight;
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num scrollLeft;
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num scrollTop;
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  final num scrollWidth;
+
+$else
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  num get offsetHeight => Native_Element_offsetHeight_Getter(this);
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  num get offsetLeft => Native_Element_offsetLeft_Getter(this);
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  num get offsetTop => Native_Element_offsetTop_Getter(this);
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  num get offsetWidth => Native_Element_offsetWidth_Getter(this);
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  num get clientHeight => Native_Element_clientHeight_Getter(this);
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  num get clientLeft => Native_Element_clientLeft_Getter(this);
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  num get clientTop => Native_Element_clientTop_Getter(this);
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  num get clientWidth => Native_Element_clientWidth_Getter(this);
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  num get scrollHeight => Native_Element_scrollHeight_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num get scrollLeft => Native_Element_scrollLeft_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(num value) => Native_Element_scrollLeft_Setter(this, value);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num get scrollTop => Native_Element_scrollTop_Getter(this);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(num value) => Native_Element_scrollTop_Setter(this, value);
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  num get scrollWidth => Native_Element_scrollWidth_Getter(this);
+$endif
+
 $!MEMBERS
 }
 

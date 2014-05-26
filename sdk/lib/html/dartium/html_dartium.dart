@@ -10595,6 +10595,62 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   ElementEvents get on => new ElementEvents(this);
 
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  num get offsetHeight => Native_Element_offsetHeight_Getter(this);
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  num get offsetLeft => Native_Element_offsetLeft_Getter(this);
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  num get offsetTop => Native_Element_offsetTop_Getter(this);
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  num get offsetWidth => Native_Element_offsetWidth_Getter(this);
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  num get clientHeight => Native_Element_clientHeight_Getter(this);
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  num get clientLeft => Native_Element_clientLeft_Getter(this);
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  num get clientTop => Native_Element_clientTop_Getter(this);
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  num get clientWidth => Native_Element_clientWidth_Getter(this);
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  num get scrollHeight => Native_Element_scrollHeight_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num get scrollLeft => Native_Element_scrollLeft_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(num value) => Native_Element_scrollLeft_Setter(this, value);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num get scrollTop => Native_Element_scrollTop_Getter(this);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(num value) => Native_Element_scrollTop_Setter(this, value);
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  num get scrollWidth => Native_Element_scrollWidth_Getter(this);
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -11214,19 +11270,19 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.Native_Element_clientHeight_Getter(this);
+  int get _clientHeight => _blink.Native_Element_clientHeight_Getter(this);
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.Native_Element_clientLeft_Getter(this);
+  int get _clientLeft => _blink.Native_Element_clientLeft_Getter(this);
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.Native_Element_clientTop_Getter(this);
+  int get _clientTop => _blink.Native_Element_clientTop_Getter(this);
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.Native_Element_clientWidth_Getter(this);
+  int get _clientWidth => _blink.Native_Element_clientWidth_Getter(this);
 
   @DomName('Element.id')
   @DocsEditable()
@@ -11256,11 +11312,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
+  int get _offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
+  int get _offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
 
   @DomName('Element.offsetParent')
   @DocsEditable()
@@ -11268,11 +11324,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.Native_Element_offsetTop_Getter(this);
+  int get _offsetTop => _blink.Native_Element_offsetTop_Getter(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
+  int get _offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
 
   @DomName('Element.outerHTML')
   @DocsEditable()
@@ -11280,27 +11336,27 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
+  int get _scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
+  int get _scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.Native_Element_scrollLeft_Setter(this, value);
+  void set _scrollLeft(int value) => _blink.Native_Element_scrollLeft_Setter(this, value);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.Native_Element_scrollTop_Getter(this);
+  int get _scrollTop => _blink.Native_Element_scrollTop_Getter(this);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.Native_Element_scrollTop_Setter(this, value);
+  void set _scrollTop(int value) => _blink.Native_Element_scrollTop_Setter(this, value);
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
+  int get _scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
 
   @DomName('Element.shadowRoot')
   @DocsEditable()

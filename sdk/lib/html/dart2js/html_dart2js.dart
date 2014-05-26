@@ -10272,6 +10272,55 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   ElementEvents get on => new ElementEvents(this);
 
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  final num offsetHeight;
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  final num offsetLeft;
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  final num offsetTop;
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  final num offsetWidth;
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  final num clientHeight;
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  final num clientLeft;
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  final num clientTop;
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  final num clientWidth;
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  final num scrollHeight;
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num scrollLeft;
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num scrollTop;
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  final num scrollWidth;
+
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -10955,21 +11004,25 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String className;
 
+  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final int clientHeight;
+  final int _clientHeight;
 
+  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final int clientLeft;
+  final int _clientLeft;
 
+  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable()
-  final int clientTop;
+  final int _clientTop;
 
+  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final int clientWidth;
+  final int _clientWidth;
 
   @DomName('Element.id')
   @DocsEditable()
@@ -10986,46 +11039,54 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // Use implementation from Node.
   // final String _namespaceUri;
 
+  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  final int offsetHeight;
+  final int _offsetHeight;
 
+  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  final int offsetLeft;
+  final int _offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable()
   final Element offsetParent;
 
+  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable()
-  final int offsetTop;
+  final int _offsetTop;
 
+  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  final int offsetWidth;
+  final int _offsetWidth;
 
   @JSName('outerHTML')
   @DomName('Element.outerHTML')
   @DocsEditable()
   final String outerHtml;
 
+  @JSName('scrollHeight')
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  final int scrollHeight;
+  final int _scrollHeight;
 
+  @JSName('scrollLeft')
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int scrollLeft;
+  int _scrollLeft;
 
+  @JSName('scrollTop')
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int scrollTop;
+  int _scrollTop;
 
+  @JSName('scrollWidth')
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  final int scrollWidth;
+  final int _scrollWidth;
 
   @DomName('Element.style')
   @DocsEditable()

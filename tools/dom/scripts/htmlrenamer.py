@@ -237,6 +237,21 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.hasAttributeNS',
   'Element.innerHTML',
   'Element.querySelectorAll',
+  # TODO(vsm): These have been converted from int to double in Chrome 36.
+  # Special case them so we run on 34, 35, and 36.
+  'Element.offsetLeft',
+  'Element.offsetTop',
+  'Element.offsetWidth',
+  'Element.offsetHeight',
+  'Element.clientLeft',
+  'Element.clientTop',
+  'Element.clientWidth',
+  'Element.clientHeight',
+  'Element.scrollLeft',
+  'Element.scrollTop',
+  'Element.scrollWidth',
+  'Element.scrollHeight',
+
   'Event.initEvent',
   'Geolocation.clearWatch',
   'Geolocation.getCurrentPosition',
