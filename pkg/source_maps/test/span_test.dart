@@ -72,7 +72,7 @@ main() {
   group('location message', () {
     test('first line', () {
       expect(file.getLocationMessage('the message', 1, 3),
-          'line 1, column 2 of file: the message\n'
+          'file:1:2: the message\n'
           '+23456789_\n'
           ' ^^');
     });
@@ -81,7 +81,7 @@ main() {
       // fifth line (including 4 new lines), columns 2 .. 11
       var line = 10 + 80 + 31 + 27 + 4;
       expect(file.getLocationMessage('the message', line + 2, line + 11),
-          'line 5, column 3 of file: the message\n'
+          'file:5:3: the message\n'
           '1234+6789_1234\n'
           '  ^^^^^^^^^');
     });
@@ -90,7 +90,7 @@ main() {
       var line = 10 + 80 + 31 + 27 + 4;
       expect(new SourceFile.text(null, TEST_FILE).getLocationMessage(
           'the message', line + 2, line + 11),
-          'line 5, column 3: the message\n'
+          ':5:3: the message\n'
           '1234+6789_1234\n'
           '  ^^^^^^^^^');
     });
@@ -100,7 +100,7 @@ main() {
       int index = TEST_FILE.lastIndexOf('\n');
       var start = TEST_FILE.lastIndexOf('\n', index - 1) - 3;
       expect(file.getLocationMessage('the message', start, start + 2),
-          'line 11, column 41 of file: the message\n'
+          'file:11:41: the message\n'
           '123456789_+23456789_123456789_123456789_123\n'
           '                                        ^^');
     });
@@ -108,7 +108,7 @@ main() {
     test('last line', () {
       var start = TEST_FILE.lastIndexOf('\n') - 2;
       expect(file.getLocationMessage('the message', start, start + 1),
-          'line 12, column 28 of file: the message\n'
+          'file:12:28: the message\n'
           '123456789_1+3456789_123456789\n'
           '                           ^');
     });
@@ -120,7 +120,7 @@ main() {
       test('penultimate line', () {
         var start = text.lastIndexOf('\n') - 3;
         expect(file2.getLocationMessage('the message', start, start + 2),
-            'line 11, column 41 of file: the message\n'
+            'file:11:41: the message\n'
             '123456789_+23456789_123456789_123456789_123\n'
             '                                        ^^');
       });
@@ -128,7 +128,7 @@ main() {
       test('last line', () {
         var start = text.length - 2;
         expect(file2.getLocationMessage('the message', start, start + 1),
-            'line 12, column 28 of file: the message\n'
+            'file:12:28: the message\n'
             '123456789_1+3456789_123456789\n'
             '                           ^');
       });
@@ -139,7 +139,7 @@ main() {
       int start = text.indexOf(' ') + 1;
       var file2 = new SourceFile.text('file', text);
       expect(file2.getLocationMessage('the message', start, start + 2),
-            'line 1, column ${start + 1} of file: the message\n'
+            'file:1:${start + 1}: the message\n'
             'this is a single line\n'
             '     ^^');
     });
@@ -178,7 +178,7 @@ main() {
 
     var line = 10 + 80 + 31 + 27 + 4;
     expect(span(line + 2, line + 11).getLocationMessage('the message'),
-        'line 5, column 3 of file: the message\n'
+        'file:5:3: the message\n'
         '1234+6789_1234\n'
         '  ^^^^^^^^^');
 
@@ -226,7 +226,7 @@ main() {
   test('range check for large offsets', () {
     var start = TEST_FILE.length;
     expect(file.getLocationMessage('the message', start, start + 9),
-        'line 13, column 1 of file: the message\n');
+        'file:13:1: the message\n');
   });
 
   group('file segment', () {
@@ -296,7 +296,7 @@ main() {
       test('past segment, past its line', () {
         var start = TEST_FILE.length - 2;
         expect(file.getLocationMessage('the message', start, start + 1),
-          'line 12, column 29 of file: the message\n'
+          'file:12:29: the message\n'
           '123456789_1+3456789_123456789\n'
           '                            ^');
 
@@ -304,7 +304,7 @@ main() {
         // about the 10 lines it has (and nothing about the possible extra lines
         // afterwards)
         expect(segment.getLocationMessage('the message', start, start + 1),
-          'line 11, column 1 of file: the message\n');
+          'file:11:1: the message\n');
       });
     });
   });
