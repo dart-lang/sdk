@@ -277,9 +277,9 @@ class World {
     return elementsThatCannotThrow.contains(element);
   }
 
-  void registerImplicitSuperCall(TreeElements elements,
+  void registerImplicitSuperCall(Registry registry,
                                  FunctionElement superConstructor) {
-    elements.otherDependencies.add(superConstructor);
+    registry.registerDependency(superConstructor);
   }
 
   void registerMightBePassedToApply(Element element) {

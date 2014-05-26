@@ -64,7 +64,7 @@ class SsaBuilderTask extends CompilerTask {
             // This ensures the default value will be computed.
             Constant constant =
                 backend.constants.getConstantForVariable(parameter);
-            backend.registerCompileTimeConstant(constant, work.resolutionTree);
+            backend.registerCompileTimeConstant(constant, work.registry);
             backend.constants.addCompileTimeConstantForEmission(constant);
           });
         }
@@ -2228,7 +2228,7 @@ class SsaBuilder extends ResolvedVisitor {
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
-    compiler.enqueuer.codegen.registerIsCheck(type, work.resolutionTree);
+    compiler.enqueuer.codegen.registerIsCheck(type, work.registry);
     return other;
   }
 
@@ -2828,7 +2828,7 @@ class SsaBuilder extends ResolvedVisitor {
     compiler.enqueuer.codegen.addToWorkList(callElement);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(
-        closureClassElement, work.resolutionTree);
+        closureClassElement, work.registry);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.forEachMember((_, Element member) {
@@ -2847,7 +2847,7 @@ class SsaBuilder extends ResolvedVisitor {
     Element methodElement = nestedClosureData.closureElement;
     if (compiler.backend.methodNeedsRti(methodElement)) {
       compiler.backend.registerGenericClosure(
-          methodElement, compiler.enqueuer.codegen, work.resolutionTree);
+          methodElement, compiler.enqueuer.codegen, work.registry);
     }
   }
 
@@ -3953,7 +3953,7 @@ class SsaBuilder extends ResolvedVisitor {
       inputs.add(analyzeTypeArgument(argument));
     });
     // TODO(15489): Register at codegen.
-    compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
+    compiler.enqueuer.codegen.registerInstantiatedType(type, work.registry);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -4080,7 +4080,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     if (constructor.isFactoryConstructor &&
         !expectedType.typeArguments.isEmpty) {
-      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(work.registry);
     }
 
     TypeMask elementType = computeType(constructor);
@@ -4433,7 +4433,8 @@ class SsaBuilder extends ResolvedVisitor {
         ConstructedConstant symbol = getConstantForNode(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
-        compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
+        compiler.enqueuer.codegen.registerConstSymbol(nameString,
+                                                      work.registry);
       }
     } else {
       handleNewSend(node);
@@ -4758,7 +4759,7 @@ class SsaBuilder extends ResolvedVisitor {
   void visitLiteralSymbol(ast.LiteralSymbol node) {
     stack.add(addConstant(node));
     compiler.enqueuer.codegen.registerConstSymbol(
-        node.slowNameString, elements);
+        node.slowNameString, work.registry);
   }
 
   void visitStringJuxtaposition(ast.StringJuxtaposition node) {
@@ -4921,7 +4922,7 @@ class SsaBuilder extends ResolvedVisitor {
       arguments.add(analyzeTypeArgument(argument));
     }
     // TODO(15489): Register at codegen.
-    compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
+    compiler.enqueuer.codegen.registerInstantiatedType(type, work.registry);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
@@ -5163,7 +5164,7 @@ class SsaBuilder extends ResolvedVisitor {
     expectedType = localsHandler.substInContext(expectedType);
 
     if (constructor.isFactoryConstructor) {
-      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(work.registry);
     }
 
     ClassElement cls = constructor.enclosingClass;

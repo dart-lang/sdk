@@ -47,8 +47,24 @@ class ResolutionWorkItem extends WorkItem {
   bool isAnalyzed() => resolutionTree != null;
 }
 
+class CodegenRegistry extends Registry {
+  final TreeElements treeElements;
+
+  CodegenRegistry(this.treeElements);
+
+  // TODO(johnniwinther): Remove this getter when [Registry] creates a
+  // dependency node.
+  Iterable<Element> get otherDependencies => treeElements.otherDependencies;
+
+  void registerDependency(Element element) {
+    treeElements.registerDependency(element);
+  }
+}
+
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
+  Registry registry;
+
   CodegenWorkItem(Element element,
                   ItemCompilationContext compilationContext)
       : super(element, compilationContext);
@@ -59,6 +75,7 @@ class CodegenWorkItem extends WorkItem {
         compiler.enqueuer.resolution.getCachedElements(element);
     assert(invariant(element, resolutionTree != null,
         message: 'Resolution tree is null for $element in codegen work item'));
+    registry = new CodegenRegistry(resolutionTree);
     compiler.codegen(this, world);
   }
 }
@@ -70,6 +87,15 @@ class DeferredTask {
   final DeferredAction action;
 
   DeferredTask(this.element, this.action);
+}
+
+/// Interface for registration of element dependencies.
+abstract class Registry {
+  // TODO(johnniwinther): Remove this getter when [Registry] creates a
+  // dependency node.
+  Iterable<Element> get otherDependencies;
+
+  void registerDependency(Element element);
 }
 
 abstract class Backend {
@@ -95,7 +121,7 @@ abstract class Backend {
 
   void initializeHelperClasses() {}
 
-  void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
+  void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
   void codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
@@ -121,57 +147,57 @@ abstract class Backend {
 
 
   /// Called during codegen when [constant] has been used.
-  void registerCompileTimeConstant(Constant constant, TreeElements elements) {}
+  void registerCompileTimeConstant(Constant constant, Registry registry) {}
 
   /// Called during post-processing when [constant] has been evaluated.
-  void registerMetadataConstant(Constant constant, TreeElements elements) {}
+  void registerMetadataConstant(Constant constant, Registry registry) {}
 
   /// Called during resolution to notify to the backend that a class is
   /// being instantiated.
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
-                                 TreeElements elements) {}
+                                 Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses string interpolation.
-  void registerStringInterpolation(TreeElements elements) {}
+  void registerStringInterpolation(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement.
   void registerCatchStatement(Enqueuer enqueuer,
-                              TreeElements elements) {}
+                              Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program explicitly throws an exception.
-  void registerThrowExpression(TreeElements elements) {}
+  void registerThrowExpression(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a global variable with a lazy initializer.
-  void registerLazyField(TreeElements elements) {}
+  void registerLazyField(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type variable as an expression.
-  void registerTypeVariableExpression(TreeElements elements) {}
+  void registerTypeVariableExpression(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.
   void registerTypeLiteral(Element element,
                            Enqueuer enqueuer,
-                           TreeElements elements) {}
+                           Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement with a stack trace.
-  void registerStackTraceInCatch(TreeElements elements) {}
+  void registerStackTraceInCatch(Registry registry) {}
 
   /// Register an is check to the backend.
   void registerIsCheck(DartType type,
                        Enqueuer enqueuer,
-                       TreeElements elements) {}
+                       Registry registry) {}
 
   /// Register an as check to the backend.
   void registerAsCheck(DartType type,
                        Enqueuer enqueuer,
-                       TreeElements elements) {}
+                       Registry registry) {}
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
@@ -179,27 +205,27 @@ abstract class Backend {
                                               DartType bound) {}
 
   /// Registers that a type variable bounds check might occur at runtime.
-  void registerTypeVariableBoundCheck(TreeElements elements) {}
+  void registerTypeVariableBoundCheck(Registry registry) {}
 
   /// Register that the application may throw a [NoSuchMethodError].
-  void registerThrowNoSuchMethod(TreeElements elements) {}
+  void registerThrowNoSuchMethod(Registry registry) {}
 
   /// Register that the application may throw a [RuntimeError].
-  void registerThrowRuntimeError(TreeElements elements) {}
+  void registerThrowRuntimeError(Registry registry) {}
 
   /// Register that the application may throw an
   /// [AbstractClassInstantiationError].
-  void registerAbstractClassInstantiation(TreeElements elements) {}
+  void registerAbstractClassInstantiation(Registry registry) {}
 
   /// Register that the application may throw a [FallThroughError].
-  void registerFallThroughError(TreeElements elements) {}
+  void registerFallThroughError(Registry registry) {}
 
   /// Register that a super call will end up calling
   /// [: super.noSuchMethod :].
-  void registerSuperNoSuchMethod(TreeElements elements) {}
+  void registerSuperNoSuchMethod(Registry registry) {}
 
   /// Register that the application creates a constant map.
-  void registerConstantMap(TreeElements elements) {}
+  void registerConstantMap(Registry registry) {}
 
   /**
    * Call this to register that an instantiated generic class has a call
@@ -207,18 +233,18 @@ abstract class Backend {
    */
   void registerGenericCallMethod(Element callMethod,
                                  Enqueuer enqueuer,
-                                 TreeElements elements) {}
+                                 Registry registry) {}
   /**
    * Call this to register that a getter exists for a function on an
    * instantiated generic class.
    */
   void registerGenericClosure(Element closure,
                               Enqueuer enqueuer,
-                              TreeElements elements) {}
+                              Registry registry) {}
   /**
    * Call this to register that the [:runtimeType:] property has been accessed.
    */
-  void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {}
+  void registerRuntimeType(Enqueuer enqueuer, Registry registry) {}
 
   /**
    * Call this method to enable [noSuchMethod] handling in the
@@ -231,10 +257,10 @@ abstract class Backend {
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
 
-  void registerConstSymbol(String name, TreeElements elements) {}
-  void registerNewSymbol(TreeElements elements) {}
+  void registerConstSymbol(String name, Registry registry) {}
+  void registerNewSymbol(Registry registry) {}
   /// Called when resolving the `Symbol` constructor.
-  void registerSymbolConstructor(TreeElements elements) {}
+  void registerSymbolConstructor(Registry registry) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -296,6 +322,8 @@ abstract class Backend {
   void onQueueEmpty(Enqueuer enqueuer) {}
 
   /// Called after [element] has been resolved.
+  // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
+  // node. [elements] is currently unused by the implementation.
   void onElementResolved(Element element, TreeElements elements) {}
 }
 
@@ -359,7 +387,9 @@ abstract class Compiler implements DiagnosticListener {
    * We should get rid of this and ensure that all dependencies are
    * associated with a particular element.
    */
-  final TreeElements globalDependencies = new TreeElementMapping(null);
+  // TODO(johnniwinther): This should not be a [ResolutionRegistry].
+  final ResolutionRegistry globalDependencies =
+      new ResolutionRegistry.internal(null, new TreeElementMapping(null));
 
   /**
    * Dependencies that are only included due to mirrors.
@@ -367,7 +397,9 @@ abstract class Compiler implements DiagnosticListener {
    * We should get rid of this and ensure that all dependencies are
    * associated with a particular element.
    */
-  final TreeElements mirrorDependencies = new TreeElementMapping(null);
+  // TODO(johnniwinther): This should not be a [ResolutionRegistry].
+  final Registry mirrorDependencies =
+      new ResolutionRegistry.internal(null, new TreeElementMapping(null));
 
   final bool enableMinification;
   final bool enableTypeAssertions;

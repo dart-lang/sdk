@@ -723,7 +723,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (info.catchBlock != null) {
       void register(ClassElement classElement) {
         if (classElement != null) {
-          world.registerInstantiatedClass(classElement, work.resolutionTree);
+          world.registerInstantiatedClass(classElement, work.registry);
         }
       }
       register(backend.jsPlainJavaScriptObjectClass);
@@ -1494,7 +1494,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Split returns a List, so we make sure the backend knows the
         // list class is instantiated.
         world.registerInstantiatedClass(
-            compiler.listClass, work.resolutionTree);
+            compiler.listClass, work.registry);
       } else if (target.isNative && target.isFunction
                  && !node.isInterceptedCall) {
         // A direct (i.e. non-interceptor) native call is the result of
@@ -1612,7 +1612,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
       instantiatedTypes.forEach((type) {
-        world.registerInstantiatedType(type, work.resolutionTree);
+        world.registerInstantiatedType(type, work.registry);
       });
     }
 
@@ -1721,7 +1721,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (nativeBehavior == null) return;
     nativeBehavior.typesReturned.forEach((type) {
       if (type is DartType) {
-        world.registerInstantiatedType(type, work.resolutionTree);
+        world.registerInstantiatedType(type, work.registry);
       }
     });
   }
@@ -1757,7 +1757,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return;
     }
     node.instantiatedTypes.forEach((type) {
-      world.registerInstantiatedType(type, work.resolutionTree);
+      world.registerInstantiatedType(type, work.registry);
     });
   }
 
@@ -1791,7 +1791,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
 
-    backend.registerCompileTimeConstant(node.constant, work.resolutionTree);
+    backend.registerCompileTimeConstant(node.constant, work.registry);
     backend.constants.addCompileTimeConstantForEmission(node.constant);
   }
 
@@ -2090,7 +2090,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitLiteralList(HLiteralList node) {
     world.registerInstantiatedClass(
-        compiler.listClass, work.resolutionTree);
+        compiler.listClass, work.registry);
     generateArrayLiteral(node);
   }
 
@@ -2270,7 +2270,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkTypeViaProperty(HInstruction input, DartType type, bool negative) {
-    world.registerIsCheck(type, work.resolutionTree);
+    world.registerIsCheck(type, work.registry);
 
     use(input);
 
@@ -2352,7 +2352,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void emitIs(HIs node, String relation)  {
     DartType type = node.typeExpression;
-    world.registerIsCheck(type, work.resolutionTree);
+    world.registerIsCheck(type, work.registry);
     HInstruction input = node.expression;
 
     // If this is changed to single == there are several places below that must
@@ -2558,9 +2558,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       world.registerIsCheck(
-          compiler.functionClass.rawType, work.resolutionTree);
+          compiler.functionClass.rawType, work.registry);
     }
-    world.registerIsCheck(type, work.resolutionTree);
+    world.registerIsCheck(type, work.registry);
 
     CheckedModeHelper helper;
     if (node.isBooleanConversionCheck) {

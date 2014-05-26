@@ -107,10 +107,10 @@ abstract class Enqueuer {
    */
   void internalAddToWorkList(Element element);
 
-  void registerInstantiatedType(InterfaceType type, TreeElements elements) {
+  void registerInstantiatedType(InterfaceType type, Registry registry) {
     task.measure(() {
       ClassElement cls = type.element;
-      elements.registerDependency(cls);
+      registry.registerDependency(cls);
       cls.ensureResolved(compiler);
       universe.instantiatedTypes.add(type);
       if (!cls.isAbstract
@@ -125,14 +125,14 @@ abstract class Enqueuer {
     });
   }
 
-  void registerInstantiatedClass(ClassElement cls, TreeElements elements) {
+  void registerInstantiatedClass(ClassElement cls, Registry registry) {
     cls.ensureResolved(compiler);
-    registerInstantiatedType(cls.rawType, elements);
+    registerInstantiatedType(cls.rawType, registry);
   }
 
-  void registerTypeLiteral(Element element, TreeElements elements) {
-    registerInstantiatedClass(compiler.typeClass, elements);
-    compiler.backend.registerTypeLiteral(element, this, elements);
+  void registerTypeLiteral(Element element, Registry registry) {
+    registerInstantiatedClass(compiler.typeClass, registry);
+    compiler.backend.registerTypeLiteral(element, this, registry);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -313,11 +313,11 @@ abstract class Enqueuer {
   }
 
   /// Called when [:const Symbol(name):] is seen.
-  void registerConstSymbol(String name, TreeElements elements) {
-    compiler.backend.registerConstSymbol(name, elements);
+  void registerConstSymbol(String name, Registry registry) {
+    compiler.backend.registerConstSymbol(name, registry);
   }
 
-  void pretendElementWasUsed(Element element, TreeElements elements) {
+  void pretendElementWasUsed(Element element, Registry registry) {
     if (!compiler.backend.isNeededForReflection(element)) return;
     if (Elements.isUnresolved(element)) {
       // Ignore.
@@ -326,11 +326,11 @@ abstract class Enqueuer {
       // TODO(ahe): Work-around for http://dartbug.com/11205.
     } else if (element.isConstructor) {
       ClassElement cls = element.declaration.enclosingClass;
-      registerInstantiatedType(cls.rawType, elements);
+      registerInstantiatedType(cls.rawType, registry);
       registerStaticUse(element.declaration);
     } else if (element.isClass) {
       ClassElement cls = element.declaration;
-      registerInstantiatedClass(cls, elements);
+      registerInstantiatedClass(cls, registry);
       // Make sure that even abstract classes are considered instantiated.
       universe.instantiatedClasses.add(cls);
     } else if (element.impliesType) {
@@ -349,8 +349,8 @@ abstract class Enqueuer {
   }
 
   /// Called when [:new Symbol(...):] is seen.
-  void registerNewSymbol(TreeElements elements) {
-    compiler.backend.registerNewSymbol(elements);
+  void registerNewSymbol(Registry registry) {
+    compiler.backend.registerNewSymbol(registry);
   }
 
   void enqueueEverything() {
@@ -495,14 +495,14 @@ abstract class Enqueuer {
     universe.fieldSetters.add(element);
   }
 
-  void registerIsCheck(DartType type, TreeElements elements) {
+  void registerIsCheck(DartType type, Registry registry) {
     type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef);
-    compiler.backend.registerIsCheck(type, this, elements);
+    compiler.backend.registerIsCheck(type, this, registry);
   }
 
   /**
@@ -510,17 +510,17 @@ abstract class Enqueuer {
    * which arguments could be used to create instances of classes that use their
    * type variables as expressions, so we have to remember if we saw such a use.
    */
-  void registerFactoryWithTypeArguments(TreeElements elements) {
+  void registerFactoryWithTypeArguments(Registry registry) {
     universe.usingFactoryWithTypeArguments = true;
   }
 
-  void registerAsCheck(DartType type, TreeElements elements) {
-    registerIsCheck(type, elements);
-    compiler.backend.registerAsCheck(type, this, elements);
+  void registerAsCheck(DartType type, Registry registry) {
+    registerIsCheck(type, registry);
+    compiler.backend.registerAsCheck(type, this, registry);
   }
 
-  void registerGenericCallMethod(Element element, TreeElements elements) {
-    compiler.backend.registerGenericCallMethod(element, this, elements);
+  void registerGenericCallMethod(Element element, Registry registry) {
+    compiler.backend.registerGenericCallMethod(element, this, registry);
     universe.genericCallMethods.add(element);
   }
 
@@ -530,23 +530,23 @@ abstract class Enqueuer {
                               compiler.globalDependencies);
   }
 
-  void registerClosurizedMember(Element element, TreeElements elements) {
+  void registerClosurizedMember(Element element, Registry registry) {
     assert(element.isInstanceMember);
-    registerIfGeneric(element, elements);
+    registerIfGeneric(element, registry);
     registerBoundClosure();
     universe.closurizedMembers.add(element);
   }
 
 
-  void registerIfGeneric(Element element, TreeElements elements) {
+  void registerIfGeneric(Element element, Registry registry) {
     if (element.computeType(compiler).containsTypeVariables) {
-      compiler.backend.registerGenericClosure(element, this, elements);
+      compiler.backend.registerGenericClosure(element, this, registry);
       universe.genericClosures.add(element);
     }
   }
 
-  void registerClosure(Element element, TreeElements elements) {
-    registerIfGeneric(element, elements);
+  void registerClosure(Element element, Registry registry) {
+    registerIfGeneric(element, registry);
   }
 
   void forEach(f(WorkItem work)) {

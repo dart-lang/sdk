@@ -184,6 +184,7 @@ class TreeElementMapping implements TreeElements {
   }
 
   void registerDependency(Element element) {
+    if (element == null) return;
     otherDependencies.add(element.implementation);
   }
 
