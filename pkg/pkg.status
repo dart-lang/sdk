@@ -19,6 +19,11 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail # Issue 19017
+polymer/e2e_test/experimental_boot/test/double_init_test: Fail # Issue 19017
+polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail # Issue 19017
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
