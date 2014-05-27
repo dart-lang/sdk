@@ -391,6 +391,7 @@ websql_test/supported: Fail
 messageevent_test: RuntimeError # Issue 15651
 serialized_script_value_test: RuntimeError # Issue 15651
 client_rect_test: Fail # Issue 16890
+worker_test/functional: Pass, RuntimeError # http://dartbug.com/19042
 
 [ $runtime == ff ]
 xhr_test/xhr: Pass, Fail # Issue 11602
