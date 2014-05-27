@@ -163,6 +163,10 @@ class IsolateProfileElement extends ObservatoryElement {
     } catch (e, stackTrace) {
       Logger.root.warning('_buildStackTree', e, stackTrace);
     }
+    // Check if we only have one node at the root and expand it.
+    if (tree.rows.length == 1) {
+      tree.toggle(0);
+    }
     notifyPropertyChange(#tree, null, tree);
   }
 
