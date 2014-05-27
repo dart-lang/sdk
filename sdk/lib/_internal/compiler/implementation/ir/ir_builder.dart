@@ -533,8 +533,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // the loop exit (break), and the loop back edge (continue).
     // The CPS translation [[while (condition) body; successor]] is:
     //
-    // let cont break() = [[successor]] in
     // let cont continue(x, ...) =
+    //     let cont break() = [[successor]] in
     //     let cont body() = [[body]]; continue(v, ...) in
     //     let prim cond = [[condition]] in
     //     branch cond (body, break) in
@@ -562,8 +562,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
           createLoopJoinParametersAndFillArguments(entryArguments, condBuilder,
                                    bodyBuilder, loopArguments);
       continueContinuation = new ir.Continuation(parameters);
-      continueContinuation.body =
-          new ir.LetCont(bodyContinuation, condBuilder.root);
       bodyBuilder.add(
           new ir.InvokeContinuation(continueContinuation, loopArguments,
                                     recursive:true));
@@ -573,15 +571,18 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // Capture free variable occurrences in the loop body.
     captureFreeLoopVariables(condBuilder, bodyBuilder, parameters);
 
+    ir.Expression resultContext =
+        new ir.LetCont(breakContinuation,
+            new ir.LetCont(bodyContinuation,
+                condBuilder.root));
     if (continueContinuation != null) {
-      add(new ir.LetCont(breakContinuation,
-              new ir.LetCont(continueContinuation,
-                  new ir.InvokeContinuation(continueContinuation,
-                                            entryArguments))));
+      continueContinuation.body = resultContext;
+      add(new ir.LetCont(continueContinuation,
+            new ir.InvokeContinuation(continueContinuation,
+              entryArguments)));
+      current = resultContext;
     } else {
-      add(new ir.LetCont(breakContinuation,
-              new ir.LetCont(bodyContinuation,
-                  condBuilder.root)));
+      add(resultContext);
     }
     return null;
   }
