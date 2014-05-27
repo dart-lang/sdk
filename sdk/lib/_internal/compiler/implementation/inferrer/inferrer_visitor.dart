@@ -495,60 +495,52 @@ class LocalsHandler<T> {
    */
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
+    assert(handlers.isNotEmpty);
+    assert(!(seenReturnOrThrow && keepOwnLocals));
     Node level = locals.block;
-    LocalsHandler<T> startWith;
-    int index = 0;
+    Set<Element> seenLocals = new Setlet<Element>();
+    // If we want to keep the locals, we first merge [this] into itself to
+    // create the required Phi nodes.
     if (keepOwnLocals && !seenReturnOrThrow) {
-      startWith = this;
-      index--;
-    } else {
-      // Find the first handler that does not abort.
-      while (index < handlers.length
-             && (startWith = handlers[index]).seenReturnOrThrow) {
-        index++;
-      }
-      if (index == handlers.length) {
-        // If we haven't found a handler that does not abort, we know
-        // this handler aborts.
-        seenReturnOrThrow = true;
-        return;
-      } else {
-        // Otherwise, this handler does not abort.
-        seenReturnOrThrow = false;
-      }
+      mergeHandler(this, seenLocals);
     }
-    // Use [startWith] to initialize the types of locals.
-    locals.forEachLocal((local, myType) {
-      T otherType = startWith.locals[local];
-      T newType = types.allocatePhi(level, local, otherType);
-      if (myType != newType) {
-        locals[local] = newType;
-      }
-    });
+    bool allBranchesAbort = true;
     // Merge all other handlers.
-    for (int i = index + 1; i < handlers.length; i++) {
-      mergeHandler(handlers[i]);
+    for (LocalsHandler handler in handlers) {
+      allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
+      mergeHandler(handler, seenLocals);
     }
-
+    // Clean up Phi nodes with single input.
     locals.forEachLocal((Element element, T type) {
+      if (!seenLocals.contains(element)) return;
       T newType = types.simplifyPhi(level, element, type);
       if (newType != type) {
         locals[element] = newType;
       }
     });
+    seenReturnOrThrow = allBranchesAbort &&
+                        (!keepOwnLocals || seenReturnOrThrow);
   }
 
   /**
    * Merge [other] into this handler. Returns whether a local in this
-   * has changed.
+   * has changed. If [seen] is not null, we allocate new Phi nodes
+   * unless the local is already present in the set [seen]. This effectively
+   * overwrites the current type knowledge in this handler.
    */
-  bool mergeHandler(LocalsHandler<T> other) {
+  bool mergeHandler(LocalsHandler<T> other, [Set<Element> seen]) {
     if (other.seenReturnOrThrow) return false;
     bool changed = false;
     other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
       T myType = locals[local];
       if (myType == null) return;
-      T newType = types.addPhiInput(local, myType, otherType);
+      T newType;
+      if (seen != null && !seen.contains(local)) {
+        newType = types.allocatePhi(locals.block, local, otherType);
+        seen.add(local);
+      } else {
+        newType = types.addPhiInput(local, myType, otherType);
+      }
       if (newType != myType) {
         changed = true;
         locals[local] = newType;

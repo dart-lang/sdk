@@ -1038,16 +1038,13 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    // BUG(16400): This should be a labelled block, but that makes
-    // dart2js crash when merging locals information in the type
-    // inferencing implementation.
-    do {
+    FASTPATH: {
       var cache = _getterCache;
-      if (isMissingCache(cache) || isMissingProbe(fieldName)) break;
+      if (isMissingCache(cache) || isMissingProbe(fieldName)) break FASTPATH;
       // If the [fieldName] has an associated probe function, we can use
       // it to read from the getter cache specific to this [InstanceMirror].
       var getter = JS('', '#.\$p(#)', fieldName, cache);
-      if (isUndefined(getter)) break;
+      if (isUndefined(getter)) break FASTPATH;
       // Call the getter passing the reflectee as the first argument.
       var value = JS('', '#(#)', getter, reflectee);
       // The getter has an associate cache of the last [InstanceMirror]
@@ -1062,7 +1059,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
         JS('void', '#.m = #', getter, result);
         return result;
       }
-    } while (false);
+    }
     return _getFieldSlow(fieldName);
   }
 
