@@ -44,6 +44,71 @@ patch class Isolate {
       return new Future<Isolate>.error(e, st);
     }
   }
+
+  patch void _pause(Capability resumeCapability) {
+    var message = new List(3)
+        ..[0] = "pause"
+        ..[1] = pauseCapability
+        ..[2] = resumeCapability;
+    controlPort.send(message);
+  }
+
+  patch void resume(Capability resumeCapability) {
+    var message = new List(2)
+        ..[0] = "resume"
+        ..[1] = resumeCapability;
+    controlPort.send(message);
+  }
+
+  patch void addOnExitListener(SendPort responsePort) {
+    // TODO(lrn): Can we have an internal method that checks if the receiving
+    // isolate of a SendPort is still alive?
+    var message = new List(2)
+        ..[0] = "add-ondone"
+        ..[1] = responsePort;
+    controlPort.send(message);
+  }
+
+  patch void removeOnExitListener(SendPort responsePort) {
+    var message = new List(2)
+        ..[0] = "remove-ondone"
+        ..[1] = responsePort;
+    controlPort.send(message);
+  }
+
+  patch void setErrorsFatal(bool errorsAreFatal) {
+    var message = new List(3)
+        ..[0] = "set-errors-fatal"
+        ..[1] = terminateCapability
+        ..[2] = errorsAreFatal;
+    controlPort.send(message);
+  }
+
+  patch void kill([int priority = BEFORE_NEXT_EVENT]) {
+    controlPort.send(["kill", terminateCapability, priority]);
+  }
+
+  patch void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
+    var message = new List(3)
+        ..[0] = "ping"
+        ..[1] = responsePort
+        ..[2] = pingType;
+    controlPort.send(message);
+  }
+
+  patch void addErrorListener(SendPort port) {
+    var message = new List(2)
+        ..[0] = "getErrors"
+        ..[1] = port;
+    controlPort.send(message);
+  }
+
+  patch void removeErrorListener(SendPort port) {
+    var message = new List(2)
+        ..[0] = "stopErrors"
+        ..[1] = port;
+    controlPort.send(message);
+  }
 }
 
 /** Default factory for receive ports. */

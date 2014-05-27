@@ -143,13 +143,12 @@ class Isolate {
    */
   Capability pause([Capability resumeCapability]) {
     if (resumeCapability == null) resumeCapability = new Capability();
-    var message = new List(3)
-        ..[0] = "pause"
-        ..[1] = pauseCapability
-        ..[2] = resumeCapability;
-    controlPort.send(message);
+    _pause(resumeCapability);
     return resumeCapability;
   }
+
+  /** Internal implementation of [pause]. */
+  external void _pause(Capability resumeCapability);
 
   /**
    * Resumes a paused isolate.
@@ -165,12 +164,7 @@ class Isolate {
    * The capability must be one returned by a call to [pause] on this
    * isolate, otherwise the resume call does nothing.
    */
-  void resume(Capability resumeCapability) {
-    var message = new List(2)
-        ..[0] = "resume"
-        ..[1] = resumeCapability;
-    controlPort.send(message);
-  }
+  external void resume(Capability resumeCapability);
 
   /**
    * Asks the isolate to send a message on [responsePort] when it terminates.
@@ -182,17 +176,11 @@ class Isolate {
    * has been sent.
    *
    * If the isolate is already dead, no message will be sent.
-   * TODO(lrn): Can we do better? Can the system recognize this message and
+   */
+  /* TODO(lrn): Can we do better? Can the system recognize this message and
    * send a reply if the receiving isolate is dead?
    */
-  void addOnExitListener(SendPort responsePort) {
-    // TODO(lrn): Can we have an internal method that checks if the receiving
-    // isolate of a SendPort is still alive?
-    var message = new List(2)
-        ..[0] = "add-ondone"
-        ..[1] = responsePort;
-    controlPort.send(message);
-  }
+  external void addOnExitListener(SendPort responsePort);
 
   /**
    * Stop listening on exit messages from the isolate.
@@ -205,12 +193,7 @@ class Isolate {
    * A response may still be sent until this operation is fully processed by
    * the isolate.
    */
-  void removeOnExitListener(SendPort responsePort) {
-    var message = new List(2)
-        ..[0] = "remove-ondone"
-        ..[1] = responsePort;
-    controlPort.send(message);
-  }
+  external void removeOnExitListener(SendPort responsePort);
 
   /**
    * Set whether uncaught errors will terminate the isolate.
@@ -223,13 +206,7 @@ class Isolate {
    * This call requires the [terminateCapability] for the isolate.
    * If the capability is not correct, no change is made.
    */
-  void setErrorsFatal(bool errorsAreFatal) {
-    var message = new List(3)
-        ..[0] = "set-errors-fatal"
-        ..[1] = terminateCapability
-        ..[2] = errorsAreFatal;
-    controlPort.send(message);
-  }
+  external void setErrorsFatal(bool errorsAreFatal);
 
   /**
    * Requests the isolate to shut down.
@@ -262,9 +239,7 @@ class Isolate {
    *     messages that affect normal events, including `pause`.
    *     This can be used to wait for a another event to be processed.
    */
-  void kill([int priority = BEFORE_NEXT_EVENT]) {
-    controlPort.send(["kill", terminateCapability, priority]);
-  }
+  external void kill([int priority = BEFORE_NEXT_EVENT]);
 
   /**
    * Request that the isolate send a response on the [responsePort].
@@ -292,16 +267,12 @@ class Isolate {
    *     messages that affect normal events, including `pause`.
    *     This can be used to wait for a another event to be processed.
    */
-  void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    var message = new List(3)
-        ..[0] = "ping"
-        ..[1] = responsePort
-        ..[2] = pingType;
-    controlPort.send(message);
-  }
+  external void ping(SendPort responsePort, [int pingType = IMMEDIATE]);
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * The errors are sent back as two elements lists.
    * The first element is a `String` representation of the error, usually
@@ -312,15 +283,12 @@ class Isolate {
    * Listening using the same port more than once does nothing. It will only
    * get each error once.
    */
-  void addErrorListener(SendPort port) {
-    var message = new List(2)
-        ..[0] = "getErrors"
-        ..[1] = port;
-    controlPort.send(message);
-  }
+  external void addErrorListener(SendPort port);
 
   /**
    * Stop listening for uncaught errors through [port].
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
    *
    * The `port` should be a port that is listening for errors through
    * [addErrorListener]. This call requests that the isolate stops sending
@@ -333,12 +301,7 @@ class Isolate {
    * Closing the receive port at the end of the send port will not stop the
    * isolate from sending errors, they are just going to be lost.
    */
-  void removeErrorListener(SendPort port) {
-    var message = new List(2)
-        ..[0] = "stopErrors"
-        ..[1] = port;
-    controlPort.send(message);
-  }
+  external void removeErrorListener(SendPort port);
 
   /**
    * Returns a broadcast stream of uncaught errors from the isolate.
