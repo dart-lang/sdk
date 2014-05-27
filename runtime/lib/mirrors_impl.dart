@@ -456,29 +456,10 @@ class _LocalClosureMirror extends _LocalInstanceMirror
     return this.invoke(#call, positionalArguments, namedArguments);
   }
 
-  InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
-    List<String> parts = _n(name).split(".").toList(growable: false);
-    if (parts.length > 3) {
-      throw new ArgumentError("Invalid symbol: ${name}");
-    }
-    List tuple = _computeFindInContext(_reflectee, parts);
-    if (tuple.length == 0) {
-      throw new UnsupportedError(
-          "ClosureMirror.findInContext not yet supported");
-    }
-    if (tuple[0]) {
-      return reflect(tuple[1]);
-    }
-    return ifAbsent == null ? null : ifAbsent();
-  }
-
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 
   static _computeFunction(reflectee)
       native 'ClosureMirror_function';
-
-  static _computeFindInContext(reflectee, name)
-      native 'ClosureMirror_find_in_context';
 }
 
 class _LocalClassMirror extends _LocalObjectMirror

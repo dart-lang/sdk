@@ -20,9 +20,6 @@ DEFINE_FLAG(bool, use_mirrored_compilation_error, false,
     "Wrap compilation errors that occur during reflective access in a "
     "MirroredCompilationError, rather than suspending the isolate.");
 
-DEFINE_FLAG(bool, support_find_in_context, false,
-    "Experimental support for ClosureMirror.findInContext.");
-
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -675,67 +672,6 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
 }
 
 
-// TODO(13656): Remove AllowPrivate.
-static RawInstance* InvokeLibraryGetterAllowImports(
-    const Library& library,
-    const String& getter_name,
-    const bool throw_nsm_if_absent) {
-  // To access a top-level we may need to use the Field or the getter Function.
-  // The getter function may either be in the library or in the field's owner
-  // class, depending on whether it was an actual getter, or an uninitialized
-  // field.
-  const Field& field = Field::Handle(
-      library.LookupFieldAllowPrivate(getter_name));
-  Function& getter = Function::Handle();
-  if (field.IsNull()) {
-    // No field found. Check for a getter in the lib.
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = library.LookupFunctionAllowPrivate(internal_getter_name);
-    if (getter.IsNull()) {
-      getter = library.LookupFunctionAllowPrivate(getter_name);
-      if (!getter.IsNull()) {
-        // Looking for a getter but found a regular method: closurize it.
-        const Function& closure_function =
-            Function::Handle(getter.ImplicitClosureFunction());
-        return closure_function.ImplicitStaticClosure();
-      }
-    }
-  } else {
-    if (!field.IsUninitialized()) {
-      return field.value();
-    }
-    // An uninitialized field was found.  Check for a getter in the field's
-    // owner classs.
-    const Class& klass = Class::Handle(field.owner());
-    const String& internal_getter_name =
-        String::Handle(Field::GetterName(getter_name));
-    getter = klass.LookupStaticFunction(internal_getter_name);
-  }
-
-  if (!getter.IsNull() && getter.is_visible()) {
-    // Invoke the getter and return the result.
-    const Object& result = Object::Handle(
-        DartEntry::InvokeFunction(getter, Object::empty_array()));
-    return ReturnResult(result);
-  }
-
-  if (throw_nsm_if_absent) {
-    ThrowNoSuchMethod(Instance::null_instance(),
-                      getter_name,
-                      getter,
-                      InvocationMirror::kTopLevel,
-                      InvocationMirror::kGetter);
-    UNREACHABLE();
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
 static RawInstance* InvokeClassGetter(const Class& klass,
                                       const String& getter_name,
                                       const bool throw_nsm_if_absent) {
@@ -780,8 +716,6 @@ static RawInstance* InvokeClassGetter(const Class& klass,
 }
 
 
-
-
 static RawInstance* InvokeInstanceGetter(const Class& klass,
                                          const Instance& reflectee,
                                          const String& getter_name,
@@ -804,158 +738,6 @@ static RawInstance* InvokeInstanceGetter(const Class& klass,
                                  internal_getter_name,
                                  args,
                                  args_descriptor);
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
-static RawInstance* LookupFunctionOrFieldInLibraryPrefix(
-    const LibraryPrefix& prefix,
-    const String& lookup_name) {
-  const Object& entry = Object::Handle(prefix.LookupObject(lookup_name));
-  if (!entry.IsNull()) {
-    if (entry.IsField()) {
-      const Field& field = Field::Cast(entry);
-      const Class& field_owner = Class::Handle(field.owner());
-      const Library& field_library = Library::Handle(field_owner.library());
-      const Instance& result = Instance::Handle(
-          InvokeLibraryGetterAllowImports(field_library, lookup_name, false));
-      if (result.raw() != Object::sentinel().raw()) {
-        return result.raw();
-      }
-    } else if (entry.IsFunction()) {
-      const Function& func = Function::Cast(entry);
-      const Function& closure_function = Function::Handle(
-          func.ImplicitClosureFunction());
-      return closure_function.ImplicitStaticClosure();
-    }
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
-static RawInstance* LookupStaticFunctionOrFieldInClass(
-    const Class& klass,
-    const String& lookup_name) {
-  Instance& result = Instance::Handle(
-      InvokeClassGetter(klass, lookup_name, false));
-  if (result.raw() != Object::sentinel().raw()) {
-    return result.raw();
-  }
-
-  const Function& func =
-      Function::Handle(klass.LookupStaticFunction(lookup_name));
-  if (!func.IsNull()) {
-    const Function& closure_function = Function::Handle(
-        func.ImplicitClosureFunction());
-    ASSERT(!closure_function.IsNull());
-    return closure_function.ImplicitStaticClosure();
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
-static RawInstance* LookupFunctionOrFieldInFunctionContext(
-    const Function& func,
-    const Context& ctx,
-    const String& lookup_name) {
-  const ContextScope& ctx_scope = ContextScope::Handle(func.context_scope());
-  intptr_t this_index = -1;
-
-  // Search local context.
-  String& name = String::Handle();
-  for (intptr_t i = 0; i < ctx_scope.num_variables(); i++) {
-    name ^= ctx_scope.NameAt(i);
-    if (name.Equals(lookup_name)) {
-      return ctx.At(i);
-    } else if (name.Equals(Symbols::This())) {
-      // Record instance index to search for the field in the instance
-      // afterwards.
-      this_index = i;
-    }
-  }
-
-  // Search the instance this function is attached to.
-  if (this_index >= 0) {
-    // Since we want the closurized version of a function, we can access, both,
-    // functions and fields through their implicit getter name. If the implicit
-    // getter does not exist for the function, a method extractor will be
-    // created.
-    const Class& owner = Class::Handle(func.Owner());
-    const Instance& receiver = Instance::Handle(ctx.At(this_index));
-    return InvokeInstanceGetter(owner, receiver, lookup_name, false);
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
-static RawInstance* LookupFunctionOrFieldInLibraryHelper(
-    const Library& library,
-    const String& class_name,
-    const String& lookup_name) {
-  if (class_name.IsNull()) {
-    const Instance& result = Instance::Handle(
-        InvokeLibraryGetterAllowImports(library, lookup_name, false));
-    if (result.raw() != Object::sentinel().raw()) {
-      return result.raw();
-    }
-    const Function& func = Function::Handle(
-        library.LookupLocalFunction(lookup_name));
-    if (!func.IsNull()) {
-      const Function& closure_function = Function::Handle(
-          func.ImplicitClosureFunction());
-      return closure_function.ImplicitStaticClosure();
-    }
-  } else {
-    const Class& cls = Class::Handle(
-        library.LookupClass(class_name));
-    if (!cls.IsNull()) {
-      return LookupStaticFunctionOrFieldInClass(cls, lookup_name);
-    }
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
-static RawInstance* LookupFunctionOrFieldInLibrary(const Library& library,
-                                                   const String& class_name,
-                                                   const String& lookup_name) {
-  Instance& result = Instance::Handle();
-  // Check current library.
-  result ^= LookupFunctionOrFieldInLibraryHelper(
-      library, class_name, lookup_name);
-  if (result.raw() != Object::sentinel().raw()) {
-    return result.raw();
-  }
-  // Check all imports.
-  Library& lib_it = Library::Handle();
-  for (intptr_t i = 0; i < library.num_imports(); i++) {
-    lib_it ^= library.ImportLibraryAt(i);
-    result ^= LookupFunctionOrFieldInLibraryHelper(
-        lib_it, class_name, lookup_name);
-    if (result.raw() != Object::sentinel().raw()) {
-      return result.raw();
-    }
   }
 
   // Fall through case: Indicate that we didn't find any function or field using
@@ -1568,90 +1350,6 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
   // The static type of null is specified to be the bottom type, however, the
   // runtime type of null is the Null type, which we correctly return here.
   return type.Canonicalize();
-}
-
-
-DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
-  if (!FLAG_support_find_in_context) {
-    return Object::empty_array().raw();
-  }
-
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, lookup_parts, arguments->NativeArgAt(1));
-  ASSERT(lookup_parts.Length() >= 1 && lookup_parts.Length() <= 3);
-
-  if (!closure.IsClosure()) {
-    const Array& result_tuple = Array::Handle(Array::New(2));
-    result_tuple.SetAt(0, Bool::False());
-    return result_tuple.raw();
-  }
-
-  Function& function = Function::Handle();
-  const bool callable = closure.IsCallable(&function, NULL);
-  ASSERT(callable);
-
-  const intptr_t parts_len = lookup_parts.Length();
-  // Lookup name is always the last part.
-  const String& lookup_name = String::Handle(String::RawCast(
-      lookup_parts.At(parts_len - 1)));
-
-  String& part_name = String::Handle();
-  Class& owner = Class::Handle(function.Owner());
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
-  Library& this_library = Library::Handle(owner.library());
-  Instance& result = Instance::Handle(Object::sentinel().raw());
-  if (parts_len == 1) {
-    // Could be either a field in context, an instance or static field of the
-    // enclosing class, or a field in the current library or any imported
-    // library.
-    result ^= LookupFunctionOrFieldInFunctionContext(
-        function, Context::Handle(Closure::context(closure)), lookup_name);
-    if (result.raw() == Object::sentinel().raw()) {
-      result ^= LookupStaticFunctionOrFieldInClass(owner, lookup_name);
-    }
-    if (result.raw() == Object::sentinel().raw()) {
-      result ^= LookupFunctionOrFieldInLibrary(this_library,
-                                               part_name,
-                                               lookup_name);
-    }
-  } else if (parts_len == 2) {
-    // Could be either library.field or class.staticfield.
-    part_name ^= lookup_parts.At(0);
-    prefix ^= this_library.LookupLocalLibraryPrefix(part_name);
-    if (prefix.IsNull()) {
-      result ^= LookupFunctionOrFieldInLibrary(this_library,
-                                               part_name,
-                                               lookup_name);
-    } else {
-      result ^= LookupFunctionOrFieldInLibraryPrefix(prefix, lookup_name);
-    }
-  } else {
-    ASSERT(parts_len == 3);
-    // Can only be library.class.staticfield.
-    part_name ^= lookup_parts.At(0);
-    prefix ^= this_library.LookupLocalLibraryPrefix(part_name);
-    if (!prefix.IsNull()) {
-      part_name ^= lookup_parts.At(1);
-      owner ^= prefix.LookupClass(part_name);
-      if (!owner.IsNull()) {
-        result ^= LookupStaticFunctionOrFieldInClass(owner, lookup_name);
-      }
-    }
-  }
-
-  // We return a tuple (list) where the first slot is a boolean indicates
-  // whether we found a field or function and the second slot contains the
-  // result. This is needed to distinguish between not finding a field and a
-  // field containing null as value.
-  const Array& result_tuple = Array::Handle(Array::New(2));
-  if (result.raw() == Object::sentinel().raw()) {
-    result_tuple.SetAt(0, Bool::False());
-    // No need to set the value.
-  } else {
-    result_tuple.SetAt(0, Bool::True());
-    result_tuple.SetAt(1, result);
-  }
-  return result_tuple.raw();
 }
 
 

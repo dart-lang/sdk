@@ -2185,11 +2185,6 @@ function(reflectee) {
 
   // TODO(ahe): Implement this method.
   String get source => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this method.
-  InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
-    throw new UnsupportedError("ClosureMirror.findInContext not yet supported");
-  }
 }
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
