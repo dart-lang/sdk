@@ -22,6 +22,52 @@ main() {
       provider = new MemoryResourceProvider();
     });
 
+    test('MemoryResourceException', () {
+      var exception = new MemoryResourceException('/my/path', 'my message');
+      expect(exception.path, '/my/path');
+      expect(exception.message, 'my message');
+      expect(exception.toString(),
+          'MemoryResourceException(path=/my/path; message=my message)');
+    });
+
+    group('newFolder', () {
+      test('empty path', () {
+        expect(
+          () {
+            provider.newFolder('');
+          },
+          throwsA(new isInstanceOf<ArgumentError>())
+        );
+      });
+
+      test('not absolute', () {
+        expect(
+          () {
+            provider.newFolder('not/absolute');
+          },
+          throwsA(new isInstanceOf<ArgumentError>())
+        );
+      });
+
+      group('already exists', () {
+        test('as folder', () {
+          Folder folder = provider.newFolder('/my/folder');
+          Folder newFolder = provider.newFolder('/my/folder');
+          expect(newFolder, folder);
+        });
+
+        test('as file', () {
+          File file = provider.newFile('/my/file', 'qwerty');
+          expect(
+            () {
+            provider.newFolder('/my/file');
+            },
+            throwsA(new isInstanceOf<ArgumentError>())
+          );
+        });
+      });
+    });
+
     group('File', () {
       group('==', () {
         test('false', () {

@@ -258,9 +258,6 @@ class MemoryResourceProvider implements ResourceProvider {
 
   Folder newFolder(String path) {
     path = posix.normalize(path);
-    if (path.isEmpty) {
-      throw new ArgumentError('Empty paths are not supported');
-    }
     if (!path.startsWith('/')) {
       throw new ArgumentError("Path must start with '/'");
     }
