@@ -100,7 +100,7 @@ abstract class _MemoryResource implements Resource {
   get hashCode => _path.hashCode;
 
   @override
-  String get shortName => basename(_path);
+  String get shortName => posix.basename(_path);
 
   @override
   String toString() => fullName;
@@ -181,10 +181,10 @@ class _MemoryFileSource implements Source {
 
   @override
   Source resolveRelative(Uri relativeUri) {
-    String relativePath = fromUri(relativeUri);
-    String folderPath = dirname(_file._path);
-    String path = join(folderPath, relativePath);
-    path = normalize(path);
+    String relativePath = posix.fromUri(relativeUri);
+    String folderPath = posix.dirname(_file._path);
+    String path = posix.join(folderPath, relativePath);
+    path = posix.normalize(path);
     _MemoryFile file = new _MemoryFile(_file._provider, path);
     return new _MemoryFileSource(file, uriKind);
   }
@@ -202,9 +202,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       super(provider, path);
   @override
   Resource getChild(String relPath) {
-    relPath = normalize(relPath);
-    String childPath = join(_path, relPath);
-    childPath = normalize(childPath);
+    relPath = posix.normalize(relPath);
+    String childPath = posix.join(_path, relPath);
+    childPath = posix.normalize(childPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
     if (resource == null) {
       resource = new _MemoryFile(_provider, childPath);
@@ -216,7 +216,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   List<Resource> getChildren() {
     List<Resource> children = <Resource>[];
     _provider._pathToResource.forEach((path, resource) {
-      if (dirname(path) == _path) {
+      if (posix.dirname(path) == _path) {
         children.add(resource);
       }
     });
@@ -237,7 +237,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Resource getResource(String path) {
-    path = normalize(path);
+    path = posix.normalize(path);
     Resource resource = _pathToResource[path];
     if (resource == null) {
       resource = new _MemoryFile(this, path);
@@ -246,7 +246,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   Folder newFolder(String path) {
-    path = normalize(path);
+    path = posix.normalize(path);
     if (path.isEmpty) {
       throw new ArgumentError('Empty paths are not supported');
     }
@@ -278,8 +278,8 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   File newFile(String path, String content) {
-    path = normalize(path);
-    newFolder(dirname(path));
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
