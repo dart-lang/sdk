@@ -1402,7 +1402,7 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
           putInBooleanContext(node.elseExpression));
     }
     // x ? false : y ==> !x && y  (if y is known to be a boolean)
-    if (isBooleanValued(node.elseExpression) && isTrue(node.thenExpression)) {
+    if (isBooleanValued(node.elseExpression) && isFalse(node.thenExpression)) {
       return new LogicalOperator.and(
           makeCondition(node.condition, false, liftNots: false),
           putInBooleanContext(node.elseExpression));
