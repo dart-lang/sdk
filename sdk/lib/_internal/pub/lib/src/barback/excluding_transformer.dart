@@ -20,6 +20,7 @@ class ExcludingTransformer extends Transformer {
     if (includes == null && excludes == null) return inner;
 
     if (inner is LazyTransformer) {
+      // TODO(nweiz): Remove these unnecessary "as"es when issue 19046 is fixed.
       return new _LazyExcludingTransformer(
           inner as LazyTransformer, includes, excludes);
     } else if (inner is DeclaringTransformer) {
