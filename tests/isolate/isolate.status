@@ -82,6 +82,9 @@ spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ $compiler == none && $runtime == dartium ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
+spawn_uri_missing_from_isolate_test: RuntimeError # http://dartbug.com/17649
+spawn_uri_missing_test: Skip # Times out.
+
 
 [ $compiler == none && $runtime == dartium ]
 isolate_stress_test: Skip # Issue 14463
