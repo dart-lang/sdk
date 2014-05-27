@@ -506,7 +506,6 @@ class LocalsHandler<T> {
    */
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
-    assert(handlers.isNotEmpty);
     Node level = locals.block;
     Set<Element> seenLocals = new Setlet<Element>();
     // If we want to keep the locals, we first merge [this] into itself to
