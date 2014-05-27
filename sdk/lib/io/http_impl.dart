@@ -1502,12 +1502,62 @@ class _ConnnectionInfo {
 }
 
 
+class _ConnectionTarget {
+  // Unique key for this connection target.
+  final String key;
+  final Set<_HttpClientConnection> _idle = new HashSet();
+  final Set<_HttpClientConnection> _active = new HashSet();
+
+  _ConnectionTarget(this.key);
+
+  bool get isEmpty => _idle.isEmpty && _active.isEmpty;
+
+  bool get hasIdle => _idle.isNotEmpty;
+
+  bool get hasActive => _active.isNotEmpty;
+
+  _HttpClientConnection takeIdle() {
+    assert(hasIdle);
+    _HttpClientConnection connection = _idle.first;
+    _idle.remove(connection);
+    connection.stopTimer();
+    _active.add(connection);
+    return connection;
+  }
+
+  void addNewActive(_HttpClientConnection connection) {
+    _active.add(connection);
+  }
+
+  void returnConnection(_HttpClientConnection connection) {
+    assert(_active.contains(connection));
+    _active.remove(connection);
+    _idle.add(connection);
+  }
+
+  void connectionClosed(_HttpClientConnection connection) {
+    assert(!_active.contains(connection) || !_idle.contains(connection));
+    _active.remove(connection);
+    _idle.remove(connection);
+  }
+
+  void close(bool force) {
+    for (var c in _idle.toList()) {
+      c.close();
+    }
+    if (force) {
+      for (var c in _active.toList()) {
+        c.destroy();
+      }
+    }
+  }
+}
+
+
 class _HttpClient implements HttpClient {
   bool _closing = false;
-  final Map<String, Set<_HttpClientConnection>> _idleConnections
-      = new HashMap<String, Set<_HttpClientConnection>>();
-  final Map<String, Set<_HttpClientConnection>> _activeConnections
-      = new HashMap<String, Set<_HttpClientConnection>>();
+  final Map<String, _ConnectionTarget> _connectionTargets
+      = new HashMap<String, _ConnectionTarget>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   Function _authenticate;
@@ -1524,12 +1574,13 @@ class _HttpClient implements HttpClient {
 
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
-    _idleConnections.values.forEach(
-        (l) => l.forEach((c) {
-          // Reset timer. This is fine, as it's not happening often.
-          c.stopTimer();
-          c.startTimer();
-        }));
+    for (var c in _connectionTargets.values) {
+      for (var idle in c.idle) {
+        // Reset timer. This is fine, as it's not happening often.
+        idle.stopTimer();
+        idle.startTimer();
+      }
+    }
   }
 
   set badCertificateCallback(bool callback(X509Certificate cert,
@@ -1585,26 +1636,9 @@ class _HttpClient implements HttpClient {
 
   void close({bool force: false}) {
     _closing = true;
-    // Create flattened copy of _idleConnections, as 'destory' will manipulate
-    // it.
-    var idle = _idleConnections.values.fold(
-        [],
-        (l, e) {
-          l.addAll(e);
-          return l;
-        });
-    idle.forEach((e) {
-      e.close();
-    });
-    assert(_idleConnections.isEmpty);
-    if (force) {
-      for (var connection in
-           _activeConnections.values.expand((s) => s).toList()) {
-        connection.destroy();
-      }
-      assert(_activeConnections.isEmpty);
-      _activeConnections.clear();
-    }
+    _connectionTargets.values.toList().forEach((c) => c.close(force));
+    assert(!_connectionTargets.values.any((s) => s.hasIdle));
+    assert(!force || _connectionTargets.isEmpty);
   }
 
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)) {
@@ -1703,18 +1737,7 @@ class _HttpClient implements HttpClient {
 
   // Return a live connection to the idle pool.
   void _returnConnection(_HttpClientConnection connection) {
-    var key = connection.key;
-    _activeConnections[key].remove(connection);
-    if (_activeConnections[key].isEmpty) {
-      _activeConnections.remove(key);
-    }
-    if (_closing) {
-      connection.close();
-      return;
-    }
-    _idleConnections
-        .putIfAbsent(key, () => new HashSet())
-        .add(connection);
+    _connectionTargets[connection.key].returnConnection(connection);
     connection.startTimer();
     _updateTimers();
   }
@@ -1722,28 +1745,26 @@ class _HttpClient implements HttpClient {
   // Remove a closed connnection from the active set.
   void _connectionClosed(_HttpClientConnection connection) {
     connection.stopTimer();
-    var key = connection.key;
-    if (_activeConnections.containsKey(key)) {
-      _activeConnections[key].remove(connection);
-      if (_activeConnections[key].isEmpty) {
-        _activeConnections.remove(key);
+    var connectionTarget = _connectionTargets[connection.key];
+    if (connectionTarget != null) {
+      connectionTarget.connectionClosed(connection);
+      if (connectionTarget.isEmpty) {
+        _connectionTargets.remove(connection.key);
       }
+      _updateTimers();
     }
-    if (_idleConnections.containsKey(key)) {
-      _idleConnections[key].remove(connection);
-      if (_idleConnections[key].isEmpty) {
-        _idleConnections.remove(key);
-      }
-    }
-    _updateTimers();
   }
 
   void _updateTimers() {
-    if (_activeConnections.isEmpty) {
-      if (!_idleConnections.isEmpty && _noActiveTimer == null) {
+    bool hasActive = _connectionTargets.values.any((t) => t.hasActive);
+    if (!hasActive) {
+      bool hasIdle = _connectionTargets.values.any((t) => t.hasIdle);
+      if (hasIdle && _noActiveTimer == null) {
         _noActiveTimer = new Timer(const Duration(milliseconds: 100), () {
           _noActiveTimer = null;
-          if (_activeConnections.isEmpty) {
+          bool hasActive =
+              _connectionTargets.values.any((t) => t.hasActive);
+          if (!hasActive) {
             close();
             _closing = false;
           }
@@ -1769,16 +1790,9 @@ class _HttpClient implements HttpClient {
       String host = proxy.isDirect ? uriHost: proxy.host;
       int port = proxy.isDirect ? uriPort: proxy.port;
       String key = _HttpClientConnection.makeKey(isSecure, host, port);
-      if (_idleConnections.containsKey(key)) {
-        var connection = _idleConnections[key].first;
-        _idleConnections[key].remove(connection);
-        if (_idleConnections[key].isEmpty) {
-          _idleConnections.remove(key);
-        }
-        connection.stopTimer();
-        _activeConnections
-            .putIfAbsent(key, () => new HashSet())
-            .add(connection);
+      var connectionTarget = _connectionTargets[key];
+      if (connectionTarget != null && connectionTarget.hasIdle) {
+        var connection = connectionTarget.takeIdle();
         _updateTimers();
         return new Future.value(new _ConnnectionInfo(connection, proxy));
       }
@@ -1800,15 +1814,16 @@ class _HttpClient implements HttpClient {
             return connection.createProxyTunnel(
                 uriHost, uriPort, proxy, callback)
                 .then((tunnel) {
-                  _activeConnections
-                      .putIfAbsent(tunnel.key, () => new HashSet())
-                      .add(tunnel);
+                  var connectionTarget = _connectionTargets
+                      .putIfAbsent(tunnel.key,
+                                   () => new _ConnectionTarget(tunnel.key));
+                  connectionTarget.addNewActive(tunnel);
                   return new _ConnnectionInfo(tunnel, proxy);
                 });
           } else {
-            _activeConnections
-                .putIfAbsent(key, () => new HashSet())
-                .add(connection);
+            var connectionTarget = _connectionTargets
+                .putIfAbsent(key, () => new _ConnectionTarget(key));
+            connectionTarget.addNewActive(connection);
             return new _ConnnectionInfo(connection, proxy);
           }
         }, onError: (error) {
