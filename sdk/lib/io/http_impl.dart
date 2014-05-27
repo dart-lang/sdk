@@ -2401,7 +2401,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
 
 class _DetachedSocket extends Stream<List<int>> implements Socket {
   final Stream<List<int>> _incoming;
-  final Socket _socket;
+  final _socket;
 
   _DetachedSocket(this._socket, this._incoming);
 

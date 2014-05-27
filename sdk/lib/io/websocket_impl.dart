@@ -751,7 +751,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   StreamSubscription _subscription;
   StreamSink _sink;
 
-  final Socket _socket;
+  final _socket;
   final bool _serverSide;
   int _readyState = WebSocket.CONNECTING;
   bool _writeClosed = false;
