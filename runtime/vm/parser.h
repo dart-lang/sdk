@@ -240,7 +240,17 @@ class Parser : public ValueObject {
   }
 
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
-  inline Token::Kind CurrentToken();
+
+  Token::Kind CurrentToken() {
+    if (token_kind_ == Token::kILLEGAL) {
+      ComputeCurrentToken();
+    }
+    CompilerStats::num_token_checks++;
+    return token_kind_;
+  }
+
+  void ComputeCurrentToken();
+
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
   RawDouble* CurrentDoubleLiteral() const;

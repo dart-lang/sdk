@@ -393,15 +393,12 @@ void Parser::ParseCompilationUnit(const Library& library,
 }
 
 
-Token::Kind Parser::CurrentToken() {
-  if (token_kind_ == Token::kILLEGAL) {
-    token_kind_ = tokens_iterator_.CurrentTokenKind();
-    if (token_kind_ == Token::kERROR) {
-      ErrorMsg(TokenPos(), "%s", CurrentLiteral()->ToCString());
-    }
+void Parser::ComputeCurrentToken() {
+  ASSERT(token_kind_ == Token::kILLEGAL);
+  token_kind_ = tokens_iterator_.CurrentTokenKind();
+  if (token_kind_ == Token::kERROR) {
+    ErrorMsg(TokenPos(), "%s", CurrentLiteral()->ToCString());
   }
-  CompilerStats::num_token_checks++;
-  return token_kind_;
 }
 
 

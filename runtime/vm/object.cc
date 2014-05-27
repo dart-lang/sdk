@@ -4953,17 +4953,7 @@ void Function::ClearCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
-
   const Code& current_code = Code::Handle(CurrentCode());
-
-  // Optimized code object might have been actually fully produced by the
-  // intrinsifier in this case nothing has to be done. In fact an attempt to
-  // patch such code will cause crash.
-  // TODO(vegorov): if intrisifier can fully intrinsify the function then we
-  // should not later try to optimize it.
-  if (PcDescriptors::Handle(current_code.pc_descriptors()).Length() == 0) {
-    return;
-  }
 
   if (FLAG_trace_disabling_optimized_code) {
     OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
