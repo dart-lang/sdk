@@ -104,6 +104,9 @@ patch class _RandomAccessFile {
   patch static int _close(int id) {
     throw new UnsupportedError("RandomAccessFile._close");
   }
+  patch static int _getFD(int id) {
+    throw new UnsupportedError("RandomAccessFile._getFD");
+  }
   patch static _readByte(int id) {
     throw new UnsupportedError("RandomAccessFile._readByte");
   }

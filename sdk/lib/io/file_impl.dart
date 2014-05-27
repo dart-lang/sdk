@@ -586,7 +586,7 @@ class _RandomAccessFile
       return r;
     }
     r['asyncDispatched'] = _asyncDispatched;
-    r['fd'] = _id;
+    r['fd'] = _getFD(_id);
     return r;
   }
 
@@ -595,6 +595,8 @@ class _RandomAccessFile
       _files.remove(_serviceId);
     }
   }
+
+  external static int _getFD(int id);
 
   Future<RandomAccessFile> close() {
     return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {

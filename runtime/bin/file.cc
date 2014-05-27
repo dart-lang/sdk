@@ -111,6 +111,13 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_GetFD)(Dart_NativeArguments args) {
+  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  ASSERT(file != NULL);
+  Dart_SetReturnValue(args, Dart_NewInteger(file->GetFD()));
+}
+
+
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);

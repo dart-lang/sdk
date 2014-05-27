@@ -63,6 +63,11 @@ void File::Close() {
 }
 
 
+intptr_t File::GetFD() {
+  return handle_->fd();
+}
+
+
 bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
