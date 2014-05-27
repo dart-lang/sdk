@@ -1389,6 +1389,8 @@ class _RawSocket extends Stream<RawSocketEvent>
       _socket.close();
     }
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
 }
 
 
@@ -1634,8 +1636,9 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   int get port => _raw.port;
-  InternetAddress get remoteAddress => _raw.remoteAddress;
+  InternetAddress get address => _raw.address;
   int get remotePort => _raw.remotePort;
+  InternetAddress get remoteAddress => _raw.remoteAddress;
 
   Future _detachRaw() {
     _detachReady = new Completer();
@@ -1744,6 +1747,8 @@ class _Socket extends Stream<List<int>> implements Socket {
       }
     }
   }
+
+  Map _toJSON(bool ref) => _raw._toJSON(ref);
 }
 
 

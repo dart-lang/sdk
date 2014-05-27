@@ -99,6 +99,33 @@ class IOSocketViewElement extends ObservatoryElement {
   }
 }
 
+@CustomTag('io-web-socket-ref')
+class IOWebSocketRefElement extends ServiceRefElement {
+  IOWebSocketRefElement.created() : super.created();
+}
+
+@CustomTag('io-web-socket-list-view')
+class IOWebSocketListViewElement extends ObservatoryElement {
+  @published ServiceMap list;
+
+  IOWebSocketListViewElement.created() : super.created();
+
+  void refresh(var done) {
+    list.reload().whenComplete(done);
+  }
+}
+
+@CustomTag('io-web-socket-view')
+class IOWebSocketViewElement extends ObservatoryElement {
+  @published ServiceMap webSocket;
+
+  IOWebSocketViewElement.created() : super.created();
+
+  void refresh(var done) {
+    webSocket.reload().whenComplete(done);
+  }
+}
+
 @CustomTag('io-random-access-file-list-view')
 class IORandomAccessFileListViewElement extends ObservatoryElement {
   @published ServiceMap list;

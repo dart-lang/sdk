@@ -110,6 +110,15 @@ class ServiceObjectViewElement extends ObservatoryElement {
         IOSocketViewElement element = new Element.tag('io-socket-view');
         element.socket = object;
         return element;
+      case 'WebSocketList':
+        IOWebSocketListViewElement element =
+            new Element.tag('io-web-socket-list-view');
+        element.list = object;
+        return element;
+      case 'WebSocket':
+        IOWebSocketViewElement element = new Element.tag('io-web-socket-view');
+        element.webSocket = object;
+        return element;
       case 'Isolate':
         IsolateViewElement element = new Element.tag('isolate-view');
         element.isolate = object;

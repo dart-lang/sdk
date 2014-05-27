@@ -8,6 +8,7 @@ final Map _servicePathMap = {
     'servers' : _httpServersServiceObject,
   },
   'sockets' : _socketsServiceObject,
+  'websockets' : _webSocketsServiceObject,
   'file' : {
     'randomaccessfiles' : _randomAccessFilesServiceObject
   },
@@ -78,6 +79,22 @@ Map _socketsServiceObject(args) {
     'type': 'SocketList',
     'members': _NativeSocket._sockets.values
         .map((socket) => socket._toJSON(true)).toList(),
+  };
+}
+
+Map _webSocketsServiceObject(args) {
+  if (args.length == 1) {
+    var webSocket = _WebSocketImpl._webSockets[int.parse(args.first)];
+    if (webSocket == null) {
+      return {};
+    }
+    return webSocket._toJSON(false);
+  }
+  return {
+    'id': 'io/websockets',
+    'type': 'WebSocketList',
+    'members': _WebSocketImpl._webSockets.values
+        .map((webSocket) => webSocket._toJSON(true)).toList(),
   };
 }
 

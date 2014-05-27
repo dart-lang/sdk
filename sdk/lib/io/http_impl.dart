@@ -2459,6 +2459,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   bool setOption(SocketOption option, bool enabled) {
     return _socket.setOption(option, enabled);
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
 }
 
 

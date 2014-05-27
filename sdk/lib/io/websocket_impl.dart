@@ -741,7 +741,10 @@ class _WebSocketConsumer implements StreamConsumer {
 }
 
 
-class _WebSocketImpl extends Stream implements WebSocket {
+class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
+  // Use default Map so we keep order.
+  static Map<int, _WebSocketImpl> _webSockets = new Map<int, _WebSocketImpl>();
+
   final String protocol;
 
   StreamController _controller;
@@ -892,6 +895,8 @@ class _WebSocketImpl extends Stream implements WebSocket {
                                        onListen: _subscription.resume,
                                        onPause: _subscription.pause,
                                        onResume: _subscription.resume);
+
+    _webSockets[_serviceId] = this;
   }
 
   StreamSubscription listen(void onData(message),
@@ -951,6 +956,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
         _closeReason = _outCloseReason;
         _subscription.cancel();
         _controller.close();
+        _webSockets.remove(_serviceId);
       });
     }
     return _sink.close();
@@ -964,6 +970,34 @@ class _WebSocketImpl extends Stream implements WebSocket {
     }
     _writeClosed = true;
     _consumer.closeSocket();
+    _webSockets.remove(_serviceId);
+  }
+
+  String get _serviceTypePath => 'io/websockets';
+  String get _serviceTypeName => 'WebSocket';
+
+  Map _toJSON(bool ref) {
+    var name = '${_socket.address.host}:${_socket.port}';
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+    };
+    if (ref) {
+      return r;
+    }
+    try {
+      r['socket'] = _socket._toJSON(true);
+    } catch (_) {
+      r['socket'] = {
+        'id': _servicePath,
+        'type': '@Socket',
+        'name': 'UserSocket',
+        'user_name': 'UserSocket',
+      };
+    }
+    return r;
   }
 
   static bool _isReservedStatusCode(int code) {
