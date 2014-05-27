@@ -1624,8 +1624,7 @@ LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  const ExternalLabel label("debug_step_check",
-                            StubCode::DebugStepCheckEntryPoint());
+  const ExternalLabel label(StubCode::DebugStepCheckEntryPoint());
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
 }
 
@@ -2190,7 +2189,8 @@ LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
 
 LocationSummary* PushTempInstr::MakeLocationSummary(Isolate* isolate,
                                                     bool optimizing) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
 }
@@ -2205,10 +2205,12 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* DropTempsInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool optimizing) const {
   return (InputCount() == 1)
-      ? LocationSummary::Make(1,
+      ? LocationSummary::Make(isolate,
+                              1,
                               Location::SameAsFirstInput(),
                               LocationSummary::kNoCall)
-      : LocationSummary::Make(0,
+      : LocationSummary::Make(isolate,
+                              0,
                               Location::NoLocation(),
                               LocationSummary::kNoCall);
 }

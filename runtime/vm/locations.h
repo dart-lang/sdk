@@ -599,7 +599,8 @@ class LocationSummary : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
 
-  static LocationSummary* Make(intptr_t input_count,
+  static LocationSummary* Make(Isolate* isolate,
+                               intptr_t input_count,
                                Location out,
                                ContainsCall contains_call);
 

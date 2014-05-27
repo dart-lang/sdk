@@ -20,7 +20,6 @@ DEFINE_FLAG(bool, trace_natives, false,
 
 
 static ExternalLabel native_call_label(
-    "native_function_call",
     reinterpret_cast<uword>(&NativeEntry::NativeCallWrapper));
 
 

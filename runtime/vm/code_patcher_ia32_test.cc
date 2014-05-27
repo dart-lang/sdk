@@ -40,8 +40,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          1));
 
   __ LoadObject(ECX, ic_data);
-  ExternalLabel target_label(
-      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
+  ExternalLabel target_label(StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);
   __ ret();
 }

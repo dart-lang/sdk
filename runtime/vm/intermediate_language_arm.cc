@@ -241,7 +241,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -255,7 +256,8 @@ void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
 }
@@ -271,7 +273,8 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Isolate* isolate,
                                                     bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -957,7 +960,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
   // TODO(fschneider): Allow immediate operands for the char code.
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -976,7 +980,8 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Isolate* isolate,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -1024,7 +1029,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -1040,7 +1046,8 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -1925,7 +1932,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
 
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(cls_));
-    const ExternalLabel label(cls_.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2404,7 +2411,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     const Class& double_class = compiler->double_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-    const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2436,7 +2443,7 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     const Class& float32x4_class = compiler->float32x4_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(float32x4_class));
-    const ExternalLabel label(float32x4_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2468,7 +2475,7 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
     const Class& float64x2_class = compiler->float64x2_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(float64x2_class));
-    const ExternalLabel label(float64x2_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2755,8 +2762,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == R0);
 
   __ LoadImmediate(R1, num_context_variables());
-  const ExternalLabel label("alloc_context",
-                            StubCode::AllocateContextEntryPoint());
+  const ExternalLabel label(StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,
@@ -3695,7 +3701,7 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     const Class& int32x4_class = compiler->int32x4_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(int32x4_class));
-    const ExternalLabel label(int32x4_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -5908,7 +5914,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
         Class::ZoneHandle(Isolate::Current()->object_store()->mint_class());
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(mint_class));
-    const ExternalLabel label(mint_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -6284,7 +6290,8 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -6371,7 +6378,8 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Isolate* isolate,
                                                          bool opt) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -6395,7 +6403,7 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Isolate* isolate,
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
-  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
+  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,

@@ -540,7 +540,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     case 'v': {
       if (format[1] == 's') {
         ASSERT(STRING_STARTS_WITH(format, "vsz"));
-        char const* sz_str;
+        char const* sz_str = NULL;
         if (instr->Bits(14, 2) == 3) {
           switch (instr->Bit(22)) {
             case 0: sz_str = "s"; break;

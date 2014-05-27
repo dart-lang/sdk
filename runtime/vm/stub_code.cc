@@ -22,11 +22,11 @@ VM_STUB_CODE_LIST(STUB_CODE_DECLARE);
 #undef STUB_CODE_DECLARE
 
 
-StubEntry::StubEntry(const char* name, const Code& code)
+StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
       entry_point_(code.EntryPoint()),
       size_(code.Size()),
-      label_(name, code.EntryPoint()) {
+      label_(code.EntryPoint()) {
 }
 
 
@@ -47,7 +47,7 @@ StubCode::~StubCode() {
 
 #define STUB_CODE_GENERATE(name)                                               \
   code ^= Generate("_stub_"#name, StubCode::Generate##name##Stub);             \
-  name##_entry_ = new StubEntry("_stub_"#name, code);
+  name##_entry_ = new StubEntry(code);
 
 
 void StubCode::InitOnce() {

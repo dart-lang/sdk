@@ -39,7 +39,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
 #endif
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(name(), entry);
+    ExternalLabel label(entry);
     __ BranchLink(&label, kNoPP);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more

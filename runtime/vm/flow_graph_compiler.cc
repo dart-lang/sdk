@@ -824,7 +824,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     if (ic_data.IsClosureCall()) {
       // This IC call may be closure call only.
       label_address = StubCode::ClosureCallInlineCacheEntryPoint();
-      ExternalLabel target_label("InlineCache", label_address);
+      ExternalLabel target_label(label_address);
       EmitInstanceCall(&target_label,
                        ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
                        argument_count, deopt_id, token_pos, locs);
@@ -849,7 +849,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
       default:
         UNIMPLEMENTED();
     }
-    ExternalLabel target_label("InlineCache", label_address);
+    ExternalLabel target_label(label_address);
     EmitOptimizedInstanceCall(&target_label, ic_data,
                               argument_count, deopt_id, token_pos, locs);
     return;
@@ -879,7 +879,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     default:
       UNIMPLEMENTED();
   }
-  ExternalLabel target_label("InlineCache", label_address);
+  ExternalLabel target_label(label_address);
   EmitInstanceCall(&target_label, ic_data, argument_count,
                    deopt_id, token_pos, locs);
 }

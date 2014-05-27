@@ -1213,7 +1213,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   } else {
     UNIMPLEMENTED();
   }
-  ExternalLabel target_label("StaticCallICStub", label_address);
+  ExternalLabel target_label(label_address);
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
