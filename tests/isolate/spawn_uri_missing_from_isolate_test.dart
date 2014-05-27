@@ -30,13 +30,12 @@ main() {
   ReceivePort port = new ReceivePort();
   Isolate.spawn(isolate, port.sendPort);
   Completer completer = new Completer();
-  port.listen((message) {
+  port.first.then((message) {
     if (message == SUCCESS) {
       completer.complete(null);
     } else {
       completer.completeError(message);
     }
-    port.close();
   });
 
   asyncTest(() => completer.future);
