@@ -36,6 +36,7 @@ main() {
     } else {
       completer.completeError(message);
     }
+    port.close();
   });
 
   asyncTest(() => completer.future);
