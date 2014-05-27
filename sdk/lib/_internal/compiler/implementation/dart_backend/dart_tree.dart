@@ -502,7 +502,7 @@ class Builder extends ir.Visitor<Node> {
     if (node.primitive.hasAtLeastOneUse) {
       Variable variable = new Variable(null);
       variables[node.primitive] = variable;
-      return new Assign(variable, definition, node.body.accept(this),
+      return new Assign(variable, definition, visit(node.body),
           node.primitive.hasExactlyOneUse);
     } else if (node.primitive is ir.Constant) {
       // TODO(kmillikin): Implement more systematic treatment of pure CPS
