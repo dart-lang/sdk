@@ -6,6 +6,10 @@ library http_server;
 
 import 'dart:async';
 import 'dart:io';
+
+import 'dart:convert' show
+    HtmlEscape;
+
 import 'test_suite.dart';  // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?
@@ -379,6 +383,26 @@ class TestingServers {
                           '"${request.uri.path}"');
     }
     response.statusCode = HttpStatus.NOT_FOUND;
+
+    // Send a nice HTML page detailing the error message.  Most browsers expect
+    // this, for example, Chrome will simply display a blank page if you don't
+    // provide any information.  A nice side effect of this is to work around
+    // Firefox bug 1016313
+    // (https://bugzilla.mozilla.org/show_bug.cgi?id=1016313).
+    response.headers.set(HttpHeaders.CONTENT_TYPE, 'text/html');
+    String escapedPath = const HtmlEscape().convert(request.uri.path);
+    response.write("""
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<title>Not Found</title>
+</head>
+<body>
+<h1>Not Found</h1>
+<p style='white-space:pre'>The file '$escapedPath\' could not be found.</p>
+</body>
+</html>
+""");
     response.close();
     response.done.catchError((e) {
       DebugLogger.warning(
