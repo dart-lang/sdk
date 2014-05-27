@@ -6,6 +6,7 @@ library domain.analysis;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -200,8 +201,15 @@ class AnalysisDomainHandler implements RequestHandler {
   }
 
   Response setAnalysisRoots(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    // included
+    RequestDatum includedDatum = request.getRequiredParameter(INCLUDED_PARAM);
+    List<String> includedPaths = includedDatum.asStringList();
+    // excluded
+    RequestDatum excludedDatum = request.getRequiredParameter(EXCLUDED_PARAM);
+    List<String> excludedPaths = excludedDatum.asStringList();
+    // continue in server
+    server.setAnalysisRoots(request.id, includedPaths, excludedPaths);
+    return new Response(request.id);
   }
 
   Response setPriorityFiles(Request request) {

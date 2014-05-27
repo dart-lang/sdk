@@ -134,6 +134,39 @@ main() {
           source = file.createSource(UriKind.FILE_URI);
         });
 
+        group('==', () {
+          group('true', () {
+            test('self', () {
+              File file = provider.newFile('/foo/test.dart', '');
+              Source source = file.createSource(UriKind.FILE_URI);
+              expect(source == source, isTrue);
+            });
+
+            test('same file', () {
+              File file = provider.newFile('/foo/test.dart', '');
+              Source sourceA = file.createSource(UriKind.FILE_URI);
+              Source sourceB = file.createSource(UriKind.FILE_URI);
+              expect(sourceA == sourceB, isTrue);
+            });
+          });
+
+          group('false', () {
+            test('not a memory Source', () {
+              File file = provider.newFile('/foo/test.dart', '');
+              Source source = file.createSource(UriKind.FILE_URI);
+              expect(source == new Object(), isFalse);
+            });
+
+            test('different file', () {
+              File fileA = provider.newFile('/foo/a.dart', '');
+              File fileB = provider.newFile('/foo/b.dart', '');
+              Source sourceA = fileA.createSource(UriKind.FILE_URI);
+              Source sourceB = fileB.createSource(UriKind.FILE_URI);
+              expect(sourceA == sourceB, isFalse);
+            });
+          });
+        });
+
         test('contents', () {
           TimestampedData<String> contents = source.contents;
           expect(contents.data, 'library test;');
@@ -149,6 +182,10 @@ main() {
 
         test('fullName', () {
           expect(source.fullName, '/foo/test.dart');
+        });
+
+        test('hashCode', () {
+          source.hashCode;
         });
 
         test('shortName', () {

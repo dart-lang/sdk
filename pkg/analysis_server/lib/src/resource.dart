@@ -158,6 +158,14 @@ class _MemoryFileSource implements Source {
   _MemoryFileSource(this._file, this.uriKind);
 
   @override
+  bool operator ==(other) {
+    if (other is _MemoryFileSource) {
+      return other._file == _file;
+    }
+    return false;
+  }
+
+  @override
   TimestampedData<String> get contents {
     return new TimestampedData<String>(modificationStamp, _file._content);
   }
@@ -172,6 +180,9 @@ class _MemoryFileSource implements Source {
 
   @override
   String get fullName => _file.fullName;
+
+  @override
+  int get hashCode => _file.hashCode;
 
   @override
   bool get isInSystemLibrary => false;

@@ -9,9 +9,14 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -50,6 +55,11 @@ class AnalysisServer {
   final ServerCommunicationChannel channel;
 
   /**
+   * The [ResourceProvider] using which paths are converted into [Resource]s.
+   */
+  final ResourceProvider resourceProvider;
+
+  /**
    * A flag indicating whether the server is running.  When false, contexts
    * will no longer be added to [contextWorkQueue], and [performTask] will
    * discard any tasks it finds on [contextWorkQueue].
@@ -62,15 +72,26 @@ class AnalysisServer {
    */
   List<RequestHandler> handlers;
 
-  /**
-   * A table mapping context id's to the analysis contexts associated with them.
-   */
-  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
+  // TODO(scheglov) remove once setAnalysisRoots() is completely implemented
+//  /**
+//   * A table mapping context id's to the analysis contexts associated with them.
+//   */
+//  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
+//
+//  /**
+//   * A table mapping analysis contexts to the context id's associated with them.
+//   */
+//  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
 
   /**
-   * A table mapping analysis contexts to the context id's associated with them.
+   * The current default [DartSdk].
    */
-  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
+  DartSdk defaultSdk = DirectoryBasedDartSdk.defaultSdk;
+
+  /**
+   * A table mapping [Folder]s to the [PubFolder]s associated with them.
+   */
+  final Map<Folder, PubFolder> folderMap = <Folder, PubFolder>{};
 
   /**
    * A list of the analysis contexts for which analysis work needs to be
@@ -91,7 +112,7 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
-  AnalysisServer(this.channel) {
+  AnalysisServer(this.channel, this.resourceProvider) {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
     Notification notification = new Notification(CONNECTED_NOTIFICATION);
@@ -172,10 +193,10 @@ class AnalysisServer {
     // Look for a context that has work to be done and then perform one task.
     //
     List<ChangeNotice> notices = null;
-    String contextId;
+//    String contextId;
     try {
       AnalysisContext context = contextWorkQueue[0];
-      contextId = contextIdMap[context];
+//      contextId = contextIdMap[context];
       AnalysisResult result = context.performAnalysisTask();
       notices = result.changeNotices;
     } finally {
@@ -194,24 +215,116 @@ class AnalysisServer {
         _scheduleTask();
       }
     }
-    if (notices != null) {
-      sendNotices(contextId, notices);
+    // TODO(scheglov) implement for [PubFolder]
+//    if (notices != null) {
+//      sendNotices(contextId, notices);
+//    }
+  }
+
+  // TODO(scheglov) rewrite for the new API.
+//  /**
+//   * Send the information in the given list of notices back to the client.
+//   */
+//  void sendNotices(String contextId, List<ChangeNotice> notices) {
+//    for (int i = 0; i < notices.length; i++) {
+//      ChangeNotice notice = notices[i];
+//      Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
+//      notification.setParameter(CONTEXT_ID_PARAM, contextId);
+//      notification.setParameter(SOURCE_PARAM, notice.source.encoding);
+//      notification.setParameter(ERRORS_PARAM, notice.errors.map(
+//          errorToJson).toList());
+//      sendNotification(notification);
+//    }
+//  }
+
+  /**
+   * Implementation for `server.setAnalysisRoots`.
+   *
+   * TODO(scheglov) implement complete projects/contexts semantics.
+   *
+   * The current implementation is intentionally simplified and expected
+   * that only folders are given each given folder corresponds to the exactly
+   * one context.
+   *
+   * So, we can start working in parallel on adding services and improving
+   * projects/contexts support.
+   */
+  void setAnalysisRoots(String requestId,
+                        List<String> includedPaths,
+                        List<String> excludedPaths) {
+    // included
+    Set<Folder> includedFolders = new Set<Folder>();
+    for (int i = 0; i < includedPaths.length; i++) {
+      String path = includedPaths[i];
+      Resource resource = resourceProvider.getResource(path);
+      if (resource is Folder) {
+        includedFolders.add(resource);
+      } else {
+        // TODO(scheglov) implemented separate files analysis
+        throw new RequestFailure(
+            new Response.unsupportedFeature(
+                requestId,
+                '$path is not a folder. '
+                'Only support for folder analysis is implemented currently.'));
+      }
+    }
+    // excluded
+    // TODO(scheglov) remove when implemented
+    if (excludedPaths.isNotEmpty) {
+      throw new RequestFailure(
+          new Response.unsupportedFeature(
+              requestId,
+              'Excluded paths are not supported yet'));
+    }
+    Set<Folder> excludedFolders = new Set<Folder>();
+    // diff
+    Set<Folder> currentFolders = new Set<Folder>.from(folderMap.keys);
+    Set<Folder> newFolders = includedFolders.difference(currentFolders);
+    Set<Folder> oldFolders = currentFolders.difference(includedFolders);
+    // remove old contexts
+    for (Folder folder in oldFolders) {
+      // TODO(scheglov) implement
+    }
+    // add new contexts
+    for (Folder folder in newFolders) {
+      PubFolder pubFolder = new PubFolder(defaultSdk, folder);
+      folderMap[folder] = pubFolder;
+      addContextToWorkQueue(pubFolder.context);
     }
   }
 
   /**
-   * Send the information in the given list of notices back to the client.
+   * Return the [AnalysisContext] that is used to analyze the given [path].
+   * Return `null` if there is no such context.
    */
-  void sendNotices(String contextId, List<ChangeNotice> notices) {
-    for (int i = 0; i < notices.length; i++) {
-      ChangeNotice notice = notices[i];
-      Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
-      notification.setParameter(CONTEXT_ID_PARAM, contextId);
-      notification.setParameter(SOURCE_PARAM, notice.source.encoding);
-      notification.setParameter(ERRORS_PARAM, notice.errors.map(
-          errorToJson).toList());
-      sendNotification(notification);
+  AnalysisContext test_getAnalysisContext(String path) {
+    for (Folder folder in folderMap.keys) {
+      if (path.startsWith(folder.fullName)) {
+        return folderMap[folder].context;
+      }
     }
+    return null;
+  }
+
+  /**
+   * Return the [CompilationUnit] of the Dart file with the given [path].
+   * Return `null` if the file is not a part of any context.
+   */
+  CompilationUnit test_getResolvedCompilationUnit(String path) {
+    // prepare AnalysisContext
+    AnalysisContext context = test_getAnalysisContext(path);
+    if (context == null) {
+      return null;
+    }
+    // prepare sources
+    File file = resourceProvider.getResource(path);
+    Source unitSource = file.createSource(UriKind.FILE_URI);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (librarySources.isEmpty) {
+      return null;
+    }
+    // get a resolved unit
+    return context.getResolvedCompilationUnit2(unitSource, librarySources[0]);
   }
 
   static Map<String, Object> errorToJson(AnalysisError analysisError) {
@@ -261,6 +374,79 @@ class AnalysisService extends Enum2<AnalysisService> {
       const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
+}
+
+
+/**
+ * Instances of [PubFolder] represents a [Folder] with a Pub `pubspec.yaml`.
+ *
+ * TODO(scheglov) implement complete projects/contexts semantics.
+ *
+ * This class is intentionally simplified to serve as a base to start working
+ * on services while work on complete semantics is being done in parallel.
+ */
+class PubFolder {
+  /**
+   * The root [Folder] of this [PubFolder].
+   */
+  final Folder _folder;
+
+  /**
+   * The `pubspec.yaml` file in [_folder].
+   */
+  File _pubspecFile;
+
+  /**
+   * The [AnalysisContext] of this [_folder].
+   */
+  AnalysisContext _context;
+
+  PubFolder(DartSdk sdk, this._folder) {
+    // prepare pubspec.yaml
+    _pubspecFile = _folder.getChild('pubspec.yaml');
+    if (!_pubspecFile.exists) {
+      throw new ArgumentError('$_pubspecFile does not exist');
+    }
+    // create AnalysisContext
+    _context = AnalysisEngine.instance.createAnalysisContext();
+    // TODO(scheglov) replace FileUriResolver with an Resource based resolver
+    // TODO(scheglov) create packages resolver
+    _context.sourceFactory = new SourceFactory([
+      new DartUriResolver(sdk),
+      new FileUriResolver(),
+      // new PackageUriResolver(),
+    ]);
+    // add folder files
+    {
+      ChangeSet changeSet = new ChangeSet();
+      _addSourceFiles(changeSet, _folder);
+      _context.applyChanges(changeSet);
+    }
+  }
+
+  /**
+   * Return the [AnalysisContext] of this folder.
+   */
+  AnalysisContext get context => _context;
+
+  /**
+   * Resursively adds all Dart and HTML files to the [changeSet].
+   */
+  static void _addSourceFiles(ChangeSet changeSet, Folder folder) {
+    List<Resource> children = folder.getChildren();
+    for (Resource child in children) {
+      if (child is File) {
+        String fileName = child.shortName;
+        if (AnalysisEngine.isDartFileName(fileName)
+            || AnalysisEngine.isHtmlFileName(fileName)) {
+          Source source = child.createSource(UriKind.FILE_URI);
+          changeSet.addedSource(source);
+        }
+      } else if (child is Folder) {
+        _addSourceFiles(changeSet, child);
+      }
+    }
+  }
 }
 
 

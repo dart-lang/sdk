@@ -7,17 +7,21 @@ library test.domain.analysis;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
 
 main() {
+  groupSep = ' | ';
+
   AnalysisServer server;
   AnalysisDomainHandler handler;
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   setUp(() {
     var serverChannel = new MockServerChannel();
-    server = new AnalysisServer(serverChannel);
+    server = new AnalysisServer(serverChannel, resourceProvider);
     handler = new AnalysisDomainHandler(server);
   });
 
@@ -40,17 +44,40 @@ main() {
       expect(response, isNull);
     });
 
-    test('setAnalysisRoots', () {
-      var request = new Request('0', AnalysisDomainHandler.SET_ANALYSIS_ROOTS_METHOD);
-      request.setParameter(
-          AnalysisDomainHandler.INCLUDED_PARAM,
-          ['projectA', 'projectB']);
-      request.setParameter(
-          AnalysisDomainHandler.EXCLUDED_PARAM,
-          ['projectA/subAA', 'projectA/subAB', 'projectB/subBA']);
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
+    group('setAnalysisRoots', () {
+      Request request;
+
+      setUp(() {
+        request = new Request('0', AnalysisDomainHandler.SET_ANALYSIS_ROOTS_METHOD);
+        request.setParameter(AnalysisDomainHandler.INCLUDED_PARAM, []);
+        request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, []);
+      });
+
+      test('excluded', () {
+        request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, ['foo']);
+        // TODO(scheglov) implement
+        var response = handler.handleRequest(request);
+        expect(response, isResponseFailure('0'));
+      });
+
+      group('included', () {
+        test('new folder', () {
+          resourceProvider.newFolder('/project');
+          resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
+          resourceProvider.newFile('/project/bin/test.dart', 'main() {}');
+          request.setParameter(
+              AnalysisDomainHandler.INCLUDED_PARAM,
+              ['/project']);
+          var response = handler.handleRequest(request);
+          var serverRef = server;
+          expect(response, isResponseSuccess('0'));
+          // verify that unit is resolved eventually
+          return pumpEventQueue(1000).then((_) {
+            var unit = serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
+            expect(unit, isNotNull);
+          });
+        });
+      });
     });
 
     test('setPriorityFiles', () {

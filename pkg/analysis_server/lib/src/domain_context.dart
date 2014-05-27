@@ -12,6 +12,8 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * Instances of the class [ContextDomainHandler] implement a [RequestHandler]
  * that handles requests in the context domain.
+ *
+ * TODO(scheglov) this class is replaces with [AnalysisDomainHandler].
  */
 class ContextDomainHandler implements RequestHandler {
   /**

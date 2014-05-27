@@ -462,6 +462,9 @@ class Response {
   Response.contextAlreadyExists(Request request)
     : this(request.id, new RequestError(-8, 'Context already exists'));
 
+  Response.unsupportedFeature(String requestId, String message)
+    : this(requestId, new RequestError(-9, message));
+
   /**
    * Initialize a newly created instance based upon the given JSON data
    */
@@ -690,6 +693,9 @@ class RequestError {
     }
     return jsonObject;
   }
+
+  @override
+  String toString() => toJson().toString();
 }
 
 /**

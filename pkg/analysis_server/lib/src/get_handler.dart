@@ -66,6 +66,7 @@ class GetHandler {
           response,
           ['Context', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
           true);
+      // TODO(scheglov) replace with using folder based contexts
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
         AnalysisContextStatistics statistics =
             (context as AnalysisContextImpl).statistics;
