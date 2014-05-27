@@ -118,6 +118,15 @@ class ServiceObjectViewElement extends ObservatoryElement {
         LibraryViewElement element = new Element.tag('library-view');
         element.library = object;
         return element;
+      case 'ProcessList':
+        IOProcessListViewElement element =
+            new Element.tag('io-process-list-view');
+        element.list = object;
+        return element;
+      case 'Process':
+        IOProcessViewElement element = new Element.tag('io-process-view');
+        element.process = object;
+        return element;
       case 'Profile':
         IsolateProfileElement element = new Element.tag('isolate-profile');
         element.profile = object;

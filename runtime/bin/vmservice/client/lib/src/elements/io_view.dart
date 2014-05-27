@@ -149,3 +149,56 @@ class IORandomAccessFileViewElement extends ObservatoryElement {
     }
   }
 }
+
+@CustomTag('io-process-list-view')
+class IOProcessListViewElement extends ObservatoryElement {
+  @published ServiceMap list;
+
+  IOProcessListViewElement.created() : super.created();
+
+  void refresh(var done) {
+    list.reload().whenComplete(done);
+  }
+}
+
+@CustomTag('io-process-ref')
+class IOProcessRefElement extends ServiceRefElement {
+  // Only display the process name when small is set.
+  @published bool small = false;
+  IOProcessRefElement.created() : super.created();
+}
+
+@CustomTag('io-process-view')
+class IOProcessViewElement extends ObservatoryElement {
+  // TODO(ajohnsen): Create a Process object.
+  @published ServiceMap process;
+  Timer _updateTimer;
+
+  IOProcessViewElement.created() : super.created();
+
+  void refresh(var done) {
+    process.reload().whenComplete(done);
+  }
+
+  void _updateFile() {
+    refresh(() {
+      if (_updateTimer != null) {
+        _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
+      }
+    });
+  }
+
+  void enteredView() {
+    super.enteredView();
+    // Start a timer to update the isolate summary once a second.
+    _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
+  }
+
+  void leftView() {
+    super.leftView();
+    if (_updateTimer != null) {
+      _updateTimer.cancel();
+      _updateTimer = null;
+    }
+  }
+}

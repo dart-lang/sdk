@@ -10,7 +10,8 @@ final Map _servicePathMap = {
   'sockets' : _socketsServiceObject,
   'file' : {
     'randomaccessfiles' : _randomAccessFilesServiceObject
-  }
+  },
+  'processes' : _processesServiceObject,
 };
 
 String _serviceObjectHandler(List<String> paths,
@@ -96,3 +97,18 @@ Map _randomAccessFilesServiceObject(args) {
   };
 }
 
+Map _processesServiceObject(args) {
+  if (args.length == 1) {
+    var process = _ProcessImpl._processes[int.parse(args.first)];
+    if (process == null) {
+      return {};
+    }
+    return process._toJSON(false);
+  }
+  return {
+    'id': 'io/processes',
+    'type': 'ProcessList',
+    'members': _ProcessImpl._processes.values
+        .map((p) => p._toJSON(true)).toList(),
+  };
+}

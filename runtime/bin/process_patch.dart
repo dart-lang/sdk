@@ -157,13 +157,22 @@ class _ProcessStartStatus {
 }
 
 
-class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
+// The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
+// implicit constructor.
+class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
+
+class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
+    implements Process {
+  // Use default Map so we keep order.
+  static Map<int, _ProcessImpl> _processes = new Map<int, _ProcessImpl>();
+
   _ProcessImpl(String path,
                List<String> arguments,
                String this._workingDirectory,
                Map<String, String> environment,
                bool includeParentEnvironment,
-               bool runInShell) {
+               bool runInShell) : super() {
+    _processes[_serviceId] = this;
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
       path = _getShellCommand();
@@ -228,6 +237,29 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     _exitHandler = new _Socket._readPipe();
     _ended = false;
     _started = false;
+  }
+
+  String get _serviceTypePath => 'io/processes';
+  String get _serviceTypeName => 'Process';
+
+  Map _toJSON(bool ref) {
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': '$_path',
+      'user_name': '$_path',
+      'pid': '$pid',
+      'arguments': _arguments.join(' '),
+    };
+    if (ref) {
+      return r;
+    }
+    r['started'] = _started;
+    r['ended'] = _ended;
+    r['path'] = _path;
+    r['environment'] = _environment;
+    r['workingDirectory'] = _workingDirectory == null ? '.' : _workingDirectory;
+    return r;
   }
 
   static String _getShellCommand() {
@@ -338,11 +370,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                  status._errorCode));
         return;
       }
-      // Reset values which are no longer needed.
-      _path = null;
-      _arguments = null;
-      _workingDirectory = null;
-      _environment = null;
 
       _started = true;
 
@@ -365,6 +392,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
           _exitCode.complete(exitCode(exitDataBuffer));
           // Kill stdin, helping hand if the user forgot to do it.
           _stdin._sink.destroy();
+          _processes.remove(_serviceId);
         }
 
         exitDataBuffer.setRange(exitDataRead, exitDataRead + data.length, data);
@@ -397,11 +425,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                  status._errorMessage,
                                  status._errorCode);
     }
-    // Reset values which are no longer needed.
-    _path = null;
-    _arguments = null;
-    _workingDirectory = null;
-    _environment = null;
 
     var result = _wait(
         _stdin._sink._nativeSocket,

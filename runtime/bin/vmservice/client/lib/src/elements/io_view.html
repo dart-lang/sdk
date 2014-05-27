@@ -39,6 +39,14 @@
         </li>
       </ul>
 
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/processes')}}">Processess</a>
+        </li>
+      </ul>
+
     </div>
     <br>
     <hr>
@@ -249,6 +257,99 @@
         <div class="memberItem">
           <div class="memberName">File Descriptor</div>
           <div class="memberValue">{{ file['fd'] }}</div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-list-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Processes</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ process in list['members'] }}">
+          <li class="list-group-item">
+            <io-process-ref ref="{{ process }}"></io-process-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <template if="{{ small }}">
+      <a href="{{ url }}">{{ name }}</a>
+    </template>
+    <template if="{{ !small }}">
+      <a href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Process</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Path</div>
+          <div class="memberValue">{{ process['name'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Pid</div>
+          <div class="memberValue">{{ process['pid'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Arguments</div>
+          <div class="memberValue">{{ process['arguments'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Started</div>
+          <div class="memberValue">{{ process['started'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Working Directory</div>
+          <div class="memberValue">{{ process['workingDirectory'] }}</div>
+        </div>
+      </div>
+
+      <br>
+
+      <h2>Environment</h2>
+      <div class="well">
+        <div class="monospace break-wrap">
+          <template repeat="{{ variable in process['environment'] }}">
+            {{ variable }}
+            <br>
+          </template>
         </div>
       </div>
     </div>
