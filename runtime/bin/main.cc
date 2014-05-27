@@ -391,7 +391,7 @@ static int ParseArguments(int argc,
       if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
         if (!ProcessPackageRootOption(argv[i] + strlen(kPackageRoot))) {
           i++;
-          if (!ProcessPackageRootOption(argv[i])) {
+          if ((argv[i] == NULL) || !ProcessPackageRootOption(argv[i])) {
             Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
             i++;
             break;

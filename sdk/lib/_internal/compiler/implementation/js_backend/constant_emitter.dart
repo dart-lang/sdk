@@ -212,7 +212,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     jsAst.Expression value = new jsAst.Call(
         new jsAst.PropertyAccess.field(
             new jsAst.VariableUse(namer.isolateName),
-            namer.getMappedInstanceName('makeConstantList')),
+            'makeConstantList'),
         [new jsAst.ArrayInitializer.from(_array(constant.entries))]);
     return maybeAddTypeArguments(constant.type, value);
   }
