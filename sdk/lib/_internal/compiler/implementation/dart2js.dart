@@ -695,7 +695,7 @@ void batchMain(List<String> batchArguments) {
       if (line == null) exit(0);
       List<String> args = <String>[];
       args.addAll(batchArguments);
-      args.addAll(splitLine(line));
+      args.addAll(splitLine(line, windows: Platform.isWindows));
       return internalMain(args);
     })
     .catchError((exception, trace) {

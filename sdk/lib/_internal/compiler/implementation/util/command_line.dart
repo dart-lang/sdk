@@ -18,7 +18,8 @@ Map<String, String> ESCAPE_MAPPING =
       "\\": "\\",
     };
 
-/// Splits the line similar to how a shell would split arguments.
+/// Splits the line similar to how a shell would split arguments. If [windows]
+/// is `true` escapes will be handled like on the Windows command-line.
 ///
 /// Example:
 ///
@@ -26,7 +27,7 @@ Map<String, String> ESCAPE_MAPPING =
 ///     // --args
 ///     // abc
 ///     // with " 'spaces
-List<String> splitLine(String line) {
+List<String> splitLine(String line, {bool windows: false}) {
   List<String> result = <String>[];
   bool inQuotes = false;
   String openingQuote;
@@ -37,7 +38,7 @@ List<String> splitLine(String line) {
       inQuotes = false;
       continue;
     }
-    if (!inQuotes && (c == "'" || c == '"')) {
+    if (!inQuotes && (c == '"' || (c == "'" && !windows))) {
       inQuotes = true;
       openingQuote = c;
       continue;
@@ -46,13 +47,22 @@ List<String> splitLine(String line) {
       if (i == line.length - 1) {
         throw new FormatException("Unfinished escape: $line");
       }
-      i++;
+      if (windows) {
+        String next = line[i+1];
+        if (next == '"' || next == r'\') {
+          buffer.write(next);
+          i++;
+          continue;
+        }
+      } else {
+        i++;
 
-      c = line[i];
-      String mapped = ESCAPE_MAPPING[c];
-      if (mapped == null) mapped = c;
-      buffer.write(mapped);
-      continue;
+        c = line[i];
+        String mapped = ESCAPE_MAPPING[c];
+        if (mapped == null) mapped = c;
+        buffer.write(mapped);
+        continue;
+      }
     }
     if (!inQuotes && c == " ") {
       if (buffer.isNotEmpty) result.add(buffer.toString());
