@@ -95,3 +95,7 @@ simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spaw
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning
+
+[ $compiler == dart2js && ( $runtime == ff ) ]
+spawn_uri_missing_from_isolate_test: Skip # http://dartbug.com/19024
+spawn_uri_missing_test: Skip # http://dartbug.com/19024
