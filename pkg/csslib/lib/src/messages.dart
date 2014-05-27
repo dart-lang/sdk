@@ -60,6 +60,7 @@ class Message {
     if (span == null) {
       output.write(message);
     } else {
+      output.write('on ');
       output.write(span.getLocationMessage(message, useColors: colors,
           color: levelColor));
     }
