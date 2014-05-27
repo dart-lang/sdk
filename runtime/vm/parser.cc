@@ -58,6 +58,11 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     checked,
                     "Enable checked mode.");
 
+
+// Quick access to the locally defined isolate() method.
+#define I (isolate())
+
+
 #if defined(DEBUG)
 class TraceParser : public ValueObject {
  public:

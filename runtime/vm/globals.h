@@ -21,10 +21,6 @@
 #undef OVERFLOW  // From math.h conflicts in constants_ia32.h
 
 namespace dart {
-// Quick access to the locally defined isolate() method.
-#define I (isolate())
-
-
 // Smi value range is from -(2^N) to (2^N)-1.
 // N=30 (32-bit build) or N=62 (64-bit build).
 const intptr_t kSmiBits = kBitsPerWord - 2;
