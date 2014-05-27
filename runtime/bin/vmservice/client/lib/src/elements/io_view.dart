@@ -77,6 +77,17 @@ class IOSocketRefElement extends ServiceRefElement {
   IOSocketRefElement.created() : super.created();
 }
 
+@CustomTag('io-socket-list-view')
+class IOSocketListViewElement extends ObservatoryElement {
+  @published ServiceMap list;
+
+  IOSocketListViewElement.created() : super.created();
+
+  void refresh(var done) {
+    list.reload().whenComplete(done);
+  }
+}
+
 @CustomTag('io-socket-view')
 class IOSocketViewElement extends ObservatoryElement {
   @published ServiceMap socket;

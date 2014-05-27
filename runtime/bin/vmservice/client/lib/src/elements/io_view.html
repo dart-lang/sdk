@@ -27,6 +27,14 @@
 
       <ul class="list-group">
         <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/sockets')}}">Sockets</a>
+        </li>
+      </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
           <a href="{{io.isolate.relativeHashLink('io/file/randomaccessfiles')}}">Random Access Files</a>
         </li>
       </ul>
@@ -120,6 +128,33 @@
   </template>
 </polymer-element>
 
+<polymer-element name="io-socket-list-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Socket</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ file in list['members'] }}">
+          <li class="list-group-item">
+            <io-socket-ref ref="{{ file }}"></io-socket-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
 <polymer-element name="io-socket-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -142,6 +177,10 @@
         <div class="memberItem">
           <div class="memberName">Port</div>
           <div class="memberValue">{{ socket['port'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">File descriptor</div>
+          <div class="memberValue">{{ socket['fd'] }}</div>
         </div>
       </div>
     </div>

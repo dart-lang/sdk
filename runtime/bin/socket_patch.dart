@@ -1061,21 +1061,24 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result is OSError) throw result;
   }
 
-  String get _serviceTypePath => 'io/socket';
+  String get _serviceTypePath => 'io/sockets';
   String get _serviceTypeName => 'Socket';
 
   Map _toJSON(bool ref) {
+    var name = '${address.host}:$port';
+    if (isTcp && !isListening) name += " <-> ${remoteAddress.host}:$remotePort";
     var r = {
       'id': _servicePath,
       'type': _serviceType(ref),
-      'name': '${address.host}:$port',
-      'user_name': '${address.host}:$port',
+      'name': name,
+      'user_name': name,
     };
     if (ref) {
       return r;
     }
     r['port'] = port;
     r['address'] = address.host;
+    r['fd'] = nativeGetSocketId();
     return r;
   }
 
