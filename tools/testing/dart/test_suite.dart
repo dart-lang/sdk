@@ -415,6 +415,11 @@ abstract class TestSuite {
       for (var result in results) {
         for (var packageTuple in result) {
           String packageName = packageTuple[0];
+
+          // Some packages are pinned to specific versions. We can ignore those
+          // for the purposes of testing.
+          if (packageName.contains('-')) continue;
+
           String fullPath = packageTuple[1];
           String yamlFile =
               new Path(fullPath).append('pubspec.yaml').toNativePath();
