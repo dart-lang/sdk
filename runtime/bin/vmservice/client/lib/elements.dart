@@ -14,6 +14,7 @@ export 'package:observatory/src/elements/eval_box.dart';
 export 'package:observatory/src/elements/eval_link.dart';
 export 'package:observatory/src/elements/field_ref.dart';
 export 'package:observatory/src/elements/field_view.dart';
+export 'package:observatory/src/elements/flag_list.dart';
 export 'package:observatory/src/elements/function_ref.dart';
 export 'package:observatory/src/elements/function_view.dart';
 export 'package:observatory/src/elements/heap_map.dart';

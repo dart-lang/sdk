@@ -18,6 +18,9 @@
 
 namespace dart {
 
+// This flag is used in the Service_Flags test below.
+DEFINE_FLAG(bool, service_testing_flag, false, "Comment");
+
 class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
@@ -1065,10 +1068,60 @@ TEST_CASE(Service_VM) {
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"VM\",\"id\":\"vm\"", handler.msg());
-  EXPECT_SUBSTRING("\"architecture\"", handler.msg());
+  EXPECT_SUBSTRING("\"targetCPU\"", handler.msg());
+  EXPECT_SUBSTRING("\"hostCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"version\"", handler.msg());
   EXPECT_SUBSTRING("\"uptime\"", handler.msg());
   EXPECT_SUBSTRING("\"isolates\"", handler.msg());
+}
+
+
+TEST_CASE(Service_Flags) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(lib, "[port, ['flags'], [], []]");
+
+  // Make sure we can get the FlagList.
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"FlagList\",\"id\":\"flags\"", handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"service_testing_flag\",\"comment\":\"Comment\","
+      "\"flagType\":\"bool\",\"valueAsString\":\"false\"",
+      handler.msg());
+
+  // Modify a flag through the vm service.
+  service_msg = Eval(lib,
+                     "[port, ['flags', 'set'], "
+                     "['name', 'value'], ['service_testing_flag', 'true']]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("Success", handler.msg());
+
+  // Make sure that the flag changed.
+  service_msg = Eval(lib, "[port, ['flags'], [], []]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING(
+      "\"name\":\"service_testing_flag\",\"comment\":\"Comment\","
+      "\"flagType\":\"bool\",\"valueAsString\":\"true\"",
+      handler.msg());
 }
 
 

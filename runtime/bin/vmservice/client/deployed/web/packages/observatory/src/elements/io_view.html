@@ -61,6 +61,21 @@
   </template>
 </polymer-element>
 
+<polymer-element name="io-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <template if="{{ ref.serviceType == 'Socket' }}">
+      <io-socket-ref ref="{{ ref }}"></io-socket-ref>
+    </template>
+    <template if="{{ ref.serviceType == 'HttpServer' }}">
+      <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
+    </template>
+    <template if="{{ ref.serviceType == 'WebSocket' }}">
+      <io-web-socket-ref ref="{{ ref }}"></io-web-socket-ref>
+    </template>
+  </template>
+</polymer-element>
+
 <polymer-element name="io-http-server-list-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -186,6 +201,12 @@
       <br>
 
       <div class="memberList">
+        <template if="{{ socket['owner'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">Owner</div>
+            <div class="memberValue"><io-ref ref="{{ socket['owner'] }}"></io-ref></div>
+          </div>
+        </template>
         <div class="memberItem">
           <div class="memberName">Address</div>
           <div class="memberValue">{{ socket['address'] }}</div>

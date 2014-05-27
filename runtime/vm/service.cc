@@ -1933,7 +1933,8 @@ static bool HandleVM(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
-  jsobj.AddProperty("architecture", CPU::Id());
+  jsobj.AddProperty("targetCPU", CPU::Id());
+  jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("assertsEnabled", FLAG_enable_asserts);
   jsobj.AddProperty("typeChecksEnabled", FLAG_enable_type_checks);
@@ -1953,9 +1954,47 @@ static bool HandleVM(JSONStream* js) {
 }
 
 
+static bool HandleFlags(JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    Flags::PrintJSON(js);
+    return true;
+  } else if (js->num_arguments() == 2) {
+    const char* arg = js->GetArgument(1);
+    if (strcmp(arg, "set") == 0) {
+      if (js->num_arguments() > 2) {
+        PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                   js->num_arguments());
+      } else {
+        if (js->HasOption("name") && js->HasOption("value")) {
+          JSONObject jsobj(js);
+          const char* flag_name = js->LookupOption("name");
+          const char* flag_value = js->LookupOption("value");
+          const char* error = NULL;
+          if (Flags::SetFlag(flag_name, flag_value, &error)) {
+            jsobj.AddProperty("type", "Success");
+            jsobj.AddProperty("id", "");
+          } else {
+            jsobj.AddProperty("type", "Failure");
+            jsobj.AddProperty("id", "");
+            jsobj.AddProperty("message", error);
+          }
+        } else {
+          PrintError(js, "expected to find 'name' and 'value' options");
+        }
+      }
+    }
+    return true;
+  } else {
+    PrintError(js, "Command too long");
+    return true;
+  }
+}
+
+
 static RootMessageHandlerEntry root_handlers[] = {
   { "_echo", HandleRootEcho },
   { "vm", HandleVM },
+  { "flags", HandleFlags },
 };
 
 

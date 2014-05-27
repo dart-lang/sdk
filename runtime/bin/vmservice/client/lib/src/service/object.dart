@@ -27,7 +27,7 @@ abstract class ServiceObject extends Observable {
   String _serviceType;
 
   /// The complete service url of this object.
-  @reflectable String get link => isolate.relativeLink(_id);
+  @reflectable String get link => _owner.relativeLink(_id);
 
   /// The complete service url of this object with a '#/' prefix.
   // TODO(turnidge): Figure out why using a getter here messes up polymer.
@@ -179,6 +179,7 @@ abstract class VM extends ServiceObjectOwner {
   @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
 
   @reflectable String get link => '$id';
+  @reflectable String relativeLink(String id) => '$id';
 
   @observable String version = 'unknown';
   @observable String architecture = 'unknown';

@@ -56,7 +56,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
