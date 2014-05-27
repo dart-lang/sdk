@@ -108,6 +108,49 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return new Parameters(params.map(emitParameter).toList(growable:false));
   }
 
+  /// True if the two expressions are a reference to the same variable.
+  bool isSameVariable(Expression e1, Expression e2) {
+    // TODO(asgerf): Using the annotated element isn't the best way to do this
+    // since elements are supposed to go away from codegen when we discard the
+    // old backend.
+    return e1 is Identifier &&
+           e2 is Identifier &&
+           e1.element is VariableElement &&
+           e1.element == e2.element;
+  }
+
+  Expression makeAssignment(Expression target, Expression value) {
+    // Try to print as compound assignment or increment
+    if (value is BinaryOperator && isCompoundableOperator(value.operator)) {
+      Expression leftOperand = value.left;
+      Expression rightOperand = value.right;
+      bool valid = false;
+      if (isSameVariable(target, leftOperand)) {
+        valid = true;
+      } else if (target is FieldExpression &&
+                 leftOperand is FieldExpression &&
+                 isSameVariable(target.object, leftOperand.object) &&
+                 target.fieldName == leftOperand.fieldName) {
+        valid = true;
+      } else if (target is IndexExpression &&
+                 leftOperand is IndexExpression &&
+                 isSameVariable(target.object, leftOperand.object) &&
+                 isSameVariable(target.index, leftOperand.index)) {
+        valid = true;
+      }
+      if (valid) {
+        if (rightOperand is Literal && rightOperand.value.isOne &&
+            (value.operator == '+' || value.operator == '-')) {
+          return new Increment.prefix(target, value.operator + value.operator);
+        } else {
+          return new Assignment(target, value.operator + '=', rightOperand);
+        }
+      }
+    }
+    // Fall back to regular assignment
+    return new Assignment(target, '=', value);
+  }
+
   void visitExpressionStatement(tree.ExpressionStatement stmt) {
     Expression e = visitExpression(stmt.expression);
     statementBuffer.add(new ExpressionStatement(e));
@@ -145,11 +188,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       variables.add(new VariableDeclaration(stmt.variable.name)
                             ..element = stmt.variable.element);
     }
-    Expression def = visitExpression(stmt.definition);
-    statementBuffer.add(new ExpressionStatement(new Assignment(
+    statementBuffer.add(new ExpressionStatement(makeAssignment(
         visitVariable(stmt.variable),
-        '=',
-        def)));
+        visitExpression(stmt.definition))));
     visitStatement(stmt.next);
   }
 
@@ -260,15 +301,14 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
         return new FieldExpression(receiver, exp.selector.name);
 
       case SelectorKind.SETTER:
-        return new Assignment(
+        return makeAssignment(
             new FieldExpression(receiver, exp.selector.name),
-            '=',
             args[0]);
 
       case SelectorKind.INDEX:
         Expression e = new IndexExpression(receiver, args[0]);
         if (args.length == 2) {
-          e = new Assignment(e, '=', args[1]);
+          e = makeAssignment(e, args[1]);
         }
         return e;
 

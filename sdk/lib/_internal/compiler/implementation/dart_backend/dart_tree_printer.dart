@@ -268,18 +268,18 @@ class TreePrinter {
       } else {
         throw "Unexpected left-hand side of assignment: ${left}";
       }
-      tree.Operator op = new tree.Operator(assignmentToken(exp.operatorName));
+      tree.Operator op = new tree.Operator(assignmentToken(exp.operator));
       result = new tree.SendSet(receiver, selector, op, arguments);
       if (left is Identifier) {
         setElement(result, element, exp);
       }
       precedence = EXPRESSION;
     } else if (exp is BinaryOperator) {
-      precedence = BINARY_PRECEDENCE[exp.operatorName];
+      precedence = BINARY_PRECEDENCE[exp.operator];
       int deltaLeft = isAssociativeBinaryOperator(precedence) ? 0 : 1;
       result = new tree.Send(
           makeExp(exp.left, precedence + deltaLeft, beginStmt: beginStmt),
-          new tree.Operator(binopToken(exp.operatorName)),
+          new tree.Operator(binopToken(exp.operator)),
           singleton(makeExp(exp.right, precedence + 1)));
     } else if (exp is CallFunction) {
       precedence = CALLEE;
@@ -384,13 +384,16 @@ class TreePrinter {
       } else {
         throw "Unrecognized left-hand side: ${lvalue}";
       }
-      tree.Operator op = new tree.Operator(incrementToken(exp.operatorName));
+      tree.Operator op = new tree.Operator(incrementToken(exp.operator));
       if (exp.isPrefix) {
         precedence = UNARY;
         result = new tree.SendSet.prefix(receiver, selector, op, argument);
       } else {
         precedence = POSTFIX_INCREMENT;
         result = new tree.SendSet.postfix(receiver, selector, op, argument);
+      }
+      if (lvalue is Identifier) {
+        setElement(result, lvalue.element, exp);
       }
     } else if (exp is IndexExpression) {
       precedence = CALLEE;
@@ -470,14 +473,14 @@ class TreePrinter {
       precedence = RELATIONAL;
       tree.Operator operator;
       tree.Node rightOperand = makeType(exp.type);
-      if (exp.operatorName == 'is!') {
+      if (exp.operator == 'is!') {
         operator = new tree.Operator(typeOpToken('is'));
         rightOperand = new tree.Send(
             rightOperand,
             new tree.Operator(bang),
             blankList());
       } else {
-        operator = new tree.Operator(typeOpToken(exp.operatorName));
+        operator = new tree.Operator(typeOpToken(exp.operator));
       }
       result = new tree.Send(
           makeExp(exp.expression, BITWISE_OR, beginStmt: beginStmt),
