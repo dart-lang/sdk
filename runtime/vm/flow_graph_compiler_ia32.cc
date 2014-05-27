@@ -49,8 +49,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
-  // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints && TargetCPUFeatures::sse4_1_supported();
+  return FLAG_unbox_mints;
 }
 
 

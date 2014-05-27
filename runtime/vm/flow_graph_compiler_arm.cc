@@ -47,7 +47,7 @@ bool FlowGraphCompiler::SupportsUnboxedDoubles() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
-  return TargetCPUFeatures::neon_supported() && FLAG_unbox_mints;
+  return FLAG_unbox_mints;
 }
 
 
