@@ -492,11 +492,21 @@ class LocalsHandler<T> {
    * exit of the switch, because there is no default case. So the
    * types of locals at entry of the switch have to take part to the
    * merge.
+   *
+   * The above situation is also true for labeled statements like
+   *
+   * [: L: {
+   *      if (...) break;
+   *      ...
+   *    }
+   * :]
+   *
+   * where [:this:] is the [LocalsHandler] for the paths through the
+   * labeled statement that do not break out.
    */
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
     assert(handlers.isNotEmpty);
-    assert(!(seenReturnOrThrow && keepOwnLocals));
     Node level = locals.block;
     Set<Element> seenLocals = new Setlet<Element>();
     // If we want to keep the locals, we first merge [this] into itself to
