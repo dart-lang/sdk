@@ -5,8 +5,9 @@
 
 final Map _servicePathMap = {
   'http' : {
-    'servers' : _httpServersServiceObject
+    'servers' : _httpServersServiceObject,
   },
+  'socket' : _socketServiceObject,
   'file' : {
     'randomaccessfiles' : _randomAccessFilesServiceObject
   }
@@ -60,6 +61,22 @@ Map _httpServersServiceObject(args) {
     'type': 'HttpServerList',
     'members': _HttpServer._servers.values
         .map((server) => server._toJSON(true)).toList(),
+  };
+}
+
+Map _socketServiceObject(args) {
+  if (args.length == 1) {
+    var socket = _NativeSocket._sockets[int.parse(args.first)];
+    if (socket == null) {
+      return {};
+    }
+    return socket._toJSON(false);
+  }
+  return {
+    'id': 'io/socket',
+    'type': 'SocketList',
+    'members': _NativeSocket._sockets.values
+        .map((socket) => socket._toJSON(true)).toList(),
   };
 }
 

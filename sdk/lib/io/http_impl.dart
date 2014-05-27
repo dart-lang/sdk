@@ -2041,9 +2041,6 @@ class _HttpServer
   // Use default Map so we keep order.
   static Map<int, _HttpServer> _servers = new Map<int, _HttpServer>();
 
-  final String _serviceTypePath = 'io/http/servers';
-  final String _serviceTypeName = 'HttpServer';
-
   String serverHeader;
 
   Duration _idleTimeout;
@@ -2226,6 +2223,9 @@ class _HttpServer
     return result;
   }
 
+  String get _serviceTypePath => 'io/http/servers';
+  String get _serviceTypeName => 'HttpServer';
+
   Map _toJSON(bool ref) {
     var r = {
       'id': _servicePath,
@@ -2235,6 +2235,16 @@ class _HttpServer
     };
     if (ref) {
       return r;
+    }
+    try {
+      r['socket'] = _serverSocket._toJSON(true);
+    } catch (_) {
+      r['socket'] = {
+        'id': _servicePath,
+        'type': '@Socket',
+        'name': 'UserSocket',
+        'user_name': 'UserSocket',
+      };
     }
     r['port'] = port;
     r['address'] = address.host;

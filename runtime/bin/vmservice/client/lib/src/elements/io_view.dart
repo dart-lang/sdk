@@ -72,6 +72,22 @@ class IOHttpServerViewElement extends ObservatoryElement {
   }
 }
 
+@CustomTag('io-socket-ref')
+class IOSocketRefElement extends ServiceRefElement {
+  IOSocketRefElement.created() : super.created();
+}
+
+@CustomTag('io-socket-view')
+class IOSocketViewElement extends ObservatoryElement {
+  @published ServiceMap socket;
+
+  IOSocketViewElement.created() : super.created();
+
+  void refresh(var done) {
+    socket.reload().whenComplete(done);
+  }
+}
+
 @CustomTag('io-random-access-file-list-view')
 class IORandomAccessFileListViewElement extends ObservatoryElement {
   @published ServiceMap list;

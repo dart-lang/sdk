@@ -332,8 +332,13 @@ class _SocketsObservatory {
 }
 
 
+// The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
+// implicit constructor.
+class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
+
+
 // The _NativeSocket class encapsulates an OS socket.
-class _NativeSocket extends NativeFieldWrapperClass1 {
+class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Bit flags used when communicating between the eventhandler and
   // dart code. The EVENT flags are used to indicate events of
   // interest when sending a message from dart code to the
@@ -392,6 +397,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   static const int NORMAL_TOKEN_BATCH_SIZE = 8;
   static const int LISTENING_TOKEN_BATCH_SIZE = 2;
+
+  // Use default Map so we keep order.
+  static Map<int, _NativeSocket> _sockets = new Map<int, _NativeSocket>();
 
   // Socket close state
   bool isClosed = false;
@@ -600,7 +608,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
+  _NativeSocket.listen() : super(), typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
@@ -943,7 +951,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
-      _SocketsObservatory.add(this);
+      _sockets[_serviceId] = this;
     }
   }
 
@@ -951,7 +959,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(eventPort != null);
     eventPort.close();
     eventPort = null;
-    _SocketsObservatory.remove(this);
+    _sockets.remove(_serviceId);
   }
 
   // Check whether this is an error response from a native port call.
@@ -1051,6 +1059,24 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         interfaceAddr == null ? null : interfaceAddr._in_addr,
         interfaceIndex);
     if (result is OSError) throw result;
+  }
+
+  String get _serviceTypePath => 'io/socket';
+  String get _serviceTypeName => 'Socket';
+
+  Map _toJSON(bool ref) {
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': '${address.host}:$port',
+      'user_name': '${address.host}:$port',
+    };
+    if (ref) {
+      return r;
+    }
+    r['port'] = port;
+    r['address'] = address.host;
+    return r;
   }
 
   void nativeSetSocketId(int id) native "Socket_SetSocketId";
@@ -1185,6 +1211,8 @@ class _RawServerSocket extends Stream<RawSocket>
     }
     return new _RawServerSocketReference(_referencePort.sendPort);
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
 }
 
 
@@ -1416,6 +1444,8 @@ class _ServerSocket extends Stream<Socket>
   ServerSocketReference get reference {
     return new _ServerSocketReference(_socket.reference);
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
 }
 
 
