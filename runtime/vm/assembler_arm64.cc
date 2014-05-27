@@ -877,6 +877,39 @@ void Assembler::StoreQToOffset(
 }
 
 
+void Assembler::VRecps(VRegister vd, VRegister vn) {
+  ASSERT(vn != VTMP);
+  ASSERT(vd != VTMP);
+
+  // Reciprocal estimate.
+  vrecpes(vd, vn);
+  // 2 Newton-Raphson steps.
+  vrecpss(VTMP, vn, vd);
+  vmuls(vd, vd, VTMP);
+  vrecpss(VTMP, vn, vd);
+  vmuls(vd, vd, VTMP);
+}
+
+
+void Assembler::VRSqrts(VRegister vd, VRegister vn) {
+  ASSERT(vd != VTMP);
+  ASSERT(vn != VTMP);
+
+  // Reciprocal square root estimate.
+  vrsqrtes(vd, vn);
+  // 2 Newton-Raphson steps. xn+1 = xn * (3 - V1*xn^2) / 2.
+  // First step.
+  vmuls(VTMP, vd, vd);  // VTMP <- xn^2
+  vrsqrtss(VTMP, vn, VTMP);  // VTMP <- (3 - V1*VTMP) / 2.
+  vmuls(vd, vd, VTMP);  // xn+1 <- xn * VTMP
+  // Second step.
+  vmuls(VTMP, vd, vd);
+  vrsqrtss(VTMP, vn, VTMP);
+  vmuls(vd, vd, VTMP);
+}
+
+
+
 // Store into object.
 // Preserves object and value registers.
 void Assembler::StoreIntoObjectFilterNoSmi(Register object,

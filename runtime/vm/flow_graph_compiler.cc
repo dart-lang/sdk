@@ -38,15 +38,8 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-
-// TODO(zra): remove once arm64 has simd.
-#if defined(TARGET_ARCH_ARM64)
-DEFINE_FLAG(bool, enable_simd_inline, false,
-    "Enable inlining of SIMD related method calls.");
-#else
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
-#endif
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots

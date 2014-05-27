@@ -1088,6 +1088,26 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
     Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
   } else if ((U == 1) && (opcode == 0x1f)) {
     Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 0) && (opcode == 0x1c)) {
+    Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 1) && (opcode == 0x1c)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vcgt'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vcge'vsz 'vd, 'vn, 'vm");
+    }
+  } else if ((U == 0) && (opcode == 0x1e)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vmin'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vmax'vsz 'vd, 'vn, 'vm");
+    }
+  } else if ((U == 0) && (opcode == 0x1f)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vrsqrt'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vrecps'vsz 'vd, 'vn, 'vm");
+    }
   } else {
     Unknown(instr);
   }
@@ -1123,6 +1143,26 @@ void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
     } else {
       Unknown(instr);
     }
+  } else if ((U == 1) && (op == 0x1f)) {
+    if (sz == 2) {
+      Format(instr, "vsqrts 'vd, 'vn");
+    } else if (sz == 3) {
+      Format(instr, "vsqrtd 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
+  } else if ((U == 0) && (op == 0x1d)) {
+    if (sz != 2) {
+      Unknown(instr);
+      return;
+    }
+    Format(instr, "vrecpes 'vd, 'vn");
+  } else if ((U == 1) && (op == 0x1d)) {
+    if (sz != 2) {
+      Unknown(instr);
+      return;
+    }
+    Format(instr, "vrsqrtes 'vd, 'vn");
   } else {
     Unknown(instr);
   }

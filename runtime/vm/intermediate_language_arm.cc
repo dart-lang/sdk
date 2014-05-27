@@ -4576,7 +4576,6 @@ LocationSummary* Float64x2ZeroArgInstr::MakeLocationSummary(Isolate* isolate,
     // Grabbing the S components means we need a low (< 7) Q.
     summary->set_in(0, Location::FpuRegisterLocation(Q6));
     summary->set_out(0, Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
   } else {
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_out(0, Location::RequiresFpuRegister());
@@ -4593,15 +4592,14 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const DRegister dvalue1 = OddDRegisterOf(q);
 
     const Register out = locs()->out(0).reg();
-    const Register temp = locs()->temp(0).reg();
 
     // Upper 32-bits of X lane.
     __ vmovrs(out, OddSRegisterOf(dvalue0));
     __ Lsr(out, out, 31);
     // Upper 32-bits of Y lane.
-    __ vmovrs(temp, OddSRegisterOf(dvalue1));
-    __ Lsr(temp, temp, 31);
-    __ orr(out, out, ShifterOperand(temp, LSL, 1));
+    __ vmovrs(TMP, OddSRegisterOf(dvalue1));
+    __ Lsr(TMP, TMP, 31);
+    __ orr(out, out, ShifterOperand(TMP, LSL, 1));
     // Tag.
     __ SmiTag(out);
     return;

@@ -484,6 +484,18 @@ enum SIMDThreeSameOp {
   VMULD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B12 | B11,
   VDIVS = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13 | B12 | B11,
   VDIVD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13 | B12 | B11,
+  VCEQS = SIMDThreeSameFixed | B30 | B15 | B14 | B13,
+  VCEQD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B13,
+  VCGES = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13,
+  VCGED = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13,
+  VCGTS = SIMDThreeSameFixed | B30 | B29 | B23 | B15 | B14 | B13,
+  VCGTD = SIMDThreeSameFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13,
+  VMAXS = SIMDThreeSameFixed | B30 | B15 | B14 | B13 | B12,
+  VMAXD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B13 | B12,
+  VMINS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B13 | B12,
+  VMIND = SIMDThreeSameFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
+  VRECPSS = SIMDThreeSameFixed | B30 | B15 | B14 | B13 | B12 | B11,
+  VRSQRTSS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B13 | B12 | B11,
 };
 
 // C.3.6.17
@@ -495,6 +507,11 @@ enum SIMDTwoRegOp {
   VNEGS = SIMDTwoRegFixed | B30 | B29 | B23 | B15 | B14 | B13 | B12,
   VABSD = SIMDTwoRegFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VNEGD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13 | B12,
+  VSQRTS = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B13 | B12,
+  VSQRTD = SIMDTwoRegFixed | B30 | B29 | B23 | B22
+                           | B16 | B15 | B14 | B13 | B12,
+  VRECPES = SIMDTwoRegFixed | B30 | B23 | B16 | B15 | B14 | B12,
+  VRSQRTES = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B12,
 };
 
 // C.3.6.22

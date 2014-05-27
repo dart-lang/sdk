@@ -777,6 +777,42 @@ class Assembler : public ValueObject {
   void vdivd(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VDIVD, vd, vn, vm);
   }
+  void vceqs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCEQS, vd, vn, vm);
+  }
+  void vceqd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCEQD, vd, vn, vm);
+  }
+  void vcgts(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGTS, vd, vn, vm);
+  }
+  void vcgtd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGTD, vd, vn, vm);
+  }
+  void vcges(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGES, vd, vn, vm);
+  }
+  void vcged(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGED, vd, vn, vm);
+  }
+  void vmins(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMINS, vd, vn, vm);
+  }
+  void vmind(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMIND, vd, vn, vm);
+  }
+  void vmaxs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMAXS, vd, vn, vm);
+  }
+  void vmaxd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMAXD, vd, vn, vm);
+  }
+  void vrecpss(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VRECPSS, vd, vn, vm);
+  }
+  void vrsqrtss(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VRSQRTSS, vd, vn, vm);
+  }
   void vnot(VRegister vd, VRegister vn) {
     EmitSIMDTwoRegOp(VNOT, vd, vn);
   }
@@ -791,6 +827,18 @@ class Assembler : public ValueObject {
   }
   void vnegd(VRegister vd, VRegister vn) {
     EmitSIMDTwoRegOp(VNEGD, vd, vn);
+  }
+  void vsqrts(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VSQRTS, vd, vn);
+  }
+  void vsqrtd(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VSQRTD, vd, vn);
+  }
+  void vrecpes(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VRECPES, vd, vn);
+  }
+  void vrsqrtes(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VRSQRTES, vd, vn);
   }
   void vdupw(VRegister vd, Register rn) {
     const VRegister vn = static_cast<VRegister>(rn);
@@ -910,6 +958,9 @@ class Assembler : public ValueObject {
   void Asr(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, ASR, shift));
   }
+
+  void VRecps(VRegister vd, VRegister vn);
+  void VRSqrts(VRegister vd, VRegister vn);
 
   void SmiUntag(Register reg) {
     Asr(reg, reg, kSmiTagSize);
