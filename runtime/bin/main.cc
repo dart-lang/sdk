@@ -302,13 +302,23 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
   return true;
 }
 
+
 static bool ProcessObserveOption(const char* option_value,
                                  CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
 
-  if (!ProcessEnableVmServiceOption(option_value, vm_options)) {
+  if (!ExtractPortAndIP(option_value,
+                        &vm_service_server_port,
+                        &vm_service_server_ip,
+                        DEFAULT_VM_SERVICE_SERVER_PORT,
+                        DEFAULT_VM_SERVICE_SERVER_IP)) {
+    Log::PrintErr("unrecognized --observe option syntax. "
+                  "Use --observe[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
+
+  start_vm_service = true;
+
   vm_options->AddArgument("--pause-isolates-on-exit");
   return true;
 }
