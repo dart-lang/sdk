@@ -4,12 +4,14 @@
 
 library resource;
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
+import 'package:watcher/watcher.dart';
 
 
 /**
@@ -38,6 +40,12 @@ abstract class Folder extends Resource {
    * in this folder, in no particular order.
    */
   List<Resource> getChildren();
+
+  /**
+   * Watch for changes to the files inside this folder (and in any nested
+   * folders, including folders reachable via links).
+   */
+  Stream<WatchEvent> get changes;
 }
 
 
@@ -233,6 +241,12 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     });
     return children;
   }
+
+  @override
+  Stream<WatchEvent> get changes {
+    // TODO(paulberry): implement.
+    return new StreamController<WatchEvent>().stream;
+  }
 }
 
 
@@ -340,6 +354,9 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     }
     return children;
   }
+
+  @override
+  Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
 }
 
 

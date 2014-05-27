@@ -4,6 +4,7 @@
 
 library test.resource;
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/resource.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
+import 'package:watcher/watcher.dart';
 
 main() {
   groupSep = ' | ';
@@ -294,6 +296,92 @@ main() {
 
     tearDown(() {
       tempDirectory.deleteSync(recursive: true);
+    });
+
+    group('Watch', () {
+
+      Future delayed(computation()) {
+        // On Windows, watching the filesystem is accomplished by polling once
+        // per second.  So wait 2 seconds to give time for polling to reliably
+        // occur.
+        return new Future.delayed(new Duration(seconds: 2), computation);
+      }
+
+      watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
+        // Delay before we start watching the folder.  This is necessary
+        // because on MacOS, file modifications that occur just before we start
+        // watching are sometimes misclassified as happening just after we
+        // start watching.
+        return delayed(() {
+          Folder folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+          var changesReceived = <WatchEvent>[];
+          var subscription = folder.changes.listen(changesReceived.add);
+          // Delay running the rest of the test to allow folder.changes to take
+          // a snapshot of the current directory state.  Otherwise it won't be
+          // able to reliably distinguish new files from modified ones.
+          return delayed(() => test(changesReceived)).whenComplete(() {
+            subscription.cancel();
+          });
+        });
+      }
+
+      test('create file', () => watchingFolder(tempPath, (changesReceived) {
+        expect(changesReceived, hasLength(0));
+        var path = join(tempPath, 'foo');
+        new io.File(path).writeAsStringSync('contents');
+        return delayed(() {
+          expect(changesReceived, hasLength(1));
+          expect(changesReceived[0].type, equals(ChangeType.ADD));
+          expect(changesReceived[0].path, equals(path));
+        });
+      }));
+
+      test('modify file', () {
+        var path = join(tempPath, 'foo');
+        var file = new io.File(path);
+        file.writeAsStringSync('contents 1');
+        return watchingFolder(tempPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          file.writeAsStringSync('contents 2');
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
+
+      test('modify file in subdir', () {
+        var subdirPath = join(tempPath, 'foo');
+        new io.Directory(subdirPath).createSync();
+        var path = join(tempPath, 'bar');
+        var file = new io.File(path);
+        file.writeAsStringSync('contents 1');
+        return watchingFolder(tempPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          file.writeAsStringSync('contents 2');
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
+
+      test('delete file', () {
+        var path = join(tempPath, 'foo');
+        var file = new io.File(path);
+        file.writeAsStringSync('contents 1');
+        return watchingFolder(tempPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          file.deleteSync();
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.REMOVE));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
     });
 
     group('File', () {
