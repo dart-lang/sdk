@@ -85,7 +85,8 @@ static bool IsValidFlag(const char* name,
 
 
 static bool has_version_option = false;
-static bool ProcessVersionOption(const char* arg) {
+static bool ProcessVersionOption(const char* arg,
+                                 CommandLineOptions* vm_options) {
   if (*arg != '\0') {
     return false;
   }
@@ -95,7 +96,7 @@ static bool ProcessVersionOption(const char* arg) {
 
 
 static bool has_help_option = false;
-static bool ProcessHelpOption(const char* arg) {
+static bool ProcessHelpOption(const char* arg, CommandLineOptions* vm_options) {
   if (*arg != '\0') {
     return false;
   }
@@ -105,7 +106,8 @@ static bool ProcessHelpOption(const char* arg) {
 
 
 static bool has_verbose_option = false;
-static bool ProcessVerboseOption(const char* arg) {
+static bool ProcessVerboseOption(const char* arg,
+                                 CommandLineOptions* vm_options) {
   if (*arg != '\0') {
     return false;
   }
@@ -114,7 +116,8 @@ static bool ProcessVerboseOption(const char* arg) {
 }
 
 
-static bool ProcessBreakpointOption(const char* funcname) {
+static bool ProcessBreakpointOption(const char* funcname,
+                                    CommandLineOptions* vm_options) {
   ASSERT(funcname != NULL);
   if (*funcname == '\0') {
     return false;
@@ -124,7 +127,8 @@ static bool ProcessBreakpointOption(const char* funcname) {
 }
 
 
-static bool ProcessPackageRootOption(const char* arg) {
+static bool ProcessPackageRootOption(const char* arg,
+                                     CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
   if (*arg == '\0' || *arg == '-') {
     return false;
@@ -182,7 +186,8 @@ static bool ExtractPortAndIP(const char *option_value,
 }
 
 
-static bool ProcessEnvironmentOption(const char* arg) {
+static bool ProcessEnvironmentOption(const char* arg,
+                                     CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
   if (*arg == '\0') {
     // Ignore empty -D option.
@@ -220,7 +225,8 @@ static bool ProcessEnvironmentOption(const char* arg) {
 }
 
 
-static bool ProcessCompileAllOption(const char* arg) {
+static bool ProcessCompileAllOption(const char* arg,
+                                    CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
   if (*arg != '\0') {
     return false;
@@ -229,7 +235,8 @@ static bool ProcessCompileAllOption(const char* arg) {
   return true;
 }
 
-static bool ProcessDebugOption(const char* option_value) {
+static bool ProcessDebugOption(const char* option_value,
+                               CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
   if (!ExtractPortAndIP(option_value, &debug_port, &debug_ip,
                         DEFAULT_DEBUG_PORT, DEFAULT_DEBUG_IP)) {
@@ -244,7 +251,8 @@ static bool ProcessDebugOption(const char* option_value) {
 }
 
 
-static bool ProcessPrintScriptOption(const char* arg) {
+static bool ProcessPrintScriptOption(const char* arg,
+                                     CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
   if (*arg != '\0') {
     return false;
@@ -254,7 +262,8 @@ static bool ProcessPrintScriptOption(const char* arg) {
 }
 
 
-static bool ProcessGenScriptSnapshotOption(const char* filename) {
+static bool ProcessGenScriptSnapshotOption(const char* filename,
+                                           CommandLineOptions* vm_options) {
   if (filename != NULL && strlen(filename) != 0) {
     // Ensure that are already running using a full snapshot.
     if (snapshot_buffer == NULL) {
@@ -275,7 +284,8 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
 }
 
 
-static bool ProcessEnableVmServiceOption(const char* option_value) {
+static bool ProcessEnableVmServiceOption(const char* option_value,
+                                         CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
 
   if (!ExtractPortAndIP(option_value,
@@ -292,8 +302,21 @@ static bool ProcessEnableVmServiceOption(const char* option_value) {
   return true;
 }
 
+static bool ProcessObserveOption(const char* option_value,
+                                 CommandLineOptions* vm_options) {
+  ASSERT(option_value != NULL);
+
+  if (!ProcessEnableVmServiceOption(option_value, vm_options)) {
+    return false;
+  }
+  vm_options->AddArgument("--pause-isolates-on-exit");
+  return true;
+}
+
+
 bool trace_debug_protocol = false;
-static bool ProcessTraceDebugProtocolOption(const char* arg) {
+static bool ProcessTraceDebugProtocolOption(const char* arg,
+                                            CommandLineOptions* vm_options) {
   if (*arg != '\0') {
     return false;
   }
@@ -304,7 +327,7 @@ static bool ProcessTraceDebugProtocolOption(const char* arg) {
 
 static struct {
   const char* option_name;
-  bool (*process)(const char* option);
+  bool (*process)(const char* option, CommandLineOptions* vm_options);
 } main_options[] = {
   // Standard options shared with dart2js.
   { "--version", ProcessVersionOption },
@@ -321,19 +344,21 @@ static struct {
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--print-script", ProcessPrintScriptOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--observe", ProcessObserveOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { NULL, NULL }
 };
 
 
-static bool ProcessMainOptions(const char* option) {
+static bool ProcessMainOptions(const char* option,
+                               CommandLineOptions* vm_options) {
   int i = 0;
   const char* name = main_options[0].option_name;
   int option_length = strlen(option);
   while (name != NULL) {
     int length = strlen(name);
     if ((option_length >= length) && (strncmp(option, name, length) == 0)) {
-      if (main_options[i].process(option + length)) {
+      if (main_options[i].process(option + length, vm_options)) {
         return true;
       }
     }
@@ -382,16 +407,18 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while (i < argc) {
-    if (ProcessMainOptions(argv[i])) {
+    if (ProcessMainOptions(argv[i], vm_options)) {
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
       const char* kChecked = "-c";
       const char* kPackageRoot = "-p";
       if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
-        if (!ProcessPackageRootOption(argv[i] + strlen(kPackageRoot))) {
+        if (!ProcessPackageRootOption(argv[i] + strlen(kPackageRoot),
+                                      vm_options)) {
           i++;
-          if ((argv[i] == NULL) || !ProcessPackageRootOption(argv[i])) {
+          if ((argv[i] == NULL) ||
+               !ProcessPackageRootOption(argv[i], vm_options)) {
             Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
             i++;
             break;
