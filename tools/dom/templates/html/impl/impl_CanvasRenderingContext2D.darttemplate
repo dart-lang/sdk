@@ -348,5 +348,11 @@ $if DART2JS
     JS('void', '#.fill(#)', this, winding);
   }
 $endif
+
+  /** Deprecated always returns 1.0 */
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
+  @Experimental()
+  @deprecated
+  double get backingStorePixelRatio => 1.0;
 }
 

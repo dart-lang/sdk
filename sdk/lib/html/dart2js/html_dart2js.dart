@@ -1502,23 +1502,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   String textBaseline;
 
-  @JSName('webkitBackingStorePixelRatio')
-  /**
-   * The ratio between this canvas' backing store dimensions and the canvas'
-   * logical dimensions.
-   *
-   * ## Other resources
-   *
-   * * [High DPI Canvas tutorial]
-   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
-   */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final double backingStorePixelRatio;
-
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
@@ -2058,6 +2041,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void fill([String winding = 'nonzero']) {
     JS('void', '#.fill(#)', this, winding);
   }
+
+  /** Deprecated always returns 1.0 */
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
+  @Experimental()
+  double get backingStorePixelRatio => 1.0;
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

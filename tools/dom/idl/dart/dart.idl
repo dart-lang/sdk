@@ -95,6 +95,9 @@ interface CanvasRenderingContext2D {
   [Suppressed] void assert(boolean condition);
 
   [Suppressed] attribute boolean webkitImageSmoothingEnabled;
+
+  // Removed in 1985.
+  [Suppressed] readonly attribute float webkitBackingStorePixelRatio; 
 };
 
 [Supplemental]
