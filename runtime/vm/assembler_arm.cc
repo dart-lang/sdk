@@ -115,7 +115,7 @@ void Assembler::EmitType01(Condition cond,
                            int set_cc,
                            Register rn,
                            Register rd,
-                           ShifterOperand so) {
+                           Operand o) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
@@ -124,7 +124,7 @@ void Assembler::EmitType01(Condition cond,
                      set_cc << kSShift |
                      static_cast<int32_t>(rn) << kRnShift |
                      static_cast<int32_t>(rd) << kRdShift |
-                     so.encoding();
+                     o.encoding();
   Emit(encoding);
 }
 
@@ -190,13 +190,13 @@ void Assembler::EmitShiftImmediate(Condition cond,
                                    Shift opcode,
                                    Register rd,
                                    Register rm,
-                                   ShifterOperand so) {
+                                   Operand o) {
   ASSERT(cond != kNoCondition);
-  ASSERT(so.type() == 1);
+  ASSERT(o.type() == 1);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      static_cast<int32_t>(MOV) << kOpcodeShift |
                      static_cast<int32_t>(rd) << kRdShift |
-                     so.encoding() << kShiftImmShift |
+                     o.encoding() << kShiftImmShift |
                      static_cast<int32_t>(opcode) << kShiftShift |
                      static_cast<int32_t>(rm);
   Emit(encoding);
@@ -207,13 +207,13 @@ void Assembler::EmitShiftRegister(Condition cond,
                                   Shift opcode,
                                   Register rd,
                                   Register rm,
-                                  ShifterOperand so) {
+                                  Operand o) {
   ASSERT(cond != kNoCondition);
-  ASSERT(so.type() == 0);
+  ASSERT(o.type() == 0);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      static_cast<int32_t>(MOV) << kOpcodeShift |
                      static_cast<int32_t>(rd) << kRdShift |
-                     so.encoding() << kShiftRegisterShift |
+                     o.encoding() << kShiftRegisterShift |
                      static_cast<int32_t>(opcode) << kShiftShift |
                      B4 |
                      static_cast<int32_t>(rm);
@@ -221,143 +221,126 @@ void Assembler::EmitShiftRegister(Condition cond,
 }
 
 
-void Assembler::and_(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), AND, 0, rn, rd, so);
+void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
 
 
-void Assembler::eor(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), EOR, 0, rn, rd, so);
+void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
 
 
-void Assembler::sub(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), SUB, 0, rn, rd, so);
+void Assembler::sub(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), SUB, 0, rn, rd, o);
 }
 
-void Assembler::rsb(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), RSB, 0, rn, rd, so);
+void Assembler::rsb(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), RSB, 0, rn, rd, o);
 }
 
-void Assembler::rsbs(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), RSB, 1, rn, rd, so);
+void Assembler::rsbs(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), RSB, 1, rn, rd, o);
 }
 
 
-void Assembler::add(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), ADD, 0, rn, rd, so);
+void Assembler::add(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ADD, 0, rn, rd, o);
 }
 
 
-void Assembler::adds(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), ADD, 1, rn, rd, so);
+void Assembler::adds(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ADD, 1, rn, rd, o);
 }
 
 
-void Assembler::subs(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), SUB, 1, rn, rd, so);
+void Assembler::subs(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), SUB, 1, rn, rd, o);
 }
 
 
-void Assembler::adc(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), ADC, 0, rn, rd, so);
+void Assembler::adc(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ADC, 0, rn, rd, o);
 }
 
 
-void Assembler::adcs(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), ADC, 1, rn, rd, so);
+void Assembler::adcs(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ADC, 1, rn, rd, o);
 }
 
 
-void Assembler::sbc(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), SBC, 0, rn, rd, so);
+void Assembler::sbc(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), SBC, 0, rn, rd, o);
 }
 
 
-void Assembler::sbcs(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), SBC, 1, rn, rd, so);
+void Assembler::sbcs(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), SBC, 1, rn, rd, o);
 }
 
 
-void Assembler::rsc(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), RSC, 0, rn, rd, so);
+void Assembler::rsc(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), RSC, 0, rn, rd, o);
 }
 
 
-void Assembler::tst(Register rn, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), TST, 1, rn, R0, so);
+void Assembler::tst(Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), TST, 1, rn, R0, o);
 }
 
 
-void Assembler::teq(Register rn, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), TEQ, 1, rn, R0, so);
+void Assembler::teq(Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), TEQ, 1, rn, R0, o);
 }
 
 
-void Assembler::cmp(Register rn, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), CMP, 1, rn, R0, so);
+void Assembler::cmp(Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), CMP, 1, rn, R0, o);
 }
 
 
-void Assembler::cmn(Register rn, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), CMN, 1, rn, R0, so);
+void Assembler::cmn(Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), CMN, 1, rn, R0, o);
 }
 
 
-void Assembler::orr(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), ORR, 0, rn, rd, so);
+void Assembler::orr(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ORR, 0, rn, rd, o);
 }
 
 
-void Assembler::orrs(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), ORR, 1, rn, rd, so);
+void Assembler::orrs(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), ORR, 1, rn, rd, o);
 }
 
 
-void Assembler::mov(Register rd, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), MOV, 0, R0, rd, so);
+void Assembler::mov(Register rd, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), MOV, 0, R0, rd, o);
 }
 
 
-void Assembler::movs(Register rd, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), MOV, 1, R0, rd, so);
+void Assembler::movs(Register rd, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), MOV, 1, R0, rd, o);
 }
 
 
-void Assembler::bic(Register rd, Register rn, ShifterOperand so,
-                    Condition cond) {
-  EmitType01(cond, so.type(), BIC, 0, rn, rd, so);
+void Assembler::bic(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), BIC, 0, rn, rd, o);
 }
 
 
-void Assembler::bics(Register rd, Register rn, ShifterOperand so,
-                     Condition cond) {
-  EmitType01(cond, so.type(), BIC, 1, rn, rd, so);
+void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
 
 
-void Assembler::mvn(Register rd, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), MVN, 0, R0, rd, so);
+void Assembler::mvn(Register rd, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), MVN, 0, R0, rd, o);
 }
 
 
-void Assembler::mvns(Register rd, ShifterOperand so, Condition cond) {
-  EmitType01(cond, so.type(), MVN, 1, R0, rd, so);
+void Assembler::mvns(Register rd, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), MVN, 1, R0, rd, o);
 }
 
 
@@ -412,16 +395,14 @@ void Assembler::EmitMulOp(Condition cond, int32_t opcode,
 }
 
 
-void Assembler::mul(Register rd, Register rn,
-                    Register rm, Condition cond) {
+void Assembler::mul(Register rd, Register rn, Register rm, Condition cond) {
   // Assembler registers rd, rn, rm are encoded as rn, rm, rs.
   EmitMulOp(cond, 0, R0, rd, rn, rm);
 }
 
 
 // Like mul, but sets condition flags.
-void Assembler::muls(Register rd, Register rn,
-                     Register rm, Condition cond) {
+void Assembler::muls(Register rd, Register rn, Register rm, Condition cond) {
   EmitMulOp(cond, B20, R0, rd, rn, rm);
 }
 
@@ -434,7 +415,7 @@ void Assembler::mla(Register rd, Register rn,
     EmitMulOp(cond, B21, ra, rd, rn, rm);
   } else {
     mul(IP, rn, rm, cond);
-    add(rd, ra, ShifterOperand(IP), cond);
+    add(rd, ra, Operand(IP), cond);
   }
 }
 
@@ -447,7 +428,7 @@ void Assembler::mls(Register rd, Register rn,
     EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
   } else {
     mul(IP, rn, rm, cond);
-    sub(rd, ra, ShifterOperand(IP), cond);
+    sub(rd, ra, Operand(IP), cond);
   }
 }
 
@@ -1499,7 +1480,7 @@ void Assembler::blx(Register rm, Condition cond) {
 
 
 void Assembler::MarkExceptionHandler(Label* label) {
-  EmitType01(AL, 1, TST, 1, PC, R0, ShifterOperand(0));
+  EmitType01(AL, 1, TST, 1, PC, R0, Operand(0));
   Label l;
   b(&l);
   EmitBranch(AL, label, false);
@@ -1527,12 +1508,12 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
     int32_t offset_hi = offset & ~offset_mask;  // signed
     uint32_t offset_lo = offset & offset_mask;  // unsigned
     // Inline a simplified version of AddImmediate(rd, PP, offset_hi).
-    ShifterOperand shifter_op;
-    if (ShifterOperand::CanHold(offset_hi, &shifter_op)) {
-      add(rd, PP, shifter_op, cond);
+    Operand o;
+    if (Operand::CanHold(offset_hi, &o)) {
+      add(rd, PP, o, cond);
     } else {
       LoadImmediate(rd, offset_hi, cond);
-      add(rd, PP, ShifterOperand(LR), cond);
+      add(rd, PP, Operand(LR), cond);
     }
     ldr(rd, Address(rd, offset_lo), cond);
   }
@@ -1577,7 +1558,7 @@ void Assembler::CompareObject(Register rn, const Object& object) {
     CompareImmediate(rn, reinterpret_cast<int32_t>(object.raw()));
   } else {
     LoadObject(IP, object);
-    cmp(rn, ShifterOperand(IP));
+    cmp(rn, Operand(IP));
   }
 }
 
@@ -1593,8 +1574,8 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   // the object is in the old space (has bit cleared).
   // To check that, we compute value & ~object and skip the write barrier
   // if the bit is not set. We can't destroy the object.
-  bic(IP, value, ShifterOperand(object));
-  tst(IP, ShifterOperand(kNewObjectAlignmentOffset));
+  bic(IP, value, Operand(object));
+  tst(IP, Operand(kNewObjectAlignmentOffset));
   b(no_update, EQ);
 }
 
@@ -1605,10 +1586,10 @@ void Assembler::StoreIntoObjectFilter(Register object,
                                       Label* no_update) {
   // For the value we are only interested in the new/old bit and the tag bit.
   // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  and_(IP, value, ShifterOperand(value, LSL, kObjectAlignmentLog2 - 1));
+  and_(IP, value, Operand(value, LSL, kObjectAlignmentLog2 - 1));
   // And the result with the negated space bit of the object.
-  bic(IP, IP, ShifterOperand(object));
-  tst(IP, ShifterOperand(kNewObjectAlignmentOffset));
+  bic(IP, IP, Operand(object));
+  tst(IP, Operand(kNewObjectAlignmentOffset));
   b(no_update, EQ);
 }
 
@@ -1632,7 +1613,7 @@ void Assembler::StoreIntoObject(Register object,
   }
   PushList(regs);
   if (object != R0) {
-    mov(R0, ShifterOperand(object));
+    mov(R0, Operand(object));
   }
   BranchLink(&StubCode::UpdateStoreBufferLabel());
   PopList(regs);
@@ -2171,7 +2152,7 @@ void Assembler::PopList(RegList regs, Condition cond) {
 
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
-    mov(rd, ShifterOperand(rm), cond);
+    mov(rd, Operand(rm), cond);
   }
 }
 
@@ -2179,12 +2160,12 @@ void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
 void Assembler::Lsl(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Lsl if no shift is wanted.
-  mov(rd, ShifterOperand(rm, LSL, shift_imm), cond);
+  mov(rd, Operand(rm, LSL, shift_imm), cond);
 }
 
 
 void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
-  mov(rd, ShifterOperand(rm, LSL, rs), cond);
+  mov(rd, Operand(rm, LSL, rs), cond);
 }
 
 
@@ -2192,12 +2173,12 @@ void Assembler::Lsr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Lsr if no shift is wanted.
   if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
-  mov(rd, ShifterOperand(rm, LSR, shift_imm), cond);
+  mov(rd, Operand(rm, LSR, shift_imm), cond);
 }
 
 
 void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
-  mov(rd, ShifterOperand(rm, LSR, rs), cond);
+  mov(rd, Operand(rm, LSR, rs), cond);
 }
 
 
@@ -2205,29 +2186,29 @@ void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
   if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
-  mov(rd, ShifterOperand(rm, ASR, shift_imm), cond);
+  mov(rd, Operand(rm, ASR, shift_imm), cond);
 }
 
 
 void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
-  mov(rd, ShifterOperand(rm, ASR, rs), cond);
+  mov(rd, Operand(rm, ASR, rs), cond);
 }
 
 
 void Assembler::Ror(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Use Rrx instruction.
-  mov(rd, ShifterOperand(rm, ROR, shift_imm), cond);
+  mov(rd, Operand(rm, ROR, shift_imm), cond);
 }
 
 
 void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
-  mov(rd, ShifterOperand(rm, ROR, rs), cond);
+  mov(rd, Operand(rm, ROR, rs), cond);
 }
 
 
 void Assembler::Rrx(Register rd, Register rm, Condition cond) {
-  mov(rd, ShifterOperand(rm, ROR, 0), cond);
+  mov(rd, Operand(rm, ROR, 0), cond);
 }
 
 
@@ -2345,10 +2326,10 @@ void Assembler::LoadPatchableImmediate(
     const uint32_t byte1 = (value & 0x0000ff00) >> 8;
     const uint32_t byte2 = (value & 0x00ff0000) >> 16;
     const uint32_t byte3 = (value & 0xff000000) >> 24;
-    mov(rd, ShifterOperand(4, byte3), cond);
-    orr(rd, rd, ShifterOperand(8, byte2), cond);
-    orr(rd, rd, ShifterOperand(12, byte1), cond);
-    orr(rd, rd, ShifterOperand(byte0), cond);
+    mov(rd, Operand(4, byte3), cond);
+    orr(rd, rd, Operand(8, byte2), cond);
+    orr(rd, rd, Operand(12, byte1), cond);
+    orr(rd, rd, Operand(byte0), cond);
   } else {
     ASSERT(version == ARMv7);
     const uint16_t value_low = Utils::Low16Bits(value);
@@ -2376,11 +2357,11 @@ void Assembler::LoadDecodableImmediate(
 
 
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(value, &shifter_op)) {
-    mov(rd, shifter_op, cond);
-  } else if (ShifterOperand::CanHold(~value, &shifter_op)) {
-    mvn(rd, shifter_op, cond);
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
+    mov(rd, o, cond);
+  } else if (Operand::CanHold(~value, &o)) {
+    mvn(rd, o, cond);
   } else {
     LoadDecodableImmediate(rd, value, cond);
   }
@@ -2645,29 +2626,29 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
                              Condition cond) {
   if (value == 0) {
     if (rd != rn) {
-      mov(rd, ShifterOperand(rn), cond);
+      mov(rd, Operand(rn), cond);
     }
     return;
   }
   // We prefer to select the shorter code sequence rather than selecting add for
   // positive values and sub for negatives ones, which would slightly improve
   // the readability of generated code for some constants.
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(value, &shifter_op)) {
-    add(rd, rn, shifter_op, cond);
-  } else if (ShifterOperand::CanHold(-value, &shifter_op)) {
-    sub(rd, rn, shifter_op, cond);
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
+    add(rd, rn, o, cond);
+  } else if (Operand::CanHold(-value, &o)) {
+    sub(rd, rn, o, cond);
   } else {
     ASSERT(rn != IP);
-    if (ShifterOperand::CanHold(~value, &shifter_op)) {
-      mvn(IP, shifter_op, cond);
-      add(rd, rn, ShifterOperand(IP), cond);
-    } else if (ShifterOperand::CanHold(~(-value), &shifter_op)) {
-      mvn(IP, shifter_op, cond);
-      sub(rd, rn, ShifterOperand(IP), cond);
+    if (Operand::CanHold(~value, &o)) {
+      mvn(IP, o, cond);
+      add(rd, rn, Operand(IP), cond);
+    } else if (Operand::CanHold(~(-value), &o)) {
+      mvn(IP, o, cond);
+      sub(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
-      add(rd, rn, ShifterOperand(IP), cond);
+      add(rd, rn, Operand(IP), cond);
     }
   }
 }
@@ -2675,25 +2656,25 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
 
 void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                                     Condition cond) {
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(value, &shifter_op)) {
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
     // Handles value == kMinInt32.
-    adds(rd, rn, shifter_op, cond);
-  } else if (ShifterOperand::CanHold(-value, &shifter_op)) {
+    adds(rd, rn, o, cond);
+  } else if (Operand::CanHold(-value, &o)) {
     ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-    subs(rd, rn, shifter_op, cond);
+    subs(rd, rn, o, cond);
   } else {
     ASSERT(rn != IP);
-    if (ShifterOperand::CanHold(~value, &shifter_op)) {
-      mvn(IP, shifter_op, cond);
-      adds(rd, rn, ShifterOperand(IP), cond);
-    } else if (ShifterOperand::CanHold(~(-value), &shifter_op)) {
+    if (Operand::CanHold(~value, &o)) {
+      mvn(IP, o, cond);
+      adds(rd, rn, Operand(IP), cond);
+    } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, shifter_op, cond);
-      subs(rd, rn, ShifterOperand(IP), cond);
+      mvn(IP, o, cond);
+      subs(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
-      adds(rd, rn, ShifterOperand(IP), cond);
+      adds(rd, rn, Operand(IP), cond);
     }
   }
 }
@@ -2701,25 +2682,25 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
 
 void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
                                     Condition cond) {
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(value, &shifter_op)) {
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
     // Handles value == kMinInt32.
-    subs(rd, rn, shifter_op, cond);
-  } else if (ShifterOperand::CanHold(-value, &shifter_op)) {
+    subs(rd, rn, o, cond);
+  } else if (Operand::CanHold(-value, &o)) {
     ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-    adds(rd, rn, shifter_op, cond);
+    adds(rd, rn, o, cond);
   } else {
     ASSERT(rn != IP);
-    if (ShifterOperand::CanHold(~value, &shifter_op)) {
-      mvn(IP, shifter_op, cond);
-      subs(rd, rn, ShifterOperand(IP), cond);
-    } else if (ShifterOperand::CanHold(~(-value), &shifter_op)) {
+    if (Operand::CanHold(~value, &o)) {
+      mvn(IP, o, cond);
+      subs(rd, rn, Operand(IP), cond);
+    } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, shifter_op, cond);
-      adds(rd, rn, ShifterOperand(IP), cond);
+      mvn(IP, o, cond);
+      adds(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
-      subs(rd, rn, ShifterOperand(IP), cond);
+      subs(rd, rn, Operand(IP), cond);
     }
   }
 }
@@ -2727,35 +2708,35 @@ void Assembler::SubImmediateSetFlags(Register rd, Register rn, int32_t value,
 
 void Assembler::AndImmediate(Register rd, Register rs, int32_t imm,
                              Condition cond) {
-  ShifterOperand op;
-  if (ShifterOperand::CanHold(imm, &op)) {
-    and_(rd, rs, ShifterOperand(op), cond);
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    and_(rd, rs, Operand(o), cond);
   } else {
     LoadImmediate(TMP, imm, cond);
-    and_(rd, rs, ShifterOperand(TMP), cond);
+    and_(rd, rs, Operand(TMP), cond);
   }
 }
 
 
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(value, &shifter_op)) {
-    cmp(rn, shifter_op, cond);
+  Operand o;
+  if (Operand::CanHold(value, &o)) {
+    cmp(rn, o, cond);
   } else {
     ASSERT(rn != IP);
     LoadImmediate(IP, value, cond);
-    cmp(rn, ShifterOperand(IP), cond);
+    cmp(rn, Operand(IP), cond);
   }
 }
 
 
 void Assembler::TestImmediate(Register rn, int32_t imm, Condition cond) {
-  ShifterOperand shifter_op;
-  if (ShifterOperand::CanHold(imm, &shifter_op)) {
-    tst(rn, shifter_op, cond);
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    tst(rn, o, cond);
   } else {
     LoadImmediate(IP, imm);
-    tst(rn, ShifterOperand(IP), cond);
+    tst(rn, Operand(IP), cond);
   }
 }
 
@@ -2797,7 +2778,7 @@ void Assembler::CheckMultSignedOverflow(Register left,
   // Both positive.
   LoadImmediate(tmp, INT_MAX);
   IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, ShifterOperand(right));
+  cmp(tmp, Operand(right));
   b(overflow, LT);
   b(&done);
 
@@ -2805,7 +2786,7 @@ void Assembler::CheckMultSignedOverflow(Register left,
   Bind(&left_pos_right_neg);
   LoadImmediate(tmp, INT_MIN);
   IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, ShifterOperand(right));
+  cmp(tmp, Operand(right));
   b(overflow, GT);
   b(&done);
 
@@ -2817,7 +2798,7 @@ void Assembler::CheckMultSignedOverflow(Register left,
   // both negative.
   LoadImmediate(tmp, INT_MAX);
   IntegerDivide(tmp, tmp, left, dtmp0, dtmp1);
-  cmp(tmp, ShifterOperand(right));
+  cmp(tmp, Operand(right));
   b(overflow, GT);
   b(&done);
 
@@ -2825,7 +2806,7 @@ void Assembler::CheckMultSignedOverflow(Register left,
   Bind(&left_neg_right_pos);
   LoadImmediate(tmp, INT_MIN);
   IntegerDivide(tmp, tmp, right, dtmp0, dtmp1);
-  cmp(tmp, ShifterOperand(left));
+  cmp(tmp, Operand(left));
   b(overflow, GT);
 
   Bind(&done);
@@ -2850,7 +2831,7 @@ void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   PushList(regs);
   if ((regs & (1 << FP)) != 0) {
     // Set FP to the saved previous FP.
-    add(FP, SP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+    add(FP, SP, Operand(4 * NumRegsBelowFP(regs)));
   }
   AddImmediate(SP, -frame_size);
 }
@@ -2860,7 +2841,7 @@ void Assembler::LeaveFrame(RegList regs) {
   ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
   if ((regs & (1 << FP)) != 0) {
     // Use FP to set SP.
-    sub(SP, FP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+    sub(SP, FP, Operand(4 * NumRegsBelowFP(regs)));
   }
   PopList(regs);
 }
@@ -2876,7 +2857,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // the C++ world.
   AddImmediate(SP, -frame_space);
   if (OS::ActivationFrameAlignment() > 1) {
-    bic(SP, SP, ShifterOperand(OS::ActivationFrameAlignment() - 1));
+    bic(SP, SP, Operand(OS::ActivationFrameAlignment() - 1));
   }
 }
 
@@ -2970,7 +2951,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   const intptr_t offset = CodeSize();
 
   Comment("EnterOsrFrame");
-  mov(IP, ShifterOperand(PC));
+  mov(IP, Operand(PC));
 
   AddImmediate(IP, -offset);
   str(IP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
@@ -2991,8 +2972,8 @@ void Assembler::LeaveDartFrame() {
 
 void Assembler::EnterStubFrame(bool load_pp) {
   // Push 0 as saved PC for stub frames.
-  mov(IP, ShifterOperand(LR));
-  mov(LR, ShifterOperand(0));
+  mov(IP, Operand(LR));
+  mov(LR, Operand(0));
   RegList regs = (1 << PP) | (1 << FP) | (1 << IP) | (1 << LR);
   EnterFrame(regs, 0);
   if (load_pp) {
@@ -3071,7 +3052,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
     AddImmediate(TMP, 1);
     str(TMP, count_address);
     ldr(TMP, size_address);
-    add(TMP, TMP, ShifterOperand(size_reg));
+    add(TMP, TMP, Operand(size_reg));
     str(TMP, size_address);
   } else {
     ASSERT(temp_reg != kNoRegister);
@@ -3089,7 +3070,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
     AddImmediate(TMP, 1);
     str(TMP, Address(temp_reg, count_field_offset));
     ldr(TMP, Address(temp_reg, size_field_offset));
-    add(TMP, TMP, ShifterOperand(size_reg));
+    add(TMP, TMP, Operand(size_reg));
     str(TMP, Address(temp_reg, size_field_offset));
   }
 }
@@ -3110,7 +3091,7 @@ void Assembler::TryAllocate(const Class& cls,
     // instance_reg: potential next object start.
     LoadImmediate(IP, heap->EndAddress());
     ldr(IP, Address(IP, 0));
-    cmp(IP, ShifterOperand(instance_reg));
+    cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 

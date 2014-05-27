@@ -65,45 +65,44 @@ class Label : public ValueObject {
 
 
 // Encodes Addressing Mode 1 - Data-processing operands.
-// TODO(regis): rename ShifterOperand to Operand.
-class ShifterOperand : public ValueObject {
+class Operand : public ValueObject {
  public:
   // Data-processing operands - Uninitialized.
-  ShifterOperand() : type_(-1), encoding_(-1) { }
+  Operand() : type_(-1), encoding_(-1) { }
 
   // Data-processing operands - Copy constructor.
-  ShifterOperand(const ShifterOperand& other)
+  Operand(const Operand& other)
       : ValueObject(), type_(other.type_), encoding_(other.encoding_) { }
 
   // Data-processing operands - Assignment operator.
-  ShifterOperand& operator=(const ShifterOperand& other) {
+  Operand& operator=(const Operand& other) {
     type_ = other.type_;
     encoding_ = other.encoding_;
     return *this;
   }
 
   // Data-processing operands - Immediate.
-  explicit ShifterOperand(uint32_t immediate) {
+  explicit Operand(uint32_t immediate) {
     ASSERT(immediate < (1 << kImmed8Bits));
     type_ = 1;
     encoding_ = immediate;
   }
 
   // Data-processing operands - Rotated immediate.
-  ShifterOperand(uint32_t rotate, uint32_t immed8) {
+  Operand(uint32_t rotate, uint32_t immed8) {
     ASSERT((rotate < (1 << kRotateBits)) && (immed8 < (1 << kImmed8Bits)));
     type_ = 1;
     encoding_ = (rotate << kRotateShift) | (immed8 << kImmed8Shift);
   }
 
   // Data-processing operands - Register.
-  explicit ShifterOperand(Register rm) {
+  explicit Operand(Register rm) {
     type_ = 0;
     encoding_ = static_cast<uint32_t>(rm);
   }
 
   // Data-processing operands - Logical shift/rotate by immediate.
-  ShifterOperand(Register rm, Shift shift, uint32_t shift_imm) {
+  Operand(Register rm, Shift shift, uint32_t shift_imm) {
     ASSERT(shift_imm < (1 << kShiftImmBits));
     type_ = 0;
     encoding_ = shift_imm << kShiftImmShift |
@@ -112,26 +111,26 @@ class ShifterOperand : public ValueObject {
   }
 
   // Data-processing operands - Logical shift/rotate by register.
-  ShifterOperand(Register rm, Shift shift, Register rs) {
+  Operand(Register rm, Shift shift, Register rs) {
     type_ = 0;
     encoding_ = static_cast<uint32_t>(rs) << kShiftRegisterShift |
                 static_cast<uint32_t>(shift) << kShiftShift | (1 << 4) |
                 static_cast<uint32_t>(rm);
   }
 
-  static bool CanHold(uint32_t immediate, ShifterOperand* shifter_op) {
+  static bool CanHold(uint32_t immediate, Operand* o) {
     // Avoid the more expensive test for frequent small immediate values.
     if (immediate < (1 << kImmed8Bits)) {
-      shifter_op->type_ = 1;
-      shifter_op->encoding_ = (0 << kRotateShift) | (immediate << kImmed8Shift);
+      o->type_ = 1;
+      o->encoding_ = (0 << kRotateShift) | (immediate << kImmed8Shift);
       return true;
     }
     // Note that immediate must be unsigned for the test to work correctly.
     for (int rot = 0; rot < 16; rot++) {
       uint32_t imm8 = (immediate << 2*rot) | (immediate >> (32 - 2*rot));
       if (imm8 < (1 << kImmed8Bits)) {
-        shifter_op->type_ = 1;
-        shifter_op->encoding_ = (rot << kRotateShift) | (imm8 << kImmed8Shift);
+        o->type_ = 1;
+        o->encoding_ = (rot << kRotateShift) | (imm8 << kImmed8Shift);
         return true;
       }
     }
@@ -233,14 +232,14 @@ class Address : public ValueObject {
 
   Address(Register rn, Register rm,
           Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
-    ShifterOperand so(rm, shift, shift_imm);
+    Operand o(rm, shift, shift_imm);
 
     if ((shift == LSL) && (shift_imm == 0)) {
       kind_ = IndexRegister;
     } else {
       kind_ = ScaledIndexRegister;
     }
-    encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
+    encoding_ = o.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
   static OperandSize OperandSizeFor(intptr_t cid);
@@ -343,49 +342,49 @@ class Assembler : public ValueObject {
   static const char* FpuRegisterName(FpuRegister reg);
 
   // Data-processing instructions.
-  void and_(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void and_(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void eor(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void sub(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
-  void subs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void sub(Register rd, Register rn, Operand o, Condition cond = AL);
+  void subs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void rsb(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
-  void rsbs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void rsb(Register rd, Register rn, Operand o, Condition cond = AL);
+  void rsbs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void add(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void add(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void adds(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void adds(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void adc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void adc(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void adcs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void adcs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void sbc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void sbc(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void sbcs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void sbcs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void rsc(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void rsc(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void tst(Register rn, ShifterOperand so, Condition cond = AL);
+  void tst(Register rn, Operand o, Condition cond = AL);
 
-  void teq(Register rn, ShifterOperand so, Condition cond = AL);
+  void teq(Register rn, Operand o, Condition cond = AL);
 
-  void cmp(Register rn, ShifterOperand so, Condition cond = AL);
+  void cmp(Register rn, Operand o, Condition cond = AL);
 
-  void cmn(Register rn, ShifterOperand so, Condition cond = AL);
+  void cmn(Register rn, Operand o, Condition cond = AL);
 
-  void orr(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
-  void orrs(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void orr(Register rd, Register rn, Operand o, Condition cond = AL);
+  void orrs(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void mov(Register rd, ShifterOperand so, Condition cond = AL);
-  void movs(Register rd, ShifterOperand so, Condition cond = AL);
+  void mov(Register rd, Operand o, Condition cond = AL);
+  void movs(Register rd, Operand o, Condition cond = AL);
 
-  void bic(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
-  void bics(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void bic(Register rd, Register rn, Operand o, Condition cond = AL);
+  void bics(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void mvn(Register rd, ShifterOperand so, Condition cond = AL);
-  void mvns(Register rd, ShifterOperand so, Condition cond = AL);
+  void mvn(Register rd, Operand o, Condition cond = AL);
+  void mvns(Register rd, Operand o, Condition cond = AL);
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
@@ -820,7 +819,7 @@ class Assembler : public ValueObject {
                   int set_cc,
                   Register rn,
                   Register rd,
-                  ShifterOperand so);
+                  Operand o);
 
   void EmitType5(Condition cond, int32_t offset, bool link);
 
@@ -845,13 +844,13 @@ class Assembler : public ValueObject {
                           Shift opcode,
                           Register rd,
                           Register rm,
-                          ShifterOperand so);
+                          Operand o);
 
   void EmitShiftRegister(Condition cond,
                          Shift opcode,
                          Register rd,
                          Register rm,
-                         ShifterOperand so);
+                         Operand o);
 
   void EmitMulOp(Condition cond,
                  int32_t opcode,

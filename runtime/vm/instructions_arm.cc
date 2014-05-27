@@ -140,7 +140,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     offset = instr & 0xfff;
     start -= Instr::kInstrSize;
     instr = Instr::At(start)->InstructionBits();
-    if ((instr & 0xffff0000) == 0xe28a0000) {  // add reg, pp, shifter_op
+    if ((instr & 0xffff0000) == 0xe28a0000) {  // add reg, pp, operand
       const intptr_t rot = (instr & 0xf00) >> 7;
       const intptr_t imm8 = instr & 0xff;
       offset += (imm8 >> rot) | (imm8 << (32 - rot));

@@ -21,12 +21,12 @@ void GenerateIncrement(Assembler* assembler) {
   __ LoadImmediate(R0, 0);
   __ Push(R0);
   __ ldr(IP, Address(SP, 0));
-  __ add(IP, IP, ShifterOperand(1));
+  __ add(IP, IP, Operand(1));
   __ str(IP, Address(SP, 0));
   __ ldr(IP, Address(SP, 0));
-  __ add(IP, IP, ShifterOperand(1));
+  __ add(IP, IP, Operand(1));
   __ Pop(R0);
-  __ mov(R0, ShifterOperand(IP));
+  __ mov(R0, Operand(IP));
   __ Ret();
 }
 

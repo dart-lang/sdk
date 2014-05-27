@@ -251,7 +251,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
-  __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
+  __ tst(kInstanceReg, Operand(kSmiTagMask));
   if (smi_is_ok) {
     __ b(is_instance_lbl, EQ);
   } else {
@@ -337,7 +337,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = R0;
-  __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
+  __ tst(kInstanceReg, Operand(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
@@ -447,7 +447,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
-    __ tst(R0, ShifterOperand(kSmiTagMask));  // Value is Smi?
+    __ tst(R0, Operand(kSmiTagMask));  // Value is Smi?
     __ b(&not_smi, NE);
     __ CompareObject(R2, Type::ZoneHandle(Type::IntType()));
     __ b(is_instance_lbl, EQ);
@@ -477,7 +477,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   if (type.IsType()) {
     const Register kInstanceReg = R0;
     const Register kTypeArgumentsReg = R1;
-    __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));  // Is instance Smi?
+    __ tst(kInstanceReg, Operand(kSmiTagMask));  // Is instance Smi?
     __ b(is_not_instance_lbl, EQ);
     __ ldr(kTypeArgumentsReg, Address(SP, 0));  // Instantiator type args.
     // Uninstantiated type class is known at compile time, but the type
@@ -608,7 +608,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     if (negate_result) {
       __ Pop(R1);
       __ LoadObject(R0, Bool::True());
-      __ cmp(R1, ShifterOperand(R0));
+      __ cmp(R1, Operand(R0));
       __ b(&done, NE);
       __ LoadObject(R0, Bool::False());
     } else {
@@ -760,14 +760,14 @@ void FlowGraphCompiler::CopyParameters() {
   // Since R7 and R8 are Smi, use LSL 1 instead of LSL 2.
   // Let R7 point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
-  __ sub(R7, R7, ShifterOperand(R8));
-  __ add(R7, FP, ShifterOperand(R7, LSL, 1));
-  __ add(R7, R7, ShifterOperand((kParamEndSlotFromFp + 1) * kWordSize));
+  __ sub(R7, R7, Operand(R8));
+  __ add(R7, FP, Operand(R7, LSL, 1));
+  __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
 
   // Let R6 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
   __ AddImmediate(R6, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
-  __ sub(R6, R6, ShifterOperand(R8, LSL, 1));  // R8 is a Smi.
+  __ sub(R6, R6, Operand(R8, LSL, 1));  // R8 is a Smi.
   __ SmiUntag(R8);
   Label loop, loop_condition;
   __ b(&loop_condition);
@@ -780,7 +780,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ ldr(IP, argument_addr);
   __ str(IP, copy_addr);
   __ Bind(&loop_condition);
-  __ subs(R8, R8, ShifterOperand(1));
+  __ subs(R8, R8, Operand(1));
   __ b(&loop, PL);
 
   // Copy or initialize optional named arguments.
@@ -816,10 +816,10 @@ void FlowGraphCompiler::CopyParameters() {
     __ SmiUntag(R8);
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
-    __ add(R7, FP, ShifterOperand(R7, LSL, 1));
+    __ add(R7, FP, Operand(R7, LSL, 1));
     __ AddImmediate(R7, R7, kParamEndSlotFromFp * kWordSize);
     // Let R6 point to the entry of the first named argument.
-    __ add(R6, R4, ShifterOperand(
+    __ add(R6, R4, Operand(
         ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter;
@@ -835,8 +835,8 @@ void FlowGraphCompiler::CopyParameters() {
       __ ldr(R5, Address(R6, ArgumentsDescriptor::position_offset()));
       // R5 is arg_pos as Smi.
       // Point to next named entry.
-      __ add(R6, R6, ShifterOperand(ArgumentsDescriptor::named_entry_size()));
-      __ rsb(R5, R5, ShifterOperand(0));
+      __ add(R6, R6, Operand(ArgumentsDescriptor::named_entry_size()));
+      __ rsb(R5, R5, Operand(0));
       Address argument_addr(R7, R5, LSL, 1);  // R5 is a negative Smi.
       __ ldr(R5, argument_addr);
       __ b(&assign_optional_parameter);
@@ -894,7 +894,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
       __ SmiUntag(R7);
       // Check that R8 equals R7, i.e. no named arguments passed.
-      __ cmp(R8, ShifterOperand(R7));
+      __ cmp(R8, Operand(R7));
       __ b(&all_arguments_processed, EQ);
     }
   }
@@ -925,7 +925,7 @@ void FlowGraphCompiler::CopyParameters() {
   // R4 : arguments descriptor array.
   __ ldr(R8, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(R8);
-  __ add(R7, FP, ShifterOperand((kParamEndSlotFromFp + 1) * kWordSize));
+  __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
   const Address original_argument_addr(R7, R8, LSL, 2);
   __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
   Label null_args_loop, null_args_loop_condition;
@@ -933,7 +933,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ Bind(&null_args_loop);
   __ str(IP, original_argument_addr);
   __ Bind(&null_args_loop_condition);
-  __ subs(R8, R8, ShifterOperand(1));
+  __ subs(R8, R8, Operand(1));
   __ b(&null_args_loop, PL);
 }
 
@@ -972,13 +972,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
     // The pool pointer is not setup before entering the Dart frame.
     // Preserve PP of caller.
-    __ mov(R7, ShifterOperand(PP));
+    __ mov(R7, Operand(PP));
     // Temporarily setup pool pointer for this dart function.
     __ LoadPoolPointer();
     // Load function object from object pool.
     __ LoadObject(function_reg, function);  // Uses PP.
     // Restore PP of caller.
-    __ mov(PP, ShifterOperand(R7));
+    __ mov(PP, Operand(R7));
 
     // Patch point is after the eventually inlined function object.
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
@@ -992,7 +992,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
       // IC stubs, but not at the entry of the function.
       threshold = FLAG_reoptimization_counter_threshold;
     } else {
-      __ add(R7, R7, ShifterOperand(1));
+      __ add(R7, R7, Operand(1));
       __ str(R7, FieldAddress(function_reg,
                               Function::usage_counter_offset()));
     }
@@ -1059,7 +1059,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&wrong_num_arguments, NE);
       __ ldr(R1, FieldAddress(R4,
                               ArgumentsDescriptor::positional_count_offset()));
-      __ cmp(R0, ShifterOperand(R1));
+      __ cmp(R0, Operand(R1));
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
@@ -1183,7 +1183,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   __ Comment("Edge counter");
   __ LoadObject(R0, counter);
   __ ldr(IP, FieldAddress(R0, Array::element_offset(0)));
-  __ add(IP, IP, ShifterOperand(Smi::RawValue(1)));
+  __ add(IP, IP, Operand(Smi::RawValue(1)));
   __ str(IP, FieldAddress(R0, Array::element_offset(0)));
 }
 
@@ -1246,9 +1246,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  __ tst(R0, ShifterOperand(kSmiTagMask));
+  __ tst(R0, Operand(kSmiTagMask));
   __ b(&not_smi, NE);
-  __ mov(R0, ShifterOperand(Smi::RawValue(kSmiCid)));
+  __ mov(R0, Operand(Smi::RawValue(kSmiCid)));
   __ b(&load_cache);
 
   __ Bind(&not_smi);
@@ -1262,24 +1262,24 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ ldr(R1, FieldAddress(R1, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
   // R1: mask.
-  __ mov(R3, ShifterOperand(R0));
+  __ mov(R3, Operand(R0));
 
   Label loop, update, call_target_function;
   __ b(&loop);
 
   __ Bind(&update);
-  __ add(R3, R3, ShifterOperand(Smi::RawValue(1)));
+  __ add(R3, R3, Operand(Smi::RawValue(1)));
   __ Bind(&loop);
-  __ and_(R3, R3, ShifterOperand(R1));
+  __ and_(R3, R3, Operand(R1));
   const intptr_t base = Array::data_offset();
   // R3 is smi tagged, but table entries are two words, so LSL 2.
-  __ add(IP, R2, ShifterOperand(R3, LSL, 2));
+  __ add(IP, R2, Operand(R3, LSL, 2));
   __ ldr(R4, FieldAddress(IP, base));
 
   ASSERT(kIllegalCid == 0);
-  __ tst(R4, ShifterOperand(R4));
+  __ tst(R4, Operand(R4));
   __ b(&call_target_function, EQ);
-  __ cmp(R4, ShifterOperand(R0));
+  __ cmp(R4, Operand(R0));
   __ b(&update, NE);
 
   __ Bind(&call_target_function);
@@ -1287,7 +1287,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ add(IP, R2, ShifterOperand(R3, LSL, 2));
+  __ add(IP, R2, Operand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
   __ ldr(R1, FieldAddress(R0, Function::code_offset()));
   __ ldr(R1, FieldAddress(R1, Code::instructions_offset()));
@@ -1415,7 +1415,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ Pop(right);
     __ Pop(left);
   } else {
-    __ cmp(left, ShifterOperand(right));
+    __ cmp(left, Operand(right));
   }
 }
 
@@ -1549,7 +1549,7 @@ void ParallelMoveResolver::EmitMove(int index) {
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
-      __ mov(destination.reg(), ShifterOperand(source.reg()));
+      __ mov(destination.reg(), Operand(source.reg()));
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
@@ -1649,9 +1649,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     ASSERT(source.reg() != IP);
     ASSERT(destination.reg() != IP);
-    __ mov(IP, ShifterOperand(source.reg()));
-    __ mov(source.reg(), ShifterOperand(destination.reg()));
-    __ mov(destination.reg(), ShifterOperand(IP));
+    __ mov(IP, Operand(source.reg()));
+    __ mov(source.reg(), Operand(destination.reg()));
+    __ mov(destination.reg(), Operand(IP));
   } else if (source.IsRegister() && destination.IsStackSlot()) {
     Exchange(source.reg(), destination.ToStackSlotOffset());
   } else if (source.IsStackSlot() && destination.IsRegister()) {
@@ -1747,7 +1747,7 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 
 
 void ParallelMoveResolver::Exchange(Register reg, intptr_t stack_offset) {
-  __ mov(TMP, ShifterOperand(reg));
+  __ mov(TMP, Operand(reg));
   __ LoadFromOffset(kWord, reg, FP, stack_offset);
   __ StoreToOffset(kWord, TMP, FP, stack_offset);
 }
