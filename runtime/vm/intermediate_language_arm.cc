@@ -1267,11 +1267,11 @@ static Address ElementAddressForRegIndex(Assembler* assembler,
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-  element_address = index.IsRegister()
+  Address element_address = index.IsRegister()
       ? ElementAddressForRegIndex(compiler->assembler(),
                                   true,  // Load.
                                   IsExternal(), class_id(), index_scale(),
@@ -1335,7 +1335,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(representation() == kTagged);
 
-  Register result = locs()->out(0).reg();
+  const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
       ASSERT(index_scale() == 1);
@@ -1485,17 +1485,17 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-  element_address = index.IsRegister()
-  ? ElementAddressForRegIndex(compiler->assembler(),
-                              false,  // Store.
-                              IsExternal(), class_id(), index_scale(),
-                              array, index.reg())
-  : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                              array, Smi::Cast(index.constant()).Value());
+  Address element_address = index.IsRegister()
+      ? ElementAddressForRegIndex(compiler->assembler(),
+                                  false,  // Store.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, index.reg())
+      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:

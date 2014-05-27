@@ -1118,11 +1118,11 @@ static Address ElementAddressForRegIndex(bool is_external,
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  // The array register points to the backing store for external arrays.
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-  element_address = index.IsRegister()
+  Address element_address = index.IsRegister()
       ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
                                   array, index.reg())
       : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
@@ -1343,11 +1343,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  // The array register points to the backing store for external arrays.
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-  element_address = index.IsRegister()
+  Address element_address = index.IsRegister()
       ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
                                   array, index.reg())
       : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),

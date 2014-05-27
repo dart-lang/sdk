@@ -183,6 +183,51 @@ class Address : public ValueObject {
     base_ = crn;
   }
 
+  static OperandSize OperandSizeFor(intptr_t cid) {
+    switch (cid) {
+      case kArrayCid:
+      case kImmutableArrayCid:
+        return kWord;
+      case kOneByteStringCid:
+        return kByte;
+      case kTwoByteStringCid:
+        return kHalfword;
+      case kTypedDataInt8ArrayCid:
+        return kByte;
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        return kUnsignedByte;
+      case kTypedDataInt16ArrayCid:
+        return kHalfword;
+      case kTypedDataUint16ArrayCid:
+        return kUnsignedHalfword;
+      case kTypedDataInt32ArrayCid:
+        return kWord;
+      case kTypedDataUint32ArrayCid:
+        return kUnsignedWord;
+      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
+        UNREACHABLE();
+        return kByte;
+      case kTypedDataFloat32ArrayCid:
+        return kSWord;
+      case kTypedDataFloat64ArrayCid:
+        return kDWord;
+      case kTypedDataFloat32x4ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat64x2ArrayCid:
+        return kQWord;
+      case kTypedDataInt8ArrayViewCid:
+        UNREACHABLE();
+        return kByte;
+      default:
+        UNREACHABLE();
+        return kByte;
+    }
+  }
+
  private:
   uint32_t encoding() const { return encoding_; }
   AddressType type() const { return type_; }

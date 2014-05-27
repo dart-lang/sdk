@@ -65,6 +65,7 @@ class Label : public ValueObject {
 
 
 // Encodes Addressing Mode 1 - Data-processing operands.
+// TODO(regis): rename ShifterOperand to Operand.
 class ShifterOperand : public ValueObject {
  public:
   // Data-processing operands - Uninitialized.
