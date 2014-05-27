@@ -386,7 +386,9 @@ abstract class Element implements Spannable {
 
   void diagnose(Element context, DiagnosticListener listener);
 
-  TreeElements get treeElements;
+  // TODO(johnniwinther): Move this to [AstElement].
+  /// Returns the [Element] that holds the [TreeElements] for this element.
+  AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor);
 }
@@ -782,7 +784,8 @@ abstract class CompilationUnitElement extends Element {
   int compareTo(CompilationUnitElement other);
 }
 
-abstract class LibraryElement extends Element implements ScopeContainerElement {
+abstract class LibraryElement extends Element
+    implements ScopeContainerElement, AnalyzableElement {
   /**
    * The canonical uri for this library.
    *
@@ -1043,6 +1046,10 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
   Link<DartType> get typeVariables;
 
   bool get isResolved;
+
+  int get resolutionState;
+
+  void ensureResolved(Compiler compiler);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -1080,20 +1087,12 @@ abstract class ClassElement extends TypeDeclarationElement
   ClassElement get implementation;
 
   int get supertypeLoadState;
-  int get resolutionState;
   String get nativeTagInfo;
 
   bool get isMixinApplication;
   bool get isUnnamedMixinApplication;
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
-
-  // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set supertype(DartType value);
-  void set interfaces(Link<DartType> value);
-  void set supertypeLoadState(int value);
-  void set resolutionState(int value);
-  void set nativeTagInfo(String value);
 
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
@@ -1110,8 +1109,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
-
-  void ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
@@ -1226,9 +1223,6 @@ abstract class MetadataAnnotation implements Spannable {
   Token get beginToken;
   Token get endToken;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set annotatedElement(Element value);
-
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
@@ -1244,10 +1238,17 @@ abstract class FunctionTypedElement extends Element {
   FunctionSignature get functionSignature;
 }
 
+/// An [Element] that holds a [TreeElements] mapping.
+abstract class AnalyzableElement extends Element {
+  /// Returns the [TreeElements] that hold the resolution information for the
+  /// AST nodes of this element.
+  TreeElements get treeElements;
+}
+
 /// An [Element] that (potentially) has a node.
 ///
 /// Synthesized elements may return `null` from [node].
-abstract class AstElement extends Element {
+abstract class AstElement extends AnalyzableElement {
   Node get node;
 }
 

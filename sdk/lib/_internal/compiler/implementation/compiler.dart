@@ -1486,11 +1486,6 @@ abstract class Compiler implements DiagnosticListener {
                               () => resolver.resolveSignature(element));
   }
 
-  void resolveTypedef(TypedefElement element) {
-    withCurrentElement(element,
-                       () => resolver.resolve(element));
-  }
-
   void reportError(Spannable node,
                    MessageKind messageKind,
                    [Map arguments = const {}]) {
