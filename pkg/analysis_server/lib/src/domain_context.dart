@@ -265,11 +265,13 @@ class ContextDomainHandler implements RequestHandler {
    * the specified context does not exist.
    */
   AnalysisContext getAnalysisContext(Request request) {
-    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
-    AnalysisContext context = server.contextMap[contextId];
-    if (context == null) {
-      throw new RequestFailure(new Response.contextDoesNotExist(request));
-    }
-    return context;
+    // TODO(scheglov) remove it after migrating to the new API
+    return null;
+//    String contextId = request.getRequiredParameter(CONTEXT_ID_PARAM).asString();
+//    AnalysisContext context = server.contextMap[contextId];
+//    if (context == null) {
+//      throw new RequestFailure(new Response.contextDoesNotExist(request));
+//    }
+//    return context;
   }
 }
