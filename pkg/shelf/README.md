@@ -98,6 +98,10 @@ An adapter should include information about itself in the Server header of the
 response by default. If the handler returns a response with the Server header
 set, that must take precedence over the adapter's default header.
 
+An adapter should include the Date header with the time the handler returns a
+response. If the handler returns a response with the Date header set, that must
+take precedence.
+
 An adapter should ensure that asynchronous errors thrown by the handler don't
 cause the application to crash, even if they aren't reported by the future
 chain. Specifically, these errors shouldn't be passed to the root zone's error

@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' as parser;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -246,6 +247,40 @@ void main() {
           expect(response.body, 'Hello from /');
           server.close();
         });
+      });
+    });
+  });
+
+  group('date header', () {
+    test('is sent by default', () {
+      _scheduleServer(syncHandler);
+
+      // Update beforeRequest to be one second earlier. HTTP dates only have
+      // second-level granularity and the request will likely take less than a
+      // second.
+      var beforeRequest = new DateTime.now().subtract(new Duration(seconds: 1));
+
+      return _scheduleGet().then((response) {
+        expect(response.headers, contains('date'));
+        var responseDate = parser.parseHttpDate(response.headers['date']);
+
+        expect(responseDate.isAfter(beforeRequest), isTrue);
+        expect(responseDate.isBefore(new DateTime.now()), isTrue);
+      });
+    });
+
+    test('defers to header in response', () {
+      var date = new DateTime.utc(1981, 6, 5);
+      _scheduleServer((request) {
+        return new Response.ok('test', headers: {
+          HttpHeaders.DATE: parser.formatHttpDate(date)
+        });
+      });
+
+      return _scheduleGet().then((response) {
+        expect(response.headers, contains('date'));
+        var responseDate = parser.parseHttpDate(response.headers['date']);
+        expect(responseDate, date);
       });
     });
   });
