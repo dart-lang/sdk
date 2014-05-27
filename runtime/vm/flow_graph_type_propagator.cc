@@ -913,23 +913,25 @@ CompileType* StoreInstanceFieldInstr::ComputeInitialType() const {
 
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
-  if (FLAG_enable_type_checks) {
-    return CompileType::FromAbstractType(
-        AbstractType::ZoneHandle(StaticField().type()));
-  }
+  bool is_nullable = CompileType::kNullable;
+  intptr_t cid = kDynamicCid;
+  AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
+  if (FLAG_enable_type_checks) {
+    cid = kIllegalCid;
+    abstract_type = &AbstractType::ZoneHandle(field.type());
+  }
   ASSERT(field.is_static());
   if (field.is_final()) {
-    Instance& obj = Instance::Handle(field.value());
+    const Instance& obj = Instance::Handle(field.value());
     if ((obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw()) &&
         !obj.IsNull()) {
-      return CompileType(CompileType::kNonNullable,
-                         Class::Handle(obj.clazz()).id(),
-                         NULL);
+      is_nullable = CompileType::kNonNullable;
+      cid = obj.GetClassId();
     }
   }
-  return CompileType::Dynamic();
+  return CompileType(is_nullable, cid, abstract_type);
 }
 
 
