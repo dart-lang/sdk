@@ -897,6 +897,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
                                        onResume: _subscription.resume);
 
     _webSockets[_serviceId] = this;
+    try { _socket._owner = this; } catch (_) {}
   }
 
   StreamSubscription listen(void onData(message),

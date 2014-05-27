@@ -21,6 +21,11 @@ class IOViewElement extends ObservatoryElement {
   }
 }
 
+@CustomTag('io-ref')
+class IORefElement extends ServiceRefElement {
+  IORefElement.created() : super.created();
+}
+
 @CustomTag('io-http-server-list-view')
 class IOHttpServerListViewElement extends ObservatoryElement {
   @published ServiceMap list;

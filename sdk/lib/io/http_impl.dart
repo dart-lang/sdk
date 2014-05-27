@@ -2088,6 +2088,7 @@ class _HttpServer
                                                     onCancel: close);
     idleTimeout = const Duration(seconds: 120);
     _servers[_serviceId] = this;
+    _serverSocket._owner = this;
   }
 
   _HttpServer.listenOn(this._serverSocket) : _closeServer = false {
@@ -2095,6 +2096,7 @@ class _HttpServer
                                                     onCancel: close);
     idleTimeout = const Duration(seconds: 120);
     _servers[_serviceId] = this;
+    try { _serverSocket._owner = this; } catch (_) {}
   }
 
   Duration get idleTimeout => _idleTimeout;
@@ -2461,6 +2463,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket._owner = owner; }
 }
 
 

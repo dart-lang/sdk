@@ -436,6 +436,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int totalRead = 0;
   int totalWritten = 0;
 
+  // The owner object is the object that the Socket is being used by, e.g.
+  // a HttpServer, a WebSocket connection, a process pipe, etc.
+  Object owner;
+
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _IOService.dispatch(_SOCKET_LOOKUP, [host, type._value])
@@ -960,6 +964,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     eventPort.close();
     eventPort = null;
     _sockets.remove(_serviceId);
+    // Now that we don't track this Socket anymore, we can clear the owner
+    // field.
+    owner = null;
   }
 
   // Check whether this is an error response from a native port call.
@@ -1079,6 +1086,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     r['port'] = port;
     r['address'] = address.host;
     r['fd'] = nativeGetSocketId();
+    if (owner != null) {
+      r['owner'] = owner._toJSON(true);
+    }
     return r;
   }
 
@@ -1216,6 +1226,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket.owner = owner; }
 }
 
 
@@ -1391,6 +1402,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket.owner = owner; }
 }
 
 
@@ -1451,6 +1463,7 @@ class _ServerSocket extends Stream<Socket>
   }
 
   Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket._owner = owner; }
 }
 
 
@@ -1749,6 +1762,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   Map _toJSON(bool ref) => _raw._toJSON(ref);
+  void set _owner(owner) { _raw._owner = owner; }
 }
 
 
