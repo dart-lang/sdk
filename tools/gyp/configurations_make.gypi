@@ -81,6 +81,25 @@
         ],
       },
 
+      # ARM64 cross-build
+      'Dart_Linux_xarm64_Base': {
+        'abstract': 1,
+        'target_conditions': [
+        ['_toolset=="target"', {
+          'cflags': [ '-O3', ],
+        }],
+        ['_toolset=="host"', {
+          'cflags': ['-O3', '-m64', '-msse2'],
+          'ldflags': ['-m64'],
+        }]]
+      },
+
+      # ARM64 native build
+      'Dart_Linux_arm64_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', ],
+      },
+
       'Dart_Linux_simmips_Base': {
         'abstract': 1,
         'cflags': [ '-O3', '-m32', '-msse2' ],

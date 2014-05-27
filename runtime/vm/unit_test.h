@@ -140,6 +140,7 @@
     defined(HOST_ARCH_ARM64)
 // Running on actual ARM or MIPS hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
+#define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
     reinterpret_cast<name>(entry)(long_arg0, long_arg1)
 #define EXECUTE_TEST_CODE_FLOAT(name, entry) reinterpret_cast<name>(entry)()

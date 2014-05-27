@@ -167,6 +167,11 @@ typedef simd_value_t fpu_register_t;
 #define ARCH_IS_32_BIT 1
 #define kFpuRegisterSize 8
 typedef double fpu_register_t;
+#elif defined(__aarch64__)
+#define HOST_ARCH_ARM64 1
+#define ARCH_IS_64_BIT 1
+#define kFpuRegisterSize 16
+typedef simd128_value_t fpu_register_t;
 #else
 #error Architecture was not detected as supported by Dart.
 #endif

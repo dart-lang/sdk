@@ -225,7 +225,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, entry, kNoPP);
   __ blr(R2);
 #else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNoPP);
 #endif
   __ b(&done);
 
