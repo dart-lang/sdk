@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
@@ -41,10 +43,9 @@ abstract class BaseServer<T> {
   final _resultsController = new StreamController<T>.broadcast();
 
   BaseServer(this.environment, this._server) {
-    Chain.track(_server).listen(handleRequest, onError: (error, stackTrace) {
-      _resultsController.addError(error, stackTrace);
-      close();
-    });
+    shelf_io.serveRequests(Chain.track(_server), const shelf.Pipeline()
+        .addMiddleware(shelf.createMiddleware(errorHandler: _handleError))
+        .addHandler(handleRequest));
   }
 
   /// Closes this server.
@@ -53,35 +54,27 @@ abstract class BaseServer<T> {
   }
 
   /// Handles an HTTP request.
-  void handleRequest(HttpRequest request);
+  handleRequest(shelf.Request request);
 
-  /// Responds to [request] with a 405 response and closes it.
-  void methodNotAllowed(HttpRequest request) {
+  /// Returns a 405 response to [request].
+  shelf.Response methodNotAllowed(shelf.Request request) {
     logRequest(request, "405 Method Not Allowed");
-    request.response.statusCode = 405;
-    request.response.reasonPhrase = "Method Not Allowed";
-    request.response.headers.add('Allow', 'GET, HEAD');
-    request.response.write(
-        "The ${request.method} method is not allowed for ${request.uri}.");
-    request.response.close();
+    return new shelf.Response(405,
+        body: "The ${request.method} method is not allowed for ${request.url}.",
+        headers: {'Allow': 'GET, HEAD'});
   }
 
-  /// Responds to [request] with a 404 response and closes it.
+  /// Returns a 404 response to [request].
   ///
   /// If [asset] is given, it is the ID of the asset that couldn't be found.
-  void notFound(HttpRequest request, {String error, AssetId asset}) {
+  shelf.Response notFound(shelf.Request request, {String error,
+      AssetId asset}) {
     logRequest(request, "Not Found");
-
-    // Force a UTF-8 encoding so that error messages in non-English locales are
-    // sent correctly.
-    request.response.headers.contentType =
-        ContentType.parse("text/html; charset=utf-8");
-    request.response.statusCode = 404;
-    request.response.reasonPhrase = "Not Found";
 
     // TODO(rnystrom): Apply some styling to make it visually clear that this
     // error is coming from pub serve itself.
-    request.response.writeln("""
+    var body = new StringBuffer();
+    body.writeln("""
         <!DOCTYPE html>
         <head>
         <title>404 Not Found</title>
@@ -90,24 +83,27 @@ abstract class BaseServer<T> {
         <h1>404 Not Found</h1>""");
 
     if (asset != null) {
-      request.response.writeln("<p>Could not find asset "
+      body.writeln("<p>Could not find asset "
           "<code>${HTML_ESCAPE.convert(asset.path)}</code> in package "
           "<code>${HTML_ESCAPE.convert(asset.package)}</code>.</p>");
     }
 
     if (error != null) {
-      request.response.writeln("<p>Error: ${HTML_ESCAPE.convert(error)}</p>");
+      body.writeln("<p>Error: ${HTML_ESCAPE.convert(error)}</p>");
     }
 
-    request.response.writeln("""
+    body.writeln("""
         </body>""");
 
-    request.response.close();
+    // Force a UTF-8 encoding so that error messages in non-English locales are
+    // sent correctly.
+    return new shelf.Response.notFound(body.toString(),
+        headers: {'Content-Type': 'text/html; charset=utf-8'});
   }
 
   /// Log [message] at [log.Level.FINE] with metadata about [request].
-  void logRequest(HttpRequest request, String message) =>
-    log.fine("$this ${request.method} ${request.uri}\n$message");
+  void logRequest(shelf.Request request, String message) =>
+    log.fine("$this ${request.method} ${request.url}\n$message");
 
   /// Adds [result] to the server's [results] stream.
   void addResult(T result) {
@@ -117,5 +113,12 @@ abstract class BaseServer<T> {
   /// Adds [error] as an error to the server's [results] stream.
   void addError(error, [stackTrace]) {
     _resultsController.addError(error, stackTrace);
+  }
+
+  /// Handles an error thrown by [handleRequest].
+  _handleError(error, StackTrace stackTrace) {
+    _resultsController.addError(error, stackTrace);
+    close();
+    return new shelf.Response.internalServerError();
   }
 }

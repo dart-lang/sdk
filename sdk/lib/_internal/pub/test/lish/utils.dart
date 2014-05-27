@@ -5,7 +5,6 @@
 library lish.utils;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
