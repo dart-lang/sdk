@@ -64,8 +64,8 @@ class SsaBuilderTask extends CompilerTask {
             // This ensures the default value will be computed.
             Constant constant =
                 backend.constants.getConstantForVariable(parameter);
-            backend.registerCompileTimeConstant(constant, work.registry);
-            backend.constants.addCompileTimeConstantForEmission(constant);
+            CodegenRegistry registry = work.registry;
+            registry.registerCompileTimeConstant(constant);
           });
         }
         if (compiler.tracer.enabled) {
@@ -991,6 +991,8 @@ class SsaBuilder extends ResolvedVisitor {
     sourceElementStack.add(work.element);
   }
 
+  CodegenRegistry get registry => work.registry;
+
   Element get sourceElement => sourceElementStack.last;
 
   HBasicBlock addNewBlock() {
@@ -1174,6 +1176,9 @@ class SsaBuilder extends ResolvedVisitor {
                        Selector selector,
                        List<HInstruction> providedArguments,
                        ast.Node currentNode) {
+    // TODO(johnniwinther): Register this on the [registry]. Currently the
+    // [CodegenRegistry] calls the enqueuer, but [element] should _not_ be
+    // enqueued.
     backend.registerStaticUse(element, compiler.enqueuer.codegen);
 
     // Ensure that [element] is an implementation element.
@@ -2228,7 +2233,7 @@ class SsaBuilder extends ResolvedVisitor {
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
-    compiler.enqueuer.codegen.registerIsCheck(type, work.registry);
+    registry.registerIsCheck(type);
     return other;
   }
 
@@ -2245,7 +2250,7 @@ class SsaBuilder extends ResolvedVisitor {
                                 messageInstruction];
     HInstruction assertIsSubtype = new HInvokeStatic(
         element, inputs, subtypeInstruction.instructionType);
-    compiler.backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+    registry.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
     add(assertIsSubtype);
   }
 
@@ -2825,10 +2830,11 @@ class SsaBuilder extends ResolvedVisitor {
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
     // TODO(ahe): This should be registered in codegen, not here.
-    compiler.enqueuer.codegen.addToWorkList(callElement);
+    // TODO(johnniwinther): Is [registerStaticUse] equivalent to
+    // [addToWorkList]?
+    registry.registerStaticUse(callElement);
     // TODO(ahe): This should be registered in codegen, not here.
-    compiler.enqueuer.codegen.registerInstantiatedClass(
-        closureClassElement, work.registry);
+    registry.registerInstantiatedClass(closureClassElement);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     closureClassElement.forEachMember((_, Element member) {
@@ -2846,8 +2852,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     Element methodElement = nestedClosureData.closureElement;
     if (compiler.backend.methodNeedsRti(methodElement)) {
-      compiler.backend.registerGenericClosure(
-          methodElement, compiler.enqueuer.codegen, work.registry);
+      registry.registerGenericClosure(methodElement);
     }
   }
 
@@ -3043,8 +3048,7 @@ class SsaBuilder extends ResolvedVisitor {
       // creating an [HStatic].
       push(new HStatic(element.declaration, backend.nonNullType));
       // TODO(ahe): This should be registered in codegen.
-      compiler.enqueuer.codegen.registerGetOfStaticFunction(
-          element.declaration);
+      registry.registerGetOfStaticFunction(element.declaration);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
@@ -3573,7 +3577,7 @@ class SsaBuilder extends ResolvedVisitor {
           '"$name" does not handle closure with optional parameters.');
     }
 
-    compiler.enqueuer.codegen.registerStaticUse(element);
+    registry.registerStaticUse(element);
     push(new HForeign(js.js.expressionTemplateYielding(
                           backend.namer.elementAccess(element)),
                       backend.dynamicType,
@@ -3733,7 +3737,7 @@ class SsaBuilder extends ResolvedVisitor {
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
-      compiler.enqueuer.codegen.registerSelectorUse(selector.asUntyped);
+      registry.registerSelectorUse(selector.asUntyped);
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';
@@ -3953,7 +3957,7 @@ class SsaBuilder extends ResolvedVisitor {
       inputs.add(analyzeTypeArgument(argument));
     });
     // TODO(15489): Register at codegen.
-    compiler.enqueuer.codegen.registerInstantiatedType(type, work.registry);
+    registry.registerInstantiatedType(type);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -4080,7 +4084,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     if (constructor.isFactoryConstructor &&
         !expectedType.typeArguments.isEmpty) {
-      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(work.registry);
+      registry.registerFactoryWithTypeArguments();
     }
 
     TypeMask elementType = computeType(constructor);
@@ -4433,8 +4437,7 @@ class SsaBuilder extends ResolvedVisitor {
         ConstructedConstant symbol = getConstantForNode(node);
         StringConstant stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
-        compiler.enqueuer.codegen.registerConstSymbol(nameString,
-                                                      work.registry);
+        registry.registerConstSymbol(nameString);
       }
     } else {
       handleNewSend(node);
@@ -4758,8 +4761,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void visitLiteralSymbol(ast.LiteralSymbol node) {
     stack.add(addConstant(node));
-    compiler.enqueuer.codegen.registerConstSymbol(
-        node.slowNameString, work.registry);
+    registry.registerConstSymbol(node.slowNameString);
   }
 
   void visitStringJuxtaposition(ast.StringJuxtaposition node) {
@@ -4922,7 +4924,7 @@ class SsaBuilder extends ResolvedVisitor {
       arguments.add(analyzeTypeArgument(argument));
     }
     // TODO(15489): Register at codegen.
-    compiler.enqueuer.codegen.registerInstantiatedType(type, work.registry);
+    registry.registerInstantiatedType(type);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
@@ -5164,7 +5166,7 @@ class SsaBuilder extends ResolvedVisitor {
     expectedType = localsHandler.substInContext(expectedType);
 
     if (constructor.isFactoryConstructor) {
-      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(work.registry);
+      registry.registerFactoryWithTypeArguments();
     }
 
     ClassElement cls = constructor.enclosingClass;

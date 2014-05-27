@@ -47,17 +47,105 @@ class ResolutionWorkItem extends WorkItem {
   bool isAnalyzed() => resolutionTree != null;
 }
 
+// TODO(johnniwinther): Split this class into interface and implementation.
+// TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry extends Registry {
+  final Compiler compiler;
   final TreeElements treeElements;
 
-  CodegenRegistry(this.treeElements);
+  CodegenRegistry(this.compiler, this.treeElements);
 
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
-  Iterable<Element> get otherDependencies => treeElements.otherDependencies;
+  Setlet<Element> get otherDependencies => treeElements.otherDependencies;
+
+  CodegenEnqueuer get world => compiler.enqueuer.codegen;
+  js_backend.JavaScriptBackend get backend => compiler.backend;
 
   void registerDependency(Element element) {
     treeElements.registerDependency(element);
+  }
+
+  void registerInstantiatedClass(ClassElement element) {
+    world.registerInstantiatedClass(element, this);
+  }
+
+  void registerInstantiatedType(InterfaceType type) {
+    world.registerInstantiatedType(type, this);
+  }
+
+  void registerStaticUse(Element element) {
+    world.registerStaticUse(element);
+  }
+
+  void registerDynamicInvocation(Selector selector) {
+    world.registerDynamicInvocation(selector);
+  }
+
+  void registerDynamicSetter(Selector selector) {
+    world.registerDynamicSetter(selector);
+  }
+
+  void registerDynamicGetter(Selector selector) {
+    world.registerDynamicGetter(selector);
+  }
+
+  void registerGetterForSuperMethod(Element element) {
+    world.registerGetterForSuperMethod(element);
+  }
+
+  void registerFieldGetter(Element element) {
+    world.registerFieldGetter(element);
+  }
+
+  void registerFieldSetter(Element element) {
+    world.registerFieldSetter(element);
+  }
+
+  void registerIsCheck(DartType type) {
+    world.registerIsCheck(type, this);
+  }
+
+  void registerCompileTimeConstant(Constant constant) {
+    backend.registerCompileTimeConstant(constant, this);
+    backend.constants.addCompileTimeConstantForEmission(constant);
+  }
+
+  void registerTypeVariableBoundsSubtypeCheck(DartType subtype,
+                                              DartType supertype) {
+    backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+  }
+
+  void registerGenericClosure(FunctionElement element) {
+    backend.registerGenericClosure(element, world, this);
+  }
+
+  void registerGetOfStaticFunction(FunctionElement element) {
+    world.registerGetOfStaticFunction(element);
+  }
+
+  void registerSelectorUse(Selector selector) {
+    world.registerSelectorUse(selector);
+  }
+
+  void registerFactoryWithTypeArguments() {
+    world.registerFactoryWithTypeArguments(this);
+  }
+
+  void registerConstSymbol(String name) {
+    world.registerConstSymbol(name, this);
+  }
+
+  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+    backend.registerSpecializedGetInterceptor(classes);
+  }
+
+  void registerUseInterceptor() {
+    backend.registerUseInterceptor(world);
+  }
+
+  void registerTypeConstant(ClassElement element) {
+    backend.customElementsAnalysis.registerTypeConstant(element, world);
   }
 }
 
@@ -75,7 +163,7 @@ class CodegenWorkItem extends WorkItem {
         compiler.enqueuer.resolution.getCachedElements(element);
     assert(invariant(element, resolutionTree != null,
         message: 'Resolution tree is null for $element in codegen work item'));
-    registry = new CodegenRegistry(resolutionTree);
+    registry = new CodegenRegistry(compiler, resolutionTree);
     compiler.codegen(this, world);
   }
 }
