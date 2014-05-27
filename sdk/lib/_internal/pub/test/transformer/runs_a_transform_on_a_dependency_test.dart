@@ -10,29 +10,31 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("runs a local transform on a dependency", () {
-    d.dir("foo", [
-      d.pubspec({
-        "name": "foo",
-        "version": "0.0.1",
-        "transformers": ["foo/transformer"]
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ]),
-      d.dir("asset", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("runs a local transform on a dependency", () {
+      d.dir("foo", [
+        d.pubspec({
+          "name": "foo",
+          "version": "0.0.1",
+          "transformers": ["foo/transformer"]
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER)
+        ]),
+        d.dir("asset", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    d.dir(appPath, [
-      d.appPubspec({"foo": {"path": "../foo"}}),
-    ]).create();
+      d.dir(appPath, [
+        d.appPubspec({"foo": {"path": "../foo"}}),
+      ]).create();
 
-    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
+      createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
-    pubServe();
-    requestShouldSucceed("assets/foo/foo.out", "foo.out");
-    endPubServe();
+      pubServe();
+      requestShouldSucceed("assets/foo/foo.out", "foo.out");
+      endPubServe();
+    });
   });
 }

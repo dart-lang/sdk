@@ -10,55 +10,57 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("detects an ordering dependency cycle", () {
-    d.dir("foo", [
-      d.pubspec({
-        "name": "foo",
-        "version": "1.0.0",
-        "transformers": ["myapp/transformer"],
-        "dependencies": {'myapp': {'path': '../myapp'}}
-      })
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("detects an ordering dependency cycle", () {
+      d.dir("foo", [
+        d.pubspec({
+          "name": "foo",
+          "version": "1.0.0",
+          "transformers": ["myapp/transformer"],
+          "dependencies": {'myapp': {'path': '../myapp'}}
+        })
+      ]).create();
 
-    d.dir("bar", [
-      d.pubspec({
-        "name": "bar",
-        "version": "1.0.0",
-        "dependencies": {'foo': {'path': '../foo'}}
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", dartTransformer('bar')),
-      ])
-    ]).create();
+      d.dir("bar", [
+        d.pubspec({
+          "name": "bar",
+          "version": "1.0.0",
+          "dependencies": {'foo': {'path': '../foo'}}
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", dartTransformer('bar')),
+        ])
+      ]).create();
 
-    d.dir("baz", [
-      d.pubspec({
-        "name": "baz",
-        "version": "1.0.0",
-        "transformers": ["bar/transformer"],
-        "dependencies": {'bar': {'path': '../bar'}}
-      })
-    ]).create();
+      d.dir("baz", [
+        d.pubspec({
+          "name": "baz",
+          "version": "1.0.0",
+          "transformers": ["bar/transformer"],
+          "dependencies": {'bar': {'path': '../bar'}}
+        })
+      ]).create();
 
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "dependencies": {'baz': {'path': '../baz'}}
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", dartTransformer('myapp')),
-      ])
-    ]).create();
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "dependencies": {'baz': {'path': '../baz'}}
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", dartTransformer('myapp')),
+        ])
+      ]).create();
 
-    createLockFile('myapp', sandbox: ['foo', 'bar', 'baz'], pkg: ['barback']);
+      createLockFile('myapp', sandbox: ['foo', 'bar', 'baz'], pkg: ['barback']);
 
-    var process = startPubServe();
-    process.shouldExit(1);
-    process.stderr.expect(emitsLines(
-        "Transformer cycle detected:\n"
-        "  bar depends on foo\n"
-        "  foo is transformed by myapp/transformer\n"
-        "  myapp depends on baz\n"
-        "  baz is transformed by bar/transformer"));
+      var process = startPubServe();
+      process.shouldExit(1);
+      process.stderr.expect(emitsLines(
+          "Transformer cycle detected:\n"
+          "  bar depends on foo\n"
+          "  foo is transformed by myapp/transformer\n"
+          "  myapp depends on baz\n"
+          "  baz is transformed by bar/transformer"));
+    });
   });
 }

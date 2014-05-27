@@ -31,24 +31,26 @@ class RewriteTransformer extends Transformer {
 
 main() {
   initConfig();
-  integration("a transform can use readInputAsString", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", TRANSFORMER)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("a transform can use readInputAsString", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", TRANSFORMER)
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    pubServe();
-    requestShouldSucceed("foo.out", "[[102, 111, 111]].out");
-    endPubServe();
+      pubServe();
+      requestShouldSucceed("foo.out", "[[102, 111, 111]].out");
+      endPubServe();
+    });
   });
 }

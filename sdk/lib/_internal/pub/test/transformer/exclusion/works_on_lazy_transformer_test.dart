@@ -13,41 +13,43 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("works on a lazy transformer", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": [
-          {
-            "myapp": {
-              "\$include": ["web/a.txt", "web/b.txt"],
-              "\$exclude": "web/a.txt"
+  withBarbackVersions("any", () {
+    integration("works on a lazy transformer", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": [
+            {
+              "myapp": {
+                "\$include": ["web/a.txt", "web/b.txt"],
+                "\$exclude": "web/a.txt"
+              }
             }
-          }
-        ]
-      }),
-      d.dir("lib", [d.file("transformer.dart", LAZY_TRANSFORMER)]),
-      d.dir("web", [
-        d.file("a.txt", "a"),
-        d.file("b.txt", "b"),
-        d.file("c.txt", "c")
-      ])
-    ]).create();
+          ]
+        }),
+        d.dir("lib", [d.file("transformer.dart", LAZY_TRANSFORMER)]),
+        d.dir("web", [
+          d.file("a.txt", "a"),
+          d.file("b.txt", "b"),
+          d.file("c.txt", "c")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    // The transformer should remain lazy.
-    server.stdout.expect("Build completed successfully");
+      var server = pubServe();
+      // The transformer should remain lazy.
+      server.stdout.expect("Build completed successfully");
 
-    requestShould404("a.out");
-    requestShouldSucceed("b.out", isNot(isEmpty));
-    server.stdout.expect(consumeThrough(emitsLines(
-        "[Info from LazyRewrite]:\n"
-        "Rewriting myapp|web/b.txt.")));
-    server.stdout.expect(consumeThrough("Build completed successfully"));
+      requestShould404("a.out");
+      requestShouldSucceed("b.out", isNot(isEmpty));
+      server.stdout.expect(consumeThrough(emitsLines(
+          "[Info from LazyRewrite]:\n"
+          "Rewriting myapp|web/b.txt.")));
+      server.stdout.expect(consumeThrough("Build completed successfully"));
 
-    requestShould404("c.out");
-    endPubServe();
+      requestShould404("c.out");
+      endPubServe();
+    });
   });
 }

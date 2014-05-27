@@ -24,26 +24,28 @@ class RewriteTransformer extends Transformer {
 
 main() {
   initConfig();
-  integration("prints a transform error in apply", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", transformer)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("prints a transform error in apply", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", transformer)
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    server.stderr.expect(emitsLines(
-        'Build error:\n'
-        'Transform Rewrite on myapp|web/foo.txt threw error: oh no!'));
-    endPubServe();
+      var server = pubServe();
+      server.stderr.expect(emitsLines(
+          'Build error:\n'
+          'Transform Rewrite on myapp|web/foo.txt threw error: oh no!'));
+      endPubServe();
+    });
   });
 }

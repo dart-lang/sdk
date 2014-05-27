@@ -40,38 +40,40 @@ class RewriteTransformer extends Transformer {
 
 main() {
   initConfig();
-  integration("can log messages", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", TRANSFORMER)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("can log messages", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", TRANSFORMER)
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ["build"]);
-    pub.stdout.expect(startsWith("Loading source assets..."));
-    pub.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
-    pub.stdout.expect(startsWith("Building myapp..."));
+      var pub = startPub(args: ["build"]);
+      pub.stdout.expect(startsWith("Loading source assets..."));
+      pub.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
+      pub.stdout.expect(startsWith("Building myapp..."));
 
-    pub.stdout.expect(emitsLines("""
+      pub.stdout.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt]:
 info!"""));
 
-    pub.stderr.expect(emitsLines("""
+      pub.stderr.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt with input myapp|web/foo.foo]:
 Warning!
 [Rewrite on myapp|web/foo.txt]:
 http://fake.com/not_real.dart:2:1: ERROR!
 Build failed."""));
 
-    pub.shouldExit(exit_codes.DATA);
+      pub.shouldExit(exit_codes.DATA);
+    });
   });
 }

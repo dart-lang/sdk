@@ -18,13 +18,8 @@ main() {
           }
         }]
       }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])]),
       d.dir("web", [d.file("main.dart", "void main() {}")])
     ]).create();
-
-    createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
     requestShould404("main.dart.js");

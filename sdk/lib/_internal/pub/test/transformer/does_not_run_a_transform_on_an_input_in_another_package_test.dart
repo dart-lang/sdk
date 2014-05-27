@@ -10,32 +10,34 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("does not run a transform on an input in another package", () {
-    d.dir("foo", [
-      d.pubspec({
-        "name": "foo",
-        "version": "0.0.1",
-        "transformers": ["foo/transformer"]
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ]),
-      d.dir("asset", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("does not run a transform on an input in another package", () {
+      d.dir("foo", [
+        d.pubspec({
+          "name": "foo",
+          "version": "0.0.1",
+          "transformers": ["foo/transformer"]
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER)
+        ]),
+        d.dir("asset", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    d.dir(appPath, [
-      d.appPubspec({"foo": {"path": "../foo"}}),
-      d.dir("asset", [
-        d.file("bar.txt", "bar")
-      ])
-    ]).create();
+      d.dir(appPath, [
+        d.appPubspec({"foo": {"path": "../foo"}}),
+        d.dir("asset", [
+          d.file("bar.txt", "bar")
+        ])
+      ]).create();
 
-    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
+      createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
-    pubServe();
-    requestShould404("assets/myapp/bar.out");
-    endPubServe();
+      pubServe();
+      requestShould404("assets/myapp/bar.out");
+      endPubServe();
+    });
   });
 }

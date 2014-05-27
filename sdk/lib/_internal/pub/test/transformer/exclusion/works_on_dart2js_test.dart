@@ -13,40 +13,42 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("works on the dart2js transformer", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": [
-          {
-            "\$dart2js": {
-              "\$include": ["web/a.dart", "web/b.dart"],
-              "\$exclude": "web/a.dart"
+  withBarbackVersions("any", () {
+    integration("works on the dart2js transformer", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": [
+            {
+              "\$dart2js": {
+                "\$include": ["web/a.dart", "web/b.dart"],
+                "\$exclude": "web/a.dart"
+              }
             }
-          }
-        ]
-      }),
-      d.dir("web", [
-        d.file("a.dart", "void main() => print('hello');"),
-        d.file("b.dart", "void main() => print('hello');"),
-        d.file("c.dart", "void main() => print('hello');")
-      ])
-    ]).create();
+          ]
+        }),
+        d.dir("web", [
+          d.file("a.dart", "void main() => print('hello');"),
+          d.file("b.dart", "void main() => print('hello');"),
+          d.file("c.dart", "void main() => print('hello');")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    // Dart2js should remain lazy.
-    server.stdout.expect("Build completed successfully");
+      var server = pubServe();
+      // Dart2js should remain lazy.
+      server.stdout.expect("Build completed successfully");
 
-    requestShould404("a.dart.js");
-    requestShouldSucceed("b.dart.js", isNot(isEmpty));
-    server.stdout.expect(consumeThrough(emitsLines(
-        "[Info from Dart2JS]:\n"
-        "Compiling myapp|web/b.dart...")));
-    server.stdout.expect(consumeThrough("Build completed successfully"));
+      requestShould404("a.dart.js");
+      requestShouldSucceed("b.dart.js", isNot(isEmpty));
+      server.stdout.expect(consumeThrough(emitsLines(
+          "[Info from Dart2JS]:\n"
+          "Compiling myapp|web/b.dart...")));
+      server.stdout.expect(consumeThrough("Build completed successfully"));
 
-    requestShould404("c.dart.js");
-    endPubServe();
+      requestShould404("c.dart.js");
+      endPubServe();
+    });
   });
 }

@@ -21,8 +21,6 @@ main() {
       ])
     ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
-
     var server = pubServe();
     server.stdout.expect("Build completed successfully");
 
