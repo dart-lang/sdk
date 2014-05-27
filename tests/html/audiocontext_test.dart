@@ -83,9 +83,6 @@ main() {
         oscillator.type = 'triangle';
         expect(oscillator.type, equals('triangle'));
 
-        expect(() => oscillator.type = 'somethingUnsupported', throws);
-        expect(oscillator.type, equals('triangle'));
-
         expect(() => oscillator.type = 7, throws);
         expect(oscillator.type, equals('triangle'));
 
