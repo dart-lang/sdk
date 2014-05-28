@@ -53,7 +53,7 @@ main() {
     expect(error.span.text, '<!DOCTYPE html>');
 
     expect(error.toString(), '''
-ParseError:4:3: Unexpected DOCTYPE. Ignored.
+On line 4, column 3 of ParseError: Unexpected DOCTYPE. Ignored.
   <!DOCTYPE html>
   ^^^^^^^^^^^^^^^''');
   });
@@ -245,7 +245,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
     expect(parser.errors[0].message,
         'Unexpected non-space characters. Expected DOCTYPE.');
     expect(parser.errors[0].toString(),
-        'ParserError:1:4: Unexpected non-space characters. '
+        'ParserError on line 1, column 4: Unexpected non-space characters. '
         'Expected DOCTYPE.');
   });
 
