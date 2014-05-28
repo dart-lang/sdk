@@ -145,6 +145,22 @@ main() {
     ]);
   });
 
+  test("a synchronous error loading an asset removes the asset from the graph",
+      () {
+    initGraph(["app|foo.txt"], {"app": [
+      // Have a dummy transformer so that barback at least tries to load the
+      // asset.
+      [new RewriteTransformer("a", "b")]
+    ]});
+
+    setAssetError("app|foo.txt", async: false);
+    updateSources(["app|foo.txt"]);
+    expectNoAsset("app|foo.txt");
+    buildShouldFail([
+      isAssetLoadException("app|foo.txt", isMockLoadException("app|foo.txt"))
+    ]);
+  });
+
   test("an asset isn't passed through a transformer with an error", () {
     initGraph(["app|foo.txt"], {"app": [[new BadTransformer([])]]});
 

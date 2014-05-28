@@ -158,10 +158,11 @@ void modifyAsset(String name, String contents) {
 /// Schedules an error to be generated when loading the asset identified by
 /// [name].
 ///
-/// Does not update the asset in the graph.
-void setAssetError(String name) {
+/// Does not update the asset in the graph. If [async] is true, the error is
+/// thrown asynchronously.
+void setAssetError(String name, {bool async: true}) {
   schedule(() {
-    _provider._setAssetError(name);
+    _provider._setAssetError(name, async);
   }, "set error for asset $name");
 }
 
@@ -470,6 +471,10 @@ class MockProvider implements PackageProvider {
   /// they're loaded.
   final _errors = new Set<AssetId>();
 
+  /// The set of assets for which synchronous [MockLoadException]s should be
+  /// emitted if they're loaded.
+  final _syncErrors = new Set<AssetId>();
+
   /// The completer that [getAsset()] is waiting on to complete when paused.
   ///
   /// If `null` it will return the asset immediately.
@@ -527,11 +532,12 @@ class MockProvider implements PackageProvider {
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
     _errors.remove(id);
+    _syncErrors.remove(id);
     (_assets[id.package][id] as _MockAsset).contents = contents;
   }
 
-  void _setAssetError(String name) {
-    _errors.add(new AssetId.parse(name));
+  void _setAssetError(String name, bool async) {
+    (async ? _errors : _syncErrors).add(new AssetId.parse(name));
   }
 
   List<AssetId> listAssets(String package, {String within}) {
@@ -549,6 +555,7 @@ class MockProvider implements PackageProvider {
     var asset;
     if (assets != null) asset = assets[id];
 
+    if (_syncErrors.contains(id)) throw new MockLoadException(id);
     var hasError = _errors.contains(id);
 
     var future;

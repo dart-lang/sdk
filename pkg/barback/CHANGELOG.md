@@ -1,3 +1,7 @@
+## 0.14.0+3
+
+* Properly handle synchronous errors in `PackageProvider.getAsset()`.
+
 ## 0.14.0+2
 
 * Fix a bug with the previous bug fix.

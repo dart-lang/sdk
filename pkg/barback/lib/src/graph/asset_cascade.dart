@@ -13,6 +13,7 @@ import '../asset/asset_set.dart';
 import '../errors.dart';
 import '../log.dart';
 import '../transformer/transformer.dart';
+import '../utils.dart';
 import '../utils/cancelable_future.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
@@ -138,8 +139,8 @@ class AssetCascade {
       // return out-of-date contents for the asset.
       if (_loadingSources.containsKey(id)) _loadingSources[id].cancel();
 
-      _loadingSources[id] =
-          new CancelableFuture<Asset>(graph.provider.getAsset(id));
+      _loadingSources[id] = new CancelableFuture<Asset>(
+          syncFuture(() => graph.provider.getAsset(id)));
       _loadingSources[id].whenComplete(() {
         _loadingSources.remove(id);
       }).then((asset) {
