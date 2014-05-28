@@ -2148,9 +2148,9 @@ class TestUtils {
       path = 'multitest/${path.substring(index)}';
     }
     path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 60;
+    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
     if (Platform.operatingSystem == 'windows' &&
-        path.length >= WINDOWS_SHORTEN_PATH_LIMIT) {
+        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
       for (var key in PATH_REPLACEMENTS.keys) {
         if (path.startsWith(key)) {
           path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
