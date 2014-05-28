@@ -402,7 +402,10 @@ abstract class TestSuite {
      *      third_party/pkg/PACKAGE_NAME
      */
 
-    isValid(packageName) => packageName != 'third_party';
+    // Directories containing "-" are not valid pub packages and we therefore
+    // do not include them in the list of packages.
+    isValid(packageName) =>
+        packageName != 'third_party' && !packageName.contains('-');
 
     var dartDir = TestUtils.dartDir;
     var futures = [
@@ -415,11 +418,6 @@ abstract class TestSuite {
       for (var result in results) {
         for (var packageTuple in result) {
           String packageName = packageTuple[0];
-
-          // Some packages are pinned to specific versions. We can ignore those
-          // for the purposes of testing.
-          if (packageName.contains('-')) continue;
-
           String fullPath = packageTuple[1];
           String yamlFile =
               new Path(fullPath).append('pubspec.yaml').toNativePath();
