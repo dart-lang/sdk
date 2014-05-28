@@ -14,6 +14,7 @@ Dart and chromium tests on it.
 import optparse
 import os
 import string
+import subprocess
 import sys
 
 import bot
@@ -55,6 +56,13 @@ def UploadAPKs(options):
     UploadSetACL(gsutil, local, remote)
     print "Uploaded content shell, available from: %s" % content_shell_link
 
+
+def RunContentShellTests(options):
+  with bot.BuildStep('ContentShell tests'):
+    subprocess.check_call([os.path.join(SCRIPT_DIR, 'run_android_tests.sh'),
+        os.path.join(options.build_products_dir, CS_LOCATION)])
+
+
 def main():
   if sys.platform != 'linux2':
     print "This script was only tested on linux. Please run it on linux!"
@@ -68,6 +76,7 @@ def main():
     sys.exit(1)
 
   UploadAPKs(options)
+  RunContentShellTests(options)
   sys.exit(0)
 
 if __name__ == '__main__':
