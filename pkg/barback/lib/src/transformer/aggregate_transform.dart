@@ -43,25 +43,19 @@ class AggregateTransform extends BaseTransform {
   /// closed. For example, it may know that each key will only have two inputs
   /// associated with it, and so use `transform.primaryInputs.take(2)` to access
   /// only those inputs.
-  Stream<Asset> get primaryInputs => _primaryInputs;
-  Stream<Asset> _primaryInputs;
-
-  /// The controller for [primaryInputs].
-  ///
-  /// This is a broadcast controller so that the transform can keep
-  /// [_emittedPrimaryInputs] up to date.
-  final _inputController = new StreamController<Asset>.broadcast();
+  Stream<Asset> get primaryInputs => _inputController.stream;
+  final _inputController = new StreamController<Asset>();
 
   /// The set of all primary inputs that have been emitted by [primaryInputs].
+  ///
+  /// This is populated by the transform's controller so that
+  /// [AggregateTransformController.addedId] synchronously returns the correct
+  /// result after [AggregateTransformController.addInput] is called.
   final _emittedPrimaryInputs = new AssetSet();
 
   AggregateTransform._(TransformNode node)
       : _node = node,
-        super(node) {
-    _inputController.stream.listen(_emittedPrimaryInputs.add);
-    // [primaryInputs] should be a non-broadcast stream.
-    _primaryInputs = broadcastToSingleSubscription(_inputController.stream);
-  }
+        super(node);
 
   /// Gets the asset for an input [id].
   ///
@@ -142,12 +136,14 @@ class AggregateTransformController extends BaseTransformController {
 
   /// Adds a primary input asset to the [AggregateTransform.primaryInputs]
   /// stream.
-  void addInput(Asset input) => transform._inputController.add(input);
+  void addInput(Asset input) {
+    transform._emittedPrimaryInputs.add(input);
+    transform._inputController.add(input);
+  }
 
   /// Returns whether an input with the given [id] was added via [addInput].
-  bool addedId(AssetId id) {
-    return transform._emittedPrimaryInputs.ids.contains(id);
-  }
+  bool addedId(AssetId id) =>
+      transform._emittedPrimaryInputs.containsId(id);
 
   void done() {
     transform._inputController.close();

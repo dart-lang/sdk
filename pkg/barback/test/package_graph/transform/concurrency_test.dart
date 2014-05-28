@@ -539,4 +539,56 @@ main() {
     expect(transformer1.numRuns, completion(equals(2)));
     expect(transformer2.numRuns, completion(equals(2)));
   });
+
+  // Regression test for issue 19038.
+  test("a secondary input that's marked dirty followed by the primary input "
+      "being synchronously marked dirty re-runs a transformer", () {
+    // Issue 19038 was caused by the following sequence of events:
+    //
+    // * Several inputs are marked dirty at once, causing dirty events to
+    //   propagate synchronously throughout the transform graph.
+    //
+    // * A transform (ManyToOneTransformer in this test case) has a secondary
+    //   input ("one.in") and a primary input ("foo.txt") that will both be
+    //   marked dirty.
+    //
+    // * The secondary input is marked dirty before the primary input. This
+    //   causes the transform to start running `apply`. Since as far as it knows
+    //   its primary input is still available, it passes that input to `apply`.
+    //
+    // * Now the primary input is marked dirty. The transform node checks to see
+    //   if this primary input has already been added to the transform
+    //   controller. This is where the bug existed: the answer to this was
+    //   incorrectly "no" until after some asynchronous processing occurred.
+    //
+    // * Since the transform thought the primary input hadn't yet been passed to
+    //   the transform controller, it didn't bother restarting the transform,
+    //   causing the old output to be preserved incorrectly.
+    initGraph({
+      "app|foo.txt": "one",
+      "app|one.in": "1",
+      "app|two.in": "2"
+    }, {"app": [
+      // We need to use CheckContentTransformer here so that
+      // ManyToOneTransformer reads its primary input from memory rather than
+      // from the filesystem. If it read from the filesystem, it might
+      // accidentally get the correct output despite accessing the incorrect
+      // asset, which would cause false positives for the test.
+      [new CheckContentTransformer(new RegExp("one|two"), ".in")],
+      [new ManyToOneTransformer("txt")]
+    ]});
+
+    updateSources(["app|foo.txt", "app|one.in", "app|two.in"]);
+    expectAsset("app|foo.out", "1");
+    buildShouldSucceed();
+
+    modifyAsset("app|foo.txt", "two");
+
+    // It's important that "one.in" come first in this list, since
+    // ManyToOneTransformer needs to see its secondary input change first.
+    updateSources(["app|one.in", "app|foo.txt"]);
+
+    expectAsset("app|foo.out", "2");
+    buildShouldSucceed();
+  });
 }

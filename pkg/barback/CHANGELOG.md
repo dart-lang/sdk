@@ -6,6 +6,9 @@
 
 * Add a `message` getter to `TransformerException` and `AssetLoadException`.
 
+* Fix a bug where transformers would occasionally emit stale output after their
+  inputs changed.
+
 ## 0.14.0+3
 
 * Properly handle synchronous errors in `PackageProvider.getAsset()`.
