@@ -5,6 +5,7 @@
 library docgen.package_helpers;
 
 import 'exports/source_mirrors.dart';
+import 'generator.dart' show pubScript;
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -58,14 +59,54 @@ String getPackageDirectory(LibraryMirror mirror) {
   }
 }
 
-/// Read a pubspec and return the library name, given a directory
-String packageNameFor(String directoryName) {
+Map _getPubspec(String directoryName) {
   var pubspecName = path.join(directoryName, 'pubspec.yaml');
   File pubspec = new File(pubspecName);
-  if (!pubspec.existsSync()) return '';
+  if (!pubspec.existsSync()) return {'name': ''};
   var contents = pubspec.readAsStringSync();
+  return loadYaml(contents);
+}
+
+/// Read a pubspec and return the library name, given a directory
+String packageNameFor(String directoryName) =>
+    _getPubspec(directoryName)['name'];
+
+/// Read a pubspec and return the library name, given a directory
+String _packageVersionFor(String directoryName) {
+  var spec = _getPubspec(directoryName);
+  return '${spec['name']}-${spec['version']}';
+}
+
+/// Look in the pubspec.lock to determine what version of a package we are
+/// documenting (null if not applicable).
+String packageVersion(LibraryMirror mirror) {
+  if (mirror.uri.scheme == 'file') {
+    String packageDirectory = getPackageDirectory(mirror);
+    if (packageDirectory.contains('.pub-cache')) {
+      return path.basename(packageDirectory);
+    }
+    String packageName = packageNameFor(packageDirectory);
+    return _packageVersionFor(packageDirectory);
+  } else if (mirror.uri.scheme == 'dart') {
+    // If this item is from the SDK, use what version of pub we're running to
+    // ascertain the SDK version.
+    var pubVersion = Process.runSync(pubScript, ['--version'],
+        runInShell: true);
+      if (pubVersion.exitCode != 0) {
+        print(pubVersion.stderr);
+      }
+      return pubVersion.stdout.replaceAll('Pub ', '').trim();
+  }
+  return '';
+}
+
+String _packageVersionHelper(String packageDirectory, String packageName) {
+  var publockName = path.join(packageDirectory, 'pubspec.lock');
+  File publock = new File(publockName);
+  if (!publock.existsSync()) return '';
+  var contents = publock.readAsStringSync();
   var spec = loadYaml(contents);
-  return spec["name"];
+  return spec['packages'][packageName];
 }
 
 /// Recursively walk up from directory name looking for a pubspec. Return
