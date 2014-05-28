@@ -117,9 +117,8 @@ Future _writeResponse(Response response, HttpResponse httpResponse) {
     httpResponse.headers.set(header, value);
   });
 
-  if (response.headers[HttpHeaders.SERVER] == null) {
-    var value = httpResponse.headers.value(HttpHeaders.SERVER);
-    httpResponse.headers.set(HttpHeaders.SERVER, '$value with Shelf');
+  if (!response.headers.containsKey(HttpHeaders.SERVER)) {
+    httpResponse.headers.set(HttpHeaders.SERVER, 'dart:io with Shelf');
   }
 
   if (!response.headers.containsKey(HttpHeaders.DATE)) {

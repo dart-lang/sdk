@@ -2,6 +2,8 @@
 
 * The `shelf_io` adapter now sends the `Date` HTTP header by default.
 
+* Fixed logic for setting Server header in `shelf_io`.
+
 ## 0.5.3
 
 * Add new named parameters to `Request.change`: `scriptName` and `url`.

@@ -284,6 +284,28 @@ void main() {
       });
     });
   });
+
+  group('server header', () {
+    test('defaults to "dart:io with Shelf"', () {
+      _scheduleServer(syncHandler);
+
+      return _scheduleGet().then((response) {
+        expect(response.headers,
+            containsPair(HttpHeaders.SERVER, 'dart:io with Shelf'));
+      });
+    });
+
+    test('defers to header in response', () {
+      _scheduleServer((request) {
+        return new Response.ok('test',
+            headers: {HttpHeaders.SERVER: 'myServer'});
+      });
+
+      return _scheduleGet().then((response) {
+        expect(response.headers, containsPair(HttpHeaders.SERVER, 'myServer'));
+      });
+    });
+  });
 }
 
 int _serverPort;
