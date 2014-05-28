@@ -18,14 +18,12 @@ import 'mocks.dart';
 main() {
   groupSep = ' | ';
 
-  AnalysisTestHelper helper;
   MockServerChannel serverChannel;
   AnalysisServer server;
   AnalysisDomainHandler handler;
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   setUp(() {
-    helper = new AnalysisTestHelper();
     serverChannel = new MockServerChannel();
     server = new AnalysisServer(serverChannel, resourceProvider);
     handler = new AnalysisDomainHandler(server);
