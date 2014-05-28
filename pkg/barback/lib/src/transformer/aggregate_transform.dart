@@ -29,6 +29,9 @@ class AggregateTransform extends BaseTransform {
   /// the assets in this transform.
   String get key => _node.key;
 
+  /// The package in which this transform is running.
+  String get package => _node.phase.cascade.package;
+
   /// The stream of primary inputs that will be processed by this transform.
   ///
   /// This is exposed as a stream so that the transformer can start working

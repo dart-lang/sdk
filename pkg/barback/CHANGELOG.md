@@ -1,5 +1,9 @@
 ## 0.14.1
 
+* Add an `AggregateTransformer` type. Aggregate transformers transform groups of
+  assets for which no single asset is primary. For example, one could be used to
+  merge all images in a directory into a single file.
+
 * Add a `message` getter to `TransformerException` and `AssetLoadException`.
 
 ## 0.14.0+3

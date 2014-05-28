@@ -11,6 +11,7 @@ import '../asset/asset_node.dart';
 import '../asset/asset_node_set.dart';
 import '../errors.dart';
 import '../log.dart';
+import '../transformer/aggregate_transformer.dart';
 import '../transformer/transformer.dart';
 import '../transformer/transformer_group.dart';
 import '../utils.dart';
@@ -55,7 +56,9 @@ class Phase {
   final _inputs = new AssetNodeSet();
 
   /// The transformer classifiers for this phase.
-  final _classifiers = new Map<Transformer, TransformerClassifier>();
+  ///
+  /// The keys can be either [Transformer]s or [AggregateTransformer]s.
+  final _classifiers = new Map<dynamic, TransformerClassifier>();
 
   /// The forwarders for this phase.
   final _forwarders = new Map<AssetId, PhaseForwarder>();
@@ -233,7 +236,8 @@ class Phase {
 
   /// Set this phase's transformers to [transformers].
   void updateTransformers(Iterable transformers) {
-    var newTransformers = transformers.where((op) => op is Transformer)
+    var newTransformers = transformers
+        .where((op) => op is Transformer || op is AggregateTransformer)
         .toSet();
     var oldTransformers = _classifiers.keys.toSet();
     for (var removed in oldTransformers.difference(newTransformers)) {

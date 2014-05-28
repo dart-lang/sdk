@@ -26,7 +26,7 @@ import 'transform_node.dart';
 /// and `null` if `isPrimary` is `null`.
 class TransformerClassifier {
   /// The containing [Phase].
-  final Phase _phase;
+  final Phase phase;
 
   /// The [AggregateTransformer] used to classify the inputs.
   final AggregateTransformer transformer;
@@ -46,19 +46,28 @@ class TransformerClassifier {
   Stream<AssetNode> get onAsset => _streams.onAsset;
   Stream<LogEntry> get onLog => _streams.onLog;
 
+  /// A broadcast stream that emits an event whenever [this] has finished
+  /// classifying all available inputs.
+  Stream get onDoneClassifying => _onDoneClassifyingController.stream;
+  final _onDoneClassifyingController =
+      new StreamController.broadcast(sync: true);
+
   /// The number of currently-active calls to [transformer.classifyPrimary].
   ///
   /// This is used to determine whether [this] is dirty.
   var _activeClassifications = 0;
 
+  /// Whether this is currently classifying any inputs.
+  bool get isClassifying => _activeClassifications > 0;
+
   /// How far along [this] is in processing its assets.
   NodeStatus get status {
-    if (_activeClassifications > 0) return NodeStatus.RUNNING;
+    if (isClassifying) return NodeStatus.RUNNING;
     return NodeStatus.dirtiest(
         _transforms.values.map((transform) => transform.status));
   }
 
-  TransformerClassifier(this._phase, transformer, this._location)
+  TransformerClassifier(this.phase, transformer, this._location)
       : transformer = transformer is AggregateTransformer ?
             transformer : new WrappingAggregateTransformer(transformer);
 
@@ -67,7 +76,7 @@ class TransformerClassifier {
     _activeClassifications++;
     syncFuture(() => transformer.classifyPrimary(input.id)).catchError(
         (error, stackTrace) {
-      if (input.state.isRemoved) return false;
+      if (input.state.isRemoved) return null;
 
       // Catch all transformer errors and pipe them to the results stream. This
       // is so a broken transformer doesn't take down the whole graph.
@@ -77,9 +86,9 @@ class TransformerClassifier {
       } else {
         error = new MissingInputException(info, error.id);
       }
-      _phase.cascade.reportError(error);
+      phase.cascade.reportError(error);
 
-      return false;
+      return null;
     }).then((key) {
       if (input.state.isRemoved) return;
       if (key == null) {
@@ -91,12 +100,15 @@ class TransformerClassifier {
       } else if (_transforms.containsKey(key)) {
         _transforms[key].addPrimary(input);
       } else {
-        var transform = new TransformNode(_phase, transformer, key, _location);
+        var transform = new TransformNode(this, transformer, key, _location);
         _transforms[key] = transform;
 
         transform.onStatusChange.listen(
             (_) => _streams.changeStatus(status),
-            onDone: () => _transforms.remove(input.id.path));
+            onDone: () {
+          _transforms.remove(transform.key);
+          if (!_streams.isClosed) _streams.changeStatus(status);
+        });
 
         _streams.onAssetPool.add(transform.onAsset);
         _streams.onLogPool.add(transform.onLog);
@@ -104,7 +116,9 @@ class TransformerClassifier {
       }
     }).whenComplete(() {
       _activeClassifications--;
-      if (!_streams.isClosed) _streams.changeStatus(status);
+      if (_streams.isClosed) return;
+      if (!isClassifying) _onDoneClassifyingController.add(null);
+      _streams.changeStatus(status);
     });
   }
 
@@ -113,6 +127,7 @@ class TransformerClassifier {
   /// This marks all outputs of the transformer as removed.
   void remove() {
     _streams.close();
+    _onDoneClassifyingController.close();
     for (var transform in _transforms.values.toList()) {
       transform.remove();
     }

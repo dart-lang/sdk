@@ -24,6 +24,9 @@ class DeclaringAggregateTransform extends BaseTransform {
   /// the assets in this transform.
   final String key;
 
+  /// The package in which this transform is running.
+  final String package;
+
   /// The stream of primary input ids that have been aggregated for this
   /// transform.
   ///
@@ -50,6 +53,7 @@ class DeclaringAggregateTransform extends BaseTransform {
 
   DeclaringAggregateTransform._(TransformNode node)
       : key = node.key,
+        package = node.phase.cascade.package,
         super(node) {
     _idController.stream.listen(_emittedPrimaryIds.add);
     // [primaryIds] should be a non-broadcast stream.

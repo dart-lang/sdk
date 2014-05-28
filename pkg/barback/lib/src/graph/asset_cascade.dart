@@ -168,8 +168,8 @@ class AssetCascade {
 
   /// Sets this cascade's transformer phases to [transformers].
   ///
-  /// Elements of the inner iterable of [transformers] must be either
-  /// [Transformer]s or [TransformerGroup]s.
+  /// Elements of the inner iterable of [transformers] must be [Transformer]s,
+  /// [TransformerGroup]s, or [AggregateTransformer]s.
   void updateTransformers(Iterable<Iterable> transformersIterable) {
     var transformers = transformersIterable.toList();
 

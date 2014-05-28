@@ -303,7 +303,7 @@ main() {
 
   test("can emit outputs it didn't declare", () {
     initGraph(["app|foo.txt"], {"app": [
-      [new DeclareAssetsTransformer([], ["app|out.txt"])]
+      [new DeclareAssetsTransformer([], emitted: ["app|out.txt"])]
     ]});
 
     updateSources(["app|foo.txt"]);
@@ -316,7 +316,8 @@ main() {
 
   test("can overwrite the primary input even if it declared that it wouldn't",
       () {
-    var transformer = new DeclareAssetsTransformer([], ["app|foo.txt"]);
+    var transformer = new DeclareAssetsTransformer(
+        [], emitted: ["app|foo.txt"]);
     initGraph(["app|foo.txt"], {"app": [[transformer]]});
 
     transformer.pauseApply();
@@ -331,7 +332,7 @@ main() {
 
   test("can declare outputs it doesn't emit", () {
     initGraph(["app|foo.txt"], {"app": [
-      [new DeclareAssetsTransformer(["app|out.txt"], [])]
+      [new DeclareAssetsTransformer(["app|out.txt"], emitted: [])]
     ]});
 
     updateSources(["app|foo.txt"]);

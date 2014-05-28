@@ -1,8 +1,8 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.test.transformer.mock;
+library barback.test.transformer.mock_aggregate;
 
 import 'dart:async';
 
@@ -10,16 +10,17 @@ import 'package:barback/barback.dart';
 import 'package:barback/src/utils.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
-/// The abstract base class for transformers used to test barback.
+/// The abstract base class for aggregate transformers used to test barback.
 ///
 /// This adds the ability to pause and resume different components of the
 /// transformers, and to tell whether they're running, when they start running,
 /// and how many times they've run.
 ///
-/// Transformers extending this should override [doIsPrimary] and [doApply]
-/// rather than [isPrimary] and [apply], and they should use [getInput] and
-/// [getPrimary] rather than [transform.getInput] and [transform.primaryInput].
-abstract class MockTransformer extends Transformer {
+/// Transformers extending this should override [doClassifyPrimary] and
+/// [doApply] rather than [classifyPrimary] and [apply], and they should use
+/// [getInput] and [getPrimaryInputs] rather than [transform.getInput] and
+/// [transform.primaryInputs].
+abstract class MockAggregateTransformer extends AggregateTransformer {
   /// The number of times the transformer has been applied.
   ///
   /// This is scheduled. The Future will complete at the point in the schedule
@@ -35,15 +36,16 @@ abstract class MockTransformer extends Transformer {
   Completer _apply;
 
   /// Completers for pausing the transformer before it finishes running
-  /// [isPrimary].
-  final _isPrimary = new Map<AssetId, Completer>();
+  /// [classifyPrimary].
+  final _classifyPrimary = new Map<AssetId, Completer>();
 
   /// Completers for pausing the transformer before it finishes getting inputs
   /// the [Transform].
   final _getInput = new Map<AssetId, Completer>();
 
-  /// Completer for pausing the transformer before it accesses [primaryInput].
-  Completer _primaryInput;
+  /// Completer for pausing the transformer before it accesses
+  /// [getPrimaryInputs].
+  Completer _primaryInputs;
 
   /// A completer that completes once this transformer begins running.
   ///
@@ -57,9 +59,8 @@ abstract class MockTransformer extends Transformer {
   /// that this is called.
   Future<bool> get isRunning => schedule(() => _runningTransforms > 0);
 
-  /// If this is set to `true`, the transformer will consume its primary input
-  /// during [apply].
-  bool consumePrimary = false;
+  /// All elements of this set will be automatically consumed during [apply].
+  final consumePrimaries = new Set<String>();
 
   /// Pauses the schedule until this transformer begins running.
   void waitUntilStarted() {
@@ -86,25 +87,25 @@ abstract class MockTransformer extends Transformer {
     }, "resume apply for $this");
   }
 
-  /// Causes the transformer to pause after running [isPrimary] on the asset
-  /// with the given [name], but before the returned Future completes.
+  /// Causes the transformer to pause after running [classifyPrimary] on the
+  /// asset with the given [name], but before the returned Future completes.
   ///
-  /// This can be resumed by calling [resumeIsPrimary]. This operation is
+  /// This can be resumed by calling [resumeClassifyPrimary]. This operation is
   /// scheduled.
-  void pauseIsPrimary(String name) {
+  void pauseClassifyPrimary(String name) {
     schedule(() {
-      _isPrimary[new AssetId.parse(name)] = new Completer();
-    }, "pause isPrimary($name) for $this");
+      _classifyPrimary[new AssetId.parse(name)] = new Completer();
+    }, "pause classifyPrimary($name) for $this");
   }
 
-  /// Resumes the transformer's [isPrimary] call on the asset with the given
-  /// [name] after [pauseIsPrimary] was called.
+  /// Resumes the transformer's [classifyPrimary] call on the asset with the
+  /// given [name] after [pauseClassifyPrimary] was called.
   ///
   /// This operation is scheduled.
-  void resumeIsPrimary(String name) {
+  void resumeClassifyPrimary(String name) {
     schedule(() {
-      _isPrimary.remove(new AssetId.parse(name)).complete();
-    }, "resume isPrimary($name) for $this");
+      _classifyPrimary.remove(new AssetId.parse(name)).complete();
+    }, "resume classifyPrimary($name) for $this");
   }
 
   /// Causes the transformer to pause while loading the secondary input with
@@ -128,77 +129,80 @@ abstract class MockTransformer extends Transformer {
     }, "resume getInput($name) for $this");
   }
 
-  /// Causes the transformer to pause before accessing [primaryInput].
+  /// Causes the transformer to pause before accessing [getPrimaryInputs].
   ///
-  /// This can be resumed by calling [resumeGetPrimary]. This operation is
+  /// This can be resumed by calling [resumePrimaryInputs]. This operation is
   /// scheduled.
-  void pausePrimaryInput() {
+  void pausePrimaryInputs() {
     schedule(() {
-      _primaryInput = new Completer();
-    }, "pause primaryInput for $this");
+      _primaryInputs = new Completer();
+    }, "pause primaryInputs for $this");
   }
 
-  /// Resumes the transformer's invocation of [primaryInput] after
-  /// [pauseGetPrimary] was called.
+  /// Resumes the transformer's invocation of [primaryInputs] after
+  /// [pausePrimaryInputs] was called.
   ///
   /// This operation is scheduled.
-  void resumePrimaryInput() {
+  void resumePrimaryInputs() {
     schedule(() {
-      _primaryInput.complete();
-      _primaryInput = null;
-    }, "resume getPrimary() for $this");
+      _primaryInputs.complete();
+      _primaryInputs = null;
+    }, "resume primaryInputs for $this");
   }
 
-  /// Like [Transform.getInput], but respects [pauseGetInput].
+  /// Like [AggregateTransform.getInput], but respects [pauseGetInput].
   ///
-  /// This is intended for use by subclasses of [MockTransformer].
-  Future<Asset> getInput(Transform transform, AssetId id) {
+  /// This is intended for use by subclasses of [MockAggregateTransformer].
+  Future<Asset> getInput(AggregateTransform transform, AssetId id) {
     return newFuture(() {
       if (_getInput.containsKey(id)) return _getInput[id].future;
     }).then((_) => transform.getInput(id));
   }
 
-  /// Like [Transform.primaryInput], but respects [pauseGetPrimary].
+  /// Like [AggregateTransform.primaryInputs], but respects
+  /// [pausePrimaryInputs].
   ///
-  /// This is intended for use by subclasses of [MockTransformer].
-  Future<Asset> getPrimary(Transform transform) {
-    return newFuture(() {
-      if (_primaryInput != null) return _primaryInput.future;
-    }).then((_) => transform.primaryInput);
+  /// This is intended for use by subclasses of [MockAggregateTransformer].
+  Stream<Asset> getPrimaryInputs(AggregateTransform transform) {
+    return futureStream(newFuture(() {
+      if (_primaryInputs != null) return _primaryInputs.future;
+    }).then((_) => transform.primaryInputs));
   }
 
-  Future<bool> isPrimary(AssetId id) {
-    return newFuture(() => doIsPrimary(id)).then((result) {
+  Future<String> classifyPrimary(AssetId id) {
+    return newFuture(() => doClassifyPrimary(id)).then((result) {
       return newFuture(() {
-        if (_isPrimary.containsKey(id)) {
-          return _isPrimary[id].future;
+        if (_classifyPrimary.containsKey(id)) {
+          return _classifyPrimary[id].future;
         }
       }).then((_) => result);
     });
   }
 
-  Future apply(Transform transform) {
+  Future apply(AggregateTransform transform) {
     _numRuns++;
     if (_runningTransforms == 0) _started.complete();
     _runningTransforms++;
-    if (consumePrimary) transform.consumePrimary();
     return newFuture(() => doApply(transform)).then((_) {
       if (_apply != null) return _apply.future;
     }).whenComplete(() {
+      for (var id in consumePrimaries) {
+        transform.consumePrimary(new AssetId.parse(id));
+      }
       _runningTransforms--;
       if (_runningTransforms == 0) _started = new Completer();
     });
   }
 
-  /// The wrapped version of [isPrimary] for subclasses to override.
+  /// The wrapped version of [classifyPrimary] for subclasses to override.
   ///
-  /// This may return a `Future<bool>` or, if it's entirely synchronous, a
-  /// `bool`.
-  doIsPrimary(AssetId id);
+  /// This may return a `Future<String>` or, if it's entirely synchronous, a
+  /// `String`.
+  doClassifyPrimary(AssetId id);
 
   /// The wrapped version of [doApply] for subclasses to override.
   ///
   /// If this does asynchronous work, it should return a [Future] that completes
   /// once it's finished.
-  doApply(Transform transform);
+  doApply(AggregateTransform transform);
 }
