@@ -78,6 +78,11 @@ class AnalysisDomainHandler implements RequestHandler {
   static const String ADDED_PARAM = 'added';
 
   /**
+   * The name of the `content` parameter.
+   */
+  static const String CONTENT_PARAM = 'content';
+
+  /**
    * The name of the `default` parameter.
    */
   static const String DEFAULT_PARAM = 'default';
@@ -118,9 +123,19 @@ class AnalysisDomainHandler implements RequestHandler {
   static const String LENGTH_PARAM = 'length';
 
   /**
+   * The name of the `newLength` parameter.
+   */
+  static const String NEW_LENGTH_PARAM = 'newLength';
+
+  /**
    * The name of the `offset` parameter.
    */
   static const String OFFSET_PARAM = 'offset';
+
+  /**
+   * The name of the `oldLength` parameter.
+   */
+  static const String OLD_LENGTH_PARAM = 'oldLength';
 
   /**
    * The name of the `options` parameter.
@@ -222,8 +237,20 @@ class AnalysisDomainHandler implements RequestHandler {
   }
 
   Response updateContent(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    var changes = new Map<String, ContentChange>();
+    RequestDatum filesDatum = request.getRequiredParameter(FILES_PARAM);
+    filesDatum.forEachMap((file, changeDatum) {
+      var change = new ContentChange();
+      change.content = changeDatum[CONTENT_PARAM].asString();
+      if (changeDatum.hasKey(OFFSET_PARAM)) {
+        change.offset = changeDatum[OFFSET_PARAM].asInt();
+        change.oldLength = changeDatum[OLD_LENGTH_PARAM].asInt();
+        change.newLength = changeDatum[NEW_LENGTH_PARAM].asInt();
+      }
+      changes[file] = change;
+    });
+    server.updateContent(changes);
+    return new Response(request.id);
   }
 
   Response updateOptions(Request request) {
@@ -235,4 +262,15 @@ class AnalysisDomainHandler implements RequestHandler {
     // TODO(scheglov) implement
     return null;
   }
+}
+
+
+/**
+ * A description of the change to the content of a file.
+ */
+class ContentChange {
+  String content;
+  int offset;
+  int oldLength;
+  int newLength;
 }

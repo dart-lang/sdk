@@ -30,6 +30,7 @@ main() {
   });
 
   group('notification.errors', testNotificationErrors);
+  group('updateContent', testUpdateContent);
 
   group('AnalysisDomainHandler', () {
     test('getFixes', () {
@@ -105,16 +106,6 @@ main() {
             AnalysisService.NAVIGATION : ['project/c.dart'],
             AnalysisService.OUTLINE : ['project/d.dart', 'project/e.dart']
           });
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
-    });
-
-    test('updateContent', () {
-      var request = new Request('0', AnalysisDomainHandler.UPDATE_CONTENT_METHOD);
-//      request.setParameter(
-//          AnalysisDomainHandler.FILES_PARAM,
-//          {'project/test.dart' : null});
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
       expect(response, isNull);
@@ -213,19 +204,37 @@ class AnalysisTestHelper {
    * Creates a project with a single Dart file `/project/bin/test.dart` with
    * the given [code].
    */
-  createSingleFileProject(code) {
-    if (code is List<String>) {
-      code = code.join('\n');
-    }
-    this.testCode = code;
+  void createSingleFileProject(code) {
+    this.testCode = _getCodeString(code);
     resourceProvider.newFolder('/project');
     resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
     resourceProvider.newFile(testFile, testCode);
     Request request = new Request('0', AnalysisDomainHandler.SET_ANALYSIS_ROOTS_METHOD);
     request.setParameter(AnalysisDomainHandler.INCLUDED_PARAM, ['/project']);
     request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, []);
+    handleSuccessfulRequest(request);
+  }
+
+  /**
+   * Validates that the given [request] is handled successfully.
+   */
+  void handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
+  }
+
+  /**
+   * Stops the associated server.
+   */
+  void stopServer() {
+    server.done();
+  }
+
+  static String _getCodeString(code) {
+    if (code is List<String>) {
+      code = code.join('\n');
+    }
+    return code as String;
   }
 }
 
@@ -261,6 +270,64 @@ testNotificationErrors() {
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
       expect(error.errorCode, 'StaticWarningCode.UNDEFINED_IDENTIFIER');
+    });
+  });
+}
+
+
+testUpdateContent() {
+  test('full content', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('// empty');
+    return helper.waitForTasksFinished().then((_) {
+      // no errors initially
+      List<AnalysisError> errors = helper.getTestErrors();
+      expect(errors, isEmpty);
+      // update code
+      {
+        Request request = new Request('0', AnalysisDomainHandler.UPDATE_CONTENT_METHOD);
+        request.setParameter('files',
+            {
+              helper.testFile : {
+                AnalysisDomainHandler.CONTENT_PARAM : 'library lib'
+              }
+            });
+        helper.handleSuccessfulRequest(request);
+      }
+      // wait, there is an error
+      helper.waitForTasksFinished().then((_) {
+        List<AnalysisError> errors = helper.getTestErrors();
+        expect(errors, hasLength(1));
+      });
+    });
+  });
+
+  test('incremental', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('library A;');
+    return helper.waitForTasksFinished().then((_) {
+      // no errors initially
+      List<AnalysisError> errors = helper.getTestErrors();
+      expect(errors, isEmpty);
+      // update code
+      {
+        Request request = new Request('0', AnalysisDomainHandler.UPDATE_CONTENT_METHOD);
+        request.setParameter('files',
+            {
+              helper.testFile : {
+                AnalysisDomainHandler.CONTENT_PARAM : 'library lib',
+                AnalysisDomainHandler.OFFSET_PARAM : 'library '.length,
+                AnalysisDomainHandler.OLD_LENGTH_PARAM : 'A;'.length,
+                AnalysisDomainHandler.NEW_LENGTH_PARAM : 'lib'.length,
+              }
+            });
+        helper.handleSuccessfulRequest(request);
+      }
+      // wait, there is an error
+      helper.waitForTasksFinished().then((_) {
+        List<AnalysisError> errors = helper.getTestErrors();
+        expect(errors, hasLength(1));
+      });
     });
   });
 }

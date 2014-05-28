@@ -274,7 +274,7 @@ class AnalysisServer {
   }
 
   /**
-   * Implementation for `server.setAnalysisRoots`.
+   * Implementation for `analysis.setAnalysisRoots`.
    *
    * TODO(scheglov) implement complete projects/contexts semantics.
    *
@@ -330,10 +330,29 @@ class AnalysisServer {
   }
 
   /**
+   * Implementation for `analysis.updateContent`.
+   */
+  void updateContent(Map<String, ContentChange> changes) {
+    changes.forEach((file, change) {
+      AnalysisContext analysisContext = _getAnalysisContext(file);
+      if (analysisContext != null) {
+        Source source = _getSource(file);
+        if (change.offset == null) {
+          analysisContext.setContents(source, change.content);
+        } else {
+          analysisContext.setChangedContents(source, change.content,
+              change.offset, change.oldLength, change.newLength);
+        }
+        addContextToWorkQueue(analysisContext);
+      }
+    });
+  }
+
+  /**
    * Return the [AnalysisContext] that is used to analyze the given [path].
    * Return `null` if there is no such context.
    */
-  AnalysisContext test_getAnalysisContext(String path) {
+  AnalysisContext _getAnalysisContext(String path) {
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.fullName)) {
         return folderMap[folder].context;
@@ -343,18 +362,25 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [Source] of the Dart file with the given [path].
+   */
+  Source _getSource(String path) {
+    File file = resourceProvider.getResource(path);
+    return file.createSource(UriKind.FILE_URI);
+  }
+
+  /**
    * Return the [CompilationUnit] of the Dart file with the given [path].
    * Return `null` if the file is not a part of any context.
    */
   CompilationUnit test_getResolvedCompilationUnit(String path) {
     // prepare AnalysisContext
-    AnalysisContext context = test_getAnalysisContext(path);
+    AnalysisContext context = _getAnalysisContext(path);
     if (context == null) {
       return null;
     }
     // prepare sources
-    File file = resourceProvider.getResource(path);
-    Source unitSource = file.createSource(UriKind.FILE_URI);
+    Source unitSource = _getSource(path);
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     if (librarySources.isEmpty) {
       return null;
