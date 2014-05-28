@@ -1008,6 +1008,8 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
     Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
+    Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
   } else {
     Unknown(instr);
   }

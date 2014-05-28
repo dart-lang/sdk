@@ -417,6 +417,7 @@ enum ConditionalSelectOp {
   ConditionalSelectFixed = DPRegisterFixed | B28 | B23,
   CSEL = ConditionalSelectFixed,
   CSINC = ConditionalSelectFixed | B10,
+  CSINV = ConditionalSelectFixed | B30,
 };
 
 // C3.5.8

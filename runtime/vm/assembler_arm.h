@@ -722,6 +722,10 @@ class Assembler : public ValueObject {
     Asr(reg, reg, kSmiTagSize, cond);
   }
 
+  void SmiUntag(Register dst, Register src, Condition cond = AL) {
+    Asr(dst, src, kSmiTagSize, cond);
+  }
+
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs);

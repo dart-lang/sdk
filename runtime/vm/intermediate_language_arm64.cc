@@ -1209,11 +1209,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
     case kOneByteStringCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
-      locs->set_in(2, Location::WritableRegister());
-      break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      locs->set_in(2, Location::WritableRegister());
+      locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
@@ -1268,8 +1266,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(TMP, element_address, kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ str(value, element_address, kUnsignedByte);
+        __ SmiUntag(TMP, value);
+        __ str(TMP, element_address, kUnsignedByte);
       }
       break;
     }
@@ -1288,32 +1286,27 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(TMP, element_address, kUnsignedByte);
       } else {
         const Register value = locs()->in(2).reg();
-        Label store_value;
-        __ SmiUntag(value);
-        __ CompareImmediate(value, 0xFF, PP);
+        __ CompareImmediate(value, 0x1FE, PP);  // Smi value and smi 0xFF.
         // Clamp to 0x00 or 0xFF respectively.
-        __ b(&store_value, LS);
-        __ LoadImmediate(TMP, 0x00, PP);
-        __ LoadImmediate(TMP2, 0xFF, PP);
-        __ csel(value, TMP, value, LE);
-        __ csel(value, TMP2, value, GT);
-        __ Bind(&store_value);
-        __ str(value, element_address, kUnsignedByte);
+        __ csetm(TMP, GT);  // TMP = value > 0x1FE ? -1 : 0.
+        __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
+        __ SmiUntag(TMP);
+        __ str(TMP, element_address, kUnsignedByte);
       }
       break;
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       const Register value = locs()->in(2).reg();
-      __ SmiUntag(value);
-      __ str(value, element_address, kUnsignedHalfword);
+      __ SmiUntag(TMP, value);
+      __ str(TMP, element_address, kUnsignedHalfword);
       break;
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       const Register value = locs()->in(2).reg();
-      __ SmiUntag(value);
-      __ str(value, element_address, kUnsignedWord);
+      __ SmiUntag(TMP, value);
+      __ str(TMP, element_address, kUnsignedWord);
       break;
     }
     case kTypedDataFloat32ArrayCid: {
@@ -2643,7 +2636,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
             reinterpret_cast<int64_t>(Smi::New(max_right)), PP);
         __ b(deopt, CS);
       }
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       __ lslv(result, left, TMP);
     }
     if (FLAG_throw_on_javascript_int_overflow) {
@@ -2668,11 +2661,11 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ CompareImmediate(
           right, reinterpret_cast<int64_t>(Smi::New(Smi::kBits)), PP);
       __ csel(result, ZR, result, CS);
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       __ lslv(TMP, left, TMP);
       __ csel(result, TMP, result, CC);
     } else {
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       __ lslv(result, left, TMP);
     }
   } else {
@@ -2684,7 +2677,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Left is not a constant.
     // Check if count too large for handling it inlined.
-    __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    __ SmiUntag(TMP, right);
     // Overflow test (preserve left, right, and TMP);
     const Register temp = locs.temp(0).reg();
     __ lslv(temp, left, TMP);
@@ -2900,7 +2893,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
-      __ Asr(TMP, left, kSmiTagSize);  // SmiUntag left into TMP.
+      __ SmiUntag(TMP, left);
       if (deopt == NULL) {
         __ mul(result, TMP, right);
       } else {
@@ -2934,8 +2927,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(deopt, EQ);
       }
       const Register temp = TMP2;
-      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
 
       __ sdiv(result, temp, TMP);
 
@@ -2953,12 +2946,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(deopt, EQ);
       }
       const Register temp = TMP2;
-      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
 
       __ sdiv(result, temp, TMP);
 
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ SmiUntag(TMP, right);
       __ msub(result, TMP, result, temp);  // result <- left - right * result
       __ SmiTag(result);
       //  res = left % right;
@@ -2985,7 +2978,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ CompareRegisters(right, ZR);
         __ b(deopt, LT);
       }
-      __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       // sarl operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
       if ((right_range == NULL) ||
@@ -2995,7 +2988,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ csel(TMP, TMP2, TMP, GT);
       }
       const Register temp = locs()->temp(0).reg();
-      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ SmiUntag(temp, left);
       __ asrv(result, temp, TMP);
       __ SmiTag(result);
       break;
@@ -4514,7 +4507,7 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  result->set_in(0, Location::WritableRegister());
+  result->set_in(0, Location::RequiresRegister());
   result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
@@ -4523,8 +4516,8 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const VRegister result = locs()->out(0).fpu_reg();
-  __ SmiUntag(value);
-  __ scvtfd(result, value);
+  __ SmiUntag(TMP, value);
+  __ scvtfd(result, TMP);
 }
 
 
@@ -4893,8 +4886,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, EQ);
     }
 
-    __ Asr(result_mod, left, kSmiTagSize);  // SmiUntag left.
-    __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right.
+    __ SmiUntag(result_mod, left);
+    __ SmiUntag(TMP, right);
 
     __ sdiv(result_div, result_mod, TMP);
 

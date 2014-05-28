@@ -1498,6 +1498,36 @@ ASSEMBLER_TEST_RUN(CsincTrue, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(CsinvFalse, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csinv(R0, R2, R1, GE);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CsinvFalse, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(~42, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(CsinvTrue, assembler) {
+  __ LoadImmediate(R1, 42, kNoRegister);
+  __ LoadImmediate(R2, 1234, kNoRegister);
+  __ CompareRegisters(R1, R2);
+  __ csinv(R0, R2, R1, LT);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(CsinvTrue, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(SimpleCode, test->entry()));
+}
+
+
 // Floating point move immediate, to/from integer register.
 ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
   __ LoadDImmediate(V0, 1.0, kNoPP);

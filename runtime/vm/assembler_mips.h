@@ -1116,6 +1116,10 @@ class Assembler : public ValueObject {
     sra(reg, reg, kSmiTagSize);
   }
 
+  void SmiUntag(Register dst, Register src) {
+    sra(dst, src, kSmiTagSize);
+  }
+
   void LoadFromOffset(Register reg, Register base, int32_t offset) {
     ASSERT(!in_delay_slot_);
     if (Utils::IsInt(kImmBits, offset)) {

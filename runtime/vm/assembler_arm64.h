@@ -612,16 +612,25 @@ class Assembler : public ValueObject {
 
   // Conditional select.
   void csel(Register rd, Register rn, Register rm, Condition cond) {
-    EmitCoditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
+    EmitConditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
   }
   void csinc(Register rd, Register rn, Register rm, Condition cond) {
-    EmitCoditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
+    EmitConditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
   }
   void cinc(Register rd, Register rn, Condition cond) {
     csinc(rd, rn, rn, InvertCondition(cond));
   }
   void cset(Register rd, Condition cond) {
     csinc(rd, ZR, ZR, InvertCondition(cond));
+  }
+  void csinv(Register rd, Register rn, Register rm, Condition cond) {
+    EmitConditionalSelect(CSINV, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cinv(Register rd, Register rn, Condition cond) {
+    csinv(rd, rn, rn, InvertCondition(cond));
+  }
+  void csetm(Register rd, Condition cond) {
+    csinv(rd, ZR, ZR, InvertCondition(cond));
   }
 
   // Comparison.
@@ -1009,6 +1018,9 @@ class Assembler : public ValueObject {
 
   void SmiUntag(Register reg) {
     Asr(reg, reg, kSmiTagSize);
+  }
+  void SmiUntag(Register dst, Register src) {
+    Asr(dst, src, kSmiTagSize);
   }
   void SmiTag(Register reg) {
     Lsl(reg, reg, kSmiTagSize);
@@ -1549,9 +1561,9 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitCoditionalSelect(ConditionalSelectOp op,
-                            Register rd, Register rn, Register rm,
-                            Condition cond, OperandSize sz) {
+  void EmitConditionalSelect(ConditionalSelectOp op,
+                             Register rd, Register rn, Register rm,
+                             Condition cond, OperandSize sz) {
     ASSERT((rd != SP) && (rn != SP) && (rm != SP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);

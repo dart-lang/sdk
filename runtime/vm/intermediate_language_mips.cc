@@ -1344,7 +1344,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      locs->set_in(2, Location::WritableRegister());
+      locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
@@ -1397,8 +1397,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ sb(TMP, element_address);
       } else {
         Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ sb(value, element_address);
+        __ SmiUntag(TMP, value);
+        __ sb(TMP, element_address);
       }
       break;
     }
@@ -1418,22 +1418,21 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else {
         Register value = locs()->in(2).reg();
         Label store_value, bigger, smaller;
-        __ SmiUntag(value);
-        __ BranchUnsignedLess(value, 0xFF + 1, &store_value);
+        __ SmiUntag(TMP, value);
+        __ BranchUnsignedLess(TMP, 0xFF + 1, &store_value);
         __ LoadImmediate(TMP, 0xFF);
         __ slti(CMPRES1, value, Immediate(1));
         __ movn(TMP, ZR, CMPRES1);
-        __ mov(value, TMP);
         __ Bind(&store_value);
-        __ sb(value, element_address);
+        __ sb(TMP, element_address);
       }
       break;
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       Register value = locs()->in(2).reg();
-      __ SmiUntag(value);
-      __ sh(value, element_address);
+      __ SmiUntag(TMP, value);
+      __ sh(TMP, element_address);
       break;
     }
     case kTypedDataInt32ArrayCid:
@@ -1441,8 +1440,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (value()->IsSmiValue()) {
         ASSERT(RequiredInputRepresentation(2) == kTagged);
         Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ sw(value, element_address);
+        __ SmiUntag(TMP, value);
+        __ sw(TMP, element_address);
       } else {
         UNIMPLEMENTED();
       }
@@ -2704,7 +2703,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ BranchUnsignedGreaterEqual(
             right, reinterpret_cast<int32_t>(Smi::New(max_right)), deopt);
       }
-      __ sra(TMP, right, kSmiTagMask);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       __ sllv(result, left, TMP);
     }
     return;
@@ -2743,7 +2742,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Left is not a constant.
     Register temp = locs.temp(0).reg();
     // Check if count too large for handling it inlined.
-    __ sra(temp, right, kSmiTagSize);  // SmiUntag right into temp.
+    __ SmiUntag(temp, right);
     // Overflow test (preserve left, right, and temp);
     __ sllv(CMPRES1, left, temp);
     __ srav(CMPRES1, CMPRES1, temp);
@@ -3014,8 +3013,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ beq(right, ZR, deopt);
       }
       Register temp = locs()->temp(0).reg();
-      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
       __ div(temp, TMP);
       __ mflo(result);
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
@@ -3030,8 +3029,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ beq(right, ZR, deopt);
       }
       Register temp = locs()->temp(0).reg();
-      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
       __ div(temp, TMP);
       __ mfhi(result);
       //  res = left % right;
@@ -3067,7 +3066,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (CanDeoptimize()) {
         __ bltz(right, deopt);
       }
-      __ sra(temp, right, kSmiTagSize);  // SmiUntag right into temp.
+      __ SmiUntag(temp, right);
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       if ((right_range == NULL) ||
@@ -3078,7 +3077,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Bind(&ok);
       }
 
-      __ sra(CMPRES1, left, kSmiTagSize);  // SmiUntag left into CMPRES1.
+      __ SmiUntag(CMPRES1, left);
       __ srav(result, CMPRES1, temp);
       __ SmiTag(result);
       break;
@@ -3173,14 +3172,10 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const bool needs_writable_input = (value_cid == kSmiCid);
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, needs_writable_input
-                     ? Location::WritableRegister()
-                     : Location::RequiresRegister());
+  summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
@@ -3195,8 +3190,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (value_cid == kDoubleCid) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
   } else if (value_cid == kSmiCid) {
-    __ SmiUntag(value);  // Untag input before conversion.
-    __ mtc1(value, STMP1);
+    __ SmiUntag(TMP, value);
+    __ mtc1(TMP, STMP1);
     __ cvtdw(result, STMP1);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3218,8 +3213,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Double::value_offset() - kHeapObjectTag);
       __ b(&done);
       __ Bind(&is_smi);
-      // TODO(regis): Why do we preserve value here but not above?
-      __ sra(TMP, value, 1);
+      __ SmiUntag(TMP, value);
       __ mtc1(TMP, STMP1);
       __ cvtdw(result, STMP1);
       __ Bind(&done);
@@ -3882,7 +3876,7 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  result->set_in(0, Location::WritableRegister());
+  result->set_in(0, Location::RequiresRegister());
   result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
@@ -3891,8 +3885,8 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
-  __ SmiUntag(value);
-  __ mtc1(value, STMP1);
+  __ SmiUntag(TMP, value);
+  __ mtc1(TMP, STMP1);
   __ cvtdw(result, STMP1);
 }
 
@@ -4250,8 +4244,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Handle divide by zero in runtime.
       __ beq(right, ZR, deopt);
     }
-    __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-    __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    __ SmiUntag(temp, left);
+    __ SmiUntag(TMP, right);
     __ div(temp, TMP);
     __ mflo(result_div);
     __ mfhi(result_mod);
