@@ -82,16 +82,34 @@ class AnalysisServerTest {
 //        new AnalysisResult(null, 0, null, 0));
 //    return pumpEventQueue().then((_) {
 //      context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(2));
-//      var notifications = channel.notificationsReceived;
-//      expect(notifications, hasLength(2));
+//      List<Notification> notifications = channel.notificationsReceived;
+//      expect(notifications, hasLength(4));
+//
 //      expect(notifications[0].event, equals('server.connected'));
-//      expect(notifications[1].event, equals('context.errors'));
-//      expect(notifications[1].params['source'], equals('foo.dart'));
-//      expect(notifications[1].params['contextId'], equals('context-27'));
-//      List<AnalysisError> errors = notifications[1].params['errors'];
+//
+//      assertStatusNotification(notifications[1], true);
+//
+//      expect(notifications[2].event, equals('context.errors'));
+//      expect(notifications[2].params['source'], equals('foo.dart'));
+//      expect(notifications[2].params['contextId'], equals('context-27'));
+//      List<AnalysisError> errors = notifications[2].params['errors'];
 //      expect(errors, hasLength(1));
 //      expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
+//
+//      assertStatusNotification(notifications[3], false);
 //    });
+//  }
+//
+//  static void assertStatusNotification(Notification notification, bool expectAnalyzing) {
+//    expect(notification.event, equals('server.status'));
+//    Map<String, Object> analysis = notification.params['analysis'];
+//    expect(analysis['analyzing'], expectAnalyzing);
+//    expect(analysis.containsKey('analysisTarget'), expectAnalyzing);
+//    if (expectAnalyzing) {
+//      var analysisTarget = analysis['analysisTarget'];
+//      expect((analysisTarget is String), isTrue);
+//      expect(analysisTarget.length > 0, isTrue);
+//    }
 //  }
 
   static Future addContextToWorkQueue_twice() {

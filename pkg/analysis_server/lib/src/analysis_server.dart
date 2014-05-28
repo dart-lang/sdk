@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -47,6 +48,11 @@ class AnalysisServer {
    * The event name of the connected notification.
    */
   static const String CONNECTED_NOTIFICATION = 'server.connected';
+
+  /**
+   * The event name of the status notification.
+   */
+  static const String STATUS_NOTIFICATION = 'server.status';
 
   /**
    * The channel from which requests are received and to which responses should
@@ -92,6 +98,11 @@ class AnalysisServer {
    * A table mapping [Folder]s to the [PubFolder]s associated with them.
    */
   final Map<Folder, PubFolder> folderMap = <Folder, PubFolder>{};
+
+  /**
+   * The context identifier used in the last status notification.
+   */
+  String lastStatusNotificationContextId = null;
 
   /**
    * A list of the analysis contexts for which analysis work needs to be
@@ -197,6 +208,8 @@ class AnalysisServer {
     try {
       AnalysisContext context = contextWorkQueue[0];
 //      contextId = contextIdMap[context];
+      // TODO(danrubel): Replace with context identifier or similar
+      sendStatusNotification(context.toString());
       AnalysisResult result = context.performAnalysisTask();
       notices = result.changeNotices;
     } finally {
@@ -216,9 +229,11 @@ class AnalysisServer {
       }
     }
     // TODO(scheglov) implement for [PubFolder]
-//    if (notices != null) {
+    if (notices != null) {
 //      sendNotices(contextId, notices);
-//    }
+    } else {
+      sendStatusNotification(null);
+    }
   }
 
   // TODO(scheglov) rewrite for the new API.
@@ -236,6 +251,28 @@ class AnalysisServer {
 //      sendNotification(notification);
 //    }
 //  }
+
+  /**
+   * Send status notification to the client. The `contextId` indicates
+   * the current context being analyzed or `null` if analysis is complete.
+   */
+  void sendStatusNotification(String contextId) {
+    if (contextId == lastStatusNotificationContextId) {
+      return;
+    }
+    lastStatusNotificationContextId = contextId;
+    Notification notification = new Notification(STATUS_NOTIFICATION);
+    Map<String, Object> analysis = new Map();
+    if (contextId != null) {
+      analysis['analyzing'] = true;
+      // TODO(danrubel): replace contextId with real analysisTarget
+      analysis['analysisTarget'] = contextId;
+    } else {
+      analysis['analyzing'] = false;
+    }
+    notification.params['analysis'] = analysis;
+    channel.sendNotification(notification);
+  }
 
   /**
    * Implementation for `server.setAnalysisRoots`.

@@ -68,14 +68,14 @@ class GetHandler {
           true);
       // TODO(scheglov) replace with using folder based contexts
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
-        AnalysisContextStatistics statistics =
+        AnalysisContentStatistics statistics =
             (context as AnalysisContextImpl).statistics;
         int errorCount = 0;
         int flushedCount = 0;
         int inProcessCount = 0;
         int invalidCount = 0;
         int validCount = 0;
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
+        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
           errorCount += row.errorCount;
           flushedCount += row.flushedCount;
           inProcessCount += row.inProcessCount;
@@ -93,13 +93,13 @@ class GetHandler {
       response.write('</table>');
       _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
         response.write('<h2><a name="context_$key">Analysis Context: $key</a></h2>');
-        AnalysisContextStatistics statistics = (context as AnalysisContextImpl).statistics;
+        AnalysisContentStatistics statistics = (context as AnalysisContextImpl).statistics;
         response.write('<table>');
         _writeRow(
             response,
             ['Item', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
             true);
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
+        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
           _writeRow(
               response,
               [row.name,
