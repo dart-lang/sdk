@@ -1116,8 +1116,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var protocol = isTcp ? "TCP" : isUdp ? "UDP" : null;
     var localAddress;
     var localPort;
-    var remoteAddress;
-    var remotePort;
+    var rAddress;
+    var rPort;
     try {
       localAddress = address.address;
     } catch (e) { }
@@ -1125,15 +1125,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       localPort = port;
     } catch (e) { }
     try {
-      remoteAddress = this.remoteAddress.address;
+      rAddress = this.remoteAddress.address;
     } catch (e) { }
     try {
-      remotePort = remotePort;
+      rPort = remotePort;
     } catch (e) { }
     r['localAddress'] = localAddress;
     r['localPort'] = localPort;
-    r['remoteAddress'] = remoteAddress;
-    r['remotePort'] = remotePort;
+    r['remoteAddress'] = rAddress;
+    r['remotePort'] = rPort;
     r['protocol'] = protocol;
     r['readClosed'] = isClosedRead;
     r['writeClosed'] = isClosedWrite;
