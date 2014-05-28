@@ -35,7 +35,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   cls.SetFunctions(functions);
   Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(cls);
-  ParsedFunction* parsed_function = new ParsedFunction(function);
+  ParsedFunction* parsed_function =
+      new ParsedFunction(Isolate::Current(), function);
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));

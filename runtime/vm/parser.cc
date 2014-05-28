@@ -753,7 +753,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     const Class& owner = Class::Handle(isolate, func.Owner());
     ASSERT(!owner.IsNull());
     ParsedFunction* parsed_function = new ParsedFunction(
-        Function::ZoneHandle(isolate, func.raw()));
+        isolate, Function::ZoneHandle(isolate, func.raw()));
     Parser parser(script, parsed_function, func.token_pos());
     parser.SkipFunctionPreamble();
     ParamList params;

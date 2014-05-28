@@ -761,8 +761,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function =
-        new ParsedFunction(Function::ZoneHandle(function.raw()));
+    ParsedFunction* parsed_function = new ParsedFunction(
+        isolate, Function::ZoneHandle(isolate, function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
@@ -954,7 +954,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants
     // here.
-    ParsedFunction* parsed_function = new ParsedFunction(func);
+    ParsedFunction* parsed_function = new ParsedFunction(isolate, func);
     parsed_function->SetNodeSequence(fragment);
     parsed_function->set_default_parameter_values(Object::null_array());
     parsed_function->EnsureExpressionTemp();

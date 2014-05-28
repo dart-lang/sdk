@@ -38,12 +38,12 @@ struct TopLevel;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  explicit ParsedFunction(const Function& function)
+  ParsedFunction(Isolate* isolate, const Function& function)
       : function_(function),
-        code_(Code::Handle(function.unoptimized_code())),
+        code_(Code::Handle(isolate, function.unoptimized_code())),
         node_sequence_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::ZoneHandle()),
+        default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
@@ -51,7 +51,8 @@ class ParsedFunction : public ZoneAllocated {
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
-        num_stack_locals_(0) {
+        num_stack_locals_(0),
+        isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
 
@@ -120,6 +121,8 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
+  Isolate* isolate() const { return isolate_; }
+
  private:
   const Function& function_;
   Code& code_;
@@ -135,6 +138,8 @@ class ParsedFunction : public ZoneAllocated {
   int first_stack_local_index_;
   int num_copied_params_;
   int num_stack_locals_;
+
+  Isolate* isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };

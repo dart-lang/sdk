@@ -30,7 +30,8 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   EXPECT(Isolate::Current() != NULL);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    ParsedFunction* parsed_function = new ParsedFunction(function);
+    ParsedFunction* parsed_function =
+        new ParsedFunction(Isolate::Current(), function);
     Parser::ParseFunction(parsed_function);
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);

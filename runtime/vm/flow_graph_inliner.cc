@@ -952,7 +952,8 @@ class CallSiteInliner : public ValueObject {
       }
     }
     *in_cache = false;
-    ParsedFunction* parsed_function = new(isolate()) ParsedFunction(function);
+    ParsedFunction* parsed_function =
+        new(isolate()) ParsedFunction(isolate(), function);
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
     return parsed_function;
