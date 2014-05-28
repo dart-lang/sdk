@@ -2137,8 +2137,10 @@ class TestUtils {
           "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
       "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "pkg_polymer_example_canonicalization_test_canonicalization":
-          "polymer_c16n"
+      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
+      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
+      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
+      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
     };
 
     // Some tests are already in [build_dir]/generated_tests.
