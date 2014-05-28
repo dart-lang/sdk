@@ -1015,6 +1015,12 @@ intptr_t Isolate::ProfileInterrupt() {
     // Profiler blocked for this isolate.
     return 0;
   }
+  if (message_handler()->paused_on_start() ||
+      message_handler()->paused_on_exit() ||
+      debugger()->IsPaused()) {
+    // Paused at start / exit / breakpoint. Don't tick.
+    return 0;
+  }
   InterruptableThreadState* state = thread_state();
   if (state == NULL) {
     // Isolate is not scheduled on a thread.
