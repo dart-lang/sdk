@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -26,6 +27,19 @@ import 'package:analyzer/src/generated/source_io.dart';
  * [AnalysisServer] instances to improve performance.
  */
 final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
+
+class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
+  final AnalysisServer analysisServer;
+
+  AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
+      : super(resourceProvider);
+
+  void addContext(Folder folder) {
+    PubFolder pubFolder = new PubFolder(analysisServer.defaultSdk, folder);
+    analysisServer.folderMap[folder] = pubFolder;
+    analysisServer.addContextToWorkQueue(pubFolder.context);
+  }
+}
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -59,9 +73,10 @@ class AnalysisServer {
   final ServerCommunicationChannel channel;
 
   /**
-   * The [ResourceProvider] using which paths are converted into [Resource]s.
+   * [ContextDirectoryManager] which handles the mapping from analysis roots
+   * to context directories.
    */
-  final ResourceProvider resourceProvider;
+  AnalysisServerContextDirectoryManager contextDirectoryManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -121,7 +136,8 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
-  AnalysisServer(this.channel, this.resourceProvider) {
+  AnalysisServer(this.channel, ResourceProvider resourceProvider) {
+    contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
     Notification notification = new Notification(CONNECTED_NOTIFICATION);
@@ -288,44 +304,12 @@ class AnalysisServer {
   void setAnalysisRoots(String requestId,
                         List<String> includedPaths,
                         List<String> excludedPaths) {
-    // included
-    Set<Folder> includedFolders = new Set<Folder>();
-    for (int i = 0; i < includedPaths.length; i++) {
-      String path = includedPaths[i];
-      Resource resource = resourceProvider.getResource(path);
-      if (resource is Folder) {
-        includedFolders.add(resource);
-      } else {
-        // TODO(scheglov) implemented separate files analysis
-        throw new RequestFailure(
-            new Response.unsupportedFeature(
-                requestId,
-                '$path is not a folder. '
-                'Only support for folder analysis is implemented currently.'));
-      }
-    }
-    // excluded
-    // TODO(scheglov) remove when implemented
-    if (excludedPaths.isNotEmpty) {
+    try {
+      contextDirectoryManager.setRoots(includedPaths, excludedPaths);
+    } on UnimplementedError catch (e) {
       throw new RequestFailure(
-          new Response.unsupportedFeature(
-              requestId,
-              'Excluded paths are not supported yet'));
-    }
-    Set<Folder> excludedFolders = new Set<Folder>();
-    // diff
-    Set<Folder> currentFolders = new Set<Folder>.from(folderMap.keys);
-    Set<Folder> newFolders = includedFolders.difference(currentFolders);
-    Set<Folder> oldFolders = currentFolders.difference(includedFolders);
-    // remove old contexts
-    for (Folder folder in oldFolders) {
-      // TODO(scheglov) implement
-    }
-    // add new contexts
-    for (Folder folder in newFolders) {
-      PubFolder pubFolder = new PubFolder(defaultSdk, folder);
-      folderMap[folder] = pubFolder;
-      addContextToWorkQueue(pubFolder.context);
+                  new Response.unsupportedFeature(
+                      requestId, e.message));
     }
   }
 
@@ -365,7 +349,7 @@ class AnalysisServer {
    * Return the [Source] of the Dart file with the given [path].
    */
   Source _getSource(String path) {
-    File file = resourceProvider.getResource(path);
+    File file = contextDirectoryManager.resourceProvider.getResource(path);
     return file.createSource(UriKind.FILE_URI);
   }
 
