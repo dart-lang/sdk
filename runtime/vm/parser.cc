@@ -3065,16 +3065,18 @@ void Parser::SkipIf(Token::Kind token) {
 
 // Skips tokens up to matching closing parenthesis.
 void Parser::SkipToMatchingParenthesis() {
-  ASSERT(CurrentToken() == Token::kLPAREN);
+  Token::Kind current_token = CurrentToken();
+  ASSERT(current_token == Token::kLPAREN);
   int level = 0;
   do {
-    if (CurrentToken() == Token::kLPAREN) {
+    if (current_token == Token::kLPAREN) {
       level++;
-    } else if (CurrentToken() == Token::kRPAREN) {
+    } else if (current_token == Token::kRPAREN) {
       level--;
     }
     ConsumeToken();
-  } while ((level > 0) && (CurrentToken() != Token::kEOS));
+    current_token = CurrentToken();
+  } while ((level > 0) && (current_token != Token::kEOS));
 }
 
 
@@ -7339,18 +7341,19 @@ AstNode* Parser::ParseStatement() {
     }
   }
   const intptr_t statement_pos = TokenPos();
+  const Token::Kind token = CurrentToken();
 
-  if (CurrentToken() == Token::kWHILE) {
+  if (token == Token::kWHILE) {
     statement = ParseWhileStatement(label_name);
-  } else if (CurrentToken() == Token::kFOR) {
+  } else if (token == Token::kFOR) {
     statement = ParseForStatement(label_name);
-  } else if (CurrentToken() == Token::kDO) {
+  } else if (token == Token::kDO) {
     statement = ParseDoWhileStatement(label_name);
-  } else if (CurrentToken() == Token::kSWITCH) {
+  } else if (token == Token::kSWITCH) {
     statement = ParseSwitchStatement(label_name);
-  } else if (CurrentToken() == Token::kTRY) {
+  } else if (token == Token::kTRY) {
     statement = ParseTryStatement(label_name);
-  } else if (CurrentToken() == Token::kRETURN) {
+  } else if (token == Token::kRETURN) {
     const intptr_t return_pos = TokenPos();
     ConsumeToken();
     if (CurrentToken() != Token::kSEMICOLON) {
@@ -7365,9 +7368,9 @@ AstNode* Parser::ParseStatement() {
     }
     AddNodeForFinallyInlining(statement);
     ExpectSemicolon();
-  } else if (CurrentToken() == Token::kIF) {
+  } else if (token == Token::kIF) {
     statement = ParseIfStatement(label_name);
-  } else if (CurrentToken() == Token::kASSERT) {
+  } else if (token == Token::kASSERT) {
     statement = ParseAssertStatement();
     ExpectSemicolon();
   } else if (IsVariableDeclaration()) {
@@ -7375,7 +7378,7 @@ AstNode* Parser::ParseStatement() {
     ExpectSemicolon();
   } else if (IsFunctionDeclaration()) {
     statement = ParseFunctionStatement(false);
-  } else if (CurrentToken() == Token::kLBRACE) {
+  } else if (token == Token::kLBRACE) {
     SourceLabel* label = NULL;
     OpenBlock();
     if (label_name != NULL) {
@@ -7389,18 +7392,18 @@ AstNode* Parser::ParseStatement() {
       statement->AsSequenceNode()->set_label(label);
     }
     ExpectToken(Token::kRBRACE);
-  } else if (CurrentToken() == Token::kBREAK) {
+  } else if (token == Token::kBREAK) {
     statement = ParseJump(label_name);
     AddNodeForFinallyInlining(statement);
     ExpectSemicolon();
-  } else if (CurrentToken() == Token::kCONTINUE) {
+  } else if (token == Token::kCONTINUE) {
     statement = ParseJump(label_name);
     AddNodeForFinallyInlining(statement);
     ExpectSemicolon();
-  } else if (CurrentToken() == Token::kSEMICOLON) {
+  } else if (token == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if (CurrentToken() == Token::kRETHROW) {
+  } else if (token == Token::kRETHROW) {
     // Rethrow of current exception.
     ConsumeToken();
     ExpectSemicolon();
@@ -10486,6 +10489,7 @@ AstNode* Parser::ParsePrimary() {
   TRACE_PARSER("ParsePrimary");
   ASSERT(!is_top_level_);
   AstNode* primary = NULL;
+  const Token::Kind token = CurrentToken();
   if (IsFunctionLiteral()) {
     // The name of a literal function is visible from inside the function, but
     // must not collide with names in the scope declaring the literal.
@@ -10565,45 +10569,45 @@ AstNode* Parser::ParsePrimary() {
       }
     }
     ASSERT(primary != NULL);
-  } else if (CurrentToken() == Token::kTHIS) {
+  } else if (token == Token::kTHIS) {
     LocalVariable* local = LookupLocalScope(Symbols::This());
     if (local == NULL) {
       ErrorMsg("receiver 'this' is not in scope");
     }
     primary = new(isolate()) LoadLocalNode(TokenPos(), local);
     ConsumeToken();
-  } else if (CurrentToken() == Token::kINTEGER) {
+  } else if (token == Token::kINTEGER) {
     const Integer& literal = Integer::ZoneHandle(I, CurrentIntegerLiteral());
     primary = new(isolate()) LiteralNode(TokenPos(), literal);
     ConsumeToken();
-  } else if (CurrentToken() == Token::kTRUE) {
+  } else if (token == Token::kTRUE) {
     primary = new(isolate()) LiteralNode(TokenPos(), Bool::True());
     ConsumeToken();
-  } else if (CurrentToken() == Token::kFALSE) {
+  } else if (token == Token::kFALSE) {
     primary = new(isolate()) LiteralNode(TokenPos(), Bool::False());
     ConsumeToken();
-  } else if (CurrentToken() == Token::kNULL) {
+  } else if (token == Token::kNULL) {
     primary = new(isolate()) LiteralNode(TokenPos(), Instance::ZoneHandle(I));
     ConsumeToken();
-  } else if (CurrentToken() == Token::kLPAREN) {
+  } else if (token == Token::kLPAREN) {
     ConsumeToken();
     const bool saved_mode = SetAllowFunctionLiterals(true);
     primary = ParseExpr(kAllowConst, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
     ExpectToken(Token::kRPAREN);
-  } else if (CurrentToken() == Token::kDOUBLE) {
+  } else if (token == Token::kDOUBLE) {
     Double& double_value = Double::ZoneHandle(I, CurrentDoubleLiteral());
     if (double_value.IsNull()) {
       ErrorMsg("invalid double literal");
     }
     primary = new(isolate()) LiteralNode(TokenPos(), double_value);
     ConsumeToken();
-  } else if (CurrentToken() == Token::kSTRING) {
+  } else if (token == Token::kSTRING) {
     primary = ParseStringLiteral(true);
-  } else if (CurrentToken() == Token::kNEW) {
+  } else if (token == Token::kNEW) {
     ConsumeToken();
     primary = ParseNewOperator(Token::kNEW);
-  } else if (CurrentToken() == Token::kCONST) {
+  } else if (token == Token::kCONST) {
     if ((LookaheadToken(1) == Token::kLT) ||
         (LookaheadToken(1) == Token::kLBRACK) ||
         (LookaheadToken(1) == Token::kINDEX) ||
@@ -10613,14 +10617,14 @@ AstNode* Parser::ParsePrimary() {
       ConsumeToken();
       primary = ParseNewOperator(Token::kCONST);
     }
-  } else if (CurrentToken() == Token::kLT ||
-             CurrentToken() == Token::kLBRACK ||
-             CurrentToken() == Token::kINDEX ||
-             CurrentToken() == Token::kLBRACE) {
+  } else if (token == Token::kLT ||
+             token == Token::kLBRACK ||
+             token == Token::kINDEX ||
+             token == Token::kLBRACE) {
     primary = ParseCompoundLiteral();
-  } else if (CurrentToken() == Token::kHASH) {
+  } else if (token == Token::kHASH) {
     primary = ParseSymbolLiteral();
-  } else if (CurrentToken() == Token::kSUPER) {
+  } else if (token == Token::kSUPER) {
     if (parsing_metadata_) {
       ErrorMsg("cannot access superclass from metadata");
     }
@@ -10733,16 +10737,16 @@ void Parser::SkipFunctionLiteral() {
 // previously parsed the function.
 void Parser::SkipFunctionPreamble() {
   while (true) {
-    if (CurrentToken() == Token::kLPAREN ||
-        CurrentToken() == Token::kARROW ||
-        CurrentToken() == Token::kSEMICOLON ||
-        CurrentToken() == Token::kLBRACE) {
+    const Token::Kind token = CurrentToken();
+    if (token == Token::kLPAREN ||
+        token == Token::kARROW ||
+        token == Token::kSEMICOLON ||
+        token == Token::kLBRACE) {
       return;
     }
     // Case handles "native" keyword, but also return types of form
     // native.SomeType where native is the name of a library.
-    if (CurrentToken() == Token::kIDENT &&
-        LookaheadToken(1) != Token::kPERIOD) {
+    if (token == Token::kIDENT && LookaheadToken(1) != Token::kPERIOD) {
       if (CurrentLiteral()->raw() == Symbols::Native().raw()) {
         return;
       }
@@ -10929,21 +10933,22 @@ void Parser::SkipPrimary() {
 
 void Parser::SkipSelectors() {
   while (true) {
-    if (CurrentToken() == Token::kCASCADE) {
+    const Token::Kind current_token = CurrentToken();
+    if (current_token == Token::kCASCADE) {
       ConsumeToken();
       if (CurrentToken() == Token::kLBRACK) {
         continue;  // Consume [ in next loop iteration.
       } else {
         ExpectIdentifier("identifier or [ expected after ..");
       }
-    } else if (CurrentToken() == Token::kPERIOD) {
+    } else if (current_token == Token::kPERIOD) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
-    } else if (CurrentToken() == Token::kLBRACK) {
+    } else if (current_token == Token::kLBRACK) {
       ConsumeToken();
       SkipNestedExpr();
       ExpectToken(Token::kRBRACK);
-    } else if (CurrentToken() == Token::kLPAREN) {
+    } else if (current_token == Token::kLPAREN) {
       SkipActualParameters();
     } else {
       break;
