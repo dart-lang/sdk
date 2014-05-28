@@ -1015,10 +1015,14 @@ intptr_t Isolate::ProfileInterrupt() {
     // Profiler blocked for this isolate.
     return 0;
   }
-  if (message_handler()->paused_on_start() ||
-      message_handler()->paused_on_exit() ||
-      debugger()->IsPaused()) {
-    // Paused at start / exit / breakpoint. Don't tick.
+  if ((debugger() != NULL) && debugger()->IsPaused()) {
+    // Paused at breakpoint. Don't tick.
+    return 0;
+  }
+  if ((message_handler() != NULL) &&
+      (message_handler()->paused_on_start() ||
+       message_handler()->paused_on_exit())) {
+    // Paused at start / exit . Don't tick.
     return 0;
   }
   InterruptableThreadState* state = thread_state();
