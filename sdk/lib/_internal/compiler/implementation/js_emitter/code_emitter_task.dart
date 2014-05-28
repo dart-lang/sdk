@@ -526,7 +526,7 @@ class CodeEmitterTask extends CompilerTask {
     // isolateProperties themselves.
     return js('''
       function (oldIsolate) {
-        var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
+        var isolateProperties = oldIsolate.#;
         function Isolate() {
           var hasOwnProperty = Object.prototype.hasOwnProperty;
           for (var staticName in isolateProperties)
@@ -541,14 +541,16 @@ class CodeEmitterTask extends CompilerTask {
         }
         Isolate.prototype = oldIsolate.prototype;
         Isolate.prototype.constructor = Isolate;
-        Isolate.${namer.isolatePropertiesName} = isolateProperties;
+        Isolate.# = isolateProperties;
         if (#)
-          Isolate.$finishClassesProperty = oldIsolate.$finishClassesProperty;
+          Isolate.# = oldIsolate.#;
         if (#)
-          Isolate.$makeConstListProperty = oldIsolate.$makeConstListProperty;
+          Isolate.# = oldIsolate.#;
         return Isolate;
       }''',
-        [ needsDefineClass, hasMakeConstantList ]);
+        [namer.isolatePropertiesName, namer.isolatePropertiesName,
+         needsDefineClass, finishClassesProperty, finishClassesProperty,
+         hasMakeConstantList, makeConstListProperty, makeConstListProperty ]);
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -947,16 +949,16 @@ class CodeEmitterTask extends CompilerTask {
   void emitMakeConstantListIfNotEmitted(CodeBuffer buffer) {
     if (hasMakeConstantList) return;
     hasMakeConstantList = true;
-    jsAst.Expression value = new jsAst.Assignment(
-            new jsAst.PropertyAccess.field(
-                new jsAst.VariableUse(namer.isolateName),
-                makeConstListProperty),
-            js('''function(list) {
-                    list.immutable\$list = $initName;
-                    list.fixed\$length = $initName;
-                    return list;
-                  }'''));
-    buffer.write(jsAst.prettyPrint(value, compiler));
+    buffer.write(
+        jsAst.prettyPrint(
+            js.statement(r'''#.# = function(list) {
+                                     list.immutable$list = #;
+                                     list.fixed$length = #;
+                                     return list;
+                                   }''',
+                         [namer.isolateName, makeConstListProperty, initName,
+                          initName]),
+            compiler));
     buffer.write(N);
   }
 
