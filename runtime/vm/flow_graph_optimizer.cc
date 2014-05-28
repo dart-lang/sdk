@@ -44,7 +44,6 @@ DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
-DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);

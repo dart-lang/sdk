@@ -28,7 +28,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, enable_simd_inline);
 
@@ -674,16 +673,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   Label is_assignable, runtime_call;
   __ cmpl(EAX, raw_null);
   __ j(EQUAL, &is_assignable);
-
-  if (!FLAG_eliminate_type_checks || dst_type.IsMalformed()) {
-    // If type checks are not eliminated during the graph building then
-    // a transition sentinel can be seen here.
-    const Immediate& raw_transition_sentinel =
-        Immediate(reinterpret_cast<intptr_t>(
-            Object::transition_sentinel().raw()));
-    __ cmpl(EAX, raw_transition_sentinel);
-    __ j(EQUAL, &is_assignable);
-  }
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {

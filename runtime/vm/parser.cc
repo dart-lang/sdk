@@ -1140,6 +1140,13 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
   const Field& field = Field::ZoneHandle(I, func.saved_static_field());
   ASSERT(!field.is_const());
+  if (FLAG_enable_type_checks) {
+    expr = new AssignableNode(
+        field.token_pos(),
+        expr,
+        AbstractType::ZoneHandle(isolate(), field.type()),
+        String::ZoneHandle(isolate(), field.name()));
+  }
   StoreStaticFieldNode* store = new StoreStaticFieldNode(field.token_pos(),
                                                          field,
                                                          expr);

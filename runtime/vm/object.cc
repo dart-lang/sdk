@@ -65,7 +65,6 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 
-DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);

@@ -3217,14 +3217,6 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
   } else {
     store_value = for_value.value();
   }
-  if (FLAG_enable_type_checks) {
-    const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
-    const String& dst_name = String::ZoneHandle(node->field().name());
-    store_value = BuildAssignableValue(node->value()->token_pos(),
-                                       store_value,
-                                       type,
-                                       dst_name);
-  }
   StoreStaticFieldInstr* store =
       new StoreStaticFieldInstr(node->field(), store_value);
 
