@@ -1,3 +1,7 @@
+## 0.14.1
+
+* Add a `message` getter to `TransformerException` and `AssetLoadException`.
+
 ## 0.14.0+3
 
 * Properly handle synchronous errors in `PackageProvider.getAsset()`.

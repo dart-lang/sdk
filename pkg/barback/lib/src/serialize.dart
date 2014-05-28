@@ -104,21 +104,10 @@ class CrossIsolateException implements Exception {
     if (stack == null && error is Error) stack = error.stackTrace;
     return {
       'type': error.runtimeType.toString(),
-      'message': _getErrorMessage(error),
+      'message': getErrorMessage(error),
       'stack': stack == null ? null : new Chain.forTrace(stack).toString()
     };
   }
 
   String toString() => "$message\n$stackTrace";
 }
-
-/// A regular expression to match the exception prefix that some exceptions'
-/// [Object.toString] values contain.
-final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
-
-/// Get a string description of an exception.
-///
-/// Many exceptions include the exception class name at the beginning of their
-/// [toString], so we remove that if it exists.
-String _getErrorMessage(error) =>
-  error.toString().replaceFirst(_exceptionPrefix, '');

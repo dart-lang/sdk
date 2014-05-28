@@ -26,7 +26,7 @@ main() {
     server.stderr.expect(emitsLines(
         'Build error:\n'
         'Transform Dart2JS on myapp|web/main.dart threw error: '
-            'FormatException: Invalid value for \$dart2js.checked: "foo" '
+            'Invalid value for \$dart2js.checked: "foo" '
             '(expected true or false).'));
     endPubServe();
   });

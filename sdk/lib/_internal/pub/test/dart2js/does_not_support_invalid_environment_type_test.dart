@@ -27,7 +27,7 @@ main() {
     server.stderr.expect(emitsLines(
         'Build error:\n'
         'Transform Dart2JS on myapp|web/main.dart threw error: '
-            'FormatException: Invalid value for \$dart2js.environment: "foo" '
+            'Invalid value for \$dart2js.environment: "foo" '
             '(expected map from strings to strings).'));
     endPubServe();
   });

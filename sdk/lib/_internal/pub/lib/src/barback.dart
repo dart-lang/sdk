@@ -34,7 +34,7 @@ import 'version.dart';
 /// constraint and barback's version.
 ///
 /// [compat]: https://gist.github.com/nex3/10942218
-final supportedVersions = new VersionConstraint.parse(">=0.13.0 <0.14.1");
+final supportedVersions = new VersionConstraint.parse(">=0.13.0 <0.14.2");
 
 /// A list of the names of all built-in transformers that pub exposes.
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];

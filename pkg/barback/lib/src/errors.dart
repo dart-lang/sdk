@@ -115,14 +115,16 @@ abstract class _WrappedException implements BarbackException {
   final error;
   final Chain stackTrace;
 
+  String get message => "$_message: ${getErrorMessage(error)}";
+
+  String get _message;
+
   _WrappedException(error, StackTrace stackTrace)
       : this.error = error,
         this.stackTrace = _getChain(error, stackTrace);
 
-  String get _message;
-
   String toString() {
-    var result = "$_message: $error";
+    var result = message;
     if (stackTrace != null) result = "$result\n${stackTrace.terse}";
     return result;
   }

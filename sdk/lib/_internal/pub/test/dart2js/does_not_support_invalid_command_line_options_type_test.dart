@@ -27,7 +27,7 @@ main() {
     server.stderr.expect(emitsLines(
         'Build error:\n'
         'Transform Dart2JS on myapp|web/main.dart threw error: '
-            'FormatException: Invalid value for \$dart2js.commandLineOptions: '
+            'Invalid value for \$dart2js.commandLineOptions: '
             '"foo" (expected list of strings).'));
     endPubServe();
   });
