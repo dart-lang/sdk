@@ -570,7 +570,7 @@ class AssetEnvironment {
       // Don't watch files symlinked into these directories.
       // TODO(rnystrom): If pub gets rid of symlinks, remove this.
       var parts = path.split(event.path);
-      if (parts.contains("packages") || parts.contains("assets")) return;
+      if (parts.contains("packages")) return;
 
       // Skip files that were (most likely) compiled from nearby ".dart"
       // files. These are created by the Editor's "Run as JavaScript"

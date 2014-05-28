@@ -204,18 +204,13 @@ Uri idToPackageUri(AssetId id) {
   return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
 }
 
-/// Converts [uri] into an [AssetId] if its path is within "packages" or
-/// "assets".
-///
-/// While "packages" can appear anywhere in the path, "assets" is only allowed
-/// as the top-level directory. (This throws a [FormatException] if "assets"
-/// appears anywhere else.)
+/// Converts [uri] into an [AssetId] if its path is within "packages".
 ///
 /// If the URL contains a special directory, but lacks a following package name,
 /// throws a [FormatException].
 ///
 /// If the URI doesn't contain one of those special directories, returns null.
-AssetId specialUrlToId(Uri url) {
+AssetId packagesUrlToId(Uri url) {
   var parts = path.url.split(url.path);
 
   // Strip the leading "/" from the URL.
@@ -223,20 +218,7 @@ AssetId specialUrlToId(Uri url) {
 
   if (parts.isEmpty) return null;
 
-  // Check for "assets" at the beginning of the URL.
-  if (parts.first == "assets") {
-    if (parts.length <= 1) {
-      throw new FormatException(
-          'Invalid URL path "${url.path}". Expected package name after '
-          '"assets".');
-    }
-
-    var package = parts[1];
-    var assetPath = path.url.join("asset", path.url.joinAll(parts.skip(2)));
-    return new AssetId(package, assetPath);
-  }
-
-  // Check for "packages" anywhere in the URL.
+  // Check for "packages" in the URL.
   // TODO(rnystrom): If we rewrite "package:" imports to relative imports that
   // point to a canonical "packages" directory, we can limit "packages" to the
   // root of the URL as well. See: #16649.

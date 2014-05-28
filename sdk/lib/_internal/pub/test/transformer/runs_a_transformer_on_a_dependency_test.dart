@@ -11,7 +11,7 @@ import '../serve/utils.dart';
 main() {
   initConfig();
   withBarbackVersions("any", () {
-    integration("runs a local transform on a dependency", () {
+    integration("runs a local transformer on a dependency", () {
       d.dir("foo", [
         d.pubspec({
           "name": "foo",
@@ -19,9 +19,7 @@ main() {
           "transformers": ["foo/transformer"]
         }),
         d.dir("lib", [
-          d.file("transformer.dart", REWRITE_TRANSFORMER)
-        ]),
-        d.dir("asset", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER),
           d.file("foo.txt", "foo")
         ])
       ]).create();
@@ -33,7 +31,7 @@ main() {
       createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
       pubServe();
-      requestShouldSucceed("assets/foo/foo.out", "foo.out");
+      requestShouldSucceed("packages/foo/foo.out", "foo.out");
       endPubServe();
     });
   });

@@ -28,8 +28,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// a native platform path.
   ///
   /// This may be `null` in which case no files in the root package can be
-  /// served and only assets in public directories ("packages" and "assets")
-  /// are available.
+  /// served and only assets in "lib" directories are available.
   final String rootDirectory;
 
   /// Optional callback to determine if an asset should be served.
@@ -61,7 +60,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// requested from barback.
   AssetId urlToId(Uri url) {
     // See if it's a URL to a public directory in a dependency.
-    var id = specialUrlToId(url);
+    var id = packagesUrlToId(url);
     if (id != null) return id;
 
     if (rootDirectory == null) {
@@ -100,25 +99,6 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
       return notFound(request,
           error: "Asset $id is not available in this configuration.",
           asset: id);
-    }
-
-    // TODO(rnystrom): Remove this when #16647 is fixed.
-    // The "assets" path is deprecated so warn if the user is relying on it.
-    // We do this here in pub serve so we only warn if they in fact actually
-    // use an asset from a package's "asset" directory.
-    if (id.path.startsWith("asset/")) {
-      var message = 'Warning: Support for the "asset" directory is deprecated '
-          'and will be removed soon.\n';
-
-      var fixed = id.path.replaceAll(new RegExp(r"^asset/"), "lib/");
-      if (id.package == environment.rootPackage.name) {
-        message += 'Please move "${id.path}" to "$fixed".';
-      } else {
-        message += 'Please ask the maintainer of "${id.package}" to move '
-            '"${id.path}" to "$fixed".';
-      }
-
-      log.warning(log.yellow(message));
     }
 
     logRequest(request, "Loading $id");

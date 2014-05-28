@@ -384,8 +384,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   }
 
   AssetId _sourceUrlToId(Uri url) {
-    // See if it's a special path with "packages" or "assets" in it.
-    var id = specialUrlToId(url);
+    // See if it's a package path.
+    var id = packagesUrlToId(url);
     if (id != null) return id;
 
     // See if it's a path to a "public" asset within the root package. All

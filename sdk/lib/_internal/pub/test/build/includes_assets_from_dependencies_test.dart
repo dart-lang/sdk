@@ -10,14 +10,14 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  integration("includes assets from dependencies", () {
+  integration("includes assets from the 'lib' directory of dependencies", () {
     // Dart2js can take a long time to compile dart code, so we increase the
     // timeout to cope with that.
     currentSchedule.timeout *= 3;
 
     d.dir("foo", [
       d.libPubspec("foo", "0.0.1"),
-      d.dir("asset", [
+      d.dir("lib", [
         d.file("foo.txt", "foo"),
         d.dir("sub", [
           d.file("bar.txt", "bar"),
@@ -47,7 +47,7 @@ main() {
       d.dir('build', [
         d.dir('example', [
           d.file("index.html", "html"),
-          d.dir('assets', [
+          d.dir('packages', [
             d.dir('foo', [
               d.file('foo.txt', 'foo'),
               d.dir('sub', [
@@ -58,7 +58,7 @@ main() {
         ]),
         d.dir('web', [
           d.file("index.html", "html"),
-          d.dir('assets', [
+          d.dir('packages', [
             d.dir('foo', [
               d.file('foo.txt', 'foo'),
               d.dir('sub', [
@@ -68,8 +68,8 @@ main() {
           ]),
           d.dir("sub", [
             d.file("index.html", "html"),
-            // "assets" should *only* be created in the top-level directory.
-            d.nothing("assets")
+            // "packages" should *only* be created in the top-level directory.
+            d.nothing("packages")
           ])
         ])
       ])

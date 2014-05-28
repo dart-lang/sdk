@@ -19,40 +19,26 @@ main() {
       d.appPubspec({
         "foo": {"path": "../foo"}
       }),
-      // Make files that map to the special directory names to ensure they
-      // are *not* found.
-      d.dir("asset", [
-        d.file("packages"),
-        d.file("assets")
-      ]),
       d.dir("lib", [
-        d.file("packages"),
-        d.file("assets")
+        // Make a file that maps to the special "packages" directory to ensure
+        // it is *not* found.
+        d.file("packages")
       ]),
       d.dir("web", [
-        d.file("packages"),
-        d.file("assets")
+        d.file("packages")
       ])
     ]).create();
 
     pubGet();
     pubServe();
     requestShould404("packages");
-    requestShould404("assets");
     requestShould404("packages/");
-    requestShould404("assets/");
     requestShould404("packages/myapp");
-    requestShould404("assets/myapp");
     requestShould404("packages/myapp/");
-    requestShould404("assets/myapp/");
     requestShould404("packages/foo");
-    requestShould404("assets/foo");
     requestShould404("packages/foo/");
-    requestShould404("assets/foo/");
     requestShould404("packages/unknown");
-    requestShould404("assets/unknown");
     requestShould404("packages/unknown/");
-    requestShould404("assets/unknown/");
     endPubServe();
   });
 

@@ -33,7 +33,7 @@ main() {
 
     d.dir("some_long_dependency_name", [
       d.libPubspec("foo", "0.0.1"),
-      d.dir("asset", [
+      d.dir("lib", [
         d.file("foo.txt", "foo")
       ])
     ]).create();
@@ -61,7 +61,7 @@ main() {
       d.dir('build', [
         d.dir('web', [
           d.file("index.html", "html"),
-          d.dir('assets', [
+          d.dir('packages', [
             d.dir('foo', [
               d.file('foo.txt', 'foo')
             ])
