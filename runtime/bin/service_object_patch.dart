@@ -19,9 +19,6 @@ String _serviceObjectHandler(List<String> paths,
                              List<String> keys,
                              List<String> values) {
   assert(keys.length == values.length);
-  badPath() {
-    throw "Invalid path '${paths.join("/")}'";
-  }
   if (paths.isEmpty) {
     return JSON.encode(_ioServiceObject());
   }
@@ -32,13 +29,35 @@ String _serviceObjectHandler(List<String> paths,
     i++;
   } while (i < paths.length && current is Map);
   if (current is! Function) {
-    badPath();
+    return JSON.encode(_makeServiceError('Unrecognized path', paths, keys,
+                                         values));
   }
   var query = new Map();
   for (int i = 0; i < keys.length; i++) {
     query[keys[i]] = values[i];
   }
   return JSON.encode(current(paths.sublist(i)));
+}
+
+Map _makeServiceError(String message,
+                      List<String> paths,
+                      List<String> keys,
+                      List<String> values,
+                      [String kind]) {
+  var error = {
+    'type': 'Error',
+    'id': '',
+    'message': message,
+    'request': {
+      'arguments': paths,
+      'option_keys': keys,
+      'option_values': values,
+    }
+  };
+  if (kind != null) {
+    error['kind'] = kind;
+  }
+  return error;
 }
 
 Map _ioServiceObject() {

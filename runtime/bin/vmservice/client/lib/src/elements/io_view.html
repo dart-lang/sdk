@@ -73,6 +73,9 @@
     <template if="{{ ref.serviceType == 'WebSocket' }}">
       <io-web-socket-ref ref="{{ ref }}"></io-web-socket-ref>
     </template>
+    <template if="{{ ref.serviceType == 'Process' }}">
+      <io-process-ref ref="{{ ref }}"></io-process-ref>
+    </template>
   </template>
 </polymer-element>
 
@@ -428,6 +431,30 @@
           <div class="memberName">Working Directory</div>
           <div class="memberValue">{{ process['workingDirectory'] }}</div>
         </div>
+        <template if="{{ process['stdin'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stdin</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stdin'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ process['stdout'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stdout</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stdout'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ process['stderr'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stderr</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stderr'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
       </div>
 
       <br>

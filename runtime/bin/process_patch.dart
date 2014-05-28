@@ -230,10 +230,13 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
 
     // stdin going to process.
     _stdin = new _StdSink(new _Socket._writePipe());
+    _stdin._sink._owner = this;
     // stdout coming from process.
     _stdout = new _StdStream(new _Socket._readPipe());
+    _stdout._stream._owner = this;
     // stderr coming from process.
     _stderr = new _StdStream(new _Socket._readPipe());
+    _stderr._stream._owner = this;
     _exitHandler = new _Socket._readPipe();
     _ended = false;
     _started = false;
@@ -259,6 +262,15 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
     r['path'] = _path;
     r['environment'] = _environment;
     r['workingDirectory'] = _workingDirectory == null ? '.' : _workingDirectory;
+    if (_stdin._sink._nativeSocket.owner != null) {
+      r['stdin'] = _stdin._sink._nativeSocket._toJSON(true);
+    }
+    if (_stdout._stream._nativeSocket.owner != null) {
+      r['stdout'] = _stdout._stream._nativeSocket._toJSON(true);
+    }
+    if (_stderr._stream._nativeSocket.owner != null) {
+      r['stderr'] = _stderr._stream._nativeSocket._toJSON(true);
+    }
     return r;
   }
 

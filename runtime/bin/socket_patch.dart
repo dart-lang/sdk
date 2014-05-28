@@ -612,7 +612,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() : super(), typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
+  _NativeSocket.listen() :  typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
@@ -1071,7 +1071,41 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => 'io/sockets';
   String get _serviceTypeName => 'Socket';
 
-  Map _toJSON(bool ref) {
+  String _JSONKind() {
+    return isListening ? "LISTENING" :
+           isPipe ? "PIPE" :
+           isInternal ? "INTERNAL" : "NORMAL";
+  }
+
+  Map _toJSONPipe(bool ref) {
+    var name;
+    if (isClosed) {
+      name = 'CLOSED PIPE';
+    } else if (isClosedWrite) {
+      name = 'READ PIPE';
+    } else if (isClosedRead) {
+      name = 'WRITE PIPE';
+    } else {
+      name = 'R/W PIPE';
+    }
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+      'kind': _JSONKind(),
+    };
+    if (ref) {
+      return r;
+    }
+    r['fd'] = nativeGetSocketId();
+    if (owner != null) {
+      r['owner'] = owner._toJSON(true);
+    }
+    return r;
+  }
+
+  Map _toJSONNetwork(bool ref) {
     var name = '${address.host}:$port';
     if (isTcp && !isListening) name += " <-> ${remoteAddress.host}:$remotePort";
     var r = {
@@ -1079,6 +1113,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       'type': _serviceType(ref),
       'name': name,
       'user_name': name,
+      'kind': _JSONKind(),
     };
     if (ref) {
       return r;
@@ -1090,6 +1125,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       r['owner'] = owner._toJSON(true);
     }
     return r;
+  }
+
+  Map _toJSON(bool ref) {
+    if (isPipe) {
+      return _toJSONPipe(ref);
+    }
+    return _toJSONNetwork(ref);
   }
 
   void nativeSetSocketId(int id) native "Socket_SetSocketId";

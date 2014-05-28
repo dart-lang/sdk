@@ -10,7 +10,7 @@ feature follow the steps:
 
 1. Open runtime/bin/vmservice/client in the Dart Editor
 2. Run pub upgrade
-3. Run dart --enable-vm-service --pause-isolates-on-exit script.dart
+3. Run dart --observe script.dart
 4. Run index.html in Dartium
 
 At this point you should see the initial Observatory UI and that
@@ -24,7 +24,7 @@ for review. Upload your change and get an LGTM.
 
 At this point you should rebuild your VM and:
 
-7. Launch dart --enable-vm-service --pause-isolates-on-exit script.dart
+7. Launch dart --observe script.dart
 
 In a non-Dart enabled browser navigate to localhost:8181 and ensure
 that your feature works after being compiled to JavaScript.
