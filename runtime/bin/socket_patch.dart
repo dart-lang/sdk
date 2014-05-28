@@ -1072,22 +1072,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypeName => 'Socket';
 
   String _JSONKind() {
-    return isListening ? "LISTENING" :
-           isPipe ? "PIPE" :
-           isInternal ? "INTERNAL" : "NORMAL";
+    return isListening ? "Listening" :
+           isPipe ? "Pipe" :
+           isInternal ? "Internal" : "Normal";
   }
 
   Map _toJSONPipe(bool ref) {
-    var name;
-    if (isClosed) {
-      name = 'CLOSED PIPE';
-    } else if (isClosedWrite) {
-      name = 'READ PIPE';
-    } else if (isClosedRead) {
-      name = 'WRITE PIPE';
-    } else {
-      name = 'R/W PIPE';
-    }
+    var name = 'Anonymous Pipe';
     var r = {
       'id': _servicePath,
       'type': _serviceType(ref),
@@ -1098,6 +1089,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (ref) {
       return r;
     }
+    r['readClosed'] = isClosedRead;
+    r['writeClosed'] = isClosedWrite;
+    r['closing'] = isClosing;
+    r['listening'] = isListening;
     r['fd'] = nativeGetSocketId();
     if (owner != null) {
       r['owner'] = owner._toJSON(true);
@@ -1118,8 +1113,32 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (ref) {
       return r;
     }
-    r['port'] = port;
-    r['address'] = address.host;
+    var protocol = isTcp ? "TCP" : isUdp ? "UDP" : null;
+    var localAddress;
+    var localPort;
+    var remoteAddress;
+    var remotePort;
+    try {
+      localAddress = address.address;
+    } catch (e) { }
+    try {
+      localPort = port;
+    } catch (e) { }
+    try {
+      remoteAddress = this.remoteAddress.address;
+    } catch (e) { }
+    try {
+      remotePort = remotePort;
+    } catch (e) { }
+    r['localAddress'] = localAddress;
+    r['localPort'] = localPort;
+    r['remoteAddress'] = remoteAddress;
+    r['remotePort'] = remotePort;
+    r['protocol'] = protocol;
+    r['readClosed'] = isClosedRead;
+    r['writeClosed'] = isClosedWrite;
+    r['closing'] = isClosing;
+    r['listening'] = isListening;
     r['fd'] = nativeGetSocketId();
     if (owner != null) {
       r['owner'] = owner._toJSON(true);

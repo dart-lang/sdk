@@ -95,7 +95,7 @@ class IOSocketListViewElement extends ObservatoryElement {
 
 @CustomTag('io-socket-view')
 class IOSocketViewElement extends ObservatoryElement {
-  @published ServiceMap socket;
+  @published Socket socket;
 
   IOSocketViewElement.created() : super.created();
 

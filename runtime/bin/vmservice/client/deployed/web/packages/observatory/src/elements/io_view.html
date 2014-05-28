@@ -199,30 +199,86 @@
     </nav-bar>
 
     <div class="content">
-      <h1>Socket</h1>
-
-      <br>
-
-      <div class="memberList">
-        <template if="{{ socket['owner'] != null }}">
+      <!-- Pipe Socket -->
+      <template if="{{ socket.isPipe }}">
+        <h1>Pipe Socket</h1>
+        <div class="memberList">
+          <template if="{{ socket.socketOwner != null }}">
+            <div class="memberItem">
+              <div class="memberName">Owner</div>
+              <div class="memberValue"><io-ref ref="{{ socket.socketOwner }}"></io-ref></div>
+            </div>
+          </template>
           <div class="memberItem">
-            <div class="memberName">Owner</div>
-            <div class="memberValue"><io-ref ref="{{ socket['owner'] }}"></io-ref></div>
+            <div class="memberName">File descriptor</div>
+            <div class="memberValue">{{ socket.fd }}</div>
           </div>
-        </template>
-        <div class="memberItem">
-          <div class="memberName">Address</div>
-          <div class="memberValue">{{ socket['address'] }}</div>
+          <div class="memberItem">
+            <div class="memberName">Read Closed</div>
+            <div class="memberValue">{{ socket.readClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Write Closed</div>
+            <div class="memberValue">{{ socket.writeClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Closing</div>
+            <div class="memberValue">{{ socket.closing }}</div>
+          </div>
         </div>
-        <div class="memberItem">
-          <div class="memberName">Port</div>
-          <div class="memberValue">{{ socket['port'] }}</div>
+      </template>
+      <!-- Network Socket -->
+      <template if="{{ !socket.isPipe }}">
+        <h1>Network Socket</h1>
+        <div class="memberList">
+          <template if="{{ socket.socketOwner != null }}">
+            <div class="memberItem">
+              <div class="memberName">Owner</div>
+              <div class="memberValue"><io-ref ref="{{ socket.socketOwner }}"></io-ref></div>
+            </div>
+          </template>
+          <div class="memberItem">
+            <div class="memberName">Local Address</div>
+            <div class="memberValue">{{ socket.localAddress }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Local Port</div>
+            <div class="memberValue">{{ socket.localPort }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Remote Address</div>
+            <div class="memberValue">{{ socket.remoteAddress }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Remote Port</div>
+            <div class="memberValue">{{ socket.remotePort }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">File descriptor</div>
+            <div class="memberValue">{{ socket.fd }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Read Closed</div>
+            <div class="memberValue">{{ socket.readClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Write Closed</div>
+            <div class="memberValue">{{ socket.writeClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Closing</div>
+            <div class="memberValue">{{ socket.closing }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Listening</div>
+            <div class="memberValue">{{ socket.listening }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Protocol</div>
+            <div class="memberValue">{{ socket.protocol }}</div>
+          </div>
         </div>
-        <div class="memberItem">
-          <div class="memberName">File descriptor</div>
-          <div class="memberValue">{{ socket['fd'] }}</div>
-        </div>
-      </div>
+      </template>
     </div>
     <br>
     <hr>

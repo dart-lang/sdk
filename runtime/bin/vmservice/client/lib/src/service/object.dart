@@ -88,6 +88,9 @@ abstract class ServiceObject extends Observable {
       case 'Script':
         obj = new Script._empty(owner);
         break;
+      case 'Socket':
+        obj = new Socket._empty(owner);
+        break;
       default:
         obj = new ServiceMap._empty(owner);
     }
@@ -169,6 +172,9 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(ObservableMap map);
+
+  /// Creates a link to [id] relative to [this].
+  String relativeLink(String id);
 }
 
 /// State for a VM being inspected.
@@ -1475,6 +1481,109 @@ class Code extends ServiceObject {
   }
 
   @reflectable bool get isDartCode => kind == CodeKind.Dart;
+}
+
+
+class SocketKind {
+  final _value;
+  const SocketKind._internal(this._value);
+  String toString() => '$_value';
+
+  static SocketKind fromString(String s) {
+    if (s == 'Listening') {
+      return Listening;
+    } else if (s == 'Normal') {
+      return Normal;
+    } else if (s == 'Pipe') {
+      return Pipe;
+    } else if (s == 'Internal') {
+      return Internal;
+    }
+    Logger.root.warning('Unknown socket kind $s');
+    throw new FallThroughError();
+  }
+  static const Listening = const SocketKind._internal('Listening');
+  static const Normal = const SocketKind._internal('Normal');
+  static const Pipe = const SocketKind._internal('Pipe');
+  static const Internal = const SocketKind._internal('Internal');
+}
+
+/// A snapshot of statistics associated with a [Socket].
+class SocketStats {
+  @reflectable final int bytesRead;
+  @reflectable final int bytesWritten;
+  @reflectable final int readCalls;
+  @reflectable final int writeCalls;
+  @reflectable final int available;
+
+  SocketStats(this.bytesRead, this.bytesWritten,
+              this.readCalls, this.writeCalls,
+              this.available);
+}
+
+/// A peer to a Socket in dart:io. Sockets can represent network sockets or
+/// OS pipes. Each socket is owned by another ServceObject, for example,
+/// a process or an HTTP server.
+class Socket extends ServiceObject {
+  Socket._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  bool get canCache => true;
+
+  ServiceObject socketOwner;
+
+  @reflectable bool get isPipe => (kind == SocketKind.Pipe);
+
+  @observable SocketStats latest;
+  @observable SocketStats previous;
+
+  @observable SocketKind kind;
+
+  @observable String protocol = '';
+
+  @observable bool readClosed = false;
+  @observable bool writeClosed = false;
+  @observable bool closing = false;
+
+  /// Listening for connections.
+  @observable bool listening = false;
+
+  @observable int fd;
+
+  @observable String localAddress;
+  @observable int localPort;
+  @observable String remoteAddress;
+  @observable int remotePort;
+
+  // Updates internal state from [map]. [map] can be a reference.
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map['name'];
+
+    kind = SocketKind.fromString(map['kind']);
+
+    if (mapIsRef) {
+      return;
+    }
+
+    _loaded = true;
+
+    _upgradeCollection(map, isolate);
+
+    readClosed = map['readClosed'];
+    writeClosed = map['writeClosed'];
+    closing = map['closing'];
+    listening = map['listening'];
+
+    protocol = map['protocol'];
+
+    localAddress = map['localAddress'];
+    localPort = map['localPort'];
+    remoteAddress = map['remoteAddress'];
+    remotePort = map['remotePort'];
+
+    fd = map['fd'];
+    socketOwner = map['owner'];
+  }
 }
 
 // Returns true if [map] is a service map. i.e. it has the following keys:

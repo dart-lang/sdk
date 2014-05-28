@@ -4,7 +4,6 @@
 
 library action_link_element;
 
-import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('action-link')
