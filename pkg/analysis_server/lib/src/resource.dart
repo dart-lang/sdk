@@ -244,8 +244,17 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes {
-    // TODO(paulberry): implement.
-    return new StreamController<WatchEvent>().stream;
+    if (_provider._pathToWatcher.containsKey(_path)) {
+      // Two clients watching the same path is not yet supported.
+      // TODO(paulberry): add support for this if needed.
+      throw new StateError('Path "$_path" is already being watched for changes');
+    }
+    StreamController<WatchEvent> streamController = new StreamController<WatchEvent>();
+    _provider._pathToWatcher[_path] = streamController;
+    streamController.done.then((_) {
+      _provider._pathToWatcher.remove(_path);
+    });
+    return streamController.stream;
   }
 }
 
@@ -258,6 +267,8 @@ class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource = <String, _MemoryResource>{};
   final Map<String, String> _pathToContent = <String, String>{};
   final Map<String, int> _pathToTimestamp = <String, int>{};
+  final Map<String, StreamController<WatchEvent>> _pathToWatcher =
+      <String, StreamController<WatchEvent>>{};
   int nextStamp = 0;
 
   @override
@@ -306,7 +317,39 @@ class MemoryResourceProvider implements ResourceProvider {
     _pathToResource[path] = file;
     _pathToContent[path] = content;
     _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
     return file;
+  }
+
+  void _notifyWatchers(String path, ChangeType changeType) {
+    _pathToWatcher.forEach((String watcherPath, StreamController<WatchEvent> streamController) {
+      if (posix.isWithin(watcherPath, path)) {
+        streamController.add(new WatchEvent(changeType, path));
+      }
+    });
+  }
+
+  void modifyFile(String path, String content) {
+    _checkFileAtPath(path);
+    _pathToContent[path] = content;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
+  }
+
+  void _checkFileAtPath(String path) {
+    _MemoryResource resource = _pathToResource[path];
+    if (resource is! _MemoryFile) {
+      throw new ArgumentError(
+          'File expected at "$path" but ${resource.runtimeType} found');
+    }
+  }
+
+  void deleteFile(String path) {
+    _checkFileAtPath(path);
+    _pathToResource.remove(path);
+    _pathToContent.remove(path);
+    _pathToTimestamp.remove(path);
+    _notifyWatchers(path, ChangeType.REMOVE);
   }
 }
 

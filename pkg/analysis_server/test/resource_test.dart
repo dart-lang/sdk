@@ -7,6 +7,8 @@ library test.resource;
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'mocks.dart';
+
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -30,6 +32,85 @@ main() {
       expect(exception.message, 'my message');
       expect(exception.toString(),
           'MemoryResourceException(path=/my/path; message=my message)');
+    });
+
+    group('Watch', () {
+
+      Future delayed(computation()) {
+        return pumpEventQueue().then((_) => computation());
+      }
+
+      watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
+        Folder folder = provider.getResource(path);
+        var changesReceived = <WatchEvent>[];
+        folder.changes.listen(changesReceived.add);
+        return test(changesReceived);
+      }
+
+      test('create file', () {
+        String rootPath = '/my/path';
+        provider.newFolder(rootPath);
+        watchingFolder(rootPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          String path = posix.join(rootPath, 'foo');
+          provider.newFile(path, 'contents');
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.ADD));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
+
+      test('modify file', () {
+        String rootPath = '/my/path';
+        provider.newFolder(rootPath);
+        String path = posix.join(rootPath, 'foo');
+        provider.newFile(path, 'contents 1');
+        return watchingFolder(rootPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          provider.modifyFile(path, 'contents 2');
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
+
+      test('modify file in subdir', () {
+        String rootPath = '/my/path';
+        provider.newFolder(rootPath);
+        String subdirPath = posix.join(rootPath, 'foo');
+        provider.newFolder(subdirPath);
+        String path = posix.join(rootPath, 'bar');
+        provider.newFile(path, 'contents 1');
+        return watchingFolder(rootPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          provider.modifyFile(path, 'contents 2');
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
+
+      test('delete file', () {
+        String rootPath = '/my/path';
+        provider.newFolder(rootPath);
+        String path = posix.join(rootPath, 'foo');
+        provider.newFile(path, 'contents 1');
+        return watchingFolder(rootPath, (changesReceived) {
+          expect(changesReceived, hasLength(0));
+          provider.deleteFile(path);
+          return delayed(() {
+            expect(changesReceived, hasLength(1));
+            expect(changesReceived[0].type, equals(ChangeType.REMOVE));
+            expect(changesReceived[0].path, equals(path));
+          });
+        });
+      });
     });
 
     group('newFolder', () {
@@ -67,6 +148,65 @@ main() {
             throwsA(new isInstanceOf<ArgumentError>())
           );
         });
+      });
+    });
+
+    group('modifyFile', () {
+      test('nonexistent', () {
+        String path = '/my/file';
+        expect(() { provider.modifyFile(path, 'contents'); },
+            throwsA(new isInstanceOf<ArgumentError>()));
+        Resource file = provider.getResource(path);
+        expect(file, isNotNull);
+        expect(file.exists, isFalse);
+      });
+
+      test('is folder', () {
+        String path = '/my/file';
+        provider.newFolder(path);
+        expect(() { provider.modifyFile(path, 'contents'); },
+            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(provider.getResource(path), new isInstanceOf<Folder>());
+      });
+
+      test('successful', () {
+        String path = '/my/file';
+        provider.newFile(path, 'contents 1');
+        Resource file = provider.getResource(path);
+        expect(file, new isInstanceOf<File>());
+        Source source = (file as File).createSource(UriKind.FILE_URI);
+        expect(source.contents.data, equals('contents 1'));
+        provider.modifyFile(path, 'contents 2');
+        expect(source.contents.data, equals('contents 2'));
+      });
+    });
+
+    group('deleteFile', () {
+      test('nonexistent', () {
+        String path = '/my/file';
+        expect(() { provider.deleteFile(path); },
+            throwsA(new isInstanceOf<ArgumentError>()));
+        Resource file = provider.getResource(path);
+        expect(file, isNotNull);
+        expect(file.exists, isFalse);
+      });
+
+      test('is folder', () {
+        String path = '/my/file';
+        provider.newFolder(path);
+        expect(() { provider.deleteFile(path); },
+            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(provider.getResource(path), new isInstanceOf<Folder>());
+      });
+
+      test('successful', () {
+        String path = '/my/file';
+        provider.newFile(path, 'contents');
+        Resource file = provider.getResource(path);
+        expect(file, new isInstanceOf<File>());
+        expect(file.exists, isTrue);
+        provider.deleteFile(path);
+        expect(file.exists, isFalse);
       });
     });
 
