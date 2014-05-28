@@ -7,7 +7,6 @@ library test.analysis_server;
 import 'dart:async';
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
@@ -162,15 +161,15 @@ class AnalysisServerTest {
 
   static void errorToJson_noCorrection() {
     MockSource source = new MockSource();
-    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
+    source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
     CompileTimeErrorCode errorCode =
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
     AnalysisError analysisError =
         new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
     Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
     expect(json, hasLength(5));
-    expect(json['source'], equals('foo.dart'));
-    expect(json['errorCode'], equals(errorCode.ordinal));
+    expect(json['file'], equals('foo.dart'));
+    expect(json['errorCode'], 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER');
     expect(json['offset'], equals(analysisError.offset));
     expect(json['length'], equals(analysisError.length));
     expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));

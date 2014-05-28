@@ -6,7 +6,6 @@ library domain.analysis;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]

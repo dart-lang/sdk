@@ -51,6 +51,22 @@ Future pumpEventQueue([int times = 20]) {
 }
 
 /**
+ * Returns a [Future] that completes when the given [AnalysisServer] finished
+ * all its scheduled tasks.
+ */
+Future waitForServerTasksFinished(AnalysisServer server) {
+  if (server.test_areTasksFinished()) {
+    return new Future.value();
+  }
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
+  return new Future.delayed(Duration.ZERO,
+      () => waitForServerTasksFinished(server));
+}
+
+/**
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {

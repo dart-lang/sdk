@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -19,30 +20,27 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
+
+/**
+ * An instance of [DirectoryBasedDartSdk] that is shared between
+ * [AnalysisServer] instances to improve performance.
+ */
+final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
+
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
   /**
-   * The name of the notification of new errors associated with a source.
-   */
-  static const String ERROR_NOTIFICATION_NAME = 'context.errors';
-
-  /**
-   * The name of the contextId parameter.
-   */
-  static const String CONTEXT_ID_PARAM = 'contextId';
-
-  /**
    * The name of the parameter whose value is a list of errors.
    */
   static const String ERRORS_PARAM = 'errors';
 
   /**
-   * The name of the parameter whose value is a source.
+   * The name of the parameter whose value is a file path.
    */
-  static const String SOURCE_PARAM = 'source';
+  static const String FILE_PARAM = 'file';
 
   /**
    * The event name of the connected notification.
@@ -92,7 +90,7 @@ class AnalysisServer {
   /**
    * The current default [DartSdk].
    */
-  DartSdk defaultSdk = DirectoryBasedDartSdk.defaultSdk;
+  DartSdk defaultSdk = SHARED_SDK;
 
   /**
    * A table mapping [Folder]s to the [PubFolder]s associated with them.
@@ -228,29 +226,30 @@ class AnalysisServer {
         _scheduleTask();
       }
     }
-    // TODO(scheglov) implement for [PubFolder]
     if (notices != null) {
-//      sendNotices(contextId, notices);
+      sendNotices(notices);
     } else {
       sendStatusNotification(null);
     }
   }
 
-  // TODO(scheglov) rewrite for the new API.
-//  /**
-//   * Send the information in the given list of notices back to the client.
-//   */
-//  void sendNotices(String contextId, List<ChangeNotice> notices) {
-//    for (int i = 0; i < notices.length; i++) {
-//      ChangeNotice notice = notices[i];
-//      Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
-//      notification.setParameter(CONTEXT_ID_PARAM, contextId);
-//      notification.setParameter(SOURCE_PARAM, notice.source.encoding);
-//      notification.setParameter(ERRORS_PARAM, notice.errors.map(
-//          errorToJson).toList());
-//      sendNotification(notification);
-//    }
-//  }
+  /**
+   * Send the information in the given list of notices back to the client.
+   */
+  void sendNotices(List<ChangeNotice> notices) {
+    for (int i = 0; i < notices.length; i++) {
+      ChangeNotice notice = notices[i];
+      Source source = notice.source;
+      // send "analysis.errors" notification
+      // TODO(scheglov) use subscriptions to determine if we should do this
+      if (!source.isInSystemLibrary) {
+        Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
+        notification.setParameter(FILE_PARAM, source.fullName);
+        notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
+        sendNotification(notification);
+      }
+    }
+  }
 
   /**
    * Send status notification to the client. The `contextId` indicates
@@ -364,15 +363,20 @@ class AnalysisServer {
     return context.getResolvedCompilationUnit2(unitSource, librarySources[0]);
   }
 
+  /**
+   * Return `true` if all tasks are finished in this [AnalysisServer].
+   */
+  bool test_areTasksFinished() {
+    return contextWorkQueue.isEmpty;
+  }
+
   static Map<String, Object> errorToJson(AnalysisError analysisError) {
     // TODO(paulberry): move this function into the AnalysisError class.
-
-    // TODO(paulberry): we really shouldn't be exposing errorCode.ordinal
-    // outside the analyzer, since the ordinal numbers change whenever we
-    // regenerate the analysis engine.
+    ErrorCode errorCode = analysisError.errorCode;
     Map<String, Object> result = {
-      'source': analysisError.source.encoding,
-      'errorCode': (analysisError.errorCode as Enum).ordinal,
+      'file': analysisError.source.fullName,
+      // TODO(scheglov) add Enum.fullName ?
+      'errorCode': '${errorCode.runtimeType}.${(errorCode as Enum).name}',
       'offset': analysisError.offset,
       'length': analysisError.length,
       'message': analysisError.message
