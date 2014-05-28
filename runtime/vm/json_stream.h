@@ -13,6 +13,7 @@ namespace dart {
 
 class DebuggerEvent;
 class Field;
+class Array;
 class GrowableObjectArray;
 class Instance;
 class JSONArray;
@@ -29,8 +30,8 @@ class JSONStream : ValueObject {
   void Setup(Zone* zone,
              Dart_Port reply_port,
              const GrowableObjectArray& path,
-             const GrowableObjectArray& option_keys,
-             const GrowableObjectArray& option_values);
+             const Array& option_keys,
+             const Array& option_values);
   void PostReply();
 
   TextBuffer* buffer() { return &buffer_; }

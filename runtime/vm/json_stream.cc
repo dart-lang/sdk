@@ -36,8 +36,8 @@ JSONStream::~JSONStream() {
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
                        const GrowableObjectArray& path,
-                       const GrowableObjectArray& option_keys,
-                       const GrowableObjectArray& option_values) {
+                       const Array& option_keys,
+                       const Array& option_values) {
   set_reply_port(reply_port);
 
   // Setup JSONStream arguments and options. The arguments and options
