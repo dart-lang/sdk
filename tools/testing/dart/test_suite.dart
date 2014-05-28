@@ -2152,7 +2152,7 @@ class TestUtils {
     path = path.replaceAll('/', '_');
     final int WINDOWS_SHORTEN_PATH_LIMIT = 60;
     if (Platform.operatingSystem == 'windows' &&
-        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
+        path.length >= WINDOWS_SHORTEN_PATH_LIMIT) {
       for (var key in PATH_REPLACEMENTS.keys) {
         if (path.startsWith(key)) {
           path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
