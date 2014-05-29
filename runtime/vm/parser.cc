@@ -3002,18 +3002,16 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (func.is_external()) {
     // Body of an external method contains a single throw.
     const String& function_name = String::ZoneHandle(I, func.name());
-    // TODO(regis): For an instance function, pass the receiver to
-    // NoSuchMethodError.
     current_block_->statements->Add(
         ThrowNoSuchMethodError(TokenPos(),
                                current_class(),
                                function_name,
-                               NULL,   // No arguments.
+                               NULL,  // Ignore arguments.
                                func.is_static() ?
                                    InvocationMirror::kStatic :
                                    InvocationMirror::kDynamic,
                                InvocationMirror::kMethod,
-                               NULL));  // No existing function.
+                               &func));  // Unpatched external function.
     end_token_pos = TokenPos();
   } else {
     UnexpectedToken();
@@ -3951,6 +3949,8 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     TypeParameter& orig_type_param = TypeParameter::Handle(isolate());
     String& new_name = String::Handle(isolate());
     String& orig_name = String::Handle(isolate());
+    AbstractType& new_bound = AbstractType::Handle(isolate());
+    AbstractType& orig_bound = AbstractType::Handle(isolate());
     for (int i = 0; i < new_type_params_count; i++) {
       new_type_param ^= new_type_parameters.TypeAt(i);
       orig_type_param ^= orig_type_parameters.TypeAt(i);
@@ -3964,8 +3964,17 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                  class_name.ToCString(),
                  orig_name.ToCString());
       }
-      // We do not check that the bounds are repeated. We use the original ones.
-      // TODO(regis): Should we check?
+      new_bound = new_type_param.bound();
+      orig_bound = orig_type_param.bound();
+      if (!new_bound.Equals(orig_bound)) {
+        ErrorMsg(new_type_param.token_pos(),
+                 "bound '%s' of type parameter '%s' of patch class '%s' does "
+                 "not match original type parameter bound '%s'",
+                 String::Handle(new_bound.UserVisibleName()).ToCString(),
+                 new_name.ToCString(),
+                 class_name.ToCString(),
+                 String::Handle(orig_bound.UserVisibleName()).ToCString());
+      }
     }
     cls.set_type_parameters(orig_type_parameters);
   }
@@ -7635,16 +7644,21 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         ArgumentListNode* function_arguments,
                                         InvocationMirror::Call im_call,
                                         InvocationMirror::Type im_type,
-                                        Function* func) {
+                                        const Function* func) {
   ArgumentListNode* arguments = new(isolate()) ArgumentListNode(call_pos);
   // Object receiver.
-  // TODO(regis): For now, we pass a class literal of the unresolved
-  // method's owner, but this is not specified and will probably change.
-  Type& type = Type::ZoneHandle(I,
-      Type::New(cls, TypeArguments::Handle(isolate()), call_pos, Heap::kOld));
-  type ^= ClassFinalizer::FinalizeType(
-      current_class(), type, ClassFinalizer::kCanonicalize);
-  arguments->Add(new(isolate()) LiteralNode(call_pos, type));
+  // If the function is external and dynamic, pass the actual receiver,
+  // otherwise, pass a class literal of the unresolved method's owner.
+  if ((func != NULL) && !func->IsNull() &&
+      func->is_external() && !func->is_static()) {
+    arguments->Add(LoadReceiver(func->token_pos()));
+  } else {
+    Type& type = Type::ZoneHandle(I,
+        Type::New(cls, TypeArguments::Handle(isolate()), call_pos, Heap::kOld));
+    type ^= ClassFinalizer::FinalizeType(
+        current_class(), type, ClassFinalizer::kCanonicalize);
+    arguments->Add(new(isolate()) LiteralNode(call_pos, type));
+  }
   // String memberName.
   arguments->Add(new(isolate()) LiteralNode(
       call_pos, String::ZoneHandle(I, Symbols::New(function_name))));
@@ -7686,7 +7700,8 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
     function = cls.LookupStaticFunction(function_name);
   }
   Array& array = Array::ZoneHandle(I);
-  if (!function.IsNull()) {
+  // An unpatched external function is treated as an unresolved function.
+  if (!function.IsNull() && !function.is_external()) {
     // The constructor for NoSuchMethodError takes a list of existing
     // parameter names to produce a descriptive error message explaining
     // the parameter mismatch. The problem is that the array of names
@@ -10183,7 +10198,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     arguments,
                                     InvocationMirror::kConstructor,
                                     InvocationMirror::kMethod,
-                                    &constructor);
+                                    NULL);  // No existing function.
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(isolate(),

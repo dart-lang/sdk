@@ -3775,9 +3775,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     int invocation_type) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
-  // Object receiver.
-  // TODO(regis): For now, we pass a class literal of the unresolved
-  // method's owner, but this is not specified and will probably change.
+  // Object receiver, actually a class literal of the unresolved method's owner.
   Type& type = Type::ZoneHandle(
       I,
       Type::New(function_class,

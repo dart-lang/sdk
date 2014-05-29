@@ -652,7 +652,7 @@ class Parser : public ValueObject {
                                   ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type,
-                                  Function* func);
+                                  const Function* func);
 
   void CheckOperatorArity(const MemberDesc& member);
 

@@ -25,9 +25,6 @@ void AstPrinter::VisitGenericAstNode(AstNode* node) {
 
 
 void AstPrinter::VisitSequenceNode(SequenceNode* node) {
-  // TODO(regis): Make the output more readable by indenting the nested
-  // sequences. This could be achieved using a AstPrinterContext similar to the
-  // CodeGeneratorContext.
   OS::Print("(%s (scope \"%p\")", node->PrettyName(), node->scope());
   for (int i = 0; i < node->length(); ++i) {
     OS::Print("\n");

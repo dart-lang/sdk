@@ -201,8 +201,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, FP, 2 * kWordSize, kNoPP);
 
-  // TODO(regis): Should we pass the structure by value as in runtime calls?
-  // It would require changing Dart API for native functions.
+  // Passing the structure by value as in runtime calls would require changing
+  // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
   __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);
@@ -322,8 +322,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, FP, 2 * kWordSize, kNoPP);
 
-  // TODO(regis): Should we pass the structure by value as in runtime calls?
-  // It would require changing Dart API for native functions.
+  // Passing the structure by value as in runtime calls would require changing
+  // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
   __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);

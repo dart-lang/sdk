@@ -103,5 +103,3 @@ class OptionalNamedParametersTest {
 main() {
   OptionalNamedParametersTest.test();
 }
-
-// TODO(regis): negative tests: [} {] [a:0] {a=0}

@@ -878,7 +878,6 @@ class Class : public Object {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;
-  // TODO(regis): Implement RemoveDirectSubclass for class unloading support.
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }

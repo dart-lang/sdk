@@ -219,8 +219,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   ASSERT(retval_offset == 3 * kWordSize);
   __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
 
-  // TODO(regis): Should we pass the structure by value as in runtime calls?
-  // It would require changing Dart API for native functions.
+  // Passing the structure by value as in runtime calls would require changing
+  // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ sw(A3, Address(SP, 3 * kWordSize));
@@ -352,8 +352,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   ASSERT(retval_offset == 3 * kWordSize);
   __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
 
-  // TODO(regis): Should we pass the structure by value as in runtime calls?
-  // It would require changing Dart API for native functions.
+  // Passing the structure by value as in runtime calls would require changing
+  // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ sw(A3, Address(SP, 3 * kWordSize));
@@ -544,9 +544,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
   // Result in V0 is preserved as part of pushing all registers below.
-
-  // TODO(regis): Should we align the stack before pushing the fpu registers?
-  // If we do, saved_result_slot_from_fp is not constant anymore.
 
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
