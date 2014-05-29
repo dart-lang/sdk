@@ -35,9 +35,10 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
       : super(resourceProvider);
 
   void addContext(Folder folder, File pubspecFile) {
-    PubFolder pubFolder = new PubFolder(analysisServer.defaultSdk, folder, pubspecFile);
-    analysisServer.folderMap[folder] = pubFolder;
-    analysisServer.addContextToWorkQueue(pubFolder.context);
+    ContextDirectory contextDirectory = new ContextDirectory(
+        analysisServer.defaultSdk, folder, pubspecFile);
+    analysisServer.folderMap[folder] = contextDirectory;
+    analysisServer.addContextToWorkQueue(contextDirectory.context);
   }
 
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
@@ -112,9 +113,9 @@ class AnalysisServer {
   DartSdk defaultSdk = SHARED_SDK;
 
   /**
-   * A table mapping [Folder]s to the [PubFolder]s associated with them.
+   * A table mapping [Folder]s to the [ContextDirectory]s associated with them.
    */
-  final Map<Folder, PubFolder> folderMap = <Folder, PubFolder>{};
+  final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
 
   /**
    * The context identifier used in the last status notification.
@@ -433,16 +434,17 @@ class AnalysisService extends Enum2<AnalysisService> {
 
 
 /**
- * Instances of [PubFolder] represents a [Folder] with a Pub `pubspec.yaml`.
+ * Instances of [ContextDirectory] represents a [Folder] associated with an
+ * analysis context.  The folder may or may not contain a Pub `pubspec.yaml`.
  *
  * TODO(scheglov) implement complete projects/contexts semantics.
  *
  * This class is intentionally simplified to serve as a base to start working
  * on services while work on complete semantics is being done in parallel.
  */
-class PubFolder {
+class ContextDirectory {
   /**
-   * The root [Folder] of this [PubFolder].
+   * The root [Folder] of this [ContextDirectory].
    */
   final Folder _folder;
 
@@ -456,7 +458,7 @@ class PubFolder {
    */
   AnalysisContext _context;
 
-  PubFolder(DartSdk sdk, this._folder, this._pubspecFile) {
+  ContextDirectory(DartSdk sdk, this._folder, this._pubspecFile) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
