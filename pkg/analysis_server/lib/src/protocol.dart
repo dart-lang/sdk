@@ -298,7 +298,7 @@ class RequestDatum {
   /**
    * Determine if the datum is a list of strings.
    */
-  bool isStringList() {
+  bool get isStringList {
     if (datum is! List) {
       return false;
     }
@@ -314,7 +314,7 @@ class RequestDatum {
    * Validate that the datum is a list of strings, and return it.
    */
   List<String> asStringList() {
-    if (!isStringList()) {
+    if (!isStringList) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a list of strings"));
     }
@@ -343,7 +343,7 @@ class RequestDatum {
    * Note: we can safely assume that the keys are all strings, since JSON maps
    * cannot have any other key type.
    */
-  bool isStringMap() {
+  bool get isStringMap {
     if (datum is! Map) {
       return false;
     }
@@ -359,7 +359,7 @@ class RequestDatum {
    * Validate that the datum is a map from strings to strings, and return it.
    */
   Map<String, String> asStringMap() {
-    if (!isStringMap()) {
+    if (!isStringMap) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string map"));
     }
