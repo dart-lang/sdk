@@ -141,7 +141,7 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
                                     ? Message::kNormalPriority
                                     : Message::kOOBPriority);
   Message* message = DequeueMessage(min_priority);
-  while (message) {
+  while (message != NULL) {
     if (FLAG_trace_isolates) {
       OS::Print("[<] Handling message:\n"
                 "\thandler:    %s\n"
