@@ -59,10 +59,9 @@ abstract class Resource {
   bool get exists;
 
   /**
-   * Return the full (long) version of the name that can be displayed to the
-   * user to denote this resource.
+   * Return the full path to this resource.
    */
-  String get fullName;
+  String get path;
 
   /**
    * Return a short version of the name that can be displayed to the user to
@@ -89,9 +88,9 @@ abstract class ResourceProvider {
  */
 abstract class _MemoryResource implements Resource {
   final MemoryResourceProvider _provider;
-  final String _path;
+  final String path;
 
-  _MemoryResource(this._provider, this._path);
+  _MemoryResource(this._provider, this.path);
 
   @override
   bool operator ==(other) {
@@ -99,19 +98,16 @@ abstract class _MemoryResource implements Resource {
   }
 
   @override
-  bool get exists => _provider._pathToResource.containsKey(_path);
+  bool get exists => _provider._pathToResource.containsKey(path);
 
   @override
-  String get fullName => _path;
+  get hashCode => path.hashCode;
 
   @override
-  get hashCode => _path.hashCode;
+  String get shortName => posix.basename(path);
 
   @override
-  String get shortName => posix.basename(_path);
-
-  @override
-  String toString() => fullName;
+  String toString() => path;
 }
 
 
@@ -128,14 +124,14 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   String get _content {
-    String content = _provider._pathToContent[_path];
+    String content = _provider._pathToContent[path];
     if (content == null) {
-      throw new MemoryResourceException(_path, "File '$_path' does not exist");
+      throw new MemoryResourceException(path, "File '$path' does not exist");
     }
     return content;
   }
 
-  int get _timestamp => _provider._pathToTimestamp[_path];
+  int get _timestamp => _provider._pathToTimestamp[path];
 }
 
 
@@ -180,14 +176,14 @@ class _MemoryFileSource implements Source {
 
   @override
   String get encoding {
-    return '${new String.fromCharCode(uriKind.encoding)}${_file.fullName}';
+    return '${new String.fromCharCode(uriKind.encoding)}${_file.path}';
   }
 
   @override
   bool exists() => _file.exists;
 
   @override
-  String get fullName => _file.fullName;
+  String get fullName => _file.path;
 
   @override
   int get hashCode => _file.hashCode;
@@ -201,7 +197,7 @@ class _MemoryFileSource implements Source {
   @override
   Source resolveRelative(Uri relativeUri) {
     String relativePath = posix.fromUri(relativeUri);
-    String folderPath = posix.dirname(_file._path);
+    String folderPath = posix.dirname(_file.path);
     String path = posix.join(folderPath, relativePath);
     path = posix.normalize(path);
     _MemoryFile file = new _MemoryFile(_file._provider, path);
@@ -222,7 +218,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   Resource getChild(String relPath) {
     relPath = posix.normalize(relPath);
-    String childPath = posix.join(_path, relPath);
+    String childPath = posix.join(path, relPath);
     childPath = posix.normalize(childPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
     if (resource == null) {
@@ -234,8 +230,8 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   List<Resource> getChildren() {
     List<Resource> children = <Resource>[];
-    _provider._pathToResource.forEach((path, resource) {
-      if (posix.dirname(path) == _path) {
+    _provider._pathToResource.forEach((resourcePath, resource) {
+      if (posix.dirname(resourcePath) == path) {
         children.add(resource);
       }
     });
@@ -244,15 +240,15 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes {
-    if (_provider._pathToWatcher.containsKey(_path)) {
+    if (_provider._pathToWatcher.containsKey(path)) {
       // Two clients watching the same path is not yet supported.
       // TODO(paulberry): add support for this if needed.
-      throw new StateError('Path "$_path" is already being watched for changes');
+      throw new StateError('Path "$path" is already being watched for changes');
     }
     StreamController<WatchEvent> streamController = new StreamController<WatchEvent>();
-    _provider._pathToWatcher[_path] = streamController;
+    _provider._pathToWatcher[path] = streamController;
     streamController.done.then((_) {
-      _provider._pathToWatcher.remove(_path);
+      _provider._pathToWatcher.remove(path);
     });
     return streamController.stream;
   }
@@ -415,16 +411,16 @@ abstract class _PhysicalResource implements Resource {
   bool get exists => _entry.existsSync();
 
   @override
-  String get fullName => _entry.absolute.path;
+  String get path => _entry.absolute.path;
 
   @override
   get hashCode => _entry.hashCode;
 
   @override
-  String get shortName => basename(fullName);
+  String get shortName => basename(path);
 
   @override
-  String toString() => fullName;
+  String toString() => path;
 }
 
 

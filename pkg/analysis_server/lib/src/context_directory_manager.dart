@@ -4,9 +4,29 @@
 
 library context.directory.manager;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:watcher/watcher.dart';
+
+/**
+ * Information tracked by the [ContextDirectoryManager] for each context.
+ */
+class _ContextDirectoryInfo {
+  /**
+   * Stream subscription we are using to watch the context's directory for
+   * changes.
+   */
+  StreamSubscription<WatchEvent> changeSubscription;
+
+  /**
+   * Map from full path to the [Source] object, for each source that has been
+   * added to the context.
+   */
+  Map<String, Source> sources = <String, Source>{};
+}
 
 /**
  * Class that maintains a mapping from included/excluded paths to a set of
@@ -14,10 +34,11 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class ContextDirectoryManager {
   /**
-   * The set of included folders in the most recent successful call to
-   * [setRoots].
+   * [_ContextDirectoryInfo] object for each included directory in the most
+   * recent successful call to [setRoots].
    */
-  Set<Folder> currentFolders = new Set<Folder>();
+  Map<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
+      <Folder, _ContextDirectoryInfo>{};
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -54,6 +75,7 @@ abstract class ContextDirectoryManager {
     }
     Set<Folder> excludedFolders = new Set<Folder>();
     // diff
+    Set<Folder> currentFolders = _currentDirectoryInfo.keys.toSet();
     Set<Folder> newFolders = includedFolders.difference(currentFolders);
     Set<Folder> oldFolders = currentFolders.difference(includedFolders);
     // remove old contexts
@@ -62,32 +84,75 @@ abstract class ContextDirectoryManager {
     }
     // add new contexts
     for (Folder folder in newFolders) {
+      _ContextDirectoryInfo info = new _ContextDirectoryInfo();
+      _currentDirectoryInfo[folder] = info;
+      info.changeSubscription = folder.changes.listen((WatchEvent event) {
+        _handleWatchEvent(folder, info, event);
+      });
       File pubspecFile = folder.getChild('pubspec.yaml');
       addContext(folder, pubspecFile.exists ? pubspecFile : null);
       ChangeSet changeSet = new ChangeSet();
-      _addSourceFiles(changeSet, folder);
+      _addSourceFiles(changeSet, folder, info);
       applyChangesToContext(folder, changeSet);
     }
-    currentFolders = new Set<Folder>.from(includedFolders);
+  }
+
+  void _handleWatchEvent(Folder folder, _ContextDirectoryInfo info, WatchEvent event) {
+    switch (event.type) {
+      case ChangeType.ADD:
+        // TODO(paulberry): handle adding pubspec.yaml
+        if (_shouldFileBeAnalyzed(event.path)) {
+          ChangeSet changeSet = new ChangeSet();
+          Resource resource = resourceProvider.getResource(event.path);
+          // If the file went away and was replaced by a folder before we
+          // had a chance to process the event, resource might be a Folder.  In
+          // that case don't add it.
+          if (resource is File) {
+            File file = resource;
+            Source source = file.createSource(UriKind.FILE_URI);
+            changeSet.addedSource(source);
+            applyChangesToContext(folder, changeSet);
+            info.sources[event.path]= source;
+          }
+        }
+        break;
+      case ChangeType.REMOVE:
+        // TODO(paulberry): handle removing pubspec.yaml
+        Source source = info.sources[event.path];
+        if (source != null) {
+          ChangeSet changeSet = new ChangeSet();
+          changeSet.removedSource(source);
+          applyChangesToContext(folder, changeSet);
+          info.sources.remove(event.path);
+        }
+        break;
+      case ChangeType.MODIFY:
+        // TODO(paulberry): handle modification events
+        break;
+    }
   }
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  static void _addSourceFiles(ChangeSet changeSet, Folder folder) {
+  static void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextDirectoryInfo info) {
     List<Resource> children = folder.getChildren();
     for (Resource child in children) {
       if (child is File) {
-        String fileName = child.shortName;
-        if (AnalysisEngine.isDartFileName(fileName)
-            || AnalysisEngine.isHtmlFileName(fileName)) {
+        if (_shouldFileBeAnalyzed(child.path)) {
           Source source = child.createSource(UriKind.FILE_URI);
           changeSet.addedSource(source);
+          info.sources[child.path] = source;
         }
       } else if (child is Folder) {
-        _addSourceFiles(changeSet, child);
+        _addSourceFiles(changeSet, child, info);
       }
     }
+  }
+
+  static bool _shouldFileBeAnalyzed(String path) {
+    return AnalysisEngine.isDartFileName(path)
+            || AnalysisEngine.isHtmlFileName(path);
   }
 
   /**

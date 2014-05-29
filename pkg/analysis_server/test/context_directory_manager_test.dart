@@ -4,6 +4,7 @@
 
 library test.context.directory.manager;
 
+import 'mocks.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:path/path.dart';
@@ -20,18 +21,23 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void addContext(Folder folder, File pubspecFile) {
-    currentContextPaths.add(folder.fullName);
-    currentContextPubspecPaths[folder.fullName] = pubspecFile != null ? pubspecFile.fullName : null;
-    currentContextFilePaths[folder.fullName] = new Set<String>();
+    currentContextPaths.add(folder.path);
+    currentContextPubspecPaths[folder.path] = pubspecFile != null ? pubspecFile.path : null;
+    currentContextFilePaths[folder.path] = new Set<String>();
   }
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    Set<String> filePaths = currentContextFilePaths[contextFolder.fullName];
+    Set<String> filePaths = currentContextFilePaths[contextFolder.path];
     for (Source source in changeSet.addedSources) {
+      expect(filePaths, isNot(contains(source.fullName)));
       filePaths.add(source.fullName);
     }
-    // TODO(paulberry): handle source.changedSources and source.removedSources.
+    for (Source source in changeSet.removedSources) {
+      expect(filePaths, contains(source.fullName));
+      filePaths.remove(source.fullName);
+    }
+    // TODO(paulberry): handle source.changedSources.
   }
 }
 
@@ -89,6 +95,50 @@ main() {
       var filePaths = manager.currentContextFilePaths[projPath];
       expect(filePaths, hasLength(1));
       expect(filePaths, contains(filePath));
+    });
+
+    group('detect context modifications', () {
+      String projPath;
+
+      setUp(() {
+        projPath = '/my/proj';
+        provider.newFolder(projPath);
+      });
+
+      test('Add file', () {
+        manager.setRoots(<String>[projPath], <String>[]);
+        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        expect(filePaths, hasLength(0));
+        String filePath = posix.join(projPath, 'foo.dart');
+        provider.newFile(filePath, 'contents');
+        return pumpEventQueue().then((_) {
+          expect(filePaths, hasLength(1));
+          expect(filePaths, contains(filePath));
+        });
+      });
+
+      test('Add file in subdirectory', () {
+        manager.setRoots(<String>[projPath], <String>[]);
+        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        expect(filePaths, hasLength(0));
+        String filePath = posix.join(projPath, 'foo', 'bar.dart');
+        provider.newFile(filePath, 'contents');
+        return pumpEventQueue().then((_) {
+          expect(filePaths, hasLength(1));
+          expect(filePaths, contains(filePath));
+        });
+      });
+
+      test('Delete file', () {
+        String filePath = posix.join(projPath, 'foo.dart');
+        provider.newFile(filePath, 'contents');
+        manager.setRoots(<String>[projPath], <String>[]);
+        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        expect(filePaths, hasLength(1));
+        expect(filePaths, contains(filePath));
+        provider.deleteFile(filePath);
+        return pumpEventQueue().then((_) => expect(filePaths, hasLength(0)));
+      });
     });
   });
 }

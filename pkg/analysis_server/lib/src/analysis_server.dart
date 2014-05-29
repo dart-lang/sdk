@@ -343,7 +343,7 @@ class AnalysisServer {
    */
   AnalysisContext _getAnalysisContext(String path) {
     for (Folder folder in folderMap.keys) {
-      if (path.startsWith(folder.fullName)) {
+      if (path.startsWith(folder.path)) {
         return folderMap[folder].context;
       }
     }

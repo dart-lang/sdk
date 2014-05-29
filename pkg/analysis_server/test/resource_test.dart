@@ -242,7 +242,7 @@ main() {
 
       test('fullName', () {
         File file = provider.getResource('/foo/bar/file.txt');
-        expect(file.fullName, '/foo/bar/file.txt');
+        expect(file.path, '/foo/bar/file.txt');
       });
 
       test('hashCode', () {
@@ -553,7 +553,7 @@ main() {
       });
 
       test('fullName', () {
-        expect(file.fullName, path);
+        expect(file.path, path);
       });
 
       test('hashCode', () {
