@@ -157,7 +157,7 @@ Future<Map> _runInIsolate(String description) {
     'testToRun': description,
     'replyTo': replyPort.sendPort
   }).then((_) {
-    // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
+    // TODO(nweiz): Remove this timeout once issue 8875 is fixed and we can
     // capture top-level exceptions.
     return timeout(replyPort.first, 30 * 1000, () {
       throw 'Timed out waiting for test to complete.';
@@ -206,10 +206,7 @@ String _summarizeTests(Map results) {
 
 /// Indents each line of [str] by two spaces.
 String _indent(String str) {
-  // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
-  // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
-
-  return str.split("\n").map((line) => "  $line").join("\n");
+  return str.replaceAll(new RegExp("^", multiLine: true), "  ");
 }
 
 /// Ensure that the metatest configuration is loaded.

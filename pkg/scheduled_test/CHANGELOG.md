@@ -1,3 +1,9 @@
+## 0.11.0+4
+
+* Added `README.md` with content from `lib/scheduled_test.dart`.
+
+* Made changes to `test/metatest.dart` related to outstanding issues.
+
 ## 0.11.0+3
 
 * Support `v0.11.0` of `unittest`.
