@@ -514,6 +514,7 @@ class _HtmlExtractor extends TreeVisitor {
   void _addExpression(String stringExpression, bool inEvent, bool isTwoWay) {
     if (inEvent) {
       if (!stringExpression.startsWith("@")) {
+        if (stringExpression == '') return;
         generator.addGetter(stringExpression);
         generator.addSymbol(stringExpression);
         return;

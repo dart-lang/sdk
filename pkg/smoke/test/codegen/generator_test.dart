@@ -54,13 +54,39 @@ main() {
     var generator = new SmokeCodeGenerator();
     generator.addSymbol('i');
     generator.addSymbol('foo');
+    generator.addSymbol('a.b.c');
+    generator.addSymbol('a.b.[]');
+    generator.addSymbol('[]');
+    generator.addSymbol('+');
     checkResults(generator, initCall:
         'useGeneratedCode(new StaticConfiguration(\n'
         '    checkedMode: false,\n'
         '    names: {\n'
+        '      const Symbol(\'+\'): r\'+\',\n'
+        '      const Symbol(\'[]\'): r\'[]\',\n'
+        '      const Symbol(\'a.b.[]\'): r\'a.b.[]\',\n'
+        '      #a.b.c: r\'a.b.c\',\n'
         '      #foo: r\'foo\',\n'
         '      #i: r\'i\',\n'
         '    }));\n');
+  });
+
+  group('invalid symbols', () {
+    var invalidError =
+        predicate((e) => e is StateError && '$e'.contains("invalid symbol"));
+    test('traling period', () {
+      var generator = new SmokeCodeGenerator();
+      generator.addSymbol('a.');
+      var sb = new StringBuffer();
+      expect(() => generator.writeInitCall(sb), throwsA(invalidError));
+    });
+
+    test('operator in the middle', () {
+      var generator = new SmokeCodeGenerator();
+      generator.addSymbol('a.[].b');
+      var sb = new StringBuffer();
+      expect(() => generator.writeInitCall(sb), throwsA(invalidError));
+    });
   });
 
   test('getters, setters, and names', () {
