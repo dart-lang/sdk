@@ -9,7 +9,154 @@ library service.interfaces;
 
 import 'package:analyzer/src/generated/java_core.dart' show Enum, StringUtils;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analysis_services/src/generated/proposal.dart';
+import 'package:analysis_services/src/generated/change.dart' show SourceChange;
+
+/**
+ * The interface `AssistsConsumer` defines the behavior of objects that consume assists
+ * [SourceChange]s.
+ */
+abstract class AssistsConsumer implements Consumer {
+  /**
+   * A set of [SourceChange]s that have been computed.
+   *
+   * @param proposals an array of computed [SourceChange]s
+   * @param isLastResult is `true` if this is the last set of results
+   */
+  void computedSourceChanges(List<SourceChange> sourceChanges, bool isLastResult);
+}
+
+/**
+ * The interface `CompletionSuggestion` defines the behavior of objects representing a
+ * completion suggestions.
+ */
+abstract class CompletionSuggestion {
+  static final int RELEVANCE_LOW = 0;
+
+  static final int RELEVANCE_DEFAULT = 10;
+
+  static final int RELEVANCE_HIGH = 20;
+
+  /**
+   * An empty array of suggestions.
+   */
+  static final List<CompletionSuggestion> EMPTY_ARRAY = new List<CompletionSuggestion>(0);
+
+  /**
+   * This character is used to specify location of the cursor after completion.
+   */
+  static final int CURSOR_MARKER = 0x2758;
+
+  String get completion;
+
+  String get declaringType;
+
+  String get elementDocDetails;
+
+  String get elementDocSummary;
+
+  CompletionSuggestionKind get kind;
+
+  int get location;
+
+  String get parameterName;
+
+  List<String> get parameterNames;
+
+  String get parameterType;
+
+  List<String> get parameterTypes;
+
+  int get positionalParameterCount;
+
+  int get relevance;
+
+  int get replacementLength;
+
+  int get replacementLengthIdentifier;
+
+  String get returnType;
+
+  bool get hasNamed;
+
+  bool get hasPositional;
+
+  bool get isDeprecated;
+
+  bool get isPotentialMatch;
+}
+
+/**
+ * The various kinds of completion proposals. Each specifies the kind of completion to be created,
+ * corresponding to different syntactical elements.
+ */
+class CompletionSuggestionKind extends Enum<CompletionSuggestionKind> {
+  static const CompletionSuggestionKind NONE = const CompletionSuggestionKind('NONE', 0);
+
+  static const CompletionSuggestionKind CLASS = const CompletionSuggestionKind('CLASS', 1);
+
+  static const CompletionSuggestionKind CLASS_ALIAS = const CompletionSuggestionKind('CLASS_ALIAS', 2);
+
+  static const CompletionSuggestionKind CONSTRUCTOR = const CompletionSuggestionKind('CONSTRUCTOR', 3);
+
+  static const CompletionSuggestionKind FIELD = const CompletionSuggestionKind('FIELD', 4);
+
+  static const CompletionSuggestionKind FUNCTION = const CompletionSuggestionKind('FUNCTION', 5);
+
+  static const CompletionSuggestionKind FUNCTION_ALIAS = const CompletionSuggestionKind('FUNCTION_ALIAS', 6);
+
+  static const CompletionSuggestionKind GETTER = const CompletionSuggestionKind('GETTER', 7);
+
+  static const CompletionSuggestionKind IMPORT = const CompletionSuggestionKind('IMPORT', 8);
+
+  static const CompletionSuggestionKind LIBRARY_PREFIX = const CompletionSuggestionKind('LIBRARY_PREFIX', 9);
+
+  static const CompletionSuggestionKind METHOD = const CompletionSuggestionKind('METHOD', 10);
+
+  static const CompletionSuggestionKind METHOD_NAME = const CompletionSuggestionKind('METHOD_NAME', 11);
+
+  static const CompletionSuggestionKind PARAMETER = const CompletionSuggestionKind('PARAMETER', 12);
+
+  static const CompletionSuggestionKind SETTER = const CompletionSuggestionKind('SETTER', 13);
+
+  static const CompletionSuggestionKind VARIABLE = const CompletionSuggestionKind('VARIABLE', 14);
+
+  static const CompletionSuggestionKind TYPE_PARAMETER = const CompletionSuggestionKind('TYPE_PARAMETER', 15);
+
+  static const CompletionSuggestionKind ARGUMENT_LIST = const CompletionSuggestionKind('ARGUMENT_LIST', 16);
+
+  static const CompletionSuggestionKind OPTIONAL_ARGUMENT = const CompletionSuggestionKind('OPTIONAL_ARGUMENT', 17);
+
+  static const CompletionSuggestionKind NAMED_ARGUMENT = const CompletionSuggestionKind('NAMED_ARGUMENT', 18);
+
+  static const List<CompletionSuggestionKind> values = const [
+      NONE,
+      CLASS,
+      CLASS_ALIAS,
+      CONSTRUCTOR,
+      FIELD,
+      FUNCTION,
+      FUNCTION_ALIAS,
+      GETTER,
+      IMPORT,
+      LIBRARY_PREFIX,
+      METHOD,
+      METHOD_NAME,
+      PARAMETER,
+      SETTER,
+      VARIABLE,
+      TYPE_PARAMETER,
+      ARGUMENT_LIST,
+      OPTIONAL_ARGUMENT,
+      NAMED_ARGUMENT];
+
+  const CompletionSuggestionKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `Consumer` is a marker interface for all consumers interfaces.
+ */
+abstract class Consumer {
+}
 
 /**
  * The interface `Element` defines the behavior of objects that represent an information for
@@ -20,6 +167,13 @@ abstract class Element {
    * An empty array of elements.
    */
   static final List<Element> EMPTY_ARRAY = new List<Element>(0);
+
+  /**
+   * Return the id of the context this element is created in.
+   *
+   * @return the id of the context
+   */
+  String get contextId;
 
   /**
    * Return the id of the element, may be `null` if there is no resolution information
@@ -315,20 +469,6 @@ class ListSourceSet implements SourceSet {
 }
 
 /**
- * The interface `MinorRefactoringsConsumer` defines the behavior of objects that consume
- * minor refactorings [CorrectionProposal]s.
- */
-abstract class MinorRefactoringsConsumer {
-  /**
-   * A set [CorrectionProposal]s has been computed.
-   *
-   * @param proposals an array of computed [CorrectionProposal]s
-   * @param isLastResult is `true` if this is the last set of results
-   */
-  void computedProposals(List<CorrectionProposal> proposals, bool isLastResult);
-}
-
-/**
  * The interface `NavigationRegion` defines the behavior of objects representing a list of
  * elements with which a source region is associated.
  */
@@ -450,6 +590,13 @@ abstract class SearchResult {
    * @return the source containing the result
    */
   Source get source;
+
+  /**
+   * Return `true` is this search result is a potential reference to a class member.
+   *
+   * @return `true` is this search result is a potential reference to a class member
+   */
+  bool get isPotential;
 }
 
 /**
@@ -457,84 +604,126 @@ abstract class SearchResult {
  */
 class SearchResultKind extends Enum<SearchResultKind> {
   /**
+   * A declaration of a class.
+   */
+  static const SearchResultKind CLASS_DECLARATION = const SearchResultKind('CLASS_DECLARATION', 0);
+
+  /**
+   * A declaration of a class member.
+   */
+  static const SearchResultKind CLASS_MEMBER_DECLARATION = const SearchResultKind('CLASS_MEMBER_DECLARATION', 1);
+
+  /**
    * A reference to a constructor.
    */
-  static const SearchResultKind CONSTRUCTOR_REFERENCE = const SearchResultKind('CONSTRUCTOR_REFERENCE', 0);
+  static const SearchResultKind CONSTRUCTOR_REFERENCE = const SearchResultKind('CONSTRUCTOR_REFERENCE', 2);
 
   /**
    * A reference to a field (from field formal parameter).
    */
-  static const SearchResultKind FIELD_REFERENCE = const SearchResultKind('FIELD_REFERENCE', 1);
+  static const SearchResultKind FIELD_REFERENCE = const SearchResultKind('FIELD_REFERENCE', 3);
 
   /**
    * A reference to a field in which it is read.
    */
-  static const SearchResultKind FIELD_READ = const SearchResultKind('FIELD_READ', 2);
+  static const SearchResultKind FIELD_READ = const SearchResultKind('FIELD_READ', 4);
+
+  /**
+   * A reference to a field in which it is read and written.
+   */
+  static const SearchResultKind FIELD_READ_WRITE = const SearchResultKind('FIELD_READ_WRITE', 5);
 
   /**
    * A reference to a field in which it is written.
    */
-  static const SearchResultKind FIELD_WRITE = const SearchResultKind('FIELD_WRITE', 3);
+  static const SearchResultKind FIELD_WRITE = const SearchResultKind('FIELD_WRITE', 6);
+
+  /**
+   * A declaration of a function.
+   */
+  static const SearchResultKind FUNCTION_DECLARATION = const SearchResultKind('FUNCTION_DECLARATION', 7);
 
   /**
    * A reference to a function in which it is invoked.
    */
-  static const SearchResultKind FUNCTION_INVOCATION = const SearchResultKind('FUNCTION_INVOCATION', 4);
+  static const SearchResultKind FUNCTION_INVOCATION = const SearchResultKind('FUNCTION_INVOCATION', 8);
 
   /**
    * A reference to a function in which it is referenced.
    */
-  static const SearchResultKind FUNCTION_REFERENCE = const SearchResultKind('FUNCTION_REFERENCE', 5);
+  static const SearchResultKind FUNCTION_REFERENCE = const SearchResultKind('FUNCTION_REFERENCE', 9);
+
+  /**
+   * A declaration of a function type.
+   */
+  static const SearchResultKind FUNCTION_TYPE_DECLARATION = const SearchResultKind('FUNCTION_TYPE_DECLARATION', 10);
 
   /**
    * A reference to a method in which it is invoked.
    */
-  static const SearchResultKind METHOD_INVOCATION = const SearchResultKind('METHOD_INVOCATION', 6);
+  static const SearchResultKind METHOD_INVOCATION = const SearchResultKind('METHOD_INVOCATION', 11);
 
   /**
    * A reference to a method in which it is referenced.
    */
-  static const SearchResultKind METHOD_REFERENCE = const SearchResultKind('METHOD_REFERENCE', 7);
+  static const SearchResultKind METHOD_REFERENCE = const SearchResultKind('METHOD_REFERENCE', 12);
+
+  /**
+   * A reference to a name, resolved.
+   */
+  static const SearchResultKind NAME_REFERENCE_RESOLVED = const SearchResultKind('NAME_REFERENCE_RESOLVED', 13);
+
+  /**
+   * A reference to a name, unresolved.
+   */
+  static const SearchResultKind NAME_REFERENCE_UNRESOLVED = const SearchResultKind('NAME_REFERENCE_UNRESOLVED', 14);
 
   /**
    * A reference to a property accessor.
    */
-  static const SearchResultKind PROPERTY_ACCESSOR_REFERENCE = const SearchResultKind('PROPERTY_ACCESSOR_REFERENCE', 8);
+  static const SearchResultKind PROPERTY_ACCESSOR_REFERENCE = const SearchResultKind('PROPERTY_ACCESSOR_REFERENCE', 15);
 
   /**
    * A reference to a type.
    */
-  static const SearchResultKind TYPE_REFERENCE = const SearchResultKind('TYPE_REFERENCE', 9);
+  static const SearchResultKind TYPE_REFERENCE = const SearchResultKind('TYPE_REFERENCE', 16);
 
   /**
    * A declaration of a variable.
    */
-  static const SearchResultKind VARIABLE_DECLARATION = const SearchResultKind('VARIABLE_DECLARATION', 10);
+  static const SearchResultKind VARIABLE_DECLARATION = const SearchResultKind('VARIABLE_DECLARATION', 17);
 
   /**
    * A reference to a variable in which it is read.
    */
-  static const SearchResultKind VARIABLE_READ = const SearchResultKind('VARIABLE_READ', 11);
+  static const SearchResultKind VARIABLE_READ = const SearchResultKind('VARIABLE_READ', 18);
 
   /**
    * A reference to a variable in which it is both read and written.
    */
-  static const SearchResultKind VARIABLE_READ_WRITE = const SearchResultKind('VARIABLE_READ_WRITE', 12);
+  static const SearchResultKind VARIABLE_READ_WRITE = const SearchResultKind('VARIABLE_READ_WRITE', 19);
 
   /**
    * A reference to a variable in which it is written.
    */
-  static const SearchResultKind VARIABLE_WRITE = const SearchResultKind('VARIABLE_WRITE', 13);
+  static const SearchResultKind VARIABLE_WRITE = const SearchResultKind('VARIABLE_WRITE', 20);
 
   static const List<SearchResultKind> values = const [
+      CLASS_DECLARATION,
+      CLASS_MEMBER_DECLARATION,
       CONSTRUCTOR_REFERENCE,
       FIELD_REFERENCE,
       FIELD_READ,
+      FIELD_READ_WRITE,
       FIELD_WRITE,
+      FUNCTION_DECLARATION,
       FUNCTION_INVOCATION,
       FUNCTION_REFERENCE,
+      FUNCTION_TYPE_DECLARATION,
       METHOD_INVOCATION,
       METHOD_REFERENCE,
+      NAME_REFERENCE_RESOLVED,
+      NAME_REFERENCE_UNRESOLVED,
       PROPERTY_ACCESSOR_REFERENCE,
       TYPE_REFERENCE,
       VARIABLE_DECLARATION,
@@ -549,17 +738,15 @@ class SearchResultKind extends Enum<SearchResultKind> {
  * The interface `SearchReferencesConsumer` defines the behavior of objects that consume
  * [SearchResult]s.
  */
-abstract class SearchResultsConsumer {
+abstract class SearchResultsConsumer implements Consumer {
   /**
    * [SearchResult]s have been computed.
    *
    * @param contextId the identifier of the context to search within
-   * @param source the [Source] with element
-   * @param offset the offset within the `source`
    * @param searchResults an array of [SearchResult]s computed so far
    * @param isLastResult is `true` if this is the last set of results
    */
-  void computedReferences(String contextId, Source source, int offset, List<SearchResult> searchResults, bool isLastResult);
+  void computed(List<SearchResult> searchResults, bool isLastResult);
 }
 
 /**
@@ -634,6 +821,67 @@ class SourceSetKind extends Enum<SourceSetKind> {
   static const List<SourceSetKind> values = const [ALL, NON_SDK, EXPLICITLY_ADDED, LIST];
 
   const SourceSetKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `TypeHierarchyItem` defines the behavior of objects representing an item in a
+ * type hierarchy.
+ */
+abstract class TypeHierarchyItem {
+  /**
+   * An empty array of hierarchy items.
+   */
+  static final List<TypeHierarchyItem> EMPTY_ARRAY = new List<TypeHierarchyItem>(0);
+
+  /**
+   * Return the class element associated with this item. Not `null`.
+   *
+   * @return the class element associated with this item
+   */
+  Element get classElement;
+
+  /**
+   * Return the type that is extended by this type, `null` if this item is `Object`.
+   *
+   * @return the type that is extended by this type
+   */
+  TypeHierarchyItem get extendedType;
+
+  /**
+   * Return the types that are implemented by this type, `null` if not a super item.
+   *
+   * @return the types that are implemented by this type
+   */
+  List<TypeHierarchyItem> get implementedTypes;
+
+  /**
+   * Return the member element associated with this item. May be `null` if this type does not
+   * define the member which hierarchy is requested.
+   *
+   * @return the member element associated with this item
+   */
+  Element get memberElement;
+
+  /**
+   * Return the types that are mixed into this type, `null` if not a super item.
+   *
+   * @return the types that are mixed into this type
+   */
+  List<TypeHierarchyItem> get mixedTypes;
+
+  /**
+   * Return the display name of this item.
+   *
+   * @return the display name of this item
+   */
+  String get name;
+
+  /**
+   * Return the subtypes of this type, may be empty, but not `null`.
+   *
+   * @return the subtypes of this type
+   */
+  List<TypeHierarchyItem> get subTypes;
 }
 
 /**
