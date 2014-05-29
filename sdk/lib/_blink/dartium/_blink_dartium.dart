@@ -7186,10 +7186,10 @@ Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -7197,9 +7197,9 @@ Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
 
 Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
-Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
+Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
 
-Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
+Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
 
 Native_URL_createObjectUrlFromBlob_Callback(blob) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 

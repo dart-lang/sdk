@@ -484,6 +484,9 @@ const htmlBlinkMap = const {
   'XPathResult': XPathResult,
   'XSLTProcessor': XsltProcessor,
 
+  // FIXME: Temporary workaround.  The Blink name matches the Dart name
+  // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
+  'DataTransfer': DataTransfer,
 };
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
