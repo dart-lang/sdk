@@ -34,10 +34,14 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
       : super(resourceProvider);
 
-  void addContext(Folder folder) {
-    PubFolder pubFolder = new PubFolder(analysisServer.defaultSdk, folder);
+  void addContext(Folder folder, File pubspecFile) {
+    PubFolder pubFolder = new PubFolder(analysisServer.defaultSdk, folder, pubspecFile);
     analysisServer.folderMap[folder] = pubFolder;
     analysisServer.addContextToWorkQueue(pubFolder.context);
+  }
+
+  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
+    analysisServer.folderMap[contextFolder].context.applyChanges(changeSet);
   }
 }
 
@@ -443,7 +447,7 @@ class PubFolder {
   final Folder _folder;
 
   /**
-   * The `pubspec.yaml` file in [_folder].
+   * The `pubspec.yaml` file in [_folder], or null if there isn't one.
    */
   File _pubspecFile;
 
@@ -452,12 +456,7 @@ class PubFolder {
    */
   AnalysisContext _context;
 
-  PubFolder(DartSdk sdk, this._folder) {
-    // prepare pubspec.yaml
-    _pubspecFile = _folder.getChild('pubspec.yaml');
-    if (!_pubspecFile.exists) {
-      throw new ArgumentError('$_pubspecFile does not exist');
-    }
+  PubFolder(DartSdk sdk, this._folder, this._pubspecFile) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
@@ -467,37 +466,12 @@ class PubFolder {
       new FileUriResolver(),
       // new PackageUriResolver(),
     ]);
-    // add folder files
-    {
-      ChangeSet changeSet = new ChangeSet();
-      _addSourceFiles(changeSet, _folder);
-      _context.applyChanges(changeSet);
-    }
   }
 
   /**
    * Return the [AnalysisContext] of this folder.
    */
   AnalysisContext get context => _context;
-
-  /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
-   */
-  static void _addSourceFiles(ChangeSet changeSet, Folder folder) {
-    List<Resource> children = folder.getChildren();
-    for (Resource child in children) {
-      if (child is File) {
-        String fileName = child.shortName;
-        if (AnalysisEngine.isDartFileName(fileName)
-            || AnalysisEngine.isHtmlFileName(fileName)) {
-          Source source = child.createSource(UriKind.FILE_URI);
-          changeSet.addedSource(source);
-        }
-      } else if (child is Folder) {
-        _addSourceFiles(changeSet, child);
-      }
-    }
-  }
 }
 
 
