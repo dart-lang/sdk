@@ -42,8 +42,9 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     String introFileName: '', String out: gen.DEFAULT_OUTPUT_DIRECTORY,
     List<String> excludeLibraries: const [],
     bool includeDependentPackages: false, bool compile: false,
-    bool serve: false, bool noDocs: false, String startPage, String pubScript,
-    String dartBinary, bool indentJSON: false}) {
+    bool serve: false, bool noDocs: false, String startPage,
+    String pubScript : 'pub', String dartBinary: 'dart',
+    bool indentJSON: false}) {
   var result;
   if (!noDocs) {
     viewer.ensureMovedViewerCode();
