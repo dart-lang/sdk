@@ -26,7 +26,7 @@ import 'exports/source_mirrors.dart';
 import 'io.dart';
 import 'library_helpers.dart';
 import 'models.dart';
-import 'package_helpers.dart';
+import 'package_helpers.dart' show packageNameFor, rootDirectory;
 
 const String DEFAULT_OUTPUT_DIRECTORY = 'docs';
 
@@ -203,8 +203,7 @@ void _documentLibraries(List<LibraryMirror> libs, bool includeSdk,
       'libraries': filteredEntities.where((e) => e is Library).map((e) =>
           e.previewMap).toList(),
       'introduction': _readIntroductionFile(introFileName, includeSdk),
-      'filetype': 'json',
-      'sdkVersion': packageVersion(coreLibrary.mirror)
+      'filetype': 'json'
     };
 
   var encoder = new JsonEncoder.withIndent(indentJson ? '  ' : null);
@@ -296,8 +295,8 @@ String _obtainPackageRoot(String packageRoot, bool parseSdk,
     var type = FileSystemEntity.typeSync(files.first);
     if (type == FileSystemEntityType.DIRECTORY) {
       var files2 = listDir(files.first, recursive: true);
-      // Return '' means that there was no pubspec.yaml and therefore no
-      // packageRoot.
+      // Return '' means that there was no pubspec.yaml and therefor no p
+      // ackageRoot.
       packageRoot = files2.firstWhere((f) => f.endsWith(
           '${path.separator}pubspec.yaml'), orElse: () => '');
       if (packageRoot != '') {
