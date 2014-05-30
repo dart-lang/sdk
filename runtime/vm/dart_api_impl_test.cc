@@ -1292,6 +1292,98 @@ TEST_CASE(ListAccess) {
 }
 
 
+TEST_CASE(MapAccess) {
+  const char* kScriptChars =
+      "Map testMain() {"
+      "  return {"
+      "    'a' : 1,"
+      "    'b' : null,"
+      "  };"
+      "}";
+  Dart_Handle result;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke a function which returns an object of type Map.
+  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // First ensure that the returned object is a map.
+  Dart_Handle map = result;
+  Dart_Handle a = NewString("a");
+  Dart_Handle b = NewString("b");
+  Dart_Handle c = NewString("c");
+
+  EXPECT(Dart_IsMap(map));
+  EXPECT(!Dart_IsMap(a));
+
+  // Access values in the map.
+  int64_t value;
+  result = Dart_MapGetAt(map, a);
+  EXPECT_VALID(result);
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(value, 1);
+
+  result = Dart_MapGetAt(map, b);
+  EXPECT(Dart_IsNull(result));
+
+  result = Dart_MapGetAt(map, c);
+  EXPECT(Dart_IsNull(result));
+
+  EXPECT(Dart_IsError(Dart_MapGetAt(a, a)));
+
+  // Test for presence of keys.
+  bool contains = false;
+  result = Dart_MapContainsKey(map, a);
+  EXPECT_VALID(result);
+  result = Dart_BooleanValue(result, &contains);
+  EXPECT_VALID(result);
+  EXPECT(contains);
+
+  contains = false;
+  result = Dart_MapContainsKey(map, NewString("b"));
+  EXPECT_VALID(result);
+  result = Dart_BooleanValue(result, &contains);
+  EXPECT_VALID(result);
+  EXPECT(contains);
+
+  contains = true;
+  result = Dart_MapContainsKey(map, NewString("c"));
+  EXPECT_VALID(result);
+  result = Dart_BooleanValue(result, &contains);
+  EXPECT_VALID(result);
+  EXPECT(!contains);
+
+  EXPECT(Dart_IsError(Dart_MapContainsKey(a, a)));
+
+  // Enumerate keys. (Note literal maps guarantee key order.)
+  Dart_Handle keys = Dart_MapKeys(map);
+  EXPECT_VALID(keys);
+
+  intptr_t len = 0;
+  bool equals;
+  result = Dart_ListLength(keys, &len);
+  EXPECT_VALID(result);
+  EXPECT_EQ(2, len);
+
+  result = Dart_ListGetAt(keys, 0);
+  EXPECT(Dart_IsString(result));
+  equals = false;
+  EXPECT_VALID(Dart_ObjectEquals(result, a, &equals));
+  EXPECT(equals);
+
+  result = Dart_ListGetAt(keys, 1);
+  EXPECT(Dart_IsString(result));
+  equals = false;
+  EXPECT_VALID(Dart_ObjectEquals(result, b, &equals));
+  EXPECT(equals);
+
+  EXPECT(Dart_IsError(Dart_MapKeys(a)));
+}
+
+
 TEST_CASE(TypedDataViewListGetAsBytes) {
   const int kSize = 1000;
 

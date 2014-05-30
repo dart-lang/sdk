@@ -83,6 +83,26 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   return Instance::null();
 }
 
+static RawInstance* GetMapInstance(Isolate* isolate, const Object& obj) {
+  if (obj.IsInstance()) {
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Class& map_class =
+        Class::Handle(core_lib.LookupClass(Symbols::Map()));
+    ASSERT(!map_class.IsNull());
+    const Instance& instance = Instance::Cast(obj);
+    const Class& obj_class = Class::Handle(isolate, obj.clazz());
+    Error& malformed_type_error = Error::Handle(isolate);
+    if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
+                              map_class,
+                              TypeArguments::Handle(isolate),
+                              &malformed_type_error)) {
+      ASSERT(malformed_type_error.IsNull());  // Type is a raw Map.
+      return instance.raw();
+    }
+  }
+  return Instance::null();
+}
+
 
 static bool GetNativeStringArgument(NativeArguments* arguments,
                                     int arg_index,
@@ -229,6 +249,40 @@ Heap::Space SpaceForExternal(Isolate* isolate, intptr_t size) {
   } else {
     return Heap::kNew;
   }
+}
+
+
+static RawObject* Send0Arg(const Instance& receiver,
+                           const String& selector) {
+  const intptr_t kNumArgs = 1;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver, selector, args_desc));
+  if (function.IsNull()) {
+    return ApiError::New(String::Handle(String::New("")));
+  }
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, receiver);
+  return DartEntry::InvokeFunction(function, args);
+}
+
+
+static RawObject* Send1Arg(const Instance& receiver,
+                           const String& selector,
+                           const Instance& argument) {
+  const intptr_t kNumArgs = 2;
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver, selector, args_desc));
+  if (function.IsNull()) {
+    return ApiError::New(String::Handle(String::New("")));
+  }
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, receiver);
+  args.SetAt(1, argument);
+  return DartEntry::InvokeFunction(function, args);
 }
 
 
@@ -1804,6 +1858,14 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsMap(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  return GetMapInstance(isolate, obj) != Instance::null();
+}
+
+
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
   TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(object) == kLibraryCid;
@@ -2497,25 +2559,14 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     return list;
   } else {
     CHECK_CALLBACK_STATE(isolate);
-
     // Check and handle a dart object that implements the List interface.
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
-      const int kNumArgs = 2;
-      ArgumentsDescriptor args_desc(
-          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
-      const Function& function = Function::Handle(
-          isolate,
-          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), args_desc));
-      if (!function.IsNull()) {
-        const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
-        const Integer& indexobj = Integer::Handle(isolate, Integer::New(index));
-        args.SetAt(0, instance);
-        args.SetAt(1, indexobj);
-        return Api::NewHandle(isolate, DartEntry::InvokeFunction(function,
-                                                                 args));
-      }
+      return Api::NewHandle(isolate, Send1Arg(
+          instance,
+          Symbols::IndexToken(),
+          Instance::Handle(isolate, Integer::New(index))));
     }
     return Api::NewError("Object does not implement the 'List' interface");
   }
@@ -2891,6 +2942,71 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
+}
+
+
+// --- Maps ---
+
+DART_EXPORT Dart_Handle Dart_MapGetAt(Dart_Handle map, Dart_Handle key) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(map));
+  const Instance& instance =
+      Instance::Handle(isolate, GetMapInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    const Object& key_obj = Object::Handle(Api::UnwrapHandle(key));
+    if (!(key_obj.IsInstance() || key_obj.IsNull())) {
+      return Api::NewError("Key is not an instance");
+    }
+    return Api::NewHandle(isolate, Send1Arg(
+       instance,
+       Symbols::IndexToken(),
+       Instance::Cast(key_obj)));
+  }
+  return Api::NewError("Object does not implement the 'Map' interface");
+}
+
+
+DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(map));
+  const Instance& instance =
+      Instance::Handle(isolate, GetMapInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    const Object& key_obj = Object::Handle(Api::UnwrapHandle(key));
+    if (!(key_obj.IsInstance() || key_obj.IsNull())) {
+      return Api::NewError("Key is not an instance");
+    }
+    return Api::NewHandle(isolate, Send1Arg(
+       instance,
+       String::Handle(isolate, String::New("containsKey")),
+       Instance::Cast(key_obj)));
+  }
+  return Api::NewError("Object does not implement the 'Map' interface");
+}
+
+
+DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  Object& obj = Object::Handle(isolate, Api::UnwrapHandle(map));
+  Instance& instance =
+      Instance::Handle(isolate, GetMapInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    const Object& iterator = Object::Handle(Send0Arg(
+        instance, String::Handle(String::New("get:keys"))));
+    if (!iterator.IsInstance()) {
+      return Api::NewHandle(isolate, iterator.raw());
+    }
+    return Api::NewHandle(isolate, Send0Arg(
+        Instance::Cast(iterator),
+        String::Handle(String::New("toList"))));
+  }
+  return Api::NewError("Object does not implement the 'Map' interface");
 }
 
 
