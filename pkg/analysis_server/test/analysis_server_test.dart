@@ -18,212 +18,121 @@ import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
 
-main() {
-  group('AnalysisServer', () {
-    setUp(AnalysisServerTest.setUp);
-    test('addContextToWorkQueue_twice',
-        AnalysisServerTest.addContextToWorkQueue_twice);
-    test('addContextToWorkQueue_whenNotRunning',
-        AnalysisServerTest.addContextToWorkQueue_whenNotRunning);
-    // TODO(scheglov) remove or move to the 'analysis' domain
-//    test('addContextToWorkQueue_whenRunning',
-//        AnalysisServerTest.addContextToWorkQueue_whenRunning);
-//    test('createContext', AnalysisServerTest.createContext);
-    test('echo', AnalysisServerTest.echo);
-    test('errorToJson_formattingApplied',
-        AnalysisServerTest.errorToJson_formattingApplied);
-    test('errorToJson_noCorrection',
-        AnalysisServerTest.errorToJson_noCorrection);
-    test('errorToJson_withCorrection',
-        AnalysisServerTest.errorToJson_withCorrection);
-    test('performTask_whenNotRunning',
-        AnalysisServerTest.performTask_whenNotRunning);
-    test('shutdown', AnalysisServerTest.shutdown);
-    test('unknownRequest', AnalysisServerTest.unknownRequest);
-  });
-}
+class AnalysisServerTestHelper {
+  MockServerChannel channel;
+  AnalysisServer server;
+  MockAnalysisLogger logger;
 
-class AnalysisServerTest {
-  static MockServerChannel channel;
-  static AnalysisServer server;
-  static MockAnalysisLogger logger;
-
-  static void setUp() {
+  AnalysisServerTestHelper() {
     channel = new MockServerChannel();
     server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE);
     logger = new MockAnalysisLogger();
     AnalysisEngine.instance.logger = logger;
   }
-
-  static Future addContextToWorkQueue_whenNotRunning() {
-    server.running = false;
-    MockAnalysisContext context = new MockAnalysisContext();
-    server.addContextToWorkQueue(context);
-    // Pump the event queue to make sure the server doesn't try to do any
-    // analysis.
-    return pumpEventQueue();
-  }
-
-  // TODO(scheglov) remove after implementing "setAnalysisRoots" API
-//  static Future addContextToWorkQueue_whenRunning() {
-//    MockAnalysisContext context = new MockAnalysisContext();
-//    server.addContextToWorkQueue(context);
-//    server.contextIdMap[context] = 'context-27';
-//    MockSource source = new MockSource();
-//    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
-//    ChangeNoticeImpl changeNoticeImpl = new ChangeNoticeImpl(source);
-//    LineInfo lineInfo = new LineInfo([0]);
-//    AnalysisError analysisError = new AnalysisError.con1(source,
-//        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, ['Foo']);
-//    changeNoticeImpl.setErrors([analysisError], lineInfo);
-//    context.when(callsTo('performAnalysisTask')).thenReturn(
-//        new AnalysisResult([changeNoticeImpl], 0, 'myClass', 0));
-//    context.when(callsTo('performAnalysisTask')).thenReturn(
-//        new AnalysisResult(null, 0, null, 0));
-//    return pumpEventQueue().then((_) {
-//      context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(2));
-//      List<Notification> notifications = channel.notificationsReceived;
-//      expect(notifications, hasLength(4));
-//
-//      expect(notifications[0].event, equals('server.connected'));
-//
-//      assertStatusNotification(notifications[1], true);
-//
-//      expect(notifications[2].event, equals('context.errors'));
-//      expect(notifications[2].params['source'], equals('foo.dart'));
-//      expect(notifications[2].params['contextId'], equals('context-27'));
-//      List<AnalysisError> errors = notifications[2].params['errors'];
-//      expect(errors, hasLength(1));
-//      expect(errors[0], equals(AnalysisServer.errorToJson(analysisError)));
-//
-//      assertStatusNotification(notifications[3], false);
-//    });
-//  }
-//
-//  static void assertStatusNotification(Notification notification, bool expectAnalyzing) {
-//    expect(notification.event, equals('server.status'));
-//    Map<String, Object> analysis = notification.params['analysis'];
-//    expect(analysis['analyzing'], expectAnalyzing);
-//    expect(analysis.containsKey('analysisTarget'), expectAnalyzing);
-//    if (expectAnalyzing) {
-//      var analysisTarget = analysis['analysisTarget'];
-//      expect((analysisTarget is String), isTrue);
-//      expect(analysisTarget.length > 0, isTrue);
-//    }
-//  }
-
-  static Future addContextToWorkQueue_twice() {
-    // TODO(scheglov) remove after implementing "setAnalysisRoots" API
-    return new Future.value();
-//    // The context should only be asked to perform its analysis task once.
-//    MockAnalysisContext context = new MockAnalysisContext();
-//    server.addContextToWorkQueue(context);
-//    server.addContextToWorkQueue(context);
-//    context.when(callsTo('performAnalysisTask')).thenReturn(
-//        new AnalysisResult(null, 0, null, 0));
-//    return pumpEventQueue().then((_) =>
-//        context.getLogs(callsTo('performAnalysisTask')).verify(happenedExactly(1)));
-  }
-
-  // TODO(scheglov) remove or move to the 'analysis' domain
-//  static Future createContext() {
-//    server.handlers = [new ServerDomainHandler(server)];
-//    var request = new Request('my27', ServerDomainHandler.CREATE_CONTEXT_METHOD);
-//    request.setParameter(ServerDomainHandler.SDK_DIRECTORY_PARAM, sdkPath);
-//    request.setParameter(AnalysisServer.CONTEXT_ID_PARAM, 'ctx');
-//    return channel.sendRequest(request)
-//        .then((Response response) {
-//          expect(response.id, equals('my27'));
-//          expect(response.error, isNull);
-//        });
-//  }
-
-  static Future echo() {
-    server.handlers = [new EchoHandler()];
-    var request = new Request('my22', 'echo');
-    return channel.sendRequest(request)
-        .then((Response response) {
-          expect(response.id, equals('my22'));
-          expect(response.error, isNull);
-        });
-  }
-
-  static void errorToJson_formattingApplied() {
-    MockSource source = new MockSource();
-    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
-    CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
-    AnalysisError analysisError =
-        new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
-    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-
-    expect(json['message'],
-        equals("The name 'foo' is defined in the libraries 'bar' and 'baz'"));
-  }
-
-  static void errorToJson_noCorrection() {
-    MockSource source = new MockSource();
-    source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
-    CompileTimeErrorCode errorCode =
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
-    AnalysisError analysisError =
-        new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
-    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-    expect(json, hasLength(5));
-    expect(json['file'], equals('foo.dart'));
-    expect(json['errorCode'], 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER');
-    expect(json['offset'], equals(analysisError.offset));
-    expect(json['length'], equals(analysisError.length));
-    expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));
-  }
-
-  static void errorToJson_withCorrection() {
-    MockSource source = new MockSource();
-    source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
-
-    // TODO(paulberry): in principle we should test an error or hint that uses
-    // %s formatting in its correction string.  But no such errors or hints
-    // currently exist!
-    HintCode errorCode = HintCode.MISSING_RETURN;
-
-    AnalysisError analysisError =
-        new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
-    Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-    expect(json['correction'], equals(errorCode.correction));
-  }
-
-  static Future performTask_whenNotRunning() {
-    // If the server is shut down while there is analysis still pending,
-    // performTask() should notice that the server is no longer running and
-    // do no analysis.
-    MockAnalysisContext context = new MockAnalysisContext();
-    server.addContextToWorkQueue(context);
-    server.running = false;
-    // Pump the event queue to make sure the server doesn't try to do any
-    // analysis.
-    return pumpEventQueue();
-  }
-
-  static Future shutdown() {
-    server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my28', METHOD_SHUTDOWN);
-    return channel.sendRequest(request)
-        .then((Response response) {
-          expect(response.id, equals('my28'));
-          expect(response.error, isNull);
-        });
-  }
-
-  static Future unknownRequest() {
-    server.handlers = [new EchoHandler()];
-    var request = new Request('my22', 'randomRequest');
-    return channel.sendRequest(request)
-        .then((Response response) {
-          expect(response.id, equals('my22'));
-          expect(response.error, isNotNull);
-        });
-  }
 }
 
+main() {
+  group('AnalysisServer', () {
+    test('addContextToWorkQueue_whenNotRunning', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.server.running = false;
+      MockAnalysisContext context = new MockAnalysisContext();
+      helper.server.addContextToWorkQueue(context);
+      // Pump the event queue to make sure the server doesn't try to do any
+      // analysis.
+      return pumpEventQueue();
+    });
+
+    test('echo', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.server.handlers = [new EchoHandler()];
+      var request = new Request('my22', 'echo');
+      return helper.channel.sendRequest(request)
+          .then((Response response) {
+            expect(response.id, equals('my22'));
+            expect(response.error, isNull);
+          });
+    });
+
+    test('errorToJson_formattingApplied', () {
+      MockSource source = new MockSource();
+      source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
+      CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
+      AnalysisError analysisError =
+          new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
+      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+
+      expect(json['message'],
+          equals("The name 'foo' is defined in the libraries 'bar' and 'baz'"));
+    });
+
+    test('errorToJson_noCorrection', () {
+      MockSource source = new MockSource();
+      source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
+      CompileTimeErrorCode errorCode =
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
+      AnalysisError analysisError =
+          new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
+      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+      expect(json, hasLength(5));
+      expect(json['file'], equals('foo.dart'));
+      expect(json['errorCode'], 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER');
+      expect(json['offset'], equals(analysisError.offset));
+      expect(json['length'], equals(analysisError.length));
+      expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));
+    });
+
+    test('errorToJson_withCorrection', () {
+      MockSource source = new MockSource();
+      source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
+
+      // TODO(paulberry): in principle we should test an error or hint that uses
+      // %s formatting in its correction string.  But no such errors or hints
+      // currently exist!
+      HintCode errorCode = HintCode.MISSING_RETURN;
+
+      AnalysisError analysisError =
+          new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
+      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
+      expect(json['correction'], equals(errorCode.correction));
+    });
+
+    test('performTask_whenNotRunning', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      // If the server is shut down while there is analysis still pending,
+      // performTask() should notice that the server is no longer running and
+      // do no analysis.
+      MockAnalysisContext context = new MockAnalysisContext();
+      helper.server.addContextToWorkQueue(context);
+      helper.server.running = false;
+      // Pump the event queue to make sure the server doesn't try to do any
+      // analysis.
+      return pumpEventQueue();
+    });
+
+    test('shutdown', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.server.handlers = [new ServerDomainHandler(helper.server)];
+      var request = new Request('my28', METHOD_SHUTDOWN);
+      return helper.channel.sendRequest(request)
+          .then((Response response) {
+            expect(response.id, equals('my28'));
+            expect(response.error, isNull);
+          });
+    });
+
+    test('unknownRequest', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      helper.server.handlers = [new EchoHandler()];
+      var request = new Request('my22', 'randomRequest');
+      return helper.channel.sendRequest(request)
+          .then((Response response) {
+            expect(response.id, equals('my22'));
+            expect(response.error, isNotNull);
+          });
+    });
+  });
+}
 
 class EchoHandler implements RequestHandler {
   @override
