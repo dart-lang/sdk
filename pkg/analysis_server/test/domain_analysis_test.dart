@@ -7,6 +7,7 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computers.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -30,6 +31,7 @@ main() {
   });
 
   group('notification.errors', testNotificationErrors);
+  group('notification.highlights', testNotificationHighlights);
   group('updateContent', testUpdateContent);
 
   group('AnalysisDomainHandler', () {
@@ -142,6 +144,35 @@ main() {
 }
 
 
+class AnalysisError {
+  final String file;
+  final String errorCode;
+  final int offset;
+  final int length;
+  final String message;
+  final String correction;
+  AnalysisError(this.file, this.errorCode, this.offset, this.length,
+      this.message, this.correction);
+
+  @override
+  String toString() {
+    return 'NotificationError(file=$file; errorCode=$errorCode; '
+        'offset=$offset; length=$length; message=$message)';
+  }
+}
+
+
+AnalysisError jsonToAnalysisError(Map<String, Object> json) {
+  return new AnalysisError(
+      json['file'],
+      json['errorCode'],
+      json['offset'],
+      json['length'],
+      json['message'],
+      json['correction']);
+}
+
+
 /**
  * A helper to test 'analysis.*' requests.
  */
@@ -152,6 +183,7 @@ class AnalysisTestHelper {
   AnalysisDomainHandler handler;
 
   Map<String, List<AnalysisError>> filesErrors = {};
+  Map<String, List<Map<String, Object>>> filesHighlights = {};
 
   String testFile = '/project/bin/test.dart';
   String testCode;
@@ -168,6 +200,10 @@ class AnalysisTestHelper {
         String file = notification.getParameter(AnalysisServer.FILE_PARAM);
         List<Map<String, Object>> errorMaps = notification.getParameter(AnalysisServer.ERRORS_PARAM);
         filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+      }
+      if (notification.event == AnalysisDomainHandler.HIGHLIGHTS_NOTIFICATION) {
+        String file = notification.getParameter(AnalysisServer.FILE_PARAM);
+        filesHighlights[file] = notification.getParameter(AnalysisDomainHandler.REGIONS_PARAM);
       }
     });
   }
@@ -193,11 +229,31 @@ class AnalysisTestHelper {
   }
 
   /**
+   * Returns highlights recorded for the given [file].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getHighlights(String file) {
+    List<Map<String, Object>> highlights = filesHighlights[file];
+    if (highlights != null) {
+      return highlights;
+    }
+    return [];
+  }
+
+  /**
    * Returns [AnalysisError]s recorded for the [testFile].
    * May be empty, but not `null`.
    */
   List<AnalysisError> getTestErrors() {
     return getErrors(testFile);
+  }
+
+  /**
+   * Returns highlights recorded for the given [testFile].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getTestHighlights() {
+    return getHighlights(testFile);
   }
 
   /**
@@ -213,6 +269,10 @@ class AnalysisTestHelper {
     request.setParameter(AnalysisDomainHandler.INCLUDED_PARAM, ['/project']);
     request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, []);
     handleSuccessfulRequest(request);
+  }
+
+  void setFileContent(String path, String content) {
+    resourceProvider.newFile(path, content);
   }
 
   /**
@@ -275,6 +335,739 @@ testNotificationErrors() {
 }
 
 
+class NotificationHighlightHelper extends AnalysisTestHelper {
+  List<Map<String, Object>> regions;
+
+  Future prepareRegions(then()) {
+    return waitForTasksFinished().then((_) {
+      regions = getTestHighlights();
+      then();
+    });
+  }
+
+  void assertHasRawRegion(HighlightType type, int offset, int length) {
+    for (Map<String, Object> region in regions) {
+      if (region['offset'] == offset && region['length'] == length
+          && region['type'] == type.name) {
+        return;
+      }
+    }
+    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
+         '${regions.join('\n')}');
+  }
+
+  void assertNoRawRegion(HighlightType type, int offset, int length) {
+    for (Map<String, Object> region in regions) {
+      if (region['offset'] == offset && region['length'] == length
+          && region['type'] == type.name) {
+        fail('Not expected to find (offset=$offset; length=$length; type=$type) in\n'
+             '${regions.join('\n')}');
+      }
+    }
+  }
+
+  void assertHasRegion(HighlightType type, String search, [int length = -1]) {
+    int offset = testCode.indexOf(search);
+    expect(offset, isNot(-1));
+    length = findRegionLength(search, length);
+    assertHasRawRegion(type, offset, length);
+  }
+
+  void assertNoRegion(HighlightType type, String search, [int length = -1]) {
+    int offset = testCode.indexOf(search);
+    expect(offset, isNot(-1));
+    length = findRegionLength(search, length);
+    assertNoRawRegion(type, offset, length);
+  }
+
+  int findRegionLength(String search, int length) {
+    if (length == -1) {
+      length = 0;
+      while (length < search.length) {
+        int c = search.codeUnitAt(length);
+        if (length == 0 && c == '@'.codeUnitAt(0)) {
+          length++;
+          continue;
+        }
+        if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
+              c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
+              c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+          break;
+        }
+        length++;
+      }
+    }
+    return length;
+  }
+}
+
+
+testNotificationHighlights() {
+  Future testRegions(String code, then(NotificationHighlightHelper helper)) {
+    var helper = new NotificationHighlightHelper();
+    helper.createSingleFileProject(code);
+    return helper.prepareRegions(() {
+      then(helper);
+    });
+  }
+
+  group('ANNOTATION', () {
+    test('no arguments', () {
+      var code = '''
+const AAA = 42;
+@AAA main() {}
+''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.ANNOTATION, '@AAA');
+      });
+    });
+
+    test('has arguments', () {
+      var code = '''
+class AAA {
+  const AAA(a, b, c);
+}
+@AAA(1, 2, 3) main() {}
+''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.ANNOTATION, '@AAA(', '@AAA('.length);
+        helper.assertHasRegion(HighlightType.ANNOTATION, ') main', ')'.length);
+      });
+    });
+  });
+
+  group('BUILT_IN', () {
+    test('abstract', () {
+      var code = '''
+abstract class A {};
+main() {
+  var abstract = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'abstract class');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'abstract = 42');
+      });
+    });
+
+    test('as', () {
+      var code = '''
+import 'dart:math' as math;
+main() {
+  p as int;
+  var as = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'as math');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'as int');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'as = 42');
+      });
+    });
+
+    test('deferred', () {
+      var code = '''
+import 'dart:math' deferred as math;
+main() {
+  var deferred = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'deferred as math');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'deferred = 42');
+      });
+    });
+
+    test('export', () {
+      var code = '''
+export "dart:math";
+main() {
+  var export = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'export "dart:');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'export = 42');
+      });
+    });
+
+    test('external', () {
+      var code = '''
+class A {
+  external A();
+  external aaa();
+}
+external main() {
+  var external = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'external A()');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'external aaa()');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'external main()');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'external = 42');
+      });
+    });
+
+    test('factory', () {
+      var code = '''
+class A {
+  factory A() => null;
+}
+main() {
+  var factory = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'factory A()');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'factory = 42');
+      });
+    });
+
+    test('get', () {
+      var code = '''
+get aaa => 1;
+class A {
+  get bbb => 2;
+}
+main() {
+  var get = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'get aaa =>');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'get bbb =>');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'get = 42');
+      });
+    });
+
+    test('hide', () {
+      var code = '''
+import 'foo.dart' hide Foo;
+main() {
+  var hide = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'hide Foo');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'hide = 42');
+      });
+    });
+
+    test('implements', () {
+      var code = '''
+class A {}
+class B implements A {}
+main() {
+  var implements = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'implements A {}');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'implements = 42');
+      });
+    });
+
+    test('import', () {
+      var code = '''
+import "foo.dart";
+main() {
+  var import = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'import "');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'import = 42');
+      });
+    });
+
+    test('library', () {
+      var code = '''
+library lib;
+main() {
+  var library = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'library lib;');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'library = 42');
+      });
+    });
+
+    test('native', () {
+      var code = '''
+class A native "A_native" {}
+class B {
+  bbb() native "bbb_native";
+}
+main() {
+  var native = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'native "A_');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'native "bbb_');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'native = 42');
+      });
+    });
+
+    test('on', () {
+      var code = '''
+main() {
+  try {
+  } on int catch (e) {
+  }
+  var on = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'on int');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'on = 42');
+      });
+    });
+
+    test('operator', () {
+      var code = '''
+class A {
+  operator +(x) => null;
+}
+main() {
+  var operator = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'operator +(');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'operator = 42');
+      });
+    });
+
+    test('part', () {
+      var helper = new NotificationHighlightHelper();
+      var code = '''
+part "my_part.dart";
+main() {
+  var part = 42;
+}''';
+      helper.createSingleFileProject(code);
+      helper.setFileContent('/project/bin/my_part.dart', 'part of lib;');
+      return helper.prepareRegions(() {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'part "my_');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'part = 42');
+      });
+    });
+
+    test('part', () {
+      var helper = new NotificationHighlightHelper();
+      var code = '''
+part of lib;
+main() {
+  var part = 1;
+  var of = 2;
+}''';
+      helper.createSingleFileProject(code);
+      helper.setFileContent('/project/bin/lib.dart', '''
+library lib;
+part 'test.dart';
+''');
+      return helper.prepareRegions(() {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'part of', 'part of'.length);
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'part = 1');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'of = 2');
+      });
+    });
+
+    test('set', () {
+      var code = '''
+set aaa(x) {}
+class A
+  set bbb(x) {}
+}
+main() {
+  var set = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'set aaa(');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'set bbb(');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'set = 42');
+      });
+    });
+
+    test('show', () {
+      var code = '''
+import 'foo.dart' show Foo;
+main() {
+  var show = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'show Foo');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'show = 42');
+      });
+    });
+
+    test('static', () {
+      var code = '''
+class A {
+  static aaa;
+  static bbb() {}
+}
+main() {
+  var static = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'static aaa;');
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'static bbb()');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'static = 42');
+      });
+    });
+
+    test('typedef', () {
+      var code = '''
+typedef A();
+main() {
+  var typedef = 42;
+}''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.BUILT_IN, 'typedef A();');
+        helper.assertNoRegion(HighlightType.BUILT_IN, 'typedef = 42');
+      });
+    });
+  });
+
+  group('CLASS', () {
+    test('CLASS', () {
+      var code = '''
+class AAA {}
+AAA aaa;
+''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertHasRegion(HighlightType.CLASS, 'AAA {}');
+        helper.assertHasRegion(HighlightType.CLASS, 'AAA aaa');
+      });
+    });
+
+    test('not dynamic', () {
+      var code = '''
+dynamic f() {}
+''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertNoRegion(HighlightType.CLASS, 'dynamic f()');
+      });
+    });
+
+    test('not void', () {
+      var code = '''
+void f() {}
+''';
+      return testRegions(code, (NotificationHighlightHelper helper) {
+        helper.assertNoRegion(HighlightType.CLASS, 'void f()');
+      });
+    });
+  });
+
+  test('CONSTRUCTOR', () {
+    var code = '''
+class AAA {
+  AAA() {}
+  AAA.name(p) {}
+}
+main() {
+  new AAA();
+  new AAA.name(42);
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.CONSTRUCTOR, 'name(p)');
+      helper.assertHasRegion(HighlightType.CONSTRUCTOR, 'name(42)');
+      helper.assertNoRegion(HighlightType.CONSTRUCTOR, 'AAA() {}');
+      helper.assertNoRegion(HighlightType.CONSTRUCTOR, 'AAA();');
+    });
+  });
+
+  test('DYNAMIC_TYPE', () {
+    var code = '''
+f() {}
+main(p) {
+  print(p);
+  var v1 = f();
+  int v2;
+  var v3 = v2;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.DYNAMIC_TYPE, 'p)');
+      helper.assertHasRegion(HighlightType.DYNAMIC_TYPE, 'v1 =');
+      helper.assertNoRegion(HighlightType.DYNAMIC_TYPE, 'v2;');
+      helper.assertNoRegion(HighlightType.DYNAMIC_TYPE, 'v3 =');
+    });
+  });
+
+  test('FIELD', () {
+    var code = '''
+class A {
+  int aaa = 1;
+  int bbb = 2;
+  A([this.bbb = 3]);
+}
+main(A a) {
+  a.aaa = 4;
+  a.bbb = 5;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.FIELD, 'aaa = 1');
+      helper.assertHasRegion(HighlightType.FIELD, 'bbb = 2');
+      helper.assertHasRegion(HighlightType.FIELD, 'bbb = 3');
+      helper.assertHasRegion(HighlightType.FIELD, 'aaa = 4');
+      helper.assertHasRegion(HighlightType.FIELD, 'bbb = 5');
+    });
+  });
+
+  test('FIELD_STATIC', () {
+    var code = '''
+class A {
+  static aaa = 1;
+  static get bbb => null;
+  static set ccc(x) {}
+}
+main() {
+  A.aaa = 2;
+  A.bbb;
+  A.ccc = 3;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 1');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 2');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'bbb;');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'ccc = 3');
+    });
+  });
+
+  test('FUNCTION', () {
+    var code = '''
+fff(p) {}
+main() {
+  fff(42);
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.FUNCTION_DECLARATION, 'fff(p) {}');
+      helper.assertHasRegion(HighlightType.FUNCTION, 'fff(42)');
+    });
+  });
+
+  test('FUNCTION_TYPE_ALIAS', () {
+    var code = '''
+typedef FFF(p);
+main(FFF fff) {
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.FUNCTION_TYPE_ALIAS, 'FFF(p)');
+      helper.assertHasRegion(HighlightType.FUNCTION_TYPE_ALIAS, 'FFF fff)');
+    });
+  });
+
+  test('GETTER_DECLARATION', () {
+    var code = '''
+get aaa => null;
+class A {
+  get bbb => null;
+}
+main(A a) {
+  aaa;
+  a.bbb;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.GETTER_DECLARATION, 'aaa => null');
+      helper.assertHasRegion(HighlightType.GETTER_DECLARATION, 'bbb => null');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'aaa;');
+      helper.assertHasRegion(HighlightType.FIELD, 'bbb;');
+    });
+  });
+
+  test('IDENTIFIER_DEFAULT', () {
+    var code = '''
+main() {
+  aaa = 42;
+  bbb(84);
+  CCC ccc;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'aaa = 42');
+      helper.assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'bbb(84)');
+      helper.assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'CCC ccc');
+    });
+  });
+
+  test('IMPORT_PREFIX', () {
+    var code = '''
+import 'dart:math' as ma;
+main() {
+  ma.max(1, 2);
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.IMPORT_PREFIX, 'ma;');
+      helper.assertHasRegion(HighlightType.IMPORT_PREFIX, 'ma.max');
+    });
+  });
+
+  test('KEYWORD void', () {
+    var code = '''
+void main() {
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.KEYWORD, 'void main()');
+    });
+  });
+
+  test('LITERAL_BOOLEAN', () {
+    var code = 'var V = true;';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.LITERAL_BOOLEAN, 'true;');
+    });
+  });
+
+  test('LITERAL_DOUBLE', () {
+    var code = 'var V = 4.2;';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
+    });
+  });
+
+  test('LITERAL_INTEGER', () {
+    var code = 'var V = 42;';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.LITERAL_INTEGER, '42;');
+    });
+  });
+
+  test('LITERAL_STRING', () {
+    var code = 'var V = "abc";';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.LITERAL_STRING, '"abc";', '"abc"'.length);
+    });
+  });
+
+  test('LOCAL_VARIABLE', () {
+    var code = '''
+main() {
+  int vvv = 0;
+  vvv;
+  vvv = 1;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.LOCAL_VARIABLE_DECLARATION, 'vvv = 0');
+      helper.assertHasRegion(HighlightType.LOCAL_VARIABLE, 'vvv;');
+      helper.assertHasRegion(HighlightType.LOCAL_VARIABLE, 'vvv = 1;');
+    });
+  });
+
+  test('METHOD', () {
+    var code = '''
+class A {
+  aaa() {}
+  static bbb() {}
+}
+main(A a) {
+  a.aaa();
+  a.aaa;
+  A.bbb();
+  A.bbb;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.METHOD_DECLARATION, 'aaa() {}');
+      helper.assertHasRegion(HighlightType.METHOD_DECLARATION_STATIC, 'bbb() {}');
+      helper.assertHasRegion(HighlightType.METHOD, 'aaa();');
+      helper.assertHasRegion(HighlightType.METHOD, 'aaa;');
+      helper.assertHasRegion(HighlightType.METHOD_STATIC, 'bbb();');
+      helper.assertHasRegion(HighlightType.METHOD_STATIC, 'bbb;');
+    });
+  });
+
+  test('METHOD best type', () {
+    var code = '''
+main(p) {
+  if (p is List) {
+    p.add(null);
+  }
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.METHOD, 'add(null)');
+    });
+  });
+
+  test('PARAMETER', () {
+    var code = '''
+main(int p) {
+  p;
+  p = 42;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.PARAMETER, 'p) {');
+      helper.assertHasRegion(HighlightType.PARAMETER, 'p;');
+      helper.assertHasRegion(HighlightType.PARAMETER, 'p = 42');
+    });
+  });
+
+  test('SETTER_DECLARATION', () {
+    var code = '''
+set aaa(x) {}
+class A {
+  set bbb(x) {}
+}
+main(A a) {
+  aaa = 1;
+  a.bbb = 2;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.SETTER_DECLARATION, 'aaa(x)');
+      helper.assertHasRegion(HighlightType.SETTER_DECLARATION, 'bbb(x)');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 1');
+      helper.assertHasRegion(HighlightType.FIELD, 'bbb = 2');
+    });
+  });
+
+  test('TOP_LEVEL_VARIABLE', () {
+    var code = '''
+var VVV = 0;
+main() {
+  print(VVV);
+  VVV = 1;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV = 0');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'VVV);');
+      helper.assertHasRegion(HighlightType.FIELD_STATIC, 'VVV = 1');
+    });
+  });
+
+  test('TYPE_NAME_DYNAMIC', () {
+    var code = '''
+dynamic main() {
+  dynamic = 42;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.TYPE_NAME_DYNAMIC, 'dynamic main()');
+      helper.assertNoRegion(HighlightType.IDENTIFIER_DEFAULT, 'dynamic main()');
+      helper.assertNoRegion(HighlightType.TYPE_NAME_DYNAMIC, 'dynamic = 42');
+    });
+  });
+
+  test('TYPE_PARAMETER', () {
+    var code = '''
+class A<T> {
+  T fff;
+  T mmm(T p) => null;
+}
+''';
+    return testRegions(code, (NotificationHighlightHelper helper) {
+      helper.assertHasRegion(HighlightType.TYPE_PARAMETER, 'T> {');
+      helper.assertHasRegion(HighlightType.TYPE_PARAMETER, 'T fff;');
+      helper.assertHasRegion(HighlightType.TYPE_PARAMETER, 'T mmm(');
+      helper.assertHasRegion(HighlightType.TYPE_PARAMETER, 'T p)');
+    });
+  });
+}
+
+
 testUpdateContent() {
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
@@ -330,33 +1123,4 @@ testUpdateContent() {
       });
     });
   });
-}
-
-
-class AnalysisError {
-  final String file;
-  final String errorCode;
-  final int offset;
-  final int length;
-  final String message;
-  final String correction;
-  AnalysisError(this.file, this.errorCode, this.offset, this.length,
-      this.message, this.correction);
-
-  @override
-  String toString() {
-    return 'NotificationError(file=$file; errorCode=$errorCode; '
-        'offset=$offset; length=$length; message=$message)';
-  }
-}
-
-
-AnalysisError jsonToAnalysisError(Map<String, Object> json) {
-  return new AnalysisError(
-      json['file'],
-      json['errorCode'],
-      json['offset'],
-      json['length'],
-      json['message'],
-      json['correction']);
 }

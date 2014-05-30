@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analysis_server/src/computers.dart';
 
 
 /**
@@ -261,13 +262,25 @@ class AnalysisServer {
     for (int i = 0; i < notices.length; i++) {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
-      // send "analysis.errors" notification
-      // TODO(scheglov) use subscriptions to determine if we should do this
+      CompilationUnit dartUnit = notice.compilationUnit;
+      // TODO(scheglov) use subscriptions to determine notifications to send
       if (!source.isInSystemLibrary) {
-        Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
-        notification.setParameter(FILE_PARAM, source.fullName);
-        notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
-        sendNotification(notification);
+        // errors
+        {
+          Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
+          notification.setParameter(FILE_PARAM, source.fullName);
+          notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
+          sendNotification(notification);
+        }
+        // highlights
+        if (dartUnit != null) {
+          Notification notification = new Notification(AnalysisDomainHandler.HIGHLIGHTS_NOTIFICATION);
+          notification.setParameter(FILE_PARAM, source.fullName);
+          notification.setParameter(
+              AnalysisDomainHandler.REGIONS_PARAM,
+              new DartUnitHighlightsComputer(dartUnit).compute());
+          sendNotification(notification);
+        }
       }
     }
   }
