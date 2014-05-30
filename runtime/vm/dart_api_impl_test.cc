@@ -520,6 +520,13 @@ TEST_CASE(Null) {
 }
 
 
+TEST_CASE(EmptyString) {
+  Dart_Handle empty = Dart_EmptyString();
+  EXPECT_VALID(empty);
+  EXPECT(!Dart_IsNull(empty));
+}
+
+
 TEST_CASE(IdentityEquals) {
   Dart_Handle five = Dart_NewInteger(5);
   Dart_Handle five_again = Dart_NewInteger(5);

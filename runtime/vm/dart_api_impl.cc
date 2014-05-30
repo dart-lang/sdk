@@ -51,6 +51,7 @@ ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
+Dart_Handle Api::empty_string_handle_ = NULL;
 
 
 const char* CanonicalFunction(const char* func) {
@@ -372,21 +373,6 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 }
 
 
-Dart_Handle Api::Null() {
-  return null_handle_;
-}
-
-
-Dart_Handle Api::True() {
-  return true_handle_;
-}
-
-
-Dart_Handle Api::False() {
-  return false_handle_;
-}
-
-
 ApiLocalScope* Api::TopScope(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -418,6 +404,9 @@ void Api::InitHandles() {
 
   ASSERT(null_handle_ == NULL);
   null_handle_ = Api::InitNewHandle(isolate, Object::null());
+
+  ASSERT(empty_string_handle_ == NULL);
+  empty_string_handle_ = Api::InitNewHandle(isolate, Symbols::Empty().raw());
 }
 
 
@@ -1673,9 +1662,14 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
 // --- Objects ----
 
 DART_EXPORT Dart_Handle Dart_Null() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  ASSERT(Isolate::Current() != NULL);
   return Api::Null();
+}
+
+
+DART_EXPORT Dart_Handle Dart_EmptyString() {
+  ASSERT(Isolate::Current() != NULL);
+  return Api::EmptyString();
 }
 
 
@@ -2056,15 +2050,13 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 // --- Booleans ----
 
 DART_EXPORT Dart_Handle Dart_True() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  ASSERT(Isolate::Current() != NULL);
   return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  ASSERT(Isolate::Current() != NULL);
   return Api::False();
 }
 

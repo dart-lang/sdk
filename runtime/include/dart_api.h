@@ -1262,11 +1262,16 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
 /**
  * Returns the null object.
  *
- * Requires there to be a current isolate.
- *
  * \return A handle to the null object.
  */
 DART_EXPORT Dart_Handle Dart_Null();
+
+/**
+ * Returns the empty string object.
+ *
+ * \return A handle to the empty string object.
+ */
+DART_EXPORT Dart_Handle Dart_EmptyString();
 
 /**
  * Is this object null?
