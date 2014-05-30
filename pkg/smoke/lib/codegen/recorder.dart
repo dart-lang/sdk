@@ -259,17 +259,17 @@ class Recorder {
       }
 
       var positionalArgs = [];
+      var namedArgs = {};
       for (var arg in annotation.arguments.arguments) {
         if (arg is NamedExpression) {
-          throw new UnimplementedError(
-              'named arguments in constructors are not implemented in '
-              'smoke.codegen.recorder');
+          namedArgs[arg.name.label.name] = _convertExpression(arg.expression);
+        } else {
+          positionalArgs.add(_convertExpression(arg));
         }
-        positionalArgs.add(_convertExpression(arg));
       }
 
       return new ConstructorExpression(importUrlFor(element.library),
-          element.enclosingElement.name, positionalArgs, const {});
+          element.enclosingElement.name, positionalArgs, namedArgs);
     }
 
     if (element is PropertyAccessorElement) {

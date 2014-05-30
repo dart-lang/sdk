@@ -107,6 +107,9 @@ main(args) {
     runQuery('H', new QueryOptions(includeInherited: true,
         withAnnotations: [vars[0], vars[1], lib.getType('Annot')]));
 
+    runQuery('K', new QueryOptions(includeInherited: true,
+        withAnnotations: [lib.getType('AnnotC')]));
+
     var code = _createEntrypoint(generator);
     var staticTestFile = new File(path.join(testDir, 'static_test.dart'));
     var existingCode = staticTestFile.readAsStringSync();

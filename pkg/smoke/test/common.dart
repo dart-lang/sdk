@@ -370,6 +370,7 @@ class F2 extends F {}
 
 class Annot { const Annot(); }
 class AnnotB extends Annot { const AnnotB(); }
+class AnnotC { const AnnotC({bool named: false}); }
 const a1 = const Annot();
 const a2 = 32;
 const a3 = const AnnotB();
@@ -388,4 +389,9 @@ class H extends G {
   @a1 int g;
   @a2 int h;
   @a3 int i;
+}
+
+class K {
+  @AnnotC(named: true) int k;
+  @AnnotC() int k2;
 }
