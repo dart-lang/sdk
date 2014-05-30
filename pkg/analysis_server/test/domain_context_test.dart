@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_context.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -58,15 +59,14 @@ class ContextDomainHandlerTest {
     AnalysisServer server = new AnalysisServer(
         new MockServerChannel(),
         PhysicalResourceProvider.INSTANCE);
-    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
+    Request request = new Request('0', APPLY_CHANGES_NAME);
     ContextDomainHandler handler = new ContextDomainHandler(server);
     SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
     ChangeSet changeSet = handler.createChangeSet(request, sourceFactory,
-        new RequestDatum(request, ContextDomainHandler.CHANGES_PARAM, {
-      ContextDomainHandler.ADDED_PARAM: ['ffile:/one.dart'],
-      ContextDomainHandler.MODIFIED_PARAM: [],
-      ContextDomainHandler.REMOVED_PARAM: ['ffile:/two.dart',
-          'ffile:/three.dart']
+        new RequestDatum(request, CHANGES_PARAM, {
+      ADDED: ['ffile:/one.dart'],
+      MODIFIED_PARAM: [],
+      REMOVED: ['ffile:/two.dart', 'ffile:/three.dart']
     }));
     expect(changeSet.addedSources, hasLength(equals(1)));
     expect(changeSet.changedSources, hasLength(equals(0)));
@@ -77,12 +77,12 @@ class ContextDomainHandlerTest {
     AnalysisServer server = new AnalysisServer(
         new MockServerChannel(),
         PhysicalResourceProvider.INSTANCE);
-    Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
+    Request request = new Request('0', APPLY_CHANGES_NAME);
     ContextDomainHandler handler = new ContextDomainHandler(server);
     SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
     ChangeSet changeSet = handler.createChangeSet(request, sourceFactory,
-        new RequestDatum(request, ContextDomainHandler.CHANGES_PARAM, {
-      ContextDomainHandler.ADDED_PARAM: ['ffile:/one.dart'],
+        new RequestDatum(request, CHANGES_PARAM, {
+          ADDED: ['ffile:/one.dart'],
     }));
     expect(changeSet.addedSources, hasLength(equals(1)));
     expect(changeSet.changedSources, hasLength(equals(0)));

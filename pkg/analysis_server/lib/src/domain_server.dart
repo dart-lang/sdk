@@ -5,6 +5,7 @@
 library domain.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 
 /**
@@ -12,31 +13,6 @@ import 'package:analysis_server/src/protocol.dart';
  * that handles requests in the server domain.
  */
 class ServerDomainHandler implements RequestHandler {
-  /**
-   * The name of the `server.getVersion` request.
-   */
-  static const String GET_VERSION_METHOD = 'server.getVersion';
-
-  /**
-   * The name of the `server.setSubscriptions` request.
-   */
-  static const String SET_SUBSCRIPTIONS_METHOD = 'server.setSubscriptions';
-
-  /**
-   * The name of the `server.shutdown` request.
-   */
-  static const String SHUTDOWN_METHOD = 'server.shutdown';
-
-  /**
-   * The name of the `subscriptions` parameter.
-   */
-  static const String SUBSCRIPTIONS_PARAMETER = 'subscriptions';
-
-  /**
-   * The name of the version result value.
-   */
-  static const String VERSION_RESULT = 'version';
-
   /**
    * The analysis server that is using this handler to process requests.
    */
@@ -51,11 +27,11 @@ class ServerDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == GET_VERSION_METHOD) {
+      if (requestName == METHOD_GET_VERSION) {
         return getVersion(request);
-      } else if (requestName == SET_SUBSCRIPTIONS_METHOD) {
+      } else if (requestName == METHOD_SET_SUBSCRIPTIONS) {
           return setSubscriptions(request);
-      } else if (requestName == SHUTDOWN_METHOD) {
+      } else if (requestName == METHOD_SHUTDOWN) {
         return shutdown(request);
       }
     } on RequestFailure catch (exception) {
@@ -70,7 +46,7 @@ class ServerDomainHandler implements RequestHandler {
    * All previous subscriptions are replaced by the given set of subscriptions.
    */
   Response setSubscriptions(Request request) {
-    RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS_PARAMETER);
+    RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
     server.serverServices = subDatum.asEnumSet(ServerService.VALUES);
     return new Response(request.id);
   }
@@ -142,7 +118,7 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response getVersion(Request request) {
     Response response = new Response(request.id);
-    response.setResult(VERSION_RESULT, '0.0.1');
+    response.setResult(VERSION, '0.0.1');
     return response;
   }
 }

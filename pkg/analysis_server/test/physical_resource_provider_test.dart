@@ -7,10 +7,7 @@ library test.physical.resource.provider;
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'mocks.dart';
-
 import 'package:analysis_server/src/resource.dart';
-import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';

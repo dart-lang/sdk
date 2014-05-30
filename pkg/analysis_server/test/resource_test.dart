@@ -5,7 +5,6 @@
 library test.resource;
 
 import 'dart:async';
-import 'dart:io' as io;
 
 import 'mocks.dart';
 

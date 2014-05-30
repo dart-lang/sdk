@@ -5,6 +5,7 @@
 library domain.context;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,91 +17,6 @@ import 'package:analyzer/src/generated/source.dart';
  * TODO(scheglov) this class is replaces with [AnalysisDomainHandler].
  */
 class ContextDomainHandler implements RequestHandler {
-  /**
-   * The name of the context.applyChanges request.
-   */
-  static const String APPLY_CHANGES_NAME = 'context.applyChanges';
-
-  /**
-   * The name of the context.getFixes request.
-   */
-  static const String GET_FIXES_NAME = 'context.getFixes';
-
-  /**
-   * The name of the context.setOptions request.
-   */
-  static const String SET_OPTIONS_NAME = 'context.setOptions';
-
-  /**
-   * The name of the context.setPrioritySources request.
-   */
-  static const String SET_PRIORITY_SOURCES_NAME = 'context.setPrioritySources';
-
-  /**
-   * The name of the added parameter.
-   */
-  static const String ADDED_PARAM = "added";
-
-  /**
-   * The name of the changes parameter.
-   */
-  static const String CHANGES_PARAM = 'changes';
-
-  /**
-   * The name of the contextId parameter.
-   */
-  static const String CONTEXT_ID_PARAM = 'contextId';
-
-  /**
-   * The name of the modified parameter.
-   */
-  static const String MODIFIED_PARAM = "modified";
-
-  /**
-   * The name of the options parameter.
-   */
-  static const String OPTIONS_PARAM = 'options';
-
-  /**
-   * The name of the removed parameter.
-   */
-  static const String REMOVED_PARAM = "removed";
-
-  /**
-   * The name of the sources parameter.
-   */
-  static const String SOURCES_PARAM = 'sources';
-
-  /**
-   * The name of the cacheSize option.
-   */
-  static const String CACHE_SIZE_OPTION = 'cacheSize';
-
-  /**
-   * The name of the generateHints option.
-   */
-  static const String GENERATE_HINTS_OPTION = 'generateHints';
-
-  /**
-   * The name of the generateDart2jsHints option.
-   */
-  static const String GENERATE_DART2JS_OPTION = 'generateDart2jsHints';
-
-  /**
-   * The name of the provideErrors option.
-   */
-  static const String PROVIDE_ERRORS_OPTION = 'provideErrors';
-
-  /**
-   * The name of the provideNavigation option.
-   */
-  static const String PROVIDE_NAVIGATION_OPTION = 'provideNavigation';
-
-  /**
-   * The name of the provideOutline option.
-   */
-  static const String PROVIDE_OUTLINE_OPTION = 'provideOutline';
-
   /**
    * The analysis server that is using this handler to process requests.
    */
@@ -156,8 +72,8 @@ class ContextDomainHandler implements RequestHandler {
   ChangeSet createChangeSet(Request request, SourceFactory sourceFactory,
                             RequestDatum jsonData) {
     ChangeSet changeSet = new ChangeSet();
-    if (jsonData.hasKey(ADDED_PARAM)) {
-      convertSources(request, sourceFactory, jsonData[ADDED_PARAM], (Source source) {
+    if (jsonData.hasKey(ADDED)) {
+      convertSources(request, sourceFactory, jsonData[ADDED], (Source source) {
         changeSet.addedSource(source);
       });
     }
@@ -166,8 +82,8 @@ class ContextDomainHandler implements RequestHandler {
         changeSet.changedSource(source);
       });
     }
-    if (jsonData.hasKey(REMOVED_PARAM)) {
-      convertSources(request, sourceFactory, jsonData[REMOVED_PARAM], (Source source) {
+    if (jsonData.hasKey(REMOVED)) {
+      convertSources(request, sourceFactory, jsonData[REMOVED], (Source source) {
         changeSet.removedSource(source);
       });
     }
@@ -211,7 +127,7 @@ class ContextDomainHandler implements RequestHandler {
    * throw a [RequestFailure] exception if the analysis options are not valid.
    */
   AnalysisOptions createAnalysisOptions(Request request) {
-    RequestDatum optionsData = request.getRequiredParameter(OPTIONS_PARAM);
+    RequestDatum optionsData = request.getRequiredParameter(OPTIONS);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     optionsData.forEachMap((String key, RequestDatum value) {
       if (key == CACHE_SIZE_OPTION) {

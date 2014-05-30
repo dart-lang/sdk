@@ -5,6 +5,7 @@
 library test.domain.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -25,12 +26,12 @@ main() {
 
   group('ServerDomainHandler', () {
     test('getVersion', () {
-      var request = new Request('0', ServerDomainHandler.GET_VERSION_METHOD);
+      var request = new Request('0', METHOD_GET_VERSION);
       var response = handler.handleRequest(request);
       expect(response.toJson(), equals({
         Response.ID: '0',
         Response.RESULT: {
-          ServerDomainHandler.VERSION_RESULT: '0.0.1'
+          VERSION: '0.0.1'
         }
       }));
     });
@@ -38,12 +39,12 @@ main() {
     group('setSubscriptions', () {
       Request request;
       setUp(() {
-        request = new Request('0', ServerDomainHandler.SET_SUBSCRIPTIONS_METHOD);
+        request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
       });
 
       test('invalid service name', () {
         request.setParameter(
-            ServerDomainHandler.SUBSCRIPTIONS_PARAMETER,
+            SUBSCRIPTIONS,
             ['noSuchService']);
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
@@ -53,7 +54,7 @@ main() {
         expect(server.serverServices, isEmpty);
         // send request
         request.setParameter(
-            ServerDomainHandler.SUBSCRIPTIONS_PARAMETER,
+            SUBSCRIPTIONS,
             [ServerService.STATUS.name]);
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
@@ -65,7 +66,7 @@ main() {
     test('shutdown', () {
       expect(server.running, isTrue);
       // send request
-      var request = new Request('0', ServerDomainHandler.SHUTDOWN_METHOD);
+      var request = new Request('0', METHOD_SHUTDOWN);
       var response = handler.handleRequest(request);
       expect(response, isResponseSuccess('0'));
       // server is down

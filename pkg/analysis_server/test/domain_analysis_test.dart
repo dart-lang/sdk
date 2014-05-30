@@ -7,6 +7,7 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/computers.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -36,18 +37,18 @@ main() {
 
   group('AnalysisDomainHandler', () {
     test('getFixes', () {
-      var request = new Request('0', AnalysisDomainHandler.GET_FIXES_METHOD);
-      request.setParameter(AnalysisDomainHandler.ERRORS_PARAM, []);
+      var request = new Request('0', METHOD_GET_FIXES);
+      request.setParameter(ERRORS, []);
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
       expect(response, isNull);
     });
 
     test('getMinorRefactorings', () {
-      var request = new Request('0', AnalysisDomainHandler.GET_MINOR_REFACTORINGS_METHOD);
-      request.setParameter(AnalysisDomainHandler.FILE_PARAM, 'test.dart');
-      request.setParameter(AnalysisDomainHandler.OFFSET_PARAM, 10);
-      request.setParameter(AnalysisDomainHandler.LENGTH_PARAM, 20);
+      var request = new Request('0', METHOD_GET_MINOR_REFACTORINGS);
+      request.setParameter(FILE, 'test.dart');
+      request.setParameter(OFFSET, 10);
+      request.setParameter(LENGTH, 20);
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
       expect(response, isNull);
@@ -57,13 +58,13 @@ main() {
       Request request;
 
       setUp(() {
-        request = new Request('0', AnalysisDomainHandler.SET_ANALYSIS_ROOTS_METHOD);
-        request.setParameter(AnalysisDomainHandler.INCLUDED_PARAM, []);
-        request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, []);
+        request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+        request.setParameter(INCLUDED, []);
+        request.setParameter(EXCLUDED, []);
       });
 
       test('excluded', () {
-        request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, ['foo']);
+        request.setParameter(EXCLUDED, ['foo']);
         // TODO(scheglov) implement
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
@@ -75,7 +76,7 @@ main() {
           resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
           resourceProvider.newFile('/project/bin/test.dart', 'main() {}');
           request.setParameter(
-              AnalysisDomainHandler.INCLUDED_PARAM,
+              INCLUDED,
               ['/project']);
           var response = handler.handleRequest(request);
           var serverRef = server;
@@ -90,9 +91,9 @@ main() {
     });
 
     test('setPriorityFiles', () {
-      var request = new Request('0', AnalysisDomainHandler.SET_PRIORITY_FILES_METHOD);
+      var request = new Request('0', METHOD_SET_PRIORITY_FILES);
       request.setParameter(
-          AnalysisDomainHandler.FILES_PARAM,
+          FILES,
           ['projectA/aa.dart', 'projectB/ba.dart']);
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
@@ -100,9 +101,9 @@ main() {
     });
 
     test('setSubscriptions', () {
-      var request = new Request('0', AnalysisDomainHandler.SET_SUBSCRIPTIONS_METHOD);
+      var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
       request.setParameter(
-          AnalysisDomainHandler.SUBSCRIPTIONS_PARAM,
+          SUBSCRIPTIONS,
           {
             AnalysisService.HIGHLIGHTS : ['project/a.dart', 'project/b.dart'],
             AnalysisService.NAVIGATION : ['project/c.dart'],
@@ -114,9 +115,9 @@ main() {
     });
 
     test('updateOptions', () {
-      var request = new Request('0', AnalysisDomainHandler.UPDATE_OPTIONS_METHOD);
+      var request = new Request('0', METHOD_UPDATE_OPTIONS);
       request.setParameter(
-          AnalysisDomainHandler.OPTIONS_PARAM,
+          OPTIONS,
           {
             'analyzeAngular' : true,
             'enableDeferredLoading': true,
@@ -128,14 +129,14 @@ main() {
     });
 
     test('updateSdks', () {
-      var request = new Request('0', AnalysisDomainHandler.UPDATE_SDKS_METHOD);
+      var request = new Request('0', METHOD_UPDATE_SDKS);
       request.setParameter(
-          AnalysisDomainHandler.ADDED_PARAM,
+          ADDED,
           ['/dart/sdk-1.3', '/dart/sdk-1.4']);
       request.setParameter(
-          AnalysisDomainHandler.REMOVED_PARAM,
+          REMOVED,
           ['/dart/sdk-1.2']);
-      request.setParameter(AnalysisDomainHandler.DEFAULT_PARAM, '/dart/sdk-1.4');
+      request.setParameter(DEFAULT, '/dart/sdk-1.4');
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
       expect(response, isNull);
@@ -196,14 +197,14 @@ class AnalysisTestHelper {
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
-      if (notification.event == AnalysisDomainHandler.ERRORS_NOTIFICATION) {
-        String file = notification.getParameter(AnalysisServer.FILE_PARAM);
-        List<Map<String, Object>> errorMaps = notification.getParameter(AnalysisServer.ERRORS_PARAM);
+      if (notification.event == NOTIFICATION_ERRORS) {
+        String file = notification.getParameter(FILE);
+        List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
         filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
       }
-      if (notification.event == AnalysisDomainHandler.HIGHLIGHTS_NOTIFICATION) {
-        String file = notification.getParameter(AnalysisServer.FILE_PARAM);
-        filesHighlights[file] = notification.getParameter(AnalysisDomainHandler.REGIONS_PARAM);
+      if (notification.event == NOTIFICATION_HIGHLIGHTS) {
+        String file = notification.getParameter(FILE);
+        filesHighlights[file] = notification.getParameter(REGIONS);
       }
     });
   }
@@ -265,9 +266,9 @@ class AnalysisTestHelper {
     resourceProvider.newFolder('/project');
     resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
     resourceProvider.newFile(testFile, testCode);
-    Request request = new Request('0', AnalysisDomainHandler.SET_ANALYSIS_ROOTS_METHOD);
-    request.setParameter(AnalysisDomainHandler.INCLUDED_PARAM, ['/project']);
-    request.setParameter(AnalysisDomainHandler.EXCLUDED_PARAM, []);
+    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    request.setParameter(INCLUDED, ['/project']);
+    request.setParameter(EXCLUDED, []);
     handleSuccessfulRequest(request);
   }
 
@@ -1078,11 +1079,11 @@ testUpdateContent() {
       expect(errors, isEmpty);
       // update code
       {
-        Request request = new Request('0', AnalysisDomainHandler.UPDATE_CONTENT_METHOD);
+        Request request = new Request('0', METHOD_UPDATE_CONTENT);
         request.setParameter('files',
             {
               helper.testFile : {
-                AnalysisDomainHandler.CONTENT_PARAM : 'library lib'
+                CONTENT : 'library lib'
               }
             });
         helper.handleSuccessfulRequest(request);
@@ -1104,14 +1105,14 @@ testUpdateContent() {
       expect(errors, isEmpty);
       // update code
       {
-        Request request = new Request('0', AnalysisDomainHandler.UPDATE_CONTENT_METHOD);
+        Request request = new Request('0', METHOD_UPDATE_CONTENT);
         request.setParameter('files',
             {
               helper.testFile : {
-                AnalysisDomainHandler.CONTENT_PARAM : 'library lib',
-                AnalysisDomainHandler.OFFSET_PARAM : 'library '.length,
-                AnalysisDomainHandler.OLD_LENGTH_PARAM : 'A;'.length,
-                AnalysisDomainHandler.NEW_LENGTH_PARAM : 'lib'.length,
+                CONTENT : 'library lib',
+                OFFSET : 'library '.length,
+                OLD_LENGTH : 'A;'.length,
+                NEW_LENGTH : 'lib'.length,
               }
             });
         helper.handleSuccessfulRequest(request);

@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -52,26 +53,6 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
-  /**
-   * The name of the parameter whose value is a list of errors.
-   */
-  static const String ERRORS_PARAM = 'errors';
-
-  /**
-   * The name of the parameter whose value is a file path.
-   */
-  static const String FILE_PARAM = 'file';
-
-  /**
-   * The event name of the connected notification.
-   */
-  static const String CONNECTED_NOTIFICATION = 'server.connected';
-
-  /**
-   * The event name of the status notification.
-   */
-  static const String STATUS_NOTIFICATION = 'server.status';
-
   /**
    * The channel from which requests are received and to which responses should
    * be sent.
@@ -146,7 +127,7 @@ class AnalysisServer {
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(CONNECTED_NOTIFICATION);
+    Notification notification = new Notification(NOTIFICATION_CONNECTED);
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
@@ -267,17 +248,17 @@ class AnalysisServer {
       if (!source.isInSystemLibrary) {
         // errors
         {
-          Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
-          notification.setParameter(FILE_PARAM, source.fullName);
-          notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
+          Notification notification = new Notification(NOTIFICATION_ERRORS);
+          notification.setParameter(FILE, source.fullName);
+          notification.setParameter(ERRORS, notice.errors.map(errorToJson).toList());
           sendNotification(notification);
         }
         // highlights
         if (dartUnit != null) {
-          Notification notification = new Notification(AnalysisDomainHandler.HIGHLIGHTS_NOTIFICATION);
-          notification.setParameter(FILE_PARAM, source.fullName);
+          Notification notification = new Notification(NOTIFICATION_HIGHLIGHTS);
+          notification.setParameter(FILE, source.fullName);
           notification.setParameter(
-              AnalysisDomainHandler.REGIONS_PARAM,
+              REGIONS,
               new DartUnitHighlightsComputer(dartUnit).compute());
           sendNotification(notification);
         }
@@ -294,7 +275,7 @@ class AnalysisServer {
       return;
     }
     lastStatusNotificationContextId = contextId;
-    Notification notification = new Notification(STATUS_NOTIFICATION);
+    Notification notification = new Notification(NOTIFICATION_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {
       analysis['analyzing'] = true;

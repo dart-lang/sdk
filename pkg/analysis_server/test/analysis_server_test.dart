@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -204,7 +205,7 @@ class AnalysisServerTest {
 
   static Future shutdown() {
     server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my28', ServerDomainHandler.SHUTDOWN_METHOD);
+    var request = new Request('my28', METHOD_SHUTDOWN);
     return channel.sendRequest(request)
         .then((Response response) {
           expect(response.id, equals('my28'));

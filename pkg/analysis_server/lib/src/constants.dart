@@ -1,0 +1,77 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library constants;
+
+
+//
+// Server methods
+//
+const String METHOD_GET_VERSION = 'server.getVersion';
+const String METHOD_SHUTDOWN = 'server.shutdown';
+
+//
+// Analysis methods
+//
+const String METHOD_GET_FIXES =              'analysis.getFixes';
+const String METHOD_GET_MINOR_REFACTORINGS = 'analysis.getMinorRefactorings';
+const String METHOD_SET_ANALYSIS_ROOTS =     'analysis.setAnalysisRoots';
+const String METHOD_SET_PRIORITY_FILES =     'analysis.setPriorityFiles';
+const String METHOD_SET_SUBSCRIPTIONS =      'analysis.setSubscriptions';
+const String METHOD_UPDATE_CONTENT =         'analysis.updateContent';
+const String METHOD_UPDATE_OPTIONS =         'analysis.updateOptions';
+const String METHOD_UPDATE_SDKS =            'analysis.updateSdks';
+
+//
+// Server notifications
+//
+const String NOTIFICATION_CONNECTED  = 'server.connected';
+const String NOTIFICATION_STATUS =     'server.status';
+
+//
+// Analysis notifications
+//
+const String NOTIFICATION_ERRORS =     'analysis.errors';
+const String NOTIFICATION_HIGHLIGHTS = 'analysis.highlights';
+const String NOTIFICATION_NAVIGATION = 'analysis.navigation';
+const String NOTIFICATION_OUTLINE =    'analysis.outline';
+
+
+const String ADDED = 'added';
+const String CONTENT = 'content';
+const String DEFAULT = 'default';
+const String EXCLUDED = 'excluded';
+const String ERRORS = 'errors';
+const String FILE = 'file';
+const String FILES = 'files';
+const String FIXES = 'fixes';
+const String INCLUDED = 'included';
+const String LENGTH = 'length';
+const String NEW_LENGTH = 'newLength';
+const String OFFSET = 'offset';
+const String OLD_LENGTH = 'oldLength';
+const String OPTIONS = 'options';
+const String OUTLINE = 'outline';
+const String REFACTORINGS = 'refactorings';
+const String REGIONS = 'regions';
+const String REMOVED = 'removed';
+const String SUBSCRIPTIONS = 'subscriptions';
+const String VERSION = 'version';
+
+
+// TODO(scheglov) remove it with ContextDomain
+const String APPLY_CHANGES_NAME = 'context.applyChanges';
+const String GET_FIXES_NAME = 'context.getFixes';
+const String SET_OPTIONS_NAME = 'context.setOptions';
+const String SET_PRIORITY_SOURCES_NAME = 'context.setPrioritySources';
+const String CHANGES_PARAM = 'changes';
+const String CONTEXT_ID_PARAM = 'contextId';
+const String MODIFIED_PARAM = "modified";
+const String SOURCES_PARAM = 'sources';
+const String CACHE_SIZE_OPTION = 'cacheSize';
+const String GENERATE_HINTS_OPTION = 'generateHints';
+const String GENERATE_DART2JS_OPTION = 'generateDart2jsHints';
+const String PROVIDE_ERRORS_OPTION = 'provideErrors';
+const String PROVIDE_NAVIGATION_OPTION = 'provideNavigation';
+const String PROVIDE_OUTLINE_OPTION = 'provideOutline';
