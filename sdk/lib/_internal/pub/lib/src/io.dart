@@ -380,7 +380,7 @@ void createPackageSymlink(String name, String target, String symlink,
 /// source repository.
 bool get runningFromSdk => Platform.script.path.endsWith('.snapshot');
 
-/// Resolves [target] relative to the path to pub's `resource` directory.
+/// Resolves [target] relative to the path to pub's `asset` directory.
 String assetPath(String target) {
   if (runningFromSdk) {
     return path.join(

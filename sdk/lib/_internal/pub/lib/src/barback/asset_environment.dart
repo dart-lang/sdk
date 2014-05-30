@@ -313,9 +313,8 @@ class AssetEnvironment {
   /// Determines if [sourcePath] is contained within any of the directories in
   /// the root package that are visible to this build environment.
   bool containsPath(String sourcePath) {
-    var directories = ["asset", "lib"];
+    var directories = ["lib"];
     directories.addAll(_directories.keys);
-
     return directories.any((dir) => path.isWithin(dir, sourcePath));
   }
 
@@ -449,15 +448,11 @@ class AssetEnvironment {
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
   Future _provideSources() {
-    return Future.wait(graph.packages.values.map((package) {
-      // Just include the "shared" directories in each package. We'll add the
-      // other build directories in the root package by calling
-      // [serveDirectory].
-      return Future.wait([
-        _provideDirectorySources(package, "asset"),
-        _provideDirectorySources(package, "lib")
-      ]);
-    }));
+    // Just include the "lib" directory from each package. We'll add the
+    // other build directories in the root package by calling
+    // [serveDirectory].
+    return Future.wait(graph.packages.values.map(
+        (package) => _provideDirectorySources(package, "lib")));
   }
 
   /// Provides all of the source assets within [dir] in [package] to barback.

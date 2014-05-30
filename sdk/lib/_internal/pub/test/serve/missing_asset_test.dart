@@ -18,9 +18,7 @@ main() {
     pubServe();
     requestShould404("index.html");
     requestShould404("packages/myapp/nope.dart");
-    requestShould404("assets/myapp/nope.png");
     requestShould404("dir/packages/myapp/nope.dart");
-    requestShould404("dir/assets/myapp/nope.png");
     endPubServe();
   });
 }

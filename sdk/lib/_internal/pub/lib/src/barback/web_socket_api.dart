@@ -136,15 +136,14 @@ class WebSocketApi {
   ///
   /// The "path" key may refer to a path in another package, either by referring
   /// to its location within the top-level "packages" directory or by referring
-  /// to its location on disk. Only the "lib" and "asset" directories are
-  /// visible in other packages:
+  /// to its location on disk. Only the "lib" directory is visible in other
+  /// packages:
   ///
   ///     "params": {
   ///       "path": "packages/http/http.dart"
   ///     }
   ///
-  /// Assets in the "lib" and "asset" directories will usually have one URL for
-  /// each server:
+  /// Assets in the "lib" directory will usually have one URL for each server:
   ///
   ///     "result": {
   ///       "urls": [

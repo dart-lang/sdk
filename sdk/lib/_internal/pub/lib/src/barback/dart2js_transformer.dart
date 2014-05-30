@@ -62,9 +62,9 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   bool isPrimary(AssetId id) {
     if (id.extension != ".dart") return false;
 
-    // These should only contain libraries. For efficiency's sake, we don't
+    // "lib" should only contain libraries. For efficiency's sake, we don't
     // look for entrypoints in there.
-    return !["asset/", "lib/"].any(id.path.startsWith);
+    return !id.path.startsWith("lib/");
   }
 
   Future apply(Transform transform) {

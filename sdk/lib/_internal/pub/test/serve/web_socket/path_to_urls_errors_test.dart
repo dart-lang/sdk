@@ -25,9 +25,6 @@ main() {
     d.dir(appPath, [
       d.appPubspec({"foo": {"path": "../foo"}}),
       d.file("top-level.txt", "top-level"),
-      d.dir("asset", [
-        d.file("foo.txt", "foo"),
-      ]),
       d.dir("bin", [
         d.file("foo.txt", "foo"),
       ]),

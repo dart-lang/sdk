@@ -19,10 +19,7 @@ main() {
       d.libPubspec("foo", "1.0.0"),
       d.dir("lib", [
         d.file("foo.dart", "foo() => null;")
-      ]),
-      d.dir("asset", [
-        d.file("foo.txt", "foo")
-      ]),
+      ])
     ]).create();
 
     d.dir(appPath, [
@@ -35,9 +32,6 @@ main() {
       ]),
       d.dir("lib", [
         d.file("app.dart", "app() => null;")
-      ]),
-      d.dir("asset", [
-        d.file("app.txt", "app")
       ]),
       d.dir("web", [
         d.file("index.html", "<body>"),
@@ -94,15 +88,6 @@ main() {
       getServerUrl("randomdir", "packages/myapp/app.dart")
     ]});
 
-    // A path in asset/.
-    expectWebSocketResult("pathToUrls", {
-      "path": p.join("asset", "app.txt")
-    }, {"urls": [
-      getServerUrl("test", "assets/myapp/app.txt"),
-      getServerUrl("web", "assets/myapp/app.txt"),
-      getServerUrl("randomdir", "assets/myapp/app.txt")
-    ]});
-
     // A path to this package in packages/.
     expectWebSocketResult("pathToUrls", {
       "path": p.join("packages", "myapp", "app.dart")
@@ -142,24 +127,6 @@ main() {
       getServerUrl("test", "packages/foo/foo.dart"),
       getServerUrl("web", "packages/foo/foo.dart"),
       getServerUrl("randomdir", "packages/foo/foo.dart")
-    ]});
-
-    // A relative path to another package's asset/ directory.
-    expectWebSocketResult("pathToUrls", {
-      "path": p.join("..", "foo", "asset", "foo.dart")
-    }, {"urls": [
-      getServerUrl("test", "assets/foo/foo.dart"),
-      getServerUrl("web", "assets/foo/foo.dart"),
-      getServerUrl("randomdir", "assets/foo/foo.dart")
-    ]});
-
-    // An absolute path to another package's asset/ directory.
-    expectWebSocketResult("pathToUrls", {
-      "path": canonicalize(p.join(sandboxDir, "foo", "asset", "foo.dart"))
-    }, {"urls": [
-      getServerUrl("test", "assets/foo/foo.dart"),
-      getServerUrl("web", "assets/foo/foo.dart"),
-      getServerUrl("randomdir", "assets/foo/foo.dart")
     ]});
 
     endPubServe();
