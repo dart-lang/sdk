@@ -2234,7 +2234,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
    * depending on your purposes.
    */
@@ -2245,7 +2245,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
    * depending on your purposes.
    */
@@ -2257,7 +2257,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
    * depending on your purposes.
    */
@@ -2269,7 +2269,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified subset of data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
    * depending on your purposes.
    */
@@ -2280,7 +2280,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified subset of data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
    * depending on your purposes.
    */
@@ -2292,7 +2292,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Buffers the specified subset of data.
    *
-   * This specific method is provided for WebGL API compatibility reasons, but
+   * The [bufferSubData] method is provided for WebGL API compatibility reasons, but
    * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
    * depending on your purposes.
    */
@@ -2677,7 +2677,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2712,7 +2712,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2724,7 +2724,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2736,7 +2736,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2748,7 +2748,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2760,7 +2760,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2773,7 +2773,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2786,7 +2786,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2798,7 +2798,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2814,7 +2814,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2827,7 +2827,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
    * (or for more specificity, the more specialized [texImage2DImageData],
    * [texImage2DCanvas], [texImage2DVideo]).
@@ -2847,7 +2847,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2882,7 +2882,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2894,7 +2894,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2906,7 +2906,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2918,7 +2918,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2930,7 +2930,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2943,7 +2943,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2956,7 +2956,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2968,7 +2968,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2984,7 +2984,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
@@ -2997,7 +2997,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
-   * This specific method is provided for WebGL API compatibility reasons, but it
+   * The [texSubImage2D] method is provided for WebGL API compatibility reasons, but it
    * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
    * (or for more specificity, the more specialized [texSubImage2DImageData],
    * [texSubImage2DCanvas], [texSubImage2DVideo]).
