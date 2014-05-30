@@ -365,6 +365,41 @@ class RequestDatum {
     }
     return datum;
   }
+
+  /**
+   * Determine if the datum is a map whose values are all string lists.
+   *
+   * Note: we can safely assume that the keys are all strings, since JSON maps
+   * cannot have any other key type.
+   */
+  bool isStringListMap() {
+    if (datum is! Map) {
+      return false;
+    }
+    for (var value in datum.values) {
+      if (value is! List) {
+        return false;
+      }
+      for (var listItem in value) {
+        if (listItem is! String) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Validate that the datum is a map from strings to string listss, and return
+   * it.
+   */
+  Map<String, List<String>> asStringListMap() {
+    if (!isStringListMap()) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a string list map"));
+    }
+    return datum;
+  }
 }
 
 /**
@@ -464,6 +499,14 @@ class Response {
 
   Response.unsupportedFeature(String requestId, String message)
     : this(requestId, new RequestError(-9, message));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a `analysis.setSubscriptions` [request] that includes an unknown
+   * analysis service name.
+   */
+  Response.unknownAnalysisService(Request request, String name)
+    : this(request.id, new RequestError(-10, 'Unknown analysis service: "$name"'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data

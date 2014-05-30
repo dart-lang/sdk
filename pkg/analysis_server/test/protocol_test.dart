@@ -425,6 +425,32 @@ class RequestDatumTest {
     }).asStringMap(), _throwsInvalidParameter);
     expect(() => makeDatum([]).asStringMap(), _throwsInvalidParameter);
   }
+
+  @runTest
+  static void asStringListMap() {
+    setUp();
+    {
+      var map = {
+        'key1': ['value11', 'value12'],
+        'key2': ['value21', 'value22']
+      };
+      expect(makeDatum(map).asStringListMap(), map);
+    }
+    {
+      var map = {
+        'key1': 10,
+        'key2': 20
+      };
+      expect(() => makeDatum(map).asStringListMap(), _throwsInvalidParameter);
+    }
+    {
+      var map = {
+        'key1': [11, 12],
+        'key2': [21, 22]
+      };
+      expect(() => makeDatum(map).asStringListMap(), _throwsInvalidParameter);
+    }
+  }
 }
 
 class ResponseTest {

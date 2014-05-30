@@ -141,7 +141,9 @@ class MockServerChannel implements ServerCommunicationChannel {
   void sendNotification(Notification notification) {
     notificationsReceived.add(notification);
     // Wrap send notification in future to simulate websocket
-    new Future(() => notificationController.add(notification));
+    // TODO(scheglov) ask Dan why and decide what to do
+//    new Future(() => notificationController.add(notification));
+    notificationController.add(notification);
   }
 
   /**

@@ -120,6 +120,12 @@ class AnalysisServer {
   Set<ServerService> serverServices = new Set<ServerService>();
 
   /**
+   * A table mapping [AnalysisService]s to the file paths for which these
+   * notifications should be sent.
+   */
+  Map<AnalysisService, Set<String>> analysisServices = <AnalysisService, Set<String>>{};
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
@@ -244,26 +250,35 @@ class AnalysisServer {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
       CompilationUnit dartUnit = notice.compilationUnit;
-      // TODO(scheglov) use subscriptions to determine notifications to send
-      if (!source.isInSystemLibrary) {
-        // errors
-        {
-          Notification notification = new Notification(NOTIFICATION_ERRORS);
-          notification.setParameter(FILE, source.fullName);
-          notification.setParameter(ERRORS, notice.errors.map(errorToJson).toList());
-          sendNotification(notification);
-        }
-        // highlights
-        if (dartUnit != null) {
-          Notification notification = new Notification(NOTIFICATION_HIGHLIGHTS);
-          notification.setParameter(FILE, source.fullName);
-          notification.setParameter(
-              REGIONS,
-              new DartUnitHighlightsComputer(dartUnit).compute());
-          sendNotification(notification);
+      // TODO(scheglov) use default subscriptions
+      String file = source.fullName;
+      if (dartUnit != null) {
+        Set<String> files = analysisServices[AnalysisService.HIGHLIGHTS];
+        if (files != null && files.contains(file)) {
+          sendAnalysisNotificationHighlights(file, dartUnit);
         }
       }
+      if (!source.isInSystemLibrary) {
+        // errors
+        sendAnalysisNotificationErrors(file, notice.errors);
+      }
     }
+  }
+
+  void sendAnalysisNotificationErrors(String file, List<AnalysisError> errors) {
+    Notification notification = new Notification(NOTIFICATION_ERRORS);
+    notification.setParameter(FILE, file);
+    notification.setParameter(ERRORS, errors.map(errorToJson).toList());
+    sendNotification(notification);
+  }
+
+  void sendAnalysisNotificationHighlights(String file, CompilationUnit dartUnit) {
+    Notification notification = new Notification(NOTIFICATION_HIGHLIGHTS);
+    notification.setParameter(FILE, file);
+    notification.setParameter(
+        REGIONS,
+        new DartUnitHighlightsComputer(dartUnit).compute());
+    sendNotification(notification);
   }
 
   /**
@@ -329,6 +344,33 @@ class AnalysisServer {
         addContextToWorkQueue(analysisContext);
       }
     });
+  }
+
+  /**
+   * Implementation for `analysis.setSubscriptions`.
+   */
+  void setAnalysisSubscriptions(Map<AnalysisService, Set<String>> subscriptions) {
+    // send notifications for already analyzed sources
+    subscriptions.forEach((service, Set<String> newFiles) {
+      Set<String> oldFiles = analysisServices[service];
+      Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
+      for (String file in todoFiles) {
+        if (service == AnalysisService.ERRORS) {
+          Source source = _getSource(file);
+          AnalysisContext analysisContext = _getAnalysisContext(file);
+          List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+          sendAnalysisNotificationErrors(file, errors);
+        }
+        if (service == AnalysisService.HIGHLIGHTS) {
+          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+          if (dartUnit != null) {
+            sendAnalysisNotificationHighlights(file, dartUnit);
+          }
+        }
+      }
+    });
+    // remember new subscriptions
+    this.analysisServices = subscriptions;
   }
 
   /**

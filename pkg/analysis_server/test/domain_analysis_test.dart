@@ -34,6 +34,7 @@ main() {
   group('notification.errors', testNotificationErrors);
   group('notification.highlights', testNotificationHighlights);
   group('updateContent', testUpdateContent);
+  group('setSubscriptions', test_setSubscriptions);
 
   group('AnalysisDomainHandler', () {
     test('getFixes', () {
@@ -95,20 +96,6 @@ main() {
       request.setParameter(
           FILES,
           ['projectA/aa.dart', 'projectB/ba.dart']);
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
-    });
-
-    test('setSubscriptions', () {
-      var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
-      request.setParameter(
-          SUBSCRIPTIONS,
-          {
-            AnalysisService.HIGHLIGHTS : ['project/a.dart', 'project/b.dart'],
-            AnalysisService.NAVIGATION : ['project/c.dart'],
-            AnalysisService.OUTLINE : ['project/d.dart', 'project/e.dart']
-          });
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
       expect(response, isNull);
@@ -183,6 +170,8 @@ class AnalysisTestHelper {
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
+  Map<String, List<String>> analysisSubscriptions = {};
+
   Map<String, List<AnalysisError>> filesErrors = {};
   Map<String, List<Map<String, Object>>> filesHighlights = {};
 
@@ -207,6 +196,21 @@ class AnalysisTestHelper {
         filesHighlights[file] = notification.getParameter(REGIONS);
       }
     });
+  }
+
+  void addAnalysisSubscriptionHighlight(String file) {
+    var service = AnalysisService.HIGHLIGHTS;
+    // add file to subscription
+    var files = analysisSubscriptions[service.name];
+    if (files == null) {
+      files = <String>[];
+      analysisSubscriptions[service.name] = files;
+    }
+    files.add(file);
+    // set subscriptions
+    Request request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
+    request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
+    handleSuccessfulRequest(request);
   }
 
   /**
@@ -258,13 +262,23 @@ class AnalysisTestHelper {
   }
 
   /**
+   * Creates an empty project `/project/`.
+   */
+  void createEmptyProject() {
+    resourceProvider.newFolder('/project');
+    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    request.setParameter(INCLUDED, ['/project']);
+    request.setParameter(EXCLUDED, []);
+    handleSuccessfulRequest(request);
+  }
+
+  /**
    * Creates a project with a single Dart file `/project/bin/test.dart` with
    * the given [code].
    */
   void createSingleFileProject(code) {
     this.testCode = _getCodeString(code);
     resourceProvider.newFolder('/project');
-    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
     resourceProvider.newFile(testFile, testCode);
     Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, ['/project']);
@@ -340,6 +354,7 @@ class NotificationHighlightHelper extends AnalysisTestHelper {
   List<Map<String, Object>> regions;
 
   Future prepareRegions(then()) {
+    addAnalysisSubscriptionHighlight(testFile);
     return waitForTasksFinished().then((_) {
       regions = getTestHighlights();
       then();
@@ -1121,6 +1136,56 @@ testUpdateContent() {
       helper.waitForTasksFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
         expect(errors, hasLength(1));
+      });
+    });
+  });
+}
+
+
+void test_setSubscriptions() {
+  test('before analysis', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    // subscribe
+    {
+      var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
+      request.setParameter(
+          SUBSCRIPTIONS,
+          {
+            AnalysisService.HIGHLIGHTS.name : [helper.testFile],
+          });
+      helper.handleSuccessfulRequest(request);
+    }
+    // create project
+    helper.createSingleFileProject('int V = 42;');
+    // wait, there are highlight regions
+    helper.waitForTasksFinished().then((_) {
+      var highlights = helper.getHighlights(helper.testFile);
+      expect(highlights, isNot(isEmpty));
+    });
+  });
+
+  test('after analysis', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    // create project
+    helper.createSingleFileProject('int V = 42;');
+    // wait, no regions initially
+    return helper.waitForTasksFinished().then((_) {
+      var highlights = helper.getHighlights(helper.testFile);
+      expect(highlights, isEmpty);
+      // subscribe
+      {
+        var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
+        request.setParameter(
+            SUBSCRIPTIONS,
+            {
+              AnalysisService.HIGHLIGHTS.name : [helper.testFile],
+            });
+        helper.handleSuccessfulRequest(request);
+      }
+      // wait, has regions
+      return helper.waitForTasksFinished().then((_) {
+        var highlights = helper.getHighlights(helper.testFile);
+        expect(highlights, isNot(isEmpty));
       });
     });
   });

@@ -78,8 +78,23 @@ class AnalysisDomainHandler implements RequestHandler {
   }
 
   Response setSubscriptions(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    // parse subscriptions
+    Map<AnalysisService, Set<String>> subMap;
+    {
+      RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
+      Map<String, List<String>> subStringMap = subDatum.asStringListMap();
+      subMap = new Map<AnalysisService, Set<String>>();
+      subStringMap.forEach((String serviceName, List<String> paths) {
+        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES, serviceName);
+        if (service == null) {
+          throw new RequestFailure(
+              new Response.unknownAnalysisService(request, serviceName));
+        }
+        subMap[service] = new Set.from(paths);
+      });
+    }
+    server.setAnalysisSubscriptions(subMap);
+    return new Response(request.id);
   }
 
   Response updateContent(Request request) {
