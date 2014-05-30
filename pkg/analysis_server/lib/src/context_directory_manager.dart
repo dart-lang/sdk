@@ -100,6 +100,11 @@ abstract class ContextDirectoryManager {
   void _handleWatchEvent(Folder folder, _ContextDirectoryInfo info, WatchEvent event) {
     switch (event.type) {
       case ChangeType.ADD:
+        if (_isInPackagesDir(event.path, folder)) {
+          // TODO(paulberry): perhaps we should only skip packages dirs if
+          // there is a pubspec.yaml?
+          break;
+        }
         // TODO(paulberry): handle adding pubspec.yaml
         if (_shouldFileBeAnalyzed(event.path)) {
           ChangeSet changeSet = new ChangeSet();
@@ -133,6 +138,21 @@ abstract class ContextDirectoryManager {
   }
 
   /**
+   * Determine if the path from [folder] to [path] contains a 'packages'
+   * directory.
+   */
+  bool _isInPackagesDir(String path, Folder folder) {
+    String relativePath = resourceProvider.pathContext.relative(path, from: folder.path);
+    List<String> pathParts = resourceProvider.pathContext.split(relativePath);
+    for (int i = 0; i < pathParts.length - 1; i++) {
+      if (pathParts[i] == 'packages') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
   static void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextDirectoryInfo info) {
@@ -145,6 +165,11 @@ abstract class ContextDirectoryManager {
           info.sources[child.path] = source;
         }
       } else if (child is Folder) {
+        if (child.shortName == 'packages') {
+          // TODO(paulberry): perhaps we should only skip packages dirs if
+          // there is a pubspec.yaml?
+          continue;
+        }
         _addSourceFiles(changeSet, child, info);
       }
     }

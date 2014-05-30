@@ -80,6 +80,11 @@ abstract class ResourceProvider {
    * Return the [Resource] that corresponds to the given [path].
    */
   Resource getResource(String path);
+
+  /**
+   * Get the path context used by this resource provider.
+   */
+  Context get pathContext;
 }
 
 
@@ -347,6 +352,9 @@ class MemoryResourceProvider implements ResourceProvider {
     _pathToTimestamp.remove(path);
     _notifyWatchers(path, ChangeType.REMOVE);
   }
+
+  @override
+  Context get pathContext => posix;
 }
 
 
@@ -442,4 +450,7 @@ class PhysicalResourceProvider implements ResourceProvider {
       return new _PhysicalFile(file);
     }
   }
+
+  @override
+  Context get pathContext => io.Platform.isWindows ? windows : posix;
 }

@@ -97,6 +97,23 @@ main() {
       expect(filePaths, contains(filePath));
     });
 
+    test('ignore files in packages dir', () {
+      String projPath = '/my/proj';
+      provider.newFolder(projPath);
+      String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+      provider.newFile(pubspecPath, 'pubspec');
+      String filePath1 = posix.join(projPath, 'packages', 'file1.dart');
+      provider.newFile(filePath1, 'contents');
+      manager.setRoots(<String>[projPath], <String>[]);
+      Set<String> filePaths = manager.currentContextFilePaths[projPath];
+      expect(filePaths, hasLength(0));
+      String filePath2 = posix.join(projPath, 'packages', 'file2.dart');
+      provider.newFile(filePath2, 'contents');
+      return pumpEventQueue().then((_) {
+        expect(filePaths, hasLength(0));
+      });
+    });
+
     group('detect context modifications', () {
       String projPath;
 
