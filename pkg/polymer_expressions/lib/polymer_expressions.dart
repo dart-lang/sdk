@@ -110,11 +110,13 @@ class _Binding extends Bindable {
   StreamSubscription _sub;
   var _value;
 
-  _Binding(this._expr, this._scope, [this._converter]);
+  _Binding(this._expr, this._scope, [converter])
+      : _converter = converter == null ? _identity : converter;
 
   static _oneTime(Expression expr, Scope scope, [converter]) {
     try {
-      return _convertValue(eval(expr, scope), scope, converter);
+      var v = eval(expr, scope);
+      return converter == null ? v : converter(v);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$expr': $e", s);
@@ -122,20 +124,11 @@ class _Binding extends Bindable {
     return null;
   }
 
-  _setValue(v) {
+  _check(v, {bool skipChanges: false}) {
     var oldValue = _value;
-    _value = _convertValue(v, _scope, _converter);
-    if (_callback != null && oldValue != _value) _callback(_value);
-  }
-
-  static _convertValue(v, scope, converter) {
-    if (v is Comprehension) {
-      // convert the Comprehension into a list of scopes with the loop
-      // variable added to the scope
-      return v.iterable.map((i) => scope.childScope(v.identifier, i))
-          .toList(growable: false);
-    } else {
-      return converter == null ? v : converter(v);
+    _value = _converter(v);
+    if (!skipChanges && _callback != null && oldValue != _value) {
+      _callback(_value);
     }
   }
 
@@ -147,7 +140,7 @@ class _Binding extends Bindable {
   set value(v) {
     try {
       var newValue = assign(_expr, v, _scope);
-      _value = _convertValue(newValue, _scope, _converter);
+      _check(newValue, skipChanges: true);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_expr': $e", s);
@@ -160,13 +153,13 @@ class _Binding extends Bindable {
     _callback = callback;
     final expr = observe(_expr, _scope);
     _expr = expr;
-    _sub = expr.onUpdate.listen(_setValue)..onError((e, s) {
+    _sub = expr.onUpdate.listen(_check)..onError((e, s) {
       new Completer().completeError(
           "Error evaluating expression '$expr': $e", s);
     });
     try {
       update(expr, _scope);
-      _value = _convertValue(expr.currentValue, _scope, _converter);
+      _check(expr.currentValue, skipChanges: true);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$expr': $e", s);
@@ -183,3 +176,5 @@ class _Binding extends Bindable {
     _callback = null;
   }
 }
+
+_identity(x) => x;

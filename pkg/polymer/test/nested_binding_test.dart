@@ -18,13 +18,9 @@ class MyTest extends PolymerElement {
 
   MyTest.created() : super.created();
 
-  _runTest(_) {
+  ready() {
     expect($['fruit'].text.trim(), 'Short name: [pears]');
     _testDone.complete();
-  }
-
-  ready() {
-    onMutation($['fruit']).then(_runTest);
   }
 }
 

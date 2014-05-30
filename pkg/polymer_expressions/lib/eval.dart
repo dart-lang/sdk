@@ -208,6 +208,8 @@ class _ModelScope extends Scope {
   }
 
   Object _isModelProperty(String name) => name != 'this';
+
+  String toString() => "[model: $model]";
 }
 
 /**
@@ -239,6 +241,8 @@ class _LocalVariableScope extends Scope {
     if (varName == name) return false;
     return parent == null ? false : parent._isModelProperty(name);
   }
+
+  String toString() => "$parent > [local: $varName]";
 }
 
 /** A scope that holds a reference to a global variables. */
@@ -264,6 +268,8 @@ class _GlobalsScope extends Scope {
     if (variables.containsKey(name)) return false;
     return parent == null ? false : parent._isModelProperty(name);
   }
+
+  String toString() => "$parent > [global: ${variables.keys}]";
 }
 
 Object _convert(v) => v is Stream ? new StreamBinding(v) : v;
@@ -730,27 +736,15 @@ class InObserver extends ExpressionObserver<InExpression>
       _subscription = iterable.listChanges.listen((_) => _invalidate(scope));
     }
 
-    // TODO: make Comprehension observable and update it
-    _value = new Comprehension(identifier.value, iterable);
+    var name = identifier.value;
+    _value = iterable == null ? const [] :
+        iterable.map((i) => scope.childScope(name, i)).toList(growable: false);
   }
 
   accept(Visitor v) => v.visitInExpression(this);
 }
 
 _toBool(v) => (v == null) ? false : v;
-
-/**
- * A comprehension declaration ("a in b"). [identifier] is the loop variable
- * that's added to the scope during iteration. [iterable] is the set of
- * objects to iterate over.
- */
-class Comprehension {
-  final String identifier;
-  final Iterable iterable;
-
-  Comprehension(this.identifier, Iterable iterable)
-      : iterable = (iterable != null) ? iterable : const [];
-}
 
 class EvalException implements Exception {
   final String message;

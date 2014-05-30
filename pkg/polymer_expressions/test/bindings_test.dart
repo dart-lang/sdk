@@ -15,12 +15,13 @@ import 'package:template_binding/template_binding.dart' show templateBind;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
+var testDiv;
+
 main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
 
   group('bindings', () {
     var stop = null;
-    var testDiv;
     setUp(() {
       document.body.append(testDiv = new DivElement());
     });
@@ -76,60 +77,6 @@ main() => dirtyCheckZone().run(() {
       return completer.future;
     });
 
-    test('should preserve the cursor position', () {
-      var model = new NotifyModel('abcde');
-      var template = templateBind(new Element.html(
-          '<template><input id="i1" value={{x}}></template>'));
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
-
-      var el;
-      return new Future(() {
-        el = testDiv.query("#i1");
-        var subscription = el.onInput.listen(expectAsync((_) {}, count: 1));
-        el.focus();
-
-        expect(el.value, 'abcde');
-        expect(model.x, 'abcde');
-
-        el.selectionStart = 3;
-        el.selectionEnd = 3;
-        expect(el.selectionStart, 3);
-        expect(el.selectionEnd, 3);
-
-        el.value = 'abc de';
-        // Updating the input value programatically (even to the same value in
-        // Chrome) loses the selection position.
-        expect(el.selectionStart, 6);
-        expect(el.selectionEnd, 6);
-
-        el.selectionStart = 4;
-        el.selectionEnd = 4;
-
-        expect(model.x, 'abcde');
-        el.dispatchEvent(new Event('input'));
-        expect(model.x, 'abc de');
-        expect(el.value, 'abc de');
-
-        // But propagating observable values through reassign the value and
-        // selection will be preserved.
-        expect(el.selectionStart, 4);
-        expect(el.selectionEnd, 4);
-        subscription.cancel();
-      }).then(_nextMicrotask).then((_) {
-        // Nothing changes on the next micro task.
-        expect(el.selectionStart, 4);
-        expect(el.selectionEnd, 4);
-      }).then((_) => window.animationFrame).then((_) {
-        // ... or on the next animation frame.
-        expect(el.selectionStart, 4);
-        expect(el.selectionEnd, 4);
-      }).then(_afterTimeout).then((_) {
-        // ... or later.
-        expect(el.selectionStart, 4);
-        expect(el.selectionEnd, 4);
-      });
-    });
-
     test('detects changes to ObservableList', () {
       var list = new ObservableList.from([1, 2, 3]);
       var template = templateBind(new Element.html(
@@ -177,8 +124,131 @@ main() => dirtyCheckZone().run(() {
         expect(testDiv.text, 'a:4,c:3,');
       });
     });
+
+    // TODO(sigmund): enable this test (issue 19105)
+    // _cursorPositionTest(false);
+    _cursorPositionTest(true);
+
+    // Regression tests for issue 18792.
+    for (var usePolymer in [true, false]) {
+      // We run these tests both with PolymerExpressions and with the default
+      // delegate to ensure the results are consistent. The expressions on these
+      // tests use syntax common to both delegates.
+      var name = usePolymer ? 'polymer-expressions' : 'default';
+      group('$name delegate', () {
+        // Use <option template repeat="{{y}}" value="{{}}">item {{}}
+        _initialSelectTest('{{y}}', '{{}}', usePolymer);
+        _updateSelectTest('{{y}}', '{{}}', usePolymer);
+      });
+    }
+
+    group('polymer-expressions delegate, polymer syntax', () {
+        // Use <option template repeat="{{i in y}}" value="{{i}}">item {{i}}
+      _initialSelectTest('{{i in y}}', '{{i}}', true);
+      _updateSelectTest('{{i in y}}', '{{i}}', true);
+    });
   });
 });
+
+
+_cursorPositionTest(bool usePolymer) {
+  test('should preserve the cursor position', () {
+    var model = new NotifyModel('abcde');
+    var template = templateBind(new Element.html(
+        '<template><input id="i1" value={{x}}></template>'));
+    var delegate = usePolymer ? new PolymerExpressions() : null;
+    testDiv.append(template.createInstance(model, delegate));
+
+    var el;
+    return new Future(() {
+      el = testDiv.query("#i1");
+      var subscription = el.onInput.listen(expectAsync((_) {}, count: 1));
+      el.focus();
+
+      expect(el.value, 'abcde');
+      expect(model.x, 'abcde');
+
+      el.selectionStart = 3;
+      el.selectionEnd = 3;
+      expect(el.selectionStart, 3);
+      expect(el.selectionEnd, 3);
+
+      el.value = 'abc de';
+      // Updating the input value programatically (even to the same value in
+      // Chrome) loses the selection position.
+      expect(el.selectionStart, 6);
+      expect(el.selectionEnd, 6);
+
+      el.selectionStart = 4;
+      el.selectionEnd = 4;
+
+      expect(model.x, 'abcde');
+      el.dispatchEvent(new Event('input'));
+      expect(model.x, 'abc de');
+      expect(el.value, 'abc de');
+
+      // But propagating observable values through reassign the value and
+      // selection will be preserved.
+      expect(el.selectionStart, 4);
+      expect(el.selectionEnd, 4);
+      subscription.cancel();
+    }).then(_nextMicrotask).then((_) {
+      // Nothing changes on the next micro task.
+      expect(el.selectionStart, 4);
+      expect(el.selectionEnd, 4);
+    }).then((_) => window.animationFrame).then((_) {
+      // ... or on the next animation frame.
+      expect(el.selectionStart, 4);
+      expect(el.selectionEnd, 4);
+    }).then(_afterTimeout).then((_) {
+      // ... or later.
+      expect(el.selectionStart, 4);
+      expect(el.selectionEnd, 4);
+    });
+  });
+}
+
+_initialSelectTest(String repeatExp, String valueExp, bool usePolymer) {
+  test('initial select value is set correctly', () {
+    var list = const ['a', 'b'];
+    var template = templateBind(new Element.html('<template>'
+        '<select value="{{x}}">'
+        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
+        '</option></select></template>',
+        treeSanitizer: _nullTreeSanitizer));
+    var model = new NotifyModel('b', list);
+    var delegate = usePolymer ? new PolymerExpressions() : null;
+    testDiv.append(template.createInstance(model, delegate));
+
+    expect(testDiv.querySelector('select').value, 'b');
+    return new Future(() {
+      expect(model.x, 'b');
+      expect(testDiv.querySelector('select').value, 'b');
+    });
+  });
+}
+
+_updateSelectTest(String repeatExp, String valueExp, bool usePolymer) {
+  test('updates to select value propagate correctly', () {
+    var list = const ['a', 'b'];
+    var template = templateBind(new Element.html('<template>'
+        '<select value="{{x}}">'
+        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
+        '</option></select></template>',
+        treeSanitizer: _nullTreeSanitizer));
+    var model = new NotifyModel('a', list);
+    var delegate = usePolymer ? new PolymerExpressions() : null;
+    testDiv.append(template.createInstance(model, delegate));
+
+    expect(testDiv.querySelector('select').value, 'a');
+    return new Future(() {
+      expect(testDiv.querySelector('select').value, 'a');
+      model.x = 'b';
+    }).then(_nextMicrotask).then((_) {
+      expect(testDiv.querySelector('select').value, 'b');
+    });
+  });
+}
 
 _nextMicrotask(_) => new Future(() {});
 _afterTimeout(_) => new Future.delayed(new Duration(milliseconds: 30), () {});
@@ -186,10 +256,21 @@ _afterTimeout(_) => new Future.delayed(new Duration(milliseconds: 30), () {});
 @reflectable
 class NotifyModel extends ChangeNotifier {
   var _x;
-  NotifyModel([this._x]);
+  var _y;
+  NotifyModel([this._x, this._y]);
 
   get x => _x;
   set x(value) {
     _x = notifyPropertyChange(#x, _x, value);
   }
+
+  get y => _y;
+  set y(value) {
+    _y = notifyPropertyChange(#y, _y, value);
+  }
 }
+
+class _NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
+}
+final _nullTreeSanitizer = new _NullTreeSanitizer();
