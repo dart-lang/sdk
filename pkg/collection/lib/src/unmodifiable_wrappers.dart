@@ -36,7 +36,7 @@ class NonGrowableListView<E> extends DelegatingList<E>
  * change the List's length.
  */
 abstract class NonGrowableListMixin<E> implements List<E> {
-  static void _throw() {
+  static _throw() {
     throw new UnsupportedError(
         "Cannot change the length of a fixed-length list");
   }
@@ -51,9 +51,7 @@ abstract class NonGrowableListMixin<E> implements List<E> {
    * Throws an [UnsupportedError];
    * operations that change the length of the list are disallowed.
    */
-  bool add(E value) {
-    _throw();
-  }
+  bool add(E value) => _throw();
 
   /**
    * Throws an [UnsupportedError];
@@ -77,19 +75,19 @@ abstract class NonGrowableListMixin<E> implements List<E> {
    * Throws an [UnsupportedError];
    * operations that change the length of the list are disallowed.
    */
-  bool remove(Object value) { _throw(); }
+  bool remove(Object value) => _throw();
 
   /**
    * Throws an [UnsupportedError];
    * operations that change the length of the list are disallowed.
    */
-  E removeAt(int index) { _throw(); }
+  E removeAt(int index) => _throw();
 
   /**
    * Throws an [UnsupportedError];
    * operations that change the length of the list are disallowed.
    */
-  E removeLast() { _throw(); }
+  E removeLast() => _throw();
 
   /**
    * Throws an [UnsupportedError];
@@ -141,7 +139,7 @@ class UnmodifiableSetView<E> extends DelegatingSet<E>
  * change the Set.
  */
 abstract class UnmodifiableSetMixin<E> implements Set<E> {
-  void _throw() {
+  _throw() {
     throw new UnsupportedError("Cannot modify an unmodifiable Set");
   }
 
@@ -149,9 +147,7 @@ abstract class UnmodifiableSetMixin<E> implements Set<E> {
    * Throws an [UnsupportedError];
    * operations that change the set are disallowed.
    */
-  bool add(E value) {
-    _throw();
-  }
+  bool add(E value) => _throw();
 
   /**
    * Throws an [UnsupportedError];
@@ -163,7 +159,7 @@ abstract class UnmodifiableSetMixin<E> implements Set<E> {
    * Throws an [UnsupportedError];
    * operations that change the set are disallowed.
    */
-  bool remove(Object value) { _throw(); }
+  bool remove(Object value) => _throw();
 
   /**
    * Throws an [UnsupportedError];
@@ -215,7 +211,7 @@ class UnmodifiableMapView<K, V> extends DelegatingMap<K, V>
  * change the Map.
  */
 abstract class UnmodifiableMapMixin<K, V> implements Map<K, V> {
-  static void _throw() {
+  static _throw() {
     throw new UnsupportedError("Cannot modify an unmodifiable Map");
   }
 
@@ -229,7 +225,7 @@ abstract class UnmodifiableMapMixin<K, V> implements Map<K, V> {
    * Throws an [UnsupportedError];
    * operations that change the map are disallowed.
    */
-  V putIfAbsent(K key, V ifAbsent()) { _throw(); }
+  V putIfAbsent(K key, V ifAbsent()) => _throw();
 
   /**
    * Throws an [UnsupportedError];
@@ -241,7 +237,7 @@ abstract class UnmodifiableMapMixin<K, V> implements Map<K, V> {
    * Throws an [UnsupportedError];
    * operations that change the map are disallowed.
    */
-  V remove(K key) { _throw(); }
+  V remove(K key) => _throw();
 
   /**
    * Throws an [UnsupportedError];
