@@ -367,9 +367,12 @@ class _LinterVisitor extends TreeVisitor {
   /// Validate event handlers are used correctly.
   void _validateEventHandler(Element node, String name, String value) {
     if (!name.startsWith('on-')) {
+      // TODO(sigmund): technically these are valid attribtues in HTML, so we
+      // might want to remove this warning, or only produce it if the value
+      // looks like a binding.
       _logger.warning('Event handler "$name" will be interpreted as an inline'
           ' JavaScript event handler. Use the form '
-          'on-event-name="handlerName" if you want a Dart handler '
+          'on-event-name="{{handlerName}}" if you want a Dart handler '
           'that will automatically update the UI based on model changes.',
           span: node.attributeSpans[name]);
       return;
@@ -379,12 +382,17 @@ class _LinterVisitor extends TreeVisitor {
       _logger.warning('Inline event handlers are only supported inside '
           'declarations of <polymer-element>.',
           span: node.attributeSpans[name]);
+      return;
     }
 
-    if (value.contains('(')) {
+
+    // Valid bindings have {{ }}, don't look like method calls foo(bar), and are
+    // non empty.
+    if (!value.startsWith("{{") || !value.endsWith("}}") || value.contains('(')
+        || value.substring(2, value.length - 2).trim() == '') {
       _logger.warning('Invalid event handler body "$value". Declare a method '
           'in your custom element "void handlerName(event, detail, target)" '
-          'and use the form $name="handlerName".',
+          'and use the form $name="{{handlerName}}".',
           span: node.attributeSpans[name]);
     }
   }

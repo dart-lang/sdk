@@ -117,6 +117,7 @@ WebPlatformTest/dom/events/event_constructors/Event_A02_t01: Skip # Issue 17758.
 
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/basic_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-user-select-none_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/hittest-relative-to-viewport_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -124,6 +125,8 @@ LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # 
 LayoutTests/fast/dom/Element/attribute-uppercase_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Element/getClientRects_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LayoutTests/fast/dom/Element/scrollWidth_t01: RuntimeError # Issue 19055.
+LayoutTests/fast/html/details-click-controls_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/html/hidden-attr_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/imports/import-events_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -137,6 +140,7 @@ LibTest/html/Element/borderEdge_A01_t01: RuntimeError # Issue 17758.  Please tri
 LibTest/html/Element/contentEdge_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/dataset_A02_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
+LibTest/html/Element/getAttributeNS_A01_t02: RuntimeError # Issue 19055.
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -240,6 +244,7 @@ LibTest/html/Node/nodes_A01_t01: RuntimeError # co19-roll r722: Please triage th
 LibTest/html/Node/nodes_A01_t02: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/parent_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Issue 19055.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -283,7 +288,21 @@ WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: Run
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-006_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-007_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-008_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-009_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-010_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-011_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-012_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-013_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-014_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-015_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-016_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-018_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-019_t01: RuntimeError # Issue 19055.
+WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-020_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Skip # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Skip # co19-roll r722: Please triage this failure.
@@ -295,6 +314,7 @@ LayoutTests/fast/dom/HTMLScriptElement/async-onbeforeload_t01: RuntimeError # co
 LayoutTests/fast/dom/HTMLScriptElement/defer-inline-script_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/defer-onbeforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLSelectElement/remove-element-from-within-focus-handler-crash_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text-changes_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTemplateElement/innerHTML_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -303,13 +323,16 @@ LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Iss
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Issue 19055.
+LayoutTests/fast/dom/Range/range-comparePoint_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Issue 19055.
+LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # co19-roll r722: Please triage this failure.
-LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/Utils/test/asyncTestFail_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/Utils/test/asyncTestTimeout_t01: Skip # co19-roll r722: Please triage this failure.
@@ -330,19 +353,14 @@ WebPlatformTest/dom/nodes/Element-childElementCount_t01: RuntimeError # co19-rol
 WebPlatformTest/dom/nodes/Node-appendChild_t02: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-insertBefore_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-isEqualNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-nodeName_t01: RuntimeError # Issue 19055.
 WebPlatformTest/dom/nodes/Node-replaceChild_t01: RuntimeError # co19-roll r722: Please triage this failure
 WebPlatformTest/dom/nodes/Node-textContent_t01: RuntimeError # Issue 18931
-WebPlatformTest/dom/nodes/attributes/attributes_A04_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/attributes/attributes_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A06_t03: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A07_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A07_t03: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttributeNS_A08_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/attributes/setAttributeNS_A09_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/attributes/setAttributeNS_A09_t02: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/attributes/setAttribute_A02_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/attributes/setAttribute_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-005_t01: RuntimeError # Issue 18931
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-006_t01: RuntimeError # Issue 18931

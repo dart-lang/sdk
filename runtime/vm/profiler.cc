@@ -151,6 +151,7 @@ void Profiler::BeginExecution(Isolate* isolate) {
     return;
   }
   ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
+  ThreadInterrupter::WakeUp();
 }
 
 
@@ -1585,6 +1586,7 @@ IsolateProfilerData::IsolateProfilerData(SampleBuffer* sample_buffer,
   ASSERT(sample_buffer != NULL);
   sample_buffer_ = sample_buffer;
   own_sample_buffer_ = own_sample_buffer;
+  block_count_ = 0;
 }
 
 
@@ -1593,6 +1595,23 @@ IsolateProfilerData::~IsolateProfilerData() {
     delete sample_buffer_;
     sample_buffer_ = NULL;
     own_sample_buffer_ = false;
+  }
+}
+
+
+void IsolateProfilerData::Block() {
+  block_count_++;
+}
+
+
+void IsolateProfilerData::Unblock() {
+  block_count_--;
+  if (block_count_ < 0) {
+    FATAL("Too many calls to Dart_IsolateUnblocked.");
+  }
+  if (!blocked()) {
+    // We just unblocked this isolate, wake up the thread interrupter.
+    ThreadInterrupter::WakeUp();
   }
 }
 

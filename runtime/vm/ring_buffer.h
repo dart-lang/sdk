@@ -31,7 +31,7 @@ class RingBuffer {
 
  private:
   static const int kMask = N - 1;
-  COMPILE_ASSERT((N & kMask) == 0, N_must_be_power_of_two);
+  COMPILE_ASSERT((N & kMask) == 0);
   T data_[N];
   int64_t count_;
 };

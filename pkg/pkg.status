@@ -59,6 +59,7 @@ template_binding/test/template_binding_test: Pass, Timeout
 third_party/html5lib/test/tokenizer_test: Pass, Timeout
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
+analysis_server/test/*: Skip # Too slow
 barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
 docgen/test/*: Skip # Too slow
@@ -174,7 +175,6 @@ third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
-analysis_server/test/resource_test: RuntimeError # Issue 19014
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip

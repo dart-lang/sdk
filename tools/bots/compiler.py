@@ -22,7 +22,7 @@ import bot
 
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?(-(batch))?-?(\d*)-?(\d*)')
 DART2JS_FULL_BUILDER = r'dart2js-full-(linux|mac|windows)(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
@@ -56,6 +56,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   csp = None
   arch = None
   dart2js_full = False
+  batch = False
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
   dart2js_full_pattern = re.match(DART2JS_FULL_BUILDER, builder_name)
@@ -106,8 +107,10 @@ def GetBuildInfo(builder_name, is_buildbot):
       minified = True
     if dart2js_pattern.group(12) == 'x64':
       arch = 'x64'
-    shard_index = dart2js_pattern.group(13)
-    total_shards = dart2js_pattern.group(14)
+    if dart2js_pattern.group(14) == 'batch':
+      batch = True
+    shard_index = dart2js_pattern.group(15)
+    total_shards = dart2js_pattern.group(16)
   elif dartium_pattern:
     compiler = 'none'
     runtime = 'dartium'
@@ -132,7 +135,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
-                       test_set, csp, arch, dart2js_full)
+                       test_set, csp, arch, dart2js_full, batch=batch)
 
 
 def NeedsXterm(compiler, runtime):
@@ -329,6 +332,7 @@ def RunCompilerTests(build_info):
   if build_info.checked: test_flags += ['--checked']
   if build_info.minified: test_flags += ['--minified']
   if build_info.host_checked: test_flags += ['--host-checked']
+  if build_info.batch: test_flags += ['--dart2js-batch']
 
   if build_info.dart2js_full:
     compiler = build_info.compiler

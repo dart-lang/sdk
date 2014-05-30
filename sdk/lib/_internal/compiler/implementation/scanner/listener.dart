@@ -898,7 +898,7 @@ class ElementListener extends Listener {
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     int id = idGenerator();
-    ClassElement element = new PartialClassElement(
+    PartialClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement, id);
     element.nativeTagInfo = nativeTagInfo;
     pushElement(element);

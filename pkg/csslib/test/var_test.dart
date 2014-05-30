@@ -392,25 +392,25 @@ void undefinedVars() {
 }''';
 
   var errorStrings = [
-    'error :5:14: Variable is not defined.\n'
+    'error on line 5, column 14: Variable is not defined.\n'
     '  var-a: var(b);\n'
     '             ^^',
-    'error :6:14: Variable is not defined.\n'
+    'error on line 6, column 14: Variable is not defined.\n'
     '  var-b: var(c);\n'
     '             ^^',
-    'error :9:16: Variable is not defined.\n'
+    'error on line 9, column 16: Variable is not defined.\n'
     '  var-one: var(two);\n'
     '               ^^^^',
-    'error :12:17: Variable is not defined.\n'
+    'error on line 12, column 17: Variable is not defined.\n'
     '  var-four: var(five);\n'
     '                ^^^^^',
-    'error :13:17: Variable is not defined.\n'
+    'error on line 13, column 17: Variable is not defined.\n'
     '  var-five: var(six);\n'
     '                ^^^^',
-    'error :16:18: Variable is not defined.\n'
+    'error on line 16, column 18: Variable is not defined.\n'
     '  var-def-1: var(def-2);\n'
     '                 ^^^^^^',
-    'error :17:18: Variable is not defined.\n'
+    'error on line 17, column 18: Variable is not defined.\n'
     '  var-def-2: var(def-3);\n'
     '                 ^^^^^^',
     ];

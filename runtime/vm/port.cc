@@ -254,7 +254,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
   }
 
   MessageHandler* handler = map_[index].handler;
-  return handler->GetIsolate();
+  return handler->isolate();
 }
 
 

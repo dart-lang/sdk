@@ -4,12 +4,14 @@
 
 library resource;
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
+import 'package:watcher/watcher.dart';
 
 
 /**
@@ -38,6 +40,12 @@ abstract class Folder extends Resource {
    * in this folder, in no particular order.
    */
   List<Resource> getChildren();
+
+  /**
+   * Watch for changes to the files inside this folder (and in any nested
+   * folders, including folders reachable via links).
+   */
+  Stream<WatchEvent> get changes;
 }
 
 
@@ -51,10 +59,9 @@ abstract class Resource {
   bool get exists;
 
   /**
-   * Return the full (long) version of the name that can be displayed to the
-   * user to denote this resource.
+   * Return the full path to this resource.
    */
-  String get fullName;
+  String get path;
 
   /**
    * Return a short version of the name that can be displayed to the user to
@@ -81,9 +88,9 @@ abstract class ResourceProvider {
  */
 abstract class _MemoryResource implements Resource {
   final MemoryResourceProvider _provider;
-  final String _path;
+  final String path;
 
-  _MemoryResource(this._provider, this._path);
+  _MemoryResource(this._provider, this.path);
 
   @override
   bool operator ==(other) {
@@ -91,19 +98,16 @@ abstract class _MemoryResource implements Resource {
   }
 
   @override
-  bool get exists => _provider._pathToResource.containsKey(_path);
+  bool get exists => _provider._pathToResource.containsKey(path);
 
   @override
-  String get fullName => _path;
+  get hashCode => path.hashCode;
 
   @override
-  get hashCode => _path.hashCode;
+  String get shortName => posix.basename(path);
 
   @override
-  String get shortName => basename(_path);
-
-  @override
-  String toString() => fullName;
+  String toString() => path;
 }
 
 
@@ -120,14 +124,14 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   String get _content {
-    String content = _provider._pathToContent[_path];
+    String content = _provider._pathToContent[path];
     if (content == null) {
-      throw new MemoryResourceException(_path, "File '$_path' does not exist");
+      throw new MemoryResourceException(path, "File '$path' does not exist");
     }
     return content;
   }
 
-  int get _timestamp => _provider._pathToTimestamp[_path];
+  int get _timestamp => _provider._pathToTimestamp[path];
 }
 
 
@@ -158,20 +162,31 @@ class _MemoryFileSource implements Source {
   _MemoryFileSource(this._file, this.uriKind);
 
   @override
+  bool operator ==(other) {
+    if (other is _MemoryFileSource) {
+      return other._file == _file;
+    }
+    return false;
+  }
+
+  @override
   TimestampedData<String> get contents {
     return new TimestampedData<String>(modificationStamp, _file._content);
   }
 
   @override
   String get encoding {
-    return '${new String.fromCharCode(uriKind.encoding)}${_file.fullName}';
+    return '${new String.fromCharCode(uriKind.encoding)}${_file.path}';
   }
 
   @override
   bool exists() => _file.exists;
 
   @override
-  String get fullName => _file.fullName;
+  String get fullName => _file.path;
+
+  @override
+  int get hashCode => _file.hashCode;
 
   @override
   bool get isInSystemLibrary => false;
@@ -181,10 +196,10 @@ class _MemoryFileSource implements Source {
 
   @override
   Source resolveRelative(Uri relativeUri) {
-    String relativePath = fromUri(relativeUri);
-    String folderPath = dirname(_file._path);
-    String path = join(folderPath, relativePath);
-    path = normalize(path);
+    String relativePath = posix.fromUri(relativeUri);
+    String folderPath = posix.dirname(_file.path);
+    String path = posix.join(folderPath, relativePath);
+    path = posix.normalize(path);
     _MemoryFile file = new _MemoryFile(_file._provider, path);
     return new _MemoryFileSource(file, uriKind);
   }
@@ -202,9 +217,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       super(provider, path);
   @override
   Resource getChild(String relPath) {
-    relPath = normalize(relPath);
-    String childPath = join(_path, relPath);
-    childPath = normalize(childPath);
+    relPath = posix.normalize(relPath);
+    String childPath = posix.join(path, relPath);
+    childPath = posix.normalize(childPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
     if (resource == null) {
       resource = new _MemoryFile(_provider, childPath);
@@ -215,12 +230,27 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   @override
   List<Resource> getChildren() {
     List<Resource> children = <Resource>[];
-    _provider._pathToResource.forEach((path, resource) {
-      if (dirname(path) == _path) {
+    _provider._pathToResource.forEach((resourcePath, resource) {
+      if (posix.dirname(resourcePath) == path) {
         children.add(resource);
       }
     });
     return children;
+  }
+
+  @override
+  Stream<WatchEvent> get changes {
+    if (_provider._pathToWatcher.containsKey(path)) {
+      // Two clients watching the same path is not yet supported.
+      // TODO(paulberry): add support for this if needed.
+      throw new StateError('Path "$path" is already being watched for changes');
+    }
+    StreamController<WatchEvent> streamController = new StreamController<WatchEvent>();
+    _provider._pathToWatcher[path] = streamController;
+    streamController.done.then((_) {
+      _provider._pathToWatcher.remove(path);
+    });
+    return streamController.stream;
   }
 }
 
@@ -233,11 +263,13 @@ class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource = <String, _MemoryResource>{};
   final Map<String, String> _pathToContent = <String, String>{};
   final Map<String, int> _pathToTimestamp = <String, int>{};
+  final Map<String, StreamController<WatchEvent>> _pathToWatcher =
+      <String, StreamController<WatchEvent>>{};
   int nextStamp = 0;
 
   @override
   Resource getResource(String path) {
-    path = normalize(path);
+    path = posix.normalize(path);
     Resource resource = _pathToResource[path];
     if (resource == null) {
       resource = new _MemoryFile(this, path);
@@ -246,10 +278,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   Folder newFolder(String path) {
-    path = normalize(path);
-    if (path.isEmpty) {
-      throw new ArgumentError('Empty paths are not supported');
-    }
+    path = posix.normalize(path);
     if (!path.startsWith('/')) {
       throw new ArgumentError("Path must start with '/'");
     }
@@ -278,13 +307,45 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   File newFile(String path, String content) {
-    path = normalize(path);
-    newFolder(dirname(path));
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
     _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
     return file;
+  }
+
+  void _notifyWatchers(String path, ChangeType changeType) {
+    _pathToWatcher.forEach((String watcherPath, StreamController<WatchEvent> streamController) {
+      if (posix.isWithin(watcherPath, path)) {
+        streamController.add(new WatchEvent(changeType, path));
+      }
+    });
+  }
+
+  void modifyFile(String path, String content) {
+    _checkFileAtPath(path);
+    _pathToContent[path] = content;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
+  }
+
+  void _checkFileAtPath(String path) {
+    _MemoryResource resource = _pathToResource[path];
+    if (resource is! _MemoryFile) {
+      throw new ArgumentError(
+          'File expected at "$path" but ${resource.runtimeType} found');
+    }
+  }
+
+  void deleteFile(String path) {
+    _checkFileAtPath(path);
+    _pathToResource.remove(path);
+    _pathToContent.remove(path);
+    _pathToTimestamp.remove(path);
+    _notifyWatchers(path, ChangeType.REMOVE);
   }
 }
 
@@ -332,6 +393,9 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
     }
     return children;
   }
+
+  @override
+  Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
 }
 
 
@@ -347,16 +411,16 @@ abstract class _PhysicalResource implements Resource {
   bool get exists => _entry.existsSync();
 
   @override
-  String get fullName => _entry.absolute.path;
+  String get path => _entry.absolute.path;
 
   @override
   get hashCode => _entry.hashCode;
 
   @override
-  String get shortName => basename(fullName);
+  String get shortName => basename(path);
 
   @override
-  String toString() => fullName;
+  String toString() => path;
 }
 
 

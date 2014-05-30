@@ -79,6 +79,10 @@ _configure() {
           #h: const Declaration(#h, int, annotations: const [smoke_0.a2]),
           #i: const Declaration(#i, int, annotations: const [smoke_0.a3]),
         },
+        smoke_0.K: {
+          #k: const Declaration(#k, int, annotations: const [const smoke_0.AnnotC(named: true)]),
+          #k2: const Declaration(#k2, int, annotations: const [const smoke_0.AnnotC()]),
+        },
         _M0: {
           #i: const Declaration(#i, int),
           #inc: const Declaration(#inc, Function, kind: METHOD),

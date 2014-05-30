@@ -75,6 +75,11 @@
           'NSS_USE_64',
         ],
       },
+      'Dart_arm64_Base': {
+        'defines': [
+          'NSS_USE_64',
+        ],
+      },
     },
     'conditions': [
       ['OS=="win"', {

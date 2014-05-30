@@ -21,6 +21,7 @@ import '../utils.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase.dart';
+import 'transformer_classifier.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.
@@ -31,8 +32,11 @@ class TransformNode {
   /// The aggregate key for this node.
   final String key;
 
+  /// The [TransformerClassifier] that [this] belongs to.
+  final TransformerClassifier classifier;
+
   /// The [Phase] that this transform runs in.
-  final Phase phase;
+  Phase get phase => classifier.phase;
 
   /// The [AggregateTransformer] to apply to this node's inputs.
   final AggregateTransformer transformer;
@@ -162,7 +166,7 @@ class TransformNode {
   /// [_State.NEEDS_DECLARE], and always `null` otherwise.
   AggregateTransformController _applyController;
 
-  TransformNode(this.phase, this.transformer, this.key, this._location) {
+  TransformNode(this.classifier, this.transformer, this.key, this._location) {
     _forced = transformer is! DeclaringAggregateTransformer;
 
     _phaseAssetSubscription = phase.previous.onAsset.listen((node) {
@@ -174,6 +178,11 @@ class TransformNode {
     _phaseStatusSubscription = phase.previous.onStatusChange.listen((status) {
       if (status == NodeStatus.RUNNING) return;
 
+      _maybeFinishDeclareController();
+      _maybeFinishApplyController();
+    });
+
+    classifier.onDoneClassifying.listen((_) {
       _maybeFinishDeclareController();
       _maybeFinishApplyController();
     });
@@ -198,7 +207,13 @@ class TransformNode {
       // If we're running `apply`, we need to wait until [input] is available
       // before we pass it into the stream. If it's available now, great; if
       // not, [_onPrimaryStateChange] will handle it.
-      if (!input.state.isAvailable) return;
+      if (!input.state.isAvailable) {
+        // If we started running eagerly without being forced, abort that run if
+        // a new unavailable asset comes in.
+        if (input.isLazy && !_forced) _restartRun();
+        return;
+      }
+
       _onPrimaryStateChange(input);
       _maybeFinishApplyController();
     } else {
@@ -326,9 +341,12 @@ class TransformNode {
       }
     } else {
       if (_forced) input.force();
-      if (_state == _State.APPLYING && !_applyController.addedId(input.id)) {
+      if (_state == _State.APPLYING && !_applyController.addedId(input.id) &&
+          (_forced || !input.isLazy)) {
         // If the input hasn't yet been added to the transform's input stream,
-        // there's no need to consider the transformation dirty.
+        // there's no need to consider the transformation dirty. However, if the
+        // input is lazy and we're running eagerly, we need to restart the
+        // transformation.
         return;
       }
       _dirty();
@@ -389,6 +407,7 @@ class TransformNode {
     for (var primary in _primaries) {
       controller.addId(primary.id);
     }
+    _maybeFinishDeclareController();
 
     syncFuture(() {
       return (transformer as DeclaringAggregateTransformer)
@@ -557,6 +576,7 @@ class TransformNode {
       if (!primary.state.isAvailable) continue;
       controller.addInput(primary.asset);
     }
+    _maybeFinishApplyController();
 
     return syncFuture(() {
       return transformer.apply(controller.transform);
@@ -691,6 +711,7 @@ class TransformNode {
   /// outputs, mark [_declareController] as done.
   void _maybeFinishDeclareController() {
     if (_declareController == null) return;
+    if (classifier.isClassifying) return;
     if (phase.previous.status == NodeStatus.RUNNING) return;
     _declareController.done();
   }
@@ -700,6 +721,7 @@ class TransformNode {
   /// transformer, mark [_applyController] as done.
   void _maybeFinishApplyController() {
     if (_applyController == null) return;
+    if (classifier.isClassifying) return;
     if (_primaries.any((input) => !input.state.isAvailable)) return;
     if (phase.previous.status == NodeStatus.RUNNING) return;
     _applyController.done();

@@ -1624,8 +1624,7 @@ LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  const ExternalLabel label("debug_step_check",
-                            StubCode::DebugStepCheckEntryPoint());
+  const ExternalLabel label(StubCode::DebugStepCheckEntryPoint());
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
 }
 
@@ -2190,7 +2189,8 @@ LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
 
 LocationSummary* PushTempInstr::MakeLocationSummary(Isolate* isolate,
                                                     bool optimizing) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
 }
@@ -2205,10 +2205,12 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* DropTempsInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool optimizing) const {
   return (InputCount() == 1)
-      ? LocationSummary::Make(1,
+      ? LocationSummary::Make(isolate,
+                              1,
                               Location::SameAsFirstInput(),
                               LocationSummary::kNoCall)
-      : LocationSummary::Make(0,
+      : LocationSummary::Make(isolate,
+                              0,
                               Location::NoLocation(),
                               LocationSummary::kNoCall);
 }
@@ -2349,12 +2351,12 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Isolate* isolate,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const Code& code) {
+                               const ParsedFunction* parsed_function) {
   Environment* env =
       new(isolate) Environment(definitions.length(),
                                fixed_parameter_count,
                                Isolate::kNoDeoptId,
-                               code,
+                               parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new(isolate) Value(definitions[i]));
@@ -2365,13 +2367,12 @@ Environment* Environment::From(Isolate* isolate,
 
 Environment* Environment::DeepCopy(Isolate* isolate, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy =
-      new(isolate) Environment(
-          length,
-          fixed_parameter_count_,
-          deopt_id_,
-          code_,
-          (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
+  Environment* copy = new(isolate) Environment(
+      length,
+      fixed_parameter_count_,
+      deopt_id_,
+      parsed_function_,
+      (outer_ == NULL) ? NULL : outer_->DeepCopy(isolate));
   if (locations_ != NULL) {
     Location* new_locations = isolate->current_zone()->Alloc<Location>(length);
     copy->set_locations(new_locations);

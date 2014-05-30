@@ -666,7 +666,7 @@ void OS::DebugBreak() {
   asm("int $3");
 #elif defined(HOST_ARCH_ARM)
   asm("svc #0x9f0001");  // __ARM_NR_breakpoint
-#elif defined(HOST_ARCH_MIPS)
+#elif defined(HOST_ARCH_MIPS) || defined(HOST_ARCH_ARM64)
   UNIMPLEMENTED();
 #else
 #error Unsupported architecture.

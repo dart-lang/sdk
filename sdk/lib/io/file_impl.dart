@@ -556,18 +556,62 @@ class _File extends FileSystemEntity implements File {
 }
 
 
-class _RandomAccessFile implements RandomAccessFile {
+class _RandomAccessFile
+    extends Object with _ServiceObject
+    implements RandomAccessFile {
+  // Use default Map so we keep order.
+  static Map<int, _RandomAccessFile> _files = new Map<int, _RandomAccessFile>();
+
   final String path;
   int _id;
   bool _asyncDispatched = false;
   SendPort _fileService;
 
-  _RandomAccessFile(this._id, this.path);
+  int _totalRead = 0;
+  int _totalWritten = 0;
+  int _readCount = 0;
+  int _writeCount = 0;
+
+
+  _RandomAccessFile(this._id, this.path) {
+    _files[_serviceId] = this;
+  }
+
+  String get _serviceTypePath => 'io/file/randomaccessfiles';
+  String get _serviceTypeName => 'RandomAccessFile';
+
+  Map _toJSON(bool ref) {
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': '$path',
+      'user_name': '$path',
+    };
+    if (ref) {
+      return r;
+    }
+    r['asyncDispatched'] = _asyncDispatched;
+    r['fd'] = _getFD(_id);
+    r['totalRead'] = _totalRead;
+    r['totalWritten'] = _totalWritten;
+    r['readCount'] = _totalWritten;
+    r['writeCount'] = _writeCount;
+    return r;
+  }
+
+  void _maybePerformCleanup() {
+    if (closed) {
+      _files.remove(_serviceId);
+    }
+  }
+
+  external static int _getFD(int id);
 
   Future<RandomAccessFile> close() {
     return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {
       if (result != -1) {
         _id = result;
+        _maybePerformCleanup();
         return this;
       } else {
         throw new FileSystemException("Cannot close file", path);
@@ -584,6 +628,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new FileSystemException("Cannot close file", path);
     }
     _id = id;
+    _maybePerformCleanup();
   }
 
   Future<int> readByte() {
@@ -591,6 +636,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
+      _readCount++;
+      _totalRead++;
       return response;
     });
   }
@@ -603,6 +650,8 @@ class _RandomAccessFile implements RandomAccessFile {
     if (result is OSError) {
       throw new FileSystemException("readByte failed", path, result);
     }
+    _readCount++;
+    _totalRead++;
     return result;
   }
 
@@ -614,6 +663,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
+      _readCount++;
+      _totalRead += response[1].length;
       return response[1];
     });
   }
@@ -629,6 +680,8 @@ class _RandomAccessFile implements RandomAccessFile {
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
     }
+    _readCount++;
+    _totalRead += result.length;
     return result;
   }
 
@@ -648,6 +701,8 @@ class _RandomAccessFile implements RandomAccessFile {
       var read = response[1];
       var data = response[2];
       buffer.setRange(start, start + read, data);
+      _readCount++;
+      _totalRead += read;
       return read;
     });
   }
@@ -677,6 +732,8 @@ class _RandomAccessFile implements RandomAccessFile {
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
     }
+    _readCount++;
+    _totalRead += result;
     return result;
   }
 
@@ -688,6 +745,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
+      _writeCount++;
+      _totalWritten++;
       return this;
     });
   }
@@ -703,6 +762,8 @@ class _RandomAccessFile implements RandomAccessFile {
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
     }
+    _writeCount++;
+    _totalWritten++;
     return result;
   }
 
@@ -729,6 +790,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
+      _writeCount++;
+      _totalWritten += end - (start - result.start);
       return this;
     });
   }
@@ -755,6 +818,8 @@ class _RandomAccessFile implements RandomAccessFile {
     if (result is OSError) {
       throw new FileSystemException("writeFrom failed", path, result);
     }
+    _writeCount++;
+    _totalWritten += end - (start - bufferAndStart.start);
   }
 
   Future<RandomAccessFile> writeString(String string,

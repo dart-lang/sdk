@@ -8,7 +8,7 @@ part of resolution;
 /// related information in a [TreeElements] mapping and registers calls with
 /// [Backend], [World] and [Enqueuer].
 // TODO(johnniwinther): Split this into an interface and implementation class.
-class ResolutionRegistry {
+class ResolutionRegistry extends Registry {
   final Compiler compiler;
   final TreeElementMapping mapping;
 
@@ -188,43 +188,43 @@ class ResolutionRegistry {
   }
 
   void registerImplicitSuperCall(FunctionElement superConstructor) {
-    universe.registerImplicitSuperCall(mapping, superConstructor);
+    universe.registerImplicitSuperCall(this, superConstructor);
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    world.registerInstantiatedClass(element, mapping);
+    world.registerInstantiatedClass(element, this);
   }
 
   void registerLazyField() {
-    backend.registerLazyField(mapping);
+    backend.registerLazyField(this);
   }
 
   void registerMetadataConstant(Constant constant) {
-    backend.registerMetadataConstant(constant, mapping);
+    backend.registerMetadataConstant(constant, this);
   }
 
   void registerThrowRuntimeError() {
-    backend.registerThrowRuntimeError(mapping);
+    backend.registerThrowRuntimeError(this);
   }
 
   void registerTypeVariableBoundCheck() {
-    backend.registerTypeVariableBoundCheck(mapping);
+    backend.registerTypeVariableBoundCheck(this);
   }
 
   void registerThrowNoSuchMethod() {
-    backend.registerThrowNoSuchMethod(mapping);
+    backend.registerThrowNoSuchMethod(this);
   }
 
   void registerIsCheck(DartType type) {
-    world.registerIsCheck(type, mapping);
+    world.registerIsCheck(type, this);
   }
 
   void registerAsCheck(DartType type) {
-    world.registerAsCheck(type, mapping);
+    world.registerAsCheck(type, this);
   }
 
   void registerClosure(Element element) {
-    world.registerClosure(element, mapping);
+    world.registerClosure(element, this);
   }
 
   void registerSuperUse(Node node) {
@@ -236,7 +236,7 @@ class ResolutionRegistry {
   }
 
   void registerSuperNoSuchMethod() {
-    backend.registerSuperNoSuchMethod(mapping);
+    backend.registerSuperNoSuchMethod(this);
   }
 
   void registerClassUsingVariableExpression(ClassElement element) {
@@ -244,11 +244,11 @@ class ResolutionRegistry {
   }
 
   void registerTypeVariableExpression() {
-    backend.registerTypeVariableExpression(mapping);
+    backend.registerTypeVariableExpression(this);
   }
 
   void registerTypeLiteral(Element element) {
-    world.registerTypeLiteral(element, mapping);
+    world.registerTypeLiteral(element, this);
   }
 
   // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
@@ -270,27 +270,27 @@ class ResolutionRegistry {
   }
 
   void registerConstSymbol(String name) {
-    world.registerConstSymbol(name, mapping);
+    world.registerConstSymbol(name, this);
   }
 
   void registerSymbolConstructor() {
-    backend.registerSymbolConstructor(mapping);
+    backend.registerSymbolConstructor(this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    world.registerInstantiatedType(type, mapping);
+    world.registerInstantiatedType(type, this);
   }
 
   void registerFactoryWithTypeArguments() {
-    world.registerFactoryWithTypeArguments(mapping);
+    world.registerFactoryWithTypeArguments(this);
   }
 
   void registerAbstractClassInstantiation() {
-    backend.registerAbstractClassInstantiation(mapping);
+    backend.registerAbstractClassInstantiation(this);
   }
 
   void registerNewSymbol() {
-    world.registerNewSymbol(mapping);
+    world.registerNewSymbol(this);
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
@@ -298,23 +298,23 @@ class ResolutionRegistry {
   }
 
   void registerStringInterpolation() {
-    backend.registerStringInterpolation(mapping);
+    backend.registerStringInterpolation(this);
   }
 
   void registerConstantMap() {
-    backend.registerConstantMap(mapping);
+    backend.registerConstantMap(this);
   }
 
   void registerFallThroughError() {
-    backend.registerFallThroughError(mapping);
+    backend.registerFallThroughError(this);
   }
 
   void registerCatchStatement() {
-    backend.registerCatchStatement(world, mapping);
+    backend.registerCatchStatement(world, this);
   }
 
   void registerStackTraceInCatch() {
-    backend.registerStackTraceInCatch(mapping);
+    backend.registerStackTraceInCatch(this);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -327,6 +327,12 @@ class ResolutionRegistry {
   }
 
   void registerThrowExpression() {
-    backend.registerThrowExpression(mapping);
+    backend.registerThrowExpression(this);
   }
+
+  void registerDependency(Element element) {
+    mapping.registerDependency(element);
+  }
+
+  Setlet<Element> get otherDependencies => mapping.otherDependencies;
 }

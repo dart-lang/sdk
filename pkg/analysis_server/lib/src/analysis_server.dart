@@ -8,10 +8,43 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/context_directory_manager.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+
+
+/**
+ * An instance of [DirectoryBasedDartSdk] that is shared between
+ * [AnalysisServer] instances to improve performance.
+ */
+final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
+
+class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
+  final AnalysisServer analysisServer;
+
+  AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
+      : super(resourceProvider);
+
+  void addContext(Folder folder, File pubspecFile) {
+    ContextDirectory contextDirectory = new ContextDirectory(
+        analysisServer.defaultSdk, folder, pubspecFile);
+    analysisServer.folderMap[folder] = contextDirectory;
+    analysisServer.addContextToWorkQueue(contextDirectory.context);
+  }
+
+  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
+    analysisServer.folderMap[contextFolder].context.applyChanges(changeSet);
+  }
+}
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -19,24 +52,14 @@ import 'package:analyzer/src/generated/java_core.dart';
  */
 class AnalysisServer {
   /**
-   * The name of the notification of new errors associated with a source.
-   */
-  static const String ERROR_NOTIFICATION_NAME = 'context.errors';
-
-  /**
-   * The name of the contextId parameter.
-   */
-  static const String CONTEXT_ID_PARAM = 'contextId';
-
-  /**
    * The name of the parameter whose value is a list of errors.
    */
   static const String ERRORS_PARAM = 'errors';
 
   /**
-   * The name of the parameter whose value is a source.
+   * The name of the parameter whose value is a file path.
    */
-  static const String SOURCE_PARAM = 'source';
+  static const String FILE_PARAM = 'file';
 
   /**
    * The event name of the connected notification.
@@ -44,10 +67,21 @@ class AnalysisServer {
   static const String CONNECTED_NOTIFICATION = 'server.connected';
 
   /**
+   * The event name of the status notification.
+   */
+  static const String STATUS_NOTIFICATION = 'server.status';
+
+  /**
    * The channel from which requests are received and to which responses should
    * be sent.
    */
   final ServerCommunicationChannel channel;
+
+  /**
+   * [ContextDirectoryManager] which handles the mapping from analysis roots
+   * to context directories.
+   */
+  AnalysisServerContextDirectoryManager contextDirectoryManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -62,15 +96,31 @@ class AnalysisServer {
    */
   List<RequestHandler> handlers;
 
-  /**
-   * A table mapping context id's to the analysis contexts associated with them.
-   */
-  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
+  // TODO(scheglov) remove once setAnalysisRoots() is completely implemented
+//  /**
+//   * A table mapping context id's to the analysis contexts associated with them.
+//   */
+//  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
+//
+//  /**
+//   * A table mapping analysis contexts to the context id's associated with them.
+//   */
+//  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
 
   /**
-   * A table mapping analysis contexts to the context id's associated with them.
+   * The current default [DartSdk].
    */
-  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
+  DartSdk defaultSdk = SHARED_SDK;
+
+  /**
+   * A table mapping [Folder]s to the [ContextDirectory]s associated with them.
+   */
+  final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
+
+  /**
+   * The context identifier used in the last status notification.
+   */
+  String lastStatusNotificationContextId = null;
 
   /**
    * A list of the analysis contexts for which analysis work needs to be
@@ -91,7 +141,8 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    */
-  AnalysisServer(this.channel) {
+  AnalysisServer(this.channel, ResourceProvider resourceProvider) {
+    contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
     Notification notification = new Notification(CONNECTED_NOTIFICATION);
@@ -172,10 +223,12 @@ class AnalysisServer {
     // Look for a context that has work to be done and then perform one task.
     //
     List<ChangeNotice> notices = null;
-    String contextId;
+//    String contextId;
     try {
       AnalysisContext context = contextWorkQueue[0];
-      contextId = contextIdMap[context];
+//      contextId = contextIdMap[context];
+      // TODO(danrubel): Replace with context identifier or similar
+      sendStatusNotification(context.toString());
       AnalysisResult result = context.performAnalysisTask();
       notices = result.changeNotices;
     } finally {
@@ -195,34 +248,150 @@ class AnalysisServer {
       }
     }
     if (notices != null) {
-      sendNotices(contextId, notices);
+      sendNotices(notices);
+    } else {
+      sendStatusNotification(null);
     }
   }
 
   /**
    * Send the information in the given list of notices back to the client.
    */
-  void sendNotices(String contextId, List<ChangeNotice> notices) {
+  void sendNotices(List<ChangeNotice> notices) {
     for (int i = 0; i < notices.length; i++) {
       ChangeNotice notice = notices[i];
-      Notification notification = new Notification(ERROR_NOTIFICATION_NAME);
-      notification.setParameter(CONTEXT_ID_PARAM, contextId);
-      notification.setParameter(SOURCE_PARAM, notice.source.encoding);
-      notification.setParameter(ERRORS_PARAM, notice.errors.map(
-          errorToJson).toList());
-      sendNotification(notification);
+      Source source = notice.source;
+      // send "analysis.errors" notification
+      // TODO(scheglov) use subscriptions to determine if we should do this
+      if (!source.isInSystemLibrary) {
+        Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
+        notification.setParameter(FILE_PARAM, source.fullName);
+        notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
+        sendNotification(notification);
+      }
     }
+  }
+
+  /**
+   * Send status notification to the client. The `contextId` indicates
+   * the current context being analyzed or `null` if analysis is complete.
+   */
+  void sendStatusNotification(String contextId) {
+    if (contextId == lastStatusNotificationContextId) {
+      return;
+    }
+    lastStatusNotificationContextId = contextId;
+    Notification notification = new Notification(STATUS_NOTIFICATION);
+    Map<String, Object> analysis = new Map();
+    if (contextId != null) {
+      analysis['analyzing'] = true;
+      // TODO(danrubel): replace contextId with real analysisTarget
+      analysis['analysisTarget'] = contextId;
+    } else {
+      analysis['analyzing'] = false;
+    }
+    notification.params['analysis'] = analysis;
+    channel.sendNotification(notification);
+  }
+
+  /**
+   * Implementation for `analysis.setAnalysisRoots`.
+   *
+   * TODO(scheglov) implement complete projects/contexts semantics.
+   *
+   * The current implementation is intentionally simplified and expected
+   * that only folders are given each given folder corresponds to the exactly
+   * one context.
+   *
+   * So, we can start working in parallel on adding services and improving
+   * projects/contexts support.
+   */
+  void setAnalysisRoots(String requestId,
+                        List<String> includedPaths,
+                        List<String> excludedPaths) {
+    try {
+      contextDirectoryManager.setRoots(includedPaths, excludedPaths);
+    } on UnimplementedError catch (e) {
+      throw new RequestFailure(
+                  new Response.unsupportedFeature(
+                      requestId, e.message));
+    }
+  }
+
+  /**
+   * Implementation for `analysis.updateContent`.
+   */
+  void updateContent(Map<String, ContentChange> changes) {
+    changes.forEach((file, change) {
+      AnalysisContext analysisContext = _getAnalysisContext(file);
+      if (analysisContext != null) {
+        Source source = _getSource(file);
+        if (change.offset == null) {
+          analysisContext.setContents(source, change.content);
+        } else {
+          analysisContext.setChangedContents(source, change.content,
+              change.offset, change.oldLength, change.newLength);
+        }
+        addContextToWorkQueue(analysisContext);
+      }
+    });
+  }
+
+  /**
+   * Return the [AnalysisContext] that is used to analyze the given [path].
+   * Return `null` if there is no such context.
+   */
+  AnalysisContext _getAnalysisContext(String path) {
+    for (Folder folder in folderMap.keys) {
+      if (path.startsWith(folder.path)) {
+        return folderMap[folder].context;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the [Source] of the Dart file with the given [path].
+   */
+  Source _getSource(String path) {
+    File file = contextDirectoryManager.resourceProvider.getResource(path);
+    return file.createSource(UriKind.FILE_URI);
+  }
+
+  /**
+   * Return the [CompilationUnit] of the Dart file with the given [path].
+   * Return `null` if the file is not a part of any context.
+   */
+  CompilationUnit test_getResolvedCompilationUnit(String path) {
+    // prepare AnalysisContext
+    AnalysisContext context = _getAnalysisContext(path);
+    if (context == null) {
+      return null;
+    }
+    // prepare sources
+    Source unitSource = _getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (librarySources.isEmpty) {
+      return null;
+    }
+    // get a resolved unit
+    return context.getResolvedCompilationUnit2(unitSource, librarySources[0]);
+  }
+
+  /**
+   * Return `true` if all tasks are finished in this [AnalysisServer].
+   */
+  bool test_areTasksFinished() {
+    return contextWorkQueue.isEmpty;
   }
 
   static Map<String, Object> errorToJson(AnalysisError analysisError) {
     // TODO(paulberry): move this function into the AnalysisError class.
-
-    // TODO(paulberry): we really shouldn't be exposing errorCode.ordinal
-    // outside the analyzer, since the ordinal numbers change whenever we
-    // regenerate the analysis engine.
+    ErrorCode errorCode = analysisError.errorCode;
     Map<String, Object> result = {
-      'source': analysisError.source.encoding,
-      'errorCode': (analysisError.errorCode as Enum).ordinal,
+      'file': analysisError.source.fullName,
+      // TODO(scheglov) add Enum.fullName ?
+      'errorCode': '${errorCode.runtimeType}.${(errorCode as Enum).name}',
       'offset': analysisError.offset,
       'length': analysisError.length,
       'message': analysisError.message
@@ -261,6 +430,50 @@ class AnalysisService extends Enum2<AnalysisService> {
       const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
+}
+
+
+/**
+ * Instances of [ContextDirectory] represents a [Folder] associated with an
+ * analysis context.  The folder may or may not contain a Pub `pubspec.yaml`.
+ *
+ * TODO(scheglov) implement complete projects/contexts semantics.
+ *
+ * This class is intentionally simplified to serve as a base to start working
+ * on services while work on complete semantics is being done in parallel.
+ */
+class ContextDirectory {
+  /**
+   * The root [Folder] of this [ContextDirectory].
+   */
+  final Folder _folder;
+
+  /**
+   * The `pubspec.yaml` file in [_folder], or null if there isn't one.
+   */
+  File _pubspecFile;
+
+  /**
+   * The [AnalysisContext] of this [_folder].
+   */
+  AnalysisContext _context;
+
+  ContextDirectory(DartSdk sdk, this._folder, this._pubspecFile) {
+    // create AnalysisContext
+    _context = AnalysisEngine.instance.createAnalysisContext();
+    // TODO(scheglov) replace FileUriResolver with an Resource based resolver
+    // TODO(scheglov) create packages resolver
+    _context.sourceFactory = new SourceFactory([
+      new DartUriResolver(sdk),
+      new FileUriResolver(),
+      // new PackageUriResolver(),
+    ]);
+  }
+
+  /**
+   * Return the [AnalysisContext] of this folder.
+   */
+  AnalysisContext get context => _context;
 }
 
 

@@ -28,14 +28,9 @@ You can replace platform.js and polymer.html with different versions if desired.
 
 <!-- Teach dart2js about Shadow DOM polyfill objects. -->
 
-
-<!-- Bootstrap the user application in a new isolate. -->
-
-<!-- TODO(sigmund): replace boot.js by boot.dart (dartbug.com/18007)
-<script type="application/dart">export "package:polymer/boot.dart";</script>
- -->
 <script src="packages/polymer/src/js/use_native_dartium_shadowdom.js"></script><script src="packages/web_components/platform.js"></script>
 <!-- <link rel="import" href="../polymer-dev/polymer.html"> -->
+
 <script src="packages/polymer/src/js/polymer/polymer.js"></script><polymer-element name="polymer-body" extends="body">
 
   <script>
@@ -126,7 +121,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -294,7 +294,12 @@ hr {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
+
+.break-wrap {
+  word-wrap: break-word;
+}
 </style>
+  
   
   
   
@@ -448,7 +453,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -615,6 +625,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <style>
@@ -786,7 +800,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -953,6 +972,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <style>
@@ -1213,7 +1236,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -1380,6 +1408,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -1467,7 +1499,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -1634,6 +1671,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
 
@@ -1825,7 +1866,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -1992,6 +2038,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <div>
@@ -2072,7 +2122,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -2239,6 +2294,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style><!-- These comments are here to allow newlines.
      --><template if="{{ isDart }}"><!--
@@ -2312,7 +2371,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -2479,6 +2543,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <template if="{{ nameIsEmpty }}">
@@ -2553,7 +2621,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -2720,6 +2793,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
@@ -2786,7 +2863,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -2953,6 +3035,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -3153,7 +3239,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -3320,6 +3411,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <template if="{{ code.isDartCode }}">
@@ -3400,7 +3495,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -3567,6 +3667,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <style>
@@ -3804,7 +3908,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -3971,6 +4080,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -4051,7 +4164,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -4218,6 +4336,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -4302,6 +4424,803 @@ hr {
   </template>
   
 </polymer-element>
+
+  
+  
+  
+
+  
+  
+  
+  
+  
+<polymer-element name="stack-frame" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <div class="flex-row">
+      <div class="flex-item-fixed-1-12">
+      </div>
+      <div class="flex-item-fixed-1-12">
+        #{{ frame['depth'] }}
+      </div>
+      <div class="flex-item-fixed-9-12">
+        <function-ref ref="{{ frame['function'] }}"></function-ref>
+          ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
+          </script-ref> )
+
+          <curly-block>
+            <div class="memberList">
+              <template repeat="{{ v in frame['vars'] }}">
+                <div class="memberItem">
+                  <div class="memberName">{{ v['name']}}</div>
+                  <div class="memberValue">
+                    <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block>
+      </div>
+      <div class="flex-item-fixed-1-12">
+      </div>
+    </div>
+  </template>
+  
+</polymer-element>
+<polymer-element name="flag-list" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <nav-menu link="{{ flagList.isolate.relativeHashLink('flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content-centered">
+      <template if="{{ flagList['modifiedFlags'].isNotEmpty }}">
+        <h1>Modified Flags</h1>
+        <br>
+        <template repeat="{{ flag in flagList['modifiedFlags'] }}">
+          <flag-item flag="{{ flag }}"></flag-item>
+          <br>
+        </template>
+        <hr>
+      </template>
+
+      <h1>Unmodified Flags</h1>
+      <br>
+      <template if="{{ flagList['unmodifiedFlags'].isEmpty }}">
+        <em>None</em>
+      </template>
+      <template if="{{ flagList['unmodifiedFlags'].isNotEmpty }}">
+        <template repeat="{{ flag in flagList['unmodifiedFlags'] }}">
+          <flag-item flag="{{ flag }}"></flag-item>
+          <br>
+        </template>
+      </template>
+    </div>
+
+  </template>
+</polymer-element>
+
+<polymer-element name="flag-item" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <span style="color:#aaa">// {{ flag['comment'] }}</span>
+    <div style="padding: 3px 0">
+      <b>{{ flag['name'] }}</b>
+      &nbsp;=&nbsp;
+      {{ flag['valueAsString'] }}
+    </div>
+  </template>
+</polymer-element>
+
+
 
   
   
@@ -4418,7 +5337,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -4585,6 +5509,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -4756,7 +5684,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -4923,6 +5856,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <style>
@@ -5020,7 +5957,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -5188,6 +6130,10 @@ hr {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
+
+.break-wrap {
+  word-wrap: break-word;
+}
 </style>
 
     <nav-bar>
@@ -5205,9 +6151,295 @@ hr {
           <a href="{{io.isolate.relativeHashLink('io/http/servers')}}">HTTP Servers</a>
         </li>
       </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/sockets')}}">Sockets</a>
+        </li>
+      </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/websockets')}}">WebSockets</a>
+        </li>
+      </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/file/randomaccessfiles')}}">Random Access Files</a>
+        </li>
+      </ul>
+
+      <br>
+
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="{{io.isolate.relativeHashLink('io/processes')}}">Processess</a>
+        </li>
+      </ul>
+
     </div>
     <br>
     <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <template if="{{ ref.serviceType == 'Socket' }}">
+      <io-socket-ref ref="{{ ref }}"></io-socket-ref>
+    </template>
+    <template if="{{ ref.serviceType == 'HttpServer' }}">
+      <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
+    </template>
+    <template if="{{ ref.serviceType == 'WebSocket' }}">
+      <io-web-socket-ref ref="{{ ref }}"></io-web-socket-ref>
+    </template>
+    <template if="{{ ref.serviceType == 'Process' }}">
+      <io-process-ref ref="{{ ref }}"></io-process-ref>
+    </template>
   </template>
 </polymer-element>
 
@@ -5271,7 +6503,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -5438,6 +6675,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
 
@@ -5524,7 +6765,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -5691,6 +6937,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <a href="{{ url }}">{{ name }}</a>
@@ -5757,7 +7007,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -5925,6 +7180,10 @@ hr {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
+
+.break-wrap {
+  word-wrap: break-word;
+}
 </style>
 
     <nav-bar>
@@ -5938,6 +7197,10 @@ hr {
       <br>
 
       <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Socket</div>
+          <div class="memberValue"><io-socket-ref ref="{{ httpServer['socket'] }}"></io-socket-ref></div>
+        </div>
         <div class="memberItem">
           <div class="memberName">Address</div>
           <div class="memberValue">{{ httpServer['address'] }}</div>
@@ -5953,6 +7216,3201 @@ hr {
         <div class="memberItem">
           <div class="memberName">Idle connections</div>
           <div class="memberValue">{{ httpServer['idle'] }}</div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-socket-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-socket-list-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Sockets</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ socket in list['members'] }}">
+          <li class="list-group-item">
+            <io-socket-ref ref="{{ socket }}"></io-socket-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-socket-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <!-- Pipe Socket -->
+      <template if="{{ socket.isPipe }}">
+        <h1>Pipe Socket</h1>
+        <div class="memberList">
+          <template if="{{ socket.socketOwner != null }}">
+            <div class="memberItem">
+              <div class="memberName">Owner</div>
+              <div class="memberValue"><io-ref ref="{{ socket.socketOwner }}"></io-ref></div>
+            </div>
+          </template>
+          <div class="memberItem">
+            <div class="memberName">File descriptor</div>
+            <div class="memberValue">{{ socket.fd }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Read Closed</div>
+            <div class="memberValue">{{ socket.readClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Write Closed</div>
+            <div class="memberValue">{{ socket.writeClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Closing</div>
+            <div class="memberValue">{{ socket.closing }}</div>
+          </div>
+        </div>
+      </template>
+      <!-- Network Socket -->
+      <template if="{{ !socket.isPipe }}">
+        <h1>Network Socket</h1>
+        <div class="memberList">
+          <template if="{{ socket.socketOwner != null }}">
+            <div class="memberItem">
+              <div class="memberName">Owner</div>
+              <div class="memberValue"><io-ref ref="{{ socket.socketOwner }}"></io-ref></div>
+            </div>
+          </template>
+          <div class="memberItem">
+            <div class="memberName">Local Address</div>
+            <div class="memberValue">{{ socket.localAddress }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Local Port</div>
+            <div class="memberValue">{{ socket.localPort }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Remote Address</div>
+            <div class="memberValue">{{ socket.remoteAddress }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Remote Port</div>
+            <div class="memberValue">{{ socket.remotePort }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">File descriptor</div>
+            <div class="memberValue">{{ socket.fd }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Read Closed</div>
+            <div class="memberValue">{{ socket.readClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Write Closed</div>
+            <div class="memberValue">{{ socket.writeClosed }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Closing</div>
+            <div class="memberValue">{{ socket.closing }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Listening</div>
+            <div class="memberValue">{{ socket.listening }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Protocol</div>
+            <div class="memberValue">{{ socket.protocol }}</div>
+          </div>
+        </div>
+      </template>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-web-socket-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-web-socket-list-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>WebSockets</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ webSocket in list['members'] }}">
+          <li class="list-group-item">
+            <io-web-socket-ref ref="{{ webSocket }}"></io-web-socket-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-web-socket-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>WebSocket</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Socket</div>
+          <div class="memberValue"><io-socket-ref ref="{{ webSocket['socket'] }}"></io-socket-ref></div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-random-access-file-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-random-access-file-list-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Random Access Files</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ file in list['members'] }}">
+          <li class="list-group-item">
+            <io-random-access-file-ref ref="{{ file }}"></io-random-access-file-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-random-access-file-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Random Access File</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Path</div>
+          <div class="memberValue">{{ file['name'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Pending Operation</div>
+          <div class="memberValue">{{ file['asyncDispatched'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">File Descriptor</div>
+          <div class="memberValue">{{ file['fd'] }}</div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-list-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Processes</h1>
+
+      <br>
+
+      <ul class="list-group">
+        <template repeat="{{ process in list['members'] }}">
+          <li class="list-group-item">
+            <io-process-ref ref="{{ process }}"></io-process-ref>
+          </li>
+        </template>
+      </ul>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <template if="{{ small }}">
+      <a href="{{ url }}">{{ name }}</a>
+    </template>
+    <template if="{{ !small }}">
+      <a href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-process-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>Process</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Path</div>
+          <div class="memberValue">{{ process['name'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Pid</div>
+          <div class="memberValue">{{ process['pid'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Arguments</div>
+          <div class="memberValue">{{ process['arguments'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Started</div>
+          <div class="memberValue">{{ process['started'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Working Directory</div>
+          <div class="memberValue">{{ process['workingDirectory'] }}</div>
+        </div>
+        <template if="{{ process['stdin'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stdin</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stdin'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ process['stdout'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stdout</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stdout'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ process['stderr'] != null }}">
+          <div class="memberItem">
+            <div class="memberName">stderr</div>
+            <div class="memberValue">
+              <io-socket-ref ref="{{ process['stderr'] }}"></io-socket-ref>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <br>
+
+      <h2>Environment</h2>
+      <div class="well">
+        <div class="monospace break-wrap">
+          <template repeat="{{ variable in process['environment'] }}">
+            {{ variable }}
+            <br>
+          </template>
         </div>
       </div>
     </div>
@@ -6023,7 +10481,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -6190,6 +10653,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <a href="{{ url }}">{{ ref.name }}</a>
@@ -6263,7 +10730,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -6430,6 +10902,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <div class="flex-row">
@@ -6588,7 +11064,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -6755,6 +11236,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <template if="{{ isolate.error != null }}">
@@ -6901,7 +11386,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -7068,6 +11558,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <style>
@@ -7265,7 +11759,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -7432,6 +11931,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -7682,7 +12185,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -7849,6 +12357,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
 
@@ -8063,7 +12575,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -8230,6 +12747,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <style>
@@ -8494,7 +13015,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -8661,6 +13187,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -8905,7 +13435,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -9072,6 +13607,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
   <nav-bar>
@@ -9099,271 +13638,6 @@ hr {
   
   
   
-
-  
-  
-  
-  
-  
-<polymer-element name="stack-frame" extends="observatory-element">
-  <template>
-    <style>
-/* Global styles */
-* {
-  margin: 0;
-  padding: 0;
-  font: 400 14px 'Montserrat', sans-serif;
-  color: #333;
-  box-sizing: border-box;
-}
-
-.content {
-  padding-left: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.content-centered {
-  padding-left: 10%;
-  padding-right: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-h1 {
-  font: 400 18px 'Montserrat', sans-serif;
-}
-
-.memberList {
-  display: table;
-}
-
-.memberItem {
-  display: table-row;
-}
-
-.memberName, .memberValue {
-  display: table-cell;
-  vertical-align: top;
-  padding: 3px 0 3px 1em;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.monospace {
-  font-family: consolas, courier, monospace;
-  font-size: 1em;
-  line-height: 1.2em;
-  white-space: nowrap;
-}
-
-a {
-  color: #0489c3;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-em {
-  color: inherit;
-  font-style:italic;
-}
-
-hr {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  border: 0;
-  border-top: 1px solid #eee;
-  height: 0;
-  box-sizing: content-box;
-}
-
-.list-group {
-  padding-left: 0;
-  margin-bottom: 20px;
-}
-
-.list-group-item {
-  position: relative;
-  display: block;
-  padding: 10px 15px;
-  margin-bottom: -1px;
-  background-color: #fff;
-}
-
-.list-group-item:first-child {
-  /* rounded top corners */
-  border-top-right-radius:4px;
-  border-top-left-radius:4px;
-}
-
-.list-group-item:last-child {
-  margin-bottom: 0;
-  /* rounded bottom corners */
-  border-bottom-right-radius: 4px;
-  border-bottom-left-radius:4px;
-}
-
-/* Flex row container */
-.flex-row {
-  display: flex;
-  flex-direction: row;
-}
-
-/* Flex column container */
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.flex-item-fit {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-}
-
-.flex-item-no-shrink {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: auto;
-}
-
-.flex-item-fill {
-  flex-grow: 0;
-  flex-shrink: 1;  /* shrink when pressured */
-  flex-basis: 100%;  /* try and take 100% */
-}
-
-.flex-item-fixed-1-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 8.3%;
-}
-
-.flex-item-fixed-2-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 16.6%;
-}
-
-.flex-item-fixed-4-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 33.3333%;
-}
-
-.flex-item-fixed-6-12, .flex-item-50-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 50%;
-}
-
-.flex-item-fixed-8-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 66.6666%;
-}
-
-.flex-item-fixed-9-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 75%;
-}
-
-
-.flex-item-fixed-12-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 100%;
-}
-
-.flex-item-10-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 10%;
-}
-
-.flex-item-15-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 15%;
-}
-
-.flex-item-20-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 20%;
-}
-
-.flex-item-30-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 30%;
-}
-
-.flex-item-40-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 40%;
-}
-
-.flex-item-60-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 60%;
-}
-
-.flex-item-70-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 70%;
-}
-
-.flex-item-80-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 80%;
-}
-
-.well {
-  min-height: 20px;
-  padding: 19px;
-  margin-bottom: 20px;
-  background-color: #f5f5f5;
-  border: 1px solid #e3e3e3;
-  border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
-}
-</style>
-    <div class="flex-row">
-      <div class="flex-item-fixed-1-12">
-      </div>
-      <div class="flex-item-fixed-1-12">
-        #{{ frame['depth'] }}
-      </div>
-      <div class="flex-item-fixed-9-12">
-        <function-ref ref="{{ frame['function'] }}"></function-ref>
-          ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
-          </script-ref> )
-
-          <curly-block>
-            <div class="memberList">
-              <template repeat="{{ v in frame['vars'] }}">
-                <div class="memberItem">
-                  <div class="memberName">{{ v['name']}}</div>
-                  <div class="memberValue">
-                    <instance-ref ref="{{ v['value'] }}"></instance-ref>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </curly-block>
-      </div>
-      <div class="flex-item-fixed-1-12">
-      </div>
-    </div>
-  </template>
-  
-</polymer-element>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
     <style>
@@ -9424,7 +13698,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -9591,6 +13870,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -9685,7 +13968,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -9853,6 +14141,10 @@ hr {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
+
+.break-wrap {
+  word-wrap: break-word;
+}
 </style>
 
     <nav-bar>
@@ -9878,6 +14170,12 @@ hr {
         <div class="memberItem">
           <div class="memberName">asserts enabled</div>
           <div class="memberValue">{{ vm.assertsEnabled }}</div>
+        </div>
+        <br>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a href="#/flags">flags</a>
+          </div>
         </div>
       </div>
     </div>
@@ -9975,7 +14273,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -10142,6 +14445,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -10221,7 +14528,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -10388,6 +14700,10 @@ hr {
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
 }
 </style>
     <nav-bar>
@@ -10462,7 +14778,12 @@ a:hover {
 
 em {
   color: inherit;
-  font-style:italic;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
 }
 
 hr {
@@ -10630,13 +14951,17 @@ hr {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
+
+.break-wrap {
+  word-wrap: break-word;
+}
 </style>
   <a href="{{ url }}">{{ ref.name }}</a>
 </template>
 
 </polymer-element>
 
-<script src="main.dart.js"></script>
+
   <observatory-application devtools="true"></observatory-application>
 
 <script src="index_devtools.html_bootstrap.dart.js"></script></body></html>

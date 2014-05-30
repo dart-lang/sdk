@@ -323,7 +323,7 @@ void main() {
       }, [
         'warning: Event handler "onfoo" will be interpreted as an inline '
         'JavaScript event handler. Use the form '
-        'on-event-name="handlerName" if you want a Dart handler '
+        'on-event-name="{{handlerName}}" if you want a Dart handler '
         'that will automatically update the UI based on model changes. '
         '(lib/test.html 1 5)'
       ]);
@@ -340,19 +340,43 @@ void main() {
 
     _testLinter('on-foo is not an expression', {
         'a|lib/test.html': '''<html><body>
-            <polymer-element name="x-a"><div on-foo="bar()"></div>
+            <polymer-element name="x-a"><div on-foo="{{bar()}}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Invalid event handler body "bar()". Declare a method '
+        'warning: Invalid event handler body "{{bar()}}". Declare a method '
         'in your custom element "void handlerName(event, detail, target)" '
-        'and use the form on-foo="handlerName". '
+        'and use the form on-foo="{{handlerName}}". '
+        '(lib/test.html 1 33)'
+      ]);
+
+    _testLinter('on-foo can\'t be empty', {
+        'a|lib/test.html': '''<html><body>
+            <polymer-element name="x-a"><div on-foo="{{}}"></div>
+            </polymer-element>
+            '''.replaceAll('            ', ''),
+      }, [
+        'warning: Invalid event handler body "{{}}". Declare a method '
+        'in your custom element "void handlerName(event, detail, target)" '
+        'and use the form on-foo="{{handlerName}}". '
+        '(lib/test.html 1 33)'
+      ]);
+
+    _testLinter('on-foo can\'t be empty', {
+        'a|lib/test.html': '''<html><body>
+            <polymer-element name="x-a"><div on-foo="{{ }}"></div>
+            </polymer-element>
+            '''.replaceAll('            ', ''),
+      }, [
+        'warning: Invalid event handler body "{{ }}". Declare a method '
+        'in your custom element "void handlerName(event, detail, target)" '
+        'and use the form on-foo="{{handlerName}}". '
         '(lib/test.html 1 33)'
       ]);
 
     _testLinter('on-foo-bar is supported as a custom event name', {
         'a|lib/test.html': '''<html><body>
-            <polymer-element name="x-a"><div on-foo-bar="quux"></div>
+            <polymer-element name="x-a"><div on-foo-bar="{{quux}}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, []);

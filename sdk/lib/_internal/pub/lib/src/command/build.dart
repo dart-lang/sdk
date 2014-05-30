@@ -124,7 +124,7 @@ class BuildCommand extends BarbackCommand {
 
   /// Writes [asset] to the appropriate build directory.
   ///
-  /// If [asset] is in the special "assets" directory, writes it to every
+  /// If [asset] is in the special "packages" directory, writes it to every
   /// build directory.
   Future _writeAsset(Asset asset) {
     // In release mode, strip out .dart files since all relevant ones have been
@@ -137,8 +137,7 @@ class BuildCommand extends BarbackCommand {
 
     // If the asset is from a public directory, copy it into all of the
     // top-level build directories.
-    if (path.isWithin("assets", destPath) ||
-        path.isWithin("packages", destPath)) {
+    if (path.isWithin("packages", destPath)) {
       return Future.wait(sourceDirectories.map((buildDir) =>
           _writeOutputFile(asset, path.join(buildDir, destPath))));
     }
@@ -156,7 +155,6 @@ class BuildCommand extends BarbackCommand {
   ///     myapp|web/index.html   -> web/index.html
   ///     myapp|lib/lib.dart     -> packages/myapp/lib.dart
   ///     foo|lib/foo.dart       -> packages/foo/foo.dart
-  ///     foo|asset/foo.png      -> assets/foo/foo.png
   ///     myapp|test/main.dart   -> test/main.dart
   ///     foo|test/main.dart     -> ERROR
   ///
@@ -169,16 +167,9 @@ class BuildCommand extends BarbackCommand {
           "Can not build assets from top-level directory.");
     }
 
-    // Map "asset" and "lib" to their shared directories.
-    var dir = parts[0];
-    var rest = parts.skip(1);
-
-    if (dir == "asset") {
-      return path.join("assets", id.package, path.joinAll(rest));
-    }
-
-    if (dir == "lib") {
-      return path.join("packages", id.package, path.joinAll(rest));
+    // Map "lib" to the "packages" directory.
+    if (parts[0] == "lib") {
+      return path.join("packages", id.package, path.joinAll(parts.skip(1)));
     }
 
     // Shouldn't be trying to access non-public directories of other packages.

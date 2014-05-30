@@ -3354,7 +3354,7 @@ class ParseError implements Exception {
 
   String toString() {
     var res = span.getLocationMessage(message);
-    return span.sourceUrl == null ? 'ParserError$res' : res;
+    return span.sourceUrl == null ? 'ParserError on $res' : 'On $res';
   }
 }
 

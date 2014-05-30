@@ -25,6 +25,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
@@ -1310,6 +1311,28 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   Isolate::SetCurrent(iso);
+}
+
+
+DART_EXPORT void Dart_IsolateBlocked() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  profiler_data->Block();
+}
+
+
+DART_EXPORT void Dart_IsolateUnblocked() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  profiler_data->Unblock();
 }
 
 
@@ -2663,12 +2686,11 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   }                                                                            \
   return Api::NewError("Invalid length passed in to access array elements");   \
 
-
-static Dart_Handle CopyBytes(const TypedData& array,
+template<typename T>
+static Dart_Handle CopyBytes(const T& array,
                              intptr_t offset,
                              uint8_t* native_array,
                              intptr_t length) {
-  ASSERT(array.IsTypedData());
   ASSERT(array.ElementSizeInBytes() == 1);
   NoGCScope no_gc;
   memmove(native_array,
@@ -2693,6 +2715,16 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
             "Invalid length passed in to access list elements");
       }
       return CopyBytes(array, offset, native_array, length);
+    }
+  }
+  if (obj.IsExternalTypedData()) {
+    const ExternalTypedData& external_array = ExternalTypedData::Cast(obj);
+    if (external_array.ElementSizeInBytes() == 1) {
+      if (!Utils::RangeCheck(offset, length, external_array.Length())) {
+        return Api::NewError(
+            "Invalid length passed in to access list elements");
+      }
+      return CopyBytes(external_array, offset, native_array, length);
     }
   }
   if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {

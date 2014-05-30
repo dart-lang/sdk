@@ -502,7 +502,7 @@ class Builder extends ir.Visitor<Node> {
     if (node.primitive.hasAtLeastOneUse) {
       Variable variable = new Variable(null);
       variables[node.primitive] = variable;
-      return new Assign(variable, definition, node.body.accept(this),
+      return new Assign(variable, definition, visit(node.body),
           node.primitive.hasExactlyOneUse);
     } else if (node.primitive is ir.Constant) {
       // TODO(kmillikin): Implement more systematic treatment of pure CPS
@@ -1402,7 +1402,7 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
           putInBooleanContext(node.elseExpression));
     }
     // x ? false : y ==> !x && y  (if y is known to be a boolean)
-    if (isBooleanValued(node.elseExpression) && isTrue(node.thenExpression)) {
+    if (isBooleanValued(node.elseExpression) && isFalse(node.thenExpression)) {
       return new LogicalOperator.and(
           makeCondition(node.condition, false, liftNots: false),
           putInBooleanContext(node.elseExpression));

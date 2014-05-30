@@ -182,7 +182,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
  */
 class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
-  MapView(Map<K, V> map) : _map = map;
+  const MapView(Map<K, V> map) : _map = map;
 
   V operator[](Object key) => _map[key];
   void operator[]=(K key, V value) { _map[key] = value; }

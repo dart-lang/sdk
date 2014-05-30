@@ -16,7 +16,6 @@ convert/streamed_conversion_utf8_encode_test: Skip # http://dartbug.com/15498
 mirrors/mirrors_reader_test: Skip # Issue 16589
 
 [ $csp ]
-mirrors/delegate_test: RuntimeError # Issue 13864
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
 mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
@@ -38,9 +37,6 @@ mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/equality_test/02: RuntimeError # Issue 12785
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
-mirrors/find_in_context_test: Fail # Issue 6490
-mirrors/find_in_context_private_test: Fail # Issue 6490
-mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
@@ -282,11 +278,6 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
-
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-mirrors/find_in_context_test: Fail # Issue 13719: Needs VM flag
-mirrors/find_in_context_private_test: Fail # Issue 13719: Needs VM flag
-mirrors/find_in_context_fake_function_test: Fail # Issue 13719: Needs VM flag
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.

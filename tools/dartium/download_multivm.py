@@ -15,6 +15,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 
 # We are in [checkout dir]/src/dart/tools/dartium in a dartium/multivm checkout
 TOOLS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,6 +28,18 @@ else:
 if not os.path.exists(GSUTIL):
   GSUTIL = 'gsutil'
 
+class TempDir(object):
+  def __init__(self, prefix=''):
+    self._temp_dir = None
+    self._prefix = prefix
+
+  def __enter__(self):
+    self._temp_dir = tempfile.mkdtemp(self._prefix)
+    return self._temp_dir
+
+  def __exit__(self, *_):
+    shutil.rmtree(self._temp_dir, ignore_errors=True)
+
 def ExecuteCommand(cmd):
   print 'Executing: ' + ' '.join(cmd)
   subprocess.check_output(cmd)
@@ -38,8 +51,7 @@ def main():
                    .replace('linux', 'lucid64')
                    .replace('multivm', 'multivm-dartium')
                    .replace('perf', 'build'))
-  utils = imp.load_source('utils', os.path.join(TOOLS_DIR, 'utils.py'))
-  with utils.TempDir() as temp_dir:
+  with TempDir() as temp_dir:
     archive_file = archive_dir + '-' + revision + '.zip'
     gs_source = '/'.join([GS_BUCKET, archive_dir, archive_file])
     zip_file = os.path.join(temp_dir, archive_file)

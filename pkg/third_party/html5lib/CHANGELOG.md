@@ -3,6 +3,9 @@
 This file contains highlights of what changes on each version of the html5lib
 package.
 
+#### Pub version 0.10.0+1
+  * use a more recent source_maps version.
+
 #### Pub version 0.10.0
   * fix how document fragments are added in NodeList.add/addAll/insertAll.
 

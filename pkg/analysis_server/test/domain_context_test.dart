@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_context.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -54,7 +55,9 @@ class ContextDomainHandlerTest {
 //  }
 
   static void createChangeSet() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+    AnalysisServer server = new AnalysisServer(
+        new MockServerChannel(),
+        PhysicalResourceProvider.INSTANCE);
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     ContextDomainHandler handler = new ContextDomainHandler(server);
     SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);
@@ -71,7 +74,9 @@ class ContextDomainHandlerTest {
   }
 
   static void createChangeSet_onlyAdded() {
-    AnalysisServer server = new AnalysisServer(new MockServerChannel());
+    AnalysisServer server = new AnalysisServer(
+        new MockServerChannel(),
+        PhysicalResourceProvider.INSTANCE);
     Request request = new Request('0', ContextDomainHandler.APPLY_CHANGES_NAME);
     ContextDomainHandler handler = new ContextDomainHandler(server);
     SourceFactory sourceFactory = new SourceFactory([new FileUriResolver()]);

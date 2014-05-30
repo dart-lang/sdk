@@ -1288,9 +1288,8 @@ static int LeafReturnArgument(int x) {
 
 
 ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
-  ExternalLabel call1("LeafReturn42", reinterpret_cast<uword>(LeafReturn42));
-  ExternalLabel call2("LeafReturnArgument",
-                      reinterpret_cast<uword>(LeafReturnArgument));
+  ExternalLabel call1(reinterpret_cast<uword>(LeafReturn42));
+  ExternalLabel call2(reinterpret_cast<uword>(LeafReturnArgument));
   int space = ComputeStackSpaceReservation(0, 8);
   __ subq(RSP, Immediate(space));
   __ call(&call1);
@@ -1311,7 +1310,7 @@ ASSEMBLER_TEST_RUN(CallSimpleLeaf, test) {
 
 
 ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
-  ExternalLabel call1("LeafReturn42", reinterpret_cast<uword>(LeafReturn42));
+  ExternalLabel call1(reinterpret_cast<uword>(LeafReturn42));
   Label L;
   int space = ComputeStackSpaceReservation(0, 8);
   __ subq(RSP, Immediate(space));

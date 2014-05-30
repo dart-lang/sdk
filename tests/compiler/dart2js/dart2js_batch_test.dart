@@ -64,24 +64,24 @@ Future runTests(Process process) {
   String outFile = path.join(tmpDir.path, 'out.js');
   String outFile2 = path.join(tmpDir.path, 'out2.js');
 
-  process.stdin.writeln("--out='$outFile' '$inFile'");
-  process.stdin.writeln("--out='$outFile2' '$inFile'");
-  process.stdin.writeln("too many arguments");
-  process.stdin.writeln(r"non\ existing\ file.dart");
+  process.stdin.writeln('--out="$outFile" "$inFile"');
+  process.stdin.writeln('--out="$outFile2" "$inFile"');
+  process.stdin.writeln('too many arguments');
+  process.stdin.writeln(r'"non existing file.dart"');
   process.stdin.close();
   Future<String> output = process.stdout.transform(UTF8.decoder).join();
   Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
   return Future.wait([output, errorOut])
         .then((result) {
       String stdoutOutput = result[0];
+      print('out:\n$stdoutOutput');
       String stderrOutput = result[1];
-      Expect.equals("""
->>> EOF STDERR
->>> EOF STDERR
->>> EOF STDERR
->>> EOF STDERR
-""", stderrOutput);
-      Expect.isTrue(stdoutOutput.startsWith(">>> TEST OK\n>>> TEST OK\n"));
+      print('err:\n$stderrOutput');
+
+      Expect.equals(4, ">>> EOF STDERR".allMatches(stderrOutput).length);
+      Expect.equals(4, ">>>".allMatches(stderrOutput).length);
+
+      Expect.equals(2, ">>> TEST OK".allMatches(stdoutOutput).length);
       Expect.equals(2, ">>> TEST FAIL".allMatches(stdoutOutput).length);
       Expect.equals(4, ">>>".allMatches(stdoutOutput).length);
     });

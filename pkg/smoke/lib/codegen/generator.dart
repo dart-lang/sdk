@@ -458,5 +458,38 @@ const DEFAULT_IMPORTS = const [
         "useGeneratedCode, StaticConfiguration;",
   ];
 
-_symbol(String name) =>
-   name.contains('[') ? "const Symbol('$name')" : '#$name';
+_symbol(String name) {
+  if (!_publicSymbolPattern.hasMatch(name)) {
+    throw new StateError('invalid symbol name: "$name"');
+  }
+  return _literalSymbolPattern.hasMatch(name)
+      ? '#$name' : "const Symbol('$name')";
+}
+
+// TODO(sigmund): is this included in some library we can import? I derived the
+// definitions below from sdk/lib/internal/symbol.dart.
+
+/// Reserved words in Dart.
+const String _reservedWordRE =
+    r'(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|'
+    r'e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|'
+    r'ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|'
+    r'v(?:ar|oid)|w(?:hile|ith))';
+
+/// Public identifier: a valid identifier (not a reserved word) that doesn't
+/// start with '_'.
+const String _publicIdentifierRE =
+    r'(?!' '$_reservedWordRE' r'\b(?!\$))[a-zA-Z$][\w$]*';
+
+/// Pattern that matches operators only.
+final RegExp _literalSymbolPattern = new RegExp(
+    '^(?:$_publicIdentifierRE(?:\$|[.](?!\$)))+?\$');
+
+/// Operator names allowed as symbols. The name of the oeprators is the same as
+/// the operator itself except for unary minus, where the name is "unary-".
+const String _operatorRE =
+    r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
+
+/// Pattern that matches public symbols.
+final RegExp _publicSymbolPattern = new RegExp(
+    '^(?:$_operatorRE\$|$_publicIdentifierRE(?:=?\$|[.](?!\$)))+?\$');

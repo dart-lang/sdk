@@ -218,6 +218,8 @@ class FlowGraphBuilder: public ValueObject {
   // Returns address where the constant 'value' is stored or 0 if not found.
   static uword FindDoubleConstant(double value);
 
+  Isolate* isolate() const { return parsed_function()->isolate(); }
+
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
 
@@ -448,6 +450,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* ExitTempLocalScope(LocalVariable* var);
 
   void BuildLetTempExpressions(LetNode* node);
+
+  Isolate* isolate() const { return owner()->isolate(); }
 
  private:
   friend class TempLocalScope;  // For ReturnDefinition.

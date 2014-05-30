@@ -163,6 +163,10 @@ class IsolateProfileElement extends ObservatoryElement {
     } catch (e, stackTrace) {
       Logger.root.warning('_buildStackTree', e, stackTrace);
     }
+    // Check if we only have one node at the root and expand it.
+    if (tree.rows.length == 1) {
+      tree.toggle(0);
+    }
     notifyPropertyChange(#tree, null, tree);
   }
 
@@ -186,7 +190,8 @@ class IsolateProfileElement extends ObservatoryElement {
     // We only want to expand a tree row if the target of the click is
     // the table cell (passed in as target) or the span containing the
     // expander symbol (#expand).
-    if ((e.target.id != 'expand') && (e.target != target)) {
+    var eventTarget = e.target;
+    if ((eventTarget.id != 'expand') && (e.target != target)) {
       // Target of click was not the expander span or the table cell.
       return;
     }

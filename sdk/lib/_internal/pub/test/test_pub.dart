@@ -35,6 +35,7 @@ import '../lib/src/io.dart';
 import '../lib/src/lock_file.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
+import '../lib/src/pubspec.dart';
 import '../lib/src/source/hosted.dart';
 import '../lib/src/source/path.dart';
 import '../lib/src/source_registry.dart';
@@ -71,6 +72,59 @@ Matcher isMinifiedDart2JSOutput =
 /// disabled.
 Matcher isUnminifiedDart2JSOutput =
     contains("// The code supports the following hooks");
+
+/// The directory containing the version of barback that should be used for this
+/// test.
+String _barbackDir;
+
+/// A map from barback versions to the paths of directories in the repo
+/// containing them.
+///
+/// This includes the latest version of barback from pkg as well as all old
+/// versions of barback in third_party.
+final _barbackVersions = _findBarbackVersions();
+
+/// Populates [_barbackVersions].
+Map<Version, String> _findBarbackVersions() {
+  var versions = {};
+  var currentBarback = path.join(repoRoot, 'pkg', 'barback');
+  versions[new Pubspec.load(currentBarback, new SourceRegistry()).version] =
+      currentBarback;
+
+  for (var dir in listDir(path.join(repoRoot, 'third_party', 'pkg'))) {
+    var basename = path.basename(dir);
+    if (!basename.startsWith('barback')) continue;
+    versions[new Version.parse(split1(basename, '-').last)] = dir;
+  }
+
+  return versions;
+}
+
+/// Runs the tests in [callback] against all versions of barback in the repo
+/// that match [versionConstraint].
+///
+/// This is used to test that pub doesn't accidentally break older versions of
+/// barback that it's committed to supporting. Only versions `0.13.0` and later
+/// will be tested.
+void withBarbackVersions(String versionConstraint, void callback()) {
+  var constraint = new VersionConstraint.parse(versionConstraint);
+
+  var validVersions = _barbackVersions.keys.where(constraint.allows);
+  if (validVersions.isEmpty) {
+    throw new ArgumentError(
+        'No available barback version matches "$versionConstraint".');
+  }
+
+  for (var version in validVersions) {
+    group("with barback $version", () {
+      setUp(() {
+        _barbackDir = _barbackVersions[version];
+      });
+
+      callback();
+    });
+  }
+}
 
 /// The completer for [port].
 Completer<int> get _portCompleter {
@@ -627,7 +681,19 @@ void createLockFile(String package, {Iterable<String> sandbox,
 
     _addPackage(String package) {
       if (dependencies.containsKey(package)) return;
-      var packagePath = path.join(pkgDir, package);
+
+      var packagePath;
+      if (package == 'barback') {
+        if (_barbackDir == null) {
+          throw new StateError("createLockFile() can only create a lock file "
+              "with a barback dependency within a withBarbackVersions() "
+              "block.");
+        }
+        packagePath = _barbackDir;
+      } else {
+        packagePath = path.join(pkgDir, package);
+      }
+
       dependencies[package] = packagePath;
       var pubspec = loadYaml(
           readTextFile(path.join(packagePath, 'pubspec.yaml')));

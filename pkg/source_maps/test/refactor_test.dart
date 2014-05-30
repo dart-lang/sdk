@@ -60,33 +60,38 @@ main() {
 
     // Line 1 and 2 are unmodified: mapping any column returns the beginning
     // of the corresponding line:
-    expect(_span(1, 1, map, file), ":1:1: \n0123456789");
-    expect(_span(1, 5, map, file), ":1:1: \n0123456789");
-    expect(_span(2, 1, map, file), ":2:1: \n0*23456789");
-    expect(_span(2, 8, map, file), ":2:1: \n0*23456789");
+    expect(_span(1, 1, map, file), "line 1, column 1 of .: \n0123456789");
+    expect(_span(1, 5, map, file), "line 1, column 1 of .: \n0123456789");
+    expect(_span(2, 1, map, file), "line 2, column 1 of .: \n0*23456789");
+    expect(_span(2, 8, map, file), "line 2, column 1 of .: \n0*23456789");
 
     // Line 3 is modified part way: mappings before the edits have the right
     // mapping, after the edits the mapping is null.
-    expect(_span(3, 1, map, file), ":3:1: \n01*3456789");
-    expect(_span(3, 5, map, file), ":3:1: \n01*3456789");
+    expect(_span(3, 1, map, file), "line 3, column 1 of .: \n01*3456789");
+    expect(_span(3, 5, map, file), "line 3, column 1 of .: \n01*3456789");
 
     // Start of edits map to beginning of the edit secion:
-    expect(_span(3, 6, map, file), ":3:6: \n01*3456789");
-    expect(_span(3, 7, map, file), ":3:6: \n01*3456789");
+    expect(_span(3, 6, map, file), "line 3, column 6 of .: \n01*3456789");
+    expect(_span(3, 7, map, file), "line 3, column 6 of .: \n01*3456789");
 
     // Lines added have no mapping (they should inherit the last mapping),
     // but the end of the edit region continues were we left off:
     expect(_span(4, 1, map, file), isNull);
-    expect(_span(4, 5, map, file), ":3:8: \n01*3456789");
+    expect(_span(4, 5, map, file), "line 3, column 8 of .: \n01*3456789");
 
     // Subsequent lines are still mapped correctly:
-    expect(_span(5, 1, map, file), ":4:1: \nabcdefghij"); // a (in a___cd...)
-    expect(_span(5, 2, map, file), ":4:2: \nabcdefghij"); // _ (in a___cd...)
-    expect(_span(5, 3, map, file), ":4:2: \nabcdefghij"); // _ (in a___cd...)
-    expect(_span(5, 4, map, file), ":4:2: \nabcdefghij"); // _ (in a___cd...)
-    expect(_span(5, 5, map, file), ":4:3: \nabcdefghij"); // c (in a___cd...)
-    expect(_span(6, 1, map, file), ":5:1: \nabcd*fghij");
-    expect(_span(6, 8, map, file), ":5:1: \nabcd*fghij");
+    // a (in a___cd...)
+    expect(_span(5, 1, map, file), "line 4, column 1 of .: \nabcdefghij");
+    // _ (in a___cd...)
+    expect(_span(5, 2, map, file), "line 4, column 2 of .: \nabcdefghij");
+    // _ (in a___cd...)
+    expect(_span(5, 3, map, file), "line 4, column 2 of .: \nabcdefghij");
+    // _ (in a___cd...)
+    expect(_span(5, 4, map, file), "line 4, column 2 of .: \nabcdefghij");
+    // c (in a___cd...)
+    expect(_span(5, 5, map, file), "line 4, column 3 of .: \nabcdefghij");
+    expect(_span(6, 1, map, file), "line 5, column 1 of .: \nabcd*fghij");
+    expect(_span(6, 8, map, file), "line 5, column 1 of .: \nabcd*fghij");
   });
 }
 

@@ -4,7 +4,19 @@
 
 #include "vm/message.h"
 
+#include "vm/port.h"
+
 namespace dart {
+
+bool Message::RedirectToDeliveryFailurePort() {
+  if (delivery_failure_port_ == kIllegalPort) {
+    return false;
+  }
+  dest_port_ = delivery_failure_port_;
+  delivery_failure_port_ = kIllegalPort;
+  return true;
+}
+
 
 MessageQueue::MessageQueue() {
   head_ = NULL;
@@ -59,7 +71,11 @@ void MessageQueue::Clear() {
   tail_ = NULL;
   while (cur != NULL) {
     Message* next = cur->next_;
-    delete cur;
+    if (cur->RedirectToDeliveryFailurePort()) {
+      PortMap::PostMessage(cur);
+    } else {
+      delete cur;
+    }
     cur = next;
   }
 }

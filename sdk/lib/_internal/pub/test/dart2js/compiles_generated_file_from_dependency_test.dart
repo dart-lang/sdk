@@ -10,42 +10,44 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("compiles a Dart file that imports a generated file in another "
-              "package to JS", () {
-    d.dir("foo", [
-      d.pubspec({
-        "name": "foo",
-        "version": "0.0.1",
-        "transformers": ["foo/transformer"]
-      }),
-      d.dir("lib", [
-        d.file("foo.dart", """
+  withBarbackVersions("any", () {
+    integration("compiles a Dart file that imports a generated file in another "
+                "package to JS", () {
+      d.dir("foo", [
+        d.pubspec({
+          "name": "foo",
+          "version": "0.0.1",
+          "transformers": ["foo/transformer"]
+        }),
+        d.dir("lib", [
+          d.file("foo.dart", """
 library foo;
 const TOKEN = "before";
 foo() => TOKEN;
 """),
-        d.file("transformer.dart", dartTransformer("munge"))
-      ])
-    ]).create();
+          d.file("transformer.dart", dartTransformer("munge"))
+        ])
+      ]).create();
 
-    d.dir(appPath, [
-      d.appPubspec({
-        "foo": {
-          "path": "../foo"
-        }
-      }),
-      d.dir("web", [
-        d.file("main.dart", """
+      d.dir(appPath, [
+        d.appPubspec({
+          "foo": {
+            "path": "../foo"
+          }
+        }),
+        d.dir("web", [
+          d.file("main.dart", """
 import "package:foo/foo.dart";
 main() => print(foo());
 """)
-      ])
-    ]).create();
+        ])
+      ]).create();
 
-    createLockFile("myapp", sandbox: ["foo"], pkg: ["barback"]);
+      createLockFile("myapp", sandbox: ["foo"], pkg: ["barback"]);
 
-    pubServe();
-    requestShouldSucceed("main.dart.js", contains("(before, munge)"));
-    endPubServe();
+      pubServe();
+      requestShouldSucceed("main.dart.js", contains("(before, munge)"));
+      endPubServe();
+    });
   });
 }

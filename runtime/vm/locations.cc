@@ -71,11 +71,12 @@ LocationSummary::LocationSummary(Isolate* isolate,
 
 
 LocationSummary* LocationSummary::Make(
+    Isolate* isolate,
     intptr_t input_count,
     Location out,
     LocationSummary::ContainsCall contains_call) {
-  LocationSummary* summary = new LocationSummary(
-      Isolate::Current(), input_count, 0, contains_call);
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, input_count, 0, contains_call);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }

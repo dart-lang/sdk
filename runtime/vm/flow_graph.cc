@@ -759,7 +759,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
       Environment::From(isolate(),
                         *env,
                         num_non_copied_params_,
-                        Code::Handle(parsed_function_.code()));
+                        &parsed_function_);
   // TODO(fschneider): Add predicates CanEagerlyDeoptimize and
   // CanLazilyDeoptimize to instructions to generally deal with instructions
   // that have pushed arguments and input operands.

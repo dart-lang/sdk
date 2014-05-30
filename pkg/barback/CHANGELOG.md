@@ -1,3 +1,18 @@
+## 0.14.1
+
+* Add an `AggregateTransformer` type. Aggregate transformers transform groups of
+  assets for which no single asset is primary. For example, one could be used to
+  merge all images in a directory into a single file.
+
+* Add a `message` getter to `TransformerException` and `AssetLoadException`.
+
+* Fix a bug where transformers would occasionally emit stale output after their
+  inputs changed.
+
+## 0.14.0+3
+
+* Properly handle synchronous errors in `PackageProvider.getAsset()`.
+
 ## 0.14.0+2
 
 * Fix a bug with the previous bug fix.

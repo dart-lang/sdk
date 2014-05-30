@@ -683,6 +683,7 @@ class _MainManagerStub {
 }
 
 const String _SPAWNED_SIGNAL = "spawned";
+const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
 var globalThis = Primitives.computeGlobalThis();
 var globalWindow = JS('', "#.window", globalThis);
@@ -802,10 +803,14 @@ class IsolateNatives {
         _globalState.topEventLoop.run();
         break;
       case 'spawn-worker':
-        _spawnWorker(msg['functionName'], msg['uri'],
-                     msg['args'], msg['msg'],
-                     msg['isSpawnUri'], msg['startPaused'],
-                     msg['replyPort']);
+        var replyPort = msg['replyPort'];
+        spawn(msg['functionName'], msg['uri'],
+              msg['args'], msg['msg'],
+              false, msg['isSpawnUri'], msg['startPaused']).then((msg) {
+          replyPort.send(msg);
+        }, onError: (String errorMessage) {
+          replyPort.send([_SPAWN_FAILED_SIGNAL, errorMessage]);
+        });
         break;
       case 'message':
         SendPort port = msg['port'];
@@ -905,22 +910,28 @@ class IsolateNatives {
     if (uri != null && uri.endsWith(".dart")) uri += ".js";
 
     ReceivePort port = new ReceivePort();
-    Future<List> result = port.first.then((msg) {
-      assert(msg[0] == _SPAWNED_SIGNAL);
-      return msg;
+    Completer<List> completer = new Completer();
+    port.first.then((msg) {
+      if (msg[0] == _SPAWNED_SIGNAL) {
+        completer.complete(msg);
+      } else {
+        assert(msg[0] == _SPAWN_FAILED_SIGNAL);
+        completer.completeError(msg[1]);
+      }
     });
 
     SendPort signalReply = port.sendPort;
 
     if (_globalState.useWorkers && !isLight) {
-      _startWorker(functionName, uri, args, message, isSpawnUri, startPaused,
-                   signalReply);
+      _startWorker(
+          functionName, uri, args, message, isSpawnUri, startPaused,
+          signalReply, (String message) => completer.completeError(message));
     } else {
       _startNonWorker(
           functionName, uri, args, message, isSpawnUri, startPaused,
           signalReply);
     }
-    return result;
+    return completer.future;
   }
 
   static void _startWorker(
@@ -928,7 +939,8 @@ class IsolateNatives {
       List<String> args, message,
       bool isSpawnUri,
       bool startPaused,
-      SendPort replyPort) {
+      SendPort replyPort,
+      void onError(String message)) {
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
           'command': 'spawn-worker',
@@ -941,7 +953,7 @@ class IsolateNatives {
           'replyPort': replyPort}));
     } else {
       _spawnWorker(functionName, uri, args, message,
-                   isSpawnUri, startPaused, replyPort);
+                   isSpawnUri, startPaused, replyPort, onError);
     }
   }
 
@@ -1007,14 +1019,38 @@ class IsolateNatives {
                            List<String> args, message,
                            bool isSpawnUri,
                            bool startPaused,
-                           SendPort replyPort) {
+                           SendPort replyPort,
+                           void onError(String message)) {
     if (uri == null) uri = thisScript;
     final worker = JS('var', 'new Worker(#)', uri);
+    // Trampolines are used when wanting to call a Dart closure from
+    // JavaScript.  The helper function DART_CLOSURE_TO_JS only accepts
+    // top-level or static methods, and the trampoline allows us to capture
+    // arguments and values which can be passed to a static method.
+    final onerrorTrampoline = JS(
+        '',
+        '''
+(function (f, u, c) {
+  return function(e) {
+    return f(e, u, c)
+  }
+})(#, #, #)''',
+        DART_CLOSURE_TO_JS(workerOnError), uri, onError);
+    JS('void', '#.onerror = #', worker, onerrorTrampoline);
 
-    var processWorkerMessageTrampoline =
-      JS('', "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
-         DART_CLOSURE_TO_JS(_processWorkerMessage),
-         worker);
+    var processWorkerMessageTrampoline = JS(
+        '',
+        """
+(function (f, a) {
+  return function (e) {
+    // We can stop listening for errors when the first message is received as
+    // we only listen for messages to determine if the uri was bad.
+    e.onerror = null;
+    return f(a, e);
+  }
+})(#, #)""",
+        DART_CLOSURE_TO_JS(_processWorkerMessage),
+        worker);
     JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);
     var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
@@ -1033,6 +1069,25 @@ class IsolateNatives {
         'isSpawnUri': isSpawnUri,
         'startPaused': startPaused,
         'functionName': functionName }));
+  }
+
+  static bool workerOnError(
+      /* Event */ event,
+      String uri,
+      void onError(String message)) {
+    // Attempt to shut up the browser, as the error has been handled.  Chrome
+    // ignores this :-(
+    JS('void', '#.preventDefault()', event);
+    String message = JS('String|Null', '#.message', event);
+    if (message == null) {
+      // Some browsers, including Chrome, fail to provide a proper error
+      // event.
+      message = 'Error spawning worker for $uri';
+    } else {
+      message = 'Error spawning worker for $uri ($message)';
+    }
+    onError(message);
+    return true;
   }
 }
 

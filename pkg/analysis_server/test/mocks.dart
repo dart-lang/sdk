@@ -51,6 +51,22 @@ Future pumpEventQueue([int times = 20]) {
 }
 
 /**
+ * Returns a [Future] that completes when the given [AnalysisServer] finished
+ * all its scheduled tasks.
+ */
+Future waitForServerTasksFinished(AnalysisServer server) {
+  if (server.test_areTasksFinished()) {
+    return new Future.value();
+  }
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
+  return new Future.delayed(Duration.ZERO,
+      () => waitForServerTasksFinished(server));
+}
+
+/**
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {
@@ -202,4 +218,86 @@ class MockAnalysisContext extends Mock implements AnalysisContext {
  */
 class MockSource extends Mock implements Source {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+/**
+ * A [Matcher] that check that the given [Response] has an expected identifier
+ * and no error.
+ */
+Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
+
+/**
+ * A [Matcher] that check that there are no `error` in a given [Response].
+ */
+class _IsResponseSuccess extends Matcher {
+  final String _id;
+
+  _IsResponseSuccess(this._id);
+
+  @override
+  Description describe(Description description) {
+    return description.addDescriptionOf(
+        'response with identifier "$_id" and without error');
+  }
+
+  @override
+  bool matches(item, Map matchState) {
+    Response response = item;
+    return response.id == _id && response.error == null;
+  }
+
+  @override
+  Description describeMismatch(item, Description mismatchDescription,
+                               Map matchState, bool verbose) {
+    Response response = item;
+    var id = response.id;
+    RequestError error = response.error;
+    mismatchDescription.add('has identifier "$id"');
+    if (error != null) {
+      mismatchDescription.add(' and has error $error');
+    }
+    return mismatchDescription;
+  }
+}
+
+
+/**
+ * A [Matcher] that check that the given [Response] has an expected identifier
+ * and has an error.
+ */
+Matcher isResponseFailure(String id) => new _IsResponseFailure(id);
+
+/**
+ * A [Matcher] that check that there are no `error` in a given [Response].
+ */
+class _IsResponseFailure extends Matcher {
+  final String _id;
+
+  _IsResponseFailure(this._id);
+
+  @override
+  Description describe(Description description) {
+    return description.addDescriptionOf(
+        'response with identifier "$_id" and an error');
+  }
+
+  @override
+  bool matches(item, Map matchState) {
+    Response response = item;
+    return response.id == _id && response.error != null;
+  }
+
+  @override
+  Description describeMismatch(item, Description mismatchDescription,
+                               Map matchState, bool verbose) {
+    Response response = item;
+    var id = response.id;
+    RequestError error = response.error;
+    mismatchDescription.add('has identifier "$id"');
+    if (error == null) {
+      mismatchDescription.add(' and has no error');
+    }
+    return mismatchDescription;
+  }
 }

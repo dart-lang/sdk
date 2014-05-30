@@ -40,8 +40,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          1));
 
   __ LoadObject(RBX, ic_data, PP);
-  ExternalLabel target_label(
-      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
+  ExternalLabel target_label(StubCode::OneArgCheckInlineCacheEntryPoint());
   __ CallPatchable(&target_label);
   __ ret();
 }

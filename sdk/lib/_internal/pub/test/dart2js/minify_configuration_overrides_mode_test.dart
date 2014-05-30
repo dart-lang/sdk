@@ -15,13 +15,8 @@ main() {
         "transformers": [{
           "\$dart2js": {"minify": true}
         }]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])])
+      })
     ]).create();
-
-    createLockFile('myapp', pkg: ['barback']);
 
     pubServe();
     requestShouldSucceed("main.dart.js", isMinifiedDart2JSOutput);

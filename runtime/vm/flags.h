@@ -36,8 +36,10 @@ namespace dart {
 
 typedef void (*FlagHandler)(bool value);
 
-// Forward declaration.
+// Forward declarations.
 class Flag;
+class JSONArray;
+class JSONStream;
 
 class Flags {
  public:
@@ -68,16 +70,30 @@ class Flags {
 
   static bool Initialized() { return initialized_; }
 
+  static void PrintJSON(JSONStream* js);
+
+  static bool SetFlag(const char* name,
+                      const char* value,
+                      const char** error);
+
  private:
-  static Flag* flags_;
+  static Flag** flags_;
+  static intptr_t capacity_;
+  static intptr_t num_flags_;
 
   static bool initialized_;
+
+  static void AddFlag(Flag* flag);
+
+  static bool SetFlagFromString(Flag* flag, const char* argument);
 
   static void Parse(const char* option);
 
   static int CompareFlagNames(const void* left, const void* right);
 
   static void PrintFlags();
+
+  static void PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag);
 
   // Testing needs direct access to private methods.
   friend void Dart_TestParseFlags();

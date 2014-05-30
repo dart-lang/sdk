@@ -31,6 +31,18 @@ void main() {
       expect(scanner.position, equals(0));
     });
 
+    test("readChar fails and doesn't change the state", () {
+      expect(scanner.readChar, throwsFormatException);
+      expect(scanner.lastMatch, isNull);
+      expect(scanner.position, equals(0));
+    });
+
+    test("peekChar returns null and doesn't change the state", () {
+      expect(scanner.peekChar(), isNull);
+      expect(scanner.lastMatch, isNull);
+      expect(scanner.position, equals(0));
+    });
+
     test("scan returns false and doesn't change the state", () {
       expect(scanner.scan(new RegExp('.')), isFalse);
       expect(scanner.lastMatch, isNull);
@@ -82,6 +94,24 @@ void main() {
     });
 
     test('position is zero', () {
+      expect(scanner.position, equals(0));
+    });
+
+    test('readChar returns the first character and moves forward', () {
+      expect(scanner.readChar(), equals(0x66));
+      expect(scanner.lastMatch, isNull);
+      expect(scanner.position, equals(1));
+    });
+
+    test('peekChar returns the first character', () {
+      expect(scanner.peekChar(), equals(0x66));
+      expect(scanner.lastMatch, isNull);
+      expect(scanner.position, equals(0));
+    });
+
+    test('peekChar with an argument returns the nth character', () {
+      expect(scanner.peekChar(4), equals(0x62));
+      expect(scanner.lastMatch, isNull);
       expect(scanner.position, equals(0));
     });
 
@@ -197,6 +227,18 @@ void main() {
     });
 
     test('position is zero', () {
+      expect(scanner.position, equals(7));
+    });
+
+    test("readChar fails and doesn't change the state", () {
+      expect(scanner.readChar, throwsFormatException);
+      expect(scanner.lastMatch, isNotNull);
+      expect(scanner.position, equals(7));
+    });
+
+    test("peekChar returns null and doesn't change the state", () {
+      expect(scanner.peekChar(), isNull);
+      expect(scanner.lastMatch, isNotNull);
       expect(scanner.position, equals(7));
     });
 

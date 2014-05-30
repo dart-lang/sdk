@@ -240,21 +240,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
-static void InstallUnoptimizedCode(const Function& function) {
-  // Disable optimized code.
-  ASSERT(function.HasOptimizedCode());
-  if (FLAG_trace_compiler) {
-    OS::Print("--> patching entry %#" Px "\n",
-              Code::Handle(function.CurrentCode()).EntryPoint());
-  }
-  function.SwitchToUnoptimizedCode();
-  if (FLAG_trace_compiler) {
-    OS::Print("--> restoring entry at %#" Px "\n",
-              Code::Handle(function.unoptimized_code()).EntryPoint());
-  }
-}
-
-
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized,
@@ -772,19 +757,12 @@ static RawError* CompileFunctionHelper(const Function& function,
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJumpScope jump;
-  // Make sure unoptimized code is not collected while we are compiling.
-  const Code& unoptimized_code = Code::ZoneHandle(function.unoptimized_code());
-  // Skips parsing if we need to only install unoptimized code.
-  if (!optimized && !unoptimized_code.IsNull()) {
-    InstallUnoptimizedCode(function);
-    return Error::null();
-  }
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function =
-        new ParsedFunction(Function::ZoneHandle(function.raw()));
+    ParsedFunction* parsed_function = new ParsedFunction(
+        isolate, Function::ZoneHandle(isolate, function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
@@ -976,7 +954,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants
     // here.
-    ParsedFunction* parsed_function = new ParsedFunction(func);
+    ParsedFunction* parsed_function = new ParsedFunction(isolate, func);
     parsed_function->SetNodeSequence(fragment);
     parsed_function->set_default_parameter_values(Object::null_array());
     parsed_function->EnsureExpressionTemp();

@@ -982,6 +982,16 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
  * Describe whether isolates are allowed to migrate. */
 
 /**
+ * Notifies the VM that the current isolate is about to make a blocking call.
+ */
+DART_EXPORT void Dart_IsolateBlocked();
+
+/**
+ * Notifies the VM that the current isolate is no longer blocked.
+ */
+DART_EXPORT void Dart_IsolateUnblocked();
+
+/**
  * Exits an isolate. After this call, Dart_CurrentIsolate will
  * return NULL.
  *

@@ -261,7 +261,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -276,7 +277,8 @@ void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
 }
@@ -293,7 +295,8 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Isolate* isolate,
                                                     bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -910,7 +913,8 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 1;
   // TODO(fschneider): Allow immediate operands for the char code.
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -934,7 +938,8 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Isolate* isolate,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -988,7 +993,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -1004,7 +1010,8 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -1098,6 +1105,22 @@ Representation LoadIndexedInstr::representation() const {
 }
 
 
+static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
+  const intptr_t scale = Instance::ElementSizeFor(cid);
+  const int64_t offset = index * scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  if (!Utils::IsInt(32, offset)) {
+    return false;
+  }
+  return Address::CanHoldOffset(static_cast<int32_t>(offset));
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1105,11 +1128,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  // TODO(regis): Revisit and see if the index can be immediate.
-  locs->set_in(1, Location::WritableRegister());
-  if ((representation() == kUnboxedDouble) ||
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+  } else {
+    locs->set_in(1, Location::RequiresRegister());
+  }
+  if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)) {
     locs->set_out(0, Location::RequiresFpuRegister());
@@ -1120,53 +1144,62 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static Address ElementAddressForIntIndex(bool is_external,
+                                         intptr_t cid,
+                                         intptr_t index_scale,
+                                         Register array,
+                                         intptr_t index) {
+  const int64_t offset = index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  ASSERT(Utils::IsInt(32, offset));
+  ASSERT(Address::CanHoldOffset(offset));
+  return Address(array, static_cast<int32_t>(offset));
+}
+
+
+static Address ElementAddressForRegIndex(Assembler* assembler,
+                                         bool is_load,
+                                         bool is_external,
+                                         intptr_t cid,
+                                         intptr_t index_scale,
+                                         Register array,
+                                         Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  ASSERT(array != TMP);
+  ASSERT(index != TMP);
+  const Register base = is_load ? TMP : index;
+  if (shift < 0) {
+    ASSERT(shift == -1);
+    assembler->sra(TMP, index, 1);
+    assembler->addu(base, array, TMP);
+  } else if (shift == 0) {
+    assembler->addu(base, array, index);
+  } else {
+    assembler->sll(TMP, index, shift);
+    assembler->addu(base, array, TMP);
+  }
+  ASSERT(Address::CanHoldOffset(offset));
+  return Address(base, offset);
+}
+
+
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("LoadIndexedInstr");
-  Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  // The array register points to the backing store for external arrays.
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-  // index is expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale()) {
-    case 1: {
-      __ SmiUntag(index.reg());
-      break;
-    }
-    case 2: {
-      break;
-    }
-    case 4: {
-      __ sll(index.reg(), index.reg(), 1);
-      break;
-    }
-    case 8: {
-      __ sll(index.reg(), index.reg(), 2);
-      break;
-    }
-    case 16: {
-      __ sll(index.reg(), index.reg(), 3);
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-  __ addu(index.reg(), array, index.reg());
-
-  if (IsExternal()) {
-    element_address = Address(index.reg(), 0);
-  } else {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    // If the data offset doesn't fit into the 18 bits we get for the addressing
-    // mode, then we must load the offset into a register and add it to the
-    // index.
-    element_address = Address(index.reg(),
-        Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
+  Address element_address = index.IsRegister()
+      ? ElementAddressForRegIndex(compiler->assembler(),
+                                  true,  // Load.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, index.reg())
+      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value());
+  // Warning: element_address may use register TMP as base.
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
@@ -1185,8 +1218,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ lwc1(EvenFRegisterOf(result), element_address);
         break;
       case kTypedDataFloat64ArrayCid:
-        __ LoadDFromOffset(result, index.reg(),
-            Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
+        __ LoadDFromOffset(result,
+                           element_address.base(), element_address.offset());
         break;
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
@@ -1196,7 +1229,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  Register result = locs()->out(0).reg();
+  const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
       ASSERT(index_scale() == 1);
@@ -1290,10 +1323,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  // TODO(regis): Revisit and see if the index can be immediate.
-  locs->set_in(1, Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+  } else {
+    locs->set_in(1, Location::WritableRegister());
+  }
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
@@ -1310,13 +1344,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      locs->set_in(2, Location::WritableRegister());
+      locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
-      // TODO(regis): Verify.
-      // Need temp register for float-to-double conversion.
-      locs->AddTemp(Location::RequiresFpuRegister());
-      // Fall through.
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
@@ -1332,47 +1362,17 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("StoreIndexedInstr");
-  Register array = locs()->in(0).reg();
-  Location index = locs()->in(1);
+  // The array register points to the backing store for external arrays.
+  const Register array = locs()->in(0).reg();
+  const Location index = locs()->in(1);
 
-  Address element_address(kNoRegister, 0);
-  ASSERT(index.IsRegister());  // TODO(regis): Revisit.
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
-  // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
-  // index is expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale()) {
-    case 1: {
-      __ SmiUntag(index.reg());
-      break;
-    }
-    case 2: {
-      break;
-    }
-    case 4: {
-      __ sll(index.reg(), index.reg(), 1);
-      break;
-    }
-    case 8: {
-      __ sll(index.reg(), index.reg(), 2);
-      break;
-    }
-    case 16: {
-      __ sll(index.reg(), index.reg(), 3);
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-  __ addu(index.reg(), array, index.reg());
-
-  if (IsExternal()) {
-    element_address = Address(index.reg(), 0);
-  } else {
-    ASSERT(this->array()->definition()->representation() == kTagged);
-    element_address = Address(index.reg(),
-        Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
-  }
+  Address element_address = index.IsRegister()
+      ? ElementAddressForRegIndex(compiler->assembler(),
+                                  false,  // Store.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, index.reg())
+      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:
@@ -1397,8 +1397,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ sb(TMP, element_address);
       } else {
         Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ sb(value, element_address);
+        __ SmiUntag(TMP, value);
+        __ sb(TMP, element_address);
       }
       break;
     }
@@ -1418,22 +1418,21 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else {
         Register value = locs()->in(2).reg();
         Label store_value, bigger, smaller;
-        __ SmiUntag(value);
-        __ BranchUnsignedLess(value, 0xFF + 1, &store_value);
+        __ SmiUntag(TMP, value);
+        __ BranchUnsignedLess(TMP, 0xFF + 1, &store_value);
         __ LoadImmediate(TMP, 0xFF);
         __ slti(CMPRES1, value, Immediate(1));
         __ movn(TMP, ZR, CMPRES1);
-        __ mov(value, TMP);
         __ Bind(&store_value);
-        __ sb(value, element_address);
+        __ sb(TMP, element_address);
       }
       break;
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
       Register value = locs()->in(2).reg();
-      __ SmiUntag(value);
-      __ sh(value, element_address);
+      __ SmiUntag(TMP, value);
+      __ sh(TMP, element_address);
       break;
     }
     case kTypedDataInt32ArrayCid:
@@ -1441,8 +1440,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (value()->IsSmiValue()) {
         ASSERT(RequiredInputRepresentation(2) == kTagged);
         Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ sw(value, element_address);
+        __ SmiUntag(TMP, value);
+        __ sw(TMP, element_address);
       } else {
         UNIMPLEMENTED();
       }
@@ -1454,8 +1453,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat64ArrayCid:
-      __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
-          Instance::DataOffsetFor(class_id()) - kHeapObjectTag);
+      __ StoreDToOffset(locs()->in(2).fpu_reg(),
+                        element_address.base(), element_address.offset());
       break;
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
@@ -1807,7 +1806,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     __ Bind(entry_label());
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(cls_));
-    const ExternalLabel label(cls_.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2213,7 +2212,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     const Class& double_class = compiler->double_class();
     const Code& stub =
         Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-    const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+    const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out(0));
@@ -2464,8 +2463,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ TraceSimMsg("AllocateContextInstr");
   __ LoadImmediate(temp, num_context_variables());
-  const ExternalLabel label("alloc_context",
-                            StubCode::AllocateContextEntryPoint());
+  const ExternalLabel label(StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,
@@ -2705,7 +2703,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ BranchUnsignedGreaterEqual(
             right, reinterpret_cast<int32_t>(Smi::New(max_right)), deopt);
       }
-      __ sra(TMP, right, kSmiTagMask);  // SmiUntag right into TMP.
+      __ SmiUntag(TMP, right);
       __ sllv(result, left, TMP);
     }
     return;
@@ -2744,7 +2742,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Left is not a constant.
     Register temp = locs.temp(0).reg();
     // Check if count too large for handling it inlined.
-    __ sra(temp, right, kSmiTagSize);  // SmiUntag right into temp.
+    __ SmiUntag(temp, right);
     // Overflow test (preserve left, right, and temp);
     __ sllv(CMPRES1, left, temp);
     __ srav(CMPRES1, CMPRES1, temp);
@@ -3015,8 +3013,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ beq(right, ZR, deopt);
       }
       Register temp = locs()->temp(0).reg();
-      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
       __ div(temp, TMP);
       __ mflo(result);
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
@@ -3031,8 +3029,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ beq(right, ZR, deopt);
       }
       Register temp = locs()->temp(0).reg();
-      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ SmiUntag(temp, left);
+      __ SmiUntag(TMP, right);
       __ div(temp, TMP);
       __ mfhi(result);
       //  res = left % right;
@@ -3068,7 +3066,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (CanDeoptimize()) {
         __ bltz(right, deopt);
       }
-      __ sra(temp, right, kSmiTagSize);  // SmiUntag right into temp.
+      __ SmiUntag(temp, right);
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       if ((right_range == NULL) ||
@@ -3079,7 +3077,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ Bind(&ok);
       }
 
-      __ sra(CMPRES1, left, kSmiTagSize);  // SmiUntag left into CMPRES1.
+      __ SmiUntag(CMPRES1, left);
       __ srav(result, CMPRES1, temp);
       __ SmiTag(result);
       break;
@@ -3174,14 +3172,10 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const bool needs_writable_input = (value_cid == kSmiCid);
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, needs_writable_input
-                     ? Location::WritableRegister()
-                     : Location::RequiresRegister());
+  summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
@@ -3196,8 +3190,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (value_cid == kDoubleCid) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
   } else if (value_cid == kSmiCid) {
-    __ SmiUntag(value);  // Untag input before conversion.
-    __ mtc1(value, STMP1);
+    __ SmiUntag(TMP, value);
+    __ mtc1(TMP, STMP1);
     __ cvtdw(result, STMP1);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3219,8 +3213,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Double::value_offset() - kHeapObjectTag);
       __ b(&done);
       __ Bind(&is_smi);
-      // TODO(regis): Why do we preserve value here but not above?
-      __ sra(TMP, value, 1);
+      __ SmiUntag(TMP, value);
       __ mtc1(TMP, STMP1);
       __ cvtdw(result, STMP1);
       __ Bind(&done);
@@ -3883,7 +3876,7 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  result->set_in(0, Location::WritableRegister());
+  result->set_in(0, Location::RequiresRegister());
   result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
@@ -3892,8 +3885,8 @@ LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
-  __ SmiUntag(value);
-  __ mtc1(value, STMP1);
+  __ SmiUntag(TMP, value);
+  __ mtc1(TMP, STMP1);
   __ cvtdw(result, STMP1);
 }
 
@@ -4251,8 +4244,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Handle divide by zero in runtime.
       __ beq(right, ZR, deopt);
     }
-    __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
-    __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    __ SmiUntag(temp, left);
+    __ SmiUntag(TMP, right);
     __ div(temp, TMP);
     __ mflo(result_div);
     __ mfhi(result_mod);
@@ -4629,7 +4622,8 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
-  return LocationSummary::Make(0,
+  return LocationSummary::Make(isolate,
+                               0,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -4725,7 +4719,8 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary(Isolate* isolate,
                                                          bool opt) const {
-  return LocationSummary::Make(1,
+  return LocationSummary::Make(isolate,
+                               1,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -4752,7 +4747,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("AllocateObjectInstr");
   __ Comment("AllocateObjectInstr");
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls()));
-  const ExternalLabel label(cls().ToCString(), stub.EntryPoint());
+  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
                          PcDescriptors::kOther,

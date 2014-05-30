@@ -542,6 +542,18 @@ class CObjectExternalUint8Array : public CObject {
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
 
+
+class ScopedBlockingCall {
+ public:
+  ScopedBlockingCall() {
+    Dart_IsolateBlocked();
+  }
+
+  ~ScopedBlockingCall() {
+    Dart_IsolateUnblocked();
+  }
+};
+
 }  // namespace bin
 }  // namespace dart
 

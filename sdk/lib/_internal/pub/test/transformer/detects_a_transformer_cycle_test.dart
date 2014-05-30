@@ -10,37 +10,39 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("detects a transformer cycle", () {
-    d.dir("foo", [
-      d.pubspec({
-        "name": "foo",
-        "version": "1.0.0",
-        "transformers": ["myapp/transformer"],
-        "dependencies": {'myapp': {'path': '../myapp'}}
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", dartTransformer('foo')),
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("detects a transformer cycle", () {
+      d.dir("foo", [
+        d.pubspec({
+          "name": "foo",
+          "version": "1.0.0",
+          "transformers": ["myapp/transformer"],
+          "dependencies": {'myapp': {'path': '../myapp'}}
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", dartTransformer('foo')),
+        ])
+      ]).create();
 
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["foo/transformer"],
-        "dependencies": {'foo': {'path': '../foo'}}
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", dartTransformer('myapp')),
-      ])
-    ]).create();
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["foo/transformer"],
+          "dependencies": {'foo': {'path': '../foo'}}
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", dartTransformer('myapp')),
+        ])
+      ]).create();
 
-    createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
+      createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
-    var process = startPubServe();
-    process.shouldExit(1);
-    process.stderr.expect(emitsLines(
-        "Transformer cycle detected:\n"
-        "  foo is transformed by myapp/transformer\n"
-        "  myapp is transformed by foo/transformer"));
+      var process = startPubServe();
+      process.shouldExit(1);
+      process.stderr.expect(emitsLines(
+          "Transformer cycle detected:\n"
+          "  foo is transformed by myapp/transformer\n"
+          "  myapp is transformed by foo/transformer"));
+    });
   });
 }

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_context.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
 
 /**
  * Instances of the class [SocketServer] implement the common parts of
@@ -37,7 +38,9 @@ class SocketServer {
       });
       return;
     }
-    analysisServer = new AnalysisServer(serverChannel);
+    analysisServer = new AnalysisServer(
+        serverChannel,
+        PhysicalResourceProvider.INSTANCE);
     _initializeHandlers(analysisServer);
   }
 

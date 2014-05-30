@@ -14,7 +14,7 @@ class CheckedModeHelper {
   jsAst.Expression generateCall(SsaCodeGenerator codegen,
                                 HTypeConversion node) {
     Element helperElement = getElement(codegen.compiler);
-    codegen.world.registerStaticUse(helperElement);
+    codegen.registry.registerStaticUse(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     codegen.use(node.checkedInput);
     arguments.add(codegen.pop());

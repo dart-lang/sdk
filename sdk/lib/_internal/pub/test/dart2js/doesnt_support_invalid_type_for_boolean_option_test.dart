@@ -18,20 +18,15 @@ main() {
           }
         }]
       }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])]),
       d.dir("web", [d.file("main.dart", "void main() {}")])
     ]).create();
-
-    createLockFile('myapp', pkg: ['barback']);
 
     var server = pubServe();
     requestShould404("main.dart.js");
     server.stderr.expect(emitsLines(
         'Build error:\n'
         'Transform Dart2JS on myapp|web/main.dart threw error: '
-            'FormatException: Invalid value for \$dart2js.checked: "foo" '
+            'Invalid value for \$dart2js.checked: "foo" '
             '(expected true or false).'));
     endPubServe();
   });

@@ -28,7 +28,10 @@ main() {
 
   void validate404(xhr) {
     expect(xhr.status, equals(404));
-    expect(xhr.responseText, equals(''));
+    // We cannot say much about xhr.responseText, most HTTP servers will
+    // include an HTML page explaining the error to a human.
+    String responseText = xhr.responseText;
+    expect(responseText, isNotNull);
   }
 
   group('supported_onProgress', () {

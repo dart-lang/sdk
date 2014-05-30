@@ -18,6 +18,9 @@
 
 namespace dart {
 
+// This flag is used in the Service_Flags test below.
+DEFINE_FLAG(bool, service_testing_flag, false, "Comment");
+
 class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
@@ -87,11 +90,20 @@ class ServiceTestMessageHandler : public MessageHandler {
 
 
 static RawInstance* Eval(Dart_Handle lib, const char* expr) {
-  Dart_Handle result = Dart_EvaluateExpr(lib, NewString(expr));
-  EXPECT_VALID(result);
+  Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
+  EXPECT_VALID(expr_val);
   Isolate* isolate = Isolate::Current();
-  const Instance& instance = Api::UnwrapInstanceHandle(isolate, result);
-  return instance.raw();
+  const GrowableObjectArray& value =
+      Api::UnwrapGrowableObjectArrayHandle(isolate, expr_val);
+  const Array& result = Array::Handle(Array::MakeArray(value));
+  GrowableObjectArray& growable = GrowableObjectArray::Handle();
+  growable ^= result.At(3);
+  Array& array = Array::Handle(Array::MakeArray(growable));
+  result.SetAt(3, array);
+  growable ^= result.At(4);
+  array = Array::MakeArray(growable);
+  result.SetAt(4, array);
+  return result.raw();
 }
 
 
@@ -172,7 +184,7 @@ TEST_CASE(Service_Isolate) {
   Instance& service_msg = Instance::Handle();
 
   // Get the isolate summary.
-  service_msg = Eval(lib, "[port, [], [], []]");
+  service_msg = Eval(lib, "[0, port, [], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
 
@@ -227,7 +239,7 @@ TEST_CASE(Service_StackTrace) {
   Instance& service_msg = Instance::Handle();
 
   // Get the stacktrace.
-  service_msg = Eval(lib, "[port, ['stacktrace'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['stacktrace'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -235,7 +247,7 @@ TEST_CASE(Service_StackTrace) {
       handler.msg());
 
   // Malformed request.
-  service_msg = Eval(lib, "[port, ['stacktrace', 'jamboree'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['stacktrace', 'jamboree'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -271,7 +283,7 @@ TEST_CASE(Service_DebugBreakpoints) {
   isolate->debugger()->SetBreakpointAtLine(url, 3);
 
   // Get the breakpoint list.
-  service_msg = Eval(lib, "[port, ['debug', 'breakpoints'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -283,7 +295,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       handler.msg());
 
   // Individual breakpoint.
-  service_msg = Eval(lib, "[port, ['debug', 'breakpoints', '1'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints', '1'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -294,7 +306,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       handler.msg());
 
   // Missing sub-command.
-  service_msg = Eval(lib, "[port, ['debug'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['debug'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -305,7 +317,8 @@ TEST_CASE(Service_DebugBreakpoints) {
       handler.msg());
 
   // Unrecognized breakpoint.
-  service_msg = Eval(lib, "[port, ['debug', 'breakpoints', '1111'], [], []]");
+  service_msg = Eval(lib,
+                     "[0, port, ['debug', 'breakpoints', '1111'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
@@ -317,7 +330,7 @@ TEST_CASE(Service_DebugBreakpoints) {
 
   // Command too long.
   service_msg =
-      Eval(lib, "[port, ['debug', 'breakpoints', '1111', 'green'], [], []]");
+      Eval(lib, "[0, port, ['debug', 'breakpoints', '1111', 'green'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
@@ -328,7 +341,7 @@ TEST_CASE(Service_DebugBreakpoints) {
                handler.msg());
 
   // Unrecognized subcommand.
-  service_msg = Eval(lib, "[port, ['debug', 'nosferatu'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['debug', 'nosferatu'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
@@ -374,7 +387,7 @@ TEST_CASE(Service_Objects) {
   Instance& service_msg = Instance::Handle();
 
   // null
-  service_msg = Eval(lib, "[port, ['objects', 'null'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'null'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -384,7 +397,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // not initialized
-  service_msg = Eval(lib, "[port, ['objects', 'not-initialized'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'not-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -394,7 +407,8 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // being initialized
-  service_msg = Eval(lib, "[port, ['objects', 'being-initialized'], [], []]");
+  service_msg = Eval(lib,
+                     "[0, port, ['objects', 'being-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -404,7 +418,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // optimized out
-  service_msg = Eval(lib, "[port, ['objects', 'optimized-out'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'optimized-out'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -414,7 +428,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // collected
-  service_msg = Eval(lib, "[port, ['objects', 'collected'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'collected'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -424,7 +438,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // expired
-  service_msg = Eval(lib, "[port, ['objects', 'expired'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'expired'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -434,7 +448,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // bool
-  service_msg = Eval(lib, "[port, ['objects', 'bool-true'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'bool-true'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -445,7 +459,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // int
-  service_msg = Eval(lib, "[port, ['objects', 'int-123'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'int-123'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -459,7 +473,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // object id ring / valid
-  service_msg = Eval(lib, "[port, ['objects', '$validId'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', '$validId'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -478,7 +492,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // object id ring / invalid => expired
-  service_msg = Eval(lib, "[port, ['objects', '99999999'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', '99999999'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -488,7 +502,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // expired/eval => error
-  service_msg = Eval(lib, "[port, ['objects', 'expired', 'eval'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['objects', 'expired', 'eval'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -501,7 +515,7 @@ TEST_CASE(Service_Objects) {
 
   // int/eval => good
   service_msg = Eval(lib,
-                     "[port, ['objects', 'int-123', 'eval'], "
+                     "[0, port, ['objects', 'int-123', 'eval'], "
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -516,7 +530,7 @@ TEST_CASE(Service_Objects) {
 
   // eval returning null works
   service_msg = Eval(lib,
-                     "[port, ['objects', 'int-123', 'eval'], "
+                     "[0, port, ['objects', 'int-123', 'eval'], "
                      "['expr'], ['null']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -527,7 +541,7 @@ TEST_CASE(Service_Objects) {
       handler.msg());
 
   // object id ring / invalid => expired
-  service_msg = Eval(lib, "[port, ['objects', '99999999', 'eval'], "
+  service_msg = Eval(lib, "[0, port, ['objects', '99999999', 'eval'], "
                      "['expr'], ['this']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -541,7 +555,7 @@ TEST_CASE(Service_Objects) {
 
   // Extra arg to eval.
   service_msg = Eval(lib,
-                     "[port, ['objects', 'int-123', 'eval', 'foo'], "
+                     "[0, port, ['objects', 'int-123', 'eval', 'foo'], "
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -555,7 +569,7 @@ TEST_CASE(Service_Objects) {
 
   // Retained by single instance.
   service_msg = Eval(lib,
-                     "[port, ['objects', '$validId', 'retained'], [], []]");
+                     "[0, port, ['objects', '$validId', 'retained'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -566,7 +580,7 @@ TEST_CASE(Service_Objects) {
   // Retaining path to 'arr', limit 1.
   service_msg = Eval(
       lib,
-      "[port, ['objects', '$validId', 'retaining_path'], ['limit'], ['1']]");
+      "[0, port, ['objects', '$validId', 'retaining_path'], ['limit'], ['1']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(
@@ -577,7 +591,7 @@ TEST_CASE(Service_Objects) {
   // Retaining path missing limit.
   service_msg = Eval(
       lib,
-      "[port, ['objects', '$validId', 'retaining_path'], [], []]");
+      "[0, port, ['objects', '$validId', 'retaining_path'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(), "{\"type\":\"Error\"");
@@ -587,7 +601,7 @@ TEST_CASE(Service_Objects) {
   internal_object = LiteralToken::New();
   arr.SetAt(0, internal_object);
   service_msg = Eval(lib,
-                     "[port, ['objects', '$validId', 'eval'], "
+                     "[0, port, ['objects', '$validId', 'eval'], "
                      "['expr'], ['toString()']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -635,7 +649,7 @@ TEST_CASE(Service_Libraries) {
 
   // Request library.
   service_msg = EvalF(h_lib,
-                      "[port, ['libraries', '%" Pd "'], [], []]", lib_id);
+                      "[0, port, ['libraries', '%" Pd "'], [], []]", lib_id);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Library\"", handler.msg());
@@ -643,7 +657,7 @@ TEST_CASE(Service_Libraries) {
 
   // Evaluate an expression from a library.
   service_msg = EvalF(h_lib,
-                      "[port, ['libraries', '%" Pd "', 'eval'], "
+                      "[0, port, ['libraries', '%" Pd "', 'eval'], "
                       "['expr'], ['libVar - 1']]", lib_id);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -700,7 +714,7 @@ TEST_CASE(Service_Classes) {
   Instance& service_msg = Instance::Handle();
 
   // Request an invalid class id.
-  service_msg = Eval(h_lib, "[port, ['classes', '999999'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['classes', '999999'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -710,7 +724,7 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
   // Request the class A over the service.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
@@ -719,7 +733,7 @@ TEST_CASE(Service_Classes) {
 
   // Evaluate an expression from class A.
   service_msg = EvalF(h_lib,
-                      "[port, ['classes', '%" Pd "', 'eval'], "
+                      "[0, port, ['classes', '%" Pd "', 'eval'], "
                       "['expr'], ['cobra + 100000']]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -733,8 +747,9 @@ TEST_CASE(Service_Classes) {
       handler.msg());
 
   // Request function 0 from class A.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '0'],"
-                              "[], []]", cid);
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['classes', '%" Pd "', 'functions', '0'],"
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
@@ -743,7 +758,7 @@ TEST_CASE(Service_Classes) {
                    "\"name\":\"get:a\",", cid);
 
   // Request field 0 from class A.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '0'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'fields', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -753,7 +768,7 @@ TEST_CASE(Service_Classes) {
                    "\"name\":\"a\",", cid);
 
   // Invalid sub command.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'huh', '0'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'huh', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -764,7 +779,7 @@ TEST_CASE(Service_Classes) {
     "\"option_values\":[]}}", cid);
 
   // Invalid field request.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '9'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'fields', '9'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -774,8 +789,9 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9'],"
-                              "[], []]", cid);
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['classes', '%" Pd "', 'functions', '9'],"
+                    "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -785,8 +801,9 @@ TEST_CASE(Service_Classes) {
 
 
   // Invalid field subcommand.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '9', 'x']"
-                             ",[], []]", cid);
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['classes', '%" Pd "', 'fields', '9', 'x']"
+                      ",[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -796,8 +813,9 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9',"
-                             "'x'], [], []]", cid);
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['classes', '%" Pd "', 'functions', '9',"
+                      "'x'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -811,7 +829,7 @@ TEST_CASE(Service_Classes) {
   EXPECT(!class_b.IsNull());
   const Instance& b0 = Instance::Handle(Instance::New(class_b));
   const Instance& b1 = Instance::Handle(Instance::New(class_b));
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'retained'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'retained'],"
                       "[], []]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -853,7 +871,7 @@ TEST_CASE(Service_Types) {
   Instance& service_msg = Instance::Handle();
 
   // Request the class A over the service.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
@@ -862,7 +880,7 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\"", cid);
 
   // Request canonical type 0 from class A.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '0'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -872,7 +890,7 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\\/types\\/0\"", cid);
 
   // Request canonical type 1 from class A.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '1'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '1'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -882,7 +900,7 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\\/types\\/1\"", cid);
 
   // Request for non-existent canonical type from class A.
-  service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'types', '42'],"
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '42'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -894,7 +912,7 @@ TEST_CASE(Service_Types) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Request canonical type arguments. Expect <A<bool>> to be listed.
-  service_msg = EvalF(h_lib, "[port, ['typearguments'],"
+  service_msg = EvalF(h_lib, "[0, port, ['typearguments'],"
                               "[], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -902,8 +920,9 @@ TEST_CASE(Service_Types) {
   ExpectSubstringF(handler.msg(), "\"name\":\"<A<bool>>\",");
 
   // Request canonical type arguments with instantiations.
-  service_msg = EvalF(h_lib, "[port, ['typearguments', 'withinstantiations'],"
-                              "[], []]");
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['typearguments', 'withinstantiations'],"
+                      "[], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
@@ -958,7 +977,7 @@ TEST_CASE(Service_Code) {
   Instance& service_msg = Instance::Handle();
 
   // Request an invalid code object.
-  service_msg = Eval(h_lib, "[port, ['code', '0'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['code', '0'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -968,7 +987,7 @@ TEST_CASE(Service_Code) {
 
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp,
                       entry);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -987,7 +1006,7 @@ TEST_CASE(Service_Code) {
   // Request code object at compile_timestamp-code.EntryPoint() + 16
   // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp,
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1006,7 +1025,7 @@ TEST_CASE(Service_Code) {
   // Request code object at (compile_timestamp - 1)-code.EntryPoint()
   // Expect this to fail because the timestamp is wrong.
   address = entry;
-  service_msg = EvalF(h_lib, "[port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp - 1,
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1024,7 +1043,7 @@ TEST_CASE(Service_Code) {
 
   // Request native code at address. Expect the null code object back.
   address = last;
-  service_msg = EvalF(h_lib, "[port, ['code', 'native-%" Px "'], [], []]",
+  service_msg = EvalF(h_lib, "[0, port, ['code', 'native-%" Px "'], [], []]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1033,7 +1052,7 @@ TEST_CASE(Service_Code) {
                handler.msg());
 
   // Request malformed native code.
-  service_msg = EvalF(h_lib, "[port, ['code', 'native%" Px "'], [], []]",
+  service_msg = EvalF(h_lib, "[0, port, ['code', 'native%" Px "'], [], []]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1060,15 +1079,65 @@ TEST_CASE(Service_VM) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['vm'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['vm'], [], []]");
 
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"VM\",\"id\":\"vm\"", handler.msg());
-  EXPECT_SUBSTRING("\"architecture\"", handler.msg());
+  EXPECT_SUBSTRING("\"targetCPU\"", handler.msg());
+  EXPECT_SUBSTRING("\"hostCPU\"", handler.msg());
   EXPECT_SUBSTRING("\"version\"", handler.msg());
   EXPECT_SUBSTRING("\"uptime\"", handler.msg());
   EXPECT_SUBSTRING("\"isolates\"", handler.msg());
+}
+
+
+TEST_CASE(Service_Flags) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+  service_msg = Eval(lib, "[0, port, ['flags'], [], []]");
+
+  // Make sure we can get the FlagList.
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"FlagList\",\"id\":\"flags\"", handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"service_testing_flag\",\"comment\":\"Comment\","
+      "\"flagType\":\"bool\",\"valueAsString\":\"false\"",
+      handler.msg());
+
+  // Modify a flag through the vm service.
+  service_msg = Eval(lib,
+                     "[0, port, ['flags', 'set'], "
+                     "['name', 'value'], ['service_testing_flag', 'true']]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING("Success", handler.msg());
+
+  // Make sure that the flag changed.
+  service_msg = Eval(lib, "[0, port, ['flags'], [], []]");
+  Service::HandleRootMessage(service_msg);
+  handler.HandleNextMessage();
+  EXPECT_SUBSTRING(
+      "\"name\":\"service_testing_flag\",\"comment\":\"Comment\","
+      "\"flagType\":\"bool\",\"valueAsString\":\"true\"",
+      handler.msg());
 }
 
 
@@ -1091,7 +1160,7 @@ TEST_CASE(Service_Scripts) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(h_lib, "[port, ['scripts', 'test-lib'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['scripts', 'test-lib'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -1134,7 +1203,7 @@ TEST_CASE(Service_Coverage) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(h_lib, "[port, ['coverage'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['coverage'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING(
@@ -1175,46 +1244,48 @@ TEST_CASE(Service_AllocationProfile) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(h_lib, "[port, ['allocationprofile'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['allocationprofile'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Too long.
-  service_msg = Eval(h_lib, "[port, ['allocationprofile', 'foo'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['allocationprofile', 'foo'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Bad gc option.
-  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['cat']]");
+  service_msg = Eval(h_lib,
+                     "[0, port, ['allocationprofile'], ['gc'], ['cat']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Bad reset option.
-  service_msg = Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['ff']]");
+  service_msg = Eval(h_lib,
+                     "[0, port, ['allocationprofile'], ['reset'], ['ff']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Good reset.
   service_msg =
-      Eval(h_lib, "[port, ['allocationprofile'], ['reset'], ['true']]");
+      Eval(h_lib, "[0, port, ['allocationprofile'], ['reset'], ['true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC.
   service_msg =
-      Eval(h_lib, "[port, ['allocationprofile'], ['gc'], ['full']]");
+      Eval(h_lib, "[0, port, ['allocationprofile'], ['gc'], ['full']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC and reset.
   service_msg = Eval(h_lib,
-      "[port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
+      "[0, port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
@@ -1240,7 +1311,7 @@ TEST_CASE(Service_HeapMap) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['heapmap'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['heapmap'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"HeapMap\"", handler.msg());
@@ -1275,7 +1346,7 @@ TEST_CASE(Service_Address) {
     uword addr = start_addr + offset;
     char buf[1024];
     OS::SNPrint(buf, sizeof(buf),
-                "[port, ['address', '%" Px "'], [], []]", addr);
+                "[0, port, ['address', '%" Px "'], [], []]", addr);
     service_msg = Eval(lib, buf);
     Service::HandleIsolateMessage(isolate, service_msg);
     handler.HandleNextMessage();
@@ -1283,7 +1354,7 @@ TEST_CASE(Service_Address) {
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.
-  service_msg = Eval(lib, "[port, ['address', '7'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['address', '7'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // TODO(turnidge): Should this be a ServiceException instead?
@@ -1345,11 +1416,11 @@ TEST_CASE(Service_EmbedderRootHandler) {
 
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['alpha'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['alpha'], [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("alpha", handler.msg());
-  service_msg = Eval(lib, "[port, ['beta'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['beta'], [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("beta", handler.msg());
@@ -1382,11 +1453,11 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(lib, "[port, ['alpha'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['alpha'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("alpha", handler.msg());
-  service_msg = Eval(lib, "[port, ['beta'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['beta'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("beta", handler.msg());
@@ -1423,19 +1494,19 @@ TEST_CASE(Service_Profile) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Instance& service_msg = Instance::Handle();
-  service_msg = Eval(h_lib, "[port, ['profile'], [], []]");
+  service_msg = Eval(h_lib, "[0, port, ['profile'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
 
-  service_msg = Eval(h_lib, "[port, ['profile'], ['tags'], ['hide']]");
+  service_msg = Eval(h_lib, "[0, port, ['profile'], ['tags'], ['hide']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
 
-  service_msg = Eval(h_lib, "[port, ['profile'], ['tags'], ['hidden']]");
+  service_msg = Eval(h_lib, "[0, port, ['profile'], ['tags'], ['hidden']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.

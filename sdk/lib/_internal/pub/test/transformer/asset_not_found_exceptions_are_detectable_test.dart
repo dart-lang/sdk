@@ -39,31 +39,33 @@ class GetInputTransformer extends Transformer {
 
 main() {
   initConfig();
-  integration("AssetNotFoundExceptions are detectable", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", transformer)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("AssetNotFoundExceptions are detectable", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", transformer)
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    requestShouldSucceed("foo.txt", JSON.encode({
-      "package": "myapp",
-      "path": "nonexistent"
-    }));
-    endPubServe();
+      var server = pubServe();
+      requestShouldSucceed("foo.txt", JSON.encode({
+        "package": "myapp",
+        "path": "nonexistent"
+      }));
+      endPubServe();
 
-    // Since the AssetNotFoundException was caught and handled, the server
-    // shouldn't print any error information for it.
-    server.stderr.expect(isDone);
+      // Since the AssetNotFoundException was caught and handled, the server
+      // shouldn't print any error information for it.
+      server.stderr.expect(isDone);
+    });
   });
 }

@@ -487,7 +487,8 @@ class Isolate : public BaseIsolate {
     return thread_state_;
   }
 
-  void ProfileInterrupt();
+  // Returns the number of sampled threads.
+  intptr_t ProfileInterrupt();
 
   VMTagCounters* vm_tag_counters() {
     return &vm_tag_counters_;

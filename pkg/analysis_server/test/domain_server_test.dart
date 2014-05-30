@@ -7,6 +7,7 @@ library test.domain.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -17,7 +18,8 @@ main() {
 
   setUp(() {
     var serverChannel = new MockServerChannel();
-    server = new AnalysisServer(serverChannel);
+    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    server = new AnalysisServer(serverChannel, resourceProvider);
     handler = new ServerDomainHandler(server);
   });
 
@@ -44,9 +46,7 @@ main() {
             ServerDomainHandler.SUBSCRIPTIONS_PARAMETER,
             ['noSuchService']);
         var response = handler.handleRequest(request);
-        // TODO(scheglov) extract isResponseError(id) matcher
-        expect(response.id, equals('0'));
-        expect(response.error, isNotNull);
+        expect(response, isResponseFailure('0'));
       });
 
       test('success', () {
@@ -56,9 +56,7 @@ main() {
             ServerDomainHandler.SUBSCRIPTIONS_PARAMETER,
             [ServerService.STATUS.name]);
         var response = handler.handleRequest(request);
-        // TODO(scheglov) extract isResponseSuccess(id) matcher
-        expect(response.id, equals('0'));
-        expect(response.error, isNull);
+        expect(response, isResponseSuccess('0'));
         // set of services has been changed
         expect(server.serverServices, contains(ServerService.STATUS));
       });
@@ -69,10 +67,7 @@ main() {
       // send request
       var request = new Request('0', ServerDomainHandler.SHUTDOWN_METHOD);
       var response = handler.handleRequest(request);
-      // TODO(scheglov) extract isResponseSuccess(id) matcher
-      expect(response.toJson(), equals({
-        Response.ID: '0'
-      }));
+      expect(response, isResponseSuccess('0'));
       // server is down
       expect(server.running, isFalse);
     });

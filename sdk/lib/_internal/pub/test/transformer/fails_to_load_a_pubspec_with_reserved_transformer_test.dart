@@ -11,24 +11,26 @@ import '../serve/utils.dart';
 main() {
   initConfig();
 
-  integration("fails to load a pubspec with reserved transformer", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["\$nonexistent"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("fails to load a pubspec with reserved transformer", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["\$nonexistent"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER)
+        ])])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPubServe();
-    pub.stderr.expect(emitsLines(
-        'Error in pubspec for package "myapp" loaded from pubspec.yaml:\n'
-        'Invalid transformer configuration for "transformers.\$nonexistent": '
-            'Unsupported built-in transformer \$nonexistent.'));
-    pub.shouldExit(1);
+      var pub = startPubServe();
+      pub.stderr.expect(emitsLines(
+          'Error in pubspec for package "myapp" loaded from pubspec.yaml:\n'
+          'Invalid transformer configuration for "transformers.\$nonexistent": '
+              'Unsupported built-in transformer \$nonexistent.'));
+      pub.shouldExit(1);
+    });
   });
 }

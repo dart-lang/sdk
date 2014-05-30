@@ -48,28 +48,30 @@ class RewriteTransformer extends Transformer {
 
 main() {
   initConfig();
-  integration("with configuration, only instantiates configurable transformers",
-      () {
-    var configuration = {"param": ["list", "of", "values"]};
+  withBarbackVersions("any", () {
+     integration("with configuration, only instantiates configurable "
+         "transformers", () {
+       var configuration = {"param": ["list", "of", "values"]};
 
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": [{"myapp/src/transformer": configuration}]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", transformer)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+       d.dir(appPath, [
+         d.pubspec({
+           "name": "myapp",
+           "transformers": [{"myapp/src/transformer": configuration}]
+         }),
+         d.dir("lib", [d.dir("src", [
+           d.file("transformer.dart", transformer)
+         ])]),
+         d.dir("web", [
+           d.file("foo.txt", "foo")
+         ])
+       ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+       createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    requestShouldSucceed("foo.json", JSON.encode(configuration));
-    requestShould404("foo.out");
-    endPubServe();
+       var server = pubServe();
+       requestShouldSucceed("foo.json", JSON.encode(configuration));
+       requestShould404("foo.out");
+       endPubServe();
+     });
   });
 }

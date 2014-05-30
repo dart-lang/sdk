@@ -18,6 +18,7 @@ namespace dart {
 namespace bin {
 
 void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
+  ScopedBlockingCall blocker;
   Dart_SetReturnValue(args, Dart_NewInteger(Stdin::ReadByte()));
 }
 

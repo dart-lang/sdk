@@ -9,8 +9,8 @@ namespace dart {
 
 // Notes:
 //
-// The ThreadInterrupter interrupts all registered threads once per
-// interrupt period (default is every millisecond). While the thread is
+// The ThreadInterrupter interrupts all threads actively running isolates once
+// per interrupt period (default is 1 millisecond). While the thread is
 // interrupted, the thread's interrupt callback is invoked. Callbacks cannot
 // rely on being executed on the interrupted thread.
 //
@@ -27,8 +27,8 @@ namespace dart {
 //   * Allocating memory.
 //   * Taking a lock.
 //
-// The ThreadInterrupter has a single monitor (monitor_). This monitor guards
-// access to the list of threads registered to receive interrupts (threads_).
+// The ThreadInterrupter has a single monitor (monitor_). This monitor is used
+// to synchronize startup, shutdown, and waking up from a deep sleep.
 //
 // A thread can only register and unregister itself. Each thread has a heap
 // allocated ThreadState. A thread's ThreadState is lazily allocated the first
@@ -50,6 +50,7 @@ bool ThreadInterrupter::thread_running_ = false;
 ThreadId ThreadInterrupter::interrupter_thread_id_ = Thread::kInvalidThreadId;
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
+intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
 ThreadLocalKey ThreadInterrupter::thread_state_key_ =
     Thread::kUnsetThreadLocalKey;
 
@@ -93,21 +94,31 @@ void ThreadInterrupter::Shutdown() {
       return;
     }
     shutdown_ = true;
+    // Notify.
+    monitor_->Notify();
     ASSERT(initialized_);
     if (FLAG_trace_thread_interrupter) {
       OS::Print("ThreadInterrupter shutting down.\n");
     }
+  }
+#if defined(TARGET_OS_WINDOWS)
+  // On Windows, a thread's exit-code can leak into the process's exit-code,
+  // if exiting 'at same time' as the process ends. By joining with the thread
+  // here, we avoid this race condition.
+  ASSERT(interrupter_thread_id_ != Thread::kInvalidThreadId);
+  Thread::Join(interrupter_thread_id_);
+  interrupter_thread_id_ = Thread::kInvalidThreadId;
+#else
+  // On non-Windows platforms, just wait for the thread interrupter to signal
+  // that it has exited the loop.
+  {
+    MonitorLocker shutdown_ml(monitor_);
     while (thread_running_) {
+      // Wait for thread to exit.
       shutdown_ml.Wait();
     }
-    // Join in the interrupter thread. On Windows, a thread's exit-code can
-    // leak into the process's exit-code, if exiting 'at same time' as the
-    // process ends.
-    if (interrupter_thread_id_ != Thread::kInvalidThreadId) {
-      Thread::Join(interrupter_thread_id_);
-      interrupter_thread_id_ = Thread::kInvalidThreadId;
-    }
   }
+#endif
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter shut down.\n");
   }
@@ -123,6 +134,19 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
   interrupt_period_ = period;
 }
 
+
+void ThreadInterrupter::WakeUp() {
+  ASSERT(initialized_);
+  {
+    MonitorLocker ml(monitor_);
+    if (!InDeepSleep()) {
+      // No need to notify, regularly waking up.
+      return;
+    }
+    // Notify the interrupter to wake it from its deep sleep.
+    ml.Notify();
+  }
+}
 
 // Register the currently running thread for interrupts. If the current thread
 // is already registered, callback and data will be updated.
@@ -220,11 +244,25 @@ void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data) {
 
 class ThreadInterrupterVisitIsolates : public IsolateVisitor {
  public:
-  ThreadInterrupterVisitIsolates() { }
+  ThreadInterrupterVisitIsolates() {
+    profiled_thread_count_ = 0;
+  }
+
   void VisitIsolate(Isolate* isolate) {
     ASSERT(isolate != NULL);
-    isolate->ProfileInterrupt();
+    profiled_thread_count_ += isolate->ProfileInterrupt();
   }
+
+  intptr_t profiled_thread_count() const {
+    return profiled_thread_count_;
+  }
+
+  void set_profiled_thread_count(intptr_t profiled_thread_count) {
+    profiled_thread_count_ = profiled_thread_count;
+  }
+
+ private:
+  intptr_t profiled_thread_count_;
 };
 
 
@@ -242,11 +280,32 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     startup_ml.Notify();
   }
   {
-    MonitorLocker wait_ml(monitor_);
     ThreadInterrupterVisitIsolates visitor;
+    current_wait_time_ = interrupt_period_;
+    MonitorLocker wait_ml(monitor_);
     while (!shutdown_) {
+      intptr_t r = wait_ml.WaitMicros(current_wait_time_);
+
+      if ((r == Monitor::kNotified) && InDeepSleep()) {
+        // Woken up from deep sleep.
+        ASSERT(visitor.profiled_thread_count() == 0);
+        // Return to regular interrupts.
+        current_wait_time_ = interrupt_period_;
+      }
+
+      // Reset count before visiting isolates.
+      visitor.set_profiled_thread_count(0);
       Isolate::VisitIsolates(&visitor);
-      wait_ml.WaitMicros(interrupt_period_);
+
+      if (visitor.profiled_thread_count() == 0) {
+        // No isolates were profiled. In order to reduce unnecessary CPU
+        // load, we will wait until we are notified before attempting to
+        // interrupt again.
+        current_wait_time_ = Monitor::kNoTimeout;
+        continue;
+      }
+
+      ASSERT(current_wait_time_ != Monitor::kNoTimeout);
     }
   }
   if (FLAG_trace_thread_interrupter) {

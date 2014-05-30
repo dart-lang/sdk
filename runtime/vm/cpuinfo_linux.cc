@@ -35,7 +35,8 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "Features";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
-#elif defined(HOST_ARCH_MIPS)
+#elif defined(HOST_ARCH_MIPS) || defined(HOST_ARCH_ARM64)
+// TODO(zra): Verify that these field names are correct for arm64.
   fields_[kCpuInfoProcessor] = "system type";
   fields_[kCpuInfoModel] = "cpu model";
   fields_[kCpuInfoHardware] = "cpu model";

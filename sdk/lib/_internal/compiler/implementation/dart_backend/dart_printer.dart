@@ -474,34 +474,34 @@ class UnaryOperator extends Expression {
 /// This node also represents application of the logical operators && and ||.
 class BinaryOperator extends Expression {
   final Receiver left;
-  final String operatorName;
+  final String operator;
   final Expression right;
 
-  BinaryOperator(this.left, this.operatorName, this.right) {
-    assert(isBinaryOperator(operatorName));
+  BinaryOperator(this.left, this.operator, this.right) {
+    assert(isBinaryOperator(operator));
   }
 }
 
 /// Expression of form `e is T` or `e is! T` or `e as T`.
 class TypeOperator extends Expression {
   final Expression expression;
-  final String operatorName;
+  final String operator;
   final TypeAnnotation type;
 
-  TypeOperator(this.expression, this.operatorName, this.type) {
-    assert(operatorName == 'is'
-        || operatorName == 'as'
-        || operatorName == 'is!');
+  TypeOperator(this.expression, this.operator, this.type) {
+    assert(operator == 'is'
+        || operator == 'as'
+        || operator == 'is!');
   }
 }
 
 class Increment extends Expression {
   final Expression expression;
-  final String operatorName;
+  final String operator;
   final bool isPrefix;
 
-  Increment(this.expression, this.operatorName, this.isPrefix) {
-    assert(operatorName == '++' || operatorName == '--');
+  Increment(this.expression, this.operator, this.isPrefix) {
+    assert(operator == '++' || operator == '--');
     assert(expression.assignable);
   }
 
@@ -518,11 +518,11 @@ class Assignment extends Expression {
                     '+=', '-=', '*=', '/=', '%=', '~/=']);
 
   final Expression left;
-  final String operatorName;
+  final String operator;
   final Expression right;
 
-  Assignment(this.left, this.operatorName, this.right) {
-    assert(_operators.contains(operatorName));
+  Assignment(this.left, this.operator, this.right) {
+    assert(_operators.contains(operator));
     assert(left.assignable);
   }
 }
@@ -547,6 +547,20 @@ bool isUnaryOperator(String op) {
 }
 bool isBinaryOperator(String op) {
   return BINARY_PRECEDENCE.containsKey(op);
+}
+/// True if the given operator can be converted to a compound assignment.
+bool isCompoundableOperator(String op) {
+  switch (BINARY_PRECEDENCE[op]) {
+    case BITWISE_OR:
+    case BITWISE_XOR:
+    case BITWISE_AND:
+    case SHIFT:
+    case ADDITIVE:
+    case MULTIPLICATIVE:
+      return true;
+    default:
+      return false;
+  }
 }
 
 
@@ -838,7 +852,7 @@ class Unparser {
       Receiver operand = e.operand;
       // !(x == y) ==> x != y.
       if (e.operatorName == '!' &&
-          operand is BinaryOperator && operand.operatorName == '==') {
+          operand is BinaryOperator && operand.operator == '==') {
         withPrecedence(EQUALITY, () {
           writeExp(operand.left, RELATIONAL);
           writeOperator('!=');
@@ -847,7 +861,7 @@ class Unparser {
       }
       // !(x is T) ==> x is!T
       else if (e.operatorName == '!' &&
-          operand is TypeOperator && operand.operatorName == 'is') {
+          operand is TypeOperator && operand.operator == 'is') {
         withPrecedence(RELATIONAL, () {
           writeExp(operand.expression, BITWISE_OR, beginStmt: beginStmt);
           write(' is!'); // TODO(asgerf): Minimize use of whitespace.
@@ -861,28 +875,28 @@ class Unparser {
         });
       }
     } else if (e is BinaryOperator) {
-      int precedence = BINARY_PRECEDENCE[e.operatorName];
+      int precedence = BINARY_PRECEDENCE[e.operator];
       withPrecedence(precedence, () {
         // All binary operators are left-associative or non-associative.
         // For each operand, we use either the same precedence level as
         // the current operator, or one higher.
         int deltaLeft = isAssociativeBinaryOperator(precedence) ? 0 : 1;
         writeExp(e.left, precedence + deltaLeft, beginStmt: beginStmt);
-        writeOperator(e.operatorName);
+        writeOperator(e.operator);
         writeExp(e.right, precedence + 1);
       });
     } else if (e is TypeOperator) {
       withPrecedence(RELATIONAL, () {
         writeExp(e.expression, BITWISE_OR, beginStmt: beginStmt);
         write(' ');
-        write(e.operatorName);
+        write(e.operator);
         write(' ');
         writeType(e.type);
       });
     } else if (e is Assignment) {
       withPrecedence(EXPRESSION, () {
         writeExp(e.left, PRIMARY, beginStmt: beginStmt);
-        writeOperator(e.operatorName);
+        writeOperator(e.operator);
         writeExp(e.right, EXPRESSION);
       });
     } else if (e is FieldExpression) {
@@ -940,11 +954,11 @@ class Unparser {
       int precedence = e.isPrefix ? UNARY : POSTFIX_INCREMENT;
       withPrecedence(precedence, () {
         if (e.isPrefix) {
-          write(e.operatorName);
+          write(e.operator);
           writeExp(e.expression, PRIMARY);
         } else {
           writeExp(e.expression, PRIMARY, beginStmt: beginStmt);
-          write(e.operatorName);
+          write(e.operator);
         }
       });
     } else if (e is Throw) {

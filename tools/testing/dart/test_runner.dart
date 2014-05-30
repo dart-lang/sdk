@@ -1941,25 +1941,8 @@ class RunningProcess {
 }
 
 class BatchRunnerProcess {
-  static bool isWindows = io.Platform.operatingSystem == 'windows';
-
-  final batchRunnerTypes = {
-      'dartanalyzer' : {
-        'run_executable' :
-           isWindows ?
-             'sdk\\bin\\dartanalyzer_developer.bat'
-              : 'sdk/bin/dartanalyzer_developer',
-        'run_arguments' : ['--batch'],
-      },
-      'dart2analyzer' : {
-        // This is a unix shell script, no windows equivalent available
-        'run_executable' : 'editor/tools/analyzer',
-        'run_arguments' : ['--batch'],
-    },
-  };
-
   Completer<CommandOutput> _completer;
-  Command _command;
+  ProcessCommand _command;
   List<String> _arguments;
   String _runnerType;
 
@@ -1992,7 +1975,6 @@ class BatchRunnerProcess {
     _currentlyRunning = true;
     _command = command;
     _arguments = arguments;
-
     _processEnvironmentOverrides = command.environmentOverrides;
 
     if (_process == null) {
@@ -2091,8 +2073,9 @@ class BatchRunnerProcess {
   }
 
   _startProcess(callback) {
-    var executable = batchRunnerTypes[_runnerType]['run_executable'];
-    var arguments = batchRunnerTypes[_runnerType]['run_arguments'];
+    assert(_command is ProcessCommand);
+    var executable = _command.executable;
+    var arguments = ['--batch'];
     var environment = new Map.from(io.Platform.environment);
     if (_processEnvironmentOverrides != null) {
       for (var key in _processEnvironmentOverrides.keys) {
@@ -2527,9 +2510,13 @@ class CommandExecutorImpl implements CommandExecutor {
 
   Future<CommandOutput> _runCommand(Command command, int timeout) {
     var batchMode = !globalConfiguration['noBatch'];
+    var dart2jsBatchMode = globalConfiguration['dart2js_batch'];
 
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
+    } else if (command is CompilationCommand && dart2jsBatchMode) {
+      return _getBatchRunner("dart2js")
+          .runCommand("dart2js", command, timeout, command.arguments);
     } else if (command is AnalysisCommand && batchMode) {
       return _getBatchRunner(command.flavor)
           .runCommand(command.flavor, command, timeout, command.arguments);

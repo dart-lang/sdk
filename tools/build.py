@@ -45,7 +45,7 @@ def BuildOptions():
       default=False, action="store_true")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,simmips,mips,simarm64]',
+      metavar='[all,ia32,x64,simarm,arm,simmips,mips,simarm64,arm64,]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
@@ -90,7 +90,8 @@ def ProcessOptions(options, args):
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    archs = ['ia32', 'x64', 'simarm', 'arm', 'simmips', 'mips', 'simarm64']
+    archs = ['ia32', 'x64', 'simarm', 'arm', 'simmips', 'mips',
+             'simarm64', 'arm64',]
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False

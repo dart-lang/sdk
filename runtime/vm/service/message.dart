@@ -60,9 +60,14 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = options.keys.toList();
-    var values = options.values.toList();
-    var request = [receivePort.sendPort, path, keys, values];
+    var keys = options.keys.toList(growable:false);
+    var values = options.values.toList(growable:false);
+    var request = new List(5)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = receivePort.sendPort
+        ..[2] = path
+        ..[3] = keys
+        ..[4] = values;
     sendIsolateServiceMessage(sendPort, request);
     return _completer.future;
   }
@@ -77,9 +82,14 @@ class Message {
         _completer.complete(value);
       }
     };
-    var keys = options.keys.toList();
-    var values = options.values.toList();
-    var request = [receivePort.sendPort, path, keys, values];
+    var keys = options.keys.toList(growable:false);
+    var values = options.values.toList(growable:false);
+    var request = new List(5)
+        ..[0] = 0  // Make room for OOB message type.
+        ..[1] = receivePort.sendPort
+        ..[2] = path
+        ..[3] = keys
+        ..[4] = values;
     sendRootServiceMessage(request);
     return _completer.future;
   }

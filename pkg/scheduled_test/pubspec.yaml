@@ -1,7 +1,6 @@
 name: scheduled_test
-version: 0.11.0+3
+version: 0.11.0+4
 author: Dart Team <misc@dartlang.org>
-homepage: http://www.dartlang.org
 description: >
   A package for writing readable tests of asynchronous behavior.
 
@@ -9,11 +8,12 @@ description: >
   "schedule", then executing those tasks in order. This allows the tests to
   read like synchronous, linear code, despite executing asynchronously.
 
+homepage: http://www.dartlang.org
+environment:
+  sdk: '>=1.3.0 <2.0.0'
 dependencies:
   http: '>=0.9.0 <0.12.0'
   path: '>=0.9.0 <2.0.0'
   shelf: '>=0.4.0 <0.6.0'
   stack_trace: '>=0.9.1 <0.10.0'
   unittest: '>=0.9.0 <0.12.0'
-environment:
-  sdk: '>=0.8.10+6 <2.0.0'

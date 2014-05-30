@@ -38,15 +38,8 @@ DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-
-// TODO(zra): remove once arm64 has simd.
-#if defined(TARGET_ARCH_ARM64)
-DEFINE_FLAG(bool, enable_simd_inline, false,
-    "Enable inlining of SIMD related method calls.");
-#else
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
-#endif
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -824,7 +817,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     if (ic_data.IsClosureCall()) {
       // This IC call may be closure call only.
       label_address = StubCode::ClosureCallInlineCacheEntryPoint();
-      ExternalLabel target_label("InlineCache", label_address);
+      ExternalLabel target_label(label_address);
       EmitInstanceCall(&target_label,
                        ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
                        argument_count, deopt_id, token_pos, locs);
@@ -849,7 +842,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
       default:
         UNIMPLEMENTED();
     }
-    ExternalLabel target_label("InlineCache", label_address);
+    ExternalLabel target_label(label_address);
     EmitOptimizedInstanceCall(&target_label, ic_data,
                               argument_count, deopt_id, token_pos, locs);
     return;
@@ -879,7 +872,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     default:
       UNIMPLEMENTED();
   }
-  ExternalLabel target_label("InlineCache", label_address);
+  ExternalLabel target_label(label_address);
   EmitInstanceCall(&target_label, ic_data, argument_count,
                    deopt_id, token_pos, locs);
 }

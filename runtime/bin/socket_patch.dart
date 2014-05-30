@@ -207,133 +207,13 @@ class _NetworkInterface implements NetworkInterface {
 }
 
 
-class _Rate {
-  final int buckets;
-  final data;
-  int lastValue = 0;
-  int nextBucket = 0;
-
-  _Rate(int buckets) : buckets = buckets, data = new List.filled(buckets, 0);
-
-  void update(int value) {
-    data[nextBucket] = value - lastValue;
-    lastValue = value;
-    nextBucket = (nextBucket + 1) % buckets;
-  }
-
-  int get rate {
-    int sum = data.fold(0, (prev, element) => prev + element);
-    return sum ~/ buckets;
-  }
-}
-
-// Statics information for the observatory.
-class _SocketStat {
-  _Rate readRate = new _Rate(5);
-  _Rate writeRate = new _Rate(5);
-
-  void update(_NativeSocket socket) {
-    readRate.update(socket.totalRead);
-    writeRate.update(socket.totalWritten);
-  }
-}
-
-class _SocketsObservatory {
-  static int socketCount = 0;
-  static Map sockets = new Map<_NativeSocket, _SocketStat>();
-  static Timer timer;
-
-  static add(_NativeSocket socket) {
-    if (socketCount == 0) startTimer();
-    sockets[socket] = new _SocketStat();
-    socketCount++;
-  }
-
-  static remove(_NativeSocket socket) {
-    _SocketStat stats = sockets.remove(socket);
-    assert(stats != null);
-    socketCount--;
-    if (socketCount == 0) stopTimer();
-  }
-
-  static update(_) {
-    sockets.forEach((socket, stat) {
-      stat.update(socket);
-    });
-  }
-
-  static startTimer() {
-    if (timer != null) return;
-    // TODO(sgjesse): Enable the rate timer.
-    // timer = new Timer.periodic(new Duration(seconds: 1), update);
-  }
-
-  static stopTimer() {
-    if (timer == null) return;
-    timer.cancel();
-    timer = null;
-  }
-
-  static String generateResponse() {
-    var response = new Map();
-    response['type'] = 'SocketList';
-    var members = new List();
-    response['members'] = members;
-    sockets.forEach((socket, stat) {
-      var kind =
-          socket.isListening ? "LISTENING" :
-          socket.isPipe ? "PIPE" :
-          socket.isInternal ? "INTERNAL" : "NORMAL";
-      var protocol =
-          socket.isTcp ? "tcp" :
-          socket.isUdp ? "udp" : "";
-      var localAddress;
-      var localPort;
-      var remoteAddress;
-      var remotePort;
-      try {
-        localAddress = socket.address.address;
-      } catch (e) {
-        localAddress = "n/a";
-      }
-      try {
-        localPort = socket.port;
-      } catch (e) {
-        localPort = "n/a";
-      }
-      try {
-        remoteAddress = socket.remoteAddress.address;
-      } catch (e) {
-        remoteAddress = "n/a";
-      }
-      try {
-        remotePort = socket.remotePort;
-      } catch (e) {
-        remotePort = "n/a";
-      }
-      members.add({'type': 'Socket', 'kind': kind, 'protocol': protocol,
-                   'localAddress': localAddress, 'localPort': localPort,
-                   'remoteAddress': remoteAddress, 'remotePort': remotePort,
-                   'totalRead': socket.totalRead,
-                   'totalWritten': socket.totalWritten,
-                   'readPerSec': stat.readRate.rate,
-                   'writePerSec': stat.writeRate.rate});
-    });
-    return JSON.encode(response);;
-  }
-
-  static String toJSON() {
-    try {
-      return generateResponse();
-    } catch (e, s) {
-      return '{"type":"Error","text":"$e","stacktrace":"$s"}';
-    }
-  }
-}
+// The NativeFieldWrapperClass1 can not be used with a mixin, due to missing
+// implicit constructor.
+class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
 
 // The _NativeSocket class encapsulates an OS socket.
-class _NativeSocket extends NativeFieldWrapperClass1 {
+class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Bit flags used when communicating between the eventhandler and
   // dart code. The EVENT flags are used to indicate events of
   // interest when sending a message from dart code to the
@@ -393,6 +273,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static const int NORMAL_TOKEN_BATCH_SIZE = 8;
   static const int LISTENING_TOKEN_BATCH_SIZE = 2;
 
+  // Use default Map so we keep order.
+  static Map<int, _NativeSocket> _sockets = new Map<int, _NativeSocket>();
+
   // Socket close state
   bool isClosed = false;
   bool isClosing = false;
@@ -424,9 +307,20 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   bool writeEventIssued = false;
   bool writeAvailable = false;
 
+  static final Stopwatch sw = new Stopwatch()..start();
   // Statistics.
   int totalRead = 0;
   int totalWritten = 0;
+  int readCount = 0;
+  int writeCount = 0;
+  double lastRead;
+  double lastWrite;
+
+  // The owner object is the object that the Socket is being used by, e.g.
+  // a HttpServer, a WebSocket connection, a process pipe, etc.
+  Object owner;
+
+  static double get timestamp => sw.elapsedMicroseconds / 1000000.0;
 
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
@@ -600,7 +494,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
 
-  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
+  _NativeSocket.listen() :  typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET;
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
 
@@ -632,6 +526,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       available -= result.length;
       totalRead += result.length;
     }
+    readCount++;
+    lastRead = timestamp;
     return result;
   }
 
@@ -650,7 +546,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       } else {
         available -= result.data.length;
       }
+      totalRead += result.data.length;
     }
+    readCount++;
+    lastRead = timestamp;
     return result;
   }
 
@@ -690,6 +589,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     // Negate the result, as stated above.
     if (result < 0) result = -result;
     totalWritten += result;
+    writeCount++;
+    lastWrite = timestamp;
     return result;
   }
 
@@ -706,6 +607,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       scheduleMicrotask(() => reportError(result, "Send failed"));
       result = 0;
     }
+    totalWritten += result;
+    writeCount++;
+    lastWrite = timestamp;
     return result;
   }
 
@@ -721,6 +625,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     socket.localPort = localPort;
     socket.address = address;
     totalRead += 1;
+    lastRead = timestamp;
     return socket;
   }
 
@@ -943,7 +848,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
-      _SocketsObservatory.add(this);
+      _sockets[_serviceId] = this;
     }
   }
 
@@ -951,7 +856,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     assert(eventPort != null);
     eventPort.close();
     eventPort = null;
-    _SocketsObservatory.remove(this);
+    _sockets.remove(_serviceId);
+    // Now that we don't track this Socket anymore, we can clear the owner
+    // field.
+    owner = null;
   }
 
   // Check whether this is an error response from a native port call.
@@ -1051,6 +959,124 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         interfaceAddr == null ? null : interfaceAddr._in_addr,
         interfaceIndex);
     if (result is OSError) throw result;
+  }
+
+  String get _serviceTypePath => 'io/sockets';
+  String get _serviceTypeName => 'Socket';
+
+  String _JSONKind() {
+    return isListening ? "Listening" :
+           isPipe ? "Pipe" :
+           isInternal ? "Internal" : "Normal";
+  }
+
+  Map _toJSONPipe(bool ref) {
+    var name = 'Anonymous Pipe';
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+      'kind': _JSONKind(),
+    };
+    if (ref) {
+      return r;
+    }
+    r['readClosed'] = isClosedRead;
+    r['writeClosed'] = isClosedWrite;
+    r['closing'] = isClosing;
+    r['fd'] = nativeGetSocketId();
+    if (owner != null) {
+      r['owner'] = owner._toJSON(true);
+    }
+    return r;
+  }
+
+  Map _toJSONInternal(bool ref) {
+    var name = 'Internal';
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+      'kind': _JSONKind(),
+    };
+    if (ref) {
+      return r;
+    }
+    r['closing'] = isClosing;
+    r['fd'] = nativeGetSocketId();
+    if (owner != null) {
+      r['owner'] = owner._toJSON(true);
+    }
+    return r;
+  }
+
+  Map _toJSONNetwork(bool ref) {
+    var name = '${address.host}:$port';
+    if (isTcp && !isListening) name += " <-> ${remoteAddress.host}:$remotePort";
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+      'kind': _JSONKind(),
+    };
+    if (ref) {
+      return r;
+    }
+    var protocol = isTcp ? "TCP" : isUdp ? "UDP" : null;
+    var localAddress;
+    var localPort;
+    var rAddress;
+    var rPort;
+    try {
+      localAddress = address.address;
+    } catch (e) { }
+    try {
+      localPort = port;
+    } catch (e) { }
+    try {
+      rAddress = this.remoteAddress.address;
+    } catch (e) { }
+    try {
+      rPort = remotePort;
+    } catch (e) { }
+    r['localAddress'] = localAddress;
+    r['localPort'] = localPort;
+    r['remoteAddress'] = rAddress;
+    r['remotePort'] = rPort;
+    r['protocol'] = protocol;
+    r['readClosed'] = isClosedRead;
+    r['writeClosed'] = isClosedWrite;
+    r['closing'] = isClosing;
+    r['listening'] = isListening;
+    r['fd'] = nativeGetSocketId();
+    if (owner != null) {
+      r['owner'] = owner._toJSON(true);
+    }
+    return r;
+  }
+
+  Map _toJSON(bool ref) {
+    var map;
+    if (isPipe) {
+      map =  _toJSONPipe(ref);
+    } else if (isInternal) {
+      map = _toJSONInternal(ref);
+    } else {
+      map = _toJSONNetwork(ref);
+    }
+    if (!ref) {
+      map['available'] = available;
+      map['totalRead'] = totalRead;
+      map['totalWritten'] = totalWritten;
+      map['readCount'] = totalWritten;
+      map['writeCount'] = writeCount;
+      map['lastRead'] = lastRead;
+      map['lastWrite'] = lastWrite;
+    }
+    return map;
   }
 
   void nativeSetSocketId(int id) native "Socket_SetSocketId";
@@ -1185,6 +1211,9 @@ class _RawServerSocket extends Stream<RawSocket>
     }
     return new _RawServerSocketReference(_referencePort.sendPort);
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket.owner = owner; }
 }
 
 
@@ -1358,6 +1387,9 @@ class _RawSocket extends Stream<RawSocketEvent>
       _socket.close();
     }
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket.owner = owner; }
 }
 
 
@@ -1416,6 +1448,9 @@ class _ServerSocket extends Stream<Socket>
   ServerSocketReference get reference {
     return new _ServerSocketReference(_socket.reference);
   }
+
+  Map _toJSON(bool ref) => _socket._toJSON(ref);
+  void set _owner(owner) { _socket._owner = owner; }
 }
 
 
@@ -1601,8 +1636,9 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   int get port => _raw.port;
-  InternetAddress get remoteAddress => _raw.remoteAddress;
+  InternetAddress get address => _raw.address;
   int get remotePort => _raw.remotePort;
+  InternetAddress get remoteAddress => _raw.remoteAddress;
 
   Future _detachRaw() {
     _detachReady = new Completer();
@@ -1711,6 +1747,9 @@ class _Socket extends Stream<List<int>> implements Socket {
       }
     }
   }
+
+  Map _toJSON(bool ref) => _raw._toJSON(ref);
+  void set _owner(owner) { _raw._owner = owner; }
 }
 
 

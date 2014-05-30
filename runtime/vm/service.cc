@@ -162,7 +162,10 @@ static void SendIsolateServiceMessage(Dart_NativeArguments args) {
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
+
+  // Set the type of the OOB message.
+  message.SetAt(0, Smi::Handle(isolate, Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
   uint8_t* data = NULL;
@@ -619,24 +622,24 @@ static void PrintErrorWithKind(JSONStream* js,
 void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.IsGrowableObjectArray());
+  ASSERT(msg.IsArray());
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
-    const GrowableObjectArray& message = GrowableObjectArray::Cast(msg);
-    // Message is a list with four entries.
-    ASSERT(message.Length() == 4);
+    const Array& message = Array::Cast(msg);
+    // Message is a list with five entries.
+    ASSERT(message.Length() == 5);
 
     Instance& reply_port = Instance::Handle(isolate);
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
-    GrowableObjectArray& option_keys = GrowableObjectArray::Handle(isolate);
-    GrowableObjectArray& option_values = GrowableObjectArray::Handle(isolate);
-    reply_port ^= message.At(0);
-    path ^= message.At(1);
-    option_keys ^= message.At(2);
-    option_values ^= message.At(3);
+    Array& option_keys = Array::Handle(isolate);
+    Array& option_values = Array::Handle(isolate);
+    reply_port ^= message.At(1);
+    path ^= message.At(2);
+    option_keys ^= message.At(3);
+    option_values ^= message.At(4);
 
     ASSERT(!path.IsNull());
     ASSERT(!option_keys.IsNull());
@@ -1833,25 +1836,25 @@ static IsolateMessageHandler FindIsolateMessageHandler(const char* command) {
 void Service::HandleRootMessage(const Instance& msg) {
   Isolate* isolate = Isolate::Current();
   ASSERT(!msg.IsNull());
-  ASSERT(msg.IsGrowableObjectArray());
+  ASSERT(msg.IsArray());
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
-    const GrowableObjectArray& message = GrowableObjectArray::Cast(msg);
-    // Message is a list with four entries.
-    ASSERT(message.Length() == 4);
+    const Array& message = Array::Cast(msg);
+    // Message is a list with five entries.
+    ASSERT(message.Length() == 5);
 
     Instance& reply_port = Instance::Handle(isolate);
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
-    GrowableObjectArray& option_keys = GrowableObjectArray::Handle(isolate);
-    GrowableObjectArray& option_values = GrowableObjectArray::Handle(isolate);
+    Array& option_keys = Array::Handle(isolate);
+    Array& option_values = Array::Handle(isolate);
 
-    reply_port ^= message.At(0);
-    path ^= message.At(1);
-    option_keys ^= message.At(2);
-    option_values ^= message.At(3);
+    reply_port ^= message.At(1);
+    path ^= message.At(2);
+    option_keys ^= message.At(3);
+    option_values ^= message.At(4);
 
     ASSERT(!path.IsNull());
     ASSERT(!option_keys.IsNull());
@@ -1933,7 +1936,8 @@ static bool HandleVM(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "VM");
   jsobj.AddProperty("id", "vm");
-  jsobj.AddProperty("architecture", CPU::Id());
+  jsobj.AddProperty("targetCPU", CPU::Id());
+  jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("assertsEnabled", FLAG_enable_asserts);
   jsobj.AddProperty("typeChecksEnabled", FLAG_enable_type_checks);
@@ -1953,9 +1957,47 @@ static bool HandleVM(JSONStream* js) {
 }
 
 
+static bool HandleFlags(JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    Flags::PrintJSON(js);
+    return true;
+  } else if (js->num_arguments() == 2) {
+    const char* arg = js->GetArgument(1);
+    if (strcmp(arg, "set") == 0) {
+      if (js->num_arguments() > 2) {
+        PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
+                   js->num_arguments());
+      } else {
+        if (js->HasOption("name") && js->HasOption("value")) {
+          JSONObject jsobj(js);
+          const char* flag_name = js->LookupOption("name");
+          const char* flag_value = js->LookupOption("value");
+          const char* error = NULL;
+          if (Flags::SetFlag(flag_name, flag_value, &error)) {
+            jsobj.AddProperty("type", "Success");
+            jsobj.AddProperty("id", "");
+          } else {
+            jsobj.AddProperty("type", "Failure");
+            jsobj.AddProperty("id", "");
+            jsobj.AddProperty("message", error);
+          }
+        } else {
+          PrintError(js, "expected to find 'name' and 'value' options");
+        }
+      }
+    }
+    return true;
+  } else {
+    PrintError(js, "Command too long");
+    return true;
+  }
+}
+
+
 static RootMessageHandlerEntry root_handlers[] = {
   { "_echo", HandleRootEcho },
   { "vm", HandleVM },
+  { "flags", HandleFlags },
 };
 
 

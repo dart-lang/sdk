@@ -38,12 +38,12 @@ struct TopLevel;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  explicit ParsedFunction(const Function& function)
+  ParsedFunction(Isolate* isolate, const Function& function)
       : function_(function),
-        code_(Code::Handle(function.unoptimized_code())),
+        code_(Code::Handle(isolate, function.unoptimized_code())),
         node_sequence_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::ZoneHandle()),
+        default_parameter_values_(Array::ZoneHandle(isolate, Array::null())),
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
@@ -51,12 +51,13 @@ class ParsedFunction : public ZoneAllocated {
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
-        num_stack_locals_(0) {
+        num_stack_locals_(0),
+        isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
 
   const Function& function() const { return function_; }
-  RawCode* code() const { return code_.raw(); }
+  const Code& code() const { return code_; }
 
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
@@ -120,6 +121,8 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
+  Isolate* isolate() const { return isolate_; }
+
  private:
   const Function& function_;
   Code& code_;
@@ -135,6 +138,8 @@ class ParsedFunction : public ZoneAllocated {
   int first_stack_local_index_;
   int num_copied_params_;
   int num_stack_locals_;
+
+  Isolate* isolate_;
 
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
@@ -240,7 +245,17 @@ class Parser : public ValueObject {
   }
 
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
-  inline Token::Kind CurrentToken();
+
+  Token::Kind CurrentToken() {
+    if (token_kind_ == Token::kILLEGAL) {
+      ComputeCurrentToken();
+    }
+    CompilerStats::num_token_checks++;
+    return token_kind_;
+  }
+
+  void ComputeCurrentToken();
+
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
   RawDouble* CurrentDoubleLiteral() const;
@@ -637,7 +652,7 @@ class Parser : public ValueObject {
                                   ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type,
-                                  Function* func);
+                                  const Function* func);
 
   void CheckOperatorArity(const MemberDesc& member);
 

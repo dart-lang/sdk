@@ -4,14 +4,15 @@
 
 library string_scanner.test.utils;
 
+import 'package:string_scanner/string_scanner.dart';
 import 'package:unittest/unittest.dart';
 
 /// Returns a matcher that asserts that a closure throws a [FormatException]
 /// with the given [message].
-Matcher throwsFormattedError(String message) {
+Matcher throwsStringScannerException(String text) {
   return throwsA(predicate((error) {
-    expect(error, isFormatException);
-    expect(error.message, equals(message));
+    expect(error, new isInstanceOf<StringScannerException>());
+    expect(error.span.text, equals(text));
     return true;
   }));
 }

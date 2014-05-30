@@ -23,21 +23,38 @@ class Message {
     kNumPriorities = 2,
   } Priority;
 
+  // Values defining the type of OOB messages. OOB messages can only be
+  // fixed length arrays where the first element is a Smi with one of the
+  // valid values below.
+  typedef enum {
+    kIllegalOOB = 0,
+    kServiceOOBMsg = 1,
+    kIsolateLibOOBMsg = 2
+  } OOBMsgTag;
+
   // A port number which is never used.
   static const Dart_Port kIllegalPort = 0;
 
   // A new message to be sent between two isolates. The data handed to this
   // message will be disposed by calling free() once the message object is
   // being destructed (after delivery or when the receiving port is closed).
-  Message(Dart_Port dest_port, uint8_t* data, intptr_t len, Priority priority)
+  Message(Dart_Port dest_port,
+          uint8_t* data,
+          intptr_t len,
+          Priority priority,
+          Dart_Port delivery_failure_port = kIllegalPort)
       : next_(NULL),
         dest_port_(dest_port),
+        delivery_failure_port_(delivery_failure_port),
         data_(data),
         len_(len),
         priority_(priority) {
     ASSERT(dest_port != kIllegalPort);
+    ASSERT((priority == kNormalPriority) ||
+           (delivery_failure_port == kIllegalPort));
   }
   ~Message() {
+    ASSERT(delivery_failure_port_ == kIllegalPort);
     free(data_);
   }
 
@@ -48,11 +65,14 @@ class Message {
 
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
 
+  bool RedirectToDeliveryFailurePort();
+
  private:
   friend class MessageQueue;
 
   Message* next_;
   Dart_Port dest_port_;
+  Dart_Port delivery_failure_port_;
   uint8_t* data_;
   intptr_t len_;
   Priority priority_;

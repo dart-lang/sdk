@@ -28,21 +28,6 @@ main() {
       }
     });
 
-    test('createBuffer', () {
-      if(AudioContext.supported) {
-        var ctx = new AudioContext();
-        Float32List view = new Float32List.fromList([]);
-        try {
-          // Test that native overload is chosen correctly. Native
-          // implementation should throw 'SyntaxError' DomException because the
-          // buffer is empty.
-          AudioBuffer buffer = ctx.createBufferFromBuffer(view.buffer, false);
-        } catch (e) {
-          expect(e.name, DomException.SYNTAX);
-        }
-      }
-    });
-
     test('audioRenames', () {
       if(AudioContext.supported) {
         AudioContext context = new AudioContext();
@@ -96,9 +81,6 @@ main() {
         expect(oscillator.type, equals('square'));
    
         oscillator.type = 'triangle';
-        expect(oscillator.type, equals('triangle'));
-
-        expect(() => oscillator.type = 'somethingUnsupported', throws);
         expect(oscillator.type, equals('triangle'));
 
         expect(() => oscillator.type = 7, throws);

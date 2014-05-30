@@ -484,6 +484,9 @@ const htmlBlinkMap = const {
   'XPathResult': XPathResult,
   'XSLTProcessor': XsltProcessor,
 
+  // FIXME: Temporary workaround.  The Blink name matches the Dart name
+  // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
+  'DataTransfer': DataTransfer,
 };
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2156,22 +2159,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void set textBaseline(String value) => _blink.Native_CanvasRenderingContext2D_textBaseline_Setter(this, value);
 
-  /**
-   * The ratio between this canvas' backing store dimensions and the canvas'
-   * logical dimensions.
-   *
-   * ## Other resources
-   *
-   * * [High DPI Canvas tutorial]
-   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
-   */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  double get backingStorePixelRatio => _blink.Native_CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter(this);
-
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
   void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) => _blink.Native_CanvasRenderingContext2D_arc_Callback(this, x, y, radius, startAngle, endAngle, anticlockwise);
@@ -2567,6 +2554,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
 
+
+  /** Deprecated always returns 1.0 */
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
+  @Experimental()
+  double get backingStorePixelRatio => 1.0;
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10595,6 +10587,62 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   ElementEvents get on => new ElementEvents(this);
 
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  num get offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  num get offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  num get offsetTop => _blink.Native_Element_offsetTop_Getter(this);
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  num get offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  num get clientHeight => _blink.Native_Element_clientHeight_Getter(this);
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  num get clientLeft => _blink.Native_Element_clientLeft_Getter(this);
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  num get clientTop => _blink.Native_Element_clientTop_Getter(this);
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  num get clientWidth => _blink.Native_Element_clientWidth_Getter(this);
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  num get scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num get scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(num value) => _blink.Native_Element_scrollLeft_Setter(this, value);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num get scrollTop => _blink.Native_Element_scrollTop_Getter(this);
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(num value) => _blink.Native_Element_scrollTop_Setter(this, value);
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  num get scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -11214,19 +11262,19 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.Native_Element_clientHeight_Getter(this);
+  int get _clientHeight => _blink.Native_Element_clientHeight_Getter(this);
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.Native_Element_clientLeft_Getter(this);
+  int get _clientLeft => _blink.Native_Element_clientLeft_Getter(this);
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.Native_Element_clientTop_Getter(this);
+  int get _clientTop => _blink.Native_Element_clientTop_Getter(this);
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.Native_Element_clientWidth_Getter(this);
+  int get _clientWidth => _blink.Native_Element_clientWidth_Getter(this);
 
   @DomName('Element.id')
   @DocsEditable()
@@ -11256,11 +11304,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
+  int get _offsetHeight => _blink.Native_Element_offsetHeight_Getter(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
+  int get _offsetLeft => _blink.Native_Element_offsetLeft_Getter(this);
 
   @DomName('Element.offsetParent')
   @DocsEditable()
@@ -11268,11 +11316,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.Native_Element_offsetTop_Getter(this);
+  int get _offsetTop => _blink.Native_Element_offsetTop_Getter(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
+  int get _offsetWidth => _blink.Native_Element_offsetWidth_Getter(this);
 
   @DomName('Element.outerHTML')
   @DocsEditable()
@@ -11280,27 +11328,27 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
+  int get _scrollHeight => _blink.Native_Element_scrollHeight_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
+  int get _scrollLeft => _blink.Native_Element_scrollLeft_Getter(this);
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.Native_Element_scrollLeft_Setter(this, value);
+  void set _scrollLeft(int value) => _blink.Native_Element_scrollLeft_Setter(this, value);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.Native_Element_scrollTop_Getter(this);
+  int get _scrollTop => _blink.Native_Element_scrollTop_Getter(this);
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.Native_Element_scrollTop_Setter(this, value);
+  void set _scrollTop(int value) => _blink.Native_Element_scrollTop_Setter(this, value);
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
+  int get _scrollWidth => _blink.Native_Element_scrollWidth_Getter(this);
 
   @DomName('Element.shadowRoot')
   @DocsEditable()
@@ -24762,11 +24810,11 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  bool get applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
+  bool get _applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
 
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  void set applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
+  void set _applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
@@ -24825,27 +24873,39 @@ class ShadowRoot extends DocumentFragment {
 
   static final bool supported = true;
 
-  static bool _resetStyleInheritanceDeprecationReported = false;
-  static void _resetStyleInheritanceDeprecationReport() {
-    if (!_resetStyleInheritanceDeprecationReported) {
+  static bool _shadowRootDeprecationReported = false;
+  static void _shadowRootDeprecationReport() {
+    if (!_shadowRootDeprecationReported) {
       window.console.warn('''
-ShadowRoot.resetStyleInheritance is now deprecated in dart:html.
-Please remove from your code.
+ShadowRoot.resetStyleInheritance and ShadowRoot.applyAuthorStyles now deprecated in dart:html.
+Please remove them from your code.
 ''');
-      _resetStyleInheritanceDeprecationReported = true;
+      _shadowRootDeprecationReported = true;
     }
   }
 
   @deprecated
   bool get resetStyleInheritance {
-    _resetStyleInheritanceDeprecationReport();
+    _shadowRootDeprecationReport();
     // Default value from when it was specified.
     return false;
   }
 
   @deprecated
   void set resetStyleInheritance(bool value) {
-    _resetStyleInheritanceDeprecationReport();
+    _shadowRootDeprecationReport();
+  }
+
+  @deprecated
+  bool get applyAuthorStyles {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set applyAuthorStyles(bool value) {
+    _shadowRootDeprecationReport();
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

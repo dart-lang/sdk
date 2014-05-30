@@ -913,23 +913,25 @@ CompileType* StoreInstanceFieldInstr::ComputeInitialType() const {
 
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
-  if (FLAG_enable_type_checks) {
-    return CompileType::FromAbstractType(
-        AbstractType::ZoneHandle(StaticField().type()));
-  }
+  bool is_nullable = CompileType::kNullable;
+  intptr_t cid = kDynamicCid;
+  AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
+  if (FLAG_enable_type_checks) {
+    cid = kIllegalCid;
+    abstract_type = &AbstractType::ZoneHandle(field.type());
+  }
   ASSERT(field.is_static());
   if (field.is_final()) {
-    Instance& obj = Instance::Handle(field.value());
+    const Instance& obj = Instance::Handle(field.value());
     if ((obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw()) &&
         !obj.IsNull()) {
-      return CompileType(CompileType::kNonNullable,
-                         Class::Handle(obj.clazz()).id(),
-                         NULL);
+      is_nullable = CompileType::kNonNullable;
+      cid = obj.GetClassId();
     }
   }
-  return CompileType::Dynamic();
+  return CompileType(is_nullable, cid, abstract_type);
 }
 
 
@@ -974,25 +976,27 @@ CompileType LoadFieldInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
+  const AbstractType* abstract_type = NULL;
   if (FLAG_enable_type_checks) {
     ASSERT(!type().HasResolvedTypeClass() ||
            !Field::IsExternalizableCid(Class::Handle(
                 type().type_class()).id()));
-    return CompileType::FromAbstractType(type());
+    abstract_type = &type();
   }
 
   if ((field_ != NULL) && (field_->guarded_cid() != kIllegalCid)) {
+    bool is_nullable = field_->is_nullable();
     intptr_t field_cid =  field_->guarded_cid();
     if (Field::IsExternalizableCid(field_cid)) {
       // We cannot assume that the type of the value in the field has not
       // changed on the fly.
       field_cid = kDynamicCid;
     }
-    return CompileType::CreateNullable(field_->is_nullable(), field_cid);
+    return CompileType(is_nullable, field_cid, abstract_type);
   }
 
   ASSERT(!Field::IsExternalizableCid(result_cid_));
-  return CompileType::FromCid(result_cid_);
+  return CompileType::Create(result_cid_, *abstract_type);
 }
 
 

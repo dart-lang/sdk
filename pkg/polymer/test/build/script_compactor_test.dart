@@ -653,18 +653,24 @@ codegenTests(phases) {
           '<!DOCTYPE html><html><body>'
           '<polymer-element name="foo-bar"><template>'
           '<div>{{a.node}}</div>'
-          '<div>{{anotherNode}}</div>'
+          '<div>{{ anotherNode }}</div>' // extra space inside bindings is OK
           '<div>{{a.call1(a)}}</div>'
           '<div>{{call2(a)}}</div>'
+          '<div>{{}}</div>'              // empty bindings are ignored
+          '<div>{{ }}</div>'
           '<div class="{{an.attribute}}"></div>'
           '<a href="path/{{within.an.attribute}}/foo/bar"></a>'
           '<div data-attribute="{{anotherAttribute}}"></div>'
           // input and custom-element attributes are treated as 2-way bindings:
-          '<input value="{{this.is.twoWay}}">'
-          '<input value="{{this.is.twoWayInt | intToStringTransformer}}">'
+          '<input value="{{this.iS.twoWay}}">'
+          '<input value="{{this.iS.twoWayInt | intToStringTransformer}}">'
           '<something-else my-attribute="{{here.too}}"></something-else>'
           '<div on-click="{{methodName}}"></div>'
+          '<div on-click="{{ methodName2 }}"></div>' // extra space is OK
           '<div on-click="{{@read.method}}"></div>'
+          // empty handlers are invalid, but we still produce valid output.
+          '<div on-click="{{}}"></div>'
+          '<div on-click="{{ }}"></div>'
           '</template></polymer-element>',
       'a|web/test.html._data': expectedData(['web/a.dart']),
       'a|web/a.dart':
@@ -689,10 +695,11 @@ codegenTests(phases) {
                   #call1: (o) => o.call1,
                   #call2: (o) => o.call2,
                   #here: (o) => o.here,
+                  #iS: (o) => o.iS,
                   #intToStringTransformer: (o) => o.intToStringTransformer,
-                  #is: (o) => o.is,
                   #method: (o) => o.method,
                   #methodName: (o) => o.methodName,
+                  #methodName2: (o) => o.methodName2,
                   #node: (o) => o.node,
                   #read: (o) => o.read,
                   #too: (o) => o.too,
@@ -714,10 +721,11 @@ codegenTests(phases) {
                   #call1: r'call1',
                   #call2: r'call2',
                   #here: r'here',
+                  #iS: r'iS',
                   #intToStringTransformer: r'intToStringTransformer',
-                  #is: r'is',
                   #method: r'method',
                   #methodName: r'methodName',
+                  #methodName2: r'methodName2',
                   #node: r'node',
                   #read: r'read',
                   #too: r'too',

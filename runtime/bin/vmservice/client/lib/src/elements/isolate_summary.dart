@@ -5,11 +5,9 @@
 library isolate_summary_element;
 
 import 'dart:async';
-import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
-import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
 @CustomTag('isolate-summary')

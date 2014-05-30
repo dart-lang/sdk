@@ -14,7 +14,6 @@ import '../build_result.dart';
 import '../errors.dart';
 import '../log.dart';
 import '../package_provider.dart';
-import '../transformer/transformer.dart';
 import '../utils.dart';
 import 'asset_cascade.dart';
 import 'node_status.dart';
@@ -184,8 +183,7 @@ class PackageGraph {
     _tryScheduleResult();
   }
 
-  void updateTransformers(String package,
-      Iterable<Iterable<Transformer>> transformers) {
+  void updateTransformers(String package, Iterable<Iterable> transformers) {
     _inErrorZone(() => _cascades[package].updateTransformers(transformers));
 
     // It's possible for updating transformers not to cause any processing. The

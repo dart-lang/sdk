@@ -68,7 +68,7 @@ class RawCode;
 // abstract out common code executed from generated dart code.
 class StubEntry {
  public:
-  StubEntry(const char* name, const Code& code);
+  explicit StubEntry(const Code& code);
   ~StubEntry() {}
 
   const ExternalLabel& label() const { return label_; }

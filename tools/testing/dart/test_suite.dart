@@ -402,7 +402,10 @@ abstract class TestSuite {
      *      third_party/pkg/PACKAGE_NAME
      */
 
-    isValid(packageName) => packageName != 'third_party';
+    // Directories containing "-" are not valid pub packages and we therefore
+    // do not include them in the list of packages.
+    isValid(packageName) =>
+        packageName != 'third_party' && !packageName.contains('-');
 
     var dartDir = TestUtils.dartDir;
     var futures = [
@@ -2132,8 +2135,10 @@ class TestUtils {
           "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
       "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "pkg_polymer_example_canonicalization_test_canonicalization":
-          "polymer_c16n"
+      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
+      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
+      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
+      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
     };
 
     // Some tests are already in [build_dir]/generated_tests.
@@ -2143,7 +2148,7 @@ class TestUtils {
       path = 'multitest/${path.substring(index)}';
     }
     path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 60;
+    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
     if (Platform.operatingSystem == 'windows' &&
         path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
       for (var key in PATH_REPLACEMENTS.keys) {

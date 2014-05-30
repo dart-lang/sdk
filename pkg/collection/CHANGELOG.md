@@ -1,3 +1,7 @@
+## 0.9.3+1
+
+* Fix all analyzer hints.
+
 ## 0.9.3
 
 * Add a `MapKeySet` class that exposes an unmodifiable `Set` view of a `Map`'s

@@ -17,6 +17,7 @@
       ['"<(target_arch)"=="ia32"', { 'dart_target_arch': 'IA32', }],
       ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
       ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
+      ['"<(target_arch)"=="arm64"', { 'dart_target_arch': 'ARM64', }],
       ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
       ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
@@ -60,6 +61,13 @@
         ]
       },
 
+      'Dart_arm_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_ARM',
+        ],
+      },
+
       'Dart_simarm64_Base': {
         'abstract': 1,
         'defines': [
@@ -67,10 +75,10 @@
         ]
       },
 
-      'Dart_arm_Base': {
+      'Dart_arm64_Base': {
         'abstract': 1,
         'defines': [
-          'TARGET_ARCH_ARM',
+          'TARGET_ARCH_ARM64',
         ],
       },
 
@@ -234,6 +242,42 @@
           'Dart_Base', 'Dart_arm_Base', 'Dart_Release',
           'Dart_Linux_Base',
           'Dart_Linux_arm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugXARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm64_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseXARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm64_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'DebugARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_arm64_Base',
+          'Dart_Linux_Debug',
+        ],
+      },
+
+      'ReleaseARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_arm64_Base',
           'Dart_Linux_Release',
         ],
       },

@@ -28,7 +28,7 @@ class CodeViewElement extends ObservatoryElement {
     code.reload().whenComplete(done);
   }
 
-  Element _findJumpTarget(Node target) {
+  Element _findJumpTarget(Element target) {
     var jumpTarget = target.attributes['data-jump-target'];
     if (jumpTarget == '') {
       return null;

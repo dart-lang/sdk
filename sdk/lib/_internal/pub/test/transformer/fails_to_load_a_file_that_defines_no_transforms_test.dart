@@ -14,23 +14,25 @@ import '../serve/utils.dart';
 main() {
   initConfig();
 
-  integration("fails to load a file that defines no transforms", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/transformer"]
-      }),
-      d.dir("lib", [
-        d.file("transformer.dart", "library does_nothing;")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("fails to load a file that defines no transforms", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/transformer"]
+        }),
+        d.dir("lib", [
+          d.file("transformer.dart", "library does_nothing;")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPubServe();
-    pub.stderr.expect(startsWith('No transformers were defined in '));
-    pub.stderr.expect(startsWith('required by myapp.'));
-    pub.shouldExit(1);
-    pub.stderr.expect(never(contains('This is an unexpected error')));
+      var pub = startPubServe();
+      pub.stderr.expect(startsWith('No transformers were defined in '));
+      pub.stderr.expect(startsWith('required by myapp.'));
+      pub.shouldExit(1);
+      pub.stderr.expect(never(contains('This is an unexpected error')));
+    });
   });
 }

@@ -7,6 +7,8 @@ library source_maps.span;
 
 import 'dart:math' show min, max;
 
+import 'package:path/path.dart' as p;
+
 import 'src/utils.dart';
 
 /// A simple class that describe a segment of source text.
@@ -252,8 +254,8 @@ class SourceFile {
     var line = getLine(start);
     var column = getColumn(line, start);
 
-    var src = url == null ? '' : url;
-    var msg = '$src:${line + 1}:${column + 1}: $message';
+    var source = url == null ? '' : ' of ${p.prettyUri(url)}';
+    var msg = 'line ${line + 1}, column ${column + 1}$source: $message';
 
     if (_decodedChars == null) {
       // We don't have any text to include, so exit.

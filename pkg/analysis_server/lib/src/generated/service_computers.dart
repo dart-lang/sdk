@@ -18,6 +18,51 @@ import 'package:analyzer/src/generated/source.dart';
 import 'service_interfaces.dart' as psi;
 
 /**
+ * A concrete implementation of [CompletionSuggestion].
+ */
+class CompletionSuggestionImpl implements psi.CompletionSuggestion {
+  final String completion;
+
+  final String declaringType;
+
+  final String elementDocSummary;
+
+  final String elementDocDetails;
+
+  final psi.CompletionSuggestionKind kind;
+
+  final int location;
+
+  final String parameterName;
+
+  final List<String> parameterNames;
+
+  final String parameterType;
+
+  final List<String> parameterTypes;
+
+  final int positionalParameterCount;
+
+  final int relevance;
+
+  final int replacementLength;
+
+  final int replacementLengthIdentifier;
+
+  final String returnType;
+
+  final bool hasNamed;
+
+  final bool hasPositional;
+
+  final bool isDeprecated;
+
+  final bool isPotentialMatch;
+
+  CompletionSuggestionImpl(this.elementDocSummary, this.elementDocDetails, this.completion, this.declaringType, this.kind, this.location, this.parameterName, this.parameterNames, this.parameterType, this.parameterTypes, this.positionalParameterCount, this.relevance, this.replacementLength, this.replacementLengthIdentifier, this.returnType, this.hasNamed, this.hasPositional, this.isDeprecated, this.isPotentialMatch);
+}
+
+/**
  * A computer for [HighlightRegion]s in a Dart [CompilationUnit].
  */
 class DartUnitHighlightsComputer {
@@ -306,11 +351,13 @@ class DartUnitHighlightsComputer {
  * A computer for [NavigationRegion]s in a Dart [CompilationUnit].
  */
 class DartUnitNavigationComputer {
+  final String _contextId;
+
   final CompilationUnit _unit;
 
   List<psi.NavigationRegion> _regions = [];
 
-  DartUnitNavigationComputer(this._unit);
+  DartUnitNavigationComputer(this._contextId, this._unit);
 
   /**
    * Returns the computed [NavigationRegion]s, not `null`.
@@ -330,6 +377,18 @@ class DartUnitNavigationComputer {
       return;
     }
     _regions.add(new NavigationRegionImpl(offset, length, <psi.Element> [target]));
+  }
+
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, pae.Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegion_nodeStart_nodeStart(AstNode a, AstNode b, pae.Element element) {
+    int offset = a.offset;
+    int length = b.offset - offset;
+    _addRegion(offset, length, element);
   }
 
   void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, pae.Element element) {
@@ -369,7 +428,7 @@ class DartUnitNavigationComputer {
     if (element is pae.FieldFormalParameterElement) {
       element = (element as pae.FieldFormalParameterElement).field;
     }
-    return ElementImpl.create(element);
+    return ElementImpl.create(_contextId, element);
   }
 }
 
@@ -379,11 +438,13 @@ class DartUnitNavigationComputer {
 class DartUnitOutlineComputer {
   static String _UNITTEST_LIBRARY = "unittest";
 
+  final String _contextId;
+
   final Source _source;
 
   final CompilationUnit _unit;
 
-  DartUnitOutlineComputer(this._source, this._unit);
+  DartUnitOutlineComputer(this._contextId, this._source, this._unit);
 
   /**
    * Returns the computed [Outline]s, not `null`.
@@ -408,7 +469,7 @@ class DartUnitOutlineComputer {
               TypeName fieldType = fields.type;
               String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
               for (VariableDeclaration field in fields.variables) {
-                _newField(classOutline, classChildren, fieldTypeName, field, fieldDeclaration.isStatic);
+                _newVariableOutline(classOutline, classChildren, fieldTypeName, psi.ElementKind.FIELD, field, fieldDeclaration.isStatic);
               }
             }
           }
@@ -418,6 +479,17 @@ class DartUnitOutlineComputer {
           }
         }
         classOutline.children = new List.from(classChildren);
+      }
+      if (unitMember is TopLevelVariableDeclaration) {
+        TopLevelVariableDeclaration fieldDeclaration = unitMember;
+        VariableDeclarationList fields = fieldDeclaration.variables;
+        if (fields != null) {
+          TypeName fieldType = fields.type;
+          String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
+          for (VariableDeclaration field in fields.variables) {
+            _newVariableOutline(unitOutline, unitChildren, fieldTypeName, psi.ElementKind.TOP_LEVEL_VARIABLE, field, false);
+          }
+        }
       }
       if (unitMember is FunctionDeclaration) {
         FunctionDeclaration functionDeclaration = unitMember;
@@ -475,7 +547,7 @@ class DartUnitOutlineComputer {
         // add a new outline
         FunctionExpression functionExpression = arguments[1] as FunctionExpression;
         SourceRegionImpl sourceRegion = new SourceRegionImpl(node.offset, node.length);
-        ElementImpl element = new ElementImpl(null, _source, unitTestKind, name, nameOffset, nameLength, null, null, false, false, false);
+        ElementImpl element = new ElementImpl(_contextId, null, _source, unitTestKind, name, nameOffset, nameLength, null, null, false, false, false);
         OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
         children.add(outline);
         _addLocalFunctionOutlines(outline, functionExpression.body);
@@ -554,7 +626,7 @@ class DartUnitOutlineComputer {
   OutlineImpl _newClassOutline(psi.Outline unitOutline, List<psi.Outline> unitChildren, ClassDeclaration classDeclaration) {
     SimpleIdentifier nameNode = classDeclaration.name;
     String name = nameNode.name;
-    ElementImpl element = new ElementImpl(ElementImpl.createId(classDeclaration.element), _source, psi.ElementKind.CLASS, name, nameNode.offset, name.length, null, null, classDeclaration.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(classDeclaration.element), _source, psi.ElementKind.CLASS, name, nameNode.offset, name.length, null, null, classDeclaration.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
     psi.SourceRegion sourceRegion = _getSourceRegion(classDeclaration);
     OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
     unitChildren.add(outline);
@@ -564,7 +636,7 @@ class DartUnitOutlineComputer {
   void _newClassTypeAlias(psi.Outline unitOutline, List<psi.Outline> unitChildren, ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
-    ElementImpl element = new ElementImpl(ElementImpl.createId(alias.element), _source, psi.ElementKind.CLASS_TYPE_ALIAS, name, nameNode.offset, nameNode.length, null, null, alias.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(alias.element), _source, psi.ElementKind.CLASS_TYPE_ALIAS, name, nameNode.offset, nameNode.length, null, null, alias.isAbstract, false, StringUtilities.startsWithChar(name, 0x5F));
     psi.SourceRegion sourceRegion = _getSourceRegion(alias);
     OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
     unitChildren.add(outline);
@@ -585,20 +657,11 @@ class DartUnitOutlineComputer {
       length = constructorNameNode.length;
     }
     FormalParameterList parameters = constructorDeclaration.parameters;
-    ElementImpl element = new ElementImpl(ElementImpl.createId(constructorDeclaration.element), _source, psi.ElementKind.CONSTRUCTOR, name, offset, length, parameters != null ? parameters.toSource() : "", null, false, false, isPrivate);
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(constructorDeclaration.element), _source, psi.ElementKind.CONSTRUCTOR, name, offset, length, parameters != null ? parameters.toSource() : "", null, false, false, isPrivate);
     psi.SourceRegion sourceRegion = _getSourceRegion(constructorDeclaration);
     OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
     _addLocalFunctionOutlines(outline, constructorDeclaration.body);
-  }
-
-  void _newField(OutlineImpl classOutline, List<psi.Outline> children, String fieldTypeName, VariableDeclaration field, bool isStatic) {
-    SimpleIdentifier nameNode = field.name;
-    String name = nameNode.name;
-    ElementImpl element = new ElementImpl(ElementImpl.createId(field.element), _source, psi.ElementKind.FIELD, name, nameNode.offset, nameNode.length, null, fieldTypeName, false, isStatic, StringUtilities.startsWithChar(name, 0x5F));
-    psi.SourceRegion sourceRegion = _getSourceRegion(field);
-    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
-    children.add(outline);
   }
 
   void _newFunctionOutline(psi.Outline parent, List<psi.Outline> children, FunctionDeclaration functionDeclaration) {
@@ -615,7 +678,7 @@ class DartUnitOutlineComputer {
     } else {
       kind = psi.ElementKind.FUNCTION;
     }
-    ElementImpl element = new ElementImpl(ElementImpl.createId(functionDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(functionDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
     psi.SourceRegion sourceRegion = _getSourceRegion(functionDeclaration);
     OutlineImpl outline = new OutlineImpl(parent, element, sourceRegion);
     children.add(outline);
@@ -627,7 +690,7 @@ class DartUnitOutlineComputer {
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
     FormalParameterList parameters = alias.parameters;
-    ElementImpl element = new ElementImpl(ElementImpl.createId(alias.element), _source, psi.ElementKind.FUNCTION_TYPE_ALIAS, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(alias.element), _source, psi.ElementKind.FUNCTION_TYPE_ALIAS, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", false, false, StringUtilities.startsWithChar(name, 0x5F));
     psi.SourceRegion sourceRegion = _getSourceRegion(alias);
     OutlineImpl outline = new OutlineImpl(unitOutline, element, sourceRegion);
     unitChildren.add(outline);
@@ -646,7 +709,7 @@ class DartUnitOutlineComputer {
     } else {
       kind = psi.ElementKind.METHOD;
     }
-    ElementImpl element = new ElementImpl(ElementImpl.createId(methodDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", methodDeclaration.isAbstract, methodDeclaration.isStatic, StringUtilities.startsWithChar(name, 0x5F));
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(methodDeclaration.element), _source, kind, name, nameNode.offset, nameNode.length, parameters != null ? parameters.toSource() : "", returnType != null ? returnType.toSource() : "", methodDeclaration.isAbstract, methodDeclaration.isStatic, StringUtilities.startsWithChar(name, 0x5F));
     psi.SourceRegion sourceRegion = _getSourceRegion(methodDeclaration);
     OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
     children.add(outline);
@@ -654,8 +717,17 @@ class DartUnitOutlineComputer {
   }
 
   OutlineImpl _newUnitOutline() {
-    ElementImpl element = new ElementImpl(ElementImpl.createId(_unit.element), _source, psi.ElementKind.COMPILATION_UNIT, null, 0, 0, null, null, false, false, false);
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(_unit.element), _source, psi.ElementKind.COMPILATION_UNIT, null, 0, 0, null, null, false, false, false);
     return new OutlineImpl(null, element, new SourceRegionImpl(_unit.offset, _unit.length));
+  }
+
+  void _newVariableOutline(OutlineImpl classOutline, List<psi.Outline> children, String typeName, psi.ElementKind kind, VariableDeclaration variable, bool isStatic) {
+    SimpleIdentifier nameNode = variable.name;
+    String name = nameNode.name;
+    ElementImpl element = new ElementImpl(_contextId, ElementImpl.createId(variable.element), _source, kind, name, nameNode.offset, nameNode.length, null, typeName, false, isStatic, StringUtilities.startsWithChar(name, 0x5F));
+    psi.SourceRegion sourceRegion = _getSourceRegion(variable);
+    OutlineImpl outline = new OutlineImpl(classOutline, element, sourceRegion);
+    children.add(outline);
   }
 }
 
@@ -667,7 +739,10 @@ class ElementImpl implements psi.Element {
    * Creates an [ElementImpl] instance for the given
    * [com.google.dart.engine.element.Element].
    */
-  static ElementImpl create(pae.Element element) {
+  static ElementImpl create(String contextId, pae.Element element) {
+    if (element == null) {
+      return null;
+    }
     // prepare name
     String name = element.displayName;
     int nameOffset = element.nameOffset;
@@ -695,6 +770,8 @@ class ElementImpl implements psi.Element {
         }
       } else if (element.kind == pae.ElementKind.FUNCTION) {
         outlineKind = psi.ElementKind.FUNCTION;
+      } else if (element.kind == pae.ElementKind.GETTER) {
+        outlineKind = psi.ElementKind.GETTER;
       } else if (element.kind == pae.ElementKind.FUNCTION_TYPE_ALIAS) {
         outlineKind = psi.ElementKind.FUNCTION_TYPE_ALIAS;
       } else if (element.kind == pae.ElementKind.LIBRARY) {
@@ -702,6 +779,8 @@ class ElementImpl implements psi.Element {
       } else if (element.kind == pae.ElementKind.METHOD) {
         outlineKind = psi.ElementKind.METHOD;
         isAbstract = (element as pae.MethodElement).isAbstract;
+      } else if (element.kind == pae.ElementKind.SETTER) {
+        outlineKind = psi.ElementKind.SETTER;
       } else {
         outlineKind = psi.ElementKind.UNKNOWN;
       }
@@ -731,7 +810,7 @@ class ElementImpl implements psi.Element {
       }
     }
     // new element
-    return new ElementImpl(createId(element), element.source, outlineKind, name, nameOffset, nameLength, parameters, returnType, isAbstract, isStatic, isPrivate);
+    return new ElementImpl(contextId, createId(element), element.source, outlineKind, name, nameOffset, nameLength, parameters, returnType, isAbstract, isStatic, isPrivate);
   }
 
   /**
@@ -743,6 +822,8 @@ class ElementImpl implements psi.Element {
     }
     return element.location.encoding;
   }
+
+  final String contextId;
 
   final String id;
 
@@ -766,7 +847,7 @@ class ElementImpl implements psi.Element {
 
   final bool isStatic;
 
-  ElementImpl(this.id, this.source, this.kind, this.name, this.offset, this.length, this.parameters, this.returnType, this.isAbstract, this.isStatic, this.isPrivate);
+  ElementImpl(this.contextId, this.id, this.source, this.kind, this.name, this.offset, this.length, this.parameters, this.returnType, this.isAbstract, this.isStatic, this.isPrivate);
 
   @override
   bool operator ==(Object obj) {
@@ -805,6 +886,22 @@ class ElementImpl implements psi.Element {
     builder.append(returnType);
     builder.append("]");
     return builder.toString();
+  }
+}
+
+class GeneralizingElementVisitor_TypeHierarchyComputer_findEngineElement extends pae.GeneralizingElementVisitor<Object> {
+  int nameOffset = 0;
+
+  List<pae.Element> result;
+
+  GeneralizingElementVisitor_TypeHierarchyComputer_findEngineElement(this.nameOffset, this.result) : super();
+
+  @override
+  Object visitElement(pae.Element element) {
+    if (element.nameOffset == nameOffset) {
+      result[0] = element;
+    }
+    return super.visitElement(element);
   }
 }
 
@@ -1082,6 +1179,22 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
   }
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    // associate constructor with "T" or "T.name"
+    {
+      AstNode firstNode = node.returnType;
+      AstNode lastNode = node.name;
+      if (lastNode == null) {
+        lastNode = firstNode;
+      }
+      if (firstNode != null && lastNode != null) {
+        DartUnitNavigationComputer_this._addRegion_nodeStart_nodeEnd(firstNode, lastNode, node.element);
+      }
+    }
+    return super.visitConstructorDeclaration(node);
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     pae.ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -1105,6 +1218,12 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
   Object visitIndexExpression(IndexExpression node) {
     DartUnitNavigationComputer_this._addRegionForToken(node.rightBracket, node.bestElement);
     return super.visitIndexExpression(node);
+  }
+
+  @override
+  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    DartUnitNavigationComputer_this._addRegion_nodeStart_nodeStart(node, node.argumentList, node.staticElement);
+    return super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -1133,7 +1252,10 @@ class RecursiveAstVisitor_DartUnitNavigationComputer_compute extends RecursiveAs
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    DartUnitNavigationComputer_this._addRegionForNode(node, node.bestElement);
+    if (node.parent is ConstructorDeclaration) {
+    } else {
+      DartUnitNavigationComputer_this._addRegionForNode(node, node.bestElement);
+    }
     return super.visitSimpleIdentifier(node);
   }
 }
@@ -1177,7 +1299,9 @@ class SearchResultImpl implements psi.SearchResult {
 
   final int length;
 
-  SearchResultImpl(this.path, this.source, this.kind, this.offset, this.length);
+  final bool isPotential;
+
+  SearchResultImpl(this.path, this.source, this.kind, this.offset, this.length, this.isPotential);
 
   @override
   String toString() {
@@ -1190,6 +1314,8 @@ class SearchResultImpl implements psi.SearchResult {
     builder.append(offset);
     builder.append(", length=");
     builder.append(length);
+    builder.append(", potential=");
+    builder.append(isPotential);
     builder.append(", path=");
     builder.append(path);
     builder.append("]");
@@ -1233,6 +1359,48 @@ class SourceRegionImpl implements psi.SourceRegion {
     builder.append(", length=");
     builder.append(length);
     builder.append("]");
+    return builder.toString();
+  }
+}
+
+/**
+ * A concrete implementation of [TypeHierarchyItem].
+ */
+class TypeHierarchyItemImpl implements psi.TypeHierarchyItem {
+  final String name;
+
+  final psi.Element classElement;
+
+  final psi.Element memberElement;
+
+  final psi.TypeHierarchyItem extendedType;
+
+  final List<psi.TypeHierarchyItem> mixedTypes;
+
+  final List<psi.TypeHierarchyItem> implementedTypes;
+
+  List<psi.TypeHierarchyItem> subTypes = psi.TypeHierarchyItem.EMPTY_ARRAY;
+
+  TypeHierarchyItemImpl(this.name, this.classElement, this.memberElement, this.extendedType, this.mixedTypes, this.implementedTypes);
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[name=");
+    builder.append(name);
+    builder.append(", classElement=");
+    builder.append(classElement);
+    builder.append(", memberElement=");
+    builder.append(memberElement);
+    builder.append(", extendedType=");
+    builder.append(extendedType);
+    builder.append(", mixedTypes=[");
+    builder.append(StringUtils.join(mixedTypes, ", "));
+    builder.append("], implementedTypes=[");
+    builder.append(StringUtils.join(implementedTypes, ", "));
+    builder.append("], subTypes=[");
+    builder.append(StringUtils.join(subTypes, ", "));
+    builder.append("]]");
     return builder.toString();
   }
 }

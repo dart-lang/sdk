@@ -46,7 +46,7 @@ final Logger logger = new Logger('Docgen');
 
 /// The dart:core library, which contains all types that are always available
 /// without import.
-Library _coreLibrary;
+Library coreLibrary;
 
 /// Set of libraries declared in the SDK, so libraries that can be accessed
 /// when running dart by default.
@@ -102,9 +102,9 @@ markdown.Node fixComplexReference(String name) {
 String findElementInScopeWithPrefix(String name, String packagePrefix) {
   var lookupFunc = determineLookupFunc(name);
   // Look in the dart core library scope.
-  var coreScope = _coreLibrary == null ? null : lookupFunc(_coreLibrary.mirror,
+  var coreScope = coreLibrary == null ? null : lookupFunc(coreLibrary.mirror,
       name);
-  if (coreScope != null) return packagePrefix + _coreLibrary.docName;
+  if (coreScope != null) return packagePrefix + coreLibrary.docName;
 
   // If it's a reference that starts with a another library name, then it
   // looks for a match of that library name in the other sdk libraries.
@@ -149,8 +149,8 @@ Indexable getDocgenObject(DeclarationMirror mirror, [Indexable owner]) {
   if (owner != null) {
     var firstSet = docgenObj[owner.docName];
     if (firstSet != null) setToExamine.add(firstSet);
-    if (_coreLibrary != null && docgenObj[_coreLibrary.docName] != null) {
-      setToExamine.add(docgenObj[_coreLibrary.docName]);
+    if (coreLibrary != null && docgenObj[coreLibrary.docName] != null) {
+      setToExamine.add(docgenObj[coreLibrary.docName]);
     }
   } else {
     setToExamine.addAll(docgenObj.values);
@@ -174,7 +174,7 @@ Indexable getDocgenObject(DeclarationMirror mirror, [Indexable owner]) {
 void initializeTopLevelLibraries(MirrorSystem mirrorSystem) {
   _sdkLibraries = mirrorSystem.libraries.values.where(
       (each) => each.uri.scheme == 'dart');
-  _coreLibrary = new Library(_sdkLibraries.singleWhere((lib) =>
+  coreLibrary = new Library(_sdkLibraries.singleWhere((lib) =>
       lib.uri.toString().startsWith('dart:core')));
 }
 

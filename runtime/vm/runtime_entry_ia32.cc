@@ -26,7 +26,7 @@ namespace dart {
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(name(), GetEntryPoint());
+    ExternalLabel label(GetEntryPoint());
     __ call(&label);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more

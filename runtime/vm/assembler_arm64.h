@@ -183,6 +183,51 @@ class Address : public ValueObject {
     base_ = crn;
   }
 
+  static OperandSize OperandSizeFor(intptr_t cid) {
+    switch (cid) {
+      case kArrayCid:
+      case kImmutableArrayCid:
+        return kWord;
+      case kOneByteStringCid:
+        return kByte;
+      case kTwoByteStringCid:
+        return kHalfword;
+      case kTypedDataInt8ArrayCid:
+        return kByte;
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        return kUnsignedByte;
+      case kTypedDataInt16ArrayCid:
+        return kHalfword;
+      case kTypedDataUint16ArrayCid:
+        return kUnsignedHalfword;
+      case kTypedDataInt32ArrayCid:
+        return kWord;
+      case kTypedDataUint32ArrayCid:
+        return kUnsignedWord;
+      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
+        UNREACHABLE();
+        return kByte;
+      case kTypedDataFloat32ArrayCid:
+        return kSWord;
+      case kTypedDataFloat64ArrayCid:
+        return kDWord;
+      case kTypedDataFloat32x4ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
+      case kTypedDataFloat64x2ArrayCid:
+        return kQWord;
+      case kTypedDataInt8ArrayViewCid:
+        UNREACHABLE();
+        return kByte;
+      default:
+        UNREACHABLE();
+        return kByte;
+    }
+  }
+
  private:
   uint32_t encoding() const { return encoding_; }
   AddressType type() const { return type_; }
@@ -567,16 +612,25 @@ class Assembler : public ValueObject {
 
   // Conditional select.
   void csel(Register rd, Register rn, Register rm, Condition cond) {
-    EmitCoditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
+    EmitConditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
   }
   void csinc(Register rd, Register rn, Register rm, Condition cond) {
-    EmitCoditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
+    EmitConditionalSelect(CSINC, rd, rn, rm, cond, kDoubleWord);
   }
   void cinc(Register rd, Register rn, Condition cond) {
     csinc(rd, rn, rn, InvertCondition(cond));
   }
   void cset(Register rd, Condition cond) {
     csinc(rd, ZR, ZR, InvertCondition(cond));
+  }
+  void csinv(Register rd, Register rn, Register rm, Condition cond) {
+    EmitConditionalSelect(CSINV, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cinv(Register rd, Register rn, Condition cond) {
+    csinv(rd, rn, rn, InvertCondition(cond));
+  }
+  void csetm(Register rd, Condition cond) {
+    csinv(rd, ZR, ZR, InvertCondition(cond));
   }
 
   // Comparison.
@@ -777,6 +831,42 @@ class Assembler : public ValueObject {
   void vdivd(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VDIVD, vd, vn, vm);
   }
+  void vceqs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCEQS, vd, vn, vm);
+  }
+  void vceqd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCEQD, vd, vn, vm);
+  }
+  void vcgts(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGTS, vd, vn, vm);
+  }
+  void vcgtd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGTD, vd, vn, vm);
+  }
+  void vcges(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGES, vd, vn, vm);
+  }
+  void vcged(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VCGED, vd, vn, vm);
+  }
+  void vmins(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMINS, vd, vn, vm);
+  }
+  void vmind(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMIND, vd, vn, vm);
+  }
+  void vmaxs(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMAXS, vd, vn, vm);
+  }
+  void vmaxd(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMAXD, vd, vn, vm);
+  }
+  void vrecpss(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VRECPSS, vd, vn, vm);
+  }
+  void vrsqrtss(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VRSQRTSS, vd, vn, vm);
+  }
   void vnot(VRegister vd, VRegister vn) {
     EmitSIMDTwoRegOp(VNOT, vd, vn);
   }
@@ -791,6 +881,18 @@ class Assembler : public ValueObject {
   }
   void vnegd(VRegister vd, VRegister vn) {
     EmitSIMDTwoRegOp(VNEGD, vd, vn);
+  }
+  void vsqrts(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VSQRTS, vd, vn);
+  }
+  void vsqrtd(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VSQRTD, vd, vn);
+  }
+  void vrecpes(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VRECPES, vd, vn);
+  }
+  void vrsqrtes(VRegister vd, VRegister vn) {
+    EmitSIMDTwoRegOp(VRSQRTES, vd, vn);
   }
   void vdupw(VRegister vd, Register rn) {
     const VRegister vn = static_cast<VRegister>(rn);
@@ -911,8 +1013,14 @@ class Assembler : public ValueObject {
     add(rd, ZR, Operand(rn, ASR, shift));
   }
 
+  void VRecps(VRegister vd, VRegister vn);
+  void VRSqrts(VRegister vd, VRegister vn);
+
   void SmiUntag(Register reg) {
     Asr(reg, reg, kSmiTagSize);
+  }
+  void SmiUntag(Register dst, Register src) {
+    Asr(dst, src, kSmiTagSize);
   }
   void SmiTag(Register reg) {
     Lsl(reg, reg, kSmiTagSize);
@@ -1453,9 +1561,9 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitCoditionalSelect(ConditionalSelectOp op,
-                            Register rd, Register rn, Register rm,
-                            Condition cond, OperandSize sz) {
+  void EmitConditionalSelect(ConditionalSelectOp op,
+                             Register rd, Register rn, Register rm,
+                             Condition cond, OperandSize sz) {
     ASSERT((rd != SP) && (rn != SP) && (rm != SP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);

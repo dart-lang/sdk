@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
+import 'generated/constant.dart';
 import 'generated/engine.dart';
 import 'generated/element.dart';
 import 'generated/error.dart';
@@ -251,6 +252,13 @@ class AnalyzerImpl {
     sourceFactory = new SourceFactory(resolvers);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
+    Map<String, String> definedVariables = options.definedVariables;
+    if (!definedVariables.isEmpty) {
+      DeclaredVariables declaredVariables = context.declaredVariables;
+      definedVariables.forEach((String variableName, String value) {
+        declaredVariables.define(variableName, value);
+      });
+    }
     // Uncomment the following to have errors reported on stdout and stderr
     AnalysisEngine.instance.logger = new StdLogger(options.log);
 

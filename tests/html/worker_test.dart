@@ -21,11 +21,17 @@ main() {
   group('functional', () {
 
     test('unsupported', () {
-      var expectation = Worker.supported ? returnsNormally : throws;
-
-      expect(() {
-        new Worker('worker.js');
-      }, expectation);
+      if (!Worker.supported) {
+        expect(() => new Worker('worker.js'), throws);
+      } else {
+        new Worker('worker.js').onError.first.then(expectAsync((e) {
+          // This event is expected, "worker.js" doesn't exist.  But the event
+          // *sometimes* propagates to window.onerror in Firefox which causes
+          // this test to fail, so let's stop any further propagation:
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }));
+      }
     });
 
     if (!Worker.supported) {

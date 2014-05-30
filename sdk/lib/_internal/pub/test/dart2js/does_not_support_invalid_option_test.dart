@@ -15,13 +15,8 @@ main() {
         "transformers": [{
           "\$dart2js": {"invalidOption": true}
         }]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])])
+      })
     ]).create();
-
-    createLockFile('myapp', pkg: ['barback']);
 
     // TODO(nweiz): This should provide more context about how the option got
     // passed to dart2js. See issue 16008.

@@ -1502,23 +1502,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   String textBaseline;
 
-  @JSName('webkitBackingStorePixelRatio')
-  /**
-   * The ratio between this canvas' backing store dimensions and the canvas'
-   * logical dimensions.
-   *
-   * ## Other resources
-   *
-   * * [High DPI Canvas tutorial]
-   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
-   */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final double backingStorePixelRatio;
-
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
@@ -2058,6 +2041,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void fill([String winding = 'nonzero']) {
     JS('void', '#.fill(#)', this, winding);
   }
+
+  /** Deprecated always returns 1.0 */
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
+  @Experimental()
+  double get backingStorePixelRatio => 1.0;
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10272,6 +10260,55 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   ElementEvents get on => new ElementEvents(this);
 
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  final num offsetHeight;
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  final num offsetLeft;
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  final num offsetTop;
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  final num offsetWidth;
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  final num clientHeight;
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  final num clientLeft;
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  final num clientTop;
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  final num clientWidth;
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  final num scrollHeight;
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  num scrollLeft;
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  num scrollTop;
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  final num scrollWidth;
+
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -10955,21 +10992,25 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String className;
 
+  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final int clientHeight;
+  final int _clientHeight;
 
+  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final int clientLeft;
+  final int _clientLeft;
 
+  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable()
-  final int clientTop;
+  final int _clientTop;
 
+  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final int clientWidth;
+  final int _clientWidth;
 
   @DomName('Element.id')
   @DocsEditable()
@@ -10986,46 +11027,54 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // Use implementation from Node.
   // final String _namespaceUri;
 
+  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  final int offsetHeight;
+  final int _offsetHeight;
 
+  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  final int offsetLeft;
+  final int _offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable()
   final Element offsetParent;
 
+  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable()
-  final int offsetTop;
+  final int _offsetTop;
 
+  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  final int offsetWidth;
+  final int _offsetWidth;
 
   @JSName('outerHTML')
   @DomName('Element.outerHTML')
   @DocsEditable()
   final String outerHtml;
 
+  @JSName('scrollHeight')
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  final int scrollHeight;
+  final int _scrollHeight;
 
+  @JSName('scrollLeft')
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int scrollLeft;
+  int _scrollLeft;
 
+  @JSName('scrollTop')
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int scrollTop;
+  int _scrollTop;
 
+  @JSName('scrollWidth')
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  final int scrollWidth;
+  final int _scrollWidth;
 
   @DomName('Element.style')
   @DocsEditable()
@@ -23284,9 +23333,10 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @DocsEditable()
   final Element activeElement;
 
+  @JSName('applyAuthorStyles')
   @DomName('ShadowRoot.applyAuthorStyles')
   @DocsEditable()
-  bool applyAuthorStyles;
+  bool _applyAuthorStyles;
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
@@ -23353,6 +23403,14 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @deprecated
   void set resetStyleInheritance(bool value) {
     this._resetStyleInheritance = value;
+  }
+
+  @deprecated
+  bool get applyAuthorStyles => this._applyAuthorStyles;
+
+  @deprecated
+  void set applyAuthorStyles(bool value) {
+    this._applyAuthorStyles = value;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -28,13 +28,8 @@ main() {
             "terse": true
           }
         }]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER)
-      ])])
+      })
     ]).create();
-
-    createLockFile('myapp', pkg: ['barback']);
 
     // None of these options should be rejected, either by pub or by dart2js.
     pubServe();

@@ -12,6 +12,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
   visitor->Visit##BaseName##Node(this);                                        \
@@ -505,6 +507,13 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
     return NULL;
   }
+  if (FLAG_enable_type_checks) {
+    rhs = new AssignableNode(
+        field().token_pos(),
+        rhs,
+        AbstractType::ZoneHandle(field().type()),
+        String::ZoneHandle(field().name()));
+  }
   return new StoreStaticFieldNode(token_pos(), field(), rhs);
 }
 
@@ -557,6 +566,13 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
+    if (FLAG_enable_type_checks) {
+      rhs = new AssignableNode(
+          field.token_pos(),
+          rhs,
+          AbstractType::ZoneHandle(field.type()),
+          String::ZoneHandle(field.name()));
+    }
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }
   // Didn't find a static setter or a static field.

@@ -17,7 +17,7 @@ namespace dart {
 
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
-  __ mov(R0, ShifterOperand(42));
+  __ mov(R0, Operand(42));
   __ bx(LR);
 }
 
@@ -29,7 +29,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 
 
 ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
-  __ mvn(R0, ShifterOperand(42));
+  __ mvn(R0, Operand(42));
   __ bx(LR);
 }
 
@@ -42,11 +42,11 @@ ASSEMBLER_TEST_RUN(MoveNegated, test) {
 
 
 ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
-  ShifterOperand shifter_op;
-  EXPECT(ShifterOperand::CanHold(0x00550000, &shifter_op));
-  __ mov(R0, shifter_op);
-  EXPECT(ShifterOperand::CanHold(0x30000003, &shifter_op));
-  __ add(R0, R0, shifter_op);
+  Operand o;
+  EXPECT(Operand::CanHold(0x00550000, &o));
+  __ mov(R0, o);
+  EXPECT(Operand::CanHold(0x30000003, &o));
+  __ add(R0, R0, o);
   __ bx(LR);
 }
 
@@ -65,7 +65,7 @@ ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
   __ LoadDecodableImmediate(R0, 0x12345678 << 1);
   HostCPUFeatures::set_arm_version(ARMv7);
   __ LoadDecodableImmediate(R1, 0x12345678);
-  __ sub(R0, R0, ShifterOperand(R1));
+  __ sub(R0, R0, Operand(R1));
   __ bx(LR);
 #else
   __ LoadDecodableImmediate(R0, 0x12345678);
@@ -82,8 +82,8 @@ ASSEMBLER_TEST_RUN(MovImm16, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
-  __ mov(R0, ShifterOperand(0));
-  __ cmp(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
+  __ cmp(R0, Operand(0));
   __ LoadImmediate(R0, 0x12345678, EQ);
   __ LoadImmediate(R0, 0x87654321, NE);
   __ bx(LR);
@@ -99,8 +99,8 @@ ASSEMBLER_TEST_RUN(LoadImmediate, test) {
 
 ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, ShifterOperand(43));
-    __ mov(R1, ShifterOperand(41));
+    __ mov(R3, Operand(43));
+    __ mov(R1, Operand(41));
     __ vmovsrr(S1, R1, R3);  // S1:S2 = 41:43
     __ vmovs(S0, S2);  // S0 = S2, S0:S1 == 43:41
     __ vmovd(D2, D0);  // D2 = D0, S4:S5 == 43:41
@@ -109,7 +109,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
     __ vmovdrr(D3, R3, R2);  // D3 = R3:R2, S6:S7 == 41:41
     __ vmovsr(S7, R1);  // S7 = R1, S6:S7 == 41:43
     __ vmovrrd(R0, R1, D3);  // R0:R1 = D3, R0:R1 == 41:43
-    __ sub(R0, R1, ShifterOperand(R0));  // 43-41
+    __ sub(R0, R1, Operand(R0));  // 43-41
   } else {
     __ LoadImmediate(R0, 2);
   }
@@ -127,7 +127,7 @@ ASSEMBLER_TEST_RUN(Vmov, test) {
 ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
-    __ mov(R2, ShifterOperand(SP));
+    __ mov(R2, Operand(SP));
     __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
     __ vldrs(S0, Address(R2, (-kWordSize * 30)));
     __ vadds(S0, S0, S0);
@@ -156,10 +156,10 @@ ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
 ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
-    __ mov(R2, ShifterOperand(SP));
+    __ mov(R2, Operand(SP));
     // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
     // as:
-    __ mov(R1, ShifterOperand(kWordSize));
+    __ mov(R1, Operand(kWordSize));
     __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
     __ vldrs(S0, Address(R2, (-kWordSize * 32)));
     __ vadds(S0, S0, S0);
@@ -192,7 +192,7 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
     int64_t value = bit_cast<int64_t, double>(12.3);
     __ LoadImmediate(R0, Utils::Low32Bits(value));
     __ LoadImmediate(R1, Utils::High32Bits(value));
-    __ mov(R2, ShifterOperand(SP));
+    __ mov(R2, Operand(SP));
     __ str(R0, Address(SP, (-kWordSize * 30), Address::PreIndex));
     __ str(R1, Address(R2, (-kWordSize * 29)));
     __ vldrd(D0, Address(R2, (-kWordSize * 30)));
@@ -289,8 +289,8 @@ ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
     __ vsqrtd(D0, D1);
     __ vcmpd(D0, D0);
     __ vmstat();
-    __ mov(R0, ShifterOperand(1), VS);
-    __ mov(R0, ShifterOperand(0), VC);
+    __ mov(R0, Operand(1), VS);
+    __ mov(R0, Operand(0), VC);
   } else {
     __ LoadImmediate(R0, 1);
   }
@@ -307,7 +307,7 @@ ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, ShifterOperand(6));
+    __ mov(R3, Operand(6));
     __ vmovsr(S3, R3);
     __ vcvtdi(D0, S3);
   } else {
@@ -367,7 +367,7 @@ ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
 
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, ShifterOperand(6));
+    __ mov(R3, Operand(6));
     __ vmovsr(S3, R3);
     __ vcvtsi(S0, S3);
   } else {
@@ -503,13 +503,13 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
     __ LoadSImmediate(S1, 12.5f);
 
     // Count errors in R0. R0 is zero if no errors found.
-    __ mov(R0, ShifterOperand(0));
+    __ mov(R0, Operand(0));
     __ vcmps(S0, S1);
     __ vmstat();
-    __ add(R0, R0, ShifterOperand(1), VS);  // Error if unordered (Nan).
-    __ add(R0, R0, ShifterOperand(2), GT);  // Error if greater.
-    __ add(R0, R0, ShifterOperand(4), EQ);  // Error if equal.
-    __ add(R0, R0, ShifterOperand(8), PL);  // Error if not less.
+    __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
+    __ add(R0, R0, Operand(2), GT);  // Error if greater.
+    __ add(R0, R0, Operand(4), EQ);  // Error if equal.
+    __ add(R0, R0, Operand(8), PL);  // Error if not less.
 
     // Test NaN.
     // Create NaN by dividing 0.0f/0.0f.
@@ -518,7 +518,7 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
     __ vcmps(S1, S1);
     __ vmstat();
     // Error if not unordered (not Nan).
-    __ add(R0, R0, ShifterOperand(16), VC);
+    __ add(R0, R0, Operand(16), VC);
   } else {
     __ LoadImmediate(R0, 0);
   }
@@ -541,13 +541,13 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
     __ LoadDImmediate(D1, 12.5, R1);
 
     // Count errors in R0. R0 is zero if no errors found.
-    __ mov(R0, ShifterOperand(0));
+    __ mov(R0, Operand(0));
     __ vcmpd(D0, D1);
     __ vmstat();
-    __ add(R0, R0, ShifterOperand(1), VS);  // Error if unordered (Nan).
-    __ add(R0, R0, ShifterOperand(2), GT);  // Error if greater.
-    __ add(R0, R0, ShifterOperand(4), EQ);  // Error if equal.
-    __ add(R0, R0, ShifterOperand(8), PL);  // Error if not less.
+    __ add(R0, R0, Operand(1), VS);  // Error if unordered (Nan).
+    __ add(R0, R0, Operand(2), GT);  // Error if greater.
+    __ add(R0, R0, Operand(4), EQ);  // Error if equal.
+    __ add(R0, R0, Operand(8), PL);  // Error if not less.
 
     // Test NaN.
     // Create NaN by dividing 0.0/0.0.
@@ -556,7 +556,7 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
     __ vcmpd(D1, D1);
     __ vmstat();
     // Error if not unordered (not Nan).
-    __ add(R0, R0, ShifterOperand(16), VC);
+    __ add(R0, R0, Operand(16), VC);
   } else {
     __ LoadImmediate(R0, 0);
   }
@@ -574,11 +574,11 @@ ASSEMBLER_TEST_RUN(DoubleCompare, test) {
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   Label loop_entry;
-  __ mov(R0, ShifterOperand(1));
-  __ mov(R1, ShifterOperand(2));
+  __ mov(R0, Operand(1));
+  __ mov(R1, Operand(2));
   __ Bind(&loop_entry);
-  __ mov(R0, ShifterOperand(R0, LSL, 1));
-  __ movs(R1, ShifterOperand(R1, LSR, 1));
+  __ mov(R0, Operand(R0, LSL, 1));
+  __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
   __ bx(LR);
 }
@@ -593,9 +593,9 @@ ASSEMBLER_TEST_RUN(Loop, test) {
 
 ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
   Label skip;
-  __ mov(R0, ShifterOperand(42));
+  __ mov(R0, Operand(42));
   __ b(&skip);
-  __ mov(R0, ShifterOperand(11));
+  __ mov(R0, Operand(11));
   __ Bind(&skip);
   __ bx(LR);
 }
@@ -611,11 +611,11 @@ ASSEMBLER_TEST_RUN(ForwardBranch, test) {
 ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
   Label loop_entry;
   __ set_use_far_branches(true);
-  __ mov(R0, ShifterOperand(1));
-  __ mov(R1, ShifterOperand(2));
+  __ mov(R0, Operand(1));
+  __ mov(R1, Operand(2));
   __ Bind(&loop_entry);
-  __ mov(R0, ShifterOperand(R0, LSL, 1));
-  __ movs(R1, ShifterOperand(R1, LSR, 1));
+  __ mov(R0, Operand(R0, LSL, 1));
+  __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
   __ bx(LR);
 }
@@ -631,14 +631,14 @@ ASSEMBLER_TEST_RUN(Loop2, test) {
 ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
   Label loop_entry;
   __ set_use_far_branches(true);
-  __ mov(R0, ShifterOperand(1));
-  __ mov(R1, ShifterOperand(2));
+  __ mov(R0, Operand(1));
+  __ mov(R1, Operand(2));
   __ Bind(&loop_entry);
   for (int i = 0; i < (1 << 22); i++) {
     __ nop();
   }
-  __ mov(R0, ShifterOperand(R0, LSL, 1));
-  __ movs(R1, ShifterOperand(R1, LSR, 1));
+  __ mov(R0, Operand(R0, LSL, 1));
+  __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
   __ bx(LR);
 }
@@ -652,7 +652,7 @@ ASSEMBLER_TEST_RUN(Loop3, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
-  __ mov(R1, ShifterOperand(123));
+  __ mov(R1, Operand(123));
   __ Push(R1);
   __ Pop(R0);
   __ bx(LR);
@@ -667,11 +667,11 @@ ASSEMBLER_TEST_RUN(LoadStore, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
-  __ mov(R1, ShifterOperand(40));
-  __ sub(R1, R1, ShifterOperand(2));
-  __ add(R0, R1, ShifterOperand(4));
-  __ rsbs(R0, R0, ShifterOperand(100));
-  __ rsc(R0, R0, ShifterOperand(100));
+  __ mov(R1, Operand(40));
+  __ sub(R1, R1, Operand(2));
+  __ add(R0, R1, Operand(4));
+  __ rsbs(R0, R0, Operand(100));
+  __ rsc(R0, R0, Operand(100));
   __ bx(LR);
 }
 
@@ -685,10 +685,10 @@ ASSEMBLER_TEST_RUN(AddSub, test) {
 
 ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
   __ LoadImmediate(R2, 0xFFFFFFFF);
-  __ mov(R1, ShifterOperand(1));
-  __ mov(R0, ShifterOperand(0));
-  __ adds(R2, R2, ShifterOperand(R1));
-  __ adcs(R0, R0, ShifterOperand(R0));
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ adds(R2, R2, Operand(R1));
+  __ adcs(R0, R0, Operand(R0));
   __ bx(LR);
 }
 
@@ -702,10 +702,10 @@ ASSEMBLER_TEST_RUN(AddCarry, test) {
 
 ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ LoadImmediate(R2, 0x0);
-  __ mov(R1, ShifterOperand(1));
-  __ mov(R0, ShifterOperand(0));
-  __ subs(R2, R2, ShifterOperand(R1));
-  __ sbcs(R0, R0, ShifterOperand(R0));
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ subs(R2, R2, Operand(R1));
+  __ sbcs(R0, R0, Operand(R0));
   __ bx(LR);
 }
 
@@ -718,11 +718,11 @@ ASSEMBLER_TEST_RUN(SubCarry, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
-  __ mov(R1, ShifterOperand(40));
-  __ mov(R2, ShifterOperand(0));
-  __ and_(R1, R2, ShifterOperand(R1));
-  __ mov(R3, ShifterOperand(42));
-  __ orr(R0, R1, ShifterOperand(R3));
+  __ mov(R1, Operand(40));
+  __ mov(R2, Operand(0));
+  __ and_(R1, R2, Operand(R1));
+  __ mov(R3, Operand(42));
+  __ orr(R0, R1, Operand(R3));
   __ bx(LR);
 }
 
@@ -735,13 +735,13 @@ ASSEMBLER_TEST_RUN(AndOrr, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
-  __ mov(R0, ShifterOperand(0));
-  __ tst(R0, ShifterOperand(R1));  // Set zero-flag.
-  __ orrs(R0, R0, ShifterOperand(1));  // Clear zero-flag.
+  __ mov(R0, Operand(0));
+  __ tst(R0, Operand(R1));  // Set zero-flag.
+  __ orrs(R0, R0, Operand(1));  // Clear zero-flag.
   __ bx(LR, EQ);
-  __ mov(R0, ShifterOperand(42));
+  __ mov(R0, Operand(42));
   __ bx(LR, NE);  // Only this return should fire.
-  __ mov(R0, ShifterOperand(2));
+  __ mov(R0, Operand(2));
   __ bx(LR);
 }
 
@@ -754,10 +754,10 @@ ASSEMBLER_TEST_RUN(Orrs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
-  __ mov(R1, ShifterOperand(20));
-  __ mov(R2, ShifterOperand(40));
+  __ mov(R1, Operand(20));
+  __ mov(R2, Operand(40));
   __ mul(R3, R2, R1);
-  __ mov(R0, ShifterOperand(R3));
+  __ mov(R0, Operand(R3));
   __ bx(LR);
 }
 
@@ -807,11 +807,11 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
 #endif
   if (TargetCPUFeatures::arm_version() == ARMv7) {
     __ Push(R4);
-    __ mov(IP, ShifterOperand(R0));
+    __ mov(IP, Operand(R0));
     __ mul(R4, R2, R1);
     __ umull(R0, R1, R2, IP);
     __ mla(R2, IP, R3, R4);
-    __ add(R1, R2, ShifterOperand(R1));
+    __ add(R1, R2, Operand(R1));
     __ Pop(R4);
   } else {
     __ LoadImmediate(R0, 6);
@@ -884,26 +884,26 @@ ASSEMBLER_TEST_RUN(MultiplyAccum32To64, test) {
 ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   Label error;
 
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
   __ clz(R1, R0);
-  __ cmp(R1, ShifterOperand(32));
+  __ cmp(R1, Operand(32));
   __ b(&error, NE);
-  __ mov(R2, ShifterOperand(42));
+  __ mov(R2, Operand(42));
   __ clz(R2, R2);
-  __ cmp(R2, ShifterOperand(26));
+  __ cmp(R2, Operand(26));
   __ b(&error, NE);
-  __ mvn(R0, ShifterOperand(0));
+  __ mvn(R0, Operand(0));
   __ clz(R1, R0);
-  __ cmp(R1, ShifterOperand(0));
+  __ cmp(R1, Operand(0));
   __ b(&error, NE);
   __ Lsr(R0, R0, 3);
   __ clz(R1, R0);
-  __ cmp(R1, ShifterOperand(3));
+  __ cmp(R1, Operand(3));
   __ b(&error, NE);
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
   __ bx(LR);
   __ Bind(&error);
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ bx(LR);
 }
 
@@ -918,11 +918,11 @@ ASSEMBLER_TEST_RUN(Clz, test) {
 ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   Label skip;
 
-  __ mov(R0, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(40));
-  __ tst(R1, ShifterOperand(0));
+  __ mov(R0, Operand(42));
+  __ mov(R1, Operand(40));
+  __ tst(R1, Operand(0));
   __ b(&skip, NE);
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
   __ Bind(&skip);
   __ bx(LR);
 }
@@ -938,10 +938,10 @@ ASSEMBLER_TEST_RUN(Tst, test) {
 ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
   Label skip;
 
-  __ mov(R0, ShifterOperand(1));
-  __ mov(R0, ShifterOperand(R0, LSL, 1));
-  __ mov(R1, ShifterOperand(1));
-  __ mov(R0, ShifterOperand(R0, LSL, R1));
+  __ mov(R0, Operand(1));
+  __ mov(R0, Operand(R0, LSL, 1));
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(R0, LSL, R1));
   __ bx(LR);
 }
 
@@ -956,10 +956,10 @@ ASSEMBLER_TEST_RUN(Lsl, test) {
 ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
   Label skip;
 
-  __ mov(R0, ShifterOperand(4));
-  __ mov(R0, ShifterOperand(R0, LSR, 1));
-  __ mov(R1, ShifterOperand(1));
-  __ mov(R0, ShifterOperand(R0, LSR, R1));
+  __ mov(R0, Operand(4));
+  __ mov(R0, Operand(R0, LSR, 1));
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(R0, LSR, R1));
   __ bx(LR);
 }
 
@@ -974,7 +974,7 @@ ASSEMBLER_TEST_RUN(Lsr, test) {
 ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   Label skip;
 
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ Lsl(R0, R0, 31);
   __ Lsr(R0, R0, 31);
   __ bx(LR);
@@ -991,7 +991,7 @@ ASSEMBLER_TEST_RUN(Lsr1, test) {
 ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   Label skip;
 
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ Lsl(R0, R0, 31);
   __ Asr(R0, R0, 31);
   __ bx(LR);
@@ -1006,8 +1006,8 @@ ASSEMBLER_TEST_RUN(Asr1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
-  __ mov(R3, ShifterOperand(10));
-  __ rsb(R0, R3, ShifterOperand(42));
+  __ mov(R3, Operand(10));
+  __ rsb(R0, R3, Operand(42));
   __ bx(LR);
 }
 
@@ -1022,36 +1022,36 @@ ASSEMBLER_TEST_RUN(Rsb, test) {
 ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   Label Test1, Test2, Test3, Done;
 
-  __ mov(R1, ShifterOperand(0x11));
-  __ mov(R2, ShifterOperand(SP));
+  __ mov(R1, Operand(0x11));
+  __ mov(R2, Operand(SP));
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrh(R0, Address(R2, (-kWordSize * 30)));
-  __ cmp(R0, ShifterOperand(0x11));
+  __ cmp(R0, Operand(0x11));
   __ b(&Test1, EQ);
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ b(&Done);
   __ Bind(&Test1);
 
-  __ mov(R0, ShifterOperand(0x22));
+  __ mov(R0, Operand(0x22));
   __ strh(R0, Address(R2, (-kWordSize * 30)));
   __ ldrh(R1, Address(R2, (-kWordSize * 30)));
-  __ cmp(R1, ShifterOperand(0x22));
+  __ cmp(R1, Operand(0x22));
   __ b(&Test2, EQ);
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ b(&Done);
   __ Bind(&Test2);
 
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
   __ AddImmediate(R2, (-kWordSize * 30));
   __ strh(R0, Address(R2));
   __ ldrh(R1, Address(R2));
-  __ cmp(R1, ShifterOperand(0));
+  __ cmp(R1, Operand(0));
   __ b(&Test3, EQ);
-  __ mov(R0, ShifterOperand(1));
+  __ mov(R0, Operand(1));
   __ b(&Done);
   __ Bind(&Test3);
 
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, Operand(0));
   __ Bind(&Done);
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
   __ bx(LR);
@@ -1066,8 +1066,8 @@ ASSEMBLER_TEST_RUN(Ldrh, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
-  __ mov(R1, ShifterOperand(0xFF));
-  __ mov(R2, ShifterOperand(SP));
+  __ mov(R1, Operand(0xFF));
+  __ mov(R2, Operand(SP));
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrsb(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
@@ -1083,8 +1083,8 @@ ASSEMBLER_TEST_RUN(Ldrsb, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
-  __ mov(R1, ShifterOperand(0xFF));
-  __ mov(R2, ShifterOperand(SP));
+  __ mov(R1, Operand(0xFF));
+  __ mov(R2, Operand(SP));
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrb(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
@@ -1100,8 +1100,8 @@ ASSEMBLER_TEST_RUN(Ldrb, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
-  __ mov(R1, ShifterOperand(0xFF));
-  __ mov(R2, ShifterOperand(SP));
+  __ mov(R1, Operand(0xFF));
+  __ mov(R2, Operand(SP));
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrsh(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
@@ -1117,8 +1117,8 @@ ASSEMBLER_TEST_RUN(Ldrsh, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
-  __ mov(R1, ShifterOperand(0xFF));
-  __ mov(R2, ShifterOperand(SP));
+  __ mov(R1, Operand(0xFF));
+  __ mov(R2, Operand(SP));
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrh(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
@@ -1134,13 +1134,13 @@ ASSEMBLER_TEST_RUN(Ldrh1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
-  __ mov(IP, ShifterOperand(SP));
+  __ mov(IP, Operand(SP));
   __ strd(R2, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ strd(R0, Address(IP, (-kWordSize * 28)));
   __ ldrd(R2, Address(IP, (-kWordSize * 28)));
   __ ldrd(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ sub(R0, R0, ShifterOperand(R2));
-  __ add(R1, R1, ShifterOperand(R3));
+  __ sub(R0, R0, Operand(R2));
+  __ add(R1, R1, Operand(R3));
   __ bx(LR);
 }
 
@@ -1154,10 +1154,10 @@ ASSEMBLER_TEST_RUN(Ldrd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
-  __ mov(R0, ShifterOperand(1));
-  __ mov(R1, ShifterOperand(7));
-  __ mov(R2, ShifterOperand(11));
-  __ mov(R3, ShifterOperand(31));
+  __ mov(R0, Operand(1));
+  __ mov(R1, Operand(7));
+  __ mov(R2, Operand(11));
+  __ mov(R3, Operand(31));
   __ Push(R5);  // We use R5 as accumulator.
   __ Push(R5);
   __ Push(R5);
@@ -1168,17 +1168,17 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ str(R2, Address(SP));                 // Should be a free slot.
   __ ldr(R5, Address(SP, 1 * kWordSize));  // R0.  R5 = +1.
   __ ldr(IP, Address(SP, 2 * kWordSize));  // R1.
-  __ sub(R5, R5, ShifterOperand(IP));      // -R1. R5 = -6.
+  __ sub(R5, R5, Operand(IP));      // -R1. R5 = -6.
   __ ldr(IP, Address(SP, 3 * kWordSize));  // R2.
-  __ add(R5, R5, ShifterOperand(IP));      // +R2. R5 = +5.
+  __ add(R5, R5, Operand(IP));      // +R2. R5 = +5.
   __ ldr(IP, Address(SP, 4 * kWordSize));  // R3.
-  __ sub(R5, R5, ShifterOperand(IP));      // -R3. R5 = -26.
+  __ sub(R5, R5, Operand(IP));      // -R3. R5 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
-  __ add(R5, R5, ShifterOperand(R0));
-  __ sub(R5, R5, ShifterOperand(R1));
-  __ add(R5, R5, ShifterOperand(R2));
-  __ sub(R0, R5, ShifterOperand(R3));  // R0 = result = -52.
+  __ add(R5, R5, Operand(R0));
+  __ sub(R5, R5, Operand(R1));
+  __ add(R5, R5, Operand(R2));
+  __ sub(R0, R5, Operand(R3));  // R0 = result = -52.
   __ Pop(R1);  // Remove storage slot.
   __ Pop(R5);  // Restore R5.
   __ Pop(R5);  // Restore R5.
@@ -1197,8 +1197,8 @@ ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize));
   __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, (-kWordSize * 2), Address::Offset));
   __ bx(LR);
@@ -1213,8 +1213,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize));
   __ str(R2, Address(SP, (-kWordSize * 32), Address::Offset));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
   __ bx(LR);
@@ -1229,8 +1229,8 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize * 2));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize * 2));
   __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, -kWordSize, Address::Offset));
   __ bx(LR);
@@ -1245,8 +1245,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize * 2));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize * 2));
   __ str(R2, Address(SP, -kWordSize, Address::Offset));
   __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ bx(LR);
@@ -1261,12 +1261,12 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize));
-  __ mov(R3, ShifterOperand(SP));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize));
+  __ mov(R3, Operand(SP));
   __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
   __ ldr(R0, Address(R3, (-kWordSize * 32), Address::Offset));
-  __ mov(SP, ShifterOperand(R3));
+  __ mov(SP, Operand(R3));
   __ bx(LR);
 }
 
@@ -1279,8 +1279,8 @@ ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
-  __ mov(R2, ShifterOperand(42));
-  __ mov(R1, ShifterOperand(kWordSize));
+  __ mov(R2, Operand(42));
+  __ mov(R1, Operand(kWordSize));
   __ str(R2, Address(SP, (-kWordSize * 32), Address::PreIndex));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
   __ bx(LR);
@@ -1311,32 +1311,32 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
     __ vldmd(IA_W, SP, D0, 5);  // Pop stack into D0 - D4, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is back in D4
     __ LoadDImmediate(D5, 4.0, R1);
     __ vcmpd(D4, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 3.0 is back in D3
     __ LoadDImmediate(D5, 3.0, R1);
     __ vcmpd(D3, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
 
     // Check that 2.0 is back in D2
     __ LoadDImmediate(D5, 2.0, R1);
     __ vcmpd(D2, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 1.0 is back in D1
     __ LoadDImmediate(D5, 1.0, R1);
     __ vcmpd(D1, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   } else {
     __ LoadImmediate(R0, 42);
   }
@@ -1368,31 +1368,31 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
     __ vldms(IA_W, SP, S0, S4);  // Pop stack into S0 - S4, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is back in S4
     __ LoadSImmediate(S5, 4.0);
     __ vcmps(S4, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 3.0 is back in S3
     __ LoadSImmediate(S5, 3.0);
     __ vcmps(S3, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 2.0 is back in S2
     __ LoadSImmediate(S5, 2.0);
     __ vcmps(S2, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 1.0 is back in S1
     __ LoadSImmediate(S5, 1.0);
     __ vcmps(S1, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   } else {
     __ LoadImmediate(R0, 42);
   }
@@ -1422,32 +1422,32 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
     __ vldmd(IA_W, SP, D1, 4);  // Pop stack into D1 - D4, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is back in D4
     __ LoadDImmediate(D5, 4.0, R1);
     __ vcmpd(D4, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 3.0 is back in D3
     __ LoadDImmediate(D5, 3.0, R1);
     __ vcmpd(D3, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
 
     // Check that 2.0 is back in D2
     __ LoadDImmediate(D5, 2.0, R1);
     __ vcmpd(D2, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 1.0 is back in D1
     __ LoadDImmediate(D5, 1.0, R1);
     __ vcmpd(D1, D5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   } else {
     __ LoadImmediate(R0, 42);
   }
@@ -1477,31 +1477,31 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
     __ vldms(IA_W, SP, S1, S4);  // Pop stack into S0 - S4, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is back in S4
     __ LoadSImmediate(S5, 4.0);
     __ vcmps(S4, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 3.0 is back in S3
     __ LoadSImmediate(S5, 3.0);
     __ vcmps(S3, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 2.0 is back in S2
     __ LoadSImmediate(S5, 2.0);
     __ vcmps(S2, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 1.0 is back in S1
     __ LoadSImmediate(S5, 1.0);
     __ vcmps(S1, S5);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   } else {
     __ LoadImmediate(R0, 42);
   }
@@ -1532,38 +1532,38 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
     __ vldmd(IA_W, SP, D5, 5);  // Pop stack into D5 - D9, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is in D9
     __ LoadDImmediate(D10, 4.0, R1);
     __ vcmpd(D9, D10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 3.0 is in D8
     __ LoadDImmediate(D10, 3.0, R1);
     __ vcmpd(D8, D10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
 
     // Check that 2.0 is in D7
     __ LoadDImmediate(D10, 2.0, R1);
     __ vcmpd(D7, D10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 1.0 is in D6
     __ LoadDImmediate(D10, 1.0, R1);
     __ vcmpd(D6, D10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Check that 0.0 is in D5
     __ LoadDImmediate(D10, 0.0, R1);
     __ vcmpd(D5, D10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
     // Restore used callee-saved FPU registers.
     __ vldmd(IA_W, SP, D8, 3);
@@ -1594,37 +1594,37 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
     __ vldms(IA_W, SP, S5, S9);  // Pop stack into S5 - S9, inc SP
 
     // Load success value into R0
-    __ mov(R0, ShifterOperand(42));
+    __ mov(R0, Operand(42));
 
     // Check that 4.0 is in S9
     __ LoadSImmediate(S10, 4.0);
     __ vcmps(S9, S10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 3.0 is in S8
     __ LoadSImmediate(S10, 3.0);
     __ vcmps(S8, S10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 2.0 is in S7
     __ LoadSImmediate(S10, 2.0);
     __ vcmps(S7, S10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 1.0 is back in S6
     __ LoadSImmediate(S10, 1.0);
     __ vcmps(S6, S10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
     // Check that 0.0 is back in S5
     __ LoadSImmediate(S10, 0.0);
     __ vcmps(S5, S10);
     __ vmstat();
-    __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   } else {
     __ LoadImmediate(R0, 42);
   }
@@ -1641,12 +1641,12 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
 
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
-    __ mov(R0, ShifterOperand(27));
-    __ mov(R1, ShifterOperand(9));
+    __ mov(R0, Operand(27));
+    __ mov(R1, Operand(9));
     __ udiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
   }
   __ bx(LR);
 }
@@ -1661,10 +1661,10 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
-    __ mov(R0, ShifterOperand(27));
+    __ mov(R0, Operand(27));
     __ LoadImmediate(R1, -9);
     __ sdiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
     __ LoadImmediate(R0, -3);
   }
@@ -1681,10 +1681,10 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
-    __ mov(R0, ShifterOperand(27));
-    __ mov(R1, ShifterOperand(0));
+    __ mov(R0, Operand(27));
+    __ mov(R1, Operand(0));
     __ udiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
     __ LoadImmediate(R0, 0);
   }
@@ -1701,10 +1701,10 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   if (TargetCPUFeatures::integer_division_supported()) {
-    __ mov(R0, ShifterOperand(27));
-    __ mov(R1, ShifterOperand(0));
+    __ mov(R0, Operand(27));
+    __ mov(R1, Operand(0));
     __ sdiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
     __ LoadImmediate(R0, 0);
   }
@@ -1724,7 +1724,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
     __ LoadImmediate(R0, 0x80000000);
     __ LoadImmediate(R1, 0xffffffff);
     __ udiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
     __ LoadImmediate(R0, 0);
   }
@@ -1744,7 +1744,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
     __ LoadImmediate(R0, 0x80000000);
     __ LoadImmediate(R1, 0xffffffff);
     __ sdiv(R2, R0, R1);
-    __ mov(R0, ShifterOperand(R2));
+    __ mov(R0, Operand(R2));
   } else {
     __ LoadImmediate(R0, 0x80000000);
   }
@@ -1764,14 +1764,14 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(true);
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(9));
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
   HostCPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
 #else
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(9));
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
   __ bx(LR);
 #endif
@@ -1789,14 +1789,14 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(false);
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(9));
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
   HostCPUFeatures::set_integer_division_supported(orig);
   __ bx(LR);
 #else
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(9));
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
   __ bx(LR);
 #endif
@@ -1811,10 +1811,10 @@ ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Muls, assembler) {
-  __ mov(R0, ShifterOperand(3));
+  __ mov(R0, Operand(3));
   __ LoadImmediate(R1, -9);
   __ muls(R2, R0, R1);
-  __ mov(R0, ShifterOperand(42), MI);
+  __ mov(R0, Operand(42), MI);
   __ bx(LR);
 }
 
@@ -1828,21 +1828,21 @@ ASSEMBLER_TEST_RUN(Muls, test) {
 
 ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vaddqi(kByte, Q2, Q0, Q1);
@@ -1852,9 +1852,9 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 36);
@@ -1872,21 +1872,21 @@ ASSEMBLER_TEST_RUN(Vaddqi8, test) {
 
 ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vaddqi(kHalfword, Q2, Q0, Q1);
@@ -1896,9 +1896,9 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 36);
@@ -1916,21 +1916,21 @@ ASSEMBLER_TEST_RUN(Vaddqi16, test) {
 
 ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vaddqi(kWord, Q2, Q0, Q1);
@@ -1940,9 +1940,9 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 36);
@@ -1960,13 +1960,13 @@ ASSEMBLER_TEST_RUN(Vaddqi32, test) {
 
 ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S6, R0);
 
     __ vaddqi(kWordPair, Q2, Q0, Q1);
@@ -1974,7 +1974,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
     __ vmovrs(R0, S8);
     __ vmovrs(R2, S10);
 
-    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, Operand(R2));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 10);
@@ -2091,7 +2091,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
     __ vshlqu(kWordPair, out, value, temp);
 
     // check for overflow by shifting back and comparing.
-    __ rsb(shift, shift, ShifterOperand(0));
+    __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
     __ vceqqi(kWord, out, temp, value);
@@ -2148,7 +2148,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
     __ vshlqu(kWordPair, out, value, temp);
 
     // check for overflow by shifting back and comparing.
-    __ rsb(shift, shift, ShifterOperand(0));
+    __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
     __ vceqqi(kWord, out, temp, value);
@@ -2182,21 +2182,21 @@ ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
 
 ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vsubqi(kByte, Q2, Q1, Q0);
@@ -2206,9 +2206,9 @@ ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 10);
@@ -2226,21 +2226,21 @@ ASSEMBLER_TEST_RUN(Vsubqi8, test) {
 
 ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vsubqi(kHalfword, Q2, Q1, Q0);
@@ -2250,9 +2250,9 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 10);
@@ -2270,21 +2270,21 @@ ASSEMBLER_TEST_RUN(Vsubqi16, test) {
 
 ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vsubqi(kWord, Q2, Q1, Q0);
@@ -2294,9 +2294,9 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 10);
@@ -2314,13 +2314,13 @@ ASSEMBLER_TEST_RUN(Vsubqi32, test) {
 
 ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S6, R0);
 
     __ vsubqi(kWordPair, Q2, Q1, Q0);
@@ -2328,7 +2328,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
     __ vmovrs(R0, S8);
     __ vmovrs(R2, S10);
 
-    __ add(R0, R0, ShifterOperand(R2));
+    __ add(R0, R0, Operand(R2));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 3);
@@ -2346,21 +2346,21 @@ ASSEMBLER_TEST_RUN(Vsubqi64, test) {
 
 ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vmulqi(kByte, Q2, Q1, Q0);
@@ -2370,9 +2370,9 @@ ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 70);
@@ -2390,21 +2390,21 @@ ASSEMBLER_TEST_RUN(Vmulqi8, test) {
 
 ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vmulqi(kHalfword, Q2, Q1, Q0);
@@ -2414,9 +2414,9 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 70);
@@ -2434,21 +2434,21 @@ ASSEMBLER_TEST_RUN(Vmulqi16, test) {
 
 ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(5));
+    __ mov(R0, Operand(5));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(6));
+    __ mov(R0, Operand(6));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(7));
+    __ mov(R0, Operand(7));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(8));
+    __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
     __ vmulqi(kWord, Q2, Q1, Q0);
@@ -2458,9 +2458,9 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 70);
@@ -2777,9 +2777,9 @@ ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -8);
@@ -2819,9 +2819,9 @@ ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 60);
@@ -2861,9 +2861,9 @@ ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -4);
@@ -2903,9 +2903,9 @@ ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, 4);
@@ -2996,9 +2996,9 @@ ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
     __ vmovrs(R2, S2);
     __ vmovrs(R3, S3);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -4);
@@ -3029,9 +3029,9 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
     __ vmovrs(R2, S2);
     __ vmovrs(R3, S3);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -4);
@@ -3062,9 +3062,9 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
     __ vmovrs(R2, S2);
     __ vmovrs(R3, S3);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -4);
@@ -3116,21 +3116,21 @@ ASSEMBLER_TEST_RUN(Vzipqw, test) {
 
 ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(20));
+    __ mov(R0, Operand(20));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(40));
+    __ mov(R0, Operand(40));
     __ vmovsr(S7, R0);
 
     __ vceqqi(kWord, Q2, Q1, Q0);
@@ -3140,9 +3140,9 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3176,9 +3176,9 @@ ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3196,21 +3196,21 @@ ASSEMBLER_TEST_RUN(Vceqqs, test) {
 
 ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
     __ vcgeqi(kWord, Q2, Q1, Q0);
@@ -3220,9 +3220,9 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3240,21 +3240,21 @@ ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
 
 ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
     __ LoadImmediate(R0, -1);
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S5, R0);
     __ LoadImmediate(R0, -3);
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
     __ vcugeqi(kWord, Q2, Q1, Q0);
@@ -3264,9 +3264,9 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3300,9 +3300,9 @@ ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3320,21 +3320,21 @@ ASSEMBLER_TEST_RUN(Vcgeqs, test) {
 
 ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S5, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
     __ vcgtqi(kWord, Q2, Q1, Q0);
@@ -3344,9 +3344,9 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3364,21 +3364,21 @@ ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
 
 ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S0, R0);
-    __ mov(R0, ShifterOperand(2));
+    __ mov(R0, Operand(2));
     __ vmovsr(S1, R0);
-    __ mov(R0, ShifterOperand(3));
+    __ mov(R0, Operand(3));
     __ vmovsr(S2, R0);
-    __ mov(R0, ShifterOperand(4));
+    __ mov(R0, Operand(4));
     __ vmovsr(S3, R0);
     __ LoadImmediate(R0, -1);
     __ vmovsr(S4, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S5, R0);
     __ LoadImmediate(R0, -3);
     __ vmovsr(S6, R0);
-    __ mov(R0, ShifterOperand(1));
+    __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
     __ vcugtqi(kWord, Q2, Q1, Q0);
@@ -3388,9 +3388,9 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -3424,9 +3424,9 @@ ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
     __ vmovrs(R2, S10);
     __ vmovrs(R3, S11);
 
-    __ add(R0, R0, ShifterOperand(R1));
-    __ add(R0, R0, ShifterOperand(R2));
-    __ add(R0, R0, ShifterOperand(R3));
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
     __ bx(LR);
   } else {
     __ LoadImmediate(R0, -2);
@@ -4068,7 +4068,7 @@ ASSEMBLER_TEST_RUN(MultCheckOverflow, test) {
 // R2: growable array.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ PushList((1 << CTX) | (1 << LR));
-  __ mov(CTX, ShifterOperand(R0));
+  __ mov(CTX, Operand(R0));
   __ StoreIntoObject(R2,
                      FieldAddress(R2, GrowableObjectArray::data_offset()),
                      R1);

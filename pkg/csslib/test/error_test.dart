@@ -21,7 +21,7 @@ void testUnsupportedFontWeights() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unknown property value bolder
+error on line 1, column 24: Unknown property value bolder
 .foobar { font-weight: bolder; }
                        ^^^^^^''');
   expect(stylesheet != null, true);
@@ -38,7 +38,7 @@ error :1:24: Unknown property value bolder
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unknown property value lighter
+error on line 1, column 24: Unknown property value lighter
 .foobar { font-weight: lighter; }
                        ^^^^^^^''');
   expect(stylesheet != null, true);
@@ -54,7 +54,7 @@ error :1:24: Unknown property value lighter
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unknown property value inherit
+error on line 1, column 24: Unknown property value inherit
 .foobar { font-weight: inherit; }
                        ^^^^^^^''');
   expect(stylesheet != null, true);
@@ -77,7 +77,7 @@ void testUnsupportedLineHeights() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unexpected value for line-height
+error on line 1, column 24: Unexpected value for line-height
 .foobar { line-height: 120%; }
                        ^^^''');
   expect(stylesheet != null, true);
@@ -93,7 +93,7 @@ error :1:24: Unexpected value for line-height
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unexpected unit for line-height
+error on line 1, column 24: Unexpected unit for line-height
 .foobar { line-height: 20cm; }
                        ^^''');
   expect(stylesheet != null, true);
@@ -109,7 +109,7 @@ error :1:24: Unexpected unit for line-height
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:24: Unknown property value inherit
+error on line 1, column 24: Unknown property value inherit
 .foobar { line-height: inherit; }
                        ^^^^^^^''');
   expect(stylesheet != null, true);
@@ -129,7 +129,7 @@ void testBadSelectors() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:1: Not a valid ID selector expected #id
+error on line 1, column 1: Not a valid ID selector expected #id
 # foo { color: #ff00ff; }
 ^''');
   expect(stylesheet != null, true);
@@ -144,7 +144,7 @@ error :1:1: Not a valid ID selector expected #id
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:1: Not a valid class selector expected .className
+error on line 1, column 1: Not a valid class selector expected .className
 . foo { color: #ff00ff; }
 ^''');
   expect(stylesheet != null, true);
@@ -164,7 +164,7 @@ void testBadHexValues() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:18: Bad hex number
+error on line 1, column 18: Bad hex number
 .foobar { color: #AH787; }
                  ^^^^^^''');
   expect(stylesheet != null, true);
@@ -179,7 +179,7 @@ error :1:18: Bad hex number
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:18: Unknown property value redder
+error on line 1, column 18: Unknown property value redder
 .foobar { color: redder; }
                  ^^^^^^''');
 
@@ -195,7 +195,7 @@ error :1:18: Unknown property value redder
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:18: Expected hex number
+error on line 1, column 18: Expected hex number
 .foobar { color: # ffffff; }
                  ^''');
 
@@ -211,7 +211,7 @@ error :1:18: Expected hex number
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(), r'''
-error :1:18: Expected hex number
+error on line 1, column 18: Expected hex number
 .foobar { color: # 123fff; }
                  ^''');
 
@@ -238,7 +238,8 @@ void testBadUnicode() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(),
-      'error :3:20: unicode first range can not be greater than last\n'
+      'error on line 3, column 20: unicode first range can not be greater than '
+        'last\n'
       '  unicode-range: U+400-200;\n'
       '                   ^^^^^^^');
 
@@ -252,7 +253,7 @@ void testBadUnicode() {
 
   expect(errors.isEmpty, false);
   expect(errors[0].toString(),
-      'error :3:20: unicode range must be less than 10FFFF\n'
+      'error on line 3, column 20: unicode range must be less than 10FFFF\n'
       '  unicode-range: U+12FFFF;\n'
       '                   ^^^^^^');
 }

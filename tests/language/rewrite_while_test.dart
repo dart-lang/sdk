@@ -4,6 +4,7 @@
 
 import "package:expect/expect.dart";
 
+
 baz() {}
 
 loop1(x) {
@@ -25,8 +26,30 @@ loop2(x) {
     return n;
 }
 
+f1(b) {
+  while (b)
+    return 1;
+
+  return 2;
+}
+
+f2(b) {
+  while (b) {
+    return 1;
+  }
+  return 2;
+}
+
 main() {
+    Expect.equals(0,  loop1(-10));
     Expect.equals(10, loop1(10));
+
+    Expect.equals(0,  loop2(-10));
     Expect.equals(10, loop2(10));
-    Expect.equals(0, loop2(200));
+    Expect.equals(0,  loop2(200));
+
+    Expect.equals(1, f1(true));
+    Expect.equals(2, f1(false));
+    Expect.equals(1, f2(true));
+    Expect.equals(2, f2(false));
 }

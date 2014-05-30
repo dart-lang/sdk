@@ -67,7 +67,7 @@ main() {
           imports: [
             "import '/a.dart' as smoke_0;",
           ],
-          topLevel: 
+          topLevel:
             'abstract class _M0 {} // A & D1\n'
             'abstract class _M1 {} // _M0 & D2\n'
             'abstract class _M2 {} // _M1 & D3\n',
@@ -573,6 +573,28 @@ main() {
             '      },\n'
             '    }));\n');
     });
+
+    test('type annotation with named arguments', () {
+      var lib = provider.libraryFor('/common.dart');
+      var options = new QueryOptions(includeInherited: true,
+          withAnnotations: [lib.getType('AnnotC')]);
+      recorder.runQuery(lib.getType('K'), options, includeAccessors: false);
+      final kAnnot = 'annotations: const [const smoke_0.AnnotC(named: true)]';
+      final k2Annot = 'annotations: const [const smoke_0.AnnotC()]';
+      checkResults(generator,
+          imports: [
+            "import '/common.dart' as smoke_0;",
+          ],
+          initCall:
+            'useGeneratedCode(new StaticConfiguration(\n'
+            '    checkedMode: false,\n'
+            '    declarations: {\n'
+            '      smoke_0.K: {\n'
+            '        #k: const Declaration(#k, int, $kAnnot),\n'
+            '        #k2: const Declaration(#k2, int, $k2Annot),\n'
+            '      },\n'
+            '    }));\n');
+    });
   });
 
   group('with accessors', () {
@@ -801,6 +823,7 @@ const _SOURCES = const {
 
       class Annot { const Annot(int ignore); }
       class AnnotB extends Annot { const AnnotB(); }
+      class AnnotC { const AnnotC({bool named: false}); }
       const a1 = const Annot(0);
       const a2 = 32;
       const a3 = const AnnotB();
@@ -836,6 +859,11 @@ const _SOURCES = const {
       class J2 extends J1 {
       }
       class J3 extends J2 {
+      }
+
+      class K {
+        @AnnotC(named: true) int k;
+        @AnnotC() int k2;
       }
       '''
 };

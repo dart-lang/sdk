@@ -45,7 +45,8 @@ class BuildInfo(object):
   def __init__(self, compiler, runtime, mode, system, checked=False,
                host_checked=False, minified=False, shard_index=None,
                total_shards=None, is_buildbot=False, test_set=None,
-               csp=None, arch=None, dart2js_full=False, builder_tag=None):
+               csp=None, arch=None, dart2js_full=False, builder_tag=None,
+               batch=False):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
@@ -60,6 +61,7 @@ class BuildInfo(object):
     self.csp = csp
     self.dart2js_full = dart2js_full
     self.builder_tag = builder_tag
+    self.batch = batch
     if (arch == None):
       self.arch = 'ia32'
     else:

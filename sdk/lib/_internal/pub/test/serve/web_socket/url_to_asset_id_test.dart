@@ -15,12 +15,6 @@ main() {
   setUp(() {
     d.dir("foo", [
       d.libPubspec("foo", "0.0.1"),
-      d.dir("asset", [
-        d.file("foo.txt", "foo"),
-        d.dir("sub", [
-          d.file("bar.txt", "bar"),
-        ])
-      ]),
       d.dir("lib", [
         d.file("foo.dart", "foo")
       ])
@@ -98,25 +92,6 @@ main() {
     expectWebSocketResult("urlToAssetId", {
       "url": getServerUrl("web", "packages/foo/foo.dart")
     }, {"package": "foo", "path": "lib/foo.dart"});
-    endPubServe();
-  });
-
-  integration("converts URLs to matching asset ids in the entrypoint's asset/",
-      () {
-    // Paths in asset/.
-    pubServe(shouldGetFirst: true);
-    expectWebSocketResult("urlToAssetId", {
-      "url": getServerUrl("web", "assets/foo/foo.txt")
-    }, {"package": "foo", "path": "asset/foo.txt"});
-    endPubServe();
-  });
-
-  integration("converts URLs to matching asset ids in a dependency's of asset/",
-      () {
-    pubServe(shouldGetFirst: true);
-    expectWebSocketResult("urlToAssetId", {
-      "url": getServerUrl("web", "assets/foo/sub/bar.txt")
-    }, {"package": "foo", "path": "asset/sub/bar.txt"});
     endPubServe();
   });
 }

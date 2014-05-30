@@ -300,7 +300,6 @@ namespace dart {
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \
   V(InstanceMirror_computeType, 1)                                             \
-  V(ClosureMirror_find_in_context, 2)                                          \
   V(ClosureMirror_function, 1)                                                 \
   V(TypeMirror_subtypeTest, 2)                                                 \
   V(TypeMirror_moreSpecificTest, 2)                                            \

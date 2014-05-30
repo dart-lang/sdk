@@ -5,6 +5,7 @@
 #include "vm/flags.h"
 
 #include "platform/assert.h"
+#include "vm/json_stream.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -13,10 +14,12 @@ DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
 DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
     "Ignore unrecognized flags.");
 
-// List of registered flags.
-Flag* Flags::flags_ = NULL;
-
 bool Flags::initialized_ = false;
+
+// List of registered flags.
+Flag** Flags::flags_ = NULL;
+intptr_t Flags::capacity_ = 0;
+intptr_t Flags::num_flags_ = 0;
 
 class Flag {
  public:
@@ -72,7 +75,6 @@ class Flag {
     return (type_ == kBoolean) && (bool_ptr_ == NULL);
   }
 
-  Flag* next_;
   const char* name_;
   const char* comment_;
   union {
@@ -83,16 +85,16 @@ class Flag {
     FlagHandler handler_;
   };
   FlagType type_;
+  bool changed_;
 };
 
 
 Flag* Flags::Lookup(const char* name) {
-  Flag* cur = Flags::flags_;
-  while (cur != NULL) {
-    if (strcmp(cur->name_, name) == 0) {
-      return cur;
+  for (intptr_t i = 0; i < num_flags_; i++) {
+    Flag* flag = flags_[i];
+    if (strcmp(flag->name_, name) == 0) {
+      return flag;
     }
-    cur = cur->next_;
   }
   return NULL;
 }
@@ -107,6 +109,27 @@ bool Flags::IsSet(const char* name) {
 }
 
 
+void Flags::AddFlag(Flag* flag) {
+  ASSERT(!initialized_);
+  if (num_flags_ == capacity_) {
+    if (flags_ == NULL) {
+      capacity_ = 256;
+      flags_ = new Flag*[capacity_];
+    } else {
+      intptr_t new_capacity = capacity_ * 2;
+      Flag** new_flags = new Flag*[new_capacity];
+      for (intptr_t i = 0; i < num_flags_; i++) {
+        new_flags[i] = flags_[i];
+      }
+      delete [] flags_;
+      flags_ = new_flags;
+      capacity_ = new_capacity;
+    }
+  }
+  flags_[num_flags_++] = flag;
+}
+
+
 bool Flags::Register_bool(bool* addr,
                           const char* name,
                           bool default_value,
@@ -117,9 +140,7 @@ bool Flags::Register_bool(bool* addr,
     return default_value;
   }
   flag = new Flag(name, comment, addr, Flag::kBoolean);
-  flag->next_ = Flags::flags_;
-  Flags::flags_ = flag;
-
+  AddFlag(flag);
   return default_value;
 }
 
@@ -131,8 +152,7 @@ int Flags::Register_int(int* addr,
   ASSERT(Lookup(name) == NULL);
 
   Flag* flag = new Flag(name, comment, addr, Flag::kInteger);
-  flag->next_ = Flags::flags_;
-  Flags::flags_ = flag;
+  AddFlag(flag);
 
   return default_value;
 }
@@ -144,8 +164,7 @@ const char* Flags::Register_charp(charp* addr,
                                   const char* comment) {
   ASSERT(Lookup(name) == NULL);
   Flag* flag = new Flag(name, comment, addr, Flag::kString);
-  flag->next_ = Flags::flags_;
-  Flags::flags_ = flag;
+  AddFlag(flag);
   return default_value;
 }
 
@@ -155,8 +174,7 @@ bool Flags::Register_func(FlagHandler handler,
                           const char* comment) {
   ASSERT(Lookup(name) == NULL);
   Flag* flag = new Flag(name, comment, handler);
-  flag->next_ = Flags::flags_;
-  Flags::flags_ = flag;
+  AddFlag(flag);
   return false;
 }
 
@@ -168,6 +186,51 @@ static void Normalize(char* s) {
       s[i] = '_';
     }
   }
+}
+
+
+bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
+  ASSERT(!flag->IsUnrecognized());
+  switch (flag->type_) {
+    case Flag::kBoolean: {
+      if (strcmp(argument, "true") == 0) {
+        *flag->bool_ptr_ = true;
+      } else if (strcmp(argument, "false") == 0) {
+        *flag->bool_ptr_ = false;
+      } else {
+        return false;
+      }
+      break;
+    }
+    case Flag::kString: {
+      *flag->charp_ptr_ = argument == NULL ? NULL : strdup(argument);
+      break;
+    }
+    case Flag::kInteger: {
+      char* endptr = NULL;
+      int val = strtol(argument, &endptr, 10);
+      if (endptr != argument) {
+        *flag->int_ptr_ = val;
+      }
+      break;
+    }
+    case Flag::kFunc: {
+      if (strcmp(argument, "true") == 0) {
+        (flag->handler_)(true);
+      } else if (strcmp(argument, "false") == 0) {
+        (flag->handler_)(false);
+      } else {
+        return false;
+      }
+      break;
+    }
+    default: {
+      UNREACHABLE();
+      return false;
+    }
+  }
+  flag->changed_ = true;
+  return true;
 }
 
 
@@ -220,43 +283,9 @@ void Flags::Parse(const char* option) {
     // Only set values for recognized flags, skip collected
     // unrecognized flags.
     if (!flag->IsUnrecognized()) {
-      switch (flag->type_) {
-        case Flag::kBoolean: {
-          if (strcmp(argument, "true") == 0) {
-            *flag->bool_ptr_ = true;
-          } else if (strcmp(argument, "false") == 0) {
-            *flag->bool_ptr_ = false;
-          } else {
-            OS::Print("Ignoring flag: %s is a bool flag.\n", name);
-          }
-          break;
-        }
-        case Flag::kString: {
-          *flag->charp_ptr_ = argument == NULL ? NULL : strdup(argument);
-          break;
-        }
-        case Flag::kInteger: {
-          char* endptr = NULL;
-          int val = strtol(argument, &endptr, 10);
-          if (endptr != argument) {
-            *flag->int_ptr_ = val;
-          }
-          break;
-        }
-        case Flag::kFunc: {
-          if (strcmp(argument, "true") == 0) {
-            (flag->handler_)(true);
-          } else if (strcmp(argument, "false") == 0) {
-            (flag->handler_)(false);
-          } else {
-            OS::Print("Ignoring flag: %s is a bool flag.\n", name);
-          }
-          break;
-        }
-        default: {
-          UNREACHABLE();
-          break;
-        }
+      if (!SetFlagFromString(flag, argument)) {
+        OS::Print("Ignoring flag: %s is an invalid value for flag %s\n",
+                  argument, name);
       }
     }
   }
@@ -274,13 +303,20 @@ static bool IsValidFlag(const char* name,
 }
 
 
+int Flags::CompareFlagNames(const void* left, const void* right) {
+  const Flag* left_flag = *reinterpret_cast<const Flag* const *>(left);
+  const Flag* right_flag = *reinterpret_cast<const Flag* const *>(right);
+  return strcmp(left_flag->name_, right_flag->name_);
+}
+
+
 bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
                                     const char** vm_flags) {
   if (initialized_) {
     return false;
   }
 
-  initialized_ = true;
+  qsort(flags_, num_flags_, sizeof flags_[0], CompareFlagNames);
 
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
@@ -295,8 +331,8 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
 
   if (!FLAG_ignore_unrecognized_flags) {
     int unrecognized_count = 0;
-    Flag* flag = Flags::flags_;
-    while (flag != NULL) {
+    for (intptr_t j = 0; j < num_flags_; j++) {
+      Flag* flag = flags_[j];
       if (flag->IsUnrecognized()) {
         if (unrecognized_count == 0) {
           OS::PrintErr("Unrecognized flags: %s", flag->name_);
@@ -305,7 +341,6 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
         }
         unrecognized_count++;
       }
-      flag = flag->next_;
     }
     if (unrecognized_count > 0) {
       OS::PrintErr("\n");
@@ -315,36 +350,93 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   if (FLAG_print_flags) {
     PrintFlags();
   }
+
+  initialized_ = true;
+  return true;
+}
+
+bool Flags::SetFlag(const char* name,
+                    const char* value,
+                    const char** error) {
+  Flag* flag = Lookup(name);
+  if (flag == NULL) {
+    *error = "Cannot set flag: flag not found";
+    return false;
+  }
+  if (!SetFlagFromString(flag, value)) {
+    *error = "Cannot set flag: invalid value";
+    return false;
+  }
   return true;
 }
 
 
-int Flags::CompareFlagNames(const void* left, const void* right) {
-  const Flag* left_flag = *reinterpret_cast<const Flag* const *>(left);
-  const Flag* right_flag = *reinterpret_cast<const Flag* const *>(right);
-  return strcmp(left_flag->name_, right_flag->name_);
+void Flags::PrintFlags() {
+  OS::Print("Flag settings:\n");
+  for (intptr_t i = 0; i < num_flags_; ++i) {
+    flags_[i]->Print();
+  }
 }
 
 
-void Flags::PrintFlags() {
-    OS::Print("Flag settings:\n");
-    Flag* flag = Flags::flags_;
-    int num_flags = 0;
-    while (flag != NULL) {
-      num_flags++;
-      flag = flag->next_;
-    }
-    Flag** flag_array = new Flag*[num_flags];
-    flag = Flags::flags_;
-    for (int i = 0; i < num_flags; ++i, flag = flag->next_) {
-      flag_array[i] = flag;
-    }
-
-    qsort(flag_array, num_flags, sizeof flag_array[0], CompareFlagNames);
-
-    for (int i = 0; i < num_flags; ++i) {
-      flag_array[i]->Print();
-    }
-    delete[] flag_array;
+void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
+  if (flag->IsUnrecognized() || flag->type_ == Flag::kFunc) {
+    return;
   }
+  JSONObject jsflag(jsarr);
+  jsflag.AddProperty("name", flag->name_);
+  jsflag.AddProperty("comment", flag->comment_);
+  switch (flag->type_) {
+    case Flag::kBoolean: {
+      jsflag.AddProperty("flagType", "bool");
+      jsflag.AddProperty("valueAsString",
+                         (*flag->bool_ptr_ ? "true" : "false"));
+      break;
+    }
+    case Flag::kInteger: {
+      jsflag.AddProperty("flagType", "int");
+      jsflag.AddPropertyF("valueAsString", "%d", *flag->int_ptr_);
+      break;
+    }
+    case Flag::kString: {
+      jsflag.AddProperty("flagType", "string");
+      if (flag->charp_ptr_ != NULL) {
+        jsflag.AddPropertyF("valueAsString", "%s", *flag->charp_ptr_);
+      } else {
+        // valueAsString missing means NULL.
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+void Flags::PrintJSON(JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "FlagList");
+  jsobj.AddProperty("id", "flags");
+
+  {
+    JSONArray jsarr(&jsobj, "unmodifiedFlags");
+    for (intptr_t i = 0; i < num_flags_; ++i) {
+      Flag* flag = flags_[i];
+      if (!flag->changed_) {
+        PrintFlagToJSONArray(&jsarr, flag);
+      }
+    }
+  }
+  {
+    JSONArray jsarr(&jsobj, "modifiedFlags");
+    for (intptr_t i = 0; i < num_flags_; ++i) {
+      Flag* flag = flags_[i];
+      if (flag->changed_) {
+        PrintFlagToJSONArray(&jsarr, flag);
+      }
+    }
+  }
+}
+
 }  // namespace dart

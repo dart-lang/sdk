@@ -30,7 +30,8 @@ abstract class MockTransformer extends Transformer {
   /// The number of currently running transforms.
   int _runningTransforms = 0;
 
-  /// A completer for pausing the transformer before it finishes running [apply].
+  /// A completer for pausing the transformer before it finishes running
+  /// [apply].
   Completer _apply;
 
   /// Completers for pausing the transformer before it finishes running

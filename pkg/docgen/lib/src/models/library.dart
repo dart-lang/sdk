@@ -142,6 +142,8 @@ class Library extends Indexable {
     if (packageIntro != null) {
       map['packageIntro'] = packageIntro;
     }
+    var version = packageVersion(mirror);
+    if (version != '' && version != null) map['version'] = version;
     return map;
   }
 

@@ -67,7 +67,7 @@ class TypeVariableHandler {
       List<int> constants = <int>[];
       evaluator = new CompileTimeConstantEvaluator(
           backend.constants,
-          compiler.globalDependencies,
+          compiler.globalDependencies.mapping,
           compiler);
 
       for (TypeVariableType currentTypeVariable in cls.typeVariables) {

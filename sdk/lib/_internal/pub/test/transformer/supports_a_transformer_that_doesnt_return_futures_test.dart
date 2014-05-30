@@ -31,24 +31,26 @@ class RewriteTransformer extends Transformer implements DeclaringTransformer {
 
 main() {
   initConfig();
-  integration("supports a transformer that doesn't return futures", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", TRANSFORMER)
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("supports a transformer that doesn't return futures", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", TRANSFORMER)
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    pubServe();
-    requestShouldSucceed("foo.txt", "new contents");
-    endPubServe();
+      pubServe();
+      requestShouldSucceed("foo.txt", "new contents");
+      endPubServe();
+    });
   });
 }

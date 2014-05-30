@@ -12,27 +12,29 @@ import 'utils.dart';
 
 main() {
   initConfig();
-  integration("doesn't crash if an unused .dart file has a syntax error", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["myapp/src/transformer"]
-      }),
-      d.dir("lib", [d.dir("src", [
-        d.file("transformer.dart", REWRITE_TRANSFORMER),
-        d.file("unused.dart", "(*&^#@")
-      ])]),
-      d.dir("web", [
-        d.file("foo.txt", "foo")
-      ])
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("doesn't crash if an unused .dart file has a syntax error", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["myapp/src/transformer"]
+        }),
+        d.dir("lib", [d.dir("src", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER),
+          d.file("unused.dart", "(*&^#@")
+        ])]),
+        d.dir("web", [
+          d.file("foo.txt", "foo")
+        ])
+      ]).create();
 
-    createLockFile('myapp', pkg: ['barback']);
+      createLockFile('myapp', pkg: ['barback']);
 
-    var server = pubServe();
-    server.stderr.expect("[RewriteImport]:");
-    server.stderr.expect(startsWith("Error in myapp|lib/src/unused.dart:"));
-    requestShouldSucceed("foo.out", "foo.out");
-    endPubServe();
+      var server = pubServe();
+      server.stderr.expect("[RewriteImport]:");
+      server.stderr.expect(startsWith("Error in myapp|lib/src/unused.dart:"));
+      requestShouldSucceed("foo.out", "foo.out");
+      endPubServe();
+    });
   });
 }

@@ -7,6 +7,7 @@ library pub.barback.web_socket_api;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
@@ -19,7 +20,7 @@ import 'asset_environment.dart';
 /// This is a [JSON-RPC 2.0](http://www.jsonrpc.org/specification) server. Its
 /// methods are described in the method-level documentation below.
 class WebSocketApi {
-  final WebSocket _socket;
+  final CompatibleWebSocket _socket;
   final AssetEnvironment _environment;
   final _server = new json_rpc.Server();
 

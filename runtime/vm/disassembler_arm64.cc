@@ -540,7 +540,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
     case 'v': {
       if (format[1] == 's') {
         ASSERT(STRING_STARTS_WITH(format, "vsz"));
-        char const* sz_str;
+        char const* sz_str = NULL;
         if (instr->Bits(14, 2) == 3) {
           switch (instr->Bit(22)) {
             case 0: sz_str = "s"; break;
@@ -1008,6 +1008,8 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
     Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+  } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
+    Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
   } else {
     Unknown(instr);
   }
@@ -1088,6 +1090,26 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
     Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
   } else if ((U == 1) && (opcode == 0x1f)) {
     Format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 0) && (opcode == 0x1c)) {
+    Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 1) && (opcode == 0x1c)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vcgt'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vcge'vsz 'vd, 'vn, 'vm");
+    }
+  } else if ((U == 0) && (opcode == 0x1e)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vmin'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vmax'vsz 'vd, 'vn, 'vm");
+    }
+  } else if ((U == 0) && (opcode == 0x1f)) {
+    if (instr->Bit(23) == 1) {
+      Format(instr, "vrsqrt'vsz 'vd, 'vn, 'vm");
+    } else {
+      Format(instr, "vrecps'vsz 'vd, 'vn, 'vm");
+    }
   } else {
     Unknown(instr);
   }
@@ -1123,6 +1145,26 @@ void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
     } else {
       Unknown(instr);
     }
+  } else if ((U == 1) && (op == 0x1f)) {
+    if (sz == 2) {
+      Format(instr, "vsqrts 'vd, 'vn");
+    } else if (sz == 3) {
+      Format(instr, "vsqrtd 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
+  } else if ((U == 0) && (op == 0x1d)) {
+    if (sz != 2) {
+      Unknown(instr);
+      return;
+    }
+    Format(instr, "vrecpes 'vd, 'vn");
+  } else if ((U == 1) && (op == 0x1d)) {
+    if (sz != 2) {
+      Unknown(instr);
+      return;
+    }
+    Format(instr, "vrsqrtes 'vd, 'vn");
   } else {
     Unknown(instr);
   }

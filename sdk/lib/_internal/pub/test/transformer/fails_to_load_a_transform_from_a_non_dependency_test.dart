@@ -12,19 +12,21 @@ import '../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("fails to load a transform from a non-dependency", () {
-    d.dir(appPath, [
-      d.pubspec({
-        "name": "myapp",
-        "transformers": ["foo"]
-      })
-    ]).create();
+  withBarbackVersions("any", () {
+    integration("fails to load a transform from a non-dependency", () {
+      d.dir(appPath, [
+        d.pubspec({
+          "name": "myapp",
+          "transformers": ["foo"]
+        })
+      ]).create();
 
-    var pub = startPubServe();
-    // Ignore the line containing the path to the pubspec.
-    pub.stderr.expect(anything);
-    pub.stderr.expect('"transformers.foo" refers to a package that\'s not a '
-        'dependency.');
-    pub.shouldExit(1);
+      var pub = startPubServe();
+      // Ignore the line containing the path to the pubspec.
+      pub.stderr.expect(anything);
+      pub.stderr.expect('"transformers.foo" refers to a package that\'s not a '
+          'dependency.');
+      pub.shouldExit(1);
+    });
   });
 }

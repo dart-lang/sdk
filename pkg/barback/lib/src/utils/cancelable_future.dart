@@ -14,7 +14,7 @@ import 'dart:async';
 /// running.
 class CancelableFuture<T> implements Future<T> {
   bool _canceled = false;
-  final _completer = new Completer<T>();
+  final _completer = new Completer<T>.sync();
 
   CancelableFuture(Future<T> inner) {
     inner.then((result) {

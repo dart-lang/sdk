@@ -10,7 +10,7 @@ import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
 
 
-typedef Future<ObservableMap> evalType(String text);
+typedef Future evalType(String text);
 
 
 @CustomTag('eval-box')

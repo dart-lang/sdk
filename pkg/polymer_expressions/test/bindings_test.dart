@@ -130,6 +130,33 @@ main() => dirtyCheckZone().run(() {
       });
     });
 
+    test('detects changes to ObservableList', () {
+      var list = new ObservableList.from([1, 2, 3]);
+      var template = templateBind(new Element.html(
+          '<template>{{x[1]}}</template>'));
+      var model = new NotifyModel(list);
+      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+
+      return new Future(() {
+        expect(testDiv.text, '2');
+        list[1] = 10;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, '10');
+        list[1] = 11;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, '11');
+        list[0] = 9;
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, '11');
+        list.removeAt(0);
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, '3');
+        list.add(90);
+        list.removeAt(0);
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text, '90');
+      });
+    });
 
     test('detects changes to ObservableMap keys/values', () {
       var map = new ObservableMap.from({'a': 1, 'b': 2});

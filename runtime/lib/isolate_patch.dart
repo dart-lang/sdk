@@ -274,4 +274,40 @@ patch class Isolate {
       native "Isolate_spawnFunction";
 
   static SendPort _spawnUri(String uri) native "Isolate_spawnUri";
+
+  /* patch */ void _pause(Capability resumeCapability) {
+    throw new UnsupportedError("pause");
+  }
+
+  /* patch */ void resume(Capability resumeCapability) {
+    throw new UnsupportedError("resume");
+  }
+
+  /* patch */ void addOnExitListener(SendPort responsePort) {
+    throw new UnsupportedError("addOnExitListener");
+  }
+
+  /* patch */ void removeOnExitListener(SendPort responsePort) {
+    throw new UnsupportedError("removeOnExitListener");
+  }
+
+  /* patch */ void setErrorsFatal(bool errorsAreFatal) {
+    throw new UnsupportedError("setErrorsFatal");
+  }
+
+  /* patch */ void kill([int priority = BEFORE_NEXT_EVENT]) {
+    throw new UnsupportedError("kill");
+  }
+
+  /* patch */ void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
+    throw new UnsupportedError("ping");
+  }
+
+  /* patch */ void addErrorListener(SendPort port) {
+    throw new UnsupportedError("addErrorListener");
+  }
+
+  /* patch */ void removeErrorListener(SendPort port) {
+    throw new UnsupportedError("removeErrorListener");
+  }
 }

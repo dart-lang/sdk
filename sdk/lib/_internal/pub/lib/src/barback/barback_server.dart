@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../barback.dart';
@@ -27,8 +28,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// a native platform path.
   ///
   /// This may be `null` in which case no files in the root package can be
-  /// served and only assets in public directories ("packages" and "assets")
-  /// are available.
+  /// served and only assets in "lib" directories are available.
   final String rootDirectory;
 
   /// Optional callback to determine if an asset should be served.
@@ -60,7 +60,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// requested from barback.
   AssetId urlToId(Uri url) {
     // See if it's a URL to a public directory in a dependency.
-    var id = specialUrlToId(url);
+    var id = packagesUrlToId(url);
     if (id != null) return id;
 
     if (rootDirectory == null) {
@@ -79,66 +79,43 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   }
 
   /// Handles an HTTP request.
-  void handleRequest(HttpRequest request) {
+  handleRequest(shelf.Request request) {
     if (request.method != "GET" && request.method != "HEAD") {
-      methodNotAllowed(request);
-      return;
+      return methodNotAllowed(request);
     }
 
     var id;
     try {
-      id = urlToId(request.uri);
+      id = urlToId(request.url);
     } on FormatException catch (ex) {
       // If we got here, we had a path like "/packages" which is a special
-      // directory, but not a valid path since it lacks a following package name.
-      notFound(request, error: ex.message);
-      return;
+      // directory, but not a valid path since it lacks a following package
+      // name.
+      return notFound(request, error: ex.message);
     }
 
     // See if the asset should be blocked.
     if (allowAsset != null && !allowAsset(id)) {
-      notFound(request,
+      return notFound(request,
           error: "Asset $id is not available in this configuration.",
           asset: id);
-      return;
-    }
-
-    // TODO(rnystrom): Remove this when #16647 is fixed.
-    // The "assets" path is deprecated so warn if the user is relying on it.
-    // We do this here in pub serve so we only warn if they in fact actually
-    // use an asset from a package's "asset" directory.
-    if (id.path.startsWith("asset/")) {
-      var message = 'Warning: Support for the "asset" directory is deprecated '
-          'and will be removed soon.\n';
-
-      var fixed = id.path.replaceAll(new RegExp(r"^asset/"), "lib/");
-      if (id.package == environment.rootPackage.name) {
-        message += 'Please move "${id.path}" to "$fixed".';
-      } else {
-        message += 'Please ask the maintainer of "${id.package}" to move '
-            '"${id.path}" to "$fixed".';
-      }
-
-      log.warning(log.yellow(message));
     }
 
     logRequest(request, "Loading $id");
-    environment.barback.getAssetById(id).then((result) {
+    return environment.barback.getAssetById(id).then((result) {
       logRequest(request, "getAssetById($id) returned");
       return result;
     }).then((asset) => _serveAsset(request, asset)).catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;
       return environment.barback.getAssetById(id.addExtension("/index.html"))
           .then((asset) {
-        if (request.uri.path.endsWith('/')) return _serveAsset(request, asset);
+        if (request.url.path.endsWith('/')) return _serveAsset(request, asset);
 
         // We only want to serve index.html if the URL explicitly ends in a
         // slash. For other URLs, we redirect to one with the slash added to
         // implicitly support that too. This follows Apache's behavior.
-        logRequest(request, "302 Redirect to ${request.uri}/");
-        request.response.statusCode = 302;
-        request.response.headers.add('location', '${request.uri}/');
-        request.response.close();
+        logRequest(request, "302 Redirect to ${request.url}/");
+        return new shelf.Response.found('${request.url}/');
       }).catchError((newError, newTrace) {
         // If we find neither the original file or the index, we should report
         // the error about the original to the user.
@@ -151,52 +128,37 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
 
         addError(error, trace);
         close();
-        return;
+        return new shelf.Response.internalServerError();
       }
 
-      addResult(new BarbackServerResult._failure(request.uri, id, error));
-      notFound(request, asset: id);
+      addResult(new BarbackServerResult._failure(request.url, id, error));
+      return notFound(request, asset: id);
     });
   }
 
-  /// Serves the body of [asset] on [request]'s response stream.
-  ///
-  /// Returns a future that completes when the response has been succesfully
-  /// written.
-  Future _serveAsset(HttpRequest request, Asset asset) {
+  /// Returns the body of [asset] as a response to [request].
+  Future<shelf.Response> _serveAsset(shelf.Request request, Asset asset) {
     return validateStream(asset.read()).then((stream) {
-      addResult(new BarbackServerResult._success(request.uri, asset.id));
+      addResult(new BarbackServerResult._success(request.url, asset.id));
+      var headers = {};
       var mimeType = lookupMimeType(asset.id.path);
-      if (mimeType != null) {
-        request.response.headers.add('content-type', mimeType);
-      }
-      // TODO(rnystrom): Set content-type based on asset type.
-      return Chain.track(request.response.addStream(stream)).then((_) {
-        // Log successful requests both so we can provide debugging
-        // information and so scheduled_test knows we haven't timed out while
-        // loading transformers.
-        logRequest(request, "Served ${asset.id}");
-        request.response.close();
-      });
+      if (mimeType != null) headers['Content-Type'] = mimeType;
+      return new shelf.Response.ok(stream, headers: headers);
     }).catchError((error, trace) {
-      addResult(new BarbackServerResult._failure(request.uri, asset.id, error));
+      addResult(new BarbackServerResult._failure(request.url, asset.id, error));
 
       // If we couldn't read the asset, handle the error gracefully.
       if (error is FileSystemException) {
         // Assume this means the asset was a file-backed source asset
         // and we couldn't read it, so treat it like a missing asset.
-        notFound(request, error: error.toString(), asset: asset.id);
-        return;
+        return notFound(request, error: error.toString(), asset: asset.id);
       }
 
       trace = new Chain.forTrace(trace);
       logRequest(request, "$error\n$trace");
 
       // Otherwise, it's some internal error.
-      request.response.statusCode = 500;
-      request.response.reasonPhrase = "Internal Error";
-      request.response.write(error);
-      request.response.close();
+      return new shelf.Response.internalServerError(body: error.toString());
     });
   }
 }
