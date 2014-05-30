@@ -60,6 +60,9 @@ void testTypedDataRange(bool check_throws) {
       typed_data[1] = 1.2;
     });
   }
+  Expect.throws(() => typed_data[-1]);
+  Expect.throws(() => typed_data[100]);
+  Expect.throws(() => typed_data[2.0]);
 }
 
 void testUnsignedTypedDataRange(bool check_throws) {
@@ -87,6 +90,9 @@ void testUnsignedTypedDataRange(bool check_throws) {
       typed_data[1] = 1.2;
     });
   }
+  Expect.throws(() => typed_data[-1]);
+  Expect.throws(() => typed_data[100]);
+  Expect.throws(() => typed_data[2.0]);
 }
 
 void testClampedUnsignedTypedDataRangeHelper(Uint8ClampedList typed_data,

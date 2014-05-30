@@ -42,7 +42,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through
   __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array
 
-  // range check
+  // Range check.
   __ lw(T2, FieldAddress(T1, Array::length_offset()));
   __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
 
@@ -225,7 +225,7 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
   __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through
   __ delay_slot()->lw(T1, Address(SP, 1 * kWordSize));  // Array
 
-  // range check
+  // Range check.
   __ lw(T2, FieldAddress(T1, GrowableObjectArray::length_offset()));
   __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
 
@@ -434,6 +434,53 @@ void Intrinsifier::TypedData_getLength(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ Ret();
   __ delay_slot()->lw(V0, FieldAddress(T0, TypedData::length_offset()));
+}
+
+
+void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
+
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
+  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
+
+  // Range check.
+  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
+  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
+
+  __ SmiUntag(T0);
+  __ addu(T1, T1, T0);
+  __ lbu(V0, FieldAddress(T1, TypedData::data_offset()));
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
+
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
+  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
+
+  // Range check.
+  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
+  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
+
+  __ lw(T1, FieldAddress(T1, ExternalTypedData::data_offset()));
+  __ SmiUntag(T0);
+  __ addu(T1, T1, T0);
+  __ lbu(V0, Address(T1, 0));
+  __ Ret();
+  __ delay_slot()->SmiTag(V0);
+
+  __ Bind(&fall_through);
 }
 
 

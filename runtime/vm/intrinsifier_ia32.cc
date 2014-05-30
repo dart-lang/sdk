@@ -442,6 +442,45 @@ void Intrinsifier::TypedData_getLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(EBX);
+  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, TypedData::data_offset()));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movl(EAX, FieldAddress(EAX, ExternalTypedData::data_offset()));
+  __ SmiUntag(EBX);
+  __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
 static ScaleFactor GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return TIMES_1;

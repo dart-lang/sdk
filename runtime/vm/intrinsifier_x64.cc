@@ -397,6 +397,45 @@ void Intrinsifier::TypedData_getLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(RCX);
+  __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, TypedData::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movq(RAX, FieldAddress(RAX, ExternalTypedData::data_offset()));
+  __ SmiUntag(RCX);
+  __ movzxb(RAX, Address(RAX, RCX, TIMES_1, 0));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
 static ScaleFactor GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return TIMES_1;

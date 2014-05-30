@@ -41,7 +41,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ tsti(R0, kSmiTagMask);
   __ b(&fall_through, NE);  // Index is not an smi, fall through.
 
-  // range check
+  // Range check.
   __ ldr(R6, FieldAddress(R1, Array::length_offset()));
   __ cmp(R0, Operand(R6));
   __ b(&fall_through, CS);
@@ -228,7 +228,7 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
   __ tsti(R0, kSmiTagMask);
   __ b(&fall_through, NE);  // Index is not an smi, fall through.
 
-  // range check
+  // Range check.
   __ ldr(R6, FieldAddress(R1, GrowableObjectArray::length_offset()));
   __ cmp(R0, Operand(R6));
   __ b(&fall_through, CS);
@@ -351,6 +351,52 @@ void Intrinsifier::TypedData_getLength(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, TypedData::length_offset()));
   __ ret();
+}
+
+
+void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
+  __ tsti(R0, kSmiTagMask);
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+  // Array element at R1 + R0 + TypedData::data_offset - 1.
+  // Untag R0.
+  __ add(R1, R1, Operand(R0, LSR, 1));
+  __ ldr(R0, FieldAddress(R1, TypedData::data_offset()), kUnsignedByte);
+  __ SmiTag(R0);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
+  __ tsti(R0, kSmiTagMask);
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+  __ ldr(R1, FieldAddress(R1, ExternalTypedData::data_offset()));
+
+  // Untag R0.
+  __ add(R1, R1, Operand(R0, LSR, 1));
+  __ ldr(R0, Address(R1, 0), kUnsignedByte);
+  __ SmiTag(R0);
+  __ ret();
+  __ Bind(&fall_through);
 }
 
 
