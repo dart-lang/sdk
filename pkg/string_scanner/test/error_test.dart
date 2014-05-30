@@ -14,10 +14,7 @@ void main() {
     var scanner = new StringScanner('foo bar baz');
     scanner.expect('foo ');
     scanner.expect('bar');
-    expect(() => scanner.error('oh no!'), throwsFormattedError('''
-Error on line 1, column 5: oh no!
-foo bar baz
-    ^^^'''));
+    expect(() => scanner.error('oh no!'), throwsStringScannerException('bar'));
   });
 
   group("with match", () {
@@ -27,10 +24,7 @@ foo bar baz
       var match = scanner.lastMatch;
       scanner.expect('bar');
       expect(() => scanner.error('oh no!', match: match),
-          throwsFormattedError('''
-Error on line 1, column 1: oh no!
-foo bar baz
-^^^^'''));
+          throwsStringScannerException('foo '));
     });
 
     test('supports a match on a previous line', () {
@@ -40,10 +34,7 @@ foo bar baz
       var match = scanner.lastMatch;
       scanner.expect(' mi\nearth ');
       expect(() => scanner.error('oh no!', match: match),
-          throwsFormattedError('''
-Error on line 2, column 4: oh no!
-do re mi
-   ^^'''));
+          throwsStringScannerException('re'));
     });
 
     test('supports a multiline match', () {
@@ -53,10 +44,7 @@ do re mi
       var match = scanner.lastMatch;
       scanner.expect(' re mi');
       expect(() => scanner.error('oh no!', match: match),
-          throwsFormattedError('''
-Error on line 1, column 9: oh no!
-foo bar baz
-        ^^^'''));
+          throwsStringScannerException('baz\ndo'));
     });
 
     test('supports a match after position', () {
@@ -66,10 +54,7 @@ foo bar baz
       var match = scanner.lastMatch;
       scanner.position = 0;
       expect(() => scanner.error('oh no!', match: match),
-          throwsFormattedError('''
-Error on line 1, column 5: oh no!
-foo bar baz
-    ^^^'''));
+          throwsStringScannerException('bar'));
     });
   });
 
@@ -78,59 +63,47 @@ foo bar baz
       var scanner = new StringScanner('foo bar baz');
       scanner.expect('foo ');
       expect(() => scanner.error('oh no!', position: 1),
-          throwsFormattedError('''
-Error on line 1, column 2: oh no!
-foo bar baz
- ^'''));
+          throwsStringScannerException('o'));
     });
 
     test('defaults to the current position', () {
       var scanner = new StringScanner('foo bar baz');
       scanner.expect('foo ');
       expect(() => scanner.error('oh no!', length: 3),
-          throwsFormattedError('''
-Error on line 1, column 5: oh no!
-foo bar baz
-    ^^^'''));
+          throwsStringScannerException('bar'));
     });
 
     test('supports an earlier position', () {
       var scanner = new StringScanner('foo bar baz');
       scanner.expect('foo ');
       expect(() => scanner.error('oh no!', position: 1, length: 2),
-          throwsFormattedError('''
-Error on line 1, column 2: oh no!
-foo bar baz
- ^^'''));
+          throwsStringScannerException('oo'));
     });
 
     test('supports a position on a previous line', () {
       var scanner = new StringScanner('foo bar baz\ndo re mi\nearth fire water');
       scanner.expect('foo bar baz\ndo re mi\nearth');
       expect(() => scanner.error('oh no!', position: 15, length: 2),
-          throwsFormattedError('''
-Error on line 2, column 4: oh no!
-do re mi
-   ^^'''));
+          throwsStringScannerException('re'));
     });
 
     test('supports a multiline length', () {
       var scanner = new StringScanner('foo bar baz\ndo re mi\nearth fire water');
       scanner.expect('foo bar baz\ndo re mi\nearth');
       expect(() => scanner.error('oh no!', position: 8, length: 8),
-          throwsFormattedError('''
-Error on line 1, column 9: oh no!
-foo bar baz
-        ^^^'''));
+          throwsStringScannerException('baz\ndo r'));
     });
 
     test('supports a position after the current one', () {
       var scanner = new StringScanner('foo bar baz');
       expect(() => scanner.error('oh no!', position: 4, length: 3),
-          throwsFormattedError('''
-Error on line 1, column 5: oh no!
-foo bar baz
-    ^^^'''));
+          throwsStringScannerException('bar'));
+    });
+
+    test('supports a length of zero', () {
+      var scanner = new StringScanner('foo bar baz');
+      expect(() => scanner.error('oh no!', position: 4, length: 0),
+          throwsStringScannerException(''));
     });
   });
 
@@ -161,8 +134,13 @@ foo bar baz
       expect(() => scanner.error("oh no!", position: 100), throwsArgumentError);
     });
 
-    test("if length is zero", () {
-      expect(() => scanner.error("oh no!", length: 0), throwsArgumentError);
+    test("if position + length is outside the string", () {
+      expect(() => scanner.error("oh no!", position: 7, length: 7),
+          throwsArgumentError);
+    });
+
+    test("if length is negative", () {
+      expect(() => scanner.error("oh no!", length: -1), throwsArgumentError);
     });
   });
 }
