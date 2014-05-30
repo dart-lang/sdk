@@ -2045,6 +2045,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   /** Deprecated always returns 1.0 */
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
   @Experimental()
+  @deprecated
   double get backingStorePixelRatio => 1.0;
 }
 
@@ -14671,12 +14672,18 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter.
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * requests only.
    *
    * The Future is completed when the response is available.
    *
    * If specified, `sendData` will send data in the form of a [ByteBuffer],
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
+   *
+   * If specified, [responseType] sets the desired response format for the
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
