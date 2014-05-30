@@ -4028,14 +4028,14 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "flex" */
   String get flex {
-    String prefix = Device.cssPrefix
+    String prefix = Device.cssPrefix;
     if (Device.isFirefox) prefix = '';
     return getPropertyValue('${prefix}flex');
   }
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    String prefix = Device.cssPrefix
+    String prefix = Device.cssPrefix;
     if (Device.isFirefox) prefix = '';
     setProperty('${prefix}flex', value, '');
   }
