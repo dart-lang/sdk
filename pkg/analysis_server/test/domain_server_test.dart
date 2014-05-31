@@ -39,7 +39,7 @@ main() {
     group('setSubscriptions', () {
       Request request;
       setUp(() {
-        request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
+        request = new Request('0', METHOD_SET_SERVER_SUBSCRIPTIONS);
       });
 
       test('invalid service name', () {

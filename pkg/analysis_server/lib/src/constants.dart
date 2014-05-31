@@ -8,20 +8,21 @@ library constants;
 //
 // Server methods
 //
-const String METHOD_GET_VERSION = 'server.getVersion';
-const String METHOD_SHUTDOWN = 'server.shutdown';
+const String METHOD_GET_VERSION =              'server.getVersion';
+const String METHOD_SHUTDOWN =                 'server.shutdown';
+const String METHOD_SET_SERVER_SUBSCRIPTIONS = 'server.setSubscriptions';
 
 //
 // Analysis methods
 //
-const String METHOD_GET_FIXES =              'analysis.getFixes';
-const String METHOD_GET_MINOR_REFACTORINGS = 'analysis.getMinorRefactorings';
-const String METHOD_SET_ANALYSIS_ROOTS =     'analysis.setAnalysisRoots';
-const String METHOD_SET_PRIORITY_FILES =     'analysis.setPriorityFiles';
-const String METHOD_SET_SUBSCRIPTIONS =      'analysis.setSubscriptions';
-const String METHOD_UPDATE_CONTENT =         'analysis.updateContent';
-const String METHOD_UPDATE_OPTIONS =         'analysis.updateOptions';
-const String METHOD_UPDATE_SDKS =            'analysis.updateSdks';
+const String METHOD_GET_FIXES =                  'analysis.getFixes';
+const String METHOD_GET_MINOR_REFACTORINGS =     'analysis.getMinorRefactorings';
+const String METHOD_SET_ANALYSIS_ROOTS =         'analysis.setAnalysisRoots';
+const String METHOD_SET_PRIORITY_FILES =         'analysis.setPriorityFiles';
+const String METHOD_SET_ANALYSIS_SUBSCRIPTIONS = 'analysis.setSubscriptions';
+const String METHOD_UPDATE_CONTENT =             'analysis.updateContent';
+const String METHOD_UPDATE_OPTIONS =             'analysis.updateOptions';
+const String METHOD_UPDATE_SDKS =                'analysis.updateSdks';
 
 //
 // Server notifications

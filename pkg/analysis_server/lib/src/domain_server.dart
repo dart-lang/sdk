@@ -29,7 +29,7 @@ class ServerDomainHandler implements RequestHandler {
       String requestName = request.method;
       if (requestName == METHOD_GET_VERSION) {
         return getVersion(request);
-      } else if (requestName == METHOD_SET_SUBSCRIPTIONS) {
+      } else if (requestName == METHOD_SET_SERVER_SUBSCRIPTIONS) {
           return setSubscriptions(request);
       } else if (requestName == METHOD_SHUTDOWN) {
         return shutdown(request);

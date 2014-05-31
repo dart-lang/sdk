@@ -208,7 +208,7 @@ class AnalysisTestHelper {
     }
     files.add(file);
     // set subscriptions
-    Request request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
+    Request request = new Request('0', METHOD_SET_ANALYSIS_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
   }
@@ -1146,15 +1146,7 @@ void test_setSubscriptions() {
   test('before analysis', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     // subscribe
-    {
-      var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
-      request.setParameter(
-          SUBSCRIPTIONS,
-          {
-            AnalysisService.HIGHLIGHTS.name : [helper.testFile],
-          });
-      helper.handleSuccessfulRequest(request);
-    }
+    helper.addAnalysisSubscriptionHighlight(helper.testFile);
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, there are highlight regions
@@ -1173,15 +1165,7 @@ void test_setSubscriptions() {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isEmpty);
       // subscribe
-      {
-        var request = new Request('0', METHOD_SET_SUBSCRIPTIONS);
-        request.setParameter(
-            SUBSCRIPTIONS,
-            {
-              AnalysisService.HIGHLIGHTS.name : [helper.testFile],
-            });
-        helper.handleSuccessfulRequest(request);
-      }
+      helper.addAnalysisSubscriptionHighlight(helper.testFile);
       // wait, has regions
       return helper.waitForTasksFinished().then((_) {
         var highlights = helper.getHighlights(helper.testFile);

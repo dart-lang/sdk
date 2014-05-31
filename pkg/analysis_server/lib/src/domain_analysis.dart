@@ -35,7 +35,7 @@ class AnalysisDomainHandler implements RequestHandler {
         return setAnalysisRoots(request);
       } else if (requestName == METHOD_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == METHOD_SET_SUBSCRIPTIONS) {
+      } else if (requestName == METHOD_SET_ANALYSIS_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       } else if (requestName == METHOD_UPDATE_CONTENT) {
         return updateContent(request);
