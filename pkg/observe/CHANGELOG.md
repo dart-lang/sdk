@@ -3,7 +3,7 @@
 This file contains highlights of what changes on each version of the observe
 package.
 
-#### Pub version 0.10.0-dev
+#### Pub version 0.10.0
   * package:observe no longer declares @MirrorsUsed. The package uses mirrors
     for development time, but assumes frameworks (like polymer) and apps that
     use it directly will either generate code that replaces the use of mirrors,
