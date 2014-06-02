@@ -1494,27 +1494,31 @@ class _HttpClientConnection {
   }
 }
 
-class _ConnnectionInfo {
+class _ConnectionInfo {
   final _HttpClientConnection connection;
   final _Proxy proxy;
 
-  _ConnnectionInfo(this.connection, this.proxy);
+  _ConnectionInfo(this.connection, this.proxy);
 }
 
 
 class _ConnectionTarget {
   // Unique key for this connection target.
   final String key;
+  final String host;
+  final int port;
+  final bool isSecure;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
+  int _connecting = 0;
 
-  _ConnectionTarget(this.key);
+  _ConnectionTarget(this.key, this.host, this.port, this.isSecure);
 
-  bool get isEmpty => _idle.isEmpty && _active.isEmpty;
+  bool get isEmpty => _idle.isEmpty && _active.isEmpty && _connecting == 0;
 
   bool get hasIdle => _idle.isNotEmpty;
 
-  bool get hasActive => _active.isNotEmpty;
+  bool get hasActive => _active.isNotEmpty && _connecting > 0;
 
   _HttpClientConnection takeIdle() {
     assert(hasIdle);
@@ -1550,6 +1554,45 @@ class _ConnectionTarget {
         c.destroy();
       }
     }
+  }
+
+  Future<_ConnectionInfo> connect(String uriHost,
+                                   int uriPort,
+                                   _Proxy proxy,
+                                   _HttpClient client) {
+    if (hasIdle) {
+      var connection = takeIdle();
+      client._updateTimers();
+      return new Future.value(new _ConnectionInfo(connection, proxy));
+    }
+    var currentBadCertificateCallback = client._badCertificateCallback;
+    bool callback(X509Certificate certificate) =>
+        currentBadCertificateCallback == null ? false :
+        currentBadCertificateCallback(certificate, uriHost, uriPort);
+    Future socketFuture = (isSecure && proxy.isDirect
+        ? SecureSocket.connect(host,
+                               port,
+                               sendClientCertificate: true,
+                               onBadCertificate: callback)
+        : Socket.connect(host, port));
+    _connecting++;
+    return socketFuture.then((socket) {
+        _connecting--;
+        socket.setOption(SocketOption.TCP_NODELAY, true);
+        var connection = new _HttpClientConnection(key, socket, client);
+        if (isSecure && !proxy.isDirect) {
+          connection._dispose = true;
+          return connection.createProxyTunnel(uriHost, uriPort, proxy, callback)
+              .then((tunnel) {
+                client._getConnectionTarget(uriHost, uriPort, true)
+                    .addNewActive(tunnel);
+                return new _ConnectionInfo(tunnel, proxy);
+              });
+        } else {
+          addNewActive(connection);
+          return new _ConnectionInfo(connection, proxy);
+        }
+      });
   }
 }
 
@@ -1776,60 +1819,28 @@ class _HttpClient implements HttpClient {
     }
   }
 
-  // Get a new _HttpClientConnection, either from the idle pool or created from
-  // a new Socket.
-  Future<_ConnnectionInfo> _getConnection(String uriHost,
+  _ConnectionTarget _getConnectionTarget(String host, int port, bool isSecure) {
+    String key = _HttpClientConnection.makeKey(isSecure, host, port);
+    return _connectionTargets.putIfAbsent(
+        key, () => new _ConnectionTarget(key, host, port, isSecure));
+  }
+
+  // Get a new _HttpClientConnection, from the matching _ConnectionTarget.
+  Future<_ConnectionInfo> _getConnection(String uriHost,
                                           int uriPort,
                                           _ProxyConfiguration proxyConf,
                                           bool isSecure) {
     Iterator<_Proxy> proxies = proxyConf.proxies.iterator;
 
-    Future<_ConnnectionInfo> connect(error) {
+    Future<_ConnectionInfo> connect(error) {
       if (!proxies.moveNext()) return new Future.error(error);
       _Proxy proxy = proxies.current;
       String host = proxy.isDirect ? uriHost: proxy.host;
       int port = proxy.isDirect ? uriPort: proxy.port;
-      String key = _HttpClientConnection.makeKey(isSecure, host, port);
-      var connectionTarget = _connectionTargets[key];
-      if (connectionTarget != null && connectionTarget.hasIdle) {
-        var connection = connectionTarget.takeIdle();
-        _updateTimers();
-        return new Future.value(new _ConnnectionInfo(connection, proxy));
-      }
-      var currentBadCertificateCallback = _badCertificateCallback;
-      bool callback(X509Certificate certificate) =>
-          currentBadCertificateCallback == null ? false :
-          currentBadCertificateCallback(certificate, uriHost, uriPort);
-      Future socketFuture = (isSecure && proxy.isDirect
-          ? SecureSocket.connect(host,
-                                 port,
-                                 sendClientCertificate: true,
-                                 onBadCertificate: callback)
-          : Socket.connect(host, port));
-      return socketFuture.then((socket) {
-          socket.setOption(SocketOption.TCP_NODELAY, true);
-          var connection = new _HttpClientConnection(key, socket, this);
-          if (isSecure && !proxy.isDirect) {
-            connection._dispose = true;
-            return connection.createProxyTunnel(
-                uriHost, uriPort, proxy, callback)
-                .then((tunnel) {
-                  var connectionTarget = _connectionTargets
-                      .putIfAbsent(tunnel.key,
-                                   () => new _ConnectionTarget(tunnel.key));
-                  connectionTarget.addNewActive(tunnel);
-                  return new _ConnnectionInfo(tunnel, proxy);
-                });
-          } else {
-            var connectionTarget = _connectionTargets
-                .putIfAbsent(key, () => new _ConnectionTarget(key));
-            connectionTarget.addNewActive(connection);
-            return new _ConnnectionInfo(connection, proxy);
-          }
-        }, onError: (error) {
-          // Continue with next proxy.
-          return connect(error);
-        });
+      return _getConnectionTarget(host, port, isSecure)
+          .connect(uriHost, uriPort, proxy, this)
+          // On error, continue with next proxy.
+          .catchError(connect);
     }
     return connect(new HttpException("No proxies given"));
   }
