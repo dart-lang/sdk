@@ -4,10 +4,10 @@
 
 library path.style.url;
 
-import '../style.dart';
+import '../internal_style.dart';
 
 /// The style for URL paths.
-class UrlStyle extends Style {
+class UrlStyle extends InternalStyle {
   UrlStyle();
 
   final name = 'url';

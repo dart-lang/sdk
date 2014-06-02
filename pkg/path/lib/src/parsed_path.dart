@@ -4,12 +4,12 @@
 
 library path.parsed_path;
 
+import 'internal_style.dart';
 import 'style.dart';
 
-// TODO(rnystrom): Make this public?
 class ParsedPath {
-  /// The [Style] that was used to parse this path.
-  Style style;
+  /// The [InternalStyle] that was used to parse this path.
+  InternalStyle style;
 
   /// The absolute root portion of the path, or `null` if the path is relative.
   /// On POSIX systems, this will be `null` or "/". On Windows, it can be
@@ -40,7 +40,7 @@ class ParsedPath {
   /// `true` if this is an absolute path.
   bool get isAbsolute => root != null;
 
-  factory ParsedPath.parse(String path, Style style) {
+  factory ParsedPath.parse(String path, InternalStyle style) {
     var before = path;
 
     // Remove the root prefix, if any.

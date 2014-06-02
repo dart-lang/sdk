@@ -5,10 +5,10 @@
 library path.style.windows;
 
 import '../parsed_path.dart';
-import '../style.dart';
+import '../internal_style.dart';
 
 /// The style for Windows paths.
-class WindowsStyle extends Style {
+class WindowsStyle extends InternalStyle {
   WindowsStyle();
 
   final name = 'windows';

@@ -4,6 +4,7 @@
 
 library path.context;
 
+import 'internal_style.dart';
 import 'style.dart';
 import 'parsed_path.dart';
 import 'path_exception.dart';
@@ -30,7 +31,12 @@ class Context {
       }
     }
 
-    if (style == null) style = Style.platform;
+    if (style == null) {
+      style = Style.platform;
+    } else if (style is! InternalStyle) {
+      throw new ArgumentError("Only styles defined by the path package are "
+          "allowed.");
+    }
 
     return new Context._(style, current);
   }
@@ -38,7 +44,7 @@ class Context {
   Context._(this.style, this.current);
 
   /// The style of path that this context works with.
-  final Style style;
+  final InternalStyle style;
 
   /// The current directory that relative paths will be relative to.
   final String current;

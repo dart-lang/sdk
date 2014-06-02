@@ -5,10 +5,10 @@
 library path.style.posix;
 
 import '../parsed_path.dart';
-import '../style.dart';
+import '../internal_style.dart';
 
 /// The style for POSIX paths.
-class PosixStyle extends Style {
+class PosixStyle extends InternalStyle {
   PosixStyle();
 
   final name = 'posix';

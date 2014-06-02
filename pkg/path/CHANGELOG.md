@@ -1,3 +1,8 @@
+# 1.2.1
+
+* Many members on `Style` that provided access to patterns and functions used
+  internally for parsing paths have been deprecated.
+
 # 1.2.0
 
 * Added `path.prettyUri`, which produces a human-readable representation of a
