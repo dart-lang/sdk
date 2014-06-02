@@ -675,7 +675,7 @@ class JavaScriptBackend extends Backend {
       registerInstantiatedConstantType(interceptor.dispatchedType, registry);
     } else if (constant.isType) {
       TypeConstant typeConstant = constant;
-      registerTypeLiteral(typeConstant.representedType,
+      registerTypeLiteral(typeConstant.representedType.element,
           compiler.enqueuer.codegen, registry);
     }
   }
@@ -683,18 +683,17 @@ class JavaScriptBackend extends Backend {
   void registerInstantiatedConstantType(DartType type, Registry registry) {
     Enqueuer enqueuer = compiler.enqueuer.codegen;
     DartType instantiatedType =
-        type.isFunctionType ? compiler.functionClass.rawType : type;
-    if (type is InterfaceType) {
-      enqueuer.registerInstantiatedType(instantiatedType, registry);
-      if (!type.treatAsRaw && classNeedsRti(type.element)) {
-        enqueuer.registerStaticUse(getSetRuntimeTypeInfo());
-      }
-      if (type.element == typeImplementation) {
-        // If we use a type literal in a constant, the compile time
-        // constant emitter will generate a call to the createRuntimeType
-        // helper so we register a use of that.
-        enqueuer.registerStaticUse(getCreateRuntimeType());
-      }
+        type.kind == TypeKind.FUNCTION ? compiler.functionClass.rawType : type;
+    enqueuer.registerInstantiatedType(instantiatedType, registry);
+    if (type is InterfaceType && !type.treatAsRaw &&
+        classNeedsRti(type.element)) {
+      enqueuer.registerStaticUse(getSetRuntimeTypeInfo());
+    }
+    if (type.element == typeImplementation) {
+      // If we use a type literal in a constant, the compile time
+      // constant emitter will generate a call to the createRuntimeType
+      // helper so we register a use of that.
+      enqueuer.registerStaticUse(getCreateRuntimeType());
     }
   }
 
@@ -893,7 +892,7 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getCyclicThrowHelper(), registry);
   }
 
-  void registerTypeLiteral(DartType type,
+  void registerTypeLiteral(Element element,
                            Enqueuer enqueuer,
                            Registry registry) {
     enqueuer.registerInstantiatedClass(typeImplementation, registry);
@@ -901,10 +900,10 @@ class JavaScriptBackend extends Backend {
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
-    if (type.isTypedef) {
-      typedefTypeLiterals.add(type.element);
+    if (element.isTypedef) {
+      typedefTypeLiterals.add(element);
     }
-    customElementsAnalysis.registerTypeLiteral(type, enqueuer);
+    customElementsAnalysis.registerTypeLiteral(element, enqueuer);
   }
 
   void registerStackTraceInCatch(Registry registry) {
@@ -983,8 +982,8 @@ class JavaScriptBackend extends Backend {
         }
       }
     }
-    bool isTypeVariable = type.isTypeVariable;
-    if (type.isMalformed) {
+    bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
       enqueueInResolution(getThrowTypeError(), registry);
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
@@ -1308,7 +1307,7 @@ class JavaScriptBackend extends Backend {
                                           {bool typeCast,
                                            bool nativeCheckOnly}) {
     assert(type.kind != TypeKind.TYPEDEF);
-    if (type.isMalformed) {
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
       // The same error is thrown for type test and type cast of a malformed
       // type so we only need one check method.
       return 'checkMalformedType';
@@ -1391,15 +1390,15 @@ class JavaScriptBackend extends Backend {
               : 'listSuperTypeCheck';
         }
       } else {
-        if (type.isInterfaceType && !type.treatAsRaw) {
+        if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
           return typeCast
               ? 'subtypeCast'
               : 'assertSubtype';
-        } else if (type.isTypeVariable) {
+        } else if (type.kind == TypeKind.TYPE_VARIABLE) {
           return typeCast
               ? 'subtypeOfRuntimeTypeCast'
               : 'assertSubtypeOfRuntimeType';
-        } else if (type.isFunctionType) {
+        } else if (type.kind == TypeKind.FUNCTION) {
           return null;
         } else {
           if (nativeCheck) {

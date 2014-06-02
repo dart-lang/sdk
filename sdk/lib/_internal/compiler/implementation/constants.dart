@@ -544,7 +544,7 @@ class InterceptorConstant extends Constant {
 
   accept(ConstantVisitor visitor) => visitor.visitInterceptor(this);
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   ti.TypeMask computeMask(Compiler compiler) {
     return compiler.typesTask.nonNullType;
@@ -573,7 +573,7 @@ class DummyConstant extends Constant {
 
   accept(ConstantVisitor visitor) => visitor.visitDummy(this);
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   ti.TypeMask computeMask(Compiler compiler) => typeMask;
 

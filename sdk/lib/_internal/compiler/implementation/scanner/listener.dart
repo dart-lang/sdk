@@ -2184,7 +2184,7 @@ class PartialFieldList extends VariableList {
       if (node.type != null) {
         type = compiler.resolver.resolveTypeAnnotation(element, node.type);
       } else {
-        type = const DynamicType();
+        type = compiler.types.dynamicType;
       }
     });
     assert(type != null);

@@ -36,15 +36,16 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     if (annotation.treatAsDynamic) return type;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
+    if (annotation.kind == TypeKind.TYPEDEF
+        || annotation.kind == TypeKind.FUNCTION) {
       otherType = functionType;
-    } else if (annotation.isTypeVariable) {
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Narrow to bound.
       return type;
     } else if (annotation.isVoid) {
       otherType = nullType;
     } else {
-      assert(annotation.isInterfaceType);
+      assert(annotation.kind == TypeKind.INTERFACE);
       otherType = new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();

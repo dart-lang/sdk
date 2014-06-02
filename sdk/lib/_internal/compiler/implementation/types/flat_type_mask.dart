@@ -200,7 +200,8 @@ class FlatTypeMask implements TypeMask {
    */
   bool containsAll(Compiler compiler) {
     if (isEmpty || isExact) return false;
-    return identical(base, compiler.objectClass);
+    return identical(base, compiler.objectClass)
+        || identical(base, compiler.dynamicClass);
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {

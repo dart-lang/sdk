@@ -308,7 +308,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
   Dart2JsMirrorSystem get mirrorSystem => this;
 
   TypeMirror get dynamicType =>
-      _convertTypeToTypeMirror(const DynamicType());
+      _convertTypeToTypeMirror(compiler.types.dynamicType);
 
   TypeMirror get voidType =>
       _convertTypeToTypeMirror(const VoidType());

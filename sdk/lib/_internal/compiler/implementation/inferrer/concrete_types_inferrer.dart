@@ -434,6 +434,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
         return new TypeMask.nonNullSubclass(compiler.backend.numImplementation);
       } else if (element == compiler.backend.intImplementation) {
         return new TypeMask.nonNullSubclass(compiler.backend.intImplementation);
+      } else if (element == compiler.dynamicClass) {
+        return new TypeMask.nonNullSubclass(compiler.objectClass);
       } else {
         return new TypeMask.nonNullExact(element.declaration);
       }
@@ -493,13 +495,14 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     ConcreteType otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
+    if (annotation.kind == TypeKind.TYPEDEF
+        || annotation.kind == TypeKind.FUNCTION) {
       otherType = functionType;
-    } else if (annotation.isTypeVariable) {
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(polux): Narrow to bound.
       return type;
     } else {
-      assert(annotation.isInterfaceType);
+      assert(annotation.kind == TypeKind.INTERFACE);
       otherType = nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.union(nullType);
@@ -1796,7 +1799,7 @@ class ConcreteTypesInferrer
     // We trust the return type of native elements
     if (isNativeElement(element)) {
       var elementType = element.type;
-      assert(elementType.isFunctionType);
+      assert(elementType.kind == TypeKind.FUNCTION);
       return typeOfNativeBehavior(
           native.NativeBehavior.ofMethod(element, compiler));
     }

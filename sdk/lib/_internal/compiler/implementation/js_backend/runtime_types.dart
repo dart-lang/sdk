@@ -144,7 +144,7 @@ class RuntimeTypes {
 
     Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
     compiler.resolverWorld.isChecks.forEach((DartType type) {
-      if (type.isTypeVariable) {
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
         TypeVariableElement variable = type.element;
         classesUsingTypeVariableTests.add(variable.enclosingElement);
       }
@@ -163,7 +163,7 @@ class RuntimeTypes {
     // Compute the set of all classes and methods that need runtime type
     // information.
     compiler.resolverWorld.isChecks.forEach((DartType type) {
-      if (type.isInterfaceType) {
+      if (type.kind == TypeKind.INTERFACE) {
         InterfaceType itf = type;
         if (!itf.treatAsRaw) {
           potentiallyAddForRti(itf.element);
@@ -176,7 +176,7 @@ class RuntimeTypes {
           // variables and function types containing type variables.
           potentiallyAddForRti(contextClass);
         }
-        if (type.isFunctionType) {
+        if (type.kind == TypeKind.FUNCTION) {
           void analyzeMethod(TypedElement method) {
             DartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
@@ -227,6 +227,7 @@ class RuntimeTypes {
     // argument is a superclass of the element of an instantiated type.
     TypeCheckMapping result = new TypeCheckMapping();
     for (ClassElement element in instantiated) {
+      if (element == compiler.dynamicClass) continue;
       if (checked.contains(element)) {
         result.add(element, element, null);
       }
@@ -263,7 +264,7 @@ class RuntimeTypes {
     Set<DartType> instantiatedTypes =
         new Set<DartType>.from(universe.instantiatedTypes);
     for (DartType instantiatedType in universe.instantiatedTypes) {
-      if (instantiatedType.isInterfaceType) {
+      if (instantiatedType.kind == TypeKind.INTERFACE) {
         InterfaceType interface = instantiatedType;
         FunctionType callType = interface.callType;
         if (callType != null) {
@@ -312,7 +313,7 @@ class RuntimeTypes {
                               {bool isTypeArgument: false}) {
       for (DartType type in types) {
         directCollector.collect(type, isTypeArgument: isTypeArgument);
-        if (type.isInterfaceType) {
+        if (type.kind == TypeKind.INTERFACE) {
           ClassElement cls = type.element;
           for (DartType supertype in cls.allSupertypes) {
             superCollector.collect(supertype, isTypeArgument: isTypeArgument);
@@ -394,7 +395,6 @@ class RuntimeTypes {
   String getTypeRepresentationForTypeConstant(DartType type) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    if (type.isDynamic) return namer.getRuntimeTypeName(null);
     String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass) return name;
     InterfaceType interface = type;

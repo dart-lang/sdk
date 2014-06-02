@@ -810,6 +810,7 @@ class CodeEmitterTask extends CompilerTask {
     unneededClasses.add(backend.jsUInt32Class);
     unneededClasses.add(backend.jsUInt31Class);
     unneededClasses.add(backend.jsPositiveIntClass);
+    unneededClasses.add(compiler.dynamicClass);
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }

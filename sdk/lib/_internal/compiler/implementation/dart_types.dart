@@ -28,7 +28,6 @@ class TypeKind {
   static const TypeKind TYPEDEF = const TypeKind('typedef');
   static const TypeKind TYPE_VARIABLE = const TypeKind('type variable');
   static const TypeKind MALFORMED_TYPE = const TypeKind('malformed');
-  static const TypeKind DYNAMIC = const TypeKind('dynamic');
   static const TypeKind VOID = const TypeKind('void');
 
   String toString() => id;
@@ -102,25 +101,10 @@ abstract class DartType {
   bool get treatAsDynamic => false;
 
   /// Is [: true :] if this type is the dynamic type.
-  bool get isDynamic => kind == TypeKind.DYNAMIC;
+  bool get isDynamic => false;
 
   /// Is [: true :] if this type is the void type.
-  bool get isVoid => kind == TypeKind.VOID;
-
-  /// Is [: true :] if this type is an interface type.
-  bool get isInterfaceType => kind == TypeKind.INTERFACE;
-
-  /// Is [: true :] if this type is a typedef.
-  bool get isTypedef => kind == TypeKind.TYPEDEF;
-
-  /// Is [: true :] if this type is a function type.
-  bool get isFunctionType => kind == TypeKind.FUNCTION;
-
-  /// Is [: true :] if this type is a type variable.
-  bool get isTypeVariable => kind == TypeKind.TYPE_VARIABLE;
-
-  /// Is [: true :] if this type is a malformed type.
-  bool get isMalformed => kind == TypeKind.MALFORMED_TYPE;
+  bool get isVoid => false;
 
   /// Returns an occurrence of a type variable within this type, if any.
   TypeVariableType get typeVariableOccurrence => null;
@@ -298,6 +282,8 @@ class VoidType extends DartType {
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitVoidType(this, argument);
   }
+
+  bool get isVoid => true;
 
   String toString() => name;
 }
@@ -595,8 +581,8 @@ class FunctionType extends DartType {
 
   factory FunctionType(
       FunctionTypedElement element,
-      [DartType returnType = const DynamicType(),
-       Link<DartType> parameterTypes = const Link<DartType>(),
+      DartType returnType,
+      [Link<DartType> parameterTypes = const Link<DartType>(),
        Link<DartType> optionalParameterTypes = const Link<DartType>(),
        Link<String> namedParameters = const Link<String>(),
        Link<DartType> namedParameterTypes = const Link<DartType>()]) {
@@ -608,8 +594,8 @@ class FunctionType extends DartType {
   }
 
   factory FunctionType.synthesized(
-      [DartType returnType = const DynamicType(),
-       Link<DartType> parameterTypes = const Link<DartType>(),
+      DartType returnType,
+      [Link<DartType> parameterTypes = const Link<DartType>(),
        Link<DartType> optionalParameterTypes = const Link<DartType>(),
        Link<String> namedParameters = const Link<String>(),
        Link<DartType> namedParameterTypes = const Link<DartType>()]) {
@@ -619,8 +605,8 @@ class FunctionType extends DartType {
   }
 
   FunctionType.internal(FunctionTypedElement this.element,
-                        [DartType this.returnType = const DynamicType(),
-                         this.parameterTypes = const Link<DartType>(),
+                        DartType this.returnType,
+                        [this.parameterTypes = const Link<DartType>(),
                          this.optionalParameterTypes = const Link<DartType>(),
                          this.namedParameters = const Link<String>(),
                          this.namedParameterTypes = const Link<DartType>()]) {
@@ -830,28 +816,21 @@ class TypedefType extends GenericType {
 }
 
 /**
- * Special type for the `dynamic` type.
+ * Special type to hold the [dynamic] type. Used for correctly returning
+ * 'dynamic' on [toString].
  */
-class DynamicType extends DartType {
-  const DynamicType();
-
-  Element get element => null;
+class DynamicType extends InterfaceType {
+  DynamicType(ClassElement element) : super(element);
 
   String get name => 'dynamic';
 
   bool get treatAsDynamic => true;
 
-  TypeKind get kind => TypeKind.DYNAMIC;
-
-  DartType unalias(Compiler compiler) => this;
-
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) => this;
+  bool get isDynamic => true;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);
   }
-
-  String toString() => name;
 }
 
 /**
@@ -924,7 +903,7 @@ abstract class DartTypeVisitor<R, A> {
       visitGenericType(type, argument);
 
   R visitDynamicType(DynamicType type, A argument) =>
-      visitType(type, argument);
+      visitInterfaceType(type, argument);
 }
 
 /**
@@ -932,8 +911,10 @@ abstract class DartTypeVisitor<R, A> {
  */
 abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
+  final DynamicType dynamicType;
 
-  AbstractTypeRelation(Compiler this.compiler);
+  AbstractTypeRelation(Compiler this.compiler,
+                       DynamicType this.dynamicType);
 
   bool visitType(DartType t, DartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
@@ -1108,7 +1089,9 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
 }
 
 class MoreSpecificVisitor extends AbstractTypeRelation {
-  MoreSpecificVisitor(Compiler compiler) : super(compiler);
+  MoreSpecificVisitor(Compiler compiler,
+                      DynamicType dynamicType)
+      : super(compiler, dynamicType);
 
   bool isMoreSpecific(DartType t, DartType s) {
     if (identical(t, s) || s.treatAsDynamic ||
@@ -1153,7 +1136,9 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
  */
 class SubtypeVisitor extends MoreSpecificVisitor {
 
-  SubtypeVisitor(Compiler compiler) : super(compiler);
+  SubtypeVisitor(Compiler compiler,
+                 DynamicType dynamicType)
+      : super(compiler, dynamicType);
 
   bool isSubtype(DartType t, DartType s) {
     return t.treatAsDynamic || isMoreSpecific(t, s);
@@ -1206,18 +1191,29 @@ typedef void CheckTypeVariableBound(GenericType type,
 
 class Types {
   final Compiler compiler;
+  final DynamicType dynamicType;
   final MoreSpecificVisitor moreSpecificVisitor;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
-  Types(Compiler compiler)
+  factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
+    DynamicType dynamicType = new DynamicType(dynamicElement);
+    dynamicElement.rawTypeCache = dynamicElement.thisTypeCache = dynamicType;
+    return new Types.internal(compiler, dynamicType);
+  }
+
+  Types.internal(Compiler compiler, DynamicType dynamicType)
       : this.compiler = compiler,
-        this.moreSpecificVisitor = new MoreSpecificVisitor(compiler),
-        this.subtypeVisitor = new SubtypeVisitor(compiler),
-        this.potentialSubtypeVisitor = new PotentialSubtypeVisitor(compiler);
+        this.dynamicType = dynamicType,
+        this.moreSpecificVisitor =
+          new MoreSpecificVisitor(compiler, dynamicType),
+        this.subtypeVisitor =
+          new SubtypeVisitor(compiler, dynamicType),
+        this.potentialSubtypeVisitor =
+          new PotentialSubtypeVisitor(compiler, dynamicType);
 
   Types copy(Compiler compiler) {
-    return new Types(compiler);
+    return new Types.internal(compiler, dynamicType);
   }
 
   /** Returns true if [t] is more specific than [s]. */
@@ -1343,10 +1339,10 @@ class Types {
    */
   static int compare(DartType a, DartType b) {
     if (a == b) return 0;
-    if (a.isVoid) {
+    if (a.kind == TypeKind.VOID) {
       // [b] is not void => a < b.
       return -1;
-    } else if (b.isVoid) {
+    } else if (b.kind == TypeKind.VOID) {
       // [a] is not void => a > b.
       return 1;
     }
@@ -1358,21 +1354,21 @@ class Types {
       return 1;
     }
     bool isDefinedByDeclaration(DartType type) {
-      return type.isInterfaceType ||
-             type.isTypedef ||
-             type.isTypeVariable;
+      return type.kind == TypeKind.INTERFACE ||
+             type.kind == TypeKind.TYPEDEF ||
+             type.kind == TypeKind.TYPE_VARIABLE;
     }
 
     if (isDefinedByDeclaration(a)) {
       if (isDefinedByDeclaration(b)) {
         int result = Elements.compareByPosition(a.element, b.element);
         if (result != 0) return result;
-        if (a.isTypeVariable) {
-          return b.isTypeVariable
+        if (a.kind == TypeKind.TYPE_VARIABLE) {
+          return b.kind == TypeKind.TYPE_VARIABLE
               ? 0
               : 1; // [b] is not a type variable => a > b.
         } else {
-          if (b.isTypeVariable) {
+          if (b.kind == TypeKind.TYPE_VARIABLE) {
             // [a] is not a type variable => a < b.
             return -1;
           } else {
@@ -1390,8 +1386,8 @@ class Types {
       // nor void => a > b.
       return 1;
     }
-    if (a.isFunctionType) {
-      if (b.isFunctionType) {
+    if (a.kind == TypeKind.FUNCTION) {
+      if (b.kind == TypeKind.FUNCTION) {
         FunctionType aFunc = a;
         FunctionType bFunc = b;
         int result = compare(aFunc.returnType, bFunc.returnType);
@@ -1422,7 +1418,7 @@ class Types {
         // [b] is a malformed or statement type => a < b.
         return -1;
       }
-    } else if (b.isFunctionType) {
+    } else if (b.kind == TypeKind.FUNCTION) {
       // [b] is a malformed or statement type => a > b.
       return 1;
     }
@@ -1438,8 +1434,8 @@ class Types {
       // [a] is a malformed type => a < b.
       return -1;
     }
-    assert (a.isMalformed);
-    assert (b.isMalformed);
+    assert (a.kind == TypeKind.MALFORMED_TYPE);
+    assert (b.kind == TypeKind.MALFORMED_TYPE);
     // TODO(johnniwinther): Can we do this better?
     return Elements.compareByPosition(a.element, b.element);
   }
@@ -1568,13 +1564,13 @@ class Types {
   DartType computeLeastUpperBoundTypeVariableTypes(DartType a,
                                                    DartType b) {
     Set<DartType> typeVariableBounds = new Set<DartType>();
-    while (a.isTypeVariable) {
+    while (a.kind == TypeKind.TYPE_VARIABLE) {
       if (a == b) return a;
       typeVariableBounds.add(a);
       TypeVariableElement element = a.element;
       a = element.bound;
     }
-    while (b.isTypeVariable) {
+    while (b.kind == TypeKind.TYPE_VARIABLE) {
       if (typeVariableBounds.contains(b)) return b;
       TypeVariableElement element = b.element;
       b = element.bound;
@@ -1586,32 +1582,32 @@ class Types {
   DartType computeLeastUpperBound(DartType a, DartType b) {
     if (a == b) return a;
 
-    if (a.isTypeVariable ||
-           b.isTypeVariable) {
+    if (a.kind == TypeKind.TYPE_VARIABLE ||
+           b.kind == TypeKind.TYPE_VARIABLE) {
       return computeLeastUpperBoundTypeVariableTypes(a, b);
     }
 
     a = a.unalias(compiler);
     b = b.unalias(compiler);
 
-    if (a.treatAsDynamic || b.treatAsDynamic) return const DynamicType();
+    if (a.treatAsDynamic || b.treatAsDynamic) return dynamicType;
     if (a.isVoid || b.isVoid) return const VoidType();
 
-    if (a.isFunctionType && b.isFunctionType) {
+    if (a.kind == TypeKind.FUNCTION && b.kind == TypeKind.FUNCTION) {
       return computeLeastUpperBoundFunctionTypes(a, b);
     }
 
-    if (a.isFunctionType) {
+    if (a.kind == TypeKind.FUNCTION) {
       a = compiler.functionClass.rawType;
     }
-    if (b.isFunctionType) {
+    if (b.kind == TypeKind.FUNCTION) {
       b = compiler.functionClass.rawType;
     }
 
-    if (a.isInterfaceType && b.isInterfaceType) {
+    if (a.kind == TypeKind.INTERFACE && b.kind == TypeKind.INTERFACE) {
       return computeLeastUpperBoundInterfaces(a, b);
     }
-    return const DynamicType();
+    return dynamicType;
   }
 }
 
@@ -1621,7 +1617,10 @@ class Types {
  * [:false:] only if we are sure no such substitution exists.
  */
 class PotentialSubtypeVisitor extends SubtypeVisitor {
-  PotentialSubtypeVisitor(Compiler compiler) : super(compiler);
+  PotentialSubtypeVisitor(Compiler compiler,
+                          DynamicType dynamicType)
+      : super(compiler, dynamicType);
+
 
   bool isSubtype(DartType t, DartType s) {
     if (t is TypeVariableType || s is TypeVariableType) {
@@ -1657,7 +1656,7 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 
     constraintMap = new Map<TypeVariableType, DartType>();
     element.typeVariables.forEach((TypeVariableType typeVariable) {
-      constraintMap[typeVariable] = const DynamicType();
+      constraintMap[typeVariable] = compiler.types.dynamicType;
     });
     if (supertypeInstance.accept(this, supertype)) {
       LinkBuilder<DartType> typeArguments = new LinkBuilder<DartType>();

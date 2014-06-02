@@ -474,11 +474,11 @@ class DartBackend extends Backend {
     return new Future.value();
   }
 
-  void registerTypeLiteral(DartType type,
+  void registerTypeLiteral(Element element,
                            Enqueuer enqueuer,
                            Registry registry) {
-    if (type.isInterfaceType) {
-      usedTypeLiterals.add(type.element);
+    if (element.isClass) {
+      usedTypeLiterals.add(element);
     }
   }
 
@@ -560,8 +560,8 @@ class ReferencedElementCollector extends Visitor {
     final DartType type = treeElements.getType(typeAnnotation);
     assert(invariant(typeAnnotation, type != null,
         message: "Missing type for type annotation: $treeElements."));
-    if (type.isTypedef) newTypedefElementCallback(type.element);
-    if (type.isInterfaceType) newClassElementCallback(type.element);
+    if (type.kind == TypeKind.TYPEDEF) newTypedefElementCallback(type.element);
+    if (type.kind == TypeKind.INTERFACE) newClassElementCallback(type.element);
     typeAnnotation.visitChildren(this);
   }
 

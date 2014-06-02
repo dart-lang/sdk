@@ -2200,18 +2200,18 @@ class SsaBuilder extends ResolvedVisitor {
     if (type == null) return original;
     type = type.unalias(compiler);
     assert(assertTypeInContext(type, original));
-    if (type.isInterfaceType && !type.treatAsRaw) {
+    if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
       TypeMask subtype = new TypeMask.subtype(type.element);
       HInstruction representations = buildTypeArgumentRepresentations(type);
       add(representations);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, representations);
-    } else if (type.isTypeVariable) {
+    } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       TypeMask subtype = original.instructionType;
       HInstruction typeVariable = addTypeVariableReference(type);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
-    } else if (type.isFunctionType) {
+    } else if (type.kind == TypeKind.FUNCTION) {
       String name = kind == HTypeConversion.CAST_TYPE_CHECK
           ? '_asCheck' : '_assertCheck';
 
@@ -3142,7 +3142,7 @@ class SsaBuilder extends ResolvedVisitor {
   HInstruction buildTypeArgumentRepresentations(DartType type) {
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    if (type.isTypeVariable) {
+    if (type.kind == TypeKind.TYPE_VARIABLE) {
       return buildLiteralList(<HInstruction>[addTypeVariableReference(type)]);
     } else {
       assert(type.element.isClass);
@@ -3183,7 +3183,7 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.receiver);
       HInstruction expression = pop();
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) {
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
         ErroneousElement element = type.element;
         generateTypeError(node, element.message);
       } else {
@@ -3220,13 +3220,13 @@ class SsaBuilder extends ResolvedVisitor {
                            DartType type,
                            HInstruction expression) {
     type = localsHandler.substInContext(type).unalias(compiler);
-    if (type.isFunctionType) {
+    if (type.kind == TypeKind.FUNCTION) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
           node, new Selector.call('_isTest', compiler.jsHelperLibrary, 1),
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
-    } else if (type.isTypeVariable) {
+    } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
@@ -3251,7 +3251,7 @@ class SsaBuilder extends ResolvedVisitor {
       pushInvokeStatic(node, helper, inputs, backend.boolType);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
-    } else if (type.isMalformed) {
+    } else if (type.kind == TypeKind.MALFORMED_TYPE) {
       ErroneousElement element = type.element;
       generateTypeError(node, element.message);
       HInstruction call = pop();
@@ -3929,7 +3929,7 @@ class SsaBuilder extends ResolvedVisitor {
       return graph.addConstantNull(compiler);
     }
 
-    if (argument.isTypeVariable) {
+    if (argument.kind == TypeKind.TYPE_VARIABLE) {
       return addTypeVariableReference(argument);
     }
 
@@ -6325,7 +6325,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitMalformedType(MalformedType type, SsaBuilder builder) {
-    visitDynamicType(const DynamicType(), builder);
+    visitDynamicType(builder.compiler.types.dynamicType, builder);
   }
 
   void visitStatementType(StatementType type, SsaBuilder builder) {

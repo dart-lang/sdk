@@ -2357,6 +2357,12 @@ jsPropertyAccess(var jsObject, String property) {
 getFallThroughError() => new FallThroughErrorImplementation();
 
 /**
+ * Represents the type dynamic. The compiler treats this specially.
+ */
+abstract class Dynamic_ {
+}
+
+/**
  * A metadata annotation describing the types instantiated by a native element.
  *
  * The annotation is valid on a native method and a field of a native class.

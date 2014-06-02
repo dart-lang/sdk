@@ -215,13 +215,14 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
+    if (annotation.kind == TypeKind.TYPEDEF ||
+        annotation.kind == TypeKind.FUNCTION) {
       otherType = functionType.type;
-    } else if (annotation.isTypeVariable) {
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Narrow to bound.
       return type;
     } else {
-      assert(annotation.isInterfaceType);
+      assert(annotation.kind == TypeKind.INTERFACE);
       otherType = new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();

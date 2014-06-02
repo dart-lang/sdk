@@ -206,7 +206,7 @@ abstract class MembersCreator {
           if (!functionType.parameterTypes.isEmpty) {
             type = functionType.parameterTypes.head;
           } else {
-            type = const DynamicType();
+            type = compiler.types.dynamicType;
           }
           name = name.setter;
           addDeclaredMember(name, type, functionType);
@@ -702,7 +702,7 @@ class InterfaceMembersCreator extends MembersCreator {
       if (member.isSetter) {
         requiredParameters = 1;
       }
-      if (member.type.isFunctionType) {
+      if (member.type.kind == TypeKind.FUNCTION) {
         FunctionType type = member.type;
         type.namedParameters.forEach(
             (String name) => names.add(name));
@@ -727,12 +727,12 @@ class InterfaceMembersCreator extends MembersCreator {
       Link<DartType> requiredParameterTypes = const Link<DartType>();
       while (--minRequiredParameters >= 0) {
         requiredParameterTypes =
-            requiredParameterTypes.prepend(const DynamicType());
+            requiredParameterTypes.prepend(compiler.types.dynamicType);
       }
       Link<DartType> optionalParameterTypes = const Link<DartType>();
       while (--optionalParameters >= 0) {
         optionalParameterTypes =
-            optionalParameterTypes.prepend(const DynamicType());
+            optionalParameterTypes.prepend(compiler.types.dynamicType);
       }
       Link<String> namedParameters = const Link<String>();
       Link<DartType> namedParameterTypes = const Link<DartType>();
@@ -741,17 +741,17 @@ class InterfaceMembersCreator extends MembersCreator {
       for (String name in namesReversed) {
         namedParameters = namedParameters.prepend(name);
         namedParameterTypes =
-            namedParameterTypes.prepend(const DynamicType());
+            namedParameterTypes.prepend(compiler.types.dynamicType);
       }
       FunctionType memberType = new FunctionType.synthesized(
-          const DynamicType(),
+          compiler.types.dynamicType,
           requiredParameterTypes,
           optionalParameterTypes,
           namedParameters, namedParameterTypes);
       DartType type = memberType;
       if (inheritedMembers.first.isGetter ||
           inheritedMembers.first.isSetter) {
-        type = const DynamicType();
+        type = compiler.types.dynamicType;
       }
       interfaceMembers[name] =
           new SyntheticMember(inheritedMembers, type, memberType);

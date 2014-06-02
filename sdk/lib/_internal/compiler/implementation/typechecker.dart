@@ -51,7 +51,7 @@ abstract class ElementAccess {
 
   /// Returns [: true :] if the element can be access as an invocation.
   bool isCallable(Compiler compiler) {
-    if (element != null && element.isAbstractField) {
+    if (element.isAbstractField) {
       AbstractFieldElement abstractFieldElement = element;
       if (abstractFieldElement.getter == null) {
         // Setters cannot be invoked as function invocations.
@@ -82,7 +82,7 @@ class DynamicAccess implements ElementAccess {
 
   Element get element => null;
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   bool isCallable(Compiler compiler) => true;
 
@@ -151,17 +151,14 @@ class TypeAccess extends ElementAccess {
  * An access of a type literal.
  */
 class TypeLiteralAccess extends ElementAccess {
-  final DartType type;
-
-  TypeLiteralAccess(this.type) {
-    assert(type != null);
+  final Element element;
+  TypeLiteralAccess(Element this.element) {
+    assert(element != null);
   }
-
-  Element get element => type.element;
 
   DartType computeType(Compiler compiler) => compiler.typeClass.rawType;
 
-  String toString() => 'TypeLiteralAccess($type)';
+  String toString() => 'TypeLiteralAccess($element)';
 }
 
 
@@ -352,7 +349,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   // TODO(karlklose): remove these functions.
-  DartType unhandledExpression() => const DynamicType();
+  DartType unhandledExpression() => types.dynamicType;
 
   DartType analyzeNonVoid(Node node) {
     DartType type = analyze(node);
@@ -560,10 +557,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     final FunctionElement element = elements[node];
     assert(invariant(node, element != null,
                      message: 'FunctionExpression with no element'));
-    if (Elements.isUnresolved(element)) return const DynamicType();
+    if (Elements.isUnresolved(element)) return types.dynamicType;
     if (identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
         identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY)) {
-      type = const DynamicType();
+      type = types.dynamicType;
       returnType = const VoidType();
 
       element.functionSignature.forEachParameter((ParameterElement parameter) {
@@ -662,8 +659,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           type = compiler.objectClass.rawType;
         }
       }
-      if (type.isMalformed) {
-        return const DynamicType();
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
+        return types.dynamicType;
       }
       return type.unalias(compiler);
     }
@@ -672,10 +669,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // interface type of the bound, for function types and typedefs it is the
     // `Function` type.
     InterfaceType computeInterfaceType(DartType type) {
-      if (type.isFunctionType) {
+      if (type.kind == TypeKind.FUNCTION) {
          type = compiler.functionClass.rawType;
       }
-      assert(invariant(node, type.isInterfaceType,
+      assert(invariant(node, type.kind == TypeKind.INTERFACE,
           message: "unexpected type kind ${type.kind}."));
       return type;
     }
@@ -693,12 +690,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // 'call' method into account.
     ElementAccess getAccess(Name name,
                             DartType unaliasedBound, InterfaceType interface) {
+      if (interface.treatAsDynamic) {
+        return new DynamicAccess();
+      }
       MemberSignature member = lookupMemberSignature(memberName, interface);
       if (member != null) {
         return new MemberAccess(member);
       }
       if (name == const PublicName('call')) {
-        if (unaliasedBound.isFunctionType) {
+        if (unaliasedBound.kind == TypeKind.FUNCTION) {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
         }
@@ -706,16 +706,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           // This is an access of the special 'call' method implicitly defined
           // on 'Function'. This method can be called with any arguments, which
           // we ensure by giving it the type 'dynamic'.
-          return new FunctionCallAccess(null, const DynamicType());
+          return new FunctionCallAccess(null, types.dynamicType);
         }
       }
       return null;
     }
 
     DartType unaliasedBound = computeUnaliasedBound(receiverType);
-    if (unaliasedBound.treatAsDynamic) {
-      return new DynamicAccess();
-    }
     InterfaceType interface = computeInterfaceType(unaliasedBound);
     ElementAccess access = getAccess(memberName, unaliasedBound, interface);
     if (access != null) {
@@ -729,8 +726,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           TypePromotion typePromotion = typePromotions.head;
           if (!typePromotion.isValid) {
             DartType unaliasedBound = computeUnaliasedBound(typePromotion.type);
-            if (unaliasedBound.treatAsDynamic) continue;
-
             InterfaceType interface = computeInterfaceType(unaliasedBound);
             if (getAccess(memberName, unaliasedBound, interface) != null) {
               reportTypePromotionHint(typePromotion);
@@ -907,7 +902,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else {
       reportTypeWarning(node, MessageKind.NOT_CALLABLE,
           {'elementName': elementAccess.element.name});
-      analyzeArguments(node, elementAccess.element, const DynamicType(),
+      analyzeArguments(node, elementAccess.element, types.dynamicType,
                        argumentTypes);
     }
     type = type.unalias(compiler);
@@ -915,7 +910,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       FunctionType funType = type;
       return funType.returnType;
     } else {
-      return const DynamicType();
+      return types.dynamicType;
     }
   }
 
@@ -969,7 +964,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.impliesType) {
       // The literal `Foo` where Foo is a class, a typedef, or a type variable.
       if (elements.isTypeLiteral(node)) {
-        return new TypeLiteralAccess(elements.getTypeLiteralType(node));
+        assert(invariant(node, identical(compiler.typeClass,
+            elements.getType(node).element),
+            message: 'Expected type literal type: '
+              '${elements.getType(node)}'));
+        return new TypeLiteralAccess(element);
       }
       return createResolvedAccess(node, name, element);
     } else if (element.isMember) {
@@ -1031,8 +1030,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   /// we suggest the use of `List<int>`, which would make promotion valid.
   DartType computeMoreSpecificType(DartType shownType,
                                    DartType knownType) {
-    if (knownType.isInterfaceType &&
-        shownType.isInterfaceType &&
+    if (knownType.kind == TypeKind.INTERFACE &&
+        shownType.kind == TypeKind.INTERFACE &&
         types.isSubtype(shownType.asRaw(), knownType)) {
       // For the comments in the block, assume the hierarchy:
       //     class A<T, V> {}
@@ -1076,7 +1075,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       DartType constructorType = computeConstructorType(element, receiverType);
       analyzeArguments(node, element, constructorType);
-      return const DynamicType();
+      return types.dynamicType;
     }
 
     if (Elements.isClosureSend(node, element)) {
@@ -1236,7 +1235,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   /// Returns the first type in the list or [:dynamic:] if the list is empty.
   DartType firstType(Link<DartType> link) {
-    return link.isEmpty ? const DynamicType() : link.head;
+    return link.isEmpty ? types.dynamicType : link.head;
   }
 
   /**
@@ -1245,7 +1244,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    */
   DartType secondType(Link<DartType> link) {
     return link.isEmpty || link.tail.isEmpty
-        ? const DynamicType() : link.tail.head;
+        ? types.dynamicType : link.tail.head;
   }
 
   /**
@@ -1281,7 +1280,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       return node.isPostfix ? getter : result;
     }
-    return const DynamicType();
+    return types.dynamicType;
   }
 
   /**
@@ -1343,7 +1342,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return node.isPostfix ? element : result;
       }
     }
-    return const DynamicType();
+    return types.dynamicType;
   }
 
   visitSendSet(SendSet node) {
@@ -1456,7 +1455,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitLiteralNull(LiteralNull node) {
-    return const DynamicType();
+    return types.dynamicType;
   }
 
   DartType visitLiteralSymbol(LiteralSymbol node) {
@@ -1464,7 +1463,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType computeConstructorType(Element constructor, DartType type) {
-    if (Elements.isUnresolved(constructor)) return const DynamicType();
+    if (Elements.isUnresolved(constructor)) return types.dynamicType;
     DartType constructorType = constructor.computeType(compiler);
     if (identical(type.kind, TypeKind.INTERFACE)) {
       if (constructor.isSynthesized) {
@@ -1486,7 +1485,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
-    if (Elements.isUnresolved(element)) return const DynamicType();
+    if (Elements.isUnresolved(element)) return types.dynamicType;
 
     checkPrivateAccess(node, element, element.name);
 
@@ -1580,7 +1579,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType visitThrow(Throw node) {
     // TODO(johnniwinther): Handle reachability.
     analyze(node.expression);
-    return const DynamicType();
+    return types.dynamicType;
   }
 
   DartType visitTypeAnnotation(TypeAnnotation node) {
@@ -1588,10 +1587,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitVariableDefinitions(VariableDefinitions node) {
-    DartType type = analyzeWithDefault(node.type, const DynamicType());
+    DartType type = analyzeWithDefault(node.type, types.dynamicType);
     if (type.isVoid) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
-      type = const DynamicType();
+      type = types.dynamicType;
     }
     for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {

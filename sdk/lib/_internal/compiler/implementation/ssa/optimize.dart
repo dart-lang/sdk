@@ -577,7 +577,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isRawCheck) {
       return node;
-    } else if (type.isTypedef) {
+    } else if (element.isTypedef) {
       return node;
     } else if (element == compiler.functionClass) {
       return node;
@@ -646,15 +646,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
-      if (type.isMalformed) {
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
         // Malformed types are treated as dynamic statically, but should
         // throw a type error at runtime.
         return node;
       }
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         return node;
       }
-      if (type.isFunctionType) {
+      if (type.kind == TypeKind.FUNCTION) {
         // TODO(johnniwinther): Optimize function type conversions.
         return node;
       }
@@ -770,7 +770,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
       DartType type = field.type;
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
         return node;

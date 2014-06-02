@@ -37,6 +37,7 @@ class UnionTypeMask implements TypeMask {
         continue;
       } else {
         FlatTypeMask flatMask = mask;
+        assert(flatMask.base == null || flatMask.base != compiler.dynamicClass);
         int inListIndex = -1;
         bool covered = false;
 

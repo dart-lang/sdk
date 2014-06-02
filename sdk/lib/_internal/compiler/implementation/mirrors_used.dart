@@ -436,12 +436,12 @@ class MirrorUsageBuilder {
   DartType apiTypeOf(Constant constant) {
     DartType type = constant.computeType(compiler);
     LibraryElement library = type.element.library;
-    if (type.isInterfaceType && library.isInternalLibrary) {
+    if (type.kind == TypeKind.INTERFACE && library.isInternalLibrary) {
       InterfaceType interface = type;
       ClassElement cls = type.element;
       cls.ensureResolved(compiler);
       for (DartType supertype in cls.allSupertypes) {
-        if (supertype.isInterfaceType
+        if (supertype.kind == TypeKind.INTERFACE
             && !supertype.element.library.isInternalLibrary) {
           return interface.asInstanceOf(supertype.element);
         }
