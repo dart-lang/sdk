@@ -370,8 +370,8 @@ class AssetEnvironment {
     // the initial transformer loading process.
     var dartPath = assetPath('dart');
     var pubSources = listDir(dartPath, recursive: true).map((library) {
-      return new AssetId('\$pub',
-          path.join('lib', path.relative(library, from: dartPath)));
+      var idPath = path.join('lib', path.relative(library, from: dartPath));
+      return new AssetId('\$pub', path.toUri(idPath).toString());
     });
 
     // "$sdk" is a pseudo-package that allows the dart2js transformer to find
@@ -380,8 +380,11 @@ class AssetEnvironment {
     var libPath = path.join(sdk.rootDirectory, "lib");
     var sdkSources = listDir(libPath, recursive: true)
         .where((file) => path.extension(file) == ".dart")
-        .map((file) => new AssetId('\$sdk',
-            path.join("lib", path.relative(file, from: sdk.rootDirectory))));
+        .map((file) {
+      var idPath = path.join("lib",
+          path.relative(file, from: sdk.rootDirectory));
+      return new AssetId('\$sdk', path.toUri(idPath).toString());
+    });
 
     // Bind a server that we can use to load the transformers.
     var transformerServer;
@@ -539,7 +542,7 @@ class AssetEnvironment {
       if (relative.endsWith(".dart.js.map")) return [];
       if (relative.endsWith(".dart.precompiled.js")) return [];
 
-      return [new AssetId(package.name, relative)];
+      return [new AssetId(package.name, path.toUri(relative).toString())];
     }).toList();
   }
 
@@ -580,8 +583,8 @@ class AssetEnvironment {
       if (event.path.endsWith(".dart.js.map")) return;
       if (event.path.endsWith(".dart.precompiled.js")) return;
 
-      var id = new AssetId(package.name,
-          path.relative(event.path, from: package.dir));
+      var idPath = path.relative(event.path, from: package.dir);
+      var id = new AssetId(package.name, path.toUri(idPath).toString());
       if (event.type == ChangeType.REMOVE) {
         if (_modifiedSources != null) {
           _modifiedSources.remove(id);
