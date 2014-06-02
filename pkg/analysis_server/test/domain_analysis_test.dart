@@ -83,7 +83,7 @@ main() {
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
-          return waitForServerTasksFinished(server).then((_) {
+          return waitForServerOperationsPerformed(server).then((_) {
             var unit = serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
             expect(unit, isNotNull);
           });
@@ -217,8 +217,8 @@ class AnalysisTestHelper {
    * Returns a [Future] that completes when this this helper finished all its
    * scheduled tasks.
    */
-  Future waitForTasksFinished() {
-    return waitForServerTasksFinished(server);
+  Future waitForOperationsFinished() {
+    return waitForServerOperationsPerformed(server);
   }
 
   /**
@@ -262,7 +262,7 @@ class AnalysisTestHelper {
   }
 
   /**
-   * Creates an empty project `/project/`.
+   * Creates an empty project `/project`.
    */
   void createEmptyProject() {
     resourceProvider.newFolder('/project');
@@ -323,7 +323,7 @@ testNotificationErrors() {
 
   test('ParserErrorCode', () {
     helper.createSingleFileProject('library lib');
-    return helper.waitForTasksFinished().then((_) {
+    return helper.waitForOperationsFinished().then((_) {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
@@ -340,7 +340,7 @@ testNotificationErrors() {
       'main() {',
       '  print(unknown);',
       '}']);
-    return helper.waitForTasksFinished().then((_) {
+    return helper.waitForOperationsFinished().then((_) {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
@@ -355,7 +355,7 @@ class NotificationHighlightHelper extends AnalysisTestHelper {
 
   Future prepareRegions(then()) {
     addAnalysisSubscriptionHighlight(testFile);
-    return waitForTasksFinished().then((_) {
+    return waitForOperationsFinished().then((_) {
       regions = getTestHighlights();
       then();
     });
@@ -1088,7 +1088,7 @@ testUpdateContent() {
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
-    return helper.waitForTasksFinished().then((_) {
+    return helper.waitForOperationsFinished().then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
@@ -1104,7 +1104,7 @@ testUpdateContent() {
         helper.handleSuccessfulRequest(request);
       }
       // wait, there is an error
-      helper.waitForTasksFinished().then((_) {
+      return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
         expect(errors, hasLength(1));
       });
@@ -1114,7 +1114,7 @@ testUpdateContent() {
   test('incremental', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
-    return helper.waitForTasksFinished().then((_) {
+    return helper.waitForOperationsFinished().then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
@@ -1133,7 +1133,7 @@ testUpdateContent() {
         helper.handleSuccessfulRequest(request);
       }
       // wait, there is an error
-      helper.waitForTasksFinished().then((_) {
+      return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
         expect(errors, hasLength(1));
       });
@@ -1150,7 +1150,7 @@ void test_setSubscriptions() {
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, there are highlight regions
-    helper.waitForTasksFinished().then((_) {
+    helper.waitForOperationsFinished().then((_) {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isNot(isEmpty));
     });
@@ -1161,13 +1161,13 @@ void test_setSubscriptions() {
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, no regions initially
-    return helper.waitForTasksFinished().then((_) {
+    return helper.waitForOperationsFinished().then((_) {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isEmpty);
       // subscribe
       helper.addAnalysisSubscriptionHighlight(helper.testFile);
       // wait, has regions
-      return helper.waitForTasksFinished().then((_) {
+      return helper.waitForOperationsFinished().then((_) {
         var highlights = helper.getHighlights(helper.testFile);
         expect(highlights, isNot(isEmpty));
       });

@@ -4,8 +4,6 @@
 
 library test.analysis_server;
 
-import 'dart:async';
-
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,16 +32,6 @@ class AnalysisServerTestHelper {
 
 main() {
   group('AnalysisServer', () {
-    test('addContextToWorkQueue_whenNotRunning', () {
-      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
-      helper.server.running = false;
-      MockAnalysisContext context = new MockAnalysisContext();
-      helper.server.addContextToWorkQueue(context);
-      // Pump the event queue to make sure the server doesn't try to do any
-      // analysis.
-      return pumpEventQueue();
-    });
-
     test('server.status notifications', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       MockAnalysisContext context = new MockAnalysisContext();
@@ -57,12 +45,12 @@ main() {
       context.when(callsTo("performAnalysisTask"))
         ..thenReturn(firstResult, 3)
         ..thenReturn(lastResult);
-      helper.server.addContextToWorkQueue(context);
+      helper.server.schedulePerformAnalysisOperation(context);
       // Pump the event queue to make sure the server has finished any
       // analysis.
       return pumpEventQueue().then((_) {
         List<Notification> notifications = helper.channel.notificationsReceived;
-        expect(notifications.length, equals(9));
+        expect(notifications, isNot(isEmpty));
         Notification notification = notifications[notifications.length - 1];
         Map analysisStatus = notification.params['analysis'];
         expect(analysisStatus['analyzing'], isFalse);
@@ -121,19 +109,6 @@ main() {
           new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
       Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
       expect(json['correction'], equals(errorCode.correction));
-    });
-
-    test('performTask_whenNotRunning', () {
-      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
-      // If the server is shut down while there is analysis still pending,
-      // performTask() should notice that the server is no longer running and
-      // do no analysis.
-      MockAnalysisContext context = new MockAnalysisContext();
-      helper.server.addContextToWorkQueue(context);
-      helper.server.running = false;
-      // Pump the event queue to make sure the server doesn't try to do any
-      // analysis.
-      return pumpEventQueue();
     });
 
     test('shutdown', () {

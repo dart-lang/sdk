@@ -11,6 +11,8 @@ import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -40,7 +42,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
     ContextDirectory contextDirectory = new ContextDirectory(
         analysisServer.defaultSdk, folder, pubspecFile);
     analysisServer.folderMap[folder] = contextDirectory;
-    analysisServer.addContextToWorkQueue(contextDirectory.context);
+    analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
   }
 
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
@@ -67,7 +69,7 @@ class AnalysisServer {
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
-   * will no longer be added to [contextWorkQueue], and [performTask] will
+   * will no longer be added to [contextWorkQueue], and [performOperation] will
    * discard any tasks it finds on [contextWorkQueue].
    */
   bool running;
@@ -77,17 +79,6 @@ class AnalysisServer {
    * server.
    */
   List<RequestHandler> handlers;
-
-  // TODO(scheglov) remove once setAnalysisRoots() is completely implemented
-//  /**
-//   * A table mapping context id's to the analysis contexts associated with them.
-//   */
-//  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
-//
-//  /**
-//   * A table mapping analysis contexts to the context id's associated with them.
-//   */
-//  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
 
   /**
    * The current default [DartSdk].
@@ -100,19 +91,13 @@ class AnalysisServer {
   final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
 
   /**
-   * The context identifier used in the last status notification.
-   */
-  String lastStatusNotificationContextId = null;
-
-  /**
-   * A list of the analysis contexts for which analysis work needs to be
-   * performed.
+   * A queue of the operations to perform in this server.
    *
-   * Invariant: when this list is non-empty, there is exactly one pending call
-   * to [performTask] on the event queue.  When this list is empty, there are
-   * no calls to [performTask] on the event queue.
+   * Invariant: when this queue is non-empty, there is exactly one pending call
+   * to [performOperation] on the event queue.  When this list is empty, there are
+   * no calls to [performOperation] on the event queue.
    */
-  final List<AnalysisContext> contextWorkQueue = new List<AnalysisContext>();
+  ServerOperationQueue operationQueue;
 
   /**
    * A set of the [ServerService]s to send notifications for.
@@ -130,6 +115,7 @@ class AnalysisServer {
    * responses to the given [channel].
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider) {
+    operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
@@ -139,20 +125,20 @@ class AnalysisServer {
   }
 
   /**
-   * If [running] is true, add the given [context] to the list of analysis
-   * contexts for which analysis work needs to be performed, and ensure that
-   * the work will be performed.
+   * Schedules analysis of the given context.
    */
-  void addContextToWorkQueue(AnalysisContext context) {
-    if (!running) {
-      return;
-    }
-    if (!contextWorkQueue.contains(context)) {
-      contextWorkQueue.add(context);
-      if (contextWorkQueue.length == 1) {
-        // Work queue was previously empty, so schedule analysis.
-        _scheduleTask();
-      }
+  void schedulePerformAnalysisOperation(AnalysisContext context) {
+    scheduleOperation(new PerformAnalysisOperation(context, false));
+  }
+
+  /**
+   * Schedules execution of the given [ServerOperation].
+   */
+  void scheduleOperation(ServerOperation operation) {
+    bool wasEmpty = operationQueue.isEmpty;
+    operationQueue.add(operation);
+    if (wasEmpty) {
+      _schedulePerformOperation();
     }
   }
 
@@ -192,59 +178,64 @@ class AnalysisServer {
   }
 
   /**
-   * Perform the next available task. If a request was received that has not yet
-   * been performed, perform it next. Otherwise, look for some analysis that
-   * needs to be done and do that. Otherwise, do nothing.
+   * Returns `true` if the given [AnalysisContext] is a priority one.
    */
-  void performTask() {
+  bool isPriorityContext(AnalysisContext context) {
+    // TODO(scheglov) implement support for priority sources/contexts
+    return false;
+  }
+
+  /**
+   * Perform the next available [ServerOperation].
+   */
+  void performOperation() {
     if (!running) {
       // An error has occurred, or the connection to the client has been
-      // closed, since performTask() was scheduled on the event queue.  So
-      // don't do any analysis.  Instead clear the work queue.
-      contextWorkQueue.clear();
-    }
-    if (contextWorkQueue.isEmpty) {
-      // Nothing to do.
+      // closed, since this method was scheduled on the event queue.  So
+      // don't do anything.  Instead clear the operation queue.
+      operationQueue.clear();
       return;
     }
-    //
-    // Look for a context that has work to be done and then perform one task.
-    //
-    List<ChangeNotice> notices = null;
+    // prepare next operation
+    ServerOperation operation = operationQueue.take();
+    // perform the operation
     try {
-      AnalysisContext context = contextWorkQueue[0];
-      //
-      // TODO(brianwilkerson) Add an optional function-valued parameter to
-      // performAnalysisTask that will be called when the task has been computed
-      // but before it is performed and send notification in the function:
-      //
-      // AnalysisResult result = context.performAnalysisTask((taskDescription) {
-      //   sendStatusNotification(context.toString(), taskDescription);
-      // });
-      //
-      sendStatusNotification(context.toString());
-      AnalysisResult result = context.performAnalysisTask();
-      notices = result.changeNotices;
+      operation.perform(this);
+    } catch (e) {
+      // TODO(scheglov) decide how to handle exceptions
     } finally {
-      if (notices == null) {
-        // Either we have no more work to do for this context, or there was an
-        // unhandled exception trying to perform the analysis.  In either case,
-        // remove the context form the work queue so we won't try to do more
-        // analysis on it.
-        contextWorkQueue.removeAt(0);
+      if (!operationQueue.isEmpty) {
+        _schedulePerformOperation();
       } else {
-        sendNotices(notices);
-      }
-      //
-      // Schedule this method to be run again if there is any more work to be
-      // done.
-      //
-      if (contextWorkQueue.isEmpty) {
         sendStatusNotification(null);
-      } else {
-        _scheduleTask();
       }
     }
+  }
+
+  /**
+   * Perform analysis in the given [AnalysisContext].
+   */
+  void internalPerformAnalysis(AnalysisContext context) {
+    //
+    // TODO(brianwilkerson) Add an optional function-valued parameter to
+    // performAnalysisTask that will be called when the task has been computed
+    // but before it is performed and send notification in the function:
+    //
+    // AnalysisResult result = context.performAnalysisTask((taskDescription) {
+    //   sendStatusNotification(context.toString(), taskDescription);
+    // });
+    // prepare results
+    AnalysisResult result = context.performAnalysisTask();
+    List<ChangeNotice> notices = result.changeNotices;
+    if (notices == null) {
+      return;
+    }
+    // TODO(scheglov) remember known sources
+    // TODO(scheglov) index units
+    // TODO(scheglov) schedule notifications
+    sendNotices(notices);
+    // continue analysis
+    operationQueue.add(new PerformAnalysisOperation(context, true));
   }
 
   /**
@@ -294,7 +285,7 @@ class AnalysisServer {
 //    if (contextId == lastStatusNotificationContextId) {
 //      return;
 //    }
-    lastStatusNotificationContextId = contextId;
+//    lastStatusNotificationContextId = contextId;
     Notification notification = new Notification(NOTIFICATION_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {
@@ -346,7 +337,7 @@ class AnalysisServer {
           analysisContext.setChangedContents(source, change.content,
               change.offset, change.oldLength, change.newLength);
         }
-        addContextToWorkQueue(analysisContext);
+        schedulePerformAnalysisOperation(analysisContext);
       }
     });
   }
@@ -420,10 +411,10 @@ class AnalysisServer {
   }
 
   /**
-   * Return `true` if all tasks are finished in this [AnalysisServer].
+   * Return `true` if all operations have been performed in this [AnalysisServer].
    */
-  bool test_areTasksFinished() {
-    return contextWorkQueue.isEmpty;
+  bool test_areOperationsFinished() {
+    return operationQueue.isEmpty;
   }
 
   static Map<String, Object> errorToJson(AnalysisError analysisError) {
@@ -450,8 +441,11 @@ class AnalysisServer {
     channel.sendNotification(notification);
   }
 
-  void _scheduleTask() {
-    new Future(performTask).catchError((ex, st) {
+  /**
+   * Schedules [performOperation] exection.
+   */
+  void _schedulePerformOperation() {
+    new Future(performOperation).catchError((ex, st) {
       AnalysisEngine.instance.logger.logError("${ex}\n${st}");
     });
   }
