@@ -784,7 +784,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
     _state &= ~_SCHEDULED;
     if (isPaused) return;
     _state |= _DONE_SENT;
-    _zone.runGuarded(_onDone);
+    if (_onDone != null) _zone.runGuarded(_onDone);
   }
 }
 
