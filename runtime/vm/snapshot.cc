@@ -858,7 +858,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
         field_ ^= array_.At(offset >> kWordSizeLog2);
         ASSERT(!field_.IsNull());
         ASSERT(field_.Offset() == offset);
-        field_.UpdateGuardedCidAndLength(obj_);
+        field_.RecordStore(obj_);
       }
       // TODO(fschneider): Verify the guarded cid and length for other kinds of
       // snapshot (kFull, kScript) with asserts.

@@ -256,11 +256,10 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       AddCurrentDescriptor(PcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
-    } else if (instr->IsGuardField() ||
-               (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto())) {
-      // GuardField and instructions that can be deoptimization targets need
-      // to record their deopt id.  GotoInstr records its own so that it can
-      // control the placement.
+    } else if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
+      // Instructions that can be deoptimization targets need to record kDeopt
+      // PcDescriptor corresponding to their deopt id. GotoInstr records its
+      // own so that it can control the placement.
       AddCurrentDescriptor(PcDescriptors::kDeopt,
                            instr->deopt_id(),
                            Scanner::kNoSourcePos);

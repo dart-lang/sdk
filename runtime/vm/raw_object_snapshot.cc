@@ -783,6 +783,8 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
     *(field.raw()->from() + i) = reader->ReadObjectRef();
   }
 
+  field.InitializeGuardedListLengthInObjectOffset();
+
   return field.raw();
 }
 

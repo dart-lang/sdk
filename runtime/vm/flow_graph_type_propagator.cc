@@ -276,7 +276,8 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 }
 
 
-void FlowGraphTypePropagator::VisitGuardField(GuardFieldInstr* guard) {
+void FlowGraphTypePropagator::VisitGuardFieldClass(
+    GuardFieldClassInstr* guard) {
   const intptr_t cid = guard->field().guarded_cid();
   if ((cid == kIllegalCid) || (cid == kDynamicCid)) {
     return;

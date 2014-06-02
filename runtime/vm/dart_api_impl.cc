@@ -3632,7 +3632,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
         if (field.is_static()) {
           continue;
         }
-        field.UpdateGuardedCidAndLength(Object::null_object());
+        field.RecordStore(Object::null_object());
       }
     }
   }

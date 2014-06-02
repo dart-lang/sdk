@@ -747,7 +747,8 @@ class EmbeddedArray<T, 0> {
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
-  M(GuardField)                                                                \
+  M(GuardFieldClass)                                                           \
+  M(GuardFieldLength)                                                          \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
   M(Simd32x4Shuffle)                                                           \
@@ -3815,27 +3816,62 @@ class GuardFieldInstr : public TemplateInstruction<1> {
 
   const Field& field() const { return field_; }
 
-  DECLARE_INSTRUCTION(GuardField)
-
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
-
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Ensure that we record kDeopt PC descriptor in unoptimized code.
+    return true;
+  }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool MayThrow() const { return false; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(GuardFieldInstr);
+};
+
+
+class GuardFieldClassInstr : public GuardFieldInstr {
+ public:
+  GuardFieldClassInstr(Value* value,
+                       const Field& field,
+                       intptr_t deopt_id)
+    : GuardFieldInstr(value, field, deopt_id) { }
+
+  DECLARE_INSTRUCTION(GuardFieldClass)
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GuardFieldClassInstr);
+};
+
+
+class GuardFieldLengthInstr : public GuardFieldInstr {
+ public:
+  GuardFieldLengthInstr(Value* value,
+                       const Field& field,
+                       intptr_t deopt_id)
+    : GuardFieldInstr(value, field, deopt_id) { }
+
+  DECLARE_INSTRUCTION(GuardFieldLength)
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GuardFieldLengthInstr);
 };
 
 

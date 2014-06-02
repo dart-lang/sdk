@@ -4529,7 +4529,17 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
   if (field.guarded_cid() != kDynamicCid) {
     InsertBefore(instr,
-                 new(isolate()) GuardFieldInstr(
+                 new(isolate()) GuardFieldClassInstr(
+                     new(isolate()) Value(instr->ArgumentAt(1)),
+                      field,
+                      instr->deopt_id()),
+                 instr->env(),
+                 FlowGraph::kEffect);
+  }
+
+  if (field.needs_length_check()) {
+    InsertBefore(instr,
+                 new(isolate()) GuardFieldLengthInstr(
                      new(isolate()) Value(instr->ArgumentAt(1)),
                       field,
                       instr->deopt_id()),
@@ -7882,7 +7892,9 @@ void ConstantPropagator::VisitCheckStackOverflow(
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
 
-void ConstantPropagator::VisitGuardField(GuardFieldInstr* instr) { }
+void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) { }
+
+void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
 

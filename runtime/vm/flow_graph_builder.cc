@@ -3183,9 +3183,18 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   }
 
   store_value = Bind(BuildStoreExprTemp(store_value));
-  GuardFieldInstr* guard =
-      new GuardFieldInstr(store_value, node->field(), I->GetNextDeoptId());
-  AddInstruction(guard);
+  GuardFieldClassInstr* guard_field_class =
+      new GuardFieldClassInstr(store_value,
+                               node->field(),
+                               I->GetNextDeoptId());
+  AddInstruction(guard_field_class);
+
+  store_value = Bind(BuildLoadExprTemp());
+  GuardFieldLengthInstr* guard_field_length =
+      new GuardFieldLengthInstr(store_value,
+                                node->field(),
+                                I->GetNextDeoptId());
+  AddInstruction(guard_field_length);
 
   store_value = Bind(BuildLoadExprTemp());
   StoreInstanceFieldInstr* store =

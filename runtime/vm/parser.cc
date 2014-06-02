@@ -2297,7 +2297,7 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
     if (found) continue;
 
-    field.UpdateGuardedCidAndLength(Object::Handle(isolate()));
+    field.RecordStore(Object::Handle(isolate()));
   }
 }
 
