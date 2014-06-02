@@ -1719,7 +1719,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     native.NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
     nativeBehavior.typesReturned.forEach((type) {
-      if (type is DartType) {
+      if (type is InterfaceType) {
         registry.registerInstantiatedType(type);
       }
     });
@@ -2410,7 +2410,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         handleListOrSupertypeCheck(
             input, interceptor, type, negative: negative);
         attachLocationToLast(node);
-      } else if (type.kind == TypeKind.FUNCTION) {
+      } else if (type.isFunctionType) {
         checkType(input, interceptor, type, negative: negative);
         attachLocationToLast(node);
       } else if ((input.canBePrimitive(compiler)
@@ -2552,7 +2552,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
     DartType type = node.typeExpression;
     assert(type.kind != TypeKind.TYPEDEF);
-    if (type.kind == TypeKind.FUNCTION) {
+    if (type.isFunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       registry.registerIsCheck(compiler.functionClass.rawType);
@@ -2569,7 +2569,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (helper == null) {
-      assert(type.kind == TypeKind.FUNCTION);
+      assert(type.isFunctionType);
       use(node.inputs[0]);
     } else {
       push(helper.generateCall(this, node));

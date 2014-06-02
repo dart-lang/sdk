@@ -43,8 +43,7 @@ class ClosureTask extends CompilerTask {
       if (node is FunctionExpression) {
         translator.translateFunction(element, node);
       } else if (element.isSynthesized) {
-        return new ClosureClassMap(null, null, null,
-            new ThisElement(element, compiler.types.dynamicType));
+        return new ClosureClassMap(null, null, null, new ThisElement(element));
       } else {
         assert(element.isField);
         VariableElement field = element;
@@ -54,8 +53,7 @@ class ClosureTask extends CompilerTask {
         } else {
           assert(element.isInstanceMember);
           closureMappingCache[node] =
-              new ClosureClassMap(null, null, null,
-                  new ThisElement(element, compiler.types.dynamicType));
+              new ClosureClassMap(null, null, null, new ThisElement(element));
         }
       }
       assert(closureMappingCache[node] != null);
@@ -171,12 +169,12 @@ class ClosureClassElement extends ClassElementX {
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
 class BoxElement extends ElementX implements TypedElement {
-  final DartType type;
-
-  BoxElement(String name, Element enclosingElement, this.type)
+  BoxElement(String name, Element enclosingElement)
       : super(name, ElementKind.VARIABLE_LIST, enclosingElement);
 
   DartType computeType(Compiler compiler) => type;
+
+  DartType get type => const DynamicType();
 
   accept(ElementVisitor visitor) => visitor.visitBoxElement(this);
 }
@@ -203,14 +201,14 @@ class BoxFieldElement extends ElementX implements TypedElement {
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
 class ThisElement extends ElementX implements TypedElement {
-  final DartType type;
-
-  ThisElement(Element enclosing, this.type)
+  ThisElement(Element enclosing)
       : super('this', ElementKind.PARAMETER, enclosing);
 
   bool get isAssignable => false;
 
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) => type;
+
+  DartType get type => const DynamicType();
 
   // Since there is no declaration corresponding to 'this', use the position of
   // the enclosing method.
@@ -637,7 +635,7 @@ class ClosureTranslator extends Visitor {
           String boxName =
               namer.getClosureVariableName('box', closureFieldCounter++);
           box = new BoxElement(
-              boxName, currentElement, compiler.types.dynamicType);
+              boxName, currentElement);
         }
         String elementName = element.name;
         String boxedName =
@@ -766,7 +764,7 @@ class ClosureTranslator extends Visitor {
       outermostElement = element;
       Element thisElement = null;
       if (element.isInstanceMember || element.isGenerativeConstructor) {
-        thisElement = new ThisElement(element, compiler.types.dynamicType);
+        thisElement = new ThisElement(element);
       }
       closureData = new ClosureClassMap(null, null, null, thisElement);
     }

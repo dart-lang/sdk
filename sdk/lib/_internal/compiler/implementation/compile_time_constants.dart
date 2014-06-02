@@ -151,7 +151,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
           value != null &&
           element.isField) {
         DartType elementType = element.type;
-        if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull) {
+        if (elementType.isMalformed && !value.isNull) {
           if (isConst) {
             ErroneousElement element = elementType.element;
             compiler.reportFatalError(
@@ -407,8 +407,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         node, type, compiler.symbolConstructor, createArguments);
   }
 
-  Constant makeTypeConstant(TypeDeclarationElement element) {
-    DartType elementType = element.rawType;
+  Constant makeTypeConstant(DartType elementType) {
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     return new TypeConstant(elementType, constantType);
@@ -425,7 +424,8 @@ class CompileTimeConstantEvaluator extends Visitor {
   Constant visitIdentifier(Identifier node) {
     Element element = elements[node];
     if (Elements.isClass(element) || Elements.isTypedef(element)) {
-      return makeTypeConstant(element);
+      TypeDeclarationElement typeDeclarationElement = element;
+      return makeTypeConstant(typeDeclarationElement.rawType);
     }
     return signalNotCompileTimeConstant(node);
   }
@@ -450,7 +450,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         if (result != null) return result;
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
         assert(elements.isTypeLiteral(send));
-        return makeTypeConstant(element);
+        return makeTypeConstant(elements.getTypeLiteralType(send));
       } else if (send.receiver != null) {
         // Fall through to error handling.
       } else if (!Elements.isUnresolved(element)
