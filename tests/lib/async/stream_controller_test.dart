@@ -609,6 +609,7 @@ void testBroadcastListenAfterClosePaused() {
     sub.pause();
     sub.pause();
     new Timer(MS * 100, () {
+      sub.asFuture().whenComplete(() { Expect.fail("Bad complete"); });
       sub.resume();
       new Timer(MS * 100, () {
         sub.onDone(asyncEnd);
@@ -646,6 +647,7 @@ void testAsBroadcastListenAfterClosePaused() {
     sub.pause();
     sub.pause();
     new Timer(MS * 100, () {
+      sub.asFuture().whenComplete(() { Expect.fail("Bad complete"); });
       sub.resume();
       new Timer(MS * 100, () {
         sub.onDone(asyncEnd);
