@@ -2808,6 +2808,7 @@ class CssRule extends Interceptor native "CSSRule" {
   void setProperty(String propertyName, String value, [String priority]) {
     // try/catch for IE9 which throws on unsupported values.
     try {
+      if (value == null) value = '';
       if (priority == null) {
         priority = '';
       }

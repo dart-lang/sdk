@@ -55,6 +55,10 @@ main() {
     style.border = "1px solid blue";
     style.border = "";
     expect(style.border, equals(""));
+
+    style.border = "1px solid blue";
+    style.border = null;
+    expect(style.border, equals(""));
   });
 
   test('CSS property getters and setters', () {
