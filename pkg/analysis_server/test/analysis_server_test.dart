@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
@@ -43,6 +44,31 @@ main() {
       return pumpEventQueue();
     });
 
+    test('server.status notifications', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      MockAnalysisContext context = new MockAnalysisContext();
+      MockSource source = new MockSource();
+      source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
+      source.when(callsTo('get isInSystemLibrary')).alwaysReturn(false);
+      ChangeNoticeImpl notice = new ChangeNoticeImpl(source);
+      notice.setErrors([], new LineInfo([0]));
+      AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
+      AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
+      context.when(callsTo("performAnalysisTask"))
+        ..thenReturn(firstResult, 3)
+        ..thenReturn(lastResult);
+      helper.server.addContextToWorkQueue(context);
+      // Pump the event queue to make sure the server has finished any
+      // analysis.
+      return pumpEventQueue().then((_) {
+        List<Notification> notifications = helper.channel.notificationsReceived;
+        expect(notifications.length, equals(9));
+        Notification notification = notifications[notifications.length - 1];
+        Map analysisStatus = notification.params['analysis'];
+        expect(analysisStatus['analyzing'], isFalse);
+      });
+    });
+
     test('echo', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new EchoHandler()];
@@ -63,7 +89,7 @@ main() {
       Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
 
       expect(json['message'],
-          equals("The name 'foo' is defined in the libraries 'bar' and 'baz'"));
+          equals("The element 'foo' is defined in the libraries 'bar' and 'baz'"));
     });
 
     test('errorToJson_noCorrection', () {

@@ -211,11 +211,17 @@ class AnalysisServer {
     // Look for a context that has work to be done and then perform one task.
     //
     List<ChangeNotice> notices = null;
-//    String contextId;
     try {
       AnalysisContext context = contextWorkQueue[0];
-//      contextId = contextIdMap[context];
-      // TODO(danrubel): Replace with context identifier or similar
+      //
+      // TODO(brianwilkerson) Add an optional function-valued parameter to
+      // performAnalysisTask that will be called when the task has been computed
+      // but before it is performed and send notification in the function:
+      //
+      // AnalysisResult result = context.performAnalysisTask((taskDescription) {
+      //   sendStatusNotification(context.toString(), taskDescription);
+      // });
+      //
       sendStatusNotification(context.toString());
       AnalysisResult result = context.performAnalysisTask();
       notices = result.changeNotices;
@@ -226,19 +232,18 @@ class AnalysisServer {
         // remove the context form the work queue so we won't try to do more
         // analysis on it.
         contextWorkQueue.removeAt(0);
+      } else {
+        sendNotices(notices);
       }
       //
       // Schedule this method to be run again if there is any more work to be
       // done.
       //
-      if (!contextWorkQueue.isEmpty) {
+      if (contextWorkQueue.isEmpty) {
+        sendStatusNotification(null);
+      } else {
         _scheduleTask();
       }
-    }
-    if (notices != null) {
-      sendNotices(notices);
-    } else {
-      sendStatusNotification(null);
     }
   }
 
@@ -286,9 +291,9 @@ class AnalysisServer {
    * the current context being analyzed or `null` if analysis is complete.
    */
   void sendStatusNotification(String contextId) {
-    if (contextId == lastStatusNotificationContextId) {
-      return;
-    }
+//    if (contextId == lastStatusNotificationContextId) {
+//      return;
+//    }
     lastStatusNotificationContextId = contextId;
     Notification notification = new Notification(NOTIFICATION_STATUS);
     Map<String, Object> analysis = new Map();
