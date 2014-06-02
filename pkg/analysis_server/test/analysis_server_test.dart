@@ -6,6 +6,7 @@ library test.analysis_server;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -16,17 +17,16 @@ import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'package:analysis_server/src/operation/operation.dart';
 
 class AnalysisServerTestHelper {
   MockServerChannel channel;
   AnalysisServer server;
-  MockAnalysisLogger logger;
 
-  AnalysisServerTestHelper() {
+  AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
-    server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE);
-    logger = new MockAnalysisLogger();
-    AnalysisEngine.instance.logger = logger;
+    server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
+        rethrowExceptions: rethrowExceptions);
   }
 }
 
@@ -131,6 +131,20 @@ main() {
             expect(response.id, equals('my22'));
             expect(response.error, isNotNull);
           });
+    });
+
+    test('rethrow exceptions', () {
+      AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
+      Exception exceptionToThrow = new Exception('test exception');
+      MockServerOperation operation = new MockServerOperation(
+          ServerOperationPriority.ANALYSIS, (_) { throw exceptionToThrow; });
+      helper.server.operationQueue.add(operation);
+      try {
+        helper.server.performOperation();
+        fail('exception not rethrown');
+      } on AnalysisException catch (exception) {
+        expect(exception.cause.exception, equals(exceptionToThrow));
+      }
     });
   });
 }

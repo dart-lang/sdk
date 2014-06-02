@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analysis_server/src/computers.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 
 /**
@@ -111,10 +112,22 @@ class AnalysisServer {
   Map<AnalysisService, Set<String>> analysisServices = <AnalysisService, Set<String>>{};
 
   /**
+   * True if any exceptions thrown by analysis should be propagated up the call
+   * stack.
+   */
+  bool rethrowExceptions;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
+   *
+   * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
+   * propagated up the call stack.  The default is true to allow analysis
+   * exceptions to show up in unit tests, but it should be set to false when
+   * running a full analysis server.
    */
-  AnalysisServer(this.channel, ResourceProvider resourceProvider) {
+  AnalysisServer(this.channel, ResourceProvider resourceProvider,
+      {this.rethrowExceptions: true}) {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -201,8 +214,13 @@ class AnalysisServer {
     // perform the operation
     try {
       operation.perform(this);
-    } catch (e) {
-      // TODO(scheglov) decide how to handle exceptions
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError("${exception}\n${stackTrace}");
+      if (rethrowExceptions) {
+        throw new AnalysisException(
+            'Unexpected exception during analysis',
+            new CaughtException(exception, stackTrace));
+      }
     } finally {
       if (!operationQueue.isEmpty) {
         _schedulePerformOperation();
@@ -445,9 +463,7 @@ class AnalysisServer {
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
-    new Future(performOperation).catchError((ex, st) {
-      AnalysisEngine.instance.logger.logError("${ex}\n${st}");
-    });
+    new Future(performOperation);
   }
 }
 

@@ -39,7 +39,8 @@ class SocketServer {
     }
     analysisServer = new AnalysisServer(
         serverChannel,
-        PhysicalResourceProvider.INSTANCE);
+        PhysicalResourceProvider.INSTANCE,
+        rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }
 

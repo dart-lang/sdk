@@ -12,13 +12,13 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analysis_server/src/operation/operation.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running
@@ -173,41 +173,6 @@ class MockServerChannel implements ServerCommunicationChannel {
 }
 
 /**
- * Exception thrown when an unexpected function call is made on a mock.
- */
-class UnexpectedMockCall extends Error {
-  UnexpectedMockCall(this.functionName);
-
-  final String functionName;
-
-  String toString() => "Unexpected call to $functionName";
-}
-
-/**
- * Shorthand function for throwing an UnexpectedMockCall exception.
- */
-_unexpected(String functionName) {
-  throw new UnexpectedMockCall(functionName);
-}
-
-/**
- * A mock [AnalysisLogger] that treats all errors and warnings as unexpected.
- */
-@proxy
-class MockAnalysisLogger extends Logger {
-
-  void logError(String message) {
-    print(message);
-    _unexpected('MockAnalysisLogger.logError');
-  }
-
-  noSuchMethod(Invocation invocation) {
-    var name = MirrorSystem.getName(invocation.memberName);
-    return _unexpected("MockAnalysisLogger.$name");
-  }
-}
-
-/**
  * A mock [AnalysisContext] for testing [AnalysisServer].
  */
 class MockAnalysisContext extends Mock implements AnalysisContext {
@@ -220,6 +185,27 @@ class MockAnalysisContext extends Mock implements AnalysisContext {
  */
 class MockSource extends Mock implements Source {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+typedef void MockServerOperationPerformFunction(AnalysisServer server);
+
+/**
+ * A mock [ServerOperation] for testing [AnalysisServer].
+ */
+class MockServerOperation implements PerformAnalysisOperation {
+  final ServerOperationPriority priority;
+  final MockServerOperationPerformFunction _perform;
+
+  MockServerOperation(this.priority, this._perform);
+
+  @override
+  void perform(AnalysisServer server) => this._perform(server);
+
+  @override
+  AnalysisContext get context => null;
+
+  @override
+  bool get isContinue => false;
 }
 
 
