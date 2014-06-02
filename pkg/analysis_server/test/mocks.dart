@@ -124,7 +124,7 @@ class NoResponseException implements Exception {
 class MockServerChannel implements ServerCommunicationChannel {
   StreamController<Request> requestController = new StreamController<Request>();
   StreamController<Response> responseController = new StreamController<Response>();
-  StreamController<Notification> notificationController = new StreamController<Notification>();
+  StreamController<Notification> notificationController = new StreamController<Notification>(sync: true);
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
