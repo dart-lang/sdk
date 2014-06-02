@@ -200,7 +200,7 @@ usedByTests() {
   compiler.importHelperLibrary(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
-  new dart_types.Types(compiler, null).copy(compiler);
+  new dart_types.Types(compiler).copy(compiler);
   new universe.TypedSelector.subclass(null, null);
   new universe.TypedSelector.subtype(null, null);
   new universe.TypedSelector.exact(null, null);

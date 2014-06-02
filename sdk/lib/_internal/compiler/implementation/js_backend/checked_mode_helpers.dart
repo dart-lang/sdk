@@ -95,7 +95,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.kind == TypeKind.TYPE_VARIABLE);
+    assert(node.typeExpression.isTypeVariable);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }

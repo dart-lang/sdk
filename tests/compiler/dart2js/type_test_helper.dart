@@ -93,7 +93,7 @@ class TypeEnvironment {
   }
 
   DartType operator[] (String name) {
-    if (name == 'dynamic') return compiler.types.dynamicType;
+    if (name == 'dynamic') return const DynamicType();
     if (name == 'void') return const VoidType();
     return getElementType(name);
   }
