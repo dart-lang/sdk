@@ -2,21 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The mirror matchers library provides some additional matchers that
- * make use of `dart:mirrors`.
- */
+/// The mirror matchers library provides some additional matchers that
+/// make use of `dart:mirrors`.
 library matcher.mirror_matchers;
 
 import 'dart:mirrors';
 
 import 'matcher.dart';
 
-/**
- * Returns a matcher that checks if a class instance has a property
- * with name [name], and optionally, if that property in turn satisfies
- * a [matcher].
- */
+/// Returns a matcher that checks if a class instance has a property
+/// with name [name], and optionally, if that property in turn satisfies
+/// a [matcher].
 Matcher hasProperty(String name, [matcher]) =>
   new _HasProperty(name, matcher == null ? null : wrapMatcher(matcher));
 
