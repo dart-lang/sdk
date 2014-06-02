@@ -274,7 +274,6 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
-      parsing_metadata_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(NULL),
@@ -301,7 +300,6 @@ Parser::Parser(const Script& script,
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
-      parsing_metadata_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(parsed_function),
@@ -886,10 +884,24 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const Script& script = Script::Handle(isolate, cls.script());
-    const Library& lib = Library::Handle(isolate, cls.library());
-    Parser parser(script, lib, token_pos);
+    // Parsing metadata can involve following paths in the parser that are
+    // normally used for expressions and assume current_function is non-null,
+    // so we create a fake function to use as the current_function rather than
+    // scattering special cases throughout the parser.
+    const Function& fake_function = Function::ZoneHandle(Function::New(
+        Symbols::At(),
+        RawFunction::kRegularFunction,
+        true,  // is_static
+        false,  // is_const
+        false,  // is_abstract
+        false,  // is_external
+        false,  // is_native
+        cls,
+        token_pos));
+    ParsedFunction* parsed_function =
+        new ParsedFunction(isolate, fake_function);
+    Parser parser(script, parsed_function, token_pos);
     parser.set_current_class(cls);
-    parser.set_parsing_metadata(true);
 
     RawObject* metadata = parser.EvaluateMetadata();
     return metadata;
@@ -8490,13 +8502,7 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
     // for a field (which may be defined in a subclass.)
-    // In metadata, an unresolved identifier cannot be a compile-time constant.
     String& name = String::CheckedZoneHandle(primary->primary().raw());
-    if (parsing_metadata_) {
-      ErrorMsg(primary->token_pos(),
-               "unresolved identifier '%s' is not a compile-time constant",
-               name.ToCString());
-    }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       StaticGetterNode* getter =
@@ -8530,11 +8536,6 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
     return closure;
   } else {
     // Instance function access.
-    if (parsing_metadata_) {
-      ErrorMsg(primary->token_pos(),
-               "cannot access instance method '%s' from metadata",
-               funcname.ToCString());
-    }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       ErrorMsg(primary->token_pos(),
@@ -8737,14 +8738,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       } else {
         // Left is not a primary node; this must be a closure call.
         AstNode* closure = left;
-        if (parsing_metadata_) {
-            // Compiling closure calls involves saving the current context based
-            // on the current function, and metadata has no current function.
-            // Fail early rather than limping along only to discover later that
-            // we parsed something that isn't a compile-time constant.
-            ErrorMsg(closure->token_pos(),
-              "expression is not a valid compile-time constant");
-        }
         selector = ParseClosureCall(closure);
       }
     } else {
@@ -8954,11 +8947,6 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
                                       const String& field_name) {
   // Fields are not accessible from a static function, except from a
   // constructor, which is considered as non-static by the compiler.
-  if (parsing_metadata_) {
-    ErrorMsg(field_pos,
-             "cannot access instance field '%s' from metadata",
-             field_name.ToCString());
-  }
   if (current_function().is_static()) {
     ErrorMsg(field_pos,
              "cannot access instance field '%s' from a static function",
@@ -9146,11 +9134,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
-      // not optimizable. Unless we are evaluating metadata, in which case there
-      // is no current function.
-      if (!parsing_metadata_) {
-        current_function().SetIsOptimizable(false);
-      }
+      // not optimizable.
+      current_function().SetIsOptimizable(false);
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
@@ -9247,11 +9232,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
-        if (parsing_metadata_) {
-          ErrorMsg(ident_pos,
-                   "'%s' is not a compile-time constant",
-                   ident.ToCString());
-        }
         if (!current_function().is_static() &&
             (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
           receiver = LoadReceiver(ident_pos);
@@ -10640,9 +10620,6 @@ AstNode* Parser::ParsePrimary() {
   } else if (token == Token::kHASH) {
     primary = ParseSymbolLiteral();
   } else if (token == Token::kSUPER) {
-    if (parsing_metadata_) {
-      ErrorMsg("cannot access superclass from metadata");
-    }
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
     }
