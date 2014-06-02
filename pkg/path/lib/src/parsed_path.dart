@@ -52,19 +52,21 @@ class ParsedPath {
     var parts = [];
     var separators = [];
 
-    var firstSeparator = style.separatorPattern.matchAsPrefix(path);
-    if (firstSeparator != null) {
-      separators.add(firstSeparator[0]);
-      path = path.substring(firstSeparator[0].length);
+    var start = 0;
+
+    if (path.isNotEmpty && style.isSeparator(path.codeUnitAt(0))) {
+      separators.add(path[0]);
+      start = 1;
     } else {
       separators.add('');
     }
 
-    var start = 0;
-    for (var match in style.separatorPattern.allMatches(path)) {
-      parts.add(path.substring(start, match.start));
-      separators.add(match[0]);
-      start = match.end;
+    for (var i = start; i < path.length; i++) {
+      if (style.isSeparator(path.codeUnitAt(i))) {
+        parts.add(path.substring(start, i));
+        separators.add(path[i]);
+        start = i + 1;
+      }
     }
 
     // Add the final part, if any.
@@ -133,8 +135,7 @@ class ParsedPath {
     var newSeparators = new List.generate(
         newParts.length, (_) => style.separator, growable: true);
     newSeparators.insert(0,
-        isAbsolute && newParts.length > 0 &&
-                root.contains(style.needsSeparatorPattern) ?
+        isAbsolute && newParts.length > 0 && style.needsSeparator(root) ?
             style.separator : '');
 
     parts = newParts;

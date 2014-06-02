@@ -13,55 +13,34 @@ import 'style.dart';
 /// the members that [Context] uses should be hidden from them. Those members
 /// are defined on this class instead.
 abstract class InternalStyle extends Style {
-  /// The path separator for this style. On POSIX, this is `/`. On Windows,
-  /// it's `\`.
+  /// The default path separator for this style.
+  ///
+  /// On POSIX, this is `/`. On Windows, it's `\`.
   String get separator;
 
-  /// The [Pattern] that can be used to match a separator for a path in this
-  /// style. Windows allows both "/" and "\" as path separators even though "\"
-  /// is the canonical one.
-  Pattern get separatorPattern;
+  /// Returns whether [path] contains a separator.
+  bool containsSeparator(String path);
 
-  /// The [Pattern] that matches path components that need a separator after
-  /// them.
+  /// Returns whether [codeUnit] is the character code of a separator.
+  bool isSeparator(int codeUnit);
+
+  /// Returns whether this path component needs a separator after it.
   ///
   /// Windows and POSIX styles just need separators when the previous component
   /// doesn't already end in a separator, but the URL always needs to place a
   /// separator between the root and the first component, even if the root
   /// already ends in a separator character. For example, to join "file://" and
   /// "usr", an additional "/" is needed (making "file:///usr").
-  Pattern get needsSeparatorPattern;
-
-  /// The [Pattern] that can be used to match the root prefix of an absolute
-  /// path in this style.
-  Pattern get rootPattern;
-
-  /// The [Pattern] that can be used to match the root prefix of a root-relative
-  /// path in this style.
-  ///
-  /// This can be null to indicate that this style doesn't support root-relative
-  /// paths.
-  final Pattern relativeRootPattern = null;
+  bool needsSeparator(String path);
 
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
-  String getRoot(String path) {
-    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
-    var matches = rootPattern.allMatches(path);
-    if (matches.isNotEmpty) return matches.first[0];
-    return getRelativeRoot(path);
-  }
+  String getRoot(String path);
 
   /// Gets the root prefix of [path] if it's root-relative.
   ///
   /// If [path] is relative or absolute and not root-relative, returns `null`.
-  String getRelativeRoot(String path) {
-    if (relativeRootPattern == null) return null;
-    // TODO(rnystrom): Use firstMatch() when #7080 is fixed.
-    var matches = relativeRootPattern.allMatches(path);
-    if (matches.isEmpty) return null;
-    return matches.first[0];
-  }
+  String getRelativeRoot(String path);
 
   /// Returns the path represented by [uri] in this style.
   String pathFromUri(Uri uri);

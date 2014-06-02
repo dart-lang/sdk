@@ -219,7 +219,7 @@ class Context {
         // replaces the path after it.
         var parsed = _parse(part);
         parsed.root = this.rootPrefix(buffer.toString());
-        if (parsed.root.contains(style.needsSeparatorPattern)) {
+        if (style.needsSeparator(parsed.root)) {
           parsed.separators[0] = style.separator;
         }
         buffer.clear();
@@ -230,7 +230,7 @@ class Context {
         buffer.clear();
         buffer.write(part);
       } else {
-        if (part.length > 0 && part[0].contains(style.separatorPattern)) {
+        if (part.length > 0 && style.containsSeparator(part[0])) {
           // The part starts with a separator, so we don't need to add one.
         } else if (needsSeparator) {
           buffer.write(separator);
@@ -241,7 +241,7 @@ class Context {
 
       // Unless this part ends with a separator, we'll need to add one before
       // the next part.
-      needsSeparator = part.contains(style.needsSeparatorPattern);
+      needsSeparator = style.needsSeparator(part);
     }
 
     return buffer.toString();

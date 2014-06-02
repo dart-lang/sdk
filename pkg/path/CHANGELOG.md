@@ -3,6 +3,9 @@
 * Many members on `Style` that provided access to patterns and functions used
   internally for parsing paths have been deprecated.
 
+* Manually parse paths (rather than using RegExps to do so) for better
+  performance.
+
 # 1.2.0
 
 * Added `path.prettyUri`, which produces a human-readable representation of a
