@@ -4,6 +4,8 @@
 
 * Made changes to `test/metatest.dart` related to outstanding issues.
 
+* Widen the version constraint for `stack_trace`.
+
 ## 0.11.0+3
 
 * Support `v0.11.0` of `unittest`.
