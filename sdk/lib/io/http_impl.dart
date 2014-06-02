@@ -1693,7 +1693,8 @@ class _HttpClient implements HttpClient {
     _closing = true;
     _connectionTargets.values.toList().forEach((c) => c.close(force));
     assert(!_connectionTargets.values.any((s) => s.hasIdle));
-    assert(!force || _connectionTargets.isEmpty);
+    assert(!force ||
+        !_connectionTargets.values.any((s) => s._active.isNotEmpty));
   }
 
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)) {
