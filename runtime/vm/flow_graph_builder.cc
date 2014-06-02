@@ -89,10 +89,13 @@ class NestedStatement : public ValueObject {
       : owner_(owner),
         label_(label),
         outer_(owner->nesting_stack_),
-        break_target_(NULL) {
+        break_target_(NULL),
+        try_index_(owner->try_index()) {
     // Push on the owner's nesting stack.
     owner->nesting_stack_ = this;
   }
+
+  intptr_t try_index() const { return try_index_; }
 
   virtual ~NestedStatement() {
     // Pop from the owner's nesting stack.
@@ -106,6 +109,7 @@ class NestedStatement : public ValueObject {
   NestedStatement* outer_;
 
   JoinEntryInstr* break_target_;
+  intptr_t try_index_;
 };
 
 
@@ -181,7 +185,7 @@ JoinEntryInstr* NestedLoop::ContinueTargetFor(SourceLabel* label) {
   if (label != this->label()) return NULL;
   if (continue_target_ == NULL) {
     continue_target_ =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+        new JoinEntryInstr(owner()->AllocateBlockId(), try_index());
   }
   return continue_target_;
 }
@@ -224,7 +228,7 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
     if (label != case_labels_[i]) continue;
     if (case_targets_[i] == NULL) {
       case_targets_[i] =
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+          new JoinEntryInstr(owner()->AllocateBlockId(), try_index());
     }
     return case_targets_[i];
   }
