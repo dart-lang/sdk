@@ -267,9 +267,6 @@ class Maps {
 
   static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
 
-  // A list to identify cyclic maps during toString() calls.
-  static List _toStringList = new List();
-
   /**
    * Returns a string representing the specified map. The returned string
    * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].
@@ -287,13 +284,12 @@ class Maps {
    * simply return the results of this method applied to the collection.
    */
   static String mapToString(Map m) {
-    for (int i = 0; i < _toStringList.length; i++) {
-      if (identical(_toStringList[i], m)) { return '{...}'; }
-    }
+    // Reuse the list in IterableBase for detecting toString cycles.
+    if (IterableBase._isToStringVisiting(m)) { return '{...}'; }
 
     var result = new StringBuffer();
     try {
-      _toStringList.add(m);
+      IterableBase._toStringVisiting.add(m);
       result.write('{');
       bool first = true;
       m.forEach((k, v) {
@@ -307,8 +303,8 @@ class Maps {
       });
       result.write('}');
     } finally {
-      assert(identical(_toStringList.last, m));
-      _toStringList.removeLast();
+      assert(identical(IterableBase._toStringVisiting.last, m));
+      IterableBase._toStringVisiting.removeLast();
     }
 
     return result.toString();
