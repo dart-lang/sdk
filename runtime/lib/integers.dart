@@ -117,11 +117,10 @@ class _IntegerImplementation {
   }
 
   int compareTo(num other) {
-    final int EQUAL = 0, LESS = -1, GREATER = 1;
+    const int EQUAL = 0, LESS = -1, GREATER = 1;
     if (other is double) {
-      // TODO(floitsch): the following locals should be 'const'.
-      int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
-      int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
+      const int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
+      const int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
       double d = other;
       if (d.isInfinite) {
         return d == double.NEGATIVE_INFINITY ? GREATER : LESS;
