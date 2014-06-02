@@ -262,6 +262,13 @@ class _HttpClientResponse
                                        {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
+    if (_incoming.upgraded) {
+      // If upgraded, the connection is already 'removed' form the client.
+      // Since listening to upgraded data is 'bogus', simply close and
+      // return empty stream subscription.
+      _httpRequest._httpClientConnection.destroy();
+      return new Stream.fromIterable([]).listen(null, onDone: onDone);
+    }
     var stream = _incoming;
     if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
       stream = stream.transform(GZIP.decoder);
@@ -1359,6 +1366,11 @@ class _HttpClientConnection {
               .then((incoming) {
                 _currentUri = null;
                 incoming.dataDone.then((closing) {
+                  if (incoming.upgraded) {
+                    _httpClient._connectionClosed(this);
+                    startTimer();
+                    return;
+                  }
                   if (closed) return;
                   if (!closing &&
                       !_dispose &&
