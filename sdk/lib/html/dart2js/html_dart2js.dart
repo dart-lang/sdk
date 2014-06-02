@@ -10268,51 +10268,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  final num offsetHeight;
+  num get offsetHeight => JS('num', '#.offsetHeight', this).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  final num offsetLeft;
+  num get offsetLeft => JS('num', '#.offsetLeft', this).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  final num offsetTop;
+  num get offsetTop => JS('num', '#.offsetTop', this).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  final num offsetWidth;
+  num get offsetWidth => JS('num', '#.offsetWidth', this).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final num clientHeight;
+  num get clientHeight => JS('num', '#.clientHeight', this).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final num clientLeft;
+  num get clientLeft => JS('num', '#.clientLeft', this).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  final num clientTop;
+  num get clientTop => JS('num', '#.clientTop', this).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final num clientWidth;
+  num get clientWidth => JS('num', '#.clientWidth', this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  final num scrollHeight;
+  num get scrollHeight => JS('num', '#.scrollHeight', this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  num scrollLeft;
+  num get scrollLeft => JS('num', '#.scrollLeft', this).round();
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(num value) => JS("void", "#.scrollLeft = #", this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  num scrollTop;
+  num get scrollTop => JS('num', '#.scrollTop', this).round();
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(num value) => JS("void", "#.scrollTop = #", this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  final num scrollWidth;
+  num get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 
   // To suppress missing implicit constructor warnings.
