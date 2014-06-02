@@ -26,6 +26,7 @@ main() {
               </template>
             </template>
           </div>''');
+      TemplateBindExtension.bootstrap(testDiv);
       document.body.nodes.add(testDiv);
     });
 

@@ -216,35 +216,8 @@ main() {
       expectEval('a || b', false, null, {'a': null, 'b': null});
     });
 
-    test('should evaluate an "in" expression', () {
-      var scope = new Scope(variables: {'items': [1, 2, 3]});
-      var childScopes = eval(parse('item in items'), scope);
-      expect(childScopes.length, 3);
-      expect(childScopes[0].varName, 'item');
-      expect(childScopes[0].value, 1);
-      expect(childScopes[1].varName, 'item');
-      expect(childScopes[1].value, 2);
-      expect(childScopes[2].varName, 'item');
-      expect(childScopes[2].value, 3);
-    });
-
-    test('should evaluate complex "in" expressions', () {
-      var holder = new ListHolder([1, 2, 3]);
-      var scope = new Scope(variables: {'holder': holder});
-      var childScopes = eval(parse('item in holder.items'), scope);
-      expect(childScopes.length, 3);
-      expect(childScopes[0].varName, 'item');
-      expect(childScopes[0].value, 1);
-      expect(childScopes[1].varName, 'item');
-      expect(childScopes[1].value, 2);
-      expect(childScopes[2].varName, 'item');
-      expect(childScopes[2].value, 3);
-    });
-
-    test('should handle null iterators in "in" expressions', () {
-      var scope = new Scope(variables: {'items': null});
-      var childScopes = eval(parse('item in items'), scope);
-      expect(childScopes.length, 0);
+    test('should not evaluate "in" expressions', () {
+      expect(() => eval(parse('item in items'), null), throws);
     });
 
   });
@@ -348,20 +321,6 @@ main() {
             foo['one'] = '1';
           },
           afterMatcher: '1'
-      );
-    });
-
-    test('should observe an comprehension', () {
-      var items = new ObservableList();
-      var foo = new Foo(name: 'foo');
-      return expectObserve('item in items',
-          variables: {'items': items},
-          beforeMatcher: (c) => c.isEmpty,
-          mutate: () {
-            items.add(foo);
-          },
-          afterMatcher:
-              (c) => c.single.varName == 'item' && c.single.value == foo
       );
     });
 

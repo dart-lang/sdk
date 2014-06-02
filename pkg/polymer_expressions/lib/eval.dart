@@ -60,7 +60,7 @@ Object eval(Expression expr, Scope scope) {
  * [ExpressionObsserver].
  */
 ExpressionObserver observe(Expression expr, Scope scope) {
-  var observer = new ObserverBuilder(scope).visit(expr);
+  var observer = new ObserverBuilder().visit(expr);
   return observer;
 }
 
@@ -152,6 +152,9 @@ Object assign(Expression expr, Object value, Scope scope) {
  * and then finally looks up the name as a property in the model.
  */
 abstract class Scope implements Indexable<String, Object> {
+  static int __seq = 1;
+  final int _seq = __seq++;
+
   Scope._();
 
   /** Create a scope containing a [model] and all of [variables]. */
@@ -185,6 +188,9 @@ abstract class Scope implements Indexable<String, Object> {
   /** Create a new scope extending this scope with an additional variable. */
   Scope childScope(String name, Object value) =>
       new _LocalVariableScope(name, value, this);
+
+  String toString() => 'Scope(seq: $_seq model: $model)';
+
 }
 
 /**
@@ -329,18 +335,12 @@ class Updater extends RecursiveVisitor {
   visitExpression(ExpressionObserver e) {
     e._observe(scope);
   }
-
-  visitInExpression(InObserver c) {
-    visit(c.right);
-    visitExpression(c);
-  }
 }
 
 class ObserverBuilder extends Visitor {
-  final Scope scope;
   final Queue parents = new Queue();
 
-  ObserverBuilder(this.scope);
+  ObserverBuilder();
 
   visitEmptyExpression(EmptyExpression e) => new EmptyObserver(e);
 
@@ -428,13 +428,11 @@ class ObserverBuilder extends Visitor {
   }
 
   visitInExpression(InExpression i) {
-    // don't visit the left. It's an identifier, but we don't want to evaluate
-    // it, we just want to add it to the comprehension object
-    var left = visit(i.left);
-    var right = visit(i.right);
-    var inexpr = new InObserver(i, left, right);
-    right._parent = inexpr;
-    return inexpr;
+    throw new UnsupportedError("can't eval an 'in' expression");
+  }
+
+  visitAsExpression(AsExpression i) {
+    throw new UnsupportedError("can't eval an 'as' expression");
   }
 }
 
@@ -514,7 +512,6 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
 
   _updateSelf(Scope scope) {
     _value = scope[value];
-
     if (!scope._isModelProperty(value)) return;
     var model = scope.model;
     if (model is! Observable) return;
@@ -715,33 +712,6 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
   }
 
   accept(Visitor v) => v.visitInvoke(this);
-}
-
-class InObserver extends ExpressionObserver<InExpression>
-    implements InExpression {
-  IdentifierObserver left;
-  ExpressionObserver right;
-
-  InObserver(Expression expr, this.left, this.right) : super(expr);
-
-  _updateSelf(Scope scope) {
-    Identifier identifier = left;
-    var iterable = right._value;
-
-    if (iterable is! Iterable && iterable != null) {
-      throw new EvalException("right side of 'in' is not an iterator");
-    }
-
-    if (iterable is ObservableList) {
-      _subscription = iterable.listChanges.listen((_) => _invalidate(scope));
-    }
-
-    var name = identifier.value;
-    _value = iterable == null ? const [] :
-        iterable.map((i) => scope.childScope(name, i)).toList(growable: false);
-  }
-
-  accept(Visitor v) => v.visitInExpression(this);
 }
 
 _toBool(v) => (v == null) ? false : v;

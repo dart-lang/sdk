@@ -64,10 +64,9 @@ main() {
 
     test('should give multiply higher associativity than plus', () {
       expectParse('a + b * c',
-          binary(
-              ident('a'),
-              '+',
-              binary(ident('b'), '*', ident('c'))));
+          binary(ident('a'), '+', binary(ident('b'), '*', ident('c'))));
+      expectParse('a * b + c',
+          binary(binary(ident('a'), '*', ident('b')), '+', ident('c')));
     });
 
     test('should parse a dot operator', () {
@@ -181,7 +180,7 @@ main() {
           '|', ident('c')));
     });
 
-    test('should parse comprehension', () {
+    test('should parse "in" expression', () {
       expectParse('a in b', inExpr(ident('a'), ident('b')));
       expectParse('a in b.c',
           inExpr(ident('a'), getter(ident('b'), 'c')));
@@ -193,8 +192,15 @@ main() {
       expect(() => parse('a + 1 in b'), throwsException);
     });
 
-    test('should reject keywords as identifiers', () {
-      expect(() => parse('a.in'), throwsException);
+    test('should parse "as" expressions', () {
+      expectParse('a as b', asExpr(ident('a'), ident('b')));
+    });
+
+    skip_test('should reject keywords as identifiers', () {
+      expect(() => parse('a.in'), throws);
+      expect(() => parse('a.as'), throws);
+      // TODO: re-enable when 'this' is a keyword
+//      expect(() => parse('a.this'), throws);
     });
 
     test('should parse map literals', () {
