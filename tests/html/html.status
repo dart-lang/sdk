@@ -9,7 +9,7 @@ custom/template_wrappers_test: Pass, Fail # Issue 16656 (Chrome 33 regression)
 [ $runtime == drt || $runtime == dartium ]
 custom/template_wrappers_test: Pass # Issue 16656 Override others
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 form_data_test/functional: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 indexeddb_5_test: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
@@ -34,7 +34,7 @@ xhr_test/xhr: Pass, RuntimeError # Issue 18049
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 xhr_test/json: Fail # Issue 13069
@@ -43,17 +43,20 @@ keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 custom/element_upgrade_test: Skip # Issue 17298
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellInAndroid) && $mode == debug ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip #Issue 17666
 
-[ $compiler == none && $runtime == ContentShellInAndroid ]
-element_offset_test/offset: Pass, Fail # Issue 13296
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+element_offset_test/offset: Pass, Fail # Issue 17550
+mouse_event_test: Skip # Times out. Issue 19127
+css_test/supportsPointConversions # Times out. Issue 19127
+canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: RuntimeError # Issue 19127
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 touchevent_test/supported: Pass, Fail # Issue 17061
-
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
