@@ -25,8 +25,11 @@ export 'src/yaml_map.dart';
 ///
 /// In future versions, maps will instead be [HashMap]s with a custom equality
 /// operation.
-loadYaml(String yaml) {
-  var stream = loadYamlStream(yaml);
+///
+/// If [sourceName] is passed, it's used as the name of the file or URL from
+/// which the YAML originated for error reporting.
+loadYaml(String yaml, {String sourceName}) {
+  var stream = loadYamlStream(yaml, sourceName: sourceName);
   if (stream.length != 1) {
     throw new YamlException("Expected 1 document, were ${stream.length}.");
   }
@@ -43,8 +46,18 @@ loadYaml(String yaml) {
 ///
 /// In future versions, maps will instead be [HashMap]s with a custom equality
 /// operation.
-List loadYamlStream(String yaml) {
-  return new Parser(yaml).l_yamlStream()
+///
+/// If [sourceName] is passed, it's used as the name of the file or URL from
+/// which the YAML originated for error reporting.
+List loadYamlStream(String yaml, {String sourceName}) {
+  var stream;
+  try {
+    stream = new Parser(yaml, sourceName).l_yamlStream();
+  } on FormatException catch (error) {
+    throw new YamlException(error.toString());
+  }
+
+  return stream
       .map((doc) => new Constructor(new Composer(doc).compose()).construct())
       .toList();
 }

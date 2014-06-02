@@ -6,6 +6,8 @@ library yaml.parser;
 
 import 'dart:collection';
 
+import 'package:string_scanner/string_scanner.dart';
+
 import 'model.dart';
 import 'yaml_exception.dart';
 import 'yaml_map.dart';
@@ -116,48 +118,28 @@ class Parser {
   static const CHOMPING_KEEP = 1;
   static const CHOMPING_CLIP = 2;
 
-  /// The source string being parsed.
-  final String _s;
-
-  /// The current position in the source string.
-  int _pos = 0;
-
-  /// The length of the string being parsed.
-  final int _len;
-
-  /// The current (0-based) line in the source string.
-  int _line = 0;
-
-  /// The current (0-based) column in the source string.
-  int _column = 0;
+  /// The scanner that's used to scan through the document.
+  final SpanScanner _scanner;
 
   /// Whether we're parsing a bare document (that is, one that doesn't begin
   /// with `---`). Bare documents don't allow `%` immediately following
   /// newlines.
   bool _inBareDocument = false;
 
-  /// The line number of the farthest position that has been parsed successfully
-  /// before backtracking. Used for error reporting.
-  int _farthestLine = 0;
-
-  /// The column number of the farthest position that has been parsed
-  /// successfully before backtracking. Used for error reporting.
-  int _farthestColumn = 0;
-
-  /// The farthest position in the source string that has been parsed
-  /// successfully before backtracking. Used for error reporting.
-  int _farthestPos = 0;
+  /// The state of the scanner when it was the farthest in the document it's
+  /// been.
+  LineScannerState _farthestState;
 
   /// The name of the context of the farthest position that has been parsed
   /// successfully before backtracking. Used for error reporting.
   String _farthestContext = "document";
 
   /// A stack of the names of parse contexts. Used for error reporting.
-  List<String> _contextStack;
+  final _contextStack = <String>["document"];
 
   /// Annotations attached to ranges of the source string that add extra
   /// information to any errors that occur in the annotated range.
-  _RangeMap<String> _errorAnnotations;
+  final _errorAnnotations = new _RangeMap<String>();
 
   /// The buffer containing the string currently being captured.
   StringBuffer _capturedString;
@@ -168,46 +150,18 @@ class Parser {
   /// Whether the current string capture is being overridden.
   bool _capturingAs = false;
 
-  Parser(String s)
-    : this._s = s,
-      _len = s.length,
-      _contextStack = <String>["document"],
-      _errorAnnotations = new _RangeMap();
-
-  /// Return the character at the current position, then move that position
-  /// forward one character. Also updates the current line and column numbers.
-  int next() {
-    if (_pos == _len) return -1;
-    var char = _s.codeUnitAt(_pos++);
-    if (isBreak(char)) {
-      _line++;
-      _column = 0;
-    } else {
-      _column++;
-    }
-
-    if (_farthestLine < _line) {
-      _farthestLine = _line;
-      _farthestColumn = _column;
-      _farthestContext = _contextStack.last;
-    } else if (_farthestLine == _line && _farthestColumn < _column) {
-      _farthestColumn = _column;
-      _farthestContext = _contextStack.last;
-    }
-    _farthestPos = _pos;
-
-    return char;
+  Parser(String yaml, String sourceName)
+      : _scanner = new SpanScanner(yaml, sourceName) {
+    _farthestState = _scanner.state;
   }
+
+  /// Returns the character at the current position, then moves that position
+  /// forward one character.
+  int next() => _scanner.readChar();
 
   /// Returns the code unit at the current position, or the character [i]
   /// characters after the current position.
-  ///
-  /// Returns -1 if this would return a character after the end or before the
-  /// beginning of the input string.
-  int peek([int i = 0]) {
-    var peekPos = _pos + i;
-    return (peekPos >= _len || peekPos < 0) ? -1 : _s.codeUnitAt(peekPos);
-  }
+  int peek([int i = 0]) => _scanner.peekChar(i);
 
   /// The truthiness operator. Returns `false` if [obj] is `null` or `false`,
   /// `true` otherwise.
@@ -249,11 +203,11 @@ class Parser {
   /// Conceptually, repeats a production any number of times.
   List zeroOrMore(consumer()) {
     var out = [];
-    var oldPos = _pos;
+    var oldPos = _scanner.position;
     while (true) {
       var el = consumer();
-      if (!truth(el) || oldPos == _pos) return out;
-      oldPos = _pos;
+      if (!truth(el) || oldPos == _scanner.position) return out;
+      oldPos = _scanner.position;
       out.add(el);
     }
     return null; // Unreachable.
@@ -276,18 +230,15 @@ class Parser {
   /// Calls [consumer] and returns its result, but rolls back the parser state
   /// if [consumer] returns a falsey value.
   transaction(consumer()) {
-    var oldPos = _pos;
-    var oldLine = _line;
-    var oldColumn = _column;
+    var oldState = _scanner.state;
     var oldCaptureStart = _captureStart;
     String capturedSoFar = _capturedString == null ? null :
       _capturedString.toString();
     var res = consumer();
+    _refreshFarthestState();
     if (truth(res)) return res;
 
-    _pos = oldPos;
-    _line = oldLine;
-    _column = oldColumn;
+    _scanner.state = oldState;
     _captureStart = oldCaptureStart;
     _capturedString = capturedSoFar == null ? null :
       new StringBuffer(capturedSoFar);
@@ -324,7 +275,7 @@ class Parser {
     // captureString calls may not be nested
     assert(_capturedString == null);
 
-    _captureStart = _pos;
+    _captureStart = _scanner.position;
     _capturedString = new StringBuffer();
     var res = transaction(consumer);
     if (!truth(res)) {
@@ -353,14 +304,16 @@ class Parser {
     _capturingAs = false;
     if (!truth(res)) return res;
 
-    _capturedString.write(transformation(_s.substring(_captureStart, _pos)));
-    _captureStart = _pos;
+    _capturedString.write(transformation(
+        _scanner.string.substring(_captureStart, _scanner.position)));
+    _captureStart = _scanner.position;
     return res;
   }
 
   void flushCapture() {
-    _capturedString.write(_s.substring(_captureStart, _pos));
-    _captureStart = _pos;
+    _capturedString.write(_scanner.string.substring(
+        _captureStart, _scanner.position));
+    _captureStart = _scanner.position;
   }
 
   /// Adds a tag and an anchor to [node], if they're defined.
@@ -393,22 +346,19 @@ class Parser {
   /// current position and the position of the cursor after running [fn]. The
   /// cursor is reset after [fn] is run.
   annotateError(String message, fn()) {
-    var start = _pos;
+    var start = _scanner.position;
     var end;
     transaction(() {
       fn();
-      end = _pos;
+      end = _scanner.position;
       return false;
     });
     _errorAnnotations[new _Range(start, end)] = message;
   }
 
   /// Throws an error with additional context information.
-  error(String message) {
-    // Line and column should be one-based.
-    throw new SyntaxError(_line + 1, _column + 1,
-        "$message (in $_farthestContext).");
-  }
+  void error(String message) =>
+      _scanner.error("$message (in $_farthestContext).");
 
   /// If [result] is falsey, throws an error saying that [expected] was
   /// expected.
@@ -417,14 +367,24 @@ class Parser {
     error("Expected $expected");
   }
 
-  /// Throws an error saying that the parse failed. Uses [_farthestLine],
-  /// [_farthestColumn], and [_farthestContext] to provide additional
+  /// Throws an error saying that the parse failed.
+  ///
+  /// Uses [_farthestState] and [_farthestContext] to provide additional
   /// information.
   parseFailed() {
     var message = "Invalid YAML in $_farthestContext";
-    var extraError = _errorAnnotations[_farthestPos];
+    _refreshFarthestState();
+    _scanner.state = _farthestState;
+
+    var extraError = _errorAnnotations[_scanner.position];
     if (extraError != null) message = "$message ($extraError)";
-    throw new SyntaxError(_farthestLine + 1, _farthestColumn + 1, "$message.");
+    _scanner.error("$message.");
+  }
+
+  /// Update [_farthestState] if the scanner is farther than it's been before.
+  void _refreshFarthestState() {
+    if (_scanner.position <= _farthestState.position) return;
+    _farthestState = _scanner.state;
   }
 
   /// Returns the number of spaces after the current position.
@@ -439,15 +399,11 @@ class Parser {
     if (!header.autoDetectIndent) return header.additionalIndent;
 
     var maxSpaces = 0;
-    var maxSpacesLine = 0;
     var spaces = 0;
     transaction(() {
       do {
         spaces = captureString(() => zeroOrMore(() => consumeChar(SP))).length;
-        if (spaces > maxSpaces) {
-          maxSpaces = spaces;
-          maxSpacesLine = _line;
-        }
+        if (spaces > maxSpaces) maxSpaces = spaces;
       } while (b_break());
       return false;
     });
@@ -460,19 +416,15 @@ class Parser {
     // It's an error for a leading empty line to be indented more than the first
     // non-empty line.
     if (maxSpaces > spaces) {
-      throw new SyntaxError(maxSpacesLine + 1, maxSpaces,
-          "Leading empty lines may not be indented more than the first "
-          "non-empty line.");
+      _scanner.error("Leading empty lines may not be indented more than the "
+          "first non-empty line.");
     }
 
     return spaces - indent;
   }
 
   /// Returns whether the current position is at the beginning of a line.
-  bool get atStartOfLine => _column == 0;
-
-  /// Returns whether the current position is at the end of the input.
-  bool get atEndOfFile => _pos == _len;
+  bool get atStartOfLine => _scanner.column == 0;
 
   /// Given an indicator character, returns the type of that indicator (or null
   /// if the indicator isn't found.
@@ -504,6 +456,7 @@ class Parser {
 
   // 1
   bool isPrintable(int char) {
+    if (char == null) return false;
     return char == TAB ||
       char == LF ||
       char == CR ||
@@ -515,7 +468,8 @@ class Parser {
   }
 
   // 2
-  bool isJson(int char) => char == TAB || (char >= SP && char <= 0x10FFFF);
+  bool isJson(int char) => char != null &&
+      (char == TAB || (char >= SP && char <= 0x10FFFF));
 
   // 22
   bool c_indicator(int type) => consume((c) => indicatorType(c) == type);
@@ -558,10 +512,12 @@ class Parser {
   bool isNonSpace(int char) => isNonBreak(char) && !isSpace(char);
 
   // 35
-  bool isDecDigit(int char) => char >= NUMBER_0 && char <= NUMBER_9;
+  bool isDecDigit(int char) => char != null && char >= NUMBER_0 &&
+      char <= NUMBER_9;
 
   // 36
   bool isHexDigit(int char) {
+    if (char == null) return false;
     return isDecDigit(char) ||
       (char >= LETTER_A && char <= LETTER_F) ||
       (char >= LETTER_CAP_A && char <= LETTER_CAP_F);
@@ -754,7 +710,7 @@ class Parser {
   }
 
   // 76
-  bool b_comment() => atEndOfFile || b_nonContent();
+  bool b_comment() => _scanner.isDone || b_nonContent();
 
   // 77
   bool s_b_comment() {
@@ -1428,7 +1384,7 @@ class Parser {
 
   // 165
   bool b_chompedLast(int chomping) {
-    if (atEndOfFile) return true;
+    if (_scanner.isDone) return true;
     switch (chomping) {
     case CHOMPING_STRIP:
       return b_nonContent();
@@ -1810,7 +1766,7 @@ class Parser {
     transaction(() {
       if (!truth(or([c_directivesEnd, c_documentEnd]))) return;
       var char = peek();
-      forbidden = isBreak(char) || isSpace(char) || atEndOfFile;
+      forbidden = isBreak(char) || isSpace(char) || _scanner.isDone;
       return;
     });
     return forbidden;
@@ -1871,19 +1827,9 @@ class Parser {
       return doc;
     });
 
-    if (!atEndOfFile) parseFailed();
+    if (!_scanner.isDone) parseFailed();
     return docs;
   }
-}
-
-class SyntaxError extends YamlException {
-  final int _line;
-  final int _column;
-
-  SyntaxError(this._line, this._column, String msg) : super(msg);
-
-  String toString() => "Syntax error on line $_line, column $_column: "
-      "${super.toString()}";
 }
 
 /// A pair of values.

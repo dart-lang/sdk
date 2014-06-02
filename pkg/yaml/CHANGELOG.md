@@ -1,3 +1,7 @@
+## 0.10.0
+
+* Improve error messages when a file fails to parse.
+
 ## 0.9.0+2
 
 * Ensure that maps are order-independent when used as map keys.
