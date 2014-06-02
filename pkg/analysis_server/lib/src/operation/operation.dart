@@ -5,7 +5,6 @@
 library operation;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 
 
 /**
@@ -45,29 +44,4 @@ abstract class ServerOperation {
    * Performs the operation implemented by this operation.
    */
   void perform(AnalysisServer server);
-}
-
-
-/**
- * Instances of [PerformAnalysisOperation] perform a single analysis task.
- */
-class PerformAnalysisOperation extends ServerOperation {
-  final AnalysisContext context;
-  final bool isContinue;
-
-  PerformAnalysisOperation(this.context, this.isContinue);
-
-  @override
-  ServerOperationPriority get priority {
-    if (isContinue) {
-      return ServerOperationPriority.ANALYSIS_CONTINUE;
-    } else {
-      return ServerOperationPriority.ANALYSIS;
-    }
-  }
-
-  @override
-  void perform(AnalysisServer server) {
-    server.internalPerformAnalysis(context);
-  }
 }

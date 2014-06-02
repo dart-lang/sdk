@@ -68,49 +68,6 @@ main() {
           });
     });
 
-    test('errorToJson_formattingApplied', () {
-      MockSource source = new MockSource();
-      source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
-      CompileTimeErrorCode errorCode = CompileTimeErrorCode.AMBIGUOUS_EXPORT;
-      AnalysisError analysisError =
-          new AnalysisError.con1(source, errorCode, ['foo', 'bar', 'baz']);
-      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-
-      expect(json['message'],
-          equals("The name 'foo' is defined in the libraries 'bar' and 'baz'"));
-    });
-
-    test('errorToJson_noCorrection', () {
-      MockSource source = new MockSource();
-      source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
-      CompileTimeErrorCode errorCode =
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER;
-      AnalysisError analysisError =
-          new AnalysisError.con2(source, 10, 5, errorCode, ['Foo']);
-      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-      expect(json, hasLength(5));
-      expect(json['file'], equals('foo.dart'));
-      expect(json['errorCode'], 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER');
-      expect(json['offset'], equals(analysisError.offset));
-      expect(json['length'], equals(analysisError.length));
-      expect(json['message'], equals(errorCode.message.replaceAll('%s', 'Foo')));
-    });
-
-    test('errorToJson_withCorrection', () {
-      MockSource source = new MockSource();
-      source.when(callsTo('get encoding')).alwaysReturn('foo.dart');
-
-      // TODO(paulberry): in principle we should test an error or hint that uses
-      // %s formatting in its correction string.  But no such errors or hints
-      // currently exist!
-      HintCode errorCode = HintCode.MISSING_RETURN;
-
-      AnalysisError analysisError =
-          new AnalysisError.con2(source, 10, 5, errorCode, ['int']);
-      Map<String, Object> json = AnalysisServer.errorToJson(analysisError);
-      expect(json['correction'], equals(errorCode.correction));
-    });
-
     test('shutdown', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new ServerDomainHandler(helper.server)];

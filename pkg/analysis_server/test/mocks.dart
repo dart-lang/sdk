@@ -18,6 +18,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 
 /**
@@ -206,6 +207,10 @@ class MockServerOperation implements PerformAnalysisOperation {
 
   @override
   bool get isContinue => false;
+
+  @override
+  void sendNotices(AnalysisServer server, List<ChangeNotice> notices) {
+  }
 }
 
 

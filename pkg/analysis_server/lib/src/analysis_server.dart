@@ -11,6 +11,7 @@ import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -18,7 +19,6 @@ import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -149,10 +149,18 @@ class AnalysisServer {
    */
   void scheduleOperation(ServerOperation operation) {
     bool wasEmpty = operationQueue.isEmpty;
-    operationQueue.add(operation);
+    addOperation(operation);
     if (wasEmpty) {
       _schedulePerformOperation();
     }
+  }
+
+  /**
+   * Adds the given [ServerOperation] to the queue, but does not schedule
+   * operations execution.
+   */
+  void addOperation(ServerOperation operation) {
+    operationQueue.add(operation);
   }
 
   /**
@@ -188,6 +196,14 @@ class AnalysisServer {
       }
     }
     channel.sendResponse(new Response.unknownRequest(request));
+  }
+
+  /**
+   * Returns `true` if there is a subscription for the given [server] and [file].
+   */
+  bool hasAnalysisSubscription(AnalysisService service, String file) {
+    Set<String> files = analysisServices[service];
+    return files != null && files.contains(file);
   }
 
   /**
@@ -228,71 +244,6 @@ class AnalysisServer {
         sendStatusNotification(null);
       }
     }
-  }
-
-  /**
-   * Perform analysis in the given [AnalysisContext].
-   */
-  void internalPerformAnalysis(AnalysisContext context) {
-    //
-    // TODO(brianwilkerson) Add an optional function-valued parameter to
-    // performAnalysisTask that will be called when the task has been computed
-    // but before it is performed and send notification in the function:
-    //
-    // AnalysisResult result = context.performAnalysisTask((taskDescription) {
-    //   sendStatusNotification(context.toString(), taskDescription);
-    // });
-    // prepare results
-    AnalysisResult result = context.performAnalysisTask();
-    List<ChangeNotice> notices = result.changeNotices;
-    if (notices == null) {
-      return;
-    }
-    // TODO(scheglov) remember known sources
-    // TODO(scheglov) index units
-    // TODO(scheglov) schedule notifications
-    sendNotices(notices);
-    // continue analysis
-    operationQueue.add(new PerformAnalysisOperation(context, true));
-  }
-
-  /**
-   * Send the information in the given list of notices back to the client.
-   */
-  void sendNotices(List<ChangeNotice> notices) {
-    for (int i = 0; i < notices.length; i++) {
-      ChangeNotice notice = notices[i];
-      Source source = notice.source;
-      CompilationUnit dartUnit = notice.compilationUnit;
-      // TODO(scheglov) use default subscriptions
-      String file = source.fullName;
-      if (dartUnit != null) {
-        Set<String> files = analysisServices[AnalysisService.HIGHLIGHTS];
-        if (files != null && files.contains(file)) {
-          sendAnalysisNotificationHighlights(file, dartUnit);
-        }
-      }
-      if (!source.isInSystemLibrary) {
-        // errors
-        sendAnalysisNotificationErrors(file, notice.errors);
-      }
-    }
-  }
-
-  void sendAnalysisNotificationErrors(String file, List<AnalysisError> errors) {
-    Notification notification = new Notification(NOTIFICATION_ERRORS);
-    notification.setParameter(FILE, file);
-    notification.setParameter(ERRORS, errors.map(errorToJson).toList());
-    sendNotification(notification);
-  }
-
-  void sendAnalysisNotificationHighlights(String file, CompilationUnit dartUnit) {
-    Notification notification = new Notification(NOTIFICATION_HIGHLIGHTS);
-    notification.setParameter(FILE, file);
-    notification.setParameter(
-        REGIONS,
-        new DartUnitHighlightsComputer(dartUnit).compute());
-    sendNotification(notification);
   }
 
   /**
@@ -373,12 +324,12 @@ class AnalysisServer {
           Source source = _getSource(file);
           AnalysisContext analysisContext = _getAnalysisContext(file);
           List<AnalysisError> errors = analysisContext.getErrors(source).errors;
-          sendAnalysisNotificationErrors(file, errors);
+          sendAnalysisNotificationErrors(this, file, errors);
         }
         if (service == AnalysisService.HIGHLIGHTS) {
           CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
           if (dartUnit != null) {
-            sendAnalysisNotificationHighlights(file, dartUnit);
+            sendAnalysisNotificationHighlights(this, file, dartUnit);
           }
         }
       }
@@ -433,23 +384,6 @@ class AnalysisServer {
    */
   bool test_areOperationsFinished() {
     return operationQueue.isEmpty;
-  }
-
-  static Map<String, Object> errorToJson(AnalysisError analysisError) {
-    // TODO(paulberry): move this function into the AnalysisError class.
-    ErrorCode errorCode = analysisError.errorCode;
-    Map<String, Object> result = {
-      'file': analysisError.source.fullName,
-      // TODO(scheglov) add Enum.fullName ?
-      'errorCode': '${errorCode.runtimeType}.${(errorCode as Enum).name}',
-      'offset': analysisError.offset,
-      'length': analysisError.length,
-      'message': analysisError.message
-    };
-    if (analysisError.correction != null) {
-      result['correction'] = analysisError.correction;
-    }
-    return result;
   }
 
   /**

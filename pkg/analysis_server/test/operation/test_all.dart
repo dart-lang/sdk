@@ -4,8 +4,9 @@
 
 import 'package:unittest/unittest.dart';
 
-import 'operation_test.dart' as operation_test;
+import 'operation_analysis_test.dart' as analysis_operation_test;
 import 'operation_queue_test.dart' as operation_queue_test;
+import 'operation_test.dart' as operation_test;
 
 /**
  * Utility for manually running all tests.
@@ -13,7 +14,8 @@ import 'operation_queue_test.dart' as operation_queue_test;
 main() {
   groupSep = ' | ';
   group('operation', () {
-    operation_test.main();
+    analysis_operation_test.main();
     operation_queue_test.main();
+    operation_test.main();
   });
 }

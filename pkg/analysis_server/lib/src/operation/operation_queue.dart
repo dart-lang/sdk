@@ -7,6 +7,7 @@ library operation.queue;
 import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 
 
