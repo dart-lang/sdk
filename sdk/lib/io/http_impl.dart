@@ -1522,6 +1522,7 @@ class _ConnectionTarget {
   final bool isSecure;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
+  final Queue _pending = new ListQueue();
   int _connecting = 0;
 
   _ConnectionTarget(this.key, this.host, this.port, this.isSecure);
@@ -1530,7 +1531,7 @@ class _ConnectionTarget {
 
   bool get hasIdle => _idle.isNotEmpty;
 
-  bool get hasActive => _active.isNotEmpty && _connecting > 0;
+  bool get hasActive => _active.isNotEmpty || _connecting > 0;
 
   _HttpClientConnection takeIdle() {
     assert(hasIdle);
@@ -1541,6 +1542,12 @@ class _ConnectionTarget {
     return connection;
   }
 
+  _checkPending() {
+    if (_pending.isNotEmpty) {
+      _pending.removeFirst()();
+    }
+  }
+
   void addNewActive(_HttpClientConnection connection) {
     _active.add(connection);
   }
@@ -1549,12 +1556,15 @@ class _ConnectionTarget {
     assert(_active.contains(connection));
     _active.remove(connection);
     _idle.add(connection);
+    connection.startTimer();
+    _checkPending();
   }
 
   void connectionClosed(_HttpClientConnection connection) {
     assert(!_active.contains(connection) || !_idle.contains(connection));
     _active.remove(connection);
     _idle.remove(connection);
+    _checkPending();
   }
 
   void close(bool force) {
@@ -1576,6 +1586,15 @@ class _ConnectionTarget {
       var connection = takeIdle();
       client._updateTimers();
       return new Future.value(new _ConnectionInfo(connection, proxy));
+    }
+    if (client.maxConnectionsPerHost != null &&
+        _active.length + _connecting >= client.maxConnectionsPerHost) {
+      var completer = new Completer();
+      _pending.add(() {
+        connect(uriHost, uriPort, proxy, client)
+            .then(completer.complete, onError: completer.completeError);
+      });
+      return completer.future;
     }
     var currentBadCertificateCallback = client._badCertificateCallback;
     bool callback(X509Certificate certificate) =>
@@ -1604,6 +1623,10 @@ class _ConnectionTarget {
           addNewActive(connection);
           return new _ConnectionInfo(connection, proxy);
         }
+      }, onError: (error) {
+        _connecting--;
+        _checkPending();
+        throw error;
       });
   }
 }
@@ -1624,6 +1647,8 @@ class _HttpClient implements HttpClient {
   Timer _noActiveTimer;
 
   Duration get idleTimeout => _idleTimeout;
+
+  int maxConnectionsPerHost;
 
   String userAgent = _getHttpVersion();
 
@@ -1794,7 +1819,6 @@ class _HttpClient implements HttpClient {
   // Return a live connection to the idle pool.
   void _returnConnection(_HttpClientConnection connection) {
     _connectionTargets[connection.key].returnConnection(connection);
-    connection.startTimer();
     _updateTimers();
   }
 

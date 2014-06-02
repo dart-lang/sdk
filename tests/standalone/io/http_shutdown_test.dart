@@ -162,6 +162,7 @@ void test5(int totalConnections) {
     // close the client and wait for the server to lose all active
     // connections.
     var client= new HttpClient();
+    client.maxConnectionsPerHost = totalConnections;
     for (int i = 0; i < totalConnections; i++) {
       client.post("127.0.0.1", server.port, "/")
         .then((request) {

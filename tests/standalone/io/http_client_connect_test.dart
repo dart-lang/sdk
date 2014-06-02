@@ -248,6 +248,35 @@ void testNoBuffer() {
   });
 }
 
+void testMaxConnectionsPerHost(int connectionCap, int connections) {
+  asyncStart();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    int handled = 0;
+    server.listen((request) {
+      Expect.isTrue(server.connectionsInfo().total <= connectionCap);
+      request.response.close();
+      handled++;
+      if (handled == connections) {
+        asyncEnd();
+        server.close();
+      }
+    });
+
+    var client = new HttpClient();
+    client.maxConnectionsPerHost = connectionCap;
+    for (int i = 0; i < connections; i++) {
+      asyncStart();
+      client.get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+          response.listen(null, onDone: () {
+            asyncEnd();
+          });
+        });
+    }
+  });
+}
+
 
 void main() {
   testGetEmptyRequest();
@@ -260,4 +289,8 @@ void main() {
   testOpenEmptyRequest();
   testOpenUrlEmptyRequest();
   testNoBuffer();
+  testMaxConnectionsPerHost(1, 1);
+  testMaxConnectionsPerHost(1, 10);
+  testMaxConnectionsPerHost(5, 10);
+  testMaxConnectionsPerHost(10, 50);
 }
