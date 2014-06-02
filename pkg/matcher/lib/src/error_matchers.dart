@@ -9,7 +9,7 @@ import 'interfaces.dart';
 
 /// A matcher for AbstractClassInstantiationError.
 @deprecated
-const isAbstractClassInstantiationError =
+const Matcher isAbstractClassInstantiationError =
   const _AbstractClassInstantiationError();
 
 /// A matcher for functions that throw AbstractClassInstantiationError.
@@ -24,7 +24,7 @@ class _AbstractClassInstantiationError extends TypeMatcher {
 }
 
 /// A matcher for ArgumentErrors.
-const isArgumentError = const _ArgumentError();
+const Matcher isArgumentError = const _ArgumentError();
 
 /// A matcher for functions that throw ArgumentError.
 const Matcher throwsArgumentError = const Throws(isArgumentError);
@@ -35,7 +35,8 @@ class _ArgumentError extends TypeMatcher {
 }
 
 /// A matcher for ConcurrentModificationError.
-const isConcurrentModificationError = const _ConcurrentModificationError();
+const Matcher isConcurrentModificationError =
+    const _ConcurrentModificationError();
 
 /// A matcher for functions that throw ConcurrentModificationError.
 const Matcher throwsConcurrentModificationError =
@@ -47,7 +48,7 @@ class _ConcurrentModificationError extends TypeMatcher {
 }
 
 /// A matcher for CyclicInitializationError.
-const isCyclicInitializationError = const _CyclicInitializationError();
+const Matcher isCyclicInitializationError = const _CyclicInitializationError();
 
 /// A matcher for functions that throw CyclicInitializationError.
 const Matcher throwsCyclicInitializationError =
@@ -59,7 +60,7 @@ class _CyclicInitializationError extends TypeMatcher {
 }
 
 /// A matcher for Exceptions.
-const isException = const _Exception();
+const Matcher isException = const _Exception();
 
 /// A matcher for functions that throw Exception.
 const Matcher throwsException = const Throws(isException);
@@ -71,7 +72,7 @@ class _Exception extends TypeMatcher {
 
 /// A matcher for FallThroughError.
 @deprecated
-const isFallThroughError = const _FallThroughError();
+const Matcher isFallThroughError = const _FallThroughError();
 
 /// A matcher for functions that throw FallThroughError.
 @deprecated
@@ -83,7 +84,7 @@ class _FallThroughError extends TypeMatcher {
 }
 
 /// A matcher for FormatExceptions.
-const isFormatException = const _FormatException();
+const Matcher isFormatException = const _FormatException();
 
 /// A matcher for functions that throw FormatException.
 const Matcher throwsFormatException = const Throws(isFormatException);
@@ -94,7 +95,7 @@ class _FormatException extends TypeMatcher {
 }
 
 /// A matcher for NoSuchMethodErrors.
-const isNoSuchMethodError = const _NoSuchMethodError();
+const Matcher isNoSuchMethodError = const _NoSuchMethodError();
 
 /// A matcher for functions that throw NoSuchMethodError.
 const Matcher throwsNoSuchMethodError = const Throws(isNoSuchMethodError);
@@ -105,7 +106,7 @@ class _NoSuchMethodError extends TypeMatcher {
 }
 
 /// A matcher for NullThrownError.
-const isNullThrownError = const _NullThrownError();
+const Matcher isNullThrownError = const _NullThrownError();
 
 /// A matcher for functions that throw NullThrownError.
 const Matcher throwsNullThrownError = const Throws(isNullThrownError);
@@ -116,7 +117,7 @@ class _NullThrownError extends TypeMatcher {
 }
 
 /// A matcher for RangeErrors.
-const isRangeError = const _RangeError();
+const Matcher isRangeError = const _RangeError();
 
 /// A matcher for functions that throw RangeError.
 const Matcher throwsRangeError = const Throws(isRangeError);
@@ -127,7 +128,7 @@ class _RangeError extends TypeMatcher {
 }
 
 /// A matcher for StateErrors.
-const isStateError = const _StateError();
+const Matcher isStateError = const _StateError();
 
 /// A matcher for functions that throw StateError.
 const Matcher throwsStateError = const Throws(isStateError);
@@ -138,7 +139,7 @@ class _StateError extends TypeMatcher {
 }
 
 /// A matcher for UnimplementedErrors.
-const isUnimplementedError = const _UnimplementedError();
+const Matcher isUnimplementedError = const _UnimplementedError();
 
 /// A matcher for functions that throw Exception.
 const Matcher throwsUnimplementedError = const Throws(isUnimplementedError);
@@ -149,7 +150,7 @@ class _UnimplementedError extends TypeMatcher {
 }
 
 /// A matcher for UnsupportedError.
-const isUnsupportedError = const _UnsupportedError();
+const Matcher isUnsupportedError = const _UnsupportedError();
 
 /// A matcher for functions that throw UnsupportedError.
 const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);

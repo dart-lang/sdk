@@ -96,7 +96,7 @@ class _DeepMatcher extends Matcher {
   final int _limit;
   var count;
 
-  _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
+  _DeepMatcher(this._expected, [int limit = 1000]) : this._limit = limit;
 
   // Returns a pair (reason, location)
   List _compareIterables(expected, actual, matcher, depth, location) {
@@ -513,10 +513,8 @@ abstract class TypeMatcher extends Matcher {
   Description describe(Description description) => description.add(_name);
 }
 
-
-
 /// A matcher for Map types.
-const isMap = const _IsMap();
+const Matcher isMap = const _IsMap();
 
 class _IsMap extends TypeMatcher {
   const _IsMap() : super("Map");
@@ -524,7 +522,7 @@ class _IsMap extends TypeMatcher {
 }
 
 /// A matcher for List types.
-const isList = const _IsList();
+const Matcher isList = const _IsList();
 
 class _IsList extends TypeMatcher {
   const _IsList() : super("List");
@@ -615,7 +613,6 @@ class _Contains extends Matcher {
 Matcher isIn(expected) => new _In(expected);
 
 class _In extends Matcher {
-
   final _expected;
 
   const _In(this._expected);
