@@ -23,8 +23,6 @@ FT_MASTER = r'ft-master'
 
 HOST_OS = utils.GuessOS()
 
-EDITOR_LOCATION='/home/chrome-bot/Desktop'
-
 def SrcConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
 
@@ -61,13 +59,16 @@ def FTSlave(config):
       system = 'macos'
     editor_path = namer.editor_zipfilepath(revision, system, 'x64')
     gsutils = bot_utils.GSUtil()
-    local_path = os.path.join(EDITOR_LOCATION, 'editor.zip')
+    editor_location='/home/chrome-bot/Desktop'
+    if system == 'macos':
+      editor_location='/Users/chrome-bot/Desktop'
+    local_path = os.path.join(editor_location, 'editor.zip')
     if os.path.exists(local_path):
       os.remove(local_path)
-    local_extracted = os.path.join(EDITOR_LOCATION, 'dart')
+    local_extracted = os.path.join(editor_location, 'dart')
     shutil.rmtree(local_extracted, ignore_errors=True)
     gsutils.execute(['cp', editor_path, local_path])
-    Run(['unzip', local_path, '-d', EDITOR_LOCATION])
+    Run(['unzip', local_path, '-d', editor_location])
 
 def FTMaster(config):
   run = int(os.environ['BUILDBOT_ANNOTATED_STEPS_RUN'])
