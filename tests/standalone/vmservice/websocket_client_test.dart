@@ -30,9 +30,9 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
 
   runTest() {
     // Send a request for clients with 'cli' sequence id.
-    sendMessage('cli', ['clients']);
+    sendMessage('cli', 'clients');
     // Send a request for vm info with 'vm' sequence id.
-    sendMessage('vm', ['vm']);
+    sendMessage('vm', 'vm');
   }
 }
 

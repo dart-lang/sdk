@@ -50,8 +50,84 @@ class HttpVM extends VM {
   }
 }
 
+class WebSocketVM extends VM {
+  final Map<int, Completer> _pendingRequests =
+      new Map<int, Completer>();
+  int _requestSerial = 0;
+
+  String _host;
+  Future<WebSocket> _socketFuture;
+
+  bool runningInJavaScript() => identical(1.0, 1);
+
+  WebSocketVM() : super() {
+    if (runningInJavaScript()) {
+      // When we are running as JavaScript use the same hostname:port
+      // that the Observatory is loaded from.
+      _host = 'ws://${window.location.host}/ws';
+    } else {
+      // Otherwise, assume we are running from the Dart Editor and
+      // want to connect on the default port.
+      _host = 'ws://127.0.0.1:8181/ws';
+    }
+
+    var completer = new Completer<WebSocket>();
+    _socketFuture = completer.future;
+    var socket = new WebSocket(_host);
+    socket.onOpen.first.then((_) {
+        socket.onMessage.listen(_handleMessage);
+        socket.onClose.first.then((_) {
+            _socketFuture = null;
+          });
+        completer.complete(socket);
+      });
+    socket.onError.first.then((_) {
+        _socketFuture = null;
+      });
+  }
+
+  void _handleMessage(MessageEvent event) {
+    var map = JSON.decode(event.data);
+    int seq = map['seq'];
+    var response = map['response'];
+    var completer = _pendingRequests.remove(seq);
+    if (completer == null) {
+      Logger.root.severe('Received unexpected message: ${map}');
+    } else {
+      completer.complete(response);
+    }
+  }
+
+  Future<String> getString(String id) {
+    if (_socketFuture == null) {
+      var errorResponse = JSON.encode({
+              'type': 'ServiceException',
+              'id': '',
+              'response': '',
+              'kind': 'NetworkException',
+              'message': 'Could not connect to service. Check that you started the'
+              ' VM with the following flags:\n --enable-vm-service'
+              ' --pause-isolates-on-exit'
+          });
+      return new Future.value(errorResponse);
+    }
+    return _socketFuture.then((socket) {
+        int seq = _requestSerial++;
+        if (!id.endsWith('/profile/tag')) {
+          Logger.root.info('Fetching $id from $_host');
+        }
+        var completer = new Completer<String>();
+        _pendingRequests[seq] = completer;
+        var message = JSON.encode({'seq': seq, 'request': id});
+        socket.send(message);
+        return completer.future;
+      });
+  }
+}
+
 class DartiumVM extends VM {
-  final Map _outstandingRequests = new Map();
+  final Map<String, Completer> _pendingRequests =
+      new Map<String, Completer>();
   int _requestSerial = 0;
 
   DartiumVM() : super() {
@@ -66,9 +142,9 @@ class DartiumVM extends VM {
     if (name != 'observatoryData') {
       return;
     }
-    var completer = _outstandingRequests[id];
+    var completer = _pendingRequests[id];
     assert(completer != null);
-    _outstandingRequests.remove(id);
+    _pendingRequests.remove(id);
     completer.complete(data);
   }
 
@@ -80,7 +156,7 @@ class DartiumVM extends VM {
     message['query'] = '/$path';
     _requestSerial++;
     var completer = new Completer();
-    _outstandingRequests[idString] = completer;
+    _pendingRequests[idString] = completer;
     window.parent.postMessage(JSON.encode(message), '*');
     return completer.future;
   }
