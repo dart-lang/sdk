@@ -382,6 +382,13 @@ abstract class _StreamController<T> implements StreamController<T>,
     return addState.addStreamFuture;
   }
 
+  /**
+   * Returns a future that is completed when the stream is done
+   * processing events.
+   *
+   * This happens either when the done event has been sent, or if the
+   * subscriber of a single-subscription stream is cancelled.
+   */
   Future get done => _ensureDoneFuture();
 
   Future _ensureDoneFuture() {
@@ -408,15 +415,17 @@ abstract class _StreamController<T> implements StreamController<T>,
   }
 
   /**
-   * Closes this controller.
+   * Closes this controller and sends a done event on the stream.
    *
-   * After closing, no further events may be added using [add] or [addError].
+   * The first time a controller is closed, a "done" event is added to its
+   * stream.
    *
    * You are allowed to close the controller more than once, but only the first
    * call has any effect.
    *
-   * The first time a controller is closed, a "done" event is sent to its
-   * stream.
+   * After closing, no further events may be added using [add] or [addError].
+   *
+   * The returned future is completed when the done event has been delivered.
    */
   Future close() {
     if (isClosed) {

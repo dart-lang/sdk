@@ -10,6 +10,8 @@ import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import 'event_helper.dart';
 
+const MS = const Duration(milliseconds: 1);
+
 fail(e) { Expect.fail("Unexepected error: $e"); }
 
 void testMultiController() {
@@ -419,6 +421,60 @@ void testClosed() {
   Expect.isTrue(c.isClosed);
 }
 
+void testCloseFuture() {
+  asyncStart();
+  asyncStart();
+  var c = new StreamController();
+  var f = c.close();
+  Expect.isTrue(c.isClosed);
+  bool doneSeen = false;
+  f.then((_) {
+    Expect.isTrue(doneSeen);
+    asyncEnd();
+  });
+  // Only listen after a while.
+  new Timer(MS * 250, () {
+    c.stream.listen(null, onDone: () {
+      asyncEnd();
+      doneSeen = true;
+    });
+  });
+}
+
+void testCloseFuture2() {
+  asyncStart();
+  asyncStart();
+  var c = new StreamController.broadcast();
+  var f = c.close();
+  Expect.isTrue(c.isClosed);
+  bool doneSeen = false;
+  f.then((_) {
+    // Done future on broadcast stream can happen
+    // before a listener is added.
+    Expect.isFalse(doneSeen);
+    asyncEnd();
+  });
+  // Only listen after a while.
+  new Timer(MS * 250, () {
+    c.stream.listen(null, onDone: () {
+      doneSeen = true;
+      asyncEnd();
+    });
+  });
+}
+
+void testCloseFuture3() {
+  asyncStart();
+  var c = new StreamController.broadcast();
+  c..add(1)..add(2)..add(3)..add(4);
+  c.stream.listen(null).cancel();
+  var f = c.close();
+  Expect.isTrue(c.isClosed);
+  f.then((_) {
+    asyncEnd();
+  });
+}
+
 void testStreamEquals() {
   StreamController c;
   c = new StreamController(sync: false);
@@ -531,15 +587,90 @@ void testCancelThrow3() {
   c.done.catchError(fail).whenComplete(asyncEnd); // Error must not go here.
 }
 
+void testBroadcastListenAfterClose() {
+  asyncStart();
+  StreamController c = new StreamController.broadcast();
+  var f = c.close();
+  f.then((_) {
+    // Listening after close is allowed. The listener gets a done event.
+    c.stream.listen(null, onDone: asyncEnd);
+  });
+}
+
+void testBroadcastListenAfterClosePaused() {
+  asyncStart();
+  StreamController c = new StreamController.broadcast();
+  var f = c.close();
+  f.then((_) {
+    // Listening after close is allowed. The listener gets a done event.
+    var sub = c.stream.listen(null, onDone: () {
+      Expect.fail("wrong done");
+    });
+    sub.pause();
+    sub.pause();
+    new Timer(MS * 100, () {
+      sub.resume();
+      new Timer(MS * 100, () {
+        sub.onDone(asyncEnd);
+        sub.resume();
+      });
+    });
+  });
+}
+
+void testAsBroadcastListenAfterClose() {
+  asyncStart();
+  asyncStart();
+  StreamController c = new StreamController();
+  Stream s = c.stream.asBroadcastStream();
+  s.listen(null, onDone: asyncEnd);
+  var f = c.close();
+  f.then((_) {
+    // Listening after close is allowed. The listener gets a done event.
+    s.listen(null, onDone: asyncEnd);
+  });
+}
+
+void testAsBroadcastListenAfterClosePaused() {
+  asyncStart();
+  asyncStart();
+  StreamController c = new StreamController();
+  Stream s = c.stream.asBroadcastStream();
+  s.listen(null, onDone: asyncEnd);
+  var f = c.close();
+  f.then((_) {
+    // Listening after close is allowed. The listener gets a done event.
+    var sub = s.listen(null, onDone: () {
+      Expect.fail("wrong done");
+    });
+    sub.pause();
+    sub.pause();
+    new Timer(MS * 100, () {
+      sub.resume();
+      new Timer(MS * 100, () {
+        sub.onDone(asyncEnd);
+        sub.resume();
+      });
+    });
+  });
+}
+
 main() {
   asyncStart();
   testMultiController();
   testSingleController();
   testExtraMethods();
   testClosed();
+  testCloseFuture();
+  testCloseFuture2();
+  testCloseFuture3();
   testStreamEquals();
   testCancelThrow();
   testCancelThrow2();
   testCancelThrow3();
+  testBroadcastListenAfterClose();
+  testBroadcastListenAfterClosePaused();
+  testAsBroadcastListenAfterClose();
+  testAsBroadcastListenAfterClosePaused();
   asyncEnd();
 }
