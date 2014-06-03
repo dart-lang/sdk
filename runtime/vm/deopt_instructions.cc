@@ -188,8 +188,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kConstant:
     case DeoptInstr::kStackSlot:
     case DeoptInstr::kDoubleStackSlot:
-    case DeoptInstr::kInt64StackSlot:
-    case DeoptInstr::kInt64StackSlotPair:
+    case DeoptInstr::kMintStackSlotPair:
     case DeoptInstr::kFloat32x4StackSlot:
     case DeoptInstr::kInt32x4StackSlot:
     case DeoptInstr::kFloat64x2StackSlot:
@@ -200,8 +199,8 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
 
     case DeoptInstr::kRegister:
     case DeoptInstr::kFpuRegister:
-    case DeoptInstr::kInt64RegisterPair:
-    case DeoptInstr::kInt64StackSlotRegister:
+    case DeoptInstr::kMintRegisterPair:
+    case DeoptInstr::kMintStackSlotRegister:
     case DeoptInstr::kFloat32x4FpuRegister:
     case DeoptInstr::kInt32x4FpuRegister:
     case DeoptInstr::kFloat64x2FpuRegister:
@@ -438,43 +437,6 @@ class DeoptDoubleStackSlotInstr : public DeoptInstr {
   const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
 
   DISALLOW_COPY_AND_ASSIGN(DeoptDoubleStackSlotInstr);
-};
-
-
-class DeoptInt64StackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptInt64StackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kInt64StackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "int64 stack slot:%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    int64_t* source_addr = reinterpret_cast<int64_t*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid64(*source_addr)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(*source_addr)));
-    } else {
-      deopt_context->DeferMintMaterialization(
-          *source_addr, reinterpret_cast<RawMint**>(dest_addr));
-    }
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt64StackSlotInstr);
 };
 
 
@@ -721,9 +683,9 @@ class DeoptFpuRegisterInstr: public DeoptInstr {
 };
 
 
-class DeoptInt64RegisterPairInstr: public DeoptInstr {
+class DeoptMintRegisterPairInstr: public DeoptInstr {
  public:
-  DeoptInt64RegisterPairInstr(intptr_t lo_reg_as_int, intptr_t hi_reg_as_int)
+  DeoptMintRegisterPairInstr(intptr_t lo_reg_as_int, intptr_t hi_reg_as_int)
       : lo_reg_(static_cast<Register>(lo_reg_as_int)),
         hi_reg_(static_cast<Register>(hi_reg_as_int)) {}
 
@@ -731,7 +693,7 @@ class DeoptInt64RegisterPairInstr: public DeoptInstr {
     return EncodeRegisters(static_cast<intptr_t>(lo_reg_),
                            static_cast<intptr_t>(hi_reg_));
   }
-  virtual DeoptInstr::Kind kind() const { return kInt64RegisterPair; }
+  virtual DeoptInstr::Kind kind() const { return kMintRegisterPair; }
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
@@ -774,13 +736,13 @@ class DeoptInt64RegisterPairInstr: public DeoptInstr {
   const Register lo_reg_;
   const Register hi_reg_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt64RegisterPairInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptMintRegisterPairInstr);
 };
 
 
-class DeoptInt64StackSlotPairInstr: public DeoptInstr {
+class DeoptMintStackSlotPairInstr: public DeoptInstr {
  public:
-  DeoptInt64StackSlotPairInstr(intptr_t lo_slot, intptr_t hi_slot)
+  DeoptMintStackSlotPairInstr(intptr_t lo_slot, intptr_t hi_slot)
       : lo_slot_(static_cast<Register>(lo_slot)),
         hi_slot_(static_cast<Register>(hi_slot)) {}
 
@@ -788,7 +750,7 @@ class DeoptInt64StackSlotPairInstr: public DeoptInstr {
     return EncodeSlots(static_cast<intptr_t>(lo_slot_),
                        static_cast<intptr_t>(hi_slot_));
   }
-  virtual DeoptInstr::Kind kind() const { return kInt64StackSlotPair; }
+  virtual DeoptInstr::Kind kind() const { return kMintStackSlotPair; }
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
@@ -836,15 +798,15 @@ class DeoptInt64StackSlotPairInstr: public DeoptInstr {
   const intptr_t lo_slot_;
   const intptr_t hi_slot_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt64StackSlotPairInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptMintStackSlotPairInstr);
 };
 
 
-class DeoptInt64StackSlotRegisterInstr : public DeoptInstr {
+class DeoptMintStackSlotRegisterInstr : public DeoptInstr {
  public:
-  DeoptInt64StackSlotRegisterInstr(intptr_t source_index,
-                                   intptr_t reg_as_int,
-                                   bool flip)
+  DeoptMintStackSlotRegisterInstr(intptr_t source_index,
+                                  intptr_t reg_as_int,
+                                  bool flip)
       : slot_(source_index),
         reg_(static_cast<Register>(reg_as_int)),
         flip_(flip) {
@@ -857,7 +819,7 @@ class DeoptInt64StackSlotRegisterInstr : public DeoptInstr {
                   static_cast<intptr_t>(reg_),
                   flip_ ? 1 : 0);
   }
-  virtual DeoptInstr::Kind kind() const { return kInt64StackSlotRegister; }
+  virtual DeoptInstr::Kind kind() const { return kMintStackSlotRegister; }
 
   virtual const char* ToCString() const {
     if (flip_) {
@@ -924,7 +886,7 @@ class DeoptInt64StackSlotRegisterInstr : public DeoptInstr {
   const intptr_t slot_;
   const Register reg_;
   const bool flip_;
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt64StackSlotRegisterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptMintStackSlotRegisterInstr);
 };
 
 
@@ -1305,7 +1267,6 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   switch (kind) {
     case kStackSlot: return new DeoptStackSlotInstr(source_index);
     case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(source_index);
-    case kInt64StackSlot: return new DeoptInt64StackSlotInstr(source_index);
     case kFloat32x4StackSlot:
         return new DeoptFloat32x4StackSlotInstr(source_index);
     case kFloat64x2StackSlot:
@@ -1316,27 +1277,27 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
     case kConstant: return new DeoptConstantInstr(source_index);
     case kRegister: return new DeoptRegisterInstr(source_index);
     case kFpuRegister: return new DeoptFpuRegisterInstr(source_index);
-    case kInt64RegisterPair: {
+    case kMintRegisterPair: {
       intptr_t lo_reg_as_int =
-          DeoptInt64RegisterPairInstr::LoRegister::decode(source_index);
+          DeoptMintRegisterPairInstr::LoRegister::decode(source_index);
       intptr_t hi_reg_as_int =
-          DeoptInt64RegisterPairInstr::HiRegister::decode(source_index);
-      return new DeoptInt64RegisterPairInstr(lo_reg_as_int, hi_reg_as_int);
+          DeoptMintRegisterPairInstr::HiRegister::decode(source_index);
+      return new DeoptMintRegisterPairInstr(lo_reg_as_int, hi_reg_as_int);
     }
-    case kInt64StackSlotPair: {
+    case kMintStackSlotPair: {
       intptr_t lo_slot =
-          DeoptInt64StackSlotPairInstr::LoSlot::decode(source_index);
+          DeoptMintStackSlotPairInstr::LoSlot::decode(source_index);
       intptr_t hi_slot =
-          DeoptInt64StackSlotPairInstr::HiSlot::decode(source_index);
-      return new DeoptInt64StackSlotPairInstr(lo_slot, hi_slot);
+          DeoptMintStackSlotPairInstr::HiSlot::decode(source_index);
+      return new DeoptMintStackSlotPairInstr(lo_slot, hi_slot);
     }
-    case kInt64StackSlotRegister: {
+    case kMintStackSlotRegister: {
       intptr_t slot =
-          DeoptInt64StackSlotRegisterInstr::Slot::decode(source_index);
+          DeoptMintStackSlotRegisterInstr::Slot::decode(source_index);
       intptr_t reg_as_int =
-          DeoptInt64StackSlotRegisterInstr::Reg::decode(source_index);
-      bool flip = DeoptInt64StackSlotRegisterInstr::Flip::decode(source_index);
-      return new DeoptInt64StackSlotRegisterInstr(slot, reg_as_int, flip);
+          DeoptMintStackSlotRegisterInstr::Reg::decode(source_index);
+      bool flip = DeoptMintStackSlotRegisterInstr::Flip::decode(source_index);
+      return new DeoptMintStackSlotRegisterInstr(slot, reg_as_int, flip);
     }
     case kFloat32x4FpuRegister:
         return new DeoptFloat32x4FpuRegisterInstr(source_index);
@@ -1487,13 +1448,9 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     intptr_t source_index = CalculateStackIndex(source_loc);
     deopt_instr = new(isolate()) DeoptStackSlotInstr(source_index);
   } else if (source_loc.IsDoubleStackSlot()) {
+    ASSERT(value->definition()->representation() == kUnboxedDouble);
     intptr_t source_index = CalculateStackIndex(source_loc);
-    if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new(isolate()) DeoptDoubleStackSlotInstr(source_index);
-    } else {
-      ASSERT(value->definition()->representation() == kUnboxedMint);
-      deopt_instr = new(isolate()) DeoptInt64StackSlotInstr(source_index);
-    }
+    deopt_instr = new(isolate()) DeoptDoubleStackSlotInstr(source_index);
   } else if (source_loc.IsQuadStackSlot()) {
     intptr_t source_index = CalculateStackIndex(source_loc);
     if (value->definition()->representation() == kUnboxedFloat32x4) {
@@ -1515,20 +1472,20 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     PairLocation* pair = source_loc.AsPairLocation();
     if (pair->At(0).IsRegister() && pair->At(1).IsRegister()) {
       deopt_instr =
-          new(isolate()) DeoptInt64RegisterPairInstr(pair->At(0).reg(),
-                                                     pair->At(1).reg());
+          new(isolate()) DeoptMintRegisterPairInstr(pair->At(0).reg(),
+                                                    pair->At(1).reg());
     } else if (pair->At(0).IsStackSlot() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new(isolate()) DeoptInt64StackSlotPairInstr(
+      deopt_instr = new(isolate()) DeoptMintStackSlotPairInstr(
           CalculateStackIndex(pair->At(0)),
           CalculateStackIndex(pair->At(1)));
     } else if (pair->At(0).IsRegister() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new(isolate()) DeoptInt64StackSlotRegisterInstr(
+      deopt_instr = new(isolate()) DeoptMintStackSlotRegisterInstr(
           CalculateStackIndex(pair->At(1)),
           pair->At(0).reg(),
           true);
     } else {
       ASSERT(pair->At(0).IsStackSlot() && pair->At(1).IsRegister());
-      deopt_instr = new(isolate()) DeoptInt64StackSlotRegisterInstr(
+      deopt_instr = new(isolate()) DeoptMintStackSlotRegisterInstr(
           CalculateStackIndex(pair->At(0)),
           pair->At(1).reg(),
           false);
