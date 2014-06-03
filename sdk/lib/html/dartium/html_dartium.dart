@@ -3406,7 +3406,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends NativeFieldWrapperClass2 with 
+ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -3415,7 +3415,7 @@ class CssRule extends NativeFieldWrapperClass2 {
     style.cssText = css;
     return style;
   }
-  
+
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValue(propertyName);
     return propValue != null ? propValue : '';
@@ -3503,7 +3503,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 }
 
 abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);  
+  String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -4363,8 +4363,8 @@ abstract class CssStyleDeclarationBase {
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing => Device.isFirefox ? 
-      getPropertyValue('${Device.cssPrefix}box-sizing') : 
+  String get boxSizing => Device.isFirefox ?
+      getPropertyValue('${Device.cssPrefix}box-sizing') :
       getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
@@ -7580,7 +7580,7 @@ class DivElement extends HtmlElement {
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
 @DomName('Document')
-class Document extends Node 
+class Document extends Node
 {
 
   // To suppress missing implicit constructor warnings.
@@ -8384,7 +8384,7 @@ class DocumentFragment extends Node implements ParentNode {
     this.append(new DocumentFragment.html(text));
   }
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -8395,7 +8395,7 @@ class DocumentFragment extends Node implements ParentNode {
     return querySelector(relativeSelectors);
   }
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -12310,7 +12310,7 @@ class Event extends NativeFieldWrapperClass2 {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-  
+
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -12606,18 +12606,18 @@ class ElementEvents extends Events {
   /* Raw event target. */
   final Element _ptr;
   static final webkitEvents = {
-    'animationend' : 'webkitAnimationEnd', 
-    'animationiteration' : 'webkitAnimationIteration', 
-    'animationstart' : 'webkitAnimationStart', 
-    'fullscreenchange' : 'webkitfullscreenchange', 
+    'animationend' : 'webkitAnimationEnd',
+    'animationiteration' : 'webkitAnimationIteration',
+    'animationstart' : 'webkitAnimationStart',
+    'fullscreenchange' : 'webkitfullscreenchange',
     'fullscreenerror' : 'webkitfullscreenerror',
-    'keyadded' : 'webkitkeyadded', 
-    'keyerror' : 'webkitkeyerror', 
-    'keymessage' : 'webkitkeymessage', 
-    'needkey' : 'webkitneedkey', 
-    'pointerlockchange' : 'webkitpointerlockchange', 
-    'pointerlockerror' : 'webkitpointerlockerror', 
-    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'keyadded' : 'webkitkeyadded',
+    'keyerror' : 'webkitkeyerror',
+    'keymessage' : 'webkitkeymessage',
+    'needkey' : 'webkitneedkey',
+    'pointerlockchange' : 'webkitpointerlockchange',
+    'pointerlockerror' : 'webkitpointerlockerror',
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
     'transitionend': 'webkitTransitionEnd',
     'speechchange' : 'webkitSpeechChange'
   };
@@ -15609,7 +15609,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
    * requests only.
    *
    * The Future is completed when the response is available.
@@ -15618,8 +15618,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * If specified, [responseType] sets the desired response format for the
-   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
-   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
    * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
@@ -36997,7 +36997,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,
@@ -37073,8 +37073,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     if (element.runtimeType != _nativeType) {
       throw new UnsupportedError('Element is incorrect type');
     }
-    _Utils.changeElementWrapper(element, _type);
-    return null;
+    return _Utils.changeElementWrapper(element, _type);
   }
 }
 
@@ -37900,7 +37899,7 @@ class _Utils {
   static void initializeCustomElement(HtmlElement element) =>
     _blink.Native_Utils_initializeCustomElement(element);
 
-  static void changeElementWrapper(HtmlElement element, Type type) =>
+  static Element changeElementWrapper(HtmlElement element, Type type) =>
     _blink.Native_Utils_changeElementWrapper(element, type);
 }
 

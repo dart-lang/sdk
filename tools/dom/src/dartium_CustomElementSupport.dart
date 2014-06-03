@@ -30,8 +30,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     if (element.runtimeType != _nativeType) {
       throw new UnsupportedError('Element is incorrect type');
     }
-    _Utils.changeElementWrapper(element, _type);
-    return null;
+    return _Utils.changeElementWrapper(element, _type);
   }
 }
 

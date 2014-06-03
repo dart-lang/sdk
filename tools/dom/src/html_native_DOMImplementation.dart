@@ -429,7 +429,7 @@ class _Utils {
   static void initializeCustomElement(HtmlElement element) =>
     _blink.Native_Utils_initializeCustomElement(element);
 
-  static void changeElementWrapper(HtmlElement element, Type type) =>
+  static Element changeElementWrapper(HtmlElement element, Type type) =>
     _blink.Native_Utils_changeElementWrapper(element, type);
 }
 
