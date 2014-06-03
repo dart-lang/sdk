@@ -7,8 +7,10 @@
 /// representation graph.
 library yaml.model;
 
+import 'package:source_maps/source_maps.dart';
+
+import 'equality.dart';
 import 'parser.dart';
-import 'utils.dart';
 import 'visitor.dart';
 import 'yaml_exception.dart';
 
@@ -80,14 +82,17 @@ abstract class Node {
   /// Any YAML node can have an anchor associated with it.
   String anchor;
 
-  Node(this.tag, [this.anchor]);
+  /// The source span for this node.
+  Span span;
+
+  Node(this.tag, this.span, [this.anchor]);
 
   bool operator ==(other) {
     if (other is! Node) return false;
     return tag == other.tag;
   }
 
-  int get hashCode => hashCodeFor([tag, anchor]);
+  int get hashCode => tag.hashCode ^ anchor.hashCode;
 
   visit(Visitor v);
 }
@@ -97,8 +102,8 @@ class SequenceNode extends Node {
   /// The nodes in the sequence.
   List<Node> content;
 
-  SequenceNode(String tagName, this.content)
-    : super(new Tag.sequence(tagName));
+  SequenceNode(String tagName, this.content, Span span)
+    : super(new Tag.sequence(tagName), span);
 
   /// Two sequences are equal if their tags and contents are equal.
   bool operator ==(other) {
@@ -113,14 +118,15 @@ class SequenceNode extends Node {
 
   String toString() => '$tag [${content.map((e) => '$e').join(', ')}]';
 
-  int get hashCode => super.hashCode ^ hashCodeFor(content);
+  int get hashCode => super.hashCode ^ deepHashCode(content);
 
   visit(Visitor v) => v.visitSequence(this);
 }
 
 /// An alias node is a reference to an anchor.
 class AliasNode extends Node {
-  AliasNode(String anchor) : super(new Tag.scalar(Tag.yaml("str")), anchor);
+  AliasNode(String anchor, Span span)
+      : super(new Tag.scalar(Tag.yaml("str")), span, anchor);
 
   visit(Visitor v) => v.visitAlias(this);
 }
@@ -139,9 +145,9 @@ class ScalarNode extends Node {
   /// be specified for a newly-parsed scalar that hasn't yet been composed.
   /// Value should be specified for a composed scalar, although `null` is a
   /// valid value.
-  ScalarNode(String tagName, {String content, this.value})
+  ScalarNode(String tagName, Span span, {String content, this.value})
    : _content = content,
-     super(new Tag.scalar(tagName));
+     super(new Tag.scalar(tagName), span);
 
   /// Two scalars are equal if their string representations are equal.
   bool operator ==(other) {
@@ -225,8 +231,8 @@ class MappingNode extends Node {
   /// The node map.
   Map<Node, Node> content;
 
-  MappingNode(String tagName, this.content)
-    : super(new Tag.mapping(tagName));
+  MappingNode(String tagName, this.content, Span span)
+    : super(new Tag.mapping(tagName), span);
 
   /// Two mappings are equal if their tags and contents are equal.
   bool operator ==(other) {
@@ -247,7 +253,7 @@ class MappingNode extends Node {
     return '$tag {$strContent}';
   }
 
-  int get hashCode => super.hashCode ^ hashCodeFor(content);
+  int get hashCode => super.hashCode ^ deepHashCode(content);
 
   visit(Visitor v) => v.visitMapping(this);
 }

@@ -6,11 +6,13 @@ library yaml.parser;
 
 import 'dart:collection';
 
+import 'package:source_maps/source_maps.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import 'equality.dart';
 import 'model.dart';
+import 'utils.dart';
 import 'yaml_exception.dart';
-import 'yaml_map.dart';
 
 /// Translates a string of characters into a YAML serialization tree.
 ///
@@ -317,7 +319,7 @@ class Parser {
   }
 
   /// Adds a tag and an anchor to [node], if they're defined.
-  Node addProps(Node node, _Pair<Tag, String> props) {
+  Node addProps(Node node, Pair<Tag, String> props) {
     if (props == null || node == null) return node;
     if (truth(props.first)) node.tag = props.first;
     if (truth(props.last)) node.anchor = props.last;
@@ -325,10 +327,10 @@ class Parser {
   }
 
   /// Creates a MappingNode from [pairs].
-  MappingNode map(List<_Pair<Node, Node>> pairs) {
+  MappingNode map(List<Pair<Node, Node>> pairs, Span span) {
     var content = new Map<Node, Node>();
     pairs.forEach((pair) => content[pair.first] = pair.last);
-    return new MappingNode("?", content);
+    return new MappingNode("?", content, span);
   }
 
   /// Runs [fn] in a context named [name]. Used for error reporting.
@@ -759,7 +761,7 @@ class Parser {
   bool l_directive() => false; // TODO(nweiz): implement
 
   // 96
-  _Pair<Tag, String> c_ns_properties(int indent, int ctx) {
+  Pair<Tag, String> c_ns_properties(int indent, int ctx) {
     var tag, anchor;
     tag = c_ns_tagProperty();
     if (truth(tag)) {
@@ -767,7 +769,7 @@ class Parser {
         if (!truth(s_separate(indent, ctx))) return null;
         return c_ns_anchorProperty();
       });
-      return new _Pair<Tag, String>(tag, anchor);
+      return new Pair<Tag, String>(tag, anchor);
     }
 
     anchor = c_ns_anchorProperty();
@@ -776,7 +778,7 @@ class Parser {
         if (!truth(s_separate(indent, ctx))) return null;
         return c_ns_tagProperty();
       });
-      return new _Pair<Tag, String>(tag, anchor);
+      return new Pair<Tag, String>(tag, anchor);
     }
 
     return null;
@@ -797,13 +799,14 @@ class Parser {
 
   // 104
   Node c_ns_aliasNode() {
+    var start = _scanner.state;
     if (!truth(c_indicator(C_ALIAS))) return null;
     var name = expect(ns_anchorName(), 'anchor name');
-    return new AliasNode(name);
+    return new AliasNode(name, _scanner.spanFrom(start));
   }
 
   // 105
-  ScalarNode e_scalar() => new ScalarNode("?", content: "");
+  ScalarNode e_scalar() => new ScalarNode("?", _scanner.emptySpan, content: "");
 
   // 106
   ScalarNode e_node() => e_scalar();
@@ -820,10 +823,11 @@ class Parser {
   // 109
   Node c_doubleQuoted(int indent, int ctx) => context('string', () {
     return transaction(() {
+      var start = _scanner.state;
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
       var contents = nb_doubleText(indent, ctx);
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
-      return new ScalarNode("!", content: contents);
+      return new ScalarNode("!", _scanner.spanFrom(start), content: contents);
     });
   });
 
@@ -908,10 +912,11 @@ class Parser {
   // 120
   Node c_singleQuoted(int indent, int ctx) => context('string', () {
     return transaction(() {
+      var start = _scanner.state;
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
       var contents = nb_singleText(indent, ctx);
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
-      return new ScalarNode("!", content: contents);
+      return new ScalarNode("!", _scanner.spanFrom(start), content: contents);
     });
   });
 
@@ -1075,11 +1080,13 @@ class Parser {
 
   // 137
   SequenceNode c_flowSequence(int indent, int ctx) => transaction(() {
+    var start = _scanner.state;
     if (!truth(c_indicator(C_SEQUENCE_START))) return null;
     zeroOrOne(() => s_separate(indent, ctx));
     var content = zeroOrOne(() => ns_s_flowSeqEntries(indent, inFlow(ctx)));
     if (!truth(c_indicator(C_SEQUENCE_END))) return null;
-    return new SequenceNode("?", new List<Node>.from(content));
+    return new SequenceNode("?", new List<Node>.from(content),
+        _scanner.spanFrom(start));
   });
 
   // 138
@@ -1108,17 +1115,18 @@ class Parser {
 
   // 140
   Node c_flowMapping(int indent, int ctx) {
+    var start = _scanner.state;
     if (!truth(c_indicator(C_MAPPING_START))) return null;
     zeroOrOne(() => s_separate(indent, ctx));
     var content = zeroOrOne(() => ns_s_flowMapEntries(indent, inFlow(ctx)));
     if (!truth(c_indicator(C_MAPPING_END))) return null;
-    return new MappingNode("?", content);
+    return new MappingNode("?", content, _scanner.spanFrom(start));
   }
 
   // 141
-  YamlMap ns_s_flowMapEntries(int indent, int ctx) {
+  Map ns_s_flowMapEntries(int indent, int ctx) {
     var first = ns_flowMapEntry(indent, ctx);
-    if (!truth(first)) return new YamlMap();
+    if (!truth(first)) return deepEqualsMap();
     zeroOrOne(() => s_separate(indent, ctx));
 
     var rest;
@@ -1127,7 +1135,7 @@ class Parser {
       rest = ns_s_flowMapEntries(indent, ctx);
     }
 
-    if (rest == null) rest = new YamlMap();
+    if (rest == null) rest = deepEqualsMap();
 
     // TODO(nweiz): Duplicate keys should be an error. This includes keys with
     // different representations but the same value (e.g. 10 vs 0xa). To make
@@ -1139,7 +1147,7 @@ class Parser {
   }
 
   // 142
-  _Pair<Node, Node> ns_flowMapEntry(int indent, int ctx) => or([
+  Pair<Node, Node> ns_flowMapEntry(int indent, int ctx) => or([
     () => transaction(() {
       if (!truth(c_indicator(C_MAPPING_KEY))) return false;
       if (!truth(s_separate(indent, ctx))) return false;
@@ -1149,20 +1157,20 @@ class Parser {
   ]);
 
   // 143
-  _Pair<Node, Node> ns_flowMapExplicitEntry(int indent, int ctx) => or([
+  Pair<Node, Node> ns_flowMapExplicitEntry(int indent, int ctx) => or([
     () => ns_flowMapImplicitEntry(indent, ctx),
-    () => new _Pair<Node, Node>(e_node(), e_node())
+    () => new Pair<Node, Node>(e_node(), e_node())
   ]);
 
   // 144
-  _Pair<Node, Node> ns_flowMapImplicitEntry(int indent, int ctx) => or([
+  Pair<Node, Node> ns_flowMapImplicitEntry(int indent, int ctx) => or([
     () => ns_flowMapYamlKeyEntry(indent, ctx),
     () => c_ns_flowMapEmptyKeyEntry(indent, ctx),
     () => c_ns_flowMapJsonKeyEntry(indent, ctx)
   ]);
 
   // 145
-  _Pair<Node, Node> ns_flowMapYamlKeyEntry(int indent, int ctx) {
+  Pair<Node, Node> ns_flowMapYamlKeyEntry(int indent, int ctx) {
     var key = ns_flowYamlNode(indent, ctx);
     if (!truth(key)) return null;
     var value = or([
@@ -1172,14 +1180,14 @@ class Parser {
       }),
       e_node
     ]);
-    return new _Pair<Node, Node>(key, value);
+    return new Pair<Node, Node>(key, value);
   }
 
   // 146
-  _Pair<Node, Node> c_ns_flowMapEmptyKeyEntry(int indent, int ctx) {
+  Pair<Node, Node> c_ns_flowMapEmptyKeyEntry(int indent, int ctx) {
     var value = c_ns_flowMapSeparateValue(indent, ctx);
     if (!truth(value)) return null;
-    return new _Pair<Node, Node>(e_node(), value);
+    return new Pair<Node, Node>(e_node(), value);
   }
 
   // 147
@@ -1197,7 +1205,7 @@ class Parser {
   });
 
   // 148
-  _Pair<Node, Node> c_ns_flowMapJsonKeyEntry(int indent, int ctx) {
+  Pair<Node, Node> c_ns_flowMapJsonKeyEntry(int indent, int ctx) {
     var key = c_flowJsonNode(indent, ctx);
     if (!truth(key)) return null;
     var value = or([
@@ -1207,7 +1215,7 @@ class Parser {
       }),
       e_node
     ]);
-    return new _Pair<Node, Node>(key, value);
+    return new Pair<Node, Node>(key, value);
   }
 
   // 149
@@ -1224,6 +1232,7 @@ class Parser {
 
   // 150
   Node ns_flowPair(int indent, int ctx) {
+    var start = _scanner.state;
     var pair = or([
       () => transaction(() {
         if (!truth(c_indicator(C_MAPPING_KEY))) return null;
@@ -1234,34 +1243,34 @@ class Parser {
     ]);
     if (!truth(pair)) return null;
 
-    return map([pair]);
+    return map([pair], _scanner.spanFrom(start));
   }
 
   // 151
-  _Pair<Node, Node> ns_flowPairEntry(int indent, int ctx) => or([
+  Pair<Node, Node> ns_flowPairEntry(int indent, int ctx) => or([
     () => ns_flowPairYamlKeyEntry(indent, ctx),
     () => c_ns_flowMapEmptyKeyEntry(indent, ctx),
     () => c_ns_flowPairJsonKeyEntry(indent, ctx)
   ]);
 
   // 152
-  _Pair<Node, Node> ns_flowPairYamlKeyEntry(int indent, int ctx) =>
+  Pair<Node, Node> ns_flowPairYamlKeyEntry(int indent, int ctx) =>
     transaction(() {
       var key = ns_s_implicitYamlKey(FLOW_KEY);
       if (!truth(key)) return null;
       var value = c_ns_flowMapSeparateValue(indent, ctx);
       if (!truth(value)) return null;
-      return new _Pair<Node, Node>(key, value);
+      return new Pair<Node, Node>(key, value);
     });
 
   // 153
-  _Pair<Node, Node> c_ns_flowPairJsonKeyEntry(int indent, int ctx) =>
+  Pair<Node, Node> c_ns_flowPairJsonKeyEntry(int indent, int ctx) =>
     transaction(() {
       var key = c_s_implicitJsonKey(FLOW_KEY);
       if (!truth(key)) return null;
       var value = c_ns_flowMapAdjacentValue(indent, ctx);
       if (!truth(value)) return null;
-      return new _Pair<Node, Node>(key, value);
+      return new Pair<Node, Node>(key, value);
     });
 
   // 154
@@ -1288,9 +1297,10 @@ class Parser {
 
   // 156
   Node ns_flowYamlContent(int indent, int ctx) {
+    var start = _scanner.state;
     var str = ns_plain(indent, ctx);
     if (!truth(str)) return null;
-    return new ScalarNode("?", content: str);
+    return new ScalarNode("?", _scanner.spanFrom(start), content: str);
   }
 
   // 157
@@ -1437,6 +1447,7 @@ class Parser {
 
   // 170
   Node c_l_literal(int indent) => transaction(() {
+    var start = _scanner.state;
     if (!truth(c_indicator(C_LITERAL))) return null;
     var header = c_b_blockHeader();
     if (!truth(header)) return null;
@@ -1445,7 +1456,7 @@ class Parser {
     var content = l_literalContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new ScalarNode("!", content: content);
+    return new ScalarNode("!", _scanner.spanFrom(start), content: content);
   });
 
   // 171
@@ -1474,6 +1485,7 @@ class Parser {
 
   // 174
   Node c_l_folded(int indent) => transaction(() {
+    var start = _scanner.state;
     if (!truth(c_indicator(C_FOLDED))) return null;
     var header = c_b_blockHeader();
     if (!truth(header)) return null;
@@ -1482,7 +1494,7 @@ class Parser {
     var content = l_foldedContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new ScalarNode("!", content: content);
+    return new ScalarNode("!", _scanner.spanFrom(start), content: content);
   });
 
   // 175
@@ -1562,13 +1574,14 @@ class Parser {
     var additionalIndent = countIndentation() - indent;
     if (additionalIndent <= 0) return null;
 
+    var start = _scanner.state;
     var content = oneOrMore(() => transaction(() {
       if (!truth(s_indent(indent + additionalIndent))) return null;
       return c_l_blockSeqEntry(indent + additionalIndent);
     }));
     if (!truth(content)) return null;
 
-    return new SequenceNode("?", content);
+    return new SequenceNode("?", content, _scanner.spanFrom(start));
   });
 
   // 184
@@ -1595,6 +1608,7 @@ class Parser {
 
   // 186
   Node ns_l_compactSequence(int indent) => context('sequence', () {
+    var start = _scanner.state;
     var first = c_l_blockSeqEntry(indent);
     if (!truth(first)) return null;
 
@@ -1604,7 +1618,7 @@ class Parser {
       }));
     content.insert(0, first);
 
-    return new SequenceNode("?", content);
+    return new SequenceNode("?", content, _scanner.spanFrom(start));
   });
 
   // 187
@@ -1612,23 +1626,24 @@ class Parser {
     var additionalIndent = countIndentation() - indent;
     if (additionalIndent <= 0) return null;
 
+    var start = _scanner.state;
     var pairs = oneOrMore(() => transaction(() {
       if (!truth(s_indent(indent + additionalIndent))) return null;
       return ns_l_blockMapEntry(indent + additionalIndent);
     }));
     if (!truth(pairs)) return null;
 
-    return map(pairs);
+    return map(pairs, _scanner.spanFrom(start));
   });
 
   // 188
-  _Pair<Node, Node> ns_l_blockMapEntry(int indent) => or([
+  Pair<Node, Node> ns_l_blockMapEntry(int indent) => or([
     () => c_l_blockMapExplicitEntry(indent),
     () => ns_l_blockMapImplicitEntry(indent)
   ]);
 
   // 189
-  _Pair<Node, Node> c_l_blockMapExplicitEntry(int indent) {
+  Pair<Node, Node> c_l_blockMapExplicitEntry(int indent) {
     var key = c_l_blockMapExplicitKey(indent);
     if (!truth(key)) return null;
 
@@ -1637,7 +1652,7 @@ class Parser {
       e_node
     ]);
 
-    return new _Pair<Node, Node>(key, value);
+    return new Pair<Node, Node>(key, value);
   }
 
   // 190
@@ -1654,10 +1669,10 @@ class Parser {
   });
 
   // 192
-  _Pair<Node, Node> ns_l_blockMapImplicitEntry(int indent) => transaction(() {
+  Pair<Node, Node> ns_l_blockMapImplicitEntry(int indent) => transaction(() {
     var key = or([ns_s_blockMapImplicitKey, e_node]);
     var value = c_l_blockMapImplicitValue(indent);
-    return truth(value) ? new _Pair<Node, Node>(key, value) : null;
+    return truth(value) ? new Pair<Node, Node>(key, value) : null;
   });
 
   // 193
@@ -1678,6 +1693,7 @@ class Parser {
 
   // 195
   Node ns_l_compactMapping(int indent) => context('mapping', () {
+    var start = _scanner.state;
     var first = ns_l_blockMapEntry(indent);
     if (!truth(first)) return null;
 
@@ -1687,7 +1703,7 @@ class Parser {
       }));
     pairs.insert(0, first);
 
-    return map(pairs);
+    return map(pairs, _scanner.spanFrom(start));
   });
 
   // 196
@@ -1807,7 +1823,8 @@ class Parser {
     or([l_directiveDocument, l_explicitDocument, l_bareDocument]);
 
   // 211
-  List<Node> l_yamlStream() {
+  Pair<List<Node>, Span> l_yamlStream() {
+    var start = _scanner.state;
     var docs = [];
     zeroOrMore(l_documentPrefix);
     var first = zeroOrOne(l_anyDocument);
@@ -1828,18 +1845,8 @@ class Parser {
     });
 
     if (!_scanner.isDone) parseFailed();
-    return docs;
+    return new Pair(docs, _scanner.spanFrom(start));
   }
-}
-
-/// A pair of values.
-class _Pair<E, F> {
-  E first;
-  F last;
-
-  _Pair(this.first, this.last);
-
-  String toString() => '($first, $last)';
 }
 
 /// The information in the header for a block scalar.
@@ -1872,7 +1879,7 @@ class _Range {
 /// expensive.
 class _RangeMap<E> {
   /// The ranges and their associated elements.
-  final List<_Pair<_Range, E>> _contents = <_Pair<_Range, E>>[];
+  final List<Pair<_Range, E>> _contents = <Pair<_Range, E>>[];
 
   _RangeMap();
 
@@ -1890,5 +1897,5 @@ class _RangeMap<E> {
 
   /// Associates [value] with [range].
   operator[]=(_Range range, E value) =>
-    _contents.add(new _Pair<_Range, E>(range, value));
+    _contents.add(new Pair<_Range, E>(range, value));
 }

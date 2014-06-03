@@ -4,9 +4,10 @@
 
 library yaml.constructor;
 
+import 'equality.dart';
 import 'model.dart';
 import 'visitor.dart';
-import 'yaml_map.dart';
+import 'yaml_node.dart';
 
 /// Takes a parsed and composed YAML document (what the spec calls the
 /// "representation graph") and creates native Dart objects that represent that
@@ -16,43 +17,54 @@ class Constructor extends Visitor {
   final Node _root;
 
   /// Map from anchor names to the most recent Dart node with that anchor.
-  final _anchors = <String, dynamic>{};
+  final _anchors = <String, YamlNode>{};
 
   Constructor(this._root);
 
   /// Runs the Constructor to produce a Dart object.
-  construct() => _root.visit(this);
+  YamlNode construct() => _root.visit(this);
 
   /// Returns the value of a scalar.
-  visitScalar(ScalarNode scalar) => scalar.value;
+  YamlScalar visitScalar(ScalarNode scalar) =>
+      new YamlScalar(scalar.value, scalar.span);
 
   /// Converts a sequence into a List of Dart objects.
-  visitSequence(SequenceNode seq) {
+  YamlList visitSequence(SequenceNode seq) {
     var anchor = getAnchor(seq);
     if (anchor != null) return anchor;
-    var dartSeq = setAnchor(seq, []);
-    dartSeq.addAll(super.visitSequence(seq));
+    var nodes = [];
+    var dartSeq = setAnchor(seq, new YamlList(nodes, seq.span));
+    nodes.addAll(super.visitSequence(seq));
     return dartSeq;
   }
 
-  /// Converts a mapping into a Map of Dart objects.
-  visitMapping(MappingNode map) {
+  /// Converts a mapping into a [Map] of Dart objects.
+  YamlMap visitMapping(MappingNode map) {
     var anchor = getAnchor(map);
     if (anchor != null) return anchor;
-    var dartMap = setAnchor(map, new YamlMap());
-    super.visitMapping(map).forEach((k, v) { dartMap[k] = v; });
+    var nodes = deepEqualsMap();
+    var dartMap = setAnchor(map, new YamlMap(nodes, map.span));
+    super.visitMapping(map).forEach((k, v) => nodes[k] = v);
     return dartMap;
   }
 
-  /// Returns the Dart object that already represents [anchored], if such a
-  /// thing exists.
-  getAnchor(Node anchored) {
+  /// Returns a new Dart object wrapping the object that already represents
+  /// [anchored], if such a thing exists.
+  YamlNode getAnchor(Node anchored) {
     if (anchored.anchor == null) return null;
-    if (_anchors.containsKey(anchored.anchor)) return _anchors[anchored.anchor];
+    var value = _anchors[anchored.anchor];
+    if (vaule == null) return null;
+
+    // Re-wrap [value]'s contents so that it's associated with the span of the
+    // anchor rather than its original definition.
+    if (value is YamlMap) return new YamlMap(value.nodes, anchored.span);
+    if (value is YamlList) return new YamlList(value.nodes, anchored.span);
+    assert(value is YamlScalar);
+    return new YamlScalar(value.value, anchored.span);
   }
 
   /// Records that [value] is the Dart object representing [anchored].
-  setAnchor(Node anchored, value) {
+  YamlNode setAnchor(Node anchored, YamlNode value) {
     if (anchored.anchor == null) return value;
     _anchors[anchored.anchor] = value;
     return value;

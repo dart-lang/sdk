@@ -140,6 +140,9 @@ class TransformerId {
     if (configuration == null) {
       configuration = {};
     } else {
+      // Don't write to the immutable YAML map.
+      configuration = new Map.from(configuration);
+
       // Pull out the exclusions/inclusions.
       includes = parseField("\$include");
       excludes = parseField("\$exclude");

@@ -8,9 +8,10 @@ import 'src/composer.dart';
 import 'src/constructor.dart';
 import 'src/parser.dart';
 import 'src/yaml_exception.dart';
+import 'src/yaml_node.dart';
 
 export 'src/yaml_exception.dart';
-export 'src/yaml_map.dart';
+export 'src/yaml_node.dart';
 
 /// Loads a single document from a YAML string.
 ///
@@ -28,12 +29,20 @@ export 'src/yaml_map.dart';
 ///
 /// If [sourceName] is passed, it's used as the name of the file or URL from
 /// which the YAML originated for error reporting.
-loadYaml(String yaml, {String sourceName}) {
+loadYaml(String yaml, {String sourceName}) =>
+    loadYamlNode(yaml, sourceName: sourceName).value;
+
+/// Loads a single document from a YAML string as a [YamlNode].
+///
+/// This is just like [loadYaml], except that where [loadYaml] would return a
+/// normal Dart value this returns a [YamlNode] instead. This allows the caller
+/// to be confident that the return value will always be a [YamlNode].
+YamlNode loadYamlNode(String yaml, {String sourceName}) {
   var stream = loadYamlStream(yaml, sourceName: sourceName);
   if (stream.length != 1) {
     throw new YamlException("Expected 1 document, were ${stream.length}.");
   }
-  return stream[0];
+  return stream.nodes[0];
 }
 
 /// Loads a stream of documents from a YAML string.
@@ -49,15 +58,16 @@ loadYaml(String yaml, {String sourceName}) {
 ///
 /// If [sourceName] is passed, it's used as the name of the file or URL from
 /// which the YAML originated for error reporting.
-List loadYamlStream(String yaml, {String sourceName}) {
-  var stream;
+YamlList loadYamlStream(String yaml, {String sourceName}) {
+  var pair;
   try {
-    stream = new Parser(yaml, sourceName).l_yamlStream();
+    pair = new Parser(yaml, sourceName).l_yamlStream();
   } on FormatException catch (error) {
     throw new YamlException(error.toString());
   }
 
-  return stream
+  var nodes = pair.first
       .map((doc) => new Constructor(new Composer(doc).compose()).construct())
       .toList();
+  return new YamlList(nodes, pair.last);
 }

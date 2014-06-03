@@ -1,13 +1,22 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library yaml.deep_equals;
+library yaml.equality;
+
+import 'dart:collection';
+
+import 'package:collection/collection.dart';
+
+import 'yaml_node.dart';
+
+/// Returns a [Map] that compares its keys based on [deepEquals].
+Map deepEqualsMap() => new HashMap(equals: deepEquals, hashCode: deepHashCode);
 
 /// Returns whether two objects are structurally equivalent.
 ///
-/// This considers `NaN` values to be equivalent. It also handles
-/// self-referential structures.
+/// This considers `NaN` values to be equivalent, handles self-referential
+/// structures, and considers [YamlScalar]s to be equal to their values.
 bool deepEquals(obj1, obj2) => new _DeepEquals().equals(obj1, obj2);
 
 /// A class that provides access to the list of parent objects used for loop
@@ -18,6 +27,9 @@ class _DeepEquals {
 
   /// Returns whether [obj1] and [obj2] are structurally equivalent.
   bool equals(obj1, obj2) {
+    if (obj1 is YamlScalar) obj1 = obj1.value;
+    if (obj2 is YamlScalar) obj2 = obj2.value;
+
     // _parents1 and _parents2 are guaranteed to be the same size.
     for (var i = 0; i < _parents1.length; i++) {
       var loop1 = identical(obj1, _parents1[i]);
@@ -78,4 +90,37 @@ class _DeepEquals {
     if (n1.isNaN && n2.isNaN) return true;
     return n1 == n2;
   }
+}
+
+/// Returns a hash code for [obj] such that structurally equivalent objects
+/// will have the same hash code.
+///
+/// This supports deep equality for maps and lists, including those with
+/// self-referential structures, and returns the same hash code for
+/// [YamlScalar]s and their values.
+int deepHashCode(obj) {
+  var parents = [];
+
+  _deepHashCode(value) {
+    if (parents.any((parent) => identical(parent, value))) return -1;
+
+    parents.add(value);
+    try {
+      if (value is Map) {
+        var equality = const UnorderedIterableEquality();
+        return equality.hash(value.keys.map(_deepHashCode)) ^
+            equality.hash(value.values.map(_deepHashCode));
+      } else if (value is Iterable) {
+        return const IterableEquality().hash(value.map(deepHashCode));
+      } else if (value is YamlScalar) {
+        return value.value.hashCode;
+      } else {
+        return value.hashCode;
+      }
+    } finally {
+      parents.removeLast();
+    }
+  }
+
+  return _deepHashCode(obj);
 }
