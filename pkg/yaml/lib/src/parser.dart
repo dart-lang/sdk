@@ -12,7 +12,6 @@ import 'package:string_scanner/string_scanner.dart';
 import 'equality.dart';
 import 'model.dart';
 import 'utils.dart';
-import 'yaml_exception.dart';
 
 /// Translates a string of characters into a YAML serialization tree.
 ///

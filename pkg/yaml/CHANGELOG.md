@@ -1,3 +1,7 @@
+## 1.0.0+1
+
+* Fix a variable name typo.
+
 ## 1.0.0
 
 * **Backwards incompatibility**: The data structures returned by `loadYaml` and

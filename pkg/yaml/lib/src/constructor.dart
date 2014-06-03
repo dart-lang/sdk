@@ -53,7 +53,7 @@ class Constructor extends Visitor {
   YamlNode getAnchor(Node anchored) {
     if (anchored.anchor == null) return null;
     var value = _anchors[anchored.anchor];
-    if (vaule == null) return null;
+    if (value == null) return null;
 
     // Re-wrap [value]'s contents so that it's associated with the span of the
     // anchor rather than its original definition.

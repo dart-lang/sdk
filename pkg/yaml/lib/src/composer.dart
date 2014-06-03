@@ -4,8 +4,6 @@
 
 library yaml.composer;
 
-import 'package:source_maps/source_maps.dart';
-
 import 'model.dart';
 import 'visitor.dart';
 import 'yaml_exception.dart';
