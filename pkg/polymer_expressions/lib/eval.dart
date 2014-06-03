@@ -81,10 +81,8 @@ Object update(ExpressionObserver expr, Scope scope) {
  * operators or function invocations, and any index operations must use a
  * literal index.
  */
-Object assign(Expression expr, Object value, Scope scope) {
-
-  notAssignable() =>
-      throw new EvalException("Expression is not assignable: $expr");
+Object assign(Expression expr, Object value, Scope scope,
+    {bool checkAssignability: true}) {
 
   Expression expression;
   var property;
@@ -102,45 +100,43 @@ Object assign(Expression expr, Object value, Scope scope) {
 
   if (expr is Identifier) {
     expression = empty();
-    Identifier ident = expr;
-    property = ident.value;
+    property = expr.value;
   } else if (expr is Index) {
-    if (expr.argument is! Literal) notAssignable();
     expression = expr.receiver;
-    Literal l = expr.argument;
-    property = l.value;
+    property = expr.argument;
     isIndex = true;
   } else if (expr is Getter) {
     expression = expr.receiver;
     property = expr.name;
-  } else if (expr is Invoke) {
-    expression = expr.receiver;
-    if (expr.method != null) {
-      if (expr.arguments != null) notAssignable();
-      property = expr.method;
-    } else {
-      notAssignable();
-    }
   } else {
-    notAssignable();
+    if (checkAssignability) {
+      throw new EvalException("Expression is not assignable: $expr");
+    }
+    return null;
   }
 
   // transform the values backwards through the filters
   for (var filterExpr in filters) {
     var filter = eval(filterExpr, scope);
     if (filter is! Transformer) {
-      throw new EvalException("filter must implement Transformer: $filterExpr");
+      if (checkAssignability) {
+        throw new EvalException("filter must implement Transformer to be "
+            "assignable: $filterExpr");
+      } else {
+        return null;
+      }
     }
     value = filter.reverse(value);
   }
-  // make the assignment
+  // evaluate the receiver
   var o = eval(expression, scope);
 
   // can't assign to a property on a null LHS object. Silently fail.
   if (o == null) return null;
 
   if (isIndex) {
-    o[property] = value;
+    var index = eval(property, scope);
+    o[index] = value;
   } else {
     smoke.write(o, smoke.nameToSymbol(property), value);
   }

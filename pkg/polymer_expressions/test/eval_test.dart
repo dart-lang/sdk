@@ -244,6 +244,15 @@ main() {
       var foo = new Foo(items: [1, 2, 3]);
       assign(parse('items[0]'), 4, new Scope(model: foo));
       expect(foo.items[0], 4);
+      assign(parse('items[a]'), 5, new Scope(model: foo, variables: {'a': 0}));
+      expect(foo.items[0], 5);
+    });
+
+    test('should assign with a function call subexpression', () {
+      var child = new Foo();
+      var foo = new Foo(items: [1, 2, 3], child: child);
+      assign(parse('getChild().name'), 'child', new Scope(model: foo));
+      expect(child.name, 'child');
     });
 
     test('should assign through transformers', () {
@@ -260,8 +269,34 @@ main() {
       expect(foo.name, '19');
     });
 
-    test('should throw on assignments to properties on null', () {
+    test('should not throw on assignments to properties on null', () {
       assign(parse('name'), 'b', new Scope(model: null));
+    });
+
+    test('should throw on assignments to non-assignable expressions', () {
+      var foo = new Foo(name: 'a');
+      var scope = new Scope(model: foo);
+      expect(() => assign(parse('name + 1'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+      expect(() => assign(parse('toString()'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+      expect(() => assign(parse('name | filter'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+    });
+
+    test('should not throw on assignments to non-assignable expressions if '
+        'checkAssignability is false', () {
+      var foo = new Foo(name: 'a');
+      var scope = new Scope(model: foo);
+      expect(
+          assign(parse('name + 1'), 1, scope, checkAssignability: false),
+          null);
+      expect(
+          assign(parse('toString()'), 1, scope, checkAssignability: false),
+          null);
+      expect(
+          assign(parse('name | filter'), 1, scope, checkAssignability: false),
+          null);
     });
 
   });
@@ -350,6 +385,10 @@ class Foo extends ChangeNotifier {
   Foo({name, this.age, this.child, this.items}) : _name = name;
 
   int x() => age * age;
+
+  getChild() => child;
+
+  filter(i) => i;
 }
 
 @reflectable

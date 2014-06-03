@@ -299,7 +299,7 @@ class _Binding extends Bindable {
 
   set value(v) {
     try {
-      var newValue = assign(_expr, v, _scope);
+      var newValue = assign(_expr, v, _scope, checkAssignability: false);
       _check(newValue, skipChanges: true);
     } catch (e, s) {
       new Completer().completeError(
