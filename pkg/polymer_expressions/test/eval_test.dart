@@ -81,6 +81,9 @@ main() {
       expectEval('2 - 1', 1);
       expectEval('4 / 2', 2);
       expectEval('2 * 3', 6);
+      expectEval('5 % 2', 1);
+      expectEval('5 % -2', 1);
+      expectEval('-5 % 2', 1);
 
       expectEval('1 == 1', true);
       expectEval('1 == 2', false);

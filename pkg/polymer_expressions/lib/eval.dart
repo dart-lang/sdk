@@ -20,6 +20,7 @@ final _BINARY_OPERATORS = {
   '-':  (a, b) => a - b,
   '*':  (a, b) => a * b,
   '/':  (a, b) => a / b,
+  '%':  (a, b) => a % b,
   '==': (a, b) => a == b,
   '!=': (a, b) => a != b,
   '>':  (a, b) => a > b,
