@@ -85,6 +85,8 @@ class Scanner : ValueObject {
                              const String** value);
 
  private:
+  static const int kNumLowercaseChars = 26;
+
   struct ScanContext {
     ScanContext* next;
     char string_delimiter;
@@ -205,7 +207,8 @@ class Scanner : ValueObject {
 
   SourcePosition c0_pos_;      // Source position of lookahead character c0_.
 
-  static KeywordTable keywords_[Token::numKeywords];
+  static KeywordTable keywords_[Token::kNumKeywords];
+  static int keywords_char_offset_[kNumLowercaseChars];
 };
 
 
