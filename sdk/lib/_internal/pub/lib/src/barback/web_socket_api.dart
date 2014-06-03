@@ -11,6 +11,9 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
+import '../exit_codes.dart' as exit_codes;
+import '../io.dart';
+import '../log.dart' as log;
 import '../utils.dart';
 import 'asset_environment.dart';
 
@@ -24,11 +27,20 @@ class WebSocketApi {
   final AssetEnvironment _environment;
   final _server = new json_rpc.Server();
 
+  /// Whether the application should exit when this connection closes.
+  bool _exitOnClose = false;
+
   WebSocketApi(this._socket, this._environment) {
     _server.registerMethod("urlToAssetId", _urlToAssetId);
     _server.registerMethod("pathToUrls", _pathToUrls);
     _server.registerMethod("serveDirectory", _serveDirectory);
     _server.registerMethod("unserveDirectory", _unserveDirectory);
+
+    /// Tells the server to exit as soon as this WebSocket connection is closed.
+    ///
+    /// This takes no arguments and returns no results. It can safely be called
+    /// as a JSON-RPC notification.
+    _server.registerMethod("exitOnClose", () => _exitOnClose = true);
   }
 
   /// Listens on the socket.
@@ -41,7 +53,11 @@ class WebSocketApi {
       _server.parseRequest(request).then((response) {
         if (response != null) _socket.add(response);
       });
-    }, cancelOnError: true).asFuture();
+    }, cancelOnError: true).asFuture().then((_) {
+      if (!_exitOnClose) return;
+      log.message("WebSocket connection closed, terminating.");
+      flushThenExit(exit_codes.SUCCESS);
+    });
   }
 
   /// Given a URL to an asset that is served by pub, returns the ID of the

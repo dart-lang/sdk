@@ -328,16 +328,25 @@ Future _ensureWebSocket() {
   });
 }
 
+/// Schedules closing the web socket connection to the currently-running pub
+/// serve.
+Future closeWebSocket() {
+  schedule(() {
+    return _ensureWebSocket().then((_) => _webSocket.close())
+        .then((_) => _webSocket = null);
+  }, "closing web socket");
+}
+
 /// Sends a JSON RPC 2.0 request to the running pub serve's web socket
 /// connection.
 ///
-/// This calls a method named [method] with the given [params]. [params] may
-/// contain Futures, in which case this will wait until they've completed before
-/// sending the request.
+/// This calls a method named [method] with the given [params] (or no
+/// parameters, if it's not passed). [params] may contain Futures, in which case
+/// this will wait until they've completed before sending the request.
 ///
 /// This schedules the request, but doesn't block the schedule on the response.
 /// It returns the response as a [Future].
-Future<Map> webSocketRequest(String method, Map params) {
+Future<Map> webSocketRequest(String method, [Map params]) {
   var completer = new Completer();
   schedule(() {
     return Future.wait([
@@ -424,14 +433,15 @@ var _rpcId = 0;
 /// Sends a JSON-RPC 2.0 request calling [method] with [params].
 ///
 /// Returns the response object.
-Future<Map> _jsonRpcRequest(String method, Map params) {
+Future<Map> _jsonRpcRequest(String method, [Map params]) {
   var id = _rpcId++;
-  _webSocket.add(JSON.encode({
+  var message = {
     "jsonrpc": "2.0",
     "method": method,
-    "params": params,
     "id": id
-  }));
+  };
+  if (params != null) message["params"] = params;
+  _webSocket.add(JSON.encode(message));
 
   return _webSocketBroadcastStream
       .firstWhere((response) => response["id"] == id).then((value) {
