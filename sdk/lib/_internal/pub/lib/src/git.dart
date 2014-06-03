@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'io.dart';
 import 'log.dart' as log;
+import 'utils.dart';
 
 /// An exception thrown because a git command failed.
 class GitException implements Exception {
@@ -41,6 +42,12 @@ Future<bool> get isInstalled {
 Future<List<String>> run(List<String> args,
     {String workingDir, Map<String, String> environment}) {
   return _gitCommand.then((git) {
+    if (git == null) {
+      throw new ApplicationException(
+          "Cannot find a Git executable.\n"
+          "Please ensure Git is correctly installed.");
+    }
+
     return runProcess(git, args, workingDir: workingDir,
         environment: environment);
   }).then((result) {

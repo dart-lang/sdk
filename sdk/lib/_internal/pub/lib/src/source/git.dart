@@ -53,7 +53,7 @@ class GitSource extends CachedSource {
 
     return git.isInstalled.then((installed) {
       if (!installed) {
-        throw new Exception(
+        throw new ApplicationException(
             "Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
             "Please ensure Git is correctly installed.");
       }
