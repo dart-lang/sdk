@@ -499,7 +499,7 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   }
 }
 
-final _printClosure = window.console.log;
+final _printClosure = (s) => window.console.log(s);
 final _pureIsolatePrintClosure = (s) {
   throw new UnimplementedError("Printing from a background isolate "
                                "is not supported in the browser");
