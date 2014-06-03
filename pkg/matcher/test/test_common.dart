@@ -13,13 +13,13 @@ class Widget {
 }
 
 class HasPrice extends CustomMatcher {
-  HasPrice(matcher) : super("Widget with a price that is", "price", matcher);
+  HasPrice(matcher) :
+    super("Widget with a price that is", "price", matcher);
   featureValueOf(actual) => actual.price;
 }
 
-class SimpleIterable extends IterableBase<int> {
-  final int count;
-
+class SimpleIterable extends IterableBase {
+  int count;
   SimpleIterable(this.count);
 
   bool contains(int val) => count < val ? false : true;
@@ -34,15 +34,15 @@ class SimpleIterable extends IterableBase<int> {
   String toString() => "<[$count]>";
 
   Iterator get iterator {
-    return new _SimpleIterator(count);
+    return new SimpleIterator(count);
   }
 }
 
-class _SimpleIterator implements Iterator<int> {
+class SimpleIterator implements Iterator {
   int _count;
   int _current;
 
-  _SimpleIterator(this._count);
+  SimpleIterator(this._count);
 
   bool moveNext() {
     if (_count > 0) {
@@ -54,6 +54,6 @@ class _SimpleIterator implements Iterator<int> {
     return false;
   }
 
-  int get current => _current;
+  get current => _current;
 }
 
