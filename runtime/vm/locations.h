@@ -505,74 +505,77 @@ class LocationSummary : public ZoneAllocated {
     kCallOnSlowPath
   };
 
-  // Defaults to 1 output.
   LocationSummary(Isolate* isolate,
                   intptr_t input_count,
                   intptr_t temp_count,
-                  LocationSummary::ContainsCall contains_call);
-
-  LocationSummary(Isolate* isolate,
-                  intptr_t input_count,
-                  intptr_t temp_count,
-                  intptr_t output_count,
                   LocationSummary::ContainsCall contains_call);
 
   intptr_t input_count() const {
-    return input_locations_.length();
+    return num_inputs_;
   }
 
   Location in(intptr_t index) const {
+    ASSERT(index >= 0);
+    ASSERT(index < num_inputs_);
     return input_locations_[index];
   }
 
   Location* in_slot(intptr_t index) {
+    ASSERT(index >= 0);
+    ASSERT(index < num_inputs_);
     return &input_locations_[index];
   }
 
   void set_in(intptr_t index, Location loc) {
+    ASSERT(index >= 0);
+    ASSERT(index < num_inputs_);
     ASSERT(!always_calls() || loc.IsMachineRegister());
     input_locations_[index] = loc;
   }
 
   intptr_t temp_count() const {
-    return temp_locations_.length();
+    return num_temps_;
   }
 
   Location temp(intptr_t index) const {
+    ASSERT(index >= 0);
+    ASSERT(index < num_temps_);
     return temp_locations_[index];
   }
 
   Location* temp_slot(intptr_t index) {
+    ASSERT(index >= 0);
+    ASSERT(index < num_temps_);
     return &temp_locations_[index];
   }
 
   void set_temp(intptr_t index, Location loc) {
+    ASSERT(index >= 0);
+    ASSERT(index < num_temps_);
     ASSERT(!always_calls() || loc.IsMachineRegister());
     temp_locations_[index] = loc;
   }
 
-  void AddTemp(Location loc) {
-    ASSERT(!always_calls() || loc.IsMachineRegister());
-    temp_locations_.Add(loc);
-  }
-
   intptr_t output_count() const {
-    return output_locations_.length();
+    return 1;
   }
 
   Location out(intptr_t index) const {
-    return output_locations_[index];
+    ASSERT(index == 0);
+    return output_location_;
   }
 
   Location* out_slot(intptr_t index) {
-    return &output_locations_[index];
+    ASSERT(index == 0);
+    return &output_location_;
   }
 
   void set_out(intptr_t index, Location loc) {
+    ASSERT(index == 0);
     ASSERT(!always_calls() ||
            (loc.IsMachineRegister() || loc.IsInvalid() ||
             loc.IsPairLocation()));
-    output_locations_[index] = loc;
+    output_location_ = loc;
   }
 
   BitmapBuilder* stack_bitmap() {
@@ -609,9 +612,11 @@ class LocationSummary : public ZoneAllocated {
   }
 
  private:
-  GrowableArray<Location> input_locations_;
-  GrowableArray<Location> temp_locations_;
-  GrowableArray<Location> output_locations_;
+  const intptr_t num_inputs_;
+  Location* input_locations_;
+  const intptr_t num_temps_;
+  Location* temp_locations_;
+  Location output_location_;
 
   BitmapBuilder* stack_bitmap_;
 

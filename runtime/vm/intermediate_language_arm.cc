@@ -1599,9 +1599,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, 0, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -1614,12 +1611,20 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Isolate* isolate,
 
   const bool needs_field_temp_reg = emit_full_guard;
 
+  intptr_t num_temps = 0;
   if (needs_value_cid_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
+    num_temps++;
+  }
+  if (needs_field_temp_reg) {
+    num_temps++;
   }
 
-  if (needs_field_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+
+  for (intptr_t i = 0; i < num_temps; i++) {
+    summary->set_temp(i, Location::RequiresRegister());
   }
 
   return summary;
@@ -1761,22 +1766,27 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Isolate* isolate,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, 0, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-
   if (!opt || (field().guarded_list_length() == Field::kUnknownFixedLength)) {
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
     // We need temporaries for field object, length offset and expected length.
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+    summary->set_temp(2, Location::RequiresRegister());
+    return summary;
   } else {
     // TODO(vegorov): can use TMP when length is small enough to fit into
     // immediate.
-    summary->AddTemp(Location::RequiresRegister());
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
   }
-
-  return summary;
+  UNREACHABLE();
 }
 
 
@@ -1883,7 +1893,9 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedStore() && opt) ? 2 :
+          ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
           !field().IsNull() &&
@@ -1894,16 +1906,16 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
   } else if (IsPotentialUnboxedStore()) {
     summary->set_in(1, ShouldEmitStoreBarrier()
         ? Location::WritableRegister()
         :  Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(opt ? Location::RequiresFpuRegister()
-                         : Location::FpuRegisterLocation(Q1));
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+    summary->set_temp(2, opt ? Location::RequiresFpuRegister()
+                             : Location::FpuRegisterLocation(Q1));
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -2425,7 +2437,10 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedLoad() && opt) ? 1 :
+          ((IsPotentialUnboxedLoad()) ? 3 : 0);
+
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
           (opt && !IsPotentialUnboxedLoad())
@@ -2435,12 +2450,12 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
   } else if (IsPotentialUnboxedLoad()) {
-    locs->AddTemp(opt ? Location::RequiresFpuRegister()
-                      : Location::FpuRegisterLocation(Q1));
-    locs->AddTemp(Location::RequiresRegister());
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, opt ? Location::RequiresFpuRegister()
+                          : Location::FpuRegisterLocation(Q1));
+    locs->set_temp(1, Location::RequiresRegister());
+    locs->set_temp(2, Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -2965,19 +2980,35 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  // Calculate number of temporaries.
+  intptr_t num_temps = 0;
+  if (op_kind() == Token::kTRUNCDIV) {
+    if (RightIsPowerOfTwoConstant()) {
+      num_temps = 1;
+    } else {
+      num_temps = 2;
+    }
+  } else if (op_kind() == Token::kMOD) {
+    num_temps = 2;
+  } else if (((op_kind() == Token::kSHL) && !is_truncating()) ||
+             (op_kind() == Token::kSHR)) {
+    num_temps = 1;
+  } else if ((op_kind() == Token::kMUL) &&
+             (TargetCPUFeatures::arm_version() != ARMv7)) {
+    num_temps = 1;
+  }
   LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
     summary->set_in(0, Location::RequiresRegister());
     if (RightIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant->value()));
-      summary->AddTemp(Location::RequiresRegister());
+      summary->set_temp(0, Location::RequiresRegister());
     } else {
       summary->set_in(1, Location::RequiresRegister());
-      summary->AddTemp(Location::RequiresRegister());
-      summary->AddTemp(Location::RequiresFpuRegister());
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresFpuRegister());
     }
     summary->set_out(0, Location::RequiresRegister());
     return summary;
@@ -2985,8 +3016,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   if (op_kind() == Token::kMOD) {
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresFpuRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresFpuRegister());
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
@@ -2994,11 +3025,11 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && !is_truncating()) ||
       (op_kind() == Token::kSHR)) {
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
   if (op_kind() == Token::kMUL) {
     if (TargetCPUFeatures::arm_version() != ARMv7) {
-      summary->AddTemp(Location::RequiresFpuRegister());
+      summary->set_temp(0, Location::RequiresFpuRegister());
     }
   }
   // We make use of 3-operand instructions by not requiring result register
@@ -4856,16 +4887,16 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
     const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = TargetCPUFeatures::hardfp_supported() ? 0 : 4;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(Q0));
     summary->set_out(0, Location::FpuRegisterLocation(Q0));
     if (!TargetCPUFeatures::hardfp_supported()) {
-      summary->AddTemp(Location::RegisterLocation(R0));
-      summary->AddTemp(Location::RegisterLocation(R1));
-      summary->AddTemp(Location::RegisterLocation(R2));
-      summary->AddTemp(Location::RegisterLocation(R3));
+      summary->set_temp(0, Location::RegisterLocation(R0));
+      summary->set_temp(1, Location::RegisterLocation(R1));
+      summary->set_temp(2, Location::RegisterLocation(R2));
+      summary->set_temp(3, Location::RegisterLocation(R3));
     }
     return summary;
   }
@@ -5211,7 +5242,9 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
                                                                bool opt) const {
   ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (TargetCPUFeatures::hardfp_supported()) ?
+        ((recognized_kind() == MethodRecognizer::kMathDoublePow) ? 1 : 0) : 4;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, InputCount(), kNumTemps, LocationSummary::kCall);
   result->set_in(0, Location::FpuRegisterLocation(Q0));
@@ -5219,16 +5252,17 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
     result->set_in(1, Location::FpuRegisterLocation(Q1));
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    result->AddTemp(Location::RegisterLocation(R2));
-  }
-  if (!TargetCPUFeatures::hardfp_supported()) {
-    result->AddTemp(Location::RegisterLocation(R0));
-    result->AddTemp(Location::RegisterLocation(R1));
-    // Check if R2 is already added.
-    if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
-      result->AddTemp(Location::RegisterLocation(R2));
+    result->set_temp(0, Location::RegisterLocation(R2));
+    if (!TargetCPUFeatures::hardfp_supported()) {
+      result->set_temp(1, Location::RegisterLocation(R0));
+      result->set_temp(2, Location::RegisterLocation(R1));
+      result->set_temp(3, Location::RegisterLocation(R3));
     }
-    result->AddTemp(Location::RegisterLocation(R3));
+  } else if (!TargetCPUFeatures::hardfp_supported()) {
+    result->set_temp(0, Location::RegisterLocation(R0));
+    result->set_temp(1, Location::RegisterLocation(R1));
+    result->set_temp(2, Location::RegisterLocation(R2));
+    result->set_temp(3, Location::RegisterLocation(R3));
   }
   result->set_out(0, Location::FpuRegisterLocation(Q0));
   return result;
@@ -5586,12 +5620,12 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = !IsNullCheck() ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   if (!IsNullCheck()) {
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
 }

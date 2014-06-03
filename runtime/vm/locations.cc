@@ -27,46 +27,13 @@ LocationSummary::LocationSummary(Isolate* isolate,
                                  intptr_t input_count,
                                  intptr_t temp_count,
                                  LocationSummary::ContainsCall contains_call)
-    : input_locations_(isolate, input_count),
-      temp_locations_(isolate, temp_count),
-      output_locations_(isolate, 1),
+    : num_inputs_(input_count),
+      num_temps_(temp_count),
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
-  for (intptr_t i = 0; i < input_count; i++) {
-    input_locations_.Add(Location());
-  }
-  for (intptr_t i = 0; i < temp_count; i++) {
-    temp_locations_.Add(Location());
-  }
-  output_locations_.Add(Location());
-  ASSERT(output_locations_.length() == 1);
-}
-
-
-LocationSummary::LocationSummary(Isolate* isolate,
-                                 intptr_t input_count,
-                                 intptr_t temp_count,
-                                 intptr_t output_count,
-                                 LocationSummary::ContainsCall contains_call)
-    : input_locations_(isolate, input_count),
-      temp_locations_(isolate, temp_count),
-      output_locations_(isolate, output_count),
-      stack_bitmap_(NULL),
-      contains_call_(contains_call),
-      live_registers_() {
-  for (intptr_t i = 0; i < input_count; i++) {
-    input_locations_.Add(Location());
-  }
-  for (intptr_t i = 0; i < temp_count; i++) {
-    temp_locations_.Add(Location());
-  }
-  // TODO(johnmccutchan): Remove this assertion once support for multiple
-  // outputs is complete.
-  ASSERT(output_count == 1);
-  for (intptr_t i = 0; i < output_count; i++) {
-    output_locations_.Add(Location());
-  }
+  input_locations_ = isolate->current_zone()->Alloc<Location>(num_inputs_);
+  temp_locations_ = isolate->current_zone()->Alloc<Location>(num_temps_);
 }
 
 

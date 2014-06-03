@@ -1354,9 +1354,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, 0, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -1369,12 +1366,20 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Isolate* isolate,
 
   const bool needs_field_temp_reg = emit_full_guard;
 
+  intptr_t num_temps = 0;
   if (needs_value_cid_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
+    num_temps++;
+  }
+  if (needs_field_temp_reg) {
+    num_temps++;
   }
 
-  if (needs_field_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+
+  for (intptr_t i = 0; i < num_temps; i++) {
+    summary->set_temp(i, Location::RequiresRegister());
   }
 
   return summary;
@@ -1514,18 +1519,23 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Isolate* isolate,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, 0, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-
   if (!opt || (field().guarded_list_length() == Field::kUnknownFixedLength)) {
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
     // We need temporaries for field object, length offset and expected length.
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+    summary->set_temp(2, Location::RequiresRegister());
+    return summary;
+  } else {
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, 0, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    return summary;
   }
-
-  return summary;
+  UNREACHABLE();
 }
 
 
@@ -1630,7 +1640,9 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedStore() && opt) ? 2 :
+          ((IsPotentialUnboxedStore()) ? 2 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
       !field().IsNull() &&
@@ -1641,14 +1653,14 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
   } else if (IsPotentialUnboxedStore()) {
       summary->set_in(1, ShouldEmitStoreBarrier()
           ? Location::WritableRegister()
           :  Location::RequiresRegister());
-      summary->AddTemp(Location::RequiresRegister());
-      summary->AddTemp(Location::RequiresRegister());
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresRegister());
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -2061,7 +2073,9 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedLoad() && opt) ? 1 :
+          ((IsPotentialUnboxedLoad()) ? 1 : 0);
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
       (opt && !IsPotentialUnboxedLoad())
@@ -2071,9 +2085,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
   } else if (IsPotentialUnboxedLoad()) {
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -2618,7 +2632,9 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (((op_kind() == Token::kSHL) && !is_truncating()) ||
+       (op_kind() == Token::kSHR)) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
@@ -2642,7 +2658,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && !is_truncating()) ||
       (op_kind() == Token::kSHR)) {
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
   // We make use of 3-operand instructions by not requiring result register
   // to be identical to first input register as on Intel.
@@ -4583,7 +4599,8 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
                                                                bool opt) const {
   ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 1 : 0;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, InputCount(), kNumTemps, LocationSummary::kCall);
   result->set_in(0, Location::FpuRegisterLocation(V0));
@@ -4591,7 +4608,7 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
     result->set_in(1, Location::FpuRegisterLocation(V1));
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
-    result->AddTemp(Location::FpuRegisterLocation(V30));
+    result->set_temp(0, Location::FpuRegisterLocation(V30));
   }
   result->set_out(0, Location::FpuRegisterLocation(V0));
   return result;
@@ -4912,12 +4929,12 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = !IsNullCheck() ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   if (!IsNullCheck()) {
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
 }
