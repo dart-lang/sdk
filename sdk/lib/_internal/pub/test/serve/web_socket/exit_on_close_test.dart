@@ -25,7 +25,7 @@ main() {
       "url": getServerUrl("web", "index.html")
     }, {"package": "myapp", "path": "web/index.html"});
 
-    webSocketRequest("exitOnClose");
+    expectWebSocketResult("exitOnClose", null, null);
 
     // Close the web socket.
     closeWebSocket();

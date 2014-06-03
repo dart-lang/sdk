@@ -40,7 +40,9 @@ class WebSocketApi {
     ///
     /// This takes no arguments and returns no results. It can safely be called
     /// as a JSON-RPC notification.
-    _server.registerMethod("exitOnClose", () => _exitOnClose = true);
+    _server.registerMethod("exitOnClose", () {
+      _exitOnClose = true;
+    });
   }
 
   /// Listens on the socket.

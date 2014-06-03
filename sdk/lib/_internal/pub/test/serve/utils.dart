@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../lib/src/utils.dart';
 import '../descriptor.dart' as d;
@@ -443,8 +444,8 @@ Future<Map> _jsonRpcRequest(String method, [Map params]) {
   if (params != null) message["params"] = params;
   _webSocket.add(JSON.encode(message));
 
-  return _webSocketBroadcastStream
-      .firstWhere((response) => response["id"] == id).then((value) {
+  return Chain.track(_webSocketBroadcastStream
+      .firstWhere((response) => response["id"] == id)).then((value) {
     currentSchedule.addDebugInfo(
         "Web Socket request $method with params $params\n"
         "Result: $value");
