@@ -87,6 +87,7 @@ void renamePlaceholders(
   }
 
   String renameType(DartType type, Function renameElement) {
+    if (type.isDynamic) return 'dynamic';
     // TODO(smok): Do not rename type if it is in platform library or
     // js-helpers.
     StringBuffer result = new StringBuffer(renameElement(type.element));
