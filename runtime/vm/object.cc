@@ -4927,12 +4927,12 @@ bool Function::HasBreakpoint() const {
 }
 
 
-void Function::set_code(const Code& value) const {
-  StorePointer(&raw_ptr()->code_, value.raw());
+void Function::SetInstructions(const Code& value) const {
+  StorePointer(&raw_ptr()->instructions_, value.instructions());
 }
 
 void Function::AttachCode(const Code& value) const {
-  set_code(value);
+  SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
   value.set_owner(*this);
@@ -4940,14 +4940,16 @@ void Function::AttachCode(const Code& value) const {
 
 
 bool Function::HasCode() const {
-  ASSERT(raw_ptr()->code_ != Code::null());
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  ASSERT(raw_ptr()->instructions_ != Instructions::null());
+  return raw_ptr()->instructions_ !=
+      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
 }
 
 
 void Function::ClearCode() const {
-  StorePointer(&raw_ptr()->code_, StubCode::LazyCompile_entry()->code());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+  StorePointer(&raw_ptr()->instructions_,
+      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
 }
 
 
@@ -5976,7 +5978,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
-  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6301,7 +6303,8 @@ RawScript* Function::script() const {
 
 
 bool Function::HasOptimizedCode() const {
-  return HasCode() && Code::Handle(raw_ptr()->code_).is_optimized();
+  return HasCode() &&  Code::Handle(Instructions::Handle(
+      raw_ptr()->instructions_).code()).is_optimized();
 }
 
 

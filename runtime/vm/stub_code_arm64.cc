@@ -625,8 +625,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   // Tail-call to target function.
-  __ LoadFieldFromOffset(R2, R0, Function::code_offset(), kNoPP);
-  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset(), kNoPP);
+  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);
   __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag, PP);
   __ br(R2);
 }
@@ -1516,8 +1515,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // R0: target function.
-  __ LoadFieldFromOffset(R2, R0, Function::code_offset(), kNoPP);
-  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset(), kNoPP);
+  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);
   __ AddImmediate(
       R2, R2, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
   __ br(R2);
@@ -1640,11 +1638,10 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ LoadFromOffset(R0, R6, target_offset, kNoPP);
-  __ LoadFieldFromOffset(R2, R0, Function::code_offset(), kNoPP);
+  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);
 
   // R0: function.
-  // R2: target code.
-  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset(), kNoPP);
+  // R2: target instructons.
   __ AddImmediate(
       R2, R2, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
   __ br(R2);
@@ -1674,8 +1671,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R5);  // Restore IC Data.
   __ LeaveStubFrame();
 
-  __ LoadFieldFromOffset(R2, R0, Function::code_offset(), kNoPP);
-  __ LoadFieldFromOffset(R2, R2, Code::instructions_offset(), kNoPP);
+  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);
   __ AddImmediate(
       R2, R2, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
   __ br(R2);

@@ -548,8 +548,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
 
-  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
 }
@@ -1341,8 +1340,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   Label is_compiled;
-  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
 
@@ -1488,9 +1486,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
-  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
-  // RCX: Target code.
-  __ movq(RCX, FieldAddress(RCX, Code::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
+  // RCX: Target instructions.
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
 }
@@ -1518,8 +1515,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
-  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ movq(RAX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
 }

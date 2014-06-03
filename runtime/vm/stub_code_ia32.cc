@@ -591,8 +591,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popl(ECX);  // Restore IC data.
   __ LeaveFrame();
 
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
 }
@@ -1416,8 +1415,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // EAX: Target function.
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
 
@@ -1565,10 +1563,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
 
-  // EBX: Target code.
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  // EBX: Target instructions.
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
 }
@@ -1596,8 +1593,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ movl(EAX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EAX);
 }

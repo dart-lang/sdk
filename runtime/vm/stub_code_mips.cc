@@ -670,8 +670,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
 
-  __ lw(T2, FieldAddress(T0, Function::code_offset()));
-  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T2);
 }
@@ -1570,8 +1569,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // T0 <- T3: Target function.
   __ mov(T0, T3);
   Label is_compiled;
-  __ lw(T4, FieldAddress(T0, Function::code_offset()));
-  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T4);
 
@@ -1715,10 +1713,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ lw(T0, Address(T0, target_offset));
-  __ lw(T4, FieldAddress(T0, Function::code_offset()));
+  __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
 
-  // T4: target code.
-  __ lw(T4, FieldAddress(T4, Code::instructions_offset()));
+  // T4: target instructions.
   __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T4);
 }
@@ -1748,8 +1745,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();
 
-  __ lw(T2, FieldAddress(T0, Function::code_offset()));
-  __ lw(T2, FieldAddress(T2, Code::instructions_offset()));
+  __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T2);
 }

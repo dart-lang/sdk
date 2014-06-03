@@ -1576,7 +1576,7 @@ class Function : public Object {
 
   // Sets function's code and code's function.
   void AttachCode(const Code& value) const;
-  void set_code(const Code& value) const;
+  void SetInstructions(const Code& value) const;
   void ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
@@ -1584,15 +1584,20 @@ class Function : public Object {
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
-  RawCode* CurrentCode() const { return raw_ptr()->code_; }
+  RawCode* CurrentCode() const {
+    return raw_ptr()->instructions_->ptr()->code_;
+  }
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
-  static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   static intptr_t unoptimized_code_offset() {
     return OFFSET_OF(RawFunction, unoptimized_code_);
   }
   bool HasCode() const;
+
+  static intptr_t instructions_offset() {
+    return OFFSET_OF(RawFunction, instructions_);
+  }
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.

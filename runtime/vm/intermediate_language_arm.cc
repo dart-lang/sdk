@@ -211,12 +211,11 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
 
-  // R2: code.
+  // R2: instructions.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ LoadImmediate(R5, 0);
-  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ blx(R2);
   compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,

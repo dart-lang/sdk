@@ -711,7 +711,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   }
 
   // Set up code pointer with the lazy-compile-stub.
-  func.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  func.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 
   return func.raw();
 }
@@ -747,7 +747,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to_no_code());
 
-  // Write null for the code and unoptimized code.
+  // Write null for the instructions and unoptimized code.
   writer->WriteVMIsolateObject(kNullObject);
   writer->WriteVMIsolateObject(kNullObject);
 }

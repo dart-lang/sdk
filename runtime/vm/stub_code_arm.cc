@@ -590,8 +590,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   // Tail-call to target function.
-  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
 }
@@ -1383,8 +1382,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // R0: target function.
-  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
 
@@ -1519,11 +1517,10 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ LoadFromOffset(kWord, R0, R6, target_offset);
-  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
 
   // R0: function.
-  // R2: target code.
-  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  // R2: target instructions.
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
 }
@@ -1550,8 +1547,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R5));  // Restore arg desc. and IC data.
   __ LeaveStubFrame();
 
-  __ ldr(R2, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R2, FieldAddress(R2, Code::instructions_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
 }

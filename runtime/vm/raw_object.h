@@ -612,7 +612,7 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawObject* data_;  // Additional data specific to the function kind.
-  RawCode* code_;  // Compiled code for the function.
+  RawInstructions* instructions_;  // Instructions of currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
@@ -844,6 +844,8 @@ class RawCode : public RawObject {
   int32_t data_[0];
 
   friend class StackFrame;
+  friend class MarkingVisitor;
+  friend class Function;
 };
 
 
@@ -871,6 +873,8 @@ class RawInstructions : public RawObject {
   friend class RawCode;
   friend class Code;
   friend class StackFrame;
+  friend class MarkingVisitor;
+  friend class Function;
 };
 
 
