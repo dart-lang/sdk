@@ -72,6 +72,9 @@ class PerformAnalysisOperation extends ServerOperation {
         if (server.hasAnalysisSubscription(AnalysisService.HIGHLIGHTS, file)) {
           sendAnalysisNotificationHighlights(server, file, dartUnit);
         }
+        if (server.hasAnalysisSubscription(AnalysisService.NAVIGATION, file)) {
+          sendAnalysisNotificationNavigation(server, file, dartUnit);
+        }
       }
       if (!source.isInSystemLibrary) {
         sendAnalysisNotificationErrors(server, file, notice.errors);
@@ -95,6 +98,16 @@ void sendAnalysisNotificationHighlights(AnalysisServer server,
   notification.setParameter(
       REGIONS,
       new DartUnitHighlightsComputer(dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+void sendAnalysisNotificationNavigation(AnalysisServer server,
+                                        String file, CompilationUnit dartUnit) {
+  Notification notification = new Notification(NOTIFICATION_NAVIGATION);
+  notification.setParameter(FILE, file);
+  notification.setParameter(
+      REGIONS,
+      new DartUnitNavigationComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
 

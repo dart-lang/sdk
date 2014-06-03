@@ -33,6 +33,7 @@ main() {
 
   group('notification.errors', testNotificationErrors);
   group('notification.highlights', testNotificationHighlights);
+  group('notification.navigation', testNotificationNavigation);
   group('updateContent', testUpdateContent);
   group('setSubscriptions', test_setSubscriptions);
 
@@ -174,6 +175,7 @@ class AnalysisTestHelper {
 
   Map<String, List<AnalysisError>> filesErrors = {};
   Map<String, List<Map<String, Object>>> filesHighlights = {};
+  Map<String, List<Map<String, Object>>> filesNavigation = {};
 
   String testFile = '/project/bin/test.dart';
   String testCode;
@@ -195,11 +197,22 @@ class AnalysisTestHelper {
         String file = notification.getParameter(FILE);
         filesHighlights[file] = notification.getParameter(REGIONS);
       }
+      if (notification.event == NOTIFICATION_NAVIGATION) {
+        String file = notification.getParameter(FILE);
+        filesNavigation[file] = notification.getParameter(REGIONS);
+      }
     });
   }
 
-  void addAnalysisSubscriptionHighlight(String file) {
-    var service = AnalysisService.HIGHLIGHTS;
+  void addAnalysisSubscriptionHighlights(String file) {
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+  }
+
+  void addAnalysisSubscriptionNavigation(String file) {
+    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
+  }
+
+  void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service.name];
     if (files == null) {
@@ -219,6 +232,16 @@ class AnalysisTestHelper {
    */
   Future waitForOperationsFinished() {
     return waitForServerOperationsPerformed(server);
+  }
+
+  /**
+   * Returns the offset of [search] in [testCode].
+   * Fails if not found.
+   */
+  int findOffset(String search) {
+    int offset = testCode.indexOf(search);
+    expect(offset, isNot(-1));
+    return offset;
   }
 
   /**
@@ -246,6 +269,18 @@ class AnalysisTestHelper {
   }
 
   /**
+   * Returns navigation regions recorded for the given [file].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getNavigation(String file) {
+    List<Map<String, Object>> navigation = filesNavigation[file];
+    if (navigation != null) {
+      return navigation;
+    }
+    return [];
+  }
+
+  /**
    * Returns [AnalysisError]s recorded for the [testFile].
    * May be empty, but not `null`.
    */
@@ -259,6 +294,14 @@ class AnalysisTestHelper {
    */
   List<Map<String, Object>> getTestHighlights() {
     return getHighlights(testFile);
+  }
+
+  /**
+   * Returns navigation information recorded for the given [testFile].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getTestNavigation() {
+    return getNavigation(testFile);
   }
 
   /**
@@ -286,8 +329,9 @@ class AnalysisTestHelper {
     handleSuccessfulRequest(request);
   }
 
-  void setFileContent(String path, String content) {
+  String setFileContent(String path, String content) {
     resourceProvider.newFile(path, content);
+    return path;
   }
 
   /**
@@ -354,7 +398,7 @@ class NotificationHighlightHelper extends AnalysisTestHelper {
   List<Map<String, Object>> regions;
 
   Future prepareRegions(then()) {
-    addAnalysisSubscriptionHighlight(testFile);
+    addAnalysisSubscriptionHighlights(testFile);
     return waitForOperationsFinished().then((_) {
       regions = getTestHighlights();
       then();
@@ -1084,6 +1128,412 @@ class A<T> {
 }
 
 
+
+
+class NotificationNavigationHelper extends AnalysisTestHelper {
+  List<Map<String, Object>> regions;
+
+  Future prepareRegions(then()) {
+    addAnalysisSubscriptionNavigation(testFile);
+    return waitForOperationsFinished().then((_) {
+      regions = getTestNavigation();
+      then();
+    });
+  }
+
+  void assertHasRegion(String regionSearch, String targetSearch) {
+    var regionOffset = findOffset(regionSearch);
+    int regionLength = findIdentifierLength(regionSearch);
+    var targetOffset = findOffset(targetSearch);
+    var targetLength = findIdentifierLength(targetSearch);
+    asserHasRegionInts(regionOffset, regionLength, targetOffset, targetLength);
+  }
+
+  void asserHasOperatorRegion(String search, int regionLength, int targetLength) {
+    var regionOffset = findOffset(search);
+    var region = asserHasRegionInts(regionOffset, regionLength, -1, 0);
+    if (targetLength != -1) {
+      expect(region['targets'][0]['length'], targetLength);
+    }
+  }
+
+  asserHasRegionInts(int regionOffset, int regionLength,
+                          int targetOffset, int targetLength) {
+    Map<String, Object> region = findRegion(regionOffset, regionLength);
+    if (region != null) {
+      List<Map<String, Object>> targets = region['targets'];
+      if (targetOffset == -1) {
+        return region;
+      }
+      var target = findTarget(targets, testFile, targetOffset, targetLength);
+      if (target != null) {
+        return target;
+      }
+    }
+    fail('Expected to find (offset=$regionOffset; length=$regionLength) => '
+         '(offset=$targetOffset; length=$targetLength) in\n'
+         '${regions.join('\n')}');
+  }
+
+  Map<String, Object> findRegionString(String search, [bool notNull]) {
+    int offset = findOffset(search);
+    int length = search.length;
+    return findRegion(offset, length, notNull);
+  }
+
+  Map<String, Object> findRegionAt(String search, [bool notNull]) {
+    int offset = findOffset(search);
+    for (Map<String, Object> region in regions) {
+      if (region['offset'] == offset) {
+        if (notNull == false) {
+          fail('Not expected to find at offset=$offset in\n'
+               '${regions.join('\n')}');
+        }
+        return region;
+      }
+    }
+    if (notNull == true) {
+      fail('Expected to find at offset=$offset in\n'
+           '${regions.join('\n')}');
+    }
+    return null;
+  }
+
+  Map<String, Object> findRegionIdentifier(String search, [bool notNull]) {
+    int offset = findOffset(search);
+    int length = findIdentifierLength(search);
+    return findRegion(offset, length, notNull);
+  }
+
+  Map<String, Object> findRegion(int offset, int length, [bool notNull]) {
+    for (Map<String, Object> region in regions) {
+      if (region['offset'] == offset && region['length'] == length) {
+        if (notNull == false) {
+          fail('Not expected to find (offset=$offset; length=$length) in\n'
+               '${regions.join('\n')}');
+        }
+        return region;
+      }
+    }
+    if (notNull == true) {
+      fail('Expected to find (offset=$offset; length=$length) in\n'
+           '${regions.join('\n')}');
+    }
+    return null;
+  }
+
+  Map<String, Object> findTarget(List<Map<String, Object>> targets,
+                                 String file, int offset, int length) {
+    for (Map<String, Object> target in targets) {
+      if (target['file'] == file &&
+          target['offset'] == offset &&
+          target['length'] == length) {
+        return target;
+      }
+    }
+    return null;
+  }
+
+  void assertNoRegion(String regionSearch) {
+    var regionOffset = findOffset(regionSearch);
+    var regionLength = findIdentifierLength(regionSearch);
+    for (Map<String, Object> region in regions) {
+      if (region['offset'] == regionOffset && region['length'] == regionLength) {
+        fail('Unexpected (offset=$regionOffset; length=$regionLength) in\n'
+             '${regions.join('\n')}');
+      }
+    }
+  }
+}
+
+
+int findIdentifierLength(String search) {
+  int length = 0;
+  while (length < search.length) {
+    int c = search.codeUnitAt(length);
+    if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
+          c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
+          c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+      break;
+    }
+    length++;
+  }
+  return length;
+}
+
+
+testNotificationNavigation() {
+  Future testNavigation(String code, then(NotificationNavigationHelper helper)) {
+    var helper = new NotificationNavigationHelper();
+    helper.createSingleFileProject(code);
+    return helper.prepareRegions(() {
+      then(helper);
+    });
+  }
+
+  group('constructor', () {
+    test('named', () {
+      var code = '''
+class A {
+  A.named(int p) {}
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        // has region for complete "A.named"
+        helper.asserHasRegionInts(
+            helper.findOffset('A.named'), 'A.named'.length,
+            helper.findOffset('named(int'), 'named'.length);
+        // no separate regions for "A" and "named"
+        helper.assertNoRegion('A.named(');
+        helper.assertNoRegion('named(');
+        // validate that we don't forget to resolve parameters
+        helper.asserHasRegionInts(
+            helper.findOffset('int p'), 'int'.length,
+            -1, 0);
+      });
+    });
+
+    test('unnamed', () {
+      var code = '''
+class A {
+  A(int p) {}
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        // has constructor region for "A()"
+        helper.asserHasRegionInts(
+            helper.findOffset('A(int p)'), 'A'.length,
+            helper.findOffset('A(int p)'), 0);
+        // validate that we don't forget to resolve parameters
+        helper.asserHasRegionInts(
+            helper.findOffset('int p'), 'int'.length,
+            -1, 0);
+      });
+    });
+  });
+
+  group('identifier', () {
+    test('resolved', () {
+      var code = '''
+class AAA {}
+main() {
+  AAA aaa = null;
+  print(aaa);
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.assertHasRegion('AAA aaa', 'AAA {}');
+        helper.assertHasRegion('aaa);', 'aaa = null');
+        helper.assertHasRegion('main() {', 'main() {');
+      });
+    });
+
+    test('unresolved', () {
+      var code = '''
+main() {
+  print(noo);
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.assertNoRegion('noo);');
+      });
+    });
+  });
+
+  test('fieldFormalParameter', () {
+    var code = '''
+class A {
+  int fff = 123;
+  A(this.fff);
+}
+''';
+    return testNavigation(code, (NotificationNavigationHelper helper) {
+      helper.assertHasRegion('fff);', 'fff = 123');
+    });
+  });
+
+  group('instanceCreation', () {
+    test('named', () {
+      var code = '''
+class A {
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.asserHasRegionInts(
+            helper.findOffset('new A.named'), 'new A.named'.length,
+            helper.findOffset('named()'), 'named'.length);
+      });
+    });
+
+    test('unnamed', () {
+      var code = '''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.asserHasRegionInts(
+            helper.findOffset('new A'), 'new A'.length,
+            helper.findOffset('A()'), ''.length);
+      });
+    });
+  });
+
+  group('operator', () {
+    test('int', () {
+      var code = '''
+main() {
+  var v = 0;
+  v - 1;
+  v + 2;
+  -v; // unary
+  --v;
+  ++v;
+  v--; // mm
+  v++; // pp
+  v -= 3;
+  v += 4;
+  v *= 5;
+  v /= 6;
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.asserHasOperatorRegion('- 1;', 1, 1);
+        helper.asserHasOperatorRegion('+ 2;', 1, 1);
+        helper.asserHasOperatorRegion('-v; // unary', 1, -1);
+        helper.asserHasOperatorRegion('--v;', 2, 1);
+        helper.asserHasOperatorRegion('++v;', 2, 1);
+        helper.asserHasOperatorRegion('--; // mm', 2, 1);
+        helper.asserHasOperatorRegion('++; // pp', 2, 1);
+        helper.asserHasOperatorRegion('-= 3;', 2, 1);
+        helper.asserHasOperatorRegion('+= 4;', 2, 1);
+        helper.asserHasOperatorRegion('*= 5;', 2, 1);
+        helper.asserHasOperatorRegion('/= 6;', 2, 1);
+      });
+    });
+
+    test('list', () {
+      var code = '''
+main() {
+  List<int> v = [1, 2, 3];
+  v[0]; // []
+  v[1] = 1; // []=
+  v[2] += 2;
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.asserHasOperatorRegion(']; // []', 1, 2);
+        helper.asserHasOperatorRegion('] = 1', 1, 3);
+        helper.asserHasOperatorRegion('] += 2', 1, 3);
+        helper.asserHasOperatorRegion('+= 2', 2, 1);
+      });
+    });
+  });
+
+  test('partOf', () {
+    var helper = new NotificationNavigationHelper();
+    var code = '''
+part of lib;
+''';
+    helper.createSingleFileProject(code);
+    var libPath = helper.setFileContent('/project/bin/lib.dart', '''
+library lib;
+part 'test.dart';
+''');
+    return helper.prepareRegions(() {
+      var region = helper.findRegionString('part of lib', true);
+      var target = region['targets'][0];
+      expect(target['file'], libPath);
+    });
+  });
+
+  group('string', () {
+    test('export', () {
+      var code = '''
+export "dart:math";
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.findRegionString('export "dart:math"', true);
+      });
+    });
+
+    test('export unresolved URI', () {
+      var code = '''
+export 'no.dart';
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.findRegionAt('export ', false);
+      });
+    });
+
+    test('import', () {
+      var code = '''
+import "dart:math" as m;
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.findRegionString('import "dart:math"', true);
+      });
+    });
+
+    test('import no URI', () {
+      var code = '''
+import ;
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.findRegionAt('import ', false);
+      });
+    });
+
+    test('import unresolved URI', () {
+      var code = '''
+import 'no.dart';
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.findRegionAt('import ', false);
+      });
+    });
+
+    test('part', () {
+      var helper = new NotificationNavigationHelper();
+      var code = '''
+library lib;
+part "my_part.dart";
+''';
+      helper.createSingleFileProject(code);
+      var unitPath = helper.setFileContent('/project/bin/my_part.dart', '''
+part of lib;
+''');
+      return helper.prepareRegions(() {
+        var region = helper.findRegionString('part "my_part.dart"', true);
+        var target = region['targets'][0];
+        expect(target['file'], unitPath);
+      });
+    });
+
+    test('part unresolved URI', () {
+      // TODO(scheglov) why do we throw MemoryResourceException here?
+      // This Source/File does not exist.
+//      var helper = new NotificationNavigationHelper();
+//      var code = '''
+//library lib;
+//part "my_part.dart";
+//''';
+//      helper.createSingleFileProject(code);
+//      return helper.prepareRegions(() {
+//        helper.findRegionAt('part ', false);
+//      });
+    });
+  });
+}
+
+
 testUpdateContent() {
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
@@ -1146,7 +1596,7 @@ void test_setSubscriptions() {
   test('before analysis', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     // subscribe
-    helper.addAnalysisSubscriptionHighlight(helper.testFile);
+    helper.addAnalysisSubscriptionHighlights(helper.testFile);
     // create project
     helper.createSingleFileProject('int V = 42;');
     // wait, there are highlight regions
@@ -1165,7 +1615,7 @@ void test_setSubscriptions() {
       var highlights = helper.getHighlights(helper.testFile);
       expect(highlights, isEmpty);
       // subscribe
-      helper.addAnalysisSubscriptionHighlight(helper.testFile);
+      helper.addAnalysisSubscriptionHighlights(helper.testFile);
       // wait, has regions
       return helper.waitForOperationsFinished().then((_) {
         var highlights = helper.getHighlights(helper.testFile);

@@ -4,6 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'analysis_notification_navigation_test.dart' as analysis_notification_navigation_test;
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel_test.dart' as channel_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
@@ -19,6 +20,7 @@ import 'socket_server_test.dart' as socket_server_test;
 main() {
   groupSep = ' | ';
   group('analysis_server', () {
+    analysis_notification_navigation_test.main();
     analysis_server_test.main();
     channel_test.main();
     domain_analysis_test.main();
