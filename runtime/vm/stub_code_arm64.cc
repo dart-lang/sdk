@@ -774,14 +774,18 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
-  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack.
-  __ mov(SP, CSP);
-  __ EnterFrame(0);
-
   // The new context, saved vm tag, the top exit frame, and the old context.
   const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
+
+  // Amount of space to reserve with the system stack pointer before setting it
+  // to the stack limit.
+  const intptr_t kRegSaveSpace = Utils::RoundUp(-kNewContextOffsetFromFp, 16);
+
+  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
+  // to access the stack.
+  __ SetupDartSP(kRegSaveSpace);
+  __ EnterFrame(0);
 
   // Save the callee-saved registers.
   for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {

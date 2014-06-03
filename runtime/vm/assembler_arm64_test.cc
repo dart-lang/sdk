@@ -13,6 +13,8 @@
 
 namespace dart {
 
+static const intptr_t kTestStackSpace = 512 * kWordSize;
+
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
@@ -286,11 +288,12 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
 
 // Loads and Stores.
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ str(R1, Address(SP, -1*kWordSize, Address::PreIndex));
   __ ldr(R0, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -302,12 +305,13 @@ ASSEMBLER_TEST_RUN(SimpleLoadStore, test) {
 
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ add(R2, SP, Operand(1));
   __ str(R1, Address(R2, -1));
   __ ldr(R0, Address(R2, -1));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -319,7 +323,7 @@ ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
@@ -328,6 +332,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ ldr(R0, Address(SP, 31*kWordSize, Address::PostIndex));
   // Correction.
   __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -339,13 +344,14 @@ ASSEMBLER_TEST_RUN(LoadStoreLargeIndex, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ sub(SP, SP, Operand(512*kWordSize));
   __ str(R1, Address(SP, 512*kWordSize, Address::Offset));
   __ add(SP, SP, Operand(512*kWordSize));
   __ ldr(R0, Address(SP));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -357,7 +363,7 @@ ASSEMBLER_TEST_RUN(LoadStoreLargeOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ movz(R2, 0xfff8, 0);
@@ -368,6 +374,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   __ sub(SP, SP, Operand(kWordSize));
   __ ldr(R0, Address(SP));
   __ add(SP, SP, Operand(kWordSize));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -379,7 +386,7 @@ ASSEMBLER_TEST_RUN(LoadStoreExtReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ movz(R0, 43, 0);
   __ movz(R1, 42, 0);
   __ movz(R2, 10, 0);
@@ -388,6 +395,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
   __ ldr(R0, Address(SP, R2, UXTX, Address::Scaled));
   __ add(SP, SP, Operand(10*kWordSize));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -399,11 +407,12 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadImmediate(R1, 0xffffffff, kNoPP);
   __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
   __ ldr(R0, Address(SP), kWord);
   __ ldr(R1, Address(SP, 4, Address::PostIndex, kWord), kWord);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1335,11 +1344,12 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 42, PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1351,11 +1361,12 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0xf1234123, PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1367,11 +1378,12 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x4321f1234124, PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1384,11 +1396,12 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadImmediate(R0, 0x9287436598237465, PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1402,11 +1415,12 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Object::null_object(), PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1419,11 +1433,12 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::True(), PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1436,11 +1451,12 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::False(), PP);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1597,10 +1613,11 @@ ASSEMBLER_TEST_RUN(Fmovdr, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ fstrd(V1, Address(SP, -1*kWordSize, Address::PreIndex));
   __ fldrd(V0, Address(SP, 1*kWordSize, Address::PostIndex));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1612,12 +1629,13 @@ ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ fcvtsd(V2, V1);
   __ fstrs(V2, Address(SP, -1*kWordSize, Address::PreIndex));
   __ fldrs(V3, Address(SP, 1*kWordSize, Address::PostIndex));
   __ fcvtds(V0, V3);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1629,7 +1647,7 @@ ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V1, 21.0, kNoPP);
   __ LoadDImmediate(V2, 21.0, kNoPP);
   __ LoadImmediate(R1, 42, kNoPP);
@@ -1642,6 +1660,7 @@ ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ PopDouble(V0);
   __ PopDouble(V1);
   __ faddd(V0, V0, V1);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1800,7 +1819,7 @@ ASSEMBLER_TEST_RUN(Fsubd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ AddImmediate(SP, SP, -1 * kWordSize, kNoPP);
@@ -1808,6 +1827,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
   __ fstrd(V1, Address(R2, -1));
   __ fldrd(V0, Address(R2, -1));
   __ AddImmediate(SP, SP, 1 * kWordSize, kNoPP);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1819,7 +1839,7 @@ ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
@@ -1828,6 +1848,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
   __ fldrd(V0, Address(SP, 31*kWordSize, Address::PostIndex));
   // Correction.
   __ add(SP, SP, Operand(kWordSize));  // Restore SP.
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1839,13 +1860,14 @@ ASSEMBLER_TEST_RUN(FldrdFstrdLargeIndex, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ sub(SP, SP, Operand(512*kWordSize));
   __ fstrd(V1, Address(SP, 512*kWordSize, Address::Offset));
   __ add(SP, SP, Operand(512*kWordSize));
   __ fldrd(V0, Address(SP));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1857,7 +1879,7 @@ ASSEMBLER_TEST_RUN(FldrdFstrdLargeOffset, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ movz(R2, 0xfff8, 0);
@@ -1868,6 +1890,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   __ sub(SP, SP, Operand(kWordSize));
   __ fldrd(V0, Address(SP));
   __ add(SP, SP, Operand(kWordSize));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1879,7 +1902,7 @@ ASSEMBLER_TEST_RUN(FldrdFstrdExtReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
   __ movz(R2, 10, 0);
@@ -1888,6 +1911,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));
   __ fldrd(V0, Address(SP, R2, UXTX, Address::Scaled));
   __ add(SP, SP, Operand(10*kWordSize));
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -2342,7 +2366,7 @@ ASSEMBLER_TEST_RUN(Vdivd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 21.0, kNoPP);
   __ vdupd(V1, V0, 0);
 
@@ -2354,6 +2378,7 @@ ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
   __ fldrd(V3, Address(SP, 1 * dword_bytes, Address::PostIndex));
 
   __ faddd(V0, V2, V3);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -2365,7 +2390,7 @@ ASSEMBLER_TEST_RUN(Vdupd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 21.0, kNoPP);
   __ fcvtsd(V0, V0);
   __ vdups(V1, V0, 0);
@@ -2387,6 +2412,7 @@ ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
   __ faddd(V0, V1, V1);
   __ faddd(V0, V0, V2);
   __ faddd(V0, V0, V3);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -2398,7 +2424,7 @@ ASSEMBLER_TEST_RUN(Vdups, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V5, 42.0, kNoPP);
   __ vinsd(V1, 1, V5, 0);  // V1[1] <- V0[0].
 
@@ -2410,6 +2436,7 @@ ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
   __ fldrd(V3, Address(SP, 1 * dword_bytes, Address::PostIndex));
 
   __ fmovdd(V0, V3);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -2421,7 +2448,7 @@ ASSEMBLER_TEST_RUN(Vinsd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 21.0, kNoPP);
   __ fcvtsd(V0, V0);
   __ vinss(V1, 3, V0, 0);
@@ -2444,6 +2471,7 @@ ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
   __ faddd(V0, V0, V1);
   __ faddd(V0, V0, V2);
   __ faddd(V0, V0, V3);
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -3232,7 +3260,7 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
 // R1: value.
 // R2: growable array.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ mov(SP, CSP);
+  __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();
   __ LoadPoolPointer(PP);
   __ Push(CTX);
@@ -3244,6 +3272,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Pop(LR);
   __ Pop(CTX);
   __ PopAndUntagPP();
+  __ mov(CSP, SP);
   __ ret();
 }
 
