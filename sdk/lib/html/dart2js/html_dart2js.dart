@@ -10269,59 +10269,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  num get offsetHeight => JS('num', '#.offsetHeight', this).round();
+  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  num get offsetLeft => JS('num', '#.offsetLeft', this).round();
+  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  num get offsetTop => JS('num', '#.offsetTop', this).round();
+  int get offsetTop => JS('num', '#.offsetTop', this).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  num get offsetWidth => JS('num', '#.offsetWidth', this).round();
+  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  num get clientHeight => JS('num', '#.clientHeight', this).round();
+  int get clientHeight => JS('num', '#.clientHeight', this).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  num get clientLeft => JS('num', '#.clientLeft', this).round();
+  int get clientLeft => JS('num', '#.clientLeft', this).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  num get clientTop => JS('num', '#.clientTop', this).round();
+  int get clientTop => JS('num', '#.clientTop', this).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  num get clientWidth => JS('num', '#.clientWidth', this).round();
+  int get clientWidth => JS('num', '#.clientWidth', this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  num get scrollHeight => JS('num', '#.scrollHeight', this).round();
+  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  num get scrollLeft => JS('num', '#.scrollLeft', this).round();
+  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(num value) => JS("void", "#.scrollLeft = #", this, value.round());
+  void set scrollLeft(int value) => JS("void", "#.scrollLeft = #", this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  num get scrollTop => JS('num', '#.scrollTop', this).round();
+  int get scrollTop => JS('num', '#.scrollTop', this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(num value) => JS("void", "#.scrollTop = #", this, value.round());
+  void set scrollTop(int value) => JS("void", "#.scrollTop = #", this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  num get scrollWidth => JS('num', '#.scrollWidth', this).round();
+  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 
   // To suppress missing implicit constructor warnings.
