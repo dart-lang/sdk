@@ -134,7 +134,10 @@ Object assign(Expression expr, Object value, Scope scope) {
   }
   // make the assignment
   var o = eval(expression, scope);
-  if (o == null) throw new EvalException("Can't assign to null: $expression");
+
+  // can't assign to a property on a null LHS object. Silently fail.
+  if (o == null) return null;
+
   if (isIndex) {
     o[property] = value;
   } else {

@@ -257,6 +257,10 @@ main() {
       expect(foo.name, '19');
     });
 
+    test('should throw on assignments to properties on null', () {
+      assign(parse('name'), 'b', new Scope(model: null));
+    });
+
   });
 
   group('scope', () {
