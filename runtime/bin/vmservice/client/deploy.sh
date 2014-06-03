@@ -14,6 +14,7 @@ if [ ! -d "deployed" ]; then
 fi
 
 EXCLUDE="--exclude bootstrap_css"
+EXCLUDE="$EXCLUDE --exclude *.map"
 EXCLUDE="$EXCLUDE --exclude *.scriptUrls"
 EXCLUDE="$EXCLUDE --exclude *.precompiled.js"
 EXCLUDE="$EXCLUDE --exclude main.*"
