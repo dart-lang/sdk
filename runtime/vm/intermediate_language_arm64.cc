@@ -89,9 +89,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t fp_sp_dist =
       (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
-  // UXTX 0 on a 64-bit register (FP) is a nop, but forces R31 to be
-  // interpreted as SP.
-  __ sub(R2, SP, Operand(FP, UXTX, 0));
+  __ sub(R2, SP, Operand(FP));
   __ CompareImmediate(R2, fp_sp_dist, PP);
   __ b(&stack_ok, EQ);
   __ hlt(0);

@@ -232,6 +232,9 @@ class Isolate : public BaseIsolate {
   // The current stack limit.  This may be overwritten with a special
   // value to trigger interrupts.
   uword stack_limit() const { return stack_limit_; }
+  static intptr_t stack_limit_offset() {
+    return OFFSET_OF(Isolate, stack_limit_);
+  }
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }

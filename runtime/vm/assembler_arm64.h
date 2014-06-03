@@ -167,7 +167,7 @@ class Address : public ValueObject {
   Address(Register rn, Register rm,
           Extend ext = UXTX, Scaling scale = Unscaled) {
     ASSERT((rn != R31) && (rn != ZR));
-    ASSERT((rm != R31) && (rm != SP));
+    ASSERT((rm != R31) && (rm != CSP));
     // Can only scale when ext = UXTX.
     ASSERT((scale != Scaled) || (ext == UXTX));
     ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
@@ -281,7 +281,7 @@ class Operand : public ValueObject {
   }
 
   explicit Operand(Register rm) {
-    ASSERT((rm != R31) && (rm != SP));
+    ASSERT((rm != R31) && (rm != CSP));
     const Register crm = ConcreteRegister(rm);
     encoding_ = (static_cast<int32_t>(crm) << kRmShift);
     type_ = Shifted;
@@ -289,7 +289,7 @@ class Operand : public ValueObject {
 
   Operand(Register rm, Shift shift, int32_t imm) {
     ASSERT(Utils::IsUint(6, imm));
-    ASSERT((rm != R31) && (rm != SP));
+    ASSERT((rm != R31) && (rm != CSP));
     const Register crm = ConcreteRegister(rm);
     encoding_ =
         (imm << kImm6Shift) |
@@ -300,7 +300,7 @@ class Operand : public ValueObject {
 
   Operand(Register rm, Extend extend, int32_t imm) {
     ASSERT(Utils::IsUint(3, imm));
-    ASSERT((rm != R31) && (rm != SP));
+    ASSERT((rm != R31) && (rm != CSP));
     const Register crm = ConcreteRegister(rm);
     encoding_ =
         B21 |
@@ -463,7 +463,7 @@ class Assembler : public ValueObject {
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
   // Addition and subtraction.
-  // For add and sub, to use SP for rn, o must be of type Operand::Extend.
+  // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void add(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, false, rd, rn, o);
@@ -572,17 +572,17 @@ class Assembler : public ValueObject {
 
   // Move wide immediate.
   void movk(Register rd, uint16_t imm, int hw_idx) {
-    ASSERT(rd != SP);
+    ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVK, crd, imm, hw_idx, kDoubleWord);
   }
   void movn(Register rd, uint16_t imm, int hw_idx) {
-    ASSERT(rd != SP);
+    ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVN, crd, imm, hw_idx, kDoubleWord);
   }
   void movz(Register rd, uint16_t imm, int hw_idx) {
-    ASSERT(rd != SP);
+    ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
   }
@@ -635,7 +635,7 @@ class Assembler : public ValueObject {
 
   // Comparison.
   // rn cmp o.
-  // For add and sub, to use SP for rn, o must be of type Operand::Extend.
+  // For add and sub, to use CSP for rn, o must be of type Operand::Extend.
   // For an unmodified rm in this case, use Operand(rm, UXTX, 0);
   void cmp(Register rn, Operand o) {
     subs(ZR, rn, o);
@@ -646,10 +646,10 @@ class Assembler : public ValueObject {
   }
 
   void CompareRegisters(Register rn, Register rm) {
-    if (rn == SP) {
+    if (rn == CSP) {
       // UXTX 0 on a 64-bit register (rm) is a nop, but forces R31 to be
-      // interpreted as SP.
-      cmp(SP, Operand(rm, UXTX, 0));
+      // interpreted as CSP.
+      cmp(CSP, Operand(rm, UXTX, 0));
     } else {
       cmp(rn, Operand(rm));
     }
@@ -702,25 +702,25 @@ class Assembler : public ValueObject {
   }
   void fmovdr(VRegister vd, Register rn) {
     ASSERT(rn != R31);
-    ASSERT(rn != SP);
+    ASSERT(rn != CSP);
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(FMOVDR, static_cast<Register>(vd), crn);
   }
   void fmovrd(Register rd, VRegister vn) {
     ASSERT(rd != R31);
-    ASSERT(rd != SP);
+    ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FMOVRD, crd, static_cast<Register>(vn));
   }
   void scvtfd(VRegister vd, Register rn) {
     ASSERT(rn != R31);
-    ASSERT(rn != SP);
+    ASSERT(rn != CSP);
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn);
   }
   void fcvtzds(Register rd, VRegister vn) {
     ASSERT(rd != R31);
-    ASSERT(rd != SP);
+    ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
   }
@@ -933,7 +933,7 @@ class Assembler : public ValueObject {
 
   // Aliases.
   void mov(Register rd, Register rn) {
-    if ((rd == SP) || (rn == SP)) {
+    if ((rd == CSP) || (rn == CSP)) {
       add(rd, rn, Operand(0));
     } else {
       orr(rd, ZR, Operand(rn));
@@ -1286,11 +1286,11 @@ class Assembler : public ValueObject {
       ASSERT(rn != ZR);
       EmitAddSubImmOp(subtract ? SUBI : ADDI, crd, crn, o, os, set_flags);
     } else if (o.type() == Operand::Shifted) {
-      ASSERT((rd != SP) && (rn != SP));
+      ASSERT((rd != CSP) && (rn != CSP));
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     } else {
       ASSERT(o.type() == Operand::Extended);
-      ASSERT((rd != SP) && (rn != ZR));
+      ASSERT((rd != CSP) && (rn != ZR));
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     }
   }
@@ -1312,9 +1312,9 @@ class Assembler : public ValueObject {
                         Operand o, OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rd != R31) && (rn != R31));
-    ASSERT(rn != SP);
+    ASSERT(rn != CSP);
     ASSERT((op == ANDIS) || (rd != ZR));  // op != ANDIS => rd != ZR.
-    ASSERT((op != ANDIS) || (rd != SP));  // op == ANDIS => rd != SP.
+    ASSERT((op != ANDIS) || (rd != CSP));  // op == ANDIS => rd != CSP.
     ASSERT(o.type() == Operand::BitfieldImm);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const Register crd = ConcreteRegister(rd);
@@ -1331,7 +1331,7 @@ class Assembler : public ValueObject {
                           Register rd, Register rn, Operand o, OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rd != R31) && (rn != R31));
-    ASSERT((rd != SP) && (rn != SP));
+    ASSERT((rd != CSP) && (rn != CSP));
     ASSERT(o.type() == Operand::Shifted);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const Register crd = ConcreteRegister(rd);
@@ -1398,7 +1398,7 @@ class Assembler : public ValueObject {
                             OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
-    ASSERT((rt != SP) && (rt != R31));
+    ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
@@ -1463,7 +1463,7 @@ class Assembler : public ValueObject {
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
-    ASSERT((rn != SP) && (rn != R31));
+    ASSERT((rn != CSP) && (rn != R31));
     const Register crn = ConcreteRegister(rn);
     const int32_t encoding =
         op | (static_cast<int32_t>(crn) << kRnShift);
@@ -1503,7 +1503,7 @@ class Assembler : public ValueObject {
   void EmitLoadRegLiteral(LoadRegLiteralOp op, Register rt, Address a,
                           OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
-    ASSERT((rt != SP) && (rt != R31));
+    ASSERT((rt != CSP) && (rt != R31));
     const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B30 : 0;
     const int32_t encoding =
@@ -1515,7 +1515,7 @@ class Assembler : public ValueObject {
 
   void EmitPCRelOp(PCRelOp op, Register rd, int64_t imm) {
     ASSERT(Utils::IsInt(21, imm));
-    ASSERT((rd != R31) && (rd != SP));
+    ASSERT((rd != R31) && (rd != CSP));
     const Register crd = ConcreteRegister(rd);
     const int32_t loimm = (imm & 0x3) << 29;
     const int32_t hiimm = ((imm >> 2) << kImm19Shift) & kImm19Mask;
@@ -1528,7 +1528,7 @@ class Assembler : public ValueObject {
   void EmitMiscDP2Source(MiscDP2SourceOp op,
                          Register rd, Register rn, Register rm,
                          OperandSize sz) {
-    ASSERT((rd != SP) && (rn != SP) && (rm != SP));
+    ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);
@@ -1545,7 +1545,7 @@ class Assembler : public ValueObject {
   void EmitMiscDP3Source(MiscDP3SourceOp op,
                          Register rd, Register rn, Register rm, Register ra,
                          OperandSize sz) {
-    ASSERT((rd != SP) && (rn != SP) && (rm != SP) && (ra != SP));
+    ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP) && (ra != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);
@@ -1564,7 +1564,7 @@ class Assembler : public ValueObject {
   void EmitConditionalSelect(ConditionalSelectOp op,
                              Register rd, Register rn, Register rm,
                              Condition cond, OperandSize sz) {
-    ASSERT((rd != SP) && (rn != SP) && (rm != SP));
+    ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const Register crd = ConcreteRegister(rd);
     const Register crn = ConcreteRegister(rn);

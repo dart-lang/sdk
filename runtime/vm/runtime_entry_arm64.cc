@@ -40,7 +40,10 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
     ExternalLabel label(entry);
+    // Cache the stack pointer in a callee-saved register.
+    __ mov(R26, SP);
     __ BranchLink(&label, kNoPP);
+    __ mov(SP, R26);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

@@ -51,8 +51,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ mov(TMP, SP);  // Can't directly store SP.
-  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
+  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   // Save current Context pointer into Isolate structure.
   __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
@@ -77,8 +76,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
   __ Comment("align stack");
+  // Reserve space for arguments.
   ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
-  __ ReserveAlignedFrameSpace(4 * kWordSize);  // Reserve space for arguments.
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
 
   // Pass NativeArguments structure by value and call runtime.
   // Registers R0, R1, R2, and R3 are used.
@@ -101,12 +101,26 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
     ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize, kNoPP);
 
-  // TODO(zra): Check that the ABI allows calling through this register.
-  __ blr(R5);
+  __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
+  __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);
+  __ StoreToOffset(R2, SP, argv_offset, kNoPP);
+  __ StoreToOffset(R3, SP, retval_offset, kNoPP);
+  __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
 
-  // Retval is next to 1st argument.
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack. We cache the stack limit address
+  // in a callee-saved register.
+  __ mov(R26, CSP);
+  __ mov(CSP, SP);
+
+  __ blr(R5);
   __ Comment("CallToRuntimeStub return");
 
+  // Restore SP and CSP.
+  __ mov(SP, CSP);
+  __ mov(CSP, R26);
+
+  // Retval is next to 1st argument.
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kScriptTagId, kNoPP);
   __ StoreToOffset(R2, CTX, Isolate::vm_tag_offset(), kNoPP);
@@ -155,8 +169,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ mov(TMP, SP);
-  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
+  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   // Save current Context pointer into Isolate structure.
   __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
@@ -210,6 +223,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ StoreToOffset(R3, SP, retval_offset, kNoPP);
   __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
 
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack. We cache the stack limit address
+  // in the Dart SP register, which is callee-saved in the C ABI.
+  __ mov(R26, CSP);
+  __ mov(CSP, SP);
+
   // Call native function (setsup scope if not leaf function).
   Label leaf_call;
   Label done;
@@ -234,6 +253,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ blr(R5);
 
   __ Bind(&done);
+  // Restore SP and CSP.
+  __ mov(SP, CSP);
+  __ mov(CSP, R26);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kScriptTagId, kNoPP);
@@ -276,8 +298,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ mov(TMP, SP);  // Can't store SP directly, first copy to TMP.
-  __ StoreToOffset(TMP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
+  __ StoreToOffset(SP, R0, Isolate::top_exit_frame_info_offset(), kNoPP);
 
   // Save current Context pointer into Isolate structure.
   __ StoreToOffset(CTX, R0, Isolate::top_context_offset(), kNoPP);
@@ -331,8 +352,18 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ StoreToOffset(R3, SP, retval_offset, kNoPP);
   __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
 
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack. We cache the stack limit address
+  // in the Dart SP register, which is callee-saved in the C ABI.
+  __ mov(R26, CSP);
+  __ mov(CSP, SP);
+
   // Call native function or redirection via simulator.
   __ blr(R5);
+
+  // Restore SP and CSP.
+  __ mov(SP, CSP);
+  __ mov(CSP, R26);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kScriptTagId, kNoPP);
@@ -487,9 +518,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   for (intptr_t reg_idx = kNumberOfVRegisters - 1; reg_idx >= 0; reg_idx--) {
     VRegister vreg = static_cast<VRegister>(reg_idx);
-    // TODO(zra): Save whole V registers. For now, push twice.
-    __ PushDouble(vreg);
-    __ PushDouble(vreg);
+    __ PushQuad(vreg);
   }
 
   __ mov(R0, SP);  // Pass address of saved registers block.
@@ -504,8 +533,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
   __ LeaveDartFrame();
-  __ sub(TMP, FP, Operand(R0));
-  __ mov(SP, TMP);
+  __ sub(SP, FP, Operand(R0));
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
@@ -547,8 +575,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
-  __ add(TMP, SP, Operand(R1, UXTX, 0));
-  __ mov(SP, TMP);
+  __ add(SP, SP, Operand(R1));
   __ ret();
 }
 
@@ -748,6 +775,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
+  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
+  // to access the stack.
+  __ mov(SP, CSP);
   __ EnterFrame(0);
 
   // The new context, saved vm tag, the top exit frame, and the old context.
@@ -786,8 +816,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
-  // Load Isolate pointer from Context structure into temporary register R4.
+  // Load Isolate pointer from Context structure into temporary register R5.
   __ LoadFieldFromOffset(R5, CTX, Context::isolate_offset(), PP);
+
+  // Load the stack limit address into the C stack pointer register.
+  __ LoadFromOffset(CSP, R5, Isolate::stack_limit_offset(), PP);
+
+  // Cache the new Context pointer into CTX while executing Dart code.
+  __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -20);
@@ -884,12 +920,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     Register r = static_cast<Register>(i);
     // We use ldr instead of the Pop macro because we will be popping the PP
     // register when it is not holding a pool-pointer since we are returning to
-    // C++ code.
+    // C++ code. We also skip the dart stack pointer SP, since we are still
+    // using it as the stack pointer.
     __ ldr(r, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
 
-  // Restore the frame pointer and return.
+  // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
+  __ mov(CSP, SP);
   __ ret();
 }
 
@@ -1786,7 +1824,8 @@ void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
 
 
 void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
-  __ Stop("GenerateGetStackPointerStub");
+  __ mov(R0, SP);
+  __ ret();
 }
 
 

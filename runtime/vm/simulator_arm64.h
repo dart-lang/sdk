@@ -48,7 +48,8 @@ class Simulator {
   // specifying the type. We also can't translate a dummy value for SPREG into
   // a real value because the architecture independent code expects SPREG to
   // be a real register value.
-  void set_register(Register reg, int64_t value, R31Type r31t = R31IsSP);
+  void set_register(
+      Instr* instr, Register reg, int64_t value, R31Type r31t = R31IsSP);
   int64_t get_register(Register reg, R31Type r31t = R31IsSP) const;
   void set_wregister(Register reg, int32_t value, R31Type r31t = R31IsSP);
   int32_t get_wregister(Register reg, R31Type r31t = R31IsSP) const;

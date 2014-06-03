@@ -17,6 +17,7 @@ namespace dart {
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
 void GenerateIncrement(Assembler* assembler) {
+  __ mov(SP, CSP);
   __ movz(R0, 0, 0);
   __ Push(R0);
   __ add(R0, R0, Operand(1));
@@ -34,6 +35,7 @@ void GenerateIncrement(Assembler* assembler) {
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
+  __ mov(SP, CSP);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, string_object, PP);
