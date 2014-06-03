@@ -115,7 +115,7 @@ class _InvocationMatcher {
       if (argument is ArgumentMatcher) {
         matcher = argument;
       } else {
-        matcher = equals(argument);
+        matcher = new _ArgumentMatcher_equals(argument);
       }
       _matchers.add(matcher);
     });
@@ -380,11 +380,6 @@ class _ArgumentMatcher_equals extends ArgumentMatcher {
   }
 }
 
-/// Matches an argument that is equal to the given [expected] value.
-equals(expected) {
-  return new _ArgumentMatcher_equals(expected);
-}
-
 
 class _ArgumentMatcher_anyBool extends ArgumentMatcher {
   @override
@@ -394,7 +389,7 @@ class _ArgumentMatcher_anyBool extends ArgumentMatcher {
 }
 
 /// Matches any [bool] value.
-final anyBool = new _ArgumentMatcher_anyBool();
+final anyBool = new _ArgumentMatcher_anyBool() as dynamic;
 
 
 class _ArgumentMatcher_anyInt extends ArgumentMatcher {
@@ -405,7 +400,7 @@ class _ArgumentMatcher_anyInt extends ArgumentMatcher {
 }
 
 /// Matches any [int] value.
-final anyInt = new _ArgumentMatcher_anyInt();
+final anyInt = new _ArgumentMatcher_anyInt() as dynamic;
 
 
 class _ArgumentMatcher_anyObject extends ArgumentMatcher {
@@ -416,7 +411,7 @@ class _ArgumentMatcher_anyObject extends ArgumentMatcher {
 }
 
 /// Matches any [Object] (or subclass) value.
-final anyObject = new _ArgumentMatcher_anyObject();
+final anyObject = new _ArgumentMatcher_anyObject() as dynamic;
 
 
 class _ArgumentMatcher_anyString extends ArgumentMatcher {
@@ -427,4 +422,4 @@ class _ArgumentMatcher_anyString extends ArgumentMatcher {
 }
 
 /// Matches any [String] value.
-final anyString = new _ArgumentMatcher_anyString();
+final anyString = new _ArgumentMatcher_anyString() as dynamic;
