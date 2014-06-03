@@ -52,6 +52,9 @@ CompilationUnit parseDartFile(String path) {
 ///
 /// If [name] is passed, it's used in error messages as the name of the code
 /// being parsed.
+///
+/// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
+/// [suppressErrors] is `true`, in which case any errors are discarded.
 CompilationUnit parseCompilationUnit(String contents,
     {String name, bool suppressErrors: false}) {
   if (name == null) name = '<unknown source>';
@@ -62,6 +65,33 @@ CompilationUnit parseCompilationUnit(String contents,
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
   var unit = parser.parseCompilationUnit(token);
+  unit.lineInfo = new LineInfo(scanner.lineStarts);
+
+  if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
+
+  return unit;
+}
+
+/// Parses the script tag and directives in a string of Dart code into an AST.
+///
+/// Stops parsing when the first non-directive is encountered. The rest of the
+/// string will not be parsed.
+///
+/// If [name] is passed, it's used in error messages as the name of the code
+/// being parsed.
+///
+/// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
+/// [suppressErrors] is `true`, in which case any errors are discarded.
+CompilationUnit parseDirectives(String contents,
+    {String name, bool suppressErrors: false}) {
+  if (name == null) name = '<unknown source>';
+  var source = new StringSource(contents, name);
+  var errorCollector = new _ErrorCollector();
+  var reader = new CharSequenceReader(contents);
+  var scanner = new Scanner(source, reader, errorCollector);
+  var token = scanner.tokenize();
+  var parser = new Parser(source, errorCollector);
+  var unit = parser.parseDirectives(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 
   if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;

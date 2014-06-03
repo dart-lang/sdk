@@ -17,7 +17,7 @@ class RewriteImportTransformer extends Transformer {
   Future apply(Transform transform) {
     return transform.primaryInput.readAsString().then((contents) {
       var collector = new _DirectiveCollector();
-      parseCompilationUnit(contents, name: transform.primaryInput.id.toString())
+      parseDirectives(contents, name: transform.primaryInput.id.toString())
           .accept(collector);
 
       var buffer = new StringBuffer();
