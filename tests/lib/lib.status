@@ -173,6 +173,7 @@ async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/772
 async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/stream_controller_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
