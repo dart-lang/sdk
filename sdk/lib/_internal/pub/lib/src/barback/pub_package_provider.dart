@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../io.dart';
 import '../package_graph.dart';
+import '../preprocess.dart';
 import '../sdk.dart' as sdk;
 
 /// An implementation of barback's [PackageProvider] interface so that barback
@@ -32,7 +33,18 @@ class PubPackageProvider implements PackageProvider {
       assert(components.first == 'lib');
       components[0] = 'dart';
       var file = assetPath(path.joinAll(components));
-      return new Future.value(new Asset.fromPath(id, file));
+
+      // Barback may not be in the package graph if there are no user-defined
+      // transformers being used at all. The "$pub" sources are still provided,
+      // but will never be loaded.
+      var barback = _graph.packages['barback'];
+      if (barback == null) {
+        return new Future.value(new Asset.fromPath(id, file));
+      }
+
+      var contents = readTextFile(file);
+      contents = preprocess(contents, barback.version, path.toUri(file));
+      return new Future.value(new Asset.fromString(id, contents));
     }
 
     // "$sdk" is a pseudo-package that provides access to the Dart library

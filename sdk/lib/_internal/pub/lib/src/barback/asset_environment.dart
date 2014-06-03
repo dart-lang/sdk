@@ -19,6 +19,7 @@ import '../package.dart';
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
 import '../source/cached.dart';
+import '../utils.dart';
 import 'admin_server.dart';
 import 'barback_server.dart';
 import 'dart_forwarding_transformer.dart';
@@ -369,7 +370,10 @@ class AssetEnvironment {
     // infrastructure to share code with pub proper. We provide it only during
     // the initial transformer loading process.
     var dartPath = assetPath('dart');
-    var pubSources = listDir(dartPath, recursive: true).map((library) {
+    var pubSources = listDir(dartPath, recursive: true)
+        // Don't include directories.
+        .where((file) => path.extension(file) == ".dart")
+        .map((library) {
       var idPath = path.join('lib', path.relative(library, from: dartPath));
       return new AssetId('\$pub', path.toUri(idPath).toString());
     });
@@ -391,59 +395,48 @@ class AssetEnvironment {
     return BarbackServer.bind(this, _hostname, 0, null).then((server) {
       transformerServer = server;
 
-      return log.progress("Loading source assets", () {
-        barback.updateSources(pubSources);
-        barback.updateSources(sdkSources);
-        return _provideSources();
+      var errorStream = barback.errors.map((error) {
+        // Even most normally non-fatal barback errors should take down pub if
+        // they happen during the initial load process.
+        if (error is! AssetLoadException) throw error;
+
+        log.error(log.red(error.message));
+        log.fine(error.stackTrace.terse);
       });
+
+      return _withStreamErrors(() {
+        return log.progress("Loading source assets", () {
+          barback.updateSources(pubSources);
+          barback.updateSources(sdkSources);
+          return _provideSources();
+        });
+      }, [errorStream, barback.results]);
     }).then((_) {
       log.fine("Provided sources.");
       var completer = new Completer();
 
-      // If any errors get emitted either by barback or by the transformer
-      // server, including non-programmatic barback errors, they should take
-      // down the whole program.
-      var subscriptions = [
-        barback.errors.listen((error) {
-          if (error is TransformerException) {
-            var message = error.error.toString();
-            if (error.stackTrace != null) {
-              message += "\n" + error.stackTrace.terse.toString();
-            }
+      var errorStream = barback.errors.map((error) {
+        // Now that we're loading transformers, errors they log shouldn't be
+        // fatal, since we're starting to run them on real user assets which may
+        // have e.g. syntax errors. If an error would cause a transformer to
+        // fail to load, the load failure will cause us to exit.
+        if (error is! TransformerException) throw error;
 
-            _log(new LogEntry(error.transform, error.transform.primaryId,
+        var message = error.error.toString();
+        if (error.stackTrace != null) {
+          message += "\n" + error.stackTrace.terse.toString();
+        }
+
+        _log(new LogEntry(error.transform, error.transform.primaryId,
                 LogLevel.ERROR, message, null));
-          } else if (!completer.isCompleted) {
-            completer.completeError(error, new Chain.current());
-          }
-        }),
-        barback.results.listen((_) {},
-            onError: (error, stackTrace) {
-          if (completer.isCompleted) return;
-          completer.completeError(error, stackTrace);
-        }),
-        transformerServer.results.listen((_) {}, onError: (error, stackTrace) {
-          if (completer.isCompleted) return;
-          completer.completeError(error, stackTrace);
-        })
-      ];
-
-      loadAllTransformers(this, transformerServer).then((_) {
-        log.fine("Loaded transformers.");
-        return transformerServer.close();
-      }).then((_) {
-        if (!completer.isCompleted) completer.complete();
-      }).catchError((error, stackTrace) {
-        if (!completer.isCompleted) {
-          completer.completeError(error, stackTrace);
-        }
       });
 
-      return completer.future.whenComplete(() {
-        for (var subscription in subscriptions) {
-          subscription.cancel();
-        }
-      });
+      return _withStreamErrors(() {
+        return loadAllTransformers(this, transformerServer).then((_) {
+          log.fine("Loaded transformers.");
+          return transformerServer.close();
+        });
+      }, [errorStream, barback.results, transformerServer.results]);
     }).then((_) => barback.removeSources(pubSources));
   }
 
@@ -599,6 +592,31 @@ class AssetEnvironment {
     });
 
     return watcher.ready.then((_) => subscription);
+  }
+
+  /// Returns the result of [futureCallback] unless any stream in [streams]
+  /// emits an error before it's done.
+  ///
+  /// If a stream does emit an error, that error is thrown instead.
+  /// [futureCallback] is a callback rather than a plain future to ensure that
+  /// [streams] are listened to before any code that might cause an error starts
+  /// running.
+  Future _withStreamErrors(Future futureCallback(), List<Stream> streams) {
+    var completer = new Completer.sync();
+    var subscriptions = streams.map((stream) =>
+        stream.listen((_) {}, onError: completer.complete)).toList();
+
+    syncFuture(futureCallback).then((_) {
+      if (!completer.isCompleted) completer.complete();
+    }).catchError((error, stackTrace) {
+      if (!completer.isCompleted) completer.completeError(error, stackTrace);
+    });
+
+    return completer.future.whenComplete(() {
+      for (var subscription in subscriptions) {
+        subscription.cancel();
+      }
+    });
   }
 }
 
