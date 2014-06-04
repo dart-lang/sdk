@@ -418,11 +418,15 @@ class Add extends Transformer<int, int> {
 Object evalString(String s, [Object model, Map vars]) =>
     eval(new Parser(s).parse(), new Scope(model: model, variables: vars));
 
-expectEval(String s, dynamic matcher, [Object model, Map vars = const {}]) =>
-    expect(
-        eval(new Parser(s).parse(), new Scope(model: model, variables: vars)),
-        matcher,
-        reason: s);
+expectEval(String s, dynamic matcher, [Object model, Map vars = const {}]) {
+  var expr = new Parser(s).parse();
+  var scope = new Scope(model: model, variables: vars);
+  expect(eval(expr, scope), matcher, reason: s);
+
+  var observer = observe(expr, scope);
+  new Updater(scope).visit(observer);
+  expect(observer.currentValue, matcher, reason: s);
+}
 
 expectObserve(String s, {
     Object model,

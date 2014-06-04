@@ -312,7 +312,6 @@ class _Binding extends Bindable {
 
     _callback = callback;
     final expr = observe(_expr, _scope);
-//    _expr = expr;
     _sub = expr.onUpdate.listen(_check)..onError((e, s) {
       new Completer().completeError(
           "Error evaluating expression '$expr': $e", s);

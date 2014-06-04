@@ -22,6 +22,7 @@ var testDiv;
 
 main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
+  smoke.useMirrors();
 
   group('bindings', () {
     var stop = null;
