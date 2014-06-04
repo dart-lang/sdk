@@ -38013,7 +38013,8 @@ class _Utils {
   static String describeFunction(function) {
     if (function is _Trampoline) return function._methodMirror.source;
     try {
-      return reflect(function).function.source;
+      var mirror = reflect(function);
+      return mirror.function.source;
     } catch (e) {
       return function.toString();
     }
@@ -38118,7 +38119,7 @@ class _Utils {
   }
 
   static void _fillMethodMirrorProperty(LibraryMirror libraryMirror,
-        Mirror methodOwner, MethodMirror methodMirror, Symbol symbol,
+        methodOwner, MethodMirror methodMirror, Symbol symbol,
         bool accessorPropertiesOnly, _Property property) {
     if (methodMirror.isRegularMethod) {
       property
@@ -38164,7 +38165,7 @@ class _Utils {
       bool ownProperties, bool accessorPropertiesOnly,
       bool hideFields, bool hideMethods,
       Map<String, _Property> properties) {
-    declarations.forEach((Symbol symbol, Mirror declaration) {
+    declarations.forEach((symbol, declaration) {
       if (declaration is TypedefMirror || declaration is ClassMirror) return;
       var name = _getShortSymbolName(symbol, declaration);
       if (name.isEmpty) return;
