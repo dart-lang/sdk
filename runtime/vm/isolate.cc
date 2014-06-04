@@ -606,14 +606,24 @@ static bool RunIsolate(uword parameter) {
     Object& result = Object::Handle();
     result = state->ResolveFunction();
     bool is_spawn_uri = state->is_spawn_uri();
+
+    Instance& entryFunc = Instance::Handle(isolate);
     if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
+      if (is_spawn_uri) {
+        // Report failure to look up "main" in isolate when we have a
+        // port to reply it to.
+        entryFunc ^= Object::null_instance().raw();
+      } else {
+        StoreError(isolate, result);
+        return false;
+      }
+    } else {
+      ASSERT(result.IsFunction());
+      Function& function = Function::Handle(isolate);
+      function ^= result.raw();
+      function = function.ImplicitClosureFunction();
+      entryFunc ^= function.ImplicitStaticClosure();
     }
-    ASSERT(result.IsFunction());
-    Function& func = Function::Handle(isolate);
-    func ^= result.raw();
-    func = func.ImplicitClosureFunction();
 
     // Instead of directly invoking the entry point we call '_startIsolate' with
     // the entry point as argument. The '_startIsolate' function will
@@ -624,7 +634,7 @@ static bool RunIsolate(uword parameter) {
     // "_startIsolate" function can act corresponding to how the isolate was
     // created.
     const Array& args = Array::Handle(Array::New(2));
-    args.SetAt(0, Instance::Handle(func.ImplicitStaticClosure()));
+    args.SetAt(0, entryFunc);
     args.SetAt(1, is_spawn_uri ? Bool::True() : Bool::False());
 
     const Library& lib = Library::Handle(Library::IsolateLibrary());
