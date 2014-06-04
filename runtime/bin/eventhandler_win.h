@@ -228,7 +228,8 @@ class Handle {
   void Lock();
   void Unlock();
 
-  bool CreateCompletionPort(HANDLE completion_port);
+  bool DoCreateCompletionPort(HANDLE handle, HANDLE completion_port);
+  virtual bool CreateCompletionPort(HANDLE completion_port);
 
   void Close();
   virtual void DoClose();
@@ -361,14 +362,22 @@ class DirectoryWatchHandle : public Handle {
 
 class SocketHandle : public Handle {
  public:
-  SOCKET socket() { return reinterpret_cast<SOCKET>(handle_); }
+  SOCKET socket() const { return socket_; }
+
+  virtual bool CreateCompletionPort(HANDLE completion_port);
 
  protected:
-  explicit SocketHandle(SOCKET s) : Handle(reinterpret_cast<HANDLE>(s)) {}
+  explicit SocketHandle(SOCKET s)
+      : Handle(INVALID_HANDLE_VALUE),
+        socket_(s) {}
   SocketHandle(SOCKET s, Dart_Port port)
-      : Handle(reinterpret_cast<HANDLE>(s), port) {}
+      : Handle(INVALID_HANDLE_VALUE, port),
+        socket_(s) {}
 
   virtual void HandleIssueError();
+
+ private:
+  const SOCKET socket_;
 };
 
 

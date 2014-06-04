@@ -159,8 +159,8 @@ void Handle::Unlock() {
 }
 
 
-bool Handle::CreateCompletionPort(HANDLE completion_port) {
-  completion_port_ = CreateIoCompletionPort(handle_,
+bool Handle::DoCreateCompletionPort(HANDLE handle, HANDLE completion_port) {
+  completion_port_ = CreateIoCompletionPort(handle,
                                             completion_port,
                                             reinterpret_cast<ULONG_PTR>(this),
                                             0);
@@ -168,6 +168,11 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
     return false;
   }
   return true;
+}
+
+
+bool Handle::CreateCompletionPort(HANDLE completion_port) {
+  return DoCreateCompletionPort(handle_, completion_port_);
 }
 
 
@@ -429,6 +434,12 @@ void DirectoryWatchHandle::Stop() {
   }
 
   DoClose();
+}
+
+
+bool SocketHandle::CreateCompletionPort(HANDLE completion_port) {
+  HANDLE handle = reinterpret_cast<HANDLE>(socket());
+  return DoCreateCompletionPort(handle, completion_port);
 }
 
 
