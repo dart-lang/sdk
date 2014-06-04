@@ -32,10 +32,8 @@ main() {
       group('Watch', () {
 
         Future delayed(computation()) {
-          // On Windows, watching the filesystem is accomplished by polling once
-          // per second.  So wait 2 seconds to give time for polling to reliably
-          // occur.
-          return new Future.delayed(new Duration(seconds: 2), computation);
+          return new Future.delayed(
+              new Duration(milliseconds: 100), computation);
         }
 
         watchingFolder(String path, test(List<WatchEvent> changesReceived)) {

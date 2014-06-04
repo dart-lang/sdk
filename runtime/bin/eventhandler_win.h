@@ -93,7 +93,7 @@ class OverlappedBuffer {
     wbuf_.buf = GetBufferStart();
     wbuf_.len = GetBufferSize();
     return &wbuf_;
-  };
+  }
 
   void set_data_length(int data_length) { data_length_ = data_length; }
 
@@ -349,6 +349,8 @@ class DirectoryWatchHandle : public Handle {
 
   virtual bool IssueRead();
 
+  void Stop();
+
  private:
   int events_;
   bool recursive_;
@@ -382,7 +384,7 @@ class ListenSocket : public SocketHandle {
     ASSERT(!HasPendingAccept());
     ASSERT(accepted_head_ == NULL);
     ASSERT(accepted_tail_ == NULL);
-  };
+  }
 
   // Socket interface exposing normal socket operations.
   ClientSocket* Accept();
@@ -439,7 +441,7 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
     ASSERT(closed_ == true);
-  };
+  }
 
   void Shutdown(int how);
 
@@ -484,7 +486,7 @@ class DatagramSocket : public SocketHandle {
     // Don't delete this object until all pending requests have been handled.
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
-  };
+  }
 
   // Internal interface used by the event handler.
   virtual bool IssueRecvFrom();

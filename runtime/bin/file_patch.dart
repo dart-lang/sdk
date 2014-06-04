@@ -124,8 +124,8 @@ patch class _FileSystemWatcher {
       assert(_watcherPath.count > 0);
       _watcherPath.count--;
       if (_watcherPath.count == 0) {
-        _pathWatchedEnd();
         _unwatchPath(_id, _watcherPath.pathId);
+        _pathWatchedEnd();
         _idMap.remove(_watcherPath.pathId);
       }
       _watcherPath = null;

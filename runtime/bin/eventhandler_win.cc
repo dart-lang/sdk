@@ -417,6 +417,21 @@ bool DirectoryWatchHandle::IssueRead() {
 }
 
 
+void DirectoryWatchHandle::Stop() {
+  ScopedLock lock(this);
+  // Stop the outstanding read, so we can close the handle.
+
+  if (pending_read_ != NULL) {
+    CancelIoEx(handle(), pending_read_->GetCleanOverlapped());
+    // Don't dispose of the buffer, as it will still complete (with length 0).
+    pending_read_ = NULL;
+  }
+
+  CloseHandle(handle());
+  handle_ = (INVALID_HANDLE_VALUE);
+}
+
+
 void SocketHandle::HandleIssueError() {
   int error = WSAGetLastError();
   if (error == WSAECONNRESET) {
