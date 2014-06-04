@@ -3628,6 +3628,7 @@ class Code : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawCode) == OFFSET_OF(RawCode, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {

@@ -845,6 +845,8 @@ class RawCode : public RawObject {
   intptr_t patch_code_pc_offset_;
   intptr_t lazy_deopt_pc_offset_;
 
+  intptr_t dummy_alignment_;
+
   // Variable length data follows here.
   int32_t data_[0];
 
