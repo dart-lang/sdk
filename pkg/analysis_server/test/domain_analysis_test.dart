@@ -1353,6 +1353,21 @@ class A {
   });
 
   group('instanceCreation', () {
+    test('implicit', () {
+      var code = '''
+class A {
+}
+main() {
+  new A();
+}
+''';
+      return testNavigation(code, (NotificationNavigationHelper helper) {
+        helper.asserHasRegionInts(
+            helper.findOffset('new A'), 'new A'.length,
+            helper.findOffset('A {'), 'A'.length);
+      });
+    });
+
     test('named', () {
       var code = '''
 class A {

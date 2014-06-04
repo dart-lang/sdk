@@ -15,6 +15,13 @@ import 'analysis_abstract_test.dart';
 import 'reflective_tests.dart';
 
 
+main() {
+  group('notification.navigation', () {
+    runReflectiveTests(AnalysisNotificationNavigationTest);
+  });
+}
+
+
 @ReflectiveTestCase()
 class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   List<Map<String, Object>> regions;
@@ -242,6 +249,20 @@ main() {
     });
   }
 
+  test_instanceCreation_implicit() {
+    addTestFile('''
+class A {
+}
+main() {
+  new A();
+}
+''');
+    return prepareNavigation(() {
+      assertHasRegionString('new A');
+      assertHasTarget('A {');
+    });
+  }
+
   test_instanceCreation_named() {
     addTestFile('''
 class A {
@@ -410,11 +431,4 @@ part "test_unit.dart";
 //      assertNoRegionString('part "test_unit.dart"');
 //    });
   }
-}
-
-
-main() {
-  group('notification.navigation', () {
-    runReflectiveTests(AnalysisNotificationNavigationTest);
-  });
 }

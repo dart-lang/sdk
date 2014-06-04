@@ -673,7 +673,11 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    computer._addRegion_nodeStart_nodeStart(node, node.argumentList, node.staticElement);
+    Element element = node.staticElement;
+    if (element != null && element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    computer._addRegion_nodeStart_nodeStart(node, node.argumentList, element);
     return super.visitInstanceCreationExpression(node);
   }
 
