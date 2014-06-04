@@ -80,6 +80,9 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
+[ $compiler == dart2js && $checked && $runtime == drt ]
+polymer/test/event_handlers_test: RuntimeError # Issue 19190
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 collection/test/priority_queue_test: Pass, Slow # Issue 16426
