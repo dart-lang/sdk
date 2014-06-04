@@ -11,7 +11,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
-import 'analysis_abstract_test.dart';
+import 'analysis_abstract.dart';
 import 'reflective_tests.dart';
 
 

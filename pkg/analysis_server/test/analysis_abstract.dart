@@ -17,10 +17,6 @@ import 'package:unittest/unittest.dart';
 import 'mocks.dart';
 
 
-main() {
-}
-
-
 /**
  * An abstract base for all 'analysis' domain tests.
  */
