@@ -55,9 +55,11 @@ abstract class DirectoryWatcher {
   /// and higher CPU usage. Defaults to one second. Ignored for non-polling
   /// watchers.
   factory DirectoryWatcher(String directory, {Duration pollingDelay}) {
-    if (Platform.isLinux) return new LinuxDirectoryWatcher(directory);
-    if (Platform.isMacOS) return new MacOSDirectoryWatcher(directory);
-    if (Platform.isWindows) return new WindowsDirectoryWatcher(directory);
+    if (FileSystemEntity.isWatchSupported) {
+      if (Platform.isLinux) return new LinuxDirectoryWatcher(directory);
+      if (Platform.isMacOS) return new MacOSDirectoryWatcher(directory);
+      if (Platform.isWindows) return new WindowsDirectoryWatcher(directory);
+    }
     return new PollingDirectoryWatcher(directory, pollingDelay: pollingDelay);
   }
 }
