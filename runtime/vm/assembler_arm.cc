@@ -1646,12 +1646,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
-void Assembler::LoadClassId(Register result, Register object) {
+void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  ldrh(result, FieldAddress(object, class_id_offset));
+  ldrh(result, FieldAddress(object, class_id_offset), cond);
 }
 
 

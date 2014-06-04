@@ -636,7 +636,7 @@ class Assembler : public ValueObject {
                                 const Address& dest,
                                 const Object& value);
 
-  void LoadClassId(Register result, Register object);
+  void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);

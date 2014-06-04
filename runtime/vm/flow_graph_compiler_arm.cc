@@ -1235,13 +1235,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   Label not_smi, load_cache;
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
   __ tst(R0, Operand(kSmiTagMask));
-  __ b(&not_smi, NE);
-  __ mov(R0, Operand(Smi::RawValue(kSmiCid)));
-  __ b(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(R0, R0);
-  __ SmiTag(R0);
+  __ LoadClassId(R0, R0, NE);
+  __ SmiTag(R0, NE);
+  __ mov(R0, Operand(Smi::RawValue(kSmiCid)), EQ);
+  __ b(&load_cache, EQ);
 
   // R0: class ID of the receiver (smi).
   __ Bind(&load_cache);

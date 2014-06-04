@@ -437,18 +437,16 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
                          Register value_cid_reg,
                          Register value_reg,
                          Label* value_is_smi = NULL) {
-  Label done;
   if (value_is_smi == NULL) {
     __ mov(value_cid_reg, Operand(kSmiCid));
   }
   __ tst(value_reg, Operand(kSmiTagMask));
   if (value_is_smi == NULL) {
-    __ b(&done, EQ);
+    __ LoadClassId(value_cid_reg, value_reg, NE);
   } else {
     __ b(value_is_smi, EQ);
+    __ LoadClassId(value_cid_reg, value_reg);
   }
-  __ LoadClassId(value_cid_reg, value_reg);
-  __ Bind(&done);
 }
 
 
@@ -1055,15 +1053,10 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  Label load, done;
   __ tst(object, Operand(kSmiTagMask));
-  __ b(&load, NE);
-  __ LoadImmediate(result, Smi::RawValue(kSmiCid));
-  __ b(&done);
-  __ Bind(&load);
-  __ LoadClassId(result, object);
-  __ SmiTag(result);
-  __ Bind(&done);
+  __ LoadImmediate(result, Smi::RawValue(kSmiCid), EQ);
+  __ LoadClassId(result, object, NE);
+  __ SmiTag(result, NE);
 }
 
 
@@ -5119,7 +5112,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result != value_obj);
   __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);
 
-  Label do_call, done;
+  Label done, do_call;
   // First check for NaN. Checking for minint after the conversion doesn't work
   // on ARM because vcvtid gives 0 for NaN.
   __ vcmpd(DTMP, DTMP);
@@ -5132,9 +5125,9 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC0000000);
-  __ b(&do_call, MI);
-  __ SmiTag(result);
-  __ b(&done);
+  __ SmiTag(result, PL);
+  __ b(&done, PL);
+
   __ Bind(&do_call);
   __ Push(value_obj);
   ASSERT(instance_call()->HasICData());
