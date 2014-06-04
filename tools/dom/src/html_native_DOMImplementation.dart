@@ -598,6 +598,7 @@ class _Utils {
     var libraryMirror = classMirror.owner;
     classMirror.declarations.forEach((symbol, declaration) {
       var name = _getShortSymbolName(symbol, declaration);
+      if (name.isEmpty) return;
       if (declaration is VariableMirror) {
         if (accessorPropertiesOnly) return;
         if (!declaration.isStatic) return;
@@ -675,6 +676,7 @@ class _Utils {
     declarations.forEach((Symbol symbol, Mirror declaration) {
       if (declaration is TypedefMirror || declaration is ClassMirror) return;
       var name = _getShortSymbolName(symbol, declaration);
+      if (name.isEmpty) return;
       bool isField = declaration is VariableMirror ||
           (declaration is MethodMirror &&
               treatPropertyAsField(declaration, libraryMirror));
