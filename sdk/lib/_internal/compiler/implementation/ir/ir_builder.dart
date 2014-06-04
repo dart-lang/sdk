@@ -1227,6 +1227,8 @@ class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
 
   bool visitType(DartType type, Null _) => false;
 
+  bool visitDynamicType(DynamicType type, Null _) => true;
+
   bool visitVoidType(VoidType type, Null _) => true;
 
   // Currently, InterfaceType and TypedefType are supported so long as they
