@@ -5,9 +5,6 @@
 test/hosted/version_negotiation_test: Pass, Timeout # Issue 14346
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 
-[ $runtime == vm && $system == windows ]
-test/serve/warns_on_assets_paths_test: Pass, Fail # Issue 15741
-
 [ $runtime == vm && $system == macos ]
 test/serve/native_watch_modified_file_test: Pass, Fail # Issue 19052
 
