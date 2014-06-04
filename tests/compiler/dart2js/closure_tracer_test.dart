@@ -48,6 +48,46 @@ testStoredInInstance() {
   return res;
 }
 
+testStoredInMapOfList() {
+  var res;
+  closure(a) => res = a;
+  var a = [closure];
+  var b = {'foo' : 1};
+  b['bar'] = a;
+  b['bar'][0](42);
+  return res;
+}
+
+testStoredInListOfList() {
+  var res;
+  closure(a) => res = a;
+  var a = [closure];
+  var b = [0, 1, 2];
+  b[1] = a;
+  b[1][0](42);
+  return res;
+}
+
+testStoredInListOfListUsingInsert() {
+  var res;
+  closure(a) => res = a;
+  var a = [closure];
+  var b = [0, 1, 2];
+  b.insert(1, a);
+  b[1][0](42);
+  return res;
+}
+
+testStoredInListOfListUsingAdd() {
+  var res;
+  closure(a) => res = a;
+  var a = [closure];
+  var b = [0, 1, 2];
+  b.add(a);
+  b[3][0](42);
+  return res;
+}
+
 foo(closure) {
   closure(42);
 }
@@ -99,6 +139,10 @@ main() {
   testFunctionExpression();
   testStoredInStatic();
   testStoredInInstance();
+  testStoredInMapOfList();
+  testStoredInListOfList();
+  testStoredInListOfListUsingInsert();
+  testStoredInListOfListUsingAdd();
   testPassedInParameter();
   testStaticClosure1();
   testStaticClosure2();
@@ -124,6 +168,10 @@ void main() {
     checkType('testFunctionExpression', typesTask.uint31Type);
     checkType('testStoredInInstance', typesTask.uint31Type);
     checkType('testStoredInStatic', typesTask.uint31Type);
+    checkType('testStoredInMapOfList', typesTask.uint31Type);
+    checkType('testStoredInListOfList', typesTask.uint31Type);
+    checkType('testStoredInListOfListUsingInsert', typesTask.uint31Type);
+    checkType('testStoredInListOfListUsingAdd', typesTask.uint31Type);
     checkType('testPassedInParameter', typesTask.uint31Type);
     checkType('testStaticClosure1', typesTask.uint31Type);
     checkType('testStaticClosure2', typesTask.numType);
