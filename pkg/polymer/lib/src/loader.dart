@@ -55,6 +55,11 @@ void startPolymer(List<Function> initializers, [bool deployMode = true]) {
   _hookJsPolymer();
   _deployMode = deployMode;
 
+  if (initializers == null) {
+    throw 'Missing initialization of polymer elements. '
+        'Please check that the list of entry points in your pubspec.yaml '
+        'is correct. If you are using pub-serve, you may need to restart it.';
+  }
   for (var initializer in initializers) {
     initializer();
   }
