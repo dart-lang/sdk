@@ -534,7 +534,7 @@ TEST_CASE(IdentityEquals) {
   Dart_Handle mint_again = Dart_NewInteger(0xFFFFFFFF);
   Dart_Handle abc = NewString("abc");
   Dart_Handle abc_again = NewString("abc");
-  Dart_Handle xyz = NewString("abc");
+  Dart_Handle xyz = NewString("xyz");
   Dart_Handle dart_core = NewString("dart:core");
   Dart_Handle dart_mirrors = NewString("dart:mirrors");
 
@@ -585,7 +585,7 @@ TEST_CASE(IdentityHash) {
   Dart_Handle mint_again = Dart_NewInteger(0xFFFFFFFF);
   Dart_Handle abc = NewString("abc");
   // Dart_Handle abc_again = NewString("abc");
-  Dart_Handle xyz = NewString("abc");
+  Dart_Handle xyz = NewString("xyz");
   Dart_Handle dart_core = NewString("dart:core");
   Dart_Handle dart_mirrors = NewString("dart:mirrors");
 

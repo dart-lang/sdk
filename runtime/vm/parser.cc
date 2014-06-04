@@ -42,6 +42,7 @@ DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -8378,13 +8379,17 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
   } else if (cls.IsTopLevel() &&
       (cls.library() == Library::CoreLibrary()) &&
       (func.name() == Symbols::Identical().raw())) {
-    // This is the predefined toplevel function identical(a,b). Create
-    // a comparison node instead.
-    ASSERT(num_arguments == 2);
-    return new(isolate()) ComparisonNode(ident_pos,
-                                         Token::kEQ_STRICT,
-                                         arguments->NodeAt(0),
-                                         arguments->NodeAt(1));
+    // This is the predefined toplevel function identical(a,b).
+    // Create a comparison node instead of a static call to the function, unless
+    // javascript warnings are desired and identical is not invoked from a patch
+    // source.
+    if (!FLAG_warn_on_javascript_compatibility || is_patch_source()) {
+      ASSERT(num_arguments == 2);
+      return new(isolate()) ComparisonNode(ident_pos,
+                                           Token::kEQ_STRICT,
+                                           arguments->NodeAt(0),
+                                           arguments->NodeAt(1));
+    }
   }
   return new(isolate()) StaticCallNode(call_pos, func, arguments);
 }

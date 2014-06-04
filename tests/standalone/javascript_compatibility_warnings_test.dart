@@ -35,6 +35,11 @@ f(x, y) {
   y.toString();  /// 26: ok
   var z = y.toString();  /// 27: ok
 
+  var a = "yz";
+  var b = "xyz";
+  b = b.substring(1);
+  if (identical(a, b)) { }  /// 28: ok
+
   if (x > 10) {
     // Optimized code.
     x is double;  /// 30: ok
@@ -54,6 +59,11 @@ f(x, y) {
     var z = "$y";  /// 45: ok
     y.toString();  /// 46: ok
     var z = y.toString();  /// 47: ok
+
+    var a = "yz";
+    var b = "xyz";
+    b = b.substring(1);
+    if (identical(a, b)) { }  /// 48: ok
   }
 }
 

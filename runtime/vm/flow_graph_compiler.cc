@@ -892,7 +892,12 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
-  if (is_optimizing()) {
+  // Proper reporting of Javascript incompatibilities requires icdata and
+  // may therefore prevent the optimization of some static calls.
+  if (is_optimizing() &&
+      !(FLAG_warn_on_javascript_compatibility &&
+        (MethodRecognizer::RecognizeKind(function) ==
+         MethodRecognizer::kObjectIdentical))) {
     EmitOptimizedStaticCall(function, arguments_descriptor, argument_count,
                             deopt_id, token_pos, locs);
   } else {

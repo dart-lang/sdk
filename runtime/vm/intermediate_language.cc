@@ -34,7 +34,6 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 Definition::Definition()
     : range_(NULL),
