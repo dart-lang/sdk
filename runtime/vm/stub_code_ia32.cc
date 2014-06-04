@@ -1321,7 +1321,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found, get_class_id_as_smi;
+  Label loop, update, test, found;
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
@@ -1332,7 +1332,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // arguments descriptor array and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ call(&get_class_id_as_smi);
+  __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
   __ jmp(&test);
@@ -1343,7 +1344,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
-      __ call(&get_class_id_as_smi);
+      __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+
       // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
       // EDI: next class ID to check (smi).
@@ -1361,7 +1363,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (num_args > 1) {
     __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
-    __ call(&get_class_id_as_smi);
+    __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1418,20 +1420,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
-
-  // Instance in EAX, return its class-id in EAX as Smi.
-  __ Bind(&get_class_id_as_smi);
-  Label not_smi;
-  // Test if Smi -> load Smi class for comparison.
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
-  __ ret();
-
-  __ Bind(&not_smi);
-  __ LoadClassId(EAX, EAX);
-  __ SmiTag(EAX);
-  __ ret();
+  __ int3();
 }
 
 

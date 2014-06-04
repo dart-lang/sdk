@@ -652,6 +652,19 @@ void Assembler::LoadClass(Register result, Register object) {
 }
 
 
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  Label load, done;
+  andi(CMPRES1, object, Immediate(kSmiTagMask));
+  bne(CMPRES1, ZR, &load);
+  LoadImmediate(result, Smi::RawValue(kSmiCid));
+  b(&done);
+  Bind(&load);
+  LoadClassId(result, object);
+  SmiTag(result);
+  Bind(&done);
+}
+
+
 void Assembler::EnterFrame() {
   ASSERT(!in_delay_slot_);
   addiu(SP, SP, Immediate(-2 * kWordSize));

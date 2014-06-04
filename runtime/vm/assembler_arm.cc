@@ -1685,6 +1685,14 @@ void Assembler::CompareClassId(Register object,
 }
 
 
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  tst(object, Operand(kSmiTagMask));
+  LoadImmediate(result, Smi::RawValue(kSmiCid), EQ);
+  LoadClassId(result, object, NE);
+  SmiTag(result, NE);
+}
+
+
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
   return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);

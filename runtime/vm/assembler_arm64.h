@@ -1170,6 +1170,7 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id, Register pp);
   void LoadClass(Register result, Register object, Register pp);
   void CompareClassId(Register object, intptr_t class_id, Register pp);
+  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();

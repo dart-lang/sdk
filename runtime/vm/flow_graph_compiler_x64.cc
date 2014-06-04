@@ -1317,19 +1317,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ LoadImmediate(RAX, Immediate(Smi::RawValue(kSmiCid)), PP);
-  __ jmp(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(RAX, RAX);
-  __ SmiTag(RAX);
+  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
 
   // RAX: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(RBX, cache, PP);
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
   __ movq(RBX, FieldAddress(RBX, MegamorphicCache::mask_offset()));

@@ -1232,16 +1232,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  __ tst(R0, Operand(kSmiTagMask));
-  __ LoadClassId(R0, R0, NE);
-  __ SmiTag(R0, NE);
-  __ mov(R0, Operand(Smi::RawValue(kSmiCid)), EQ);
-  __ b(&load_cache, EQ);
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
   // R0: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(R1, cache);
   __ ldr(R2, FieldAddress(R1, MegamorphicCache::buckets_offset()));
   __ ldr(R1, FieldAddress(R1, MegamorphicCache::mask_offset()));

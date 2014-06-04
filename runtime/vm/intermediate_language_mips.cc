@@ -1019,15 +1019,7 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  Label load, done;
-  __ andi(CMPRES1, object, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &load);
-  __ LoadImmediate(result, Smi::RawValue(kSmiCid));
-  __ b(&done);
-  __ Bind(&load);
-  __ LoadClassId(result, object);
-  __ SmiTag(result);
-  __ Bind(&done);
+  __ LoadTaggedClassIdMayBeSmi(result, object);
 }
 
 

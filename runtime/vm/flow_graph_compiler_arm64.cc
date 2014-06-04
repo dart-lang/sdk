@@ -1238,19 +1238,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize, PP);
-  __ tsti(R0, kSmiTagMask);
-  __ b(&not_smi, NE);
-  __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
-  __ b(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(R0, R0, PP);
-  __ SmiTag(R0);
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
   // R0: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(R1, cache, PP);
   __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset(), PP);
   __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset(), PP);

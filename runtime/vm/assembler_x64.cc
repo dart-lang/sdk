@@ -3278,6 +3278,19 @@ void Assembler::CompareClassId(Register object, intptr_t class_id) {
 }
 
 
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  Label load, done;
+  testq(object, Immediate(kSmiTagMask));
+  j(NOT_ZERO, &load, Assembler::kNearJump);
+  LoadImmediate(result, Immediate(Smi::RawValue(kSmiCid)), PP);
+  jmp(&done);
+  Bind(&load);
+  LoadClassId(result, object);
+  SmiTag(result);
+  Bind(&done);
+}
+
+
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
   "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"

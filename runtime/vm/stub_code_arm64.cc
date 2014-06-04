@@ -1387,23 +1387,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // R0 <- [SP + (R7 << 3)]
   __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-
-  {
-    // TODO(zra): Put this code in a subroutine call as with other architectures
-    // when we have a bl(Label& l) instruction.
-    // Instance in R0, return its class-id in R0 as Smi.
-    // Test if Smi -> load Smi class for comparison.
-    Label not_smi, done;
-    __ tsti(R0, kSmiTagMask);
-    __ b(&not_smi, NE);
-    __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-    __ b(&done);
-
-    __ Bind(&not_smi);
-    __ LoadClassId(R0, R0, kNoPP);
-    __ SmiTag(R0);
-    __ Bind(&done);
-  }
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
   // R7: argument_count - 1 (untagged).
   // R0: receiver's class ID (smi).
@@ -1417,20 +1401,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       __ AddImmediate(R0, R7, -i, kNoPP);
       // R0 <- [SP + (R0 << 3)]
       __ ldr(R0, Address(SP, R0, UXTX, Address::Scaled));
-      {
-        // Instance in R0, return its class-id in R0 as Smi.
-        // Test if Smi -> load Smi class for comparison.
-        Label not_smi, done;
-        __ tsti(R0, kSmiTagMask);
-        __ b(&not_smi, NE);
-        __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-        __ b(&done);
-
-        __ Bind(&not_smi);
-        __ LoadClassId(R0, R0, kNoPP);
-        __ SmiTag(R0);
-        __ Bind(&done);
-      }
+      __ LoadTaggedClassIdMayBeSmi(R0, R0);
       // R0: next argument class ID (smi).
       __ LoadFromOffset(R1, R6, i * kWordSize, kNoPP);
       // R1: next class ID to check (smi).
@@ -1447,20 +1418,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-    {
-      // Instance in R0, return its class-id in R0 as Smi.
-      // Test if Smi -> load Smi class for comparison.
-      Label not_smi, done;
-      __ tsti(R0, kSmiTagMask);
-      __ b(&not_smi, NE);
-      __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-      __ b(&done);
-
-      __ Bind(&not_smi);
-      __ LoadClassId(R0, R0, kNoPP);
-      __ SmiTag(R0);
-      __ Bind(&done);
-    }
+    __ LoadTaggedClassIdMayBeSmi(R0, R0);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;

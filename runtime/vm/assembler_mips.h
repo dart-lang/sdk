@@ -1183,6 +1183,7 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
+  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.

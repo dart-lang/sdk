@@ -1279,16 +1279,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
+  Label load_cache;
   __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
-  __ jmp(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(EAX, EAX);
-  __ SmiTag(EAX);
+  __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
 
   // EAX: class ID of the receiver (smi).
   __ Bind(&load_cache);

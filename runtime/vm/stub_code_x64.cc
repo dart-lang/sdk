@@ -1248,7 +1248,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found, get_class_id_as_smi;
+  Label loop, update, test, found;
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
   // R12: ic_data_array with check entries: classes and target functions.
@@ -1259,7 +1259,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // arguments descriptor array and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
-  __ call(&get_class_id_as_smi);
+  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
   // RAX: receiver's class ID as smi.
   __ movq(R13, Address(R12, 0));  // First class ID (Smi) to check.
   __ jmp(&test);
@@ -1270,7 +1270,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       // If not the first, load the next argument's class ID.
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
       __ movq(RAX, Address(RSP, RAX, TIMES_4, - i * kWordSize));
-      __ call(&get_class_id_as_smi);
+      __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
       // RAX: next argument class ID (smi).
       __ movq(R13, Address(R12, i * kWordSize));
       // R13: next class ID to check (smi).
@@ -1288,7 +1288,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (num_args > 1) {
     __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
     __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));
-    __ call(&get_class_id_as_smi);
+    __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1343,19 +1343,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
-
-  __ Bind(&get_class_id_as_smi);
-  Label not_smi;
-  // Test if Smi -> load Smi class for comparison.
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
-  __ ret();
-
-  __ Bind(&not_smi);
-  __ LoadClassId(RAX, RAX);
-  __ SmiTag(RAX);
-  __ ret();
 }
 
 
