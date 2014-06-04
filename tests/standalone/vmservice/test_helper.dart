@@ -39,10 +39,10 @@ abstract class ServiceWebSocketRequestHelper {
   void onResponse(var seq, Map response);
   void runTest();
 
-  Future sendMessage(var seq, List<String> path) {
+  Future sendMessage(var seq, String request) {
     var map = {
       'seq': seq,
-      'path': path
+      'request': request
     };
     var message = JSON.encode(map);
     _socket.add(message);

@@ -52,7 +52,6 @@ analyzer/test/generated/parser_test: Pass, Timeout
 code_transformers/test/resolver_test: Pass, Timeout
 docgen/test/*: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
-polymer_expressions/test/globals_test: Pass, Timeout
 smoke/test/codegen/end_to_end_test: Pass, Timeout
 smoke/test/codegen/recorder_test: Pass, Timeout
 template_binding/test/template_binding_test: Pass, Timeout
@@ -80,6 +79,9 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
+
+[ $compiler == dart2js && $checked && $runtime == drt ]
+polymer/test/event_handlers_test: RuntimeError # Issue 19190
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -157,6 +159,7 @@ matcher/test/matchers_test: RuntimeError # Issue 17762
 [ $ie ]
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
+polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
 
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
@@ -343,10 +346,6 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
-
-[ $runtime == safari || $runtime == safarimobilesim || $ie ]
-polymer_expressions/test/globals_test: Fail # Issue 16568
-polymer_expressions/test/bindings_test: Fail # Issue 16568
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io

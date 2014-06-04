@@ -200,6 +200,8 @@ import 'dart:async';
 import 'dart:_internal';
 import 'dart:collection' show HashMap,
                               HashSet,
+                              Queue,
+                              ListQueue,
                               LinkedList,
                               LinkedListEntry,
                               UnmodifiableMapView;

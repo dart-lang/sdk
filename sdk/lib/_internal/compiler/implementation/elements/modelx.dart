@@ -1001,7 +1001,7 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   Element lookupLocalMember(String memberName) => importScope[memberName];
 
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) => const DynamicType();
 
   Token get position => firstPosition;
 
@@ -1623,7 +1623,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignature;
     compiler.withCurrentElement(this, () {
-      DartType inner = new FunctionType(this, compiler.types.dynamicType);
+      DartType inner = new FunctionType(this);
       functionSignatureCache = new FunctionSignatureX(const Link(),
           const Link(), 0, 0, false, [], inner);
     });
@@ -1795,7 +1795,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
       Link<DartType> dynamicParameters = const Link<DartType>();
       typeParameters.forEach((_) {
         dynamicParameters =
-            dynamicParameters.prepend(compiler.types.dynamicType);
+            dynamicParameters.prepend(const DynamicType());
       });
       rawTypeCache = createType(dynamicParameters);
     }

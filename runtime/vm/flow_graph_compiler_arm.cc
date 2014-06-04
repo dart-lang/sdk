@@ -1281,8 +1281,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ add(IP, R2, Operand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R1, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R1, FieldAddress(R1, Code::instructions_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::instructions_offset()));
   __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arguments_descriptor);
   __ AddImmediate(R1, Instructions::HeaderSize() - kHeapObjectTag);

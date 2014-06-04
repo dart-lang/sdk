@@ -62,9 +62,9 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   bool isPrimary(AssetId id) {
     if (id.extension != ".dart") return false;
 
-    // These should only contain libraries. For efficiency's sake, we don't
+    // "lib" should only contain libraries. For efficiency's sake, we don't
     // look for entrypoints in there.
-    return !["asset/", "lib/"].any(id.path.startsWith);
+    return !id.path.startsWith("lib/");
   }
 
   Future apply(Transform transform) {
@@ -292,7 +292,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     if (name == "") {
       outPath = _transform.primaryInput.id.path;
     } else {
-      outPath = path.join(path.dirname(_transform.primaryInput.id.path), name);
+      var dirname = path.url.dirname(_transform.primaryInput.id.path);
+      outPath = path.url.join(dirname, name);
     }
 
     var id = new AssetId(primaryId.package, "$outPath.$extension");
@@ -393,8 +394,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // should be loaded directly from disk.
     var sourcePath = path.fromUri(url);
     if (_environment.containsPath(sourcePath)) {
-      var relative = path.relative(sourcePath,
-          from: _environment.rootPackage.dir);
+      var relative = path.toUri(path.relative(sourcePath,
+          from: _environment.rootPackage.dir)).toString();
 
       return new AssetId(_environment.rootPackage.name, relative);
     }

@@ -439,17 +439,9 @@ void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  const char* expected = "?";
-  if (field().guarded_cid() != kIllegalCid) {
-    const Class& cls = Class::Handle(
-            Isolate::Current()->class_table()->At(field().guarded_cid()));
-    expected = String::Handle(cls.Name()).ToCString();
-  }
-
-  f->Print("%s [%s %s], ",
+  f->Print("%s %s, ",
            String::Handle(field().name()).ToCString(),
-           field().is_nullable() ? "nullable" : "non-nullable",
-           expected);
+           field().GuardedPropertiesAsCString());
   value()->PrintTo(f);
 }
 

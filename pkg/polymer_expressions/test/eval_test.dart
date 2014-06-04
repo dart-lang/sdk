@@ -81,6 +81,9 @@ main() {
       expectEval('2 - 1', 1);
       expectEval('4 / 2', 2);
       expectEval('2 * 3', 6);
+      expectEval('5 % 2', 1);
+      expectEval('5 % -2', 1);
+      expectEval('-5 % 2', 1);
 
       expectEval('1 == 1', true);
       expectEval('1 == 2', false);
@@ -216,24 +219,8 @@ main() {
       expectEval('a || b', false, null, {'a': null, 'b': null});
     });
 
-    test('should evaluate an "in" expression', () {
-      var scope = new Scope(variables: {'items': [1, 2, 3]});
-      var comprehension = eval(parse('item in items'), scope);
-      expect(comprehension.iterable, orderedEquals([1, 2, 3]));
-    });
-
-    test('should evaluate complex "in" expressions', () {
-      var holder = new ListHolder([1, 2, 3]);
-      var scope = new Scope(variables: {'holder': holder});
-      var comprehension = eval(parse('item in holder.items'), scope);
-      expect(comprehension.iterable, orderedEquals([1, 2, 3]));
-    });
-
-    test('should handle null iterators in "in" expressions', () {
-      var scope = new Scope(variables: {'items': null});
-      var comprehension = eval(parse('item in items'), scope);
-      expect(comprehension, isNotNull);
-      expect(comprehension.iterable, []);
+    test('should not evaluate "in" expressions', () {
+      expect(() => eval(parse('item in items'), null), throws);
     });
 
   });
@@ -257,6 +244,15 @@ main() {
       var foo = new Foo(items: [1, 2, 3]);
       assign(parse('items[0]'), 4, new Scope(model: foo));
       expect(foo.items[0], 4);
+      assign(parse('items[a]'), 5, new Scope(model: foo, variables: {'a': 0}));
+      expect(foo.items[0], 5);
+    });
+
+    test('should assign with a function call subexpression', () {
+      var child = new Foo();
+      var foo = new Foo(items: [1, 2, 3], child: child);
+      assign(parse('getChild().name'), 'child', new Scope(model: foo));
+      expect(child.name, 'child');
     });
 
     test('should assign through transformers', () {
@@ -271,6 +267,36 @@ main() {
       expect(foo.age, 22);
       assign(parse('name | parseInt() | add(10)'), 29, scope);
       expect(foo.name, '19');
+    });
+
+    test('should not throw on assignments to properties on null', () {
+      assign(parse('name'), 'b', new Scope(model: null));
+    });
+
+    test('should throw on assignments to non-assignable expressions', () {
+      var foo = new Foo(name: 'a');
+      var scope = new Scope(model: foo);
+      expect(() => assign(parse('name + 1'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+      expect(() => assign(parse('toString()'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+      expect(() => assign(parse('name | filter'), 1, scope),
+          throwsA(new isInstanceOf<EvalException>()));
+    });
+
+    test('should not throw on assignments to non-assignable expressions if '
+        'checkAssignability is false', () {
+      var foo = new Foo(name: 'a');
+      var scope = new Scope(model: foo);
+      expect(
+          assign(parse('name + 1'), 1, scope, checkAssignability: false),
+          null);
+      expect(
+          assign(parse('toString()'), 1, scope, checkAssignability: false),
+          null);
+      expect(
+          assign(parse('name | filter'), 1, scope, checkAssignability: false),
+          null);
     });
 
   });
@@ -340,19 +366,6 @@ main() {
       );
     });
 
-    test('should observe an comprehension', () {
-      var items = new ObservableList();
-      var foo = new Foo(name: 'foo');
-      return expectObserve('item in items',
-          variables: {'items': items},
-          beforeMatcher: (c) => c.iterable.isEmpty,
-          mutate: () {
-            items.add(foo);
-          },
-          afterMatcher: (c) => c.iterable.contains(foo)
-      );
-    });
-
   });
 
 }
@@ -372,6 +385,10 @@ class Foo extends ChangeNotifier {
   Foo({name, this.age, this.child, this.items}) : _name = name;
 
   int x() => age * age;
+
+  getChild() => child;
+
+  filter(i) => i;
 }
 
 @reflectable

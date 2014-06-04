@@ -2,8 +2,7 @@ library test.typed_mock;
 
 import 'package:unittest/unittest.dart';
 
-import 'package:typed_mock/typed_mock.dart' hide equals;
-import 'package:typed_mock/typed_mock.dart' as typed_mocks show equals;
+import 'package:typed_mock/typed_mock.dart';
 
 
 abstract class TestInterface {
@@ -36,13 +35,6 @@ main() {
   });
 
   group('Matchers', () {
-    test('equals', () {
-      expect(typed_mocks.equals(10).matches(10), true);
-      expect(typed_mocks.equals(10).matches(20), false);
-      expect(typed_mocks.equals('abc').matches('abc'), true);
-      expect(typed_mocks.equals('abc').matches('xyz'), false);
-    });
-
     test('anyBool', () {
       expect(anyBool.matches(true), true);
       expect(anyBool.matches(false), true);

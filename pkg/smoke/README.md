@@ -31,7 +31,10 @@ to inspect type information. Read the Dart-docs for more details.
 Code Generation
 ===============
 
-TBD. We envision we'll have a base transformer class that can be tailored to
-create a transformer for your framework.
+Use `package:smoke/codegen/generator.dart` and
+`package:smoke/codegen/recorder.dart` in your transformer to create a static
+initialization that can be used by smoke. The test under
+`test/codegen/end_to_end_test.dart` is a good illustrating example to learn how
+to use these APIs.
 
 [MirrorsUsed]: https://api.dartlang.org/apidocs/channels/stable/#dart-mirrors.MirrorsUsed

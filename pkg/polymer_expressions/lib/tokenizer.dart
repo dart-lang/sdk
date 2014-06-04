@@ -59,7 +59,7 @@ const _GROUPERS = const [_OPEN_PAREN, _CLOSE_PAREN,
 
 const _TWO_CHAR_OPS = const ['==', '!=', '<=', '>=', '||', '&&'];
 
-const _KEYWORDS = const ['in', 'this'];
+const KEYWORDS = const ['as', 'in', 'this'];
 
 const _PRECEDENCE = const {
   '!':  0,
@@ -218,7 +218,7 @@ class Tokenizer {
       _advance();
     }
     var value = _sb.toString();
-    if (_KEYWORDS.contains(value)) {
+    if (KEYWORDS.contains(value)) {
       _tokens.add(new Token(KEYWORD_TOKEN, value));
     } else {
       _tokens.add(new Token(IDENTIFIER_TOKEN, value));

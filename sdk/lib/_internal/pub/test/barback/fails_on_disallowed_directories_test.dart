@@ -19,7 +19,7 @@ main() {
 
   var libSub = path.join("lib", "sub");
   pubBuildAndServeShouldFail("if given directories are not allowed",
-      args: [libSub, "asset"],
-      error: 'Directories "$libSub" and "asset" are not allowed.',
+      args: [libSub, "lib"],
+      error: 'Directories "$libSub" and "lib" are not allowed.',
       exitCode: exit_codes.USAGE);
 }

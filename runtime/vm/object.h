@@ -1576,7 +1576,7 @@ class Function : public Object {
 
   // Sets function's code and code's function.
   void AttachCode(const Code& value) const;
-  void set_code(const Code& value) const;
+  void SetInstructions(const Code& value) const;
   void ClearCode() const;
 
   // Disables optimized code and switches to unoptimized code.
@@ -1584,15 +1584,20 @@ class Function : public Object {
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
-  RawCode* CurrentCode() const { return raw_ptr()->code_; }
+  RawCode* CurrentCode() const {
+    return raw_ptr()->instructions_->ptr()->code_;
+  }
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
-  static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   static intptr_t unoptimized_code_offset() {
     return OFFSET_OF(RawFunction, unoptimized_code_);
   }
   bool HasCode() const;
+
+  static intptr_t instructions_offset() {
+    return OFFSET_OF(RawFunction, instructions_);
+  }
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
@@ -2213,11 +2218,19 @@ class Field : public Object {
   static intptr_t guarded_list_length_offset() {
     return OFFSET_OF(RawField, guarded_list_length_);
   }
+  intptr_t guarded_list_length_in_object_offset() const;
+  void set_guarded_list_length_in_object_offset(intptr_t offset) const;
+  static intptr_t guarded_list_length_in_object_offset_offset() {
+    return OFFSET_OF(RawField, guarded_list_length_in_object_offset_);
+  }
+
   bool needs_length_check() const {
     const bool r = guarded_list_length() >= Field::kUnknownFixedLength;
     ASSERT(!r || is_final());
     return r;
   }
+
+  const char* GuardedPropertiesAsCString() const;
 
   intptr_t UnboxedFieldCid() const {
     ASSERT(IsUnboxedField());
@@ -2240,6 +2253,7 @@ class Field : public Object {
   }
 
   enum {
+    kUnknownLengthOffset = -1,
     kUnknownFixedLength = -1,
     kNoFixedLength = -2,
   };
@@ -2258,9 +2272,11 @@ class Field : public Object {
     return OFFSET_OF(RawField, is_nullable_);
   }
 
-  // Update guarded cid and guarded length for this field. May trigger
+  // Record store of the given value into this field. May trigger
   // deoptimization of dependent optimized code.
-  bool UpdateGuardedCidAndLength(const Object& value) const;
+  void RecordStore(const Object& value) const;
+
+  void InitializeGuardedListLengthInObjectOffset() const;
 
   // Return the list of optimized code objects that were optimized under
   // assumptions about guarded class id and nullability of this field.
@@ -2305,15 +2321,9 @@ class Field : public Object {
                                                kUnboxingCandidateBit, 1> {
   };
 
-  // Update guarded class id and nullability of the field to reflect assignment
-  // of the value with the given class id to this field. Returns true, if
+  // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
-  bool UpdateCid(intptr_t cid) const;
-
-  // Update guarded class length of the field to reflect assignment of the
-  // value with the given length. Returns true if deoptimization of dependent
-  // code is required.
-  bool UpdateLength(intptr_t length) const;
+  bool UpdateGuardedCidAndLength(const Object& value) const;
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
@@ -4158,7 +4168,7 @@ class Instance : public Object {
   }
 
   void SetField(const Field& field, const Object& value) const {
-    field.UpdateGuardedCidAndLength(value);
+    field.RecordStore(value);
     StorePointer(FieldAddr(field), value.raw());
   }
 

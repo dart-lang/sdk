@@ -1,3 +1,7 @@
+## 0.5.4+1
+
+* Widen the version constraint for `stack_trace`.
+
 ## 0.5.4
 
 * The `shelf_io` adapter now sends the `Date` HTTP header by default.

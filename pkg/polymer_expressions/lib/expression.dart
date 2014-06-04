@@ -24,6 +24,7 @@ Index index(Expression e, Expression a) => new Index(e, a);
 Invoke invoke(Expression e, String m, List<Expression> a) =>
     new Invoke(e, m, a);
 InExpression inExpr(Expression l, Expression r) => new InExpression(l, r);
+AsExpression asExpr(Expression l, Expression r) => new AsExpression(l, r);
 TernaryOperator ternary(Expression c, Expression t, Expression f) =>
     new TernaryOperator(c, t, f);
 
@@ -59,12 +60,19 @@ class AstFactory {
       new Invoke(e, m, a);
 
   InExpression inExpr(Expression l, Expression r) => new InExpression(l, r);
+
+  AsExpression asExpr(Expression l, Expression r) => new AsExpression(l, r);
 }
 
 /// Base class for all expressions
 abstract class Expression {
   const Expression();
   accept(Visitor v);
+}
+
+abstract class HasIdentifier {
+  String get identifier;
+  Expression get expr;
 }
 
 class EmptyExpression extends Expression {
@@ -212,17 +220,41 @@ class TernaryOperator extends Expression {
       trueExpr.hashCode, falseExpr.hashCode);
 }
 
-class InExpression extends Expression {
-  final Expression left;
+class InExpression extends Expression implements HasIdentifier {
+  final Identifier left;
   final Expression right;
 
   InExpression(this.left, this.right);
 
   accept(Visitor v) => v.visitInExpression(this);
 
+  String get identifier => left.value;
+
+  Expression get expr => right;
+
   String toString() => '($left in $right)';
 
   bool operator ==(o) => o is InExpression && o.left == left
+      && o.right == right;
+
+  int get hashCode => _JenkinsSmiHash.hash2(left.hashCode, right.hashCode);
+}
+
+class AsExpression extends Expression implements HasIdentifier {
+  final Expression left;
+  final Identifier right;
+
+  AsExpression(this.left, this.right);
+
+  accept(Visitor v) => v.visitAsExpression(this);
+
+  String get identifier => right.value;
+
+  Expression get expr => left;
+
+  String toString() => '($left as $right)';
+
+  bool operator ==(o) => o is AsExpression && o.left == left
       && o.right == right;
 
   int get hashCode => _JenkinsSmiHash.hash2(left.hashCode, right.hashCode);

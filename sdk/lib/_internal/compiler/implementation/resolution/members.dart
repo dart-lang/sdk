@@ -37,9 +37,12 @@ abstract class TreeElements {
    * Returns [:true:] if [node] is a type literal.
    *
    * Resolution marks this by setting the type on the node to be the
-   * [:Type:] type.
+   * type that the literal refers to.
    */
   bool isTypeLiteral(Send node);
+
+  /// Returns the type that the type literal [node] refers to.
+  DartType getTypeLiteralType(Send node);
 
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
@@ -181,6 +184,10 @@ class TreeElementMapping implements TreeElements {
 
   bool isTypeLiteral(Send node) {
     return getType(node) != null;
+  }
+
+  DartType getTypeLiteralType(Send node) {
+    return getType(node);
   }
 
   void registerDependency(Element element) {
@@ -576,7 +583,7 @@ class ResolverTask extends CompilerTask {
     if (tree.type != null) {
       element.variables.type = visitor.resolveTypeAnnotation(tree.type);
     } else {
-      element.variables.type = compiler.types.dynamicType;
+      element.variables.type = const DynamicType();
     }
     registry.useElement(tree, element);
 
@@ -626,11 +633,11 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveReturnType(Element element, TypeAnnotation annotation) {
-    if (annotation == null) return compiler.types.dynamicType;
+    if (annotation == null) return const DynamicType();
     DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
     if (result == null) {
       // TODO(karklose): warning.
-      return compiler.types.dynamicType;
+      return const DynamicType();
     }
     return result;
   }
@@ -1683,11 +1690,7 @@ class TypeResolver {
       }
     } else {
       String stringValue = typeName.source;
-      if (identical(stringValue, 'dynamic')) {
-        element = compiler.dynamicClass;
-      } else {
-        element = lookupInScope(compiler, typeName, scope, typeName.source);
-      }
+      element = lookupInScope(compiler, typeName, scope, typeName.source);
     }
     return element;
   }
@@ -1723,6 +1726,11 @@ class TypeResolver {
       typeName = node.typeName.asIdentifier();
       if (identical(typeName.source, 'void')) {
         type = const VoidType();
+        checkNoTypeArguments(type);
+        registry.useType(node, type);
+        return type;
+      } else if (identical(typeName.source, 'dynamic')) {
+        type = const DynamicType();
         checkNoTypeArguments(type);
         registry.useType(node, type);
         return type;
@@ -1772,9 +1780,7 @@ class TypeResolver {
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
       bool addTypeVariableBoundsCheck = false;
-      if (identical(element, compiler.dynamicClass)) {
-        type = checkNoTypeArguments(element.computeType(compiler));
-      } else if (element.isClass) {
+      if (element.isClass) {
         ClassElement cls = element;
         // TODO(johnniwinther): [_ensureClassWillBeResolved] should imply
         // [computeType].
@@ -2121,7 +2127,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
       String name = node.source;
       Element element = lookupInScope(compiler, node, scope, name);
       if (Elements.isUnresolved(element) && name == 'dynamic') {
-        element = compiler.dynamicClass;
+        // TODO(johnniwinther): Remove this hack when we can return more complex
+        // objects than [Element] from this method.
+        element = compiler.typeClass;
+        // Set the type to be `dynamic` to mark that this is a type literal.
+        registry.setType(node, const DynamicType());
       }
       element = reportLookupErrorIfAny(element, node, node.source);
       if (element == null) {
@@ -2593,13 +2603,22 @@ class ResolverVisitor extends MappingVisitor<Element> {
         registry.registerTypeVariableExpression();
         // Set the type of the node to [Type] to mark this send as a
         // type variable expression.
-        registry.setType(node, compiler.typeClass.computeType(compiler));
-        registry.registerTypeLiteral(target);
+        registry.registerTypeLiteral(node, target.computeType(compiler));
       } else if (target.impliesType && (!sendIsMemberAccess || node.isCall)) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
-        registry.setType(node, compiler.typeClass.computeType(compiler));
-        registry.registerTypeLiteral(target);
+        DartType type;
+
+        // TODO(johnniwinther): Remove this hack when we can pass more complex
+        // information between methods than resolved elements.
+        if (target == compiler.typeClass && node.receiver == null) {
+          // Potentially a 'dynamic' type literal.
+          type = registry.getType(node.selector);
+        }
+        if (type == null) {
+          type = target.computeType(compiler);
+        }
+        registry.registerTypeLiteral(node, type);
 
         // Don't try to make constants of calls to type literals.
         if (!node.isCall) {
@@ -2985,7 +3004,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.type != null) {
       type = resolveTypeAnnotation(node.type);
     } else {
-      type = compiler.types.dynamicType;
+      type = const DynamicType();
     }
     VariableList variables = new VariableList.node(node, type);
     VariableDefinitionsVisitor visitor =
@@ -3781,7 +3800,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
               const Link<TypeVariableElement>();
           seenTypeVariables = seenTypeVariables.prepend(variableElement);
           DartType bound = boundType;
-          while (bound.kind == TypeKind.TYPE_VARIABLE) {
+          while (bound.isTypeVariable) {
             TypeVariableElement element = bound.element;
             if (seenTypeVariables.contains(element)) {
               if (identical(element, variableElement)) {
@@ -4034,9 +4053,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (isBlackListed(mixinType)) {
       compiler.reportError(mixinNode,
           MessageKind.CANNOT_MIXIN, {'type': mixinType});
-    } else if (mixinType.kind == TypeKind.TYPE_VARIABLE) {
+    } else if (mixinType.isTypeVariable) {
       compiler.reportError(mixinNode, MessageKind.CLASS_NAME_EXPECTED);
-    } else if (mixinType.kind == TypeKind.MALFORMED_TYPE) {
+    } else if (mixinType.isMalformed) {
       compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED);
     }
     return mixinType;
@@ -4151,7 +4170,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // the interface of the class that was mixed in so always prepend
     // that to the interface list.
     if (mixinApplication.interfaces == null) {
-      if (mixinType.kind == TypeKind.INTERFACE) {
+      if (mixinType.isInterfaceType) {
         // Avoid malformed types in the interfaces.
         interfaces = interfaces.prepend(mixinType);
       }
@@ -4341,7 +4360,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       !identical(lib, compiler.coreLibrary) &&
       !identical(lib, compiler.jsHelperLibrary) &&
       !identical(lib, compiler.interceptorsLibrary) &&
-      (identical(type, compiler.types.dynamicType) ||
+      (type.isDynamic ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||
        identical(type.element, compiler.intClass) ||
@@ -4582,7 +4601,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     }
     if (type == null) {
       if (Elements.isUnresolved(element)) {
-        type = compiler.types.dynamicType;
+        type = const DynamicType();
       } else {
         type = element.enclosingClass.rawType;
       }

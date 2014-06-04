@@ -430,32 +430,42 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   bool isSubclassOf(ClassMirror other) => false;
 }
 
-class Dart2JsVoidMirror extends Dart2JsDeclarationMirror
+/// Common superclass for mirrors on `dynamic` and `void`.
+abstract class Dart2JsBuiltinTypeMirror extends Dart2JsDeclarationMirror
     with Dart2JsTypeMirror
     implements TypeSourceMirror {
   final Dart2JsMirrorSystem mirrorSystem;
-  final VoidType _type;
+  final DartType _type;
 
-  Dart2JsVoidMirror(Dart2JsMirrorSystem this.mirrorSystem, VoidType this._type);
+  Dart2JsBuiltinTypeMirror(Dart2JsMirrorSystem this.mirrorSystem,
+                           DartType this._type);
 
   Symbol get qualifiedName => simpleName;
 
   /**
-   * The void type has no location.
+   * The builtin types have has no location.
    */
   SourceLocation get location => null;
 
   /**
-   * The void type has no owner.
+   * The builtin types have has no owner.
    */
   Dart2JsDeclarationMirror get owner => null;
 
   /**
-   * The void type has no library.
+   * The builtin types have no library.
    */
   Dart2JsLibraryMirror get library => null;
 
+  /**
+   * The builtin types have no metadata.
+   */
   List<InstanceMirror> get metadata => const <InstanceMirror>[];
+}
+
+class Dart2JsVoidMirror extends Dart2JsBuiltinTypeMirror {
+  Dart2JsVoidMirror(Dart2JsMirrorSystem mirrorSystem, VoidType type)
+      : super(mirrorSystem, type);
 
   bool get isVoid => true;
 
@@ -474,23 +484,9 @@ class Dart2JsVoidMirror extends Dart2JsDeclarationMirror
   String toString() => 'Mirror on void';
 }
 
-class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
-  Dart2JsDynamicMirror(Dart2JsMirrorSystem system, InterfaceType voidType)
-      : super(system, voidType);
-
-  InterfaceType get _dynamicType => _type;
-
-  Symbol get qualifiedName => simpleName;
-
-  /**
-   * The dynamic type has no location.
-   */
-  SourceLocation get location => null;
-
-  /**
-   * The dynamic type has no library.
-   */
-  LibraryMirror get library => null;
+class Dart2JsDynamicMirror extends Dart2JsBuiltinTypeMirror {
+  Dart2JsDynamicMirror(Dart2JsMirrorSystem mirrorSystem, DynamicType type)
+      : super(mirrorSystem, type);
 
   bool get isDynamic => true;
 
@@ -504,7 +500,7 @@ class Dart2JsDynamicMirror extends Dart2JsTypeElementMirror {
     return other.isDynamic;
   }
 
-  int get hashCode => 13 * _element.hashCode;
+  int get hashCode => 13 * _type.hashCode;
 
   String toString() => 'Mirror on dynamic';
 }

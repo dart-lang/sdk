@@ -31,8 +31,7 @@ main() {
       createLockFile('myapp', pkg: ['barback']);
 
       var pub = startPubServe();
-      pub.stderr.expect('[RewriteImport]:');
-      pub.stderr.expect(startsWith('Error in'));
+      pub.stderr.expect(contains("unexpected token 'syntax'"));
       pub.shouldExit(1);
       pub.stderr.expect(never(contains('This is an unexpected error')));
     });

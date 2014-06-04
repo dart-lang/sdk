@@ -1533,7 +1533,7 @@ void SinCos(double arg, double* cos_res, double* sin_res) {
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
-  field.UpdateGuardedCidAndLength(value);
+  field.RecordStore(value);
 }
 
 }  // namespace dart

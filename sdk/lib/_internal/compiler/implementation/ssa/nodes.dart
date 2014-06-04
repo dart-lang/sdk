@@ -1227,7 +1227,7 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
-    assert(type.treatAsRaw || type.kind == TypeKind.FUNCTION);
+    assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
     // The type element is either a class or the void element.
     Element element = type.element;
@@ -2496,12 +2496,12 @@ class HTypeConversion extends HCheck {
   }
 
   bool get hasTypeRepresentation {
-    return typeExpression.kind == TypeKind.INTERFACE && inputs.length > 1;
+    return typeExpression.isInterfaceType && inputs.length > 1;
   }
   HInstruction get typeRepresentation => inputs[1];
 
   bool get hasContext {
-    return typeExpression.kind == TypeKind.FUNCTION && inputs.length > 1;
+    return typeExpression.isFunctionType && inputs.length > 1;
   }
   HInstruction get context => inputs[1];
 

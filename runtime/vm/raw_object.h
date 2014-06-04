@@ -612,7 +612,7 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawObject* data_;  // Additional data specific to the function kind.
-  RawCode* code_;  // Compiled code for the function.
+  RawInstructions* instructions_;  // Instructions of currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
@@ -685,6 +685,11 @@ class RawField : public RawObject {
   intptr_t guarded_cid_;
   intptr_t is_nullable_;  // kNullCid if field can contain null value and
                           // any other value otherwise.
+  // Offset to the guarded length field inside an instance of class matching
+  // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
+  // generated on platforms with weak addressing modes (ARM, MIPS).
+  int8_t guarded_list_length_in_object_offset_;
+
   uint8_t kind_bits_;  // static, final, const, has initializer.
 };
 
@@ -839,6 +844,8 @@ class RawCode : public RawObject {
   int32_t data_[0];
 
   friend class StackFrame;
+  friend class MarkingVisitor;
+  friend class Function;
 };
 
 
@@ -866,6 +873,8 @@ class RawInstructions : public RawObject {
   friend class RawCode;
   friend class Code;
   friend class StackFrame;
+  friend class MarkingVisitor;
+  friend class Function;
 };
 
 

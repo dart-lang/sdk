@@ -29,7 +29,7 @@ enum Register {
   R15 = 15,
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
-  R18 = 18,
+  R18 = 18,  // SP in Dart code.
   R19 = 19,
   R20 = 20,
   R21 = 21,
@@ -43,18 +43,19 @@ enum Register {
   R28 = 28,  // CTX
   R29 = 29,  // FP
   R30 = 30,  // LR
-  R31 = 31,  // ZR, SP
+  R31 = 31,  // ZR, CSP
   kNumberOfCpuRegisters = 32,
   kNoRegister = -1,
 
   // These registers both use the encoding R31, but to avoid mistakes we give
   // them different values, and then translate before encoding.
-  SP = 32,
+  CSP = 32,
   ZR = 33,
 
   // Aliases.
   IP0 = R16,
   IP1 = R17,
+  SP = R18,
   FP = R29,
   LR = R30,
 };
@@ -112,7 +113,7 @@ const Register CTX = R28;  // Caches current context in generated code.
 const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register kNoPP = kNoRegister;
 const Register FPREG = FP;  // Frame pointer register.
-const Register SPREG = R31;  // Stack pointer register.
+const Register SPREG = R18;  // Stack pointer register.
 const Register ICREG = R5;  // IC data register.
 
 // Exception object is passed in this register to the catch handlers when an
@@ -155,20 +156,19 @@ const RegList kDartAvailableCpuRegs =
     (1 << R4)  | (1 << R5)  | (1 << R6)  | (1 << R7)  |
     (1 << R8)  | (1 << R9)  | (1 << R10) | (1 << R11) |
     (1 << R12) | (1 << R13) | (1 << R14) | (1 << R15) |
-    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) |
-    (1 << R22) | (1 << R23) | (1 << R24) | (1 << R25) |
-    (1 << R26);
+    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
+    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26);
 
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 const Register kDartFirstVolatileCpuReg = R0;
-const Register kDartLastVolatileCpuReg = R18;
-const int kDartVolatileCpuRegCount = 17;  // Excluding R16 and R17.
+const Register kDartLastVolatileCpuReg = R15;
+const int kDartVolatileCpuRegCount = 16;
 const int kDartVolatileFpuRegCount = 24;
 
 static inline Register ConcreteRegister(Register r) {
-  return ((r == ZR) || (r == SP)) ? R31 : r;
+  return ((r == ZR) || (r == CSP)) ? R31 : r;
 }
 
 // Values for the condition field as defined in section A3.2.
@@ -907,10 +907,10 @@ class Instr {
 
   inline bool HasS() const { return (SField() == 1); }
 
-  // Indicate whether Rd can be the SP or ZR. This does not check that the
+  // Indicate whether Rd can be the CSP or ZR. This does not check that the
   // instruction actually has an Rd field.
   R31Type RdMode() const {
-    // The following instructions use SP as Rd:
+    // The following instructions use CSP as Rd:
     //  Add/sub (immediate) when not setting the flags.
     //  Add/sub (extended) when not setting the flags.
     //  Logical (immediate) when not setting the flags.
@@ -926,10 +926,10 @@ class Instr {
     return R31IsZR;
   }
 
-  // Indicate whether Rn can be SP or ZR. This does not check that the
+  // Indicate whether Rn can be CSP or ZR. This does not check that the
   // instruction actually has an Rn field.
   R31Type RnMode() const {
-    // The following instructions use SP as Rn:
+    // The following instructions use CSP as Rn:
     //  All loads and stores.
     //  Add/sub (immediate).
     //  Add/sub (extended).

@@ -1,22 +1,19 @@
 # changelog
 
 This file contains highlights of what changes on each version of the polymer
-package. We will also note important changes to the polyfill packages if they
-impact polymer: custom_element, html_import, observe, shadow_dom,
-and template_binding.
+package. We will also note important changes to the polyfill packages (observe,
+web_components, and template_binding) if they impact polymer.
 
-#### Pub version 0.10.0-dev
-  * initPolymer is now deprecated: no need to call it or to include init.dart,
-    instead include `<link rel="import" href="packages/polymer/polymer.html">`
-  * Mime-type of script tags needs to change to prepare for upcoming breaking
-    change in Dartium: use `<script type="application/dart;component=1">`.
-  * The output of pub-build no longer uses mirrors. We replace all uses of
-    mirrors with code generation.
+#### Pub version 0.10.0
   * Interop with polymer-js elements now works.
   * Polymer polyfills are now consolidated in package:web_components, which is
     identical to platform.js from http://polymer-project.org.
-  * Breaking change: "noscript" polymer-elements are created by polymer.js, and
-    therefore cannot be extended (subtyped) in Dart. They can still be used
+  * The output of pub-build no longer uses mirrors. We replace all uses of
+    mirrors with code generation.
+  * **breaking change**: Declaring a polymer app requires an extra import to
+    `<link rel="import" href="packages/polymer/polymer.html">`
+  * **breaking change**: "noscript" polymer-elements are created by polymer.js,
+    and therefore cannot be extended (subtyped) in Dart. They can still be used
     by Dart elements or applications, however.
   * New feature: `@ObserveProperty('foo bar.baz') myMethod() {...}` will cause
     myMethod to be called when "foo" or "bar.baz" changes.

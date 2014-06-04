@@ -19,16 +19,14 @@ main() {
           "transformers": ["foo/transformer"]
         }),
         d.dir("lib", [
-          d.file("transformer.dart", REWRITE_TRANSFORMER)
-        ]),
-        d.dir("asset", [
+          d.file("transformer.dart", REWRITE_TRANSFORMER),
           d.file("foo.txt", "foo")
         ])
       ]).create();
 
       d.dir(appPath, [
         d.appPubspec({"foo": {"path": "../foo"}}),
-        d.dir("asset", [
+        d.dir("lib", [
           d.file("bar.txt", "bar")
         ])
       ]).create();
@@ -36,7 +34,7 @@ main() {
       createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
       pubServe();
-      requestShould404("assets/myapp/bar.out");
+      requestShould404("packages/myapp/bar.out");
       endPubServe();
     });
   });

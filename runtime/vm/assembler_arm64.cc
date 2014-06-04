@@ -1081,9 +1081,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     AddImmediate(SP, SP, -frame_space, kNoPP);
   }
   if (OS::ActivationFrameAlignment() > 1) {
-    mov(TMP, SP);  // SP can't be register operand of andi.
-    andi(TMP, TMP, ~(OS::ActivationFrameAlignment() - 1));
-    mov(SP, TMP);
+    andi(SP, SP, ~(OS::ActivationFrameAlignment() - 1));
   }
 }
 
@@ -1194,9 +1192,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
 
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     const Register reg = static_cast<Register>(i);
-    if ((reg != TMP) && (reg != TMP2)) {
-      Push(reg);
-    }
+    Push(reg);
   }
 
   ReserveAlignedFrameSpace(frame_size);
@@ -1207,16 +1203,13 @@ void Assembler::LeaveCallRuntimeFrame() {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
-  // TODO(zra): Also include FPU regs in this count once they are added.
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
       kDartVolatileFpuRegCount * kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize, PP);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
-    if ((reg != TMP) && (reg != TMP2)) {
-      Pop(reg);
-    }
+    Pop(reg);
   }
 
   for (int i = 0; i < kNumberOfVRegisters; i++) {

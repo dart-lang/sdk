@@ -19,7 +19,8 @@ namespace dart {
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
 
-Scanner::KeywordTable Scanner::keywords_[Token::numKeywords];
+Scanner::KeywordTable Scanner::keywords_[Token::kNumKeywords];
+int Scanner::keywords_char_offset_[Scanner::kNumLowercaseChars];
 
 
 void Scanner::Reset() {
@@ -289,23 +290,25 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
 
   // Check whether the characters we read are a known keyword.
   // Note, can't use strcmp since token_chars is not null-terminated.
-  int i = 0;
-  while (i < Token::numKeywords &&
-         keywords_[i].keyword_chars[0] <= ident_char0) {
-    if (keywords_[i].keyword_len == ident_length) {
-      const char* keyword = keywords_[i].keyword_chars;
-      int char_pos = 0;
-      while ((char_pos < ident_length) &&
-             (keyword[char_pos] == source_.CharAt(ident_pos + char_pos))) {
-        char_pos++;
+  if (('a' <= ident_char0) && (ident_char0 <= 'z')) {
+    int i = keywords_char_offset_[ident_char0 - 'a'];
+    while (i < Token::kNumKeywords &&
+           keywords_[i].keyword_chars[0] <= ident_char0) {
+      if (keywords_[i].keyword_len == ident_length) {
+        const char* keyword = keywords_[i].keyword_chars;
+        int char_pos = 1;
+        while ((char_pos < ident_length) &&
+               (keyword[char_pos] == source_.CharAt(ident_pos + char_pos))) {
+          char_pos++;
+        }
+        if (char_pos == ident_length) {
+          current_token_.literal = keywords_[i].keyword_symbol;
+          current_token_.kind = keywords_[i].kind;
+          return;
+        }
       }
-      if (char_pos == ident_length) {
-        current_token_.literal = keywords_[i].keyword_symbol;
-        current_token_.kind = keywords_[i].kind;
-        return;
-      }
+      i++;
     }
-    i++;
   }
 
   // We did not read a keyword.
@@ -937,12 +940,20 @@ void Scanner::PrintTokens(const GrowableTokenStream& ts) {
 
 void Scanner::InitOnce() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
-  for (int i = 0; i < Token::numKeywords; i++) {
+  for (int i = 0; i < kNumLowercaseChars; i++) {
+    keywords_char_offset_[i] = Token::kNumKeywords;
+  }
+  for (int i = 0; i < Token::kNumKeywords; i++) {
     Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
     keywords_[i].kind = token;
     keywords_[i].keyword_chars = Token::Str(token);
     keywords_[i].keyword_len = strlen(Token::Str(token));
     keywords_[i].keyword_symbol = &Symbols::Keyword(token);
+
+    int ch = keywords_[i].keyword_chars[0] - 'a';
+    if (keywords_char_offset_[ch] == Token::kNumKeywords) {
+      keywords_char_offset_[ch] = i;
+    }
   }
 }
 

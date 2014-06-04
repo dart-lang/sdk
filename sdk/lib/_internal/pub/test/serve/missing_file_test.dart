@@ -17,9 +17,6 @@ main() {
   integration("responds with a 404 for missing source files", () {
     d.dir(appPath, [
       d.appPubspec(),
-      d.dir("asset", [
-        d.file("nope.png", "nope")
-      ]),
       d.dir("lib", [
         d.file("nope.dart", "nope")
       ]),
@@ -34,7 +31,6 @@ main() {
 
     // Now delete them.
     schedule(() {
-      deleteEntry(path.join(sandboxDir, appPath, "asset", "nope.png"));
       deleteEntry(path.join(sandboxDir, appPath, "lib", "nope.dart"));
       deleteEntry(path.join(sandboxDir, appPath, "web", "index.html"));
     }, "delete files");
@@ -46,9 +42,7 @@ main() {
 
     requestShould404("index.html");
     requestShould404("packages/myapp/nope.dart");
-    requestShould404("assets/myapp/nope.png");
     requestShould404("dir/packages/myapp/nope.dart");
-    requestShould404("dir/assets/myapp/nope.png");
     endPubServe();
   });
 }

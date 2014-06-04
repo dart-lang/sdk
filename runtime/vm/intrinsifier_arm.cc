@@ -43,7 +43,7 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
   __ tst(R0, Operand(kSmiTagMask));
   __ b(&fall_through, NE);  // Index is not an smi, fall through
 
-  // range check
+  // Range check.
   __ ldr(R6, FieldAddress(R1, Array::length_offset()));
   __ cmp(R0, Operand(R6));
 
@@ -228,7 +228,7 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
   __ tst(R0, Operand(kSmiTagMask));
   __ b(&fall_through, NE);  // Index is not an smi, fall through
 
-  // range check
+  // Range check.
   __ ldr(R6, FieldAddress(R1, GrowableObjectArray::length_offset()));
   __ cmp(R0, Operand(R6));
 
@@ -428,6 +428,50 @@ void Intrinsifier::TypedData_getLength(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, TypedData::length_offset()));
   __ Ret();
+}
+
+
+void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
+  __ tst(R0, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+  __ SmiUntag(R0);
+  __ AddImmediate(R1, TypedData::data_offset() - kHeapObjectTag);
+  __ ldrb(R0, Address(R1, R0));
+  __ SmiTag(R0);
+  __ Ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
+  __ tst(R0, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+  __ LoadFromOffset(kWord, R1, R1,
+      ExternalTypedData::data_offset() - kHeapObjectTag);
+  __ SmiUntag(R0);
+  __ ldrb(R0, Address(R1, R0));
+  __ SmiTag(R0);
+  __ Ret();
+  __ Bind(&fall_through);
 }
 
 

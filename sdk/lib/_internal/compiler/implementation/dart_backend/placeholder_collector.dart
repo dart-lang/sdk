@@ -328,9 +328,6 @@ class PlaceholderCollector extends Visitor {
     if (element.library.isPlatformLibrary && !element.isTopLevel) {
       return;
     }
-    if (element == compiler.dynamicClass) {
-      return;
-    }
     elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }
 

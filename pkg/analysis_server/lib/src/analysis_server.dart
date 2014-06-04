@@ -8,18 +8,22 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
+import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 
 /**
@@ -38,7 +42,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
     ContextDirectory contextDirectory = new ContextDirectory(
         analysisServer.defaultSdk, folder, pubspecFile);
     analysisServer.folderMap[folder] = contextDirectory;
-    analysisServer.addContextToWorkQueue(contextDirectory.context);
+    analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
   }
 
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
@@ -51,26 +55,6 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
  * [CommunicationChannel] for analysis requests and process them.
  */
 class AnalysisServer {
-  /**
-   * The name of the parameter whose value is a list of errors.
-   */
-  static const String ERRORS_PARAM = 'errors';
-
-  /**
-   * The name of the parameter whose value is a file path.
-   */
-  static const String FILE_PARAM = 'file';
-
-  /**
-   * The event name of the connected notification.
-   */
-  static const String CONNECTED_NOTIFICATION = 'server.connected';
-
-  /**
-   * The event name of the status notification.
-   */
-  static const String STATUS_NOTIFICATION = 'server.status';
-
   /**
    * The channel from which requests are received and to which responses should
    * be sent.
@@ -85,7 +69,7 @@ class AnalysisServer {
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
-   * will no longer be added to [contextWorkQueue], and [performTask] will
+   * will no longer be added to [contextWorkQueue], and [performOperation] will
    * discard any tasks it finds on [contextWorkQueue].
    */
   bool running;
@@ -95,17 +79,6 @@ class AnalysisServer {
    * server.
    */
   List<RequestHandler> handlers;
-
-  // TODO(scheglov) remove once setAnalysisRoots() is completely implemented
-//  /**
-//   * A table mapping context id's to the analysis contexts associated with them.
-//   */
-//  final Map<String, AnalysisContext> contextMap = new Map<String, AnalysisContext>();
-//
-//  /**
-//   * A table mapping analysis contexts to the context id's associated with them.
-//   */
-//  final Map<AnalysisContext, String> contextIdMap = new Map<AnalysisContext, String>();
 
   /**
    * The current default [DartSdk].
@@ -118,19 +91,13 @@ class AnalysisServer {
   final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
 
   /**
-   * The context identifier used in the last status notification.
-   */
-  String lastStatusNotificationContextId = null;
-
-  /**
-   * A list of the analysis contexts for which analysis work needs to be
-   * performed.
+   * A queue of the operations to perform in this server.
    *
-   * Invariant: when this list is non-empty, there is exactly one pending call
-   * to [performTask] on the event queue.  When this list is empty, there are
-   * no calls to [performTask] on the event queue.
+   * Invariant: when this queue is non-empty, there is exactly one pending call
+   * to [performOperation] on the event queue.  When this list is empty, there are
+   * no calls to [performOperation] on the event queue.
    */
-  final List<AnalysisContext> contextWorkQueue = new List<AnalysisContext>();
+  ServerOperationQueue operationQueue;
 
   /**
    * A set of the [ServerService]s to send notifications for.
@@ -138,34 +105,61 @@ class AnalysisServer {
   Set<ServerService> serverServices = new Set<ServerService>();
 
   /**
+   * A table mapping [AnalysisService]s to the file paths for which these
+   * notifications should be sent.
+   */
+  Map<AnalysisService, Set<String>> analysisServices = <AnalysisService, Set<String>>{};
+
+  /**
+   * True if any exceptions thrown by analysis should be propagated up the call
+   * stack.
+   */
+  bool rethrowExceptions;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
+   *
+   * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
+   * propagated up the call stack.  The default is true to allow analysis
+   * exceptions to show up in unit tests, but it should be set to false when
+   * running a full analysis server.
    */
-  AnalysisServer(this.channel, ResourceProvider resourceProvider) {
+  AnalysisServer(this.channel, ResourceProvider resourceProvider,
+      {this.rethrowExceptions: true}) {
+    operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(CONNECTED_NOTIFICATION);
+    Notification notification = new Notification(NOTIFICATION_CONNECTED);
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
 
   /**
-   * If [running] is true, add the given [context] to the list of analysis
-   * contexts for which analysis work needs to be performed, and ensure that
-   * the work will be performed.
+   * Schedules analysis of the given context.
    */
-  void addContextToWorkQueue(AnalysisContext context) {
-    if (!running) {
-      return;
+  void schedulePerformAnalysisOperation(AnalysisContext context) {
+    scheduleOperation(new PerformAnalysisOperation(context, false));
+  }
+
+  /**
+   * Schedules execution of the given [ServerOperation].
+   */
+  void scheduleOperation(ServerOperation operation) {
+    bool wasEmpty = operationQueue.isEmpty;
+    addOperation(operation);
+    if (wasEmpty) {
+      _schedulePerformOperation();
     }
-    if (!contextWorkQueue.contains(context)) {
-      contextWorkQueue.add(context);
-      if (contextWorkQueue.length == 1) {
-        // Work queue was previously empty, so schedule analysis.
-        _scheduleTask();
-      }
-    }
+  }
+
+  /**
+   * Adds the given [ServerOperation] to the queue, but does not schedule
+   * operations execution.
+   */
+  void addOperation(ServerOperation operation) {
+    operationQueue.add(operation);
   }
 
   /**
@@ -204,70 +198,49 @@ class AnalysisServer {
   }
 
   /**
-   * Perform the next available task. If a request was received that has not yet
-   * been performed, perform it next. Otherwise, look for some analysis that
-   * needs to be done and do that. Otherwise, do nothing.
+   * Returns `true` if there is a subscription for the given [server] and [file].
    */
-  void performTask() {
-    if (!running) {
-      // An error has occurred, or the connection to the client has been
-      // closed, since performTask() was scheduled on the event queue.  So
-      // don't do any analysis.  Instead clear the work queue.
-      contextWorkQueue.clear();
-    }
-    if (contextWorkQueue.isEmpty) {
-      // Nothing to do.
-      return;
-    }
-    //
-    // Look for a context that has work to be done and then perform one task.
-    //
-    List<ChangeNotice> notices = null;
-//    String contextId;
-    try {
-      AnalysisContext context = contextWorkQueue[0];
-//      contextId = contextIdMap[context];
-      // TODO(danrubel): Replace with context identifier or similar
-      sendStatusNotification(context.toString());
-      AnalysisResult result = context.performAnalysisTask();
-      notices = result.changeNotices;
-    } finally {
-      if (notices == null) {
-        // Either we have no more work to do for this context, or there was an
-        // unhandled exception trying to perform the analysis.  In either case,
-        // remove the context form the work queue so we won't try to do more
-        // analysis on it.
-        contextWorkQueue.removeAt(0);
-      }
-      //
-      // Schedule this method to be run again if there is any more work to be
-      // done.
-      //
-      if (!contextWorkQueue.isEmpty) {
-        _scheduleTask();
-      }
-    }
-    if (notices != null) {
-      sendNotices(notices);
-    } else {
-      sendStatusNotification(null);
-    }
+  bool hasAnalysisSubscription(AnalysisService service, String file) {
+    Set<String> files = analysisServices[service];
+    return files != null && files.contains(file);
   }
 
   /**
-   * Send the information in the given list of notices back to the client.
+   * Returns `true` if the given [AnalysisContext] is a priority one.
    */
-  void sendNotices(List<ChangeNotice> notices) {
-    for (int i = 0; i < notices.length; i++) {
-      ChangeNotice notice = notices[i];
-      Source source = notice.source;
-      // send "analysis.errors" notification
-      // TODO(scheglov) use subscriptions to determine if we should do this
-      if (!source.isInSystemLibrary) {
-        Notification notification = new Notification(AnalysisDomainHandler.ERRORS_NOTIFICATION);
-        notification.setParameter(FILE_PARAM, source.fullName);
-        notification.setParameter(ERRORS_PARAM, notice.errors.map(errorToJson).toList());
-        sendNotification(notification);
+  bool isPriorityContext(AnalysisContext context) {
+    // TODO(scheglov) implement support for priority sources/contexts
+    return false;
+  }
+
+  /**
+   * Perform the next available [ServerOperation].
+   */
+  void performOperation() {
+    if (!running) {
+      // An error has occurred, or the connection to the client has been
+      // closed, since this method was scheduled on the event queue.  So
+      // don't do anything.  Instead clear the operation queue.
+      operationQueue.clear();
+      return;
+    }
+    // prepare next operation
+    ServerOperation operation = operationQueue.take();
+    // perform the operation
+    try {
+      operation.perform(this);
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError("${exception}\n${stackTrace}");
+      if (rethrowExceptions) {
+        throw new AnalysisException(
+            'Unexpected exception during analysis',
+            new CaughtException(exception, stackTrace));
+      }
+    } finally {
+      if (!operationQueue.isEmpty) {
+        _schedulePerformOperation();
+      } else {
+        sendStatusNotification(null);
       }
     }
   }
@@ -277,11 +250,11 @@ class AnalysisServer {
    * the current context being analyzed or `null` if analysis is complete.
    */
   void sendStatusNotification(String contextId) {
-    if (contextId == lastStatusNotificationContextId) {
-      return;
-    }
-    lastStatusNotificationContextId = contextId;
-    Notification notification = new Notification(STATUS_NOTIFICATION);
+//    if (contextId == lastStatusNotificationContextId) {
+//      return;
+//    }
+//    lastStatusNotificationContextId = contextId;
+    Notification notification = new Notification(NOTIFICATION_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {
       analysis['analyzing'] = true;
@@ -332,9 +305,36 @@ class AnalysisServer {
           analysisContext.setChangedContents(source, change.content,
               change.offset, change.oldLength, change.newLength);
         }
-        addContextToWorkQueue(analysisContext);
+        schedulePerformAnalysisOperation(analysisContext);
       }
     });
+  }
+
+  /**
+   * Implementation for `analysis.setSubscriptions`.
+   */
+  void setAnalysisSubscriptions(Map<AnalysisService, Set<String>> subscriptions) {
+    // send notifications for already analyzed sources
+    subscriptions.forEach((service, Set<String> newFiles) {
+      Set<String> oldFiles = analysisServices[service];
+      Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
+      for (String file in todoFiles) {
+        if (service == AnalysisService.ERRORS) {
+          Source source = _getSource(file);
+          AnalysisContext analysisContext = _getAnalysisContext(file);
+          List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+          sendAnalysisNotificationErrors(this, file, errors);
+        }
+        if (service == AnalysisService.HIGHLIGHTS) {
+          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+          if (dartUnit != null) {
+            sendAnalysisNotificationHighlights(this, file, dartUnit);
+          }
+        }
+      }
+    });
+    // remember new subscriptions
+    this.analysisServices = subscriptions;
   }
 
   /**
@@ -379,27 +379,10 @@ class AnalysisServer {
   }
 
   /**
-   * Return `true` if all tasks are finished in this [AnalysisServer].
+   * Return `true` if all operations have been performed in this [AnalysisServer].
    */
-  bool test_areTasksFinished() {
-    return contextWorkQueue.isEmpty;
-  }
-
-  static Map<String, Object> errorToJson(AnalysisError analysisError) {
-    // TODO(paulberry): move this function into the AnalysisError class.
-    ErrorCode errorCode = analysisError.errorCode;
-    Map<String, Object> result = {
-      'file': analysisError.source.fullName,
-      // TODO(scheglov) add Enum.fullName ?
-      'errorCode': '${errorCode.runtimeType}.${(errorCode as Enum).name}',
-      'offset': analysisError.offset,
-      'length': analysisError.length,
-      'message': analysisError.message
-    };
-    if (analysisError.correction != null) {
-      result['correction'] = analysisError.correction;
-    }
-    return result;
+  bool test_areOperationsFinished() {
+    return operationQueue.isEmpty;
   }
 
   /**
@@ -409,10 +392,11 @@ class AnalysisServer {
     channel.sendNotification(notification);
   }
 
-  void _scheduleTask() {
-    new Future(performTask).catchError((ex, st) {
-      AnalysisEngine.instance.logger.logError("${ex}\n${st}");
-    });
+  /**
+   * Schedules [performOperation] exection.
+   */
+  void _schedulePerformOperation() {
+    new Future(performOperation);
   }
 }
 

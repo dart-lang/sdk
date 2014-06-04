@@ -67,15 +67,23 @@ main() {
           t(IDENTIFIER_TOKEN, 'c')]);
     });
 
-    test('should tokenize an iterate expression with "in" keyword', () {
+    test('should tokenize "in" expressions', () {
       expectTokens('item in items', [
           t(IDENTIFIER_TOKEN, 'item'),
           t(KEYWORD_TOKEN, 'in'),
           t(IDENTIFIER_TOKEN, 'items')]);
     });
 
+    test('should takenize an "as" expression', () {
+      expectTokens('a as b', [
+          t(IDENTIFIER_TOKEN, 'a'),
+          t(KEYWORD_TOKEN, 'as'),
+          t(IDENTIFIER_TOKEN, 'b')]);
+    });
+
     test('should tokenize keywords', () {
       expectTokens('in', [t(KEYWORD_TOKEN, 'in')]);
+      expectTokens('as', [t(KEYWORD_TOKEN, 'as')]);
       expectTokens('this', [t(KEYWORD_TOKEN, 'this')]);
     });
 

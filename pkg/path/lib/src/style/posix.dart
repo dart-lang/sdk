@@ -4,18 +4,38 @@
 
 library path.style.posix;
 
+import '../characters.dart' as chars;
 import '../parsed_path.dart';
-import '../style.dart';
+import '../internal_style.dart';
 
 /// The style for POSIX paths.
-class PosixStyle extends Style {
+class PosixStyle extends InternalStyle {
   PosixStyle();
 
   final name = 'posix';
   final separator = '/';
+  final separators = const ['/'];
+
+  // Deprecated properties.
+
   final separatorPattern = new RegExp(r'/');
   final needsSeparatorPattern = new RegExp(r'[^/]$');
   final rootPattern = new RegExp(r'^/');
+  final relativeRootPattern = null;
+
+  bool containsSeparator(String path) => path.contains('/');
+
+  bool isSeparator(int codeUnit) => codeUnit == chars.SLASH;
+
+  bool needsSeparator(String path) =>
+      path.isNotEmpty && !isSeparator(path.codeUnitAt(path.length - 1));
+
+  String getRoot(String path) {
+    if (path.isNotEmpty && isSeparator(path.codeUnitAt(0))) return '/';
+    return null;
+  }
+
+  String getRelativeRoot(String path) => null;
 
   String pathFromUri(Uri uri) {
     if (uri.scheme == '' || uri.scheme == 'file') {

@@ -725,7 +725,7 @@ class Namer implements ClosureNamer {
 
   /// Returns the runtime name for [element].  The result is not safe as an id.
   String getRuntimeTypeName(Element element) {
-    if (identical(element, compiler.dynamicClass)) return 'dynamic';
+    if (element == null) return 'dynamic';
     return getNameForRti(element);
   }
 
@@ -910,7 +910,7 @@ class Namer implements ClosureNamer {
   }
 
   String operatorIsType(DartType type) {
-    if (type.kind == TypeKind.FUNCTION) {
+    if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return '${operatorIsPrefix()}_${getFunctionTypeName(type)}';
     }

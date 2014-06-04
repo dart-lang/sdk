@@ -1323,8 +1323,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
 
-  __ lw(T1, FieldAddress(T0, Function::code_offset()));
-  __ lw(T1, FieldAddress(T1, Code::instructions_offset()));
+  __ lw(T1, FieldAddress(T0, Function::instructions_offset()));
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
   __ AddImmediate(T1, Instructions::HeaderSize() - kHeapObjectTag);

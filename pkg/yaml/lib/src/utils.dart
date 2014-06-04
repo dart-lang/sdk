@@ -4,33 +4,12 @@
 
 library yaml.utils;
 
-import 'package:collection/collection.dart';
+/// A pair of values.
+class Pair<E, F> {
+  final E first;
+  final F last;
 
-/// Returns a hash code for [obj] such that structurally equivalent objects
-/// will have the same hash code.
-///
-/// This supports deep equality for maps and lists, including those with
-/// self-referential structures.
-int hashCodeFor(obj) {
-  var parents = [];
+  Pair(this.first, this.last);
 
-  _hashCodeFor(value) {
-    if (parents.any((parent) => identical(parent, value))) return -1;
-
-    parents.add(value);
-    try {
-      if (value is Map) {
-        var equality = const UnorderedIterableEquality();
-        return equality.hash(value.keys.map(_hashCodeFor)) ^
-            equality.hash(value.values.map(_hashCodeFor));
-      } else if (value is Iterable) {
-        return const IterableEquality().hash(value.map(hashCodeFor));
-      }
-      return value.hashCode;
-    } finally {
-      parents.removeLast();
-    }
-  }
-
-  return _hashCodeFor(obj);
+  String toString() => '($first, $last)';
 }

@@ -1338,11 +1338,11 @@ abstract class StreamSubscription<T> {
  * An interface that abstracts creation or handling of [Stream] events.
  */
 abstract class EventSink<T> implements Sink<T> {
-  /** Create a data event */
+  /** Send a data event to a stream. */
   void add(T event);
-  /** Create an async error. */
+  /** Send an async error to a stream. */
   void addError(errorEvent, [StackTrace stackTrace]);
-  /** Request a stream to close. */
+  /** Send a done event to a stream.*/
   void close();
 }
 
@@ -1387,6 +1387,12 @@ abstract class StreamConsumer<S> {
    */
   Future addStream(Stream<S> stream);
 
+  /**
+   * Tell the consumer that no futher streams will be added.
+   *
+   * Returns a future that is completed when the consumer is done handling
+   * events.
+   */
   Future close();
 }
 
@@ -1410,17 +1416,24 @@ abstract class StreamConsumer<S> {
  */
 abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
   /**
-   * Close the [StreamSink]. It'll return the [done] Future.
+   * As [EventSink.close], but returns a future.
+   *
+   * Returns the same future as [done].
    */
   Future close();
 
   /**
-   * The [done] Future completes with the same values as [close], except
-   * for the following case:
+   * Return a future which is completed when the [StreamSink] is finished.
    *
-   * * The synchronous methods of [EventSink] were called, resulting in an
-   *   error. If there is no active future (like from an addStream call), the
-   *   [done] future will complete with that error
+   * If the `StreamSink` fails with an error,
+   * perhaps in response to adding events using [add], [addError] or [close],
+   * the [done] future will complete with that error.
+   *
+   * Otherwise, the returned future will complete when either:
+   *
+   * * all events have been processed and the sink has been closed, or
+   * * the sink has otherwise been stopped from handling more events
+   *   (for example by cancelling a stream subscription).
    */
   Future get done;
 }

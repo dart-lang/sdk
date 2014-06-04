@@ -88,10 +88,10 @@ abstract class BarbackCommand extends PubCommand {
 
     sourceDirectories.addAll(commandOptions.rest);
 
-    // Prohibit "lib" and "asset".
+    // Prohibit "lib".
     var disallowed = sourceDirectories.where((dir) {
       var parts = path.split(path.normalize(dir));
-      return parts.isNotEmpty && ["lib", "asset"].contains(parts.first);
+      return parts.isNotEmpty && parts.first == "lib";
     });
 
     if (disallowed.isNotEmpty) {

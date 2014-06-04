@@ -14,37 +14,6 @@ main() {
   var infinity = double.parse("Infinity");
   var nan = double.parse("NaN");
 
-  group('YamlMap', () {
-    group('accepts as a key', () {
-      _expectKeyWorks(keyFn()) {
-        var map = yamlMap();
-        map[keyFn()] = 5;
-        expect(map.containsKey(keyFn()), isTrue);
-        expect(map[keyFn()], 5);
-      }
-
-      test('null', () => _expectKeyWorks(() => null));
-      test('true', () => _expectKeyWorks(() => true));
-      test('false', () => _expectKeyWorks(() => false));
-      test('a list', () => _expectKeyWorks(() => [1, 2, 3]));
-      test('a map', () => _expectKeyWorks(() => {'foo': 'bar'}));
-      test('a YAML map', () => _expectKeyWorks(() => yamlMap({'foo': 'bar'})));
-    });
-
-    test('works as a hash key', () {
-      var normalMap = new Map();
-      normalMap[yamlMap({'foo': 'bar'})] = 'baz';
-      expect(normalMap.containsKey(yamlMap({'foo': 'bar'})), isTrue);
-      expect(normalMap[yamlMap({'foo': 'bar'})], 'baz');
-    });
-
-    test('treats YamlMap keys the same as normal maps', () {
-      var map = yamlMap();
-      map[{'a': 'b'}] = 5;
-      expect(map[yamlMap({'a': 'b'})], 5);
-    });
-  });
-
   group('has a friendly error message for', () {
     var tabError = predicate((e) =>
         e.toString().contains('tab characters are not allowed as indentation'));
@@ -221,7 +190,7 @@ main() {
   //   });
 
     test('[Example 2.11]', () {
-      var doc = yamlMap();
+      var doc = deepEqualsMap();
       doc[["Detroit Tigers", "Chicago cubs"]] = ["2001-07-23"];
       doc[["New York Yankees", "Atlanta Braves"]] =
         ["2001-07-02", "2001-08-12", "2001-08-14"];
@@ -382,7 +351,7 @@ main() {
     });
 
     test('[Example 2.21]', () {
-      var doc = yamlMap({
+      var doc = deepEqualsMap({
         "booleans": [true, false],
         "string": "012345"
       });
@@ -900,7 +869,7 @@ main() {
     });
 
     test('[Example 6.12]', () {
-      var doc = yamlMap();
+      var doc = deepEqualsMap();
       doc[{'first': 'Sammy', 'last': 'Sosa'}] = {
         'hr': 65,
         'avg': 0.278
@@ -1092,7 +1061,7 @@ main() {
     // });
 
     test('[Example 7.3]', () {
-      var doc = yamlMap({"foo": null});
+      var doc = deepEqualsMap({"foo": null});
       doc[null] = "bar";
       expectYamlLoads(doc,
         """
@@ -1239,7 +1208,7 @@ main() {
     });
 
     test('[Example 7.16]', () {
-      var doc = yamlMap({
+      var doc = deepEqualsMap({
         "explicit": "entry",
         "implicit": "entry"
       });
@@ -1254,7 +1223,7 @@ main() {
     });
 
     test('[Example 7.17]', () {
-      var doc = yamlMap({
+      var doc = deepEqualsMap({
         "unquoted": "separate",
         "http://foo.com": null,
         "omitted value": null
@@ -1302,10 +1271,10 @@ main() {
     });
 
     test('[Example 7.21]', () {
-      var el1 = yamlMap();
+      var el1 = deepEqualsMap();
       el1[null] = "empty key entry";
 
-      var el2 = yamlMap();
+      var el2 = deepEqualsMap();
       el2[{"JSON": "like"}] = "adjacent";
 
       expectYamlLoads([[{"YAML": "separate"}], [el1], [el2]],
@@ -1577,7 +1546,7 @@ main() {
     });
 
     test('[Example 8.18]', () {
-      var doc = yamlMap({
+      var doc = deepEqualsMap({
         'plain key': 'in-line value',
         "quoted key": ["entry"]
       });
@@ -1591,7 +1560,7 @@ main() {
     });
 
     test('[Example 8.19]', () {
-      var el = yamlMap();
+      var el = deepEqualsMap();
       el[{'earth': 'blue'}] = {'moon': 'white'};
       expectYamlLoads([{'sun': 'yellow'}, el],
         """
@@ -1763,7 +1732,7 @@ main() {
 
   group('10.2: JSON Schema', () {
     // test('[Example 10.4]', () {
-    //   var doc = yamlMap({"key with null value": null});
+    //   var doc = deepEqualsMap({"key with null value": null});
     //   doc[null] = "value for null key";
     //   expectYamlStreamLoads(doc,
     //     """

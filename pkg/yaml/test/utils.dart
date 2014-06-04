@@ -5,7 +5,7 @@
 library yaml.test.utils;
 
 import 'package:unittest/unittest.dart';
-import 'package:yaml/src/deep_equals.dart' as de;
+import 'package:yaml/src/equality.dart' as equality;
 import 'package:yaml/yaml.dart';
 
 /// A matcher that validates that a closure or Future throws a [YamlException].
@@ -14,25 +14,28 @@ final Matcher throwsYamlException = throwsA(new isInstanceOf<YamlException>());
 /// Returns a matcher that asserts that the value equals [expected].
 ///
 /// This handles recursive loops and considers `NaN` to equal itself.
-Matcher deepEquals(expected) =>
-    predicate((actual) => de.deepEquals(actual, expected), "equals $expected");
+Matcher deepEquals(expected) => predicate((actual) =>
+    equality.deepEquals(actual, expected), "equals $expected");
 
 /// Constructs a new yaml.YamlMap, optionally from a normal Map.
-Map yamlMap([Map from]) =>
-    from == null ? new YamlMap() : new YamlMap.from(from);
+Map deepEqualsMap([Map from]) {
+  var map = equality.deepEqualsMap();
+  if (from != null) map.addAll(from);
+  return map;
+}
 
 /// Asserts that a string containing a single YAML document produces a given
 /// value when loaded.
 void expectYamlLoads(expected, String source) {
   var actual = loadYaml(cleanUpLiteral(source));
-  expect(expected, deepEquals(actual));
+  expect(actual, deepEquals(expected));
 }
 
 /// Asserts that a string containing a stream of YAML documents produces a given
 /// list of values when loaded.
 void expectYamlStreamLoads(List expected, String source) {
   var actual = loadYamlStream(cleanUpLiteral(source));
-  expect(expected, deepEquals(actual));
+  expect(actual, deepEquals(expected));
 }
 
 /// Asserts that a string containing a single YAML document throws a

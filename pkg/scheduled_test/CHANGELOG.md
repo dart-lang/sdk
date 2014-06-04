@@ -1,3 +1,7 @@
+## 0.11.0+5
+
+* Widen the version constraint for `stack_trace`.
+
 ## 0.11.0+4
 
 * Added `README.md` with content from `lib/scheduled_test.dart`.

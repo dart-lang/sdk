@@ -22,6 +22,7 @@ abstract class Visitor {
   visitUnaryOperator(UnaryOperator o);
   visitTernaryOperator(TernaryOperator o);
   visitInExpression(InExpression c);
+  visitAsExpression(AsExpression c);
 }
 
 class RecursiveVisitor extends Visitor {
@@ -119,6 +120,12 @@ class RecursiveVisitor extends Visitor {
 
   visitInExpression(InExpression c) {
     preVisitExpression(c);
+    visit(c.left);
+    visit(c.right);
+    visitExpression(c);
+  }
+
+  visitAsExpression(AsExpression c) {
     visit(c.left);
     visit(c.right);
     visitExpression(c);

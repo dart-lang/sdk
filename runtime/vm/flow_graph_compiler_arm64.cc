@@ -1287,8 +1287,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ add(TMP, R2, Operand(R3, LSL, 3));
   __ LoadFieldFromOffset(R0, TMP, base + kWordSize, PP);
-  __ LoadFieldFromOffset(R1, R0, Function::code_offset(), PP);
-  __ LoadFieldFromOffset(R1, R1, Code::instructions_offset(), PP);
+  __ LoadFieldFromOffset(R1, R0, Function::instructions_offset(), PP);
   __ LoadObject(R5, ic_data, PP);
   __ LoadObject(R4, arguments_descriptor, PP);
   __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);

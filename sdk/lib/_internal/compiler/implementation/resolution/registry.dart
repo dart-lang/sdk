@@ -247,8 +247,9 @@ class ResolutionRegistry extends Registry {
     backend.registerTypeVariableExpression(this);
   }
 
-  void registerTypeLiteral(Element element) {
-    world.registerTypeLiteral(element, this);
+  void registerTypeLiteral(Send node, DartType type) {
+    mapping.setType(node, type);
+    world.registerTypeLiteral(type, this);
   }
 
   // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only

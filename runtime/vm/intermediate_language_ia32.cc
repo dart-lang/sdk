@@ -1451,55 +1451,62 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* GuardFieldInstr::MakeLocationSummary(Isolate* isolate,
-                                                      bool opt) const {
+LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Isolate* isolate,
+                                                           bool opt) const {
   const intptr_t kNumInputs = 1;
+
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t field_cid = field().guarded_cid();
+
+  const bool emit_full_guard = !opt || (field_cid == kIllegalCid);
+  const bool needs_value_cid_temp_reg =
+    (value_cid == kDynamicCid) && (emit_full_guard || (field_cid != kSmiCid));
+  const bool needs_field_temp_reg = emit_full_guard;
+
+  intptr_t num_temps = 0;
+  if (needs_value_cid_temp_reg) {
+    num_temps++;
+  }
+  if (needs_field_temp_reg) {
+    num_temps++;
+  }
+
   LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, 0, LocationSummary::kNoCall);
+      isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  const bool field_has_length = field().needs_length_check();
-  const bool need_value_temp_reg =
-      (field_has_length || ((value()->Type()->ToCid() == kDynamicCid) &&
-                            (field().guarded_cid() != kSmiCid)));
-  if (need_value_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
+
+  for (intptr_t i = 0; i < num_temps; i++) {
+    summary->set_temp(i, Location::RequiresRegister());
   }
-  const bool need_field_temp_reg =
-      field_has_length || (field().guarded_cid() == kIllegalCid);
-  if (need_field_temp_reg) {
-    summary->AddTemp(Location::RequiresRegister());
-  }
+
   return summary;
 }
 
 
-void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
-  const intptr_t field_length = field().guarded_list_length();
-  const bool field_has_length = field().needs_length_check();
-  const bool needs_value_temp_reg =
-      (field_has_length || ((value()->Type()->ToCid() == kDynamicCid) &&
-                            (field().guarded_cid() != kSmiCid)));
-  const bool needs_field_temp_reg =
-      field_has_length || (field().guarded_cid() == kIllegalCid);
-  if (field_has_length) {
-    // Currently, we should only see final fields that remember length.
-    ASSERT(field().is_final());
-  }
 
   if (field_cid == kDynamicCid) {
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
-  const intptr_t value_cid = value()->Type()->ToCid();
 
-  Register value_reg = locs()->in(0).reg();
+  const bool emit_full_guard =
+      !compiler->is_optimizing() || (field_cid == kIllegalCid);
 
-  Register value_cid_reg = needs_value_temp_reg ?
+  const bool needs_value_cid_temp_reg =
+      (value_cid == kDynamicCid) && (emit_full_guard || (field_cid != kSmiCid));
+
+  const bool needs_field_temp_reg = emit_full_guard;
+
+  const Register value_reg = locs()->in(0).reg();
+
+  const Register value_cid_reg = needs_value_cid_temp_reg ?
       locs()->temp(0).reg() : kNoRegister;
 
-  Register field_reg = needs_field_temp_reg ?
+  const Register field_reg = needs_field_temp_reg ?
       locs()->temp(locs()->temp_count() - 1).reg() : kNoRegister;
 
   Label ok, fail_label;
@@ -1509,98 +1516,17 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
-  if (!compiler->is_optimizing() || (field_cid == kIllegalCid)) {
-    if (!compiler->is_optimizing() && (field_reg == kNoRegister)) {
-      // Currently we can't have different location summaries for optimized
-      // and non-optimized code. So instead we manually pick up a register
-      // that is known to be free because we know how non-optimizing compiler
-      // allocates registers.
-      field_reg = EBX;
-      ASSERT((field_reg != value_reg) && (field_reg != value_cid_reg));
-    }
-
+  if (emit_full_guard) {
     __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
 
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(
         field_reg, Field::is_nullable_offset());
-    FieldAddress field_length_operand(
-        field_reg, Field::guarded_list_length_offset());
 
     if (value_cid == kDynamicCid) {
-      if (value_cid_reg == kNoRegister) {
-        ASSERT(!compiler->is_optimizing());
-        value_cid_reg = EDX;
-        ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
-      }
-
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      Label skip_length_check;
       __ cmpl(value_cid_reg, field_cid_operand);
-      // Value CID != Field guard CID, skip length check.
-      __ j(NOT_EQUAL, &skip_length_check);
-      if (field_has_length) {
-        // Field guard may have remembered list length, check it.
-        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
-          __ pushl(value_cid_reg);
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, Array::length_offset()));
-          __ cmpl(value_cid_reg, Immediate(Smi::RawValue(field_length)));
-          __ popl(value_cid_reg);
-        } else if (RawObject::IsTypedDataClassId(field_cid)) {
-          __ pushl(value_cid_reg);
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, TypedData::length_offset()));
-          __ cmpl(value_cid_reg, Immediate(Smi::RawValue(field_length)));
-          __ popl(value_cid_reg);
-        } else {
-          ASSERT(field_cid == kIllegalCid);
-          ASSERT(field_length == Field::kUnknownFixedLength);
-          // At compile time we do not know the type of the field nor its
-          // length. At execution time we may have set the class id and
-          // list length so we compare the guarded length with the
-          // list length here, without this check the list length could change
-          // without triggering a deoptimization.
-          Label check_array, length_compared, no_fixed_length;
-          // If length is negative the length guard is either disabled or
-          // has not been initialized, either way it is safe to skip the
-          // length check.
-          __ cmpl(field_length_operand, Immediate(Smi::RawValue(0)));
-          __ j(LESS, &skip_length_check);
-          __ cmpl(value_cid_reg, Immediate(kNullCid));
-          __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
-          // Check for typed data array.
-          __ cmpl(value_cid_reg, Immediate(kTypedDataInt32x4ArrayCid));
-          // Not a typed array or a regular array.
-          __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-          __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
-          // Could still be a regular array.
-          __ j(LESS, &check_array, Assembler::kNearJump);
-          __ pushl(value_cid_reg);
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, TypedData::length_offset()));
-          __ cmpl(field_length_operand, value_cid_reg);
-          __ popl(value_cid_reg);
-          __ jmp(&length_compared, Assembler::kNearJump);
-          // Check for regular array.
-          __ Bind(&check_array);
-          __ cmpl(value_cid_reg, Immediate(kImmutableArrayCid));
-          __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-          __ cmpl(value_cid_reg, Immediate(kArrayCid));
-          __ j(LESS, &no_fixed_length, Assembler::kNearJump);
-          __ pushl(value_cid_reg);
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, Array::length_offset()));
-          __ cmpl(field_length_operand, value_cid_reg);
-          __ popl(value_cid_reg);
-          __ jmp(&length_compared, Assembler::kNearJump);
-          __ Bind(&no_fixed_length);
-          __ jmp(fail);
-          __ Bind(&length_compared);
-        }
-        __ j(NOT_EQUAL, fail);
-      }
-      __ Bind(&skip_length_check);
+      __ j(EQUAL, &ok);
       __ cmpl(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
       // Value in graph known to be null.
@@ -1608,110 +1534,43 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmpl(field_nullability_operand, Immediate(value_cid));
     } else {
       // Value in graph known to be non-null.
-      Label skip_length_check;
       // Compare class id with guard field class id.
       __ cmpl(field_cid_operand, Immediate(value_cid));
-      // If not equal, skip over length check.
-      __ j(NOT_EQUAL, &skip_length_check);
-      // Insert length check.
-      if (field_has_length) {
-        ASSERT(value_cid_reg != kNoRegister);
-        if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
-          __ cmpl(FieldAddress(value_reg, Array::length_offset()),
-                  Immediate(Smi::RawValue(field_length)));
-        } else if (RawObject::IsTypedDataClassId(value_cid)) {
-          __ cmpl(FieldAddress(value_reg, TypedData::length_offset()),
-                  Immediate(Smi::RawValue(field_length)));
-        } else if (field_cid != kIllegalCid) {
-          ASSERT(field_cid != value_cid);
-          ASSERT(field_length >= 0);
-          // Field has a known class id and length. At compile time it is
-          // known that the value's class id is not a fixed length list.
-          __ jmp(fail);
-        } else {
-          ASSERT(field_cid == kIllegalCid);
-          ASSERT(field_length == Field::kUnknownFixedLength);
-          // Following jump cannot not occur, fall through.
-        }
-        __ j(NOT_EQUAL, fail);
-      }
-      // Not identical, possibly null.
-      __ Bind(&skip_length_check);
     }
-    // Jump when class id guard and list length guard are okay.
     __ j(EQUAL, &ok);
 
-    // Check if guard field is uninitialized.
-    __ cmpl(field_cid_operand, Immediate(kIllegalCid));
-    // Jump to failure path when guard field has been initialized and
-    // the field and value class ids do not not match.
-    __ j(NOT_EQUAL, fail);
+    // Check if the tracked state of the guarded field can be initialized
+    // inline. If the field needs length check we fall through to runtime
+    // which is responsible for computing offset of the length field
+    // based on the class id.
+    // Length guard will be emitted separately when needed via GuardFieldLength
+    // instruction after GuardFieldClass.
+    if (!field().needs_length_check()) {
+      // Uninitialized field can be handled inline. Check if the
+      // field is still unitialized.
+      __ cmpl(field_cid_operand, Immediate(kIllegalCid));
+      // Jump to failure path when guard field has been initialized and
+      // the field and value class ids do not not match.
+      __ j(NOT_EQUAL, fail);
 
-    // At this point the field guard is being initialized for the first time.
-    if (value_cid == kDynamicCid) {
-      // Do not know value's class id.
-      __ movl(field_cid_operand, value_cid_reg);
-      __ movl(field_nullability_operand, value_cid_reg);
-      if (field_has_length) {
-        Label check_array, length_set, no_fixed_length;
-        __ cmpl(value_cid_reg, Immediate(kNullCid));
-        __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
-        // Check for typed data array.
-        __ cmpl(value_cid_reg, Immediate(kTypedDataInt32x4ArrayCid));
-        // Not a typed array or a regular array.
-        __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-        __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
-        // Could still be a regular array.
-        __ j(LESS, &check_array, Assembler::kNearJump);
-        // Destroy value_cid_reg (safe because we are finished with it).
-        __ movl(value_cid_reg,
-                FieldAddress(value_reg, TypedData::length_offset()));
-        __ movl(field_length_operand, value_cid_reg);
-        // Updated field length typed data array.
-        __ jmp(&length_set, Assembler::kNearJump);
-        // Check for regular array.
-        __ Bind(&check_array);
-        __ cmpl(value_cid_reg, Immediate(kImmutableArrayCid));
-        __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
-        __ cmpl(value_cid_reg, Immediate(kArrayCid));
-        __ j(LESS, &no_fixed_length, Assembler::kNearJump);
-        // Destroy value_cid_reg (safe because we are finished with it).
-        __ movl(value_cid_reg,
-                FieldAddress(value_reg, Array::length_offset()));
-        __ movl(field_length_operand, value_cid_reg);
-        // Updated field length from regular array.
-        __ jmp(&length_set, Assembler::kNearJump);
-        __ Bind(&no_fixed_length);
-        __ movl(field_length_operand,
-                Immediate(Smi::RawValue(Field::kNoFixedLength)));
-        __ Bind(&length_set);
+      if (value_cid == kDynamicCid) {
+        // Do not know value's class id.
+        __ movl(field_cid_operand, value_cid_reg);
+        __ movl(field_nullability_operand, value_cid_reg);
+      } else {
+        ASSERT(field_reg != kNoRegister);
+        __ movl(field_cid_operand, Immediate(value_cid));
+        __ movl(field_nullability_operand, Immediate(value_cid));
       }
-    } else {
-      ASSERT(field_reg != kNoRegister);
-      __ movl(field_cid_operand, Immediate(value_cid));
-      __ movl(field_nullability_operand, Immediate(value_cid));
-      if (field_has_length) {
-        ASSERT(value_cid_reg != kNoRegister);
-        if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, Array::length_offset()));
-          __ movl(field_length_operand, value_cid_reg);
-        } else if (RawObject::IsTypedDataClassId(value_cid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, TypedData::length_offset()));
-          __ movl(field_length_operand, value_cid_reg);
-        } else {
-          __ movl(field_length_operand,
-                  Immediate(Smi::RawValue(Field::kNoFixedLength)));
-        }
+
+      if (deopt == NULL) {
+        ASSERT(!compiler->is_optimizing());
+        __ jmp(&ok);
       }
     }
 
     if (deopt == NULL) {
       ASSERT(!compiler->is_optimizing());
-      __ jmp(&ok);
       __ Bind(fail);
 
       __ cmpl(FieldAddress(field_reg, Field::guarded_cid_offset()),
@@ -1726,11 +1585,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(compiler->is_optimizing());
     ASSERT(deopt != NULL);
-    // Field guard class has been initialized and is known.
-    if (field_reg != kNoRegister) {
-      __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
-    }
+    ASSERT(fail == deopt);
 
+    // Field guard class has been initialized and is known.
     if (value_cid == kDynamicCid) {
       // Value's class id is not known.
       __ testl(value_reg, Immediate(kSmiTagMask));
@@ -1741,57 +1598,108 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmpl(value_cid_reg, Immediate(field_cid));
       }
 
-      if (field_has_length) {
-        // Jump when Value CID != Field guard CID
-        __ j(NOT_EQUAL, fail);
-
-        // Classes are same, perform guarded list length check.
-        ASSERT(field_reg != kNoRegister);
-        ASSERT(value_cid_reg != kNoRegister);
-        FieldAddress field_length_operand(
-            field_reg, Field::guarded_list_length_offset());
-        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, Array::length_offset()));
-        } else if (RawObject::IsTypedDataClassId(field_cid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, TypedData::length_offset()));
-        }
-        __ cmpl(value_cid_reg, field_length_operand);
-      }
-
       if (field().is_nullable() && (field_cid != kNullCid)) {
         __ j(EQUAL, &ok);
-        const Immediate& raw_null =
-            Immediate(reinterpret_cast<intptr_t>(Object::null()));
-        __ cmpl(value_reg, raw_null);
+        if (field_cid != kSmiCid) {
+          __ cmpl(value_cid_reg, Immediate(kNullCid));
+        } else {
+          const Immediate& raw_null =
+              Immediate(reinterpret_cast<intptr_t>(Object::null()));
+          __ cmpl(value_reg, raw_null);
+        }
       }
       __ j(NOT_EQUAL, fail);
     } else {
       // Both value's and field's class id is known.
-      if ((value_cid != field_cid) && (value_cid != nullability)) {
-        __ jmp(fail);
-      } else if (field_has_length && (value_cid == field_cid)) {
-        ASSERT(value_cid_reg != kNoRegister);
-        if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, Array::length_offset()));
-        } else if (RawObject::IsTypedDataClassId(field_cid)) {
-          // Destroy value_cid_reg (safe because we are finished with it).
-          __ movl(value_cid_reg,
-                  FieldAddress(value_reg, TypedData::length_offset()));
-        }
-        __ cmpl(value_cid_reg, Immediate(Smi::RawValue(field_length)));
-        __ j(NOT_EQUAL, fail);
-      } else {
-        UNREACHABLE();
-      }
+      ASSERT((value_cid != field_cid) && (value_cid != nullability));
+      __ jmp(fail);
     }
   }
   __ Bind(&ok);
+}
+
+
+LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Isolate* isolate,
+                                                            bool opt) const {
+  const intptr_t kNumInputs = 1;
+  if (!opt || (field().guarded_list_length() == Field::kUnknownFixedLength)) {
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    // We need temporaries for field object, length offset and expected length.
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+    summary->set_temp(2, Location::RequiresRegister());
+    return summary;
+  } else {
+    LocationSummary* summary = new(isolate) LocationSummary(
+        isolate, kNumInputs, 0, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    return summary;
+  }
+  UNREACHABLE();
+}
+
+
+void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (field().guarded_list_length() == Field::kNoFixedLength) {
+    ASSERT(!compiler->is_optimizing());
+    return;  // Nothing to emit.
+  }
+
+  Label* deopt = compiler->is_optimizing() ?
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField) : NULL;
+
+  const Register value_reg = locs()->in(0).reg();
+
+  if (!compiler->is_optimizing() ||
+      (field().guarded_list_length() == Field::kUnknownFixedLength)) {
+    const Register field_reg = locs()->temp(0).reg();
+    const Register offset_reg = locs()->temp(1).reg();
+    const Register length_reg = locs()->temp(2).reg();
+
+    Label ok;
+
+    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+
+    __ movsxb(offset_reg, FieldAddress(field_reg,
+        Field::guarded_list_length_in_object_offset_offset()));
+    __ movl(length_reg, FieldAddress(field_reg,
+        Field::guarded_list_length_offset()));
+
+    __ cmpl(offset_reg, Immediate(0));
+    __ j(NEGATIVE, &ok);
+
+    // Load the length from the value. GuardFieldClass already verified that
+    // value's class matches guarded class id of the field.
+    // offset_reg contains offset already corrected by -kHeapObjectTag that is
+    // why we use Address instead of FieldAddress.
+    __ cmpl(length_reg, Address(value_reg, offset_reg, TIMES_1, 0));
+
+    if (deopt == NULL) {
+      __ j(EQUAL, &ok);
+
+      __ pushl(field_reg);
+      __ pushl(value_reg);
+      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
+      __ Drop(2);  // Drop the field and the value.
+    } else {
+      __ j(NOT_EQUAL, deopt);
+    }
+
+    __ Bind(&ok);
+  } else {
+    ASSERT(compiler->is_optimizing());
+    ASSERT(field().guarded_list_length() >= 0);
+    ASSERT(field().guarded_list_length_in_object_offset() !=
+        Field::kUnknownLengthOffset);
+
+    __ cmpl(FieldAddress(value_reg,
+                         field().guarded_list_length_in_object_offset()),
+            Immediate(Smi::RawValue(field().guarded_list_length())));
+    __ j(NOT_EQUAL, deopt);
+  }
 }
 
 
@@ -1829,7 +1737,9 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedStore() && opt) ? 2 :
+          ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
           !field().IsNull() &&
@@ -1840,16 +1750,16 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
   } else if (IsPotentialUnboxedStore()) {
     summary->set_in(1, ShouldEmitStoreBarrier()
         ? Location::WritableRegister()
         :  Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(Location::RequiresRegister());
-    summary->AddTemp(opt ? Location::RequiresFpuRegister()
-                         : Location::FpuRegisterLocation(XMM1));
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
+    summary->set_temp(2, opt ? Location::RequiresFpuRegister()
+                             : Location::FpuRegisterLocation(XMM1));
   } else {
     summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -2383,7 +2293,10 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (IsUnboxedLoad() && opt) ? 1 :
+          ((IsPotentialUnboxedLoad()) ? 2 : 0);
+
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
           (opt && !IsPotentialUnboxedLoad())
@@ -2393,11 +2306,11 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
   } else if (IsPotentialUnboxedLoad()) {
-    locs->AddTemp(opt ? Location::RequiresFpuRegister()
-                      : Location::FpuRegisterLocation(XMM1));
-    locs->AddTemp(Location::RequiresRegister());
+    locs->set_temp(0, opt ? Location::RequiresFpuRegister()
+                          : Location::FpuRegisterLocation(XMM1));
+    locs->set_temp(1, Location::RequiresRegister());
   }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
@@ -3080,13 +2993,13 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = 0;
+    const intptr_t kNumTemps = !is_truncating() ? 1 : 0;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
     if (!is_truncating()) {
-      summary->AddTemp(Location::RequiresRegister());
+      summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
@@ -5135,7 +5048,8 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
                                                                bool opt) const {
   ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps =
+      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 3 : 1;
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, InputCount(), kNumTemps, LocationSummary::kCall);
   // EDI is chosen because it is callee saved so we do not need to back it
@@ -5147,9 +5061,9 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Isolate* isolate,
   }
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     // Temp index 1.
-    result->AddTemp(Location::RegisterLocation(EAX));
+    result->set_temp(1, Location::RegisterLocation(EAX));
     // Temp index 2.
-    result->AddTemp(Location::FpuRegisterLocation(XMM4));
+    result->set_temp(2, Location::FpuRegisterLocation(XMM4));
   }
   result->set_out(0, Location::FpuRegisterLocation(XMM3));
   return result;
@@ -5552,12 +5466,12 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = !IsNullCheck() ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   if (!IsNullCheck()) {
-    summary->AddTemp(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
 }
@@ -6318,13 +6232,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // EBX: Code (compiled code or lazy compile stub).
   ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
 
   // EAX: Function.
   // EDX: Arguments descriptor array.
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorl(ECX, ECX);
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
   compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,

@@ -269,7 +269,7 @@ abstract class Backend {
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.
-  void registerTypeLiteral(Element element,
+  void registerTypeLiteral(DartType type,
                            Enqueuer enqueuer,
                            Registry registry) {}
 
@@ -586,7 +586,6 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement objectClass;
   ClassElement closureClass;
   ClassElement boundClosureClass;
-  ClassElement dynamicClass;
   ClassElement boolClass;
   ClassElement numClass;
   ClassElement intClass;
@@ -960,14 +959,6 @@ abstract class Compiler implements DiagnosticListener {
    * set up.
    */
   Future onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (dynamicClass != null) {
-      // When loading the built-in libraries, dynamicClass is null. We
-      // take advantage of this as core imports js_helper and sees [dynamic]
-      // this way.
-      withCurrentElement(dynamicClass, () {
-        library.addToScope(dynamicClass, this);
-      });
-    }
     if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
       mirrorsLibrary = library;
       mirrorSystemClass =
@@ -1070,7 +1061,6 @@ abstract class Compiler implements DiagnosticListener {
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
     boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
-    dynamicClass = lookupHelperClass('Dynamic_');
     if (!missingHelperClasses.isEmpty) {
       internalError(jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '
@@ -1078,11 +1068,9 @@ abstract class Compiler implements DiagnosticListener {
     }
 
     if (types == null) {
-      types = new Types(this, dynamicClass);
+      types = new Types(this);
     }
     backend.initializeHelperClasses();
-
-    dynamicClass.ensureResolved(this);
 
     proxyConstant =
         resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));

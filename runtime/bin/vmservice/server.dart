@@ -29,9 +29,9 @@ class WebSocketClient extends Client {
         return;
       }
       var seq = map['seq'];
-      onMessage(seq, new Message.fromMap(map));
+      onMessage(seq, new Message.fromUri(Uri.parse(map['request'])));
     } else {
-      socket.close(BINARY_MESSAGE_ERROR_CODE, 'message must be a string.');
+      socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }
   }
 

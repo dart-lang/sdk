@@ -1262,11 +1262,16 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
 /**
  * Returns the null object.
  *
- * Requires there to be a current isolate.
- *
  * \return A handle to the null object.
  */
 DART_EXPORT Dart_Handle Dart_Null();
+
+/**
+ * Returns the empty string object.
+ *
+ * \return A handle to the empty string object.
+ */
+DART_EXPORT Dart_Handle Dart_EmptyString();
 
 /**
  * Is this object null?
@@ -1325,6 +1330,7 @@ DART_EXPORT bool Dart_IsString(Dart_Handle object);
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object);  /* (ISO-8859-1) */
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
+DART_EXPORT bool Dart_IsMap(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
 DART_EXPORT bool Dart_IsType(Dart_Handle handle);
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
@@ -1776,7 +1782,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* length);
  * \param list A List.
  * \param index A valid index into the List.
  *
- * \return The Object in the List at the specified index if no errors
+ * \return The Object in the List at the specified index if no error
  *   occurs. Otherwise returns an error handle.
  */
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list,
@@ -1814,6 +1820,50 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
                                             intptr_t length);
+
+
+/*
+ * ====
+ * Maps
+ * ====
+ */
+
+/**
+ * Gets the Object at some key of a Map.
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param map A Map.
+ * \param key An Object.
+ *
+ * \return The value in the map at the specified key, null if the map does not
+ *   contain the key, or an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_MapGetAt(Dart_Handle map, Dart_Handle key);
+
+/**
+ * Returns whether the Map contains a given key.
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param map A Map.
+ *
+ * \return A handle on a boolean indicating whether map contains the key.
+ *   Otherwise returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key);
+
+/**
+ * Gets the list of keys of a Map.
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param map A Map.
+ *
+ * \return The list of key Objects if no error occurs. Otherwise returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map);
 
 
 /*

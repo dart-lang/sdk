@@ -130,9 +130,9 @@ abstract class Enqueuer {
     registerInstantiatedType(cls.rawType, registry);
   }
 
-  void registerTypeLiteral(Element element, Registry registry) {
+  void registerTypeLiteral(DartType type, Registry registry) {
     registerInstantiatedClass(compiler.typeClass, registry);
-    compiler.backend.registerTypeLiteral(element, this, registry);
+    compiler.backend.registerTypeLiteral(type, this, registry);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {

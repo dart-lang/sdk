@@ -12,13 +12,14 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
+import 'package:analysis_server/src/operation/operation.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running
@@ -54,8 +55,8 @@ Future pumpEventQueue([int times = 20]) {
  * Returns a [Future] that completes when the given [AnalysisServer] finished
  * all its scheduled tasks.
  */
-Future waitForServerTasksFinished(AnalysisServer server) {
-  if (server.test_areTasksFinished()) {
+Future waitForServerOperationsPerformed(AnalysisServer server) {
+  if (server.test_areOperationsFinished()) {
     return new Future.value();
   }
   // We use a delayed future to allow microtask events to finish. The
@@ -63,7 +64,7 @@ Future waitForServerTasksFinished(AnalysisServer server) {
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
   return new Future.delayed(Duration.ZERO,
-      () => waitForServerTasksFinished(server));
+      () => waitForServerOperationsPerformed(server));
 }
 
 /**
@@ -124,7 +125,7 @@ class NoResponseException implements Exception {
 class MockServerChannel implements ServerCommunicationChannel {
   StreamController<Request> requestController = new StreamController<Request>();
   StreamController<Response> responseController = new StreamController<Response>();
-  StreamController<Notification> notificationController = new StreamController<Notification>();
+  StreamController<Notification> notificationController = new StreamController<Notification>(sync: true);
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
@@ -141,7 +142,9 @@ class MockServerChannel implements ServerCommunicationChannel {
   void sendNotification(Notification notification) {
     notificationsReceived.add(notification);
     // Wrap send notification in future to simulate websocket
-    new Future(() => notificationController.add(notification));
+    // TODO(scheglov) ask Dan why and decide what to do
+//    new Future(() => notificationController.add(notification));
+    notificationController.add(notification);
   }
 
   /**
@@ -171,41 +174,6 @@ class MockServerChannel implements ServerCommunicationChannel {
 }
 
 /**
- * Exception thrown when an unexpected function call is made on a mock.
- */
-class UnexpectedMockCall extends Error {
-  UnexpectedMockCall(this.functionName);
-
-  final String functionName;
-
-  String toString() => "Unexpected call to $functionName";
-}
-
-/**
- * Shorthand function for throwing an UnexpectedMockCall exception.
- */
-_unexpected(String functionName) {
-  throw new UnexpectedMockCall(functionName);
-}
-
-/**
- * A mock [AnalysisLogger] that treats all errors and warnings as unexpected.
- */
-@proxy
-class MockAnalysisLogger extends Logger {
-
-  void logError(String message) {
-    print(message);
-    _unexpected('MockAnalysisLogger.logError');
-  }
-
-  noSuchMethod(Invocation invocation) {
-    var name = MirrorSystem.getName(invocation.memberName);
-    return _unexpected("MockAnalysisLogger.$name");
-  }
-}
-
-/**
  * A mock [AnalysisContext] for testing [AnalysisServer].
  */
 class MockAnalysisContext extends Mock implements AnalysisContext {
@@ -218,6 +186,31 @@ class MockAnalysisContext extends Mock implements AnalysisContext {
  */
 class MockSource extends Mock implements Source {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+typedef void MockServerOperationPerformFunction(AnalysisServer server);
+
+/**
+ * A mock [ServerOperation] for testing [AnalysisServer].
+ */
+class MockServerOperation implements PerformAnalysisOperation {
+  final ServerOperationPriority priority;
+  final MockServerOperationPerformFunction _perform;
+
+  MockServerOperation(this.priority, this._perform);
+
+  @override
+  void perform(AnalysisServer server) => this._perform(server);
+
+  @override
+  AnalysisContext get context => null;
+
+  @override
+  bool get isContinue => false;
+
+  @override
+  void sendNotices(AnalysisServer server, List<ChangeNotice> notices) {
+  }
 }
 
 

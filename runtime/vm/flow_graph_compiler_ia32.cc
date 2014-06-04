@@ -1325,8 +1325,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EBX, FieldAddress(EBX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));

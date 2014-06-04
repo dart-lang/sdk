@@ -118,7 +118,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
         if (fieldElement != null) {
           element.typeCache = fieldElement.computeType(compiler);
         } else {
-          element.typeCache = compiler.types.dynamicType;
+          element.typeCache = const DynamicType();
         }
       }
     }
@@ -343,10 +343,10 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   }
 
   DartType resolveReturnType(TypeAnnotation annotation) {
-    if (annotation == null) return compiler.types.dynamicType;
+    if (annotation == null) return const DynamicType();
     DartType result = resolver.resolveTypeAnnotation(annotation);
     if (result == null) {
-      return compiler.types.dynamicType;
+      return const DynamicType();
     }
     return result;
   }

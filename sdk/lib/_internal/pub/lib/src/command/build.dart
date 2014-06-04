@@ -133,7 +133,7 @@ class BuildCommand extends BarbackCommand {
       return new Future.value();
     }
 
-    var destPath = _idtoPath(asset.id);
+    var destPath = _idToPath(asset.id);
 
     // If the asset is from a public directory, copy it into all of the
     // top-level build directories.
@@ -159,8 +159,8 @@ class BuildCommand extends BarbackCommand {
   ///     foo|test/main.dart     -> ERROR
   ///
   /// Throws a [FormatException] if [id] is not a valid public asset.
-  String _idtoPath(AssetId id) {
-    var parts = path.url.split(id.path);
+  String _idToPath(AssetId id) {
+    var parts = path.split(path.fromUri(id.path));
 
     if (parts.length < 2) {
       throw new FormatException(
@@ -207,7 +207,7 @@ class BuildCommand extends BarbackCommand {
         .map((id) => path.dirname(path.fromUri(id.path)))
         // Don't copy files to the top levels of the build directories since
         // the normal lib asset copying will take care of that.
-        .where((dir) => dir.contains(path.separator))
+        .where((dir) => path.split(dir).length > 1)
         .toSet();
 
     for (var dir in entrypointDirs) {

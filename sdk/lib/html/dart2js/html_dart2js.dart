@@ -2045,6 +2045,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   /** Deprecated always returns 1.0 */
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
   @Experimental()
+  @deprecated
   double get backingStorePixelRatio => 1.0;
 }
 
@@ -2807,6 +2808,7 @@ class CssRule extends Interceptor native "CSSRule" {
   void setProperty(String propertyName, String value, [String priority]) {
     // try/catch for IE9 which throws on unsupported values.
     try {
+      if (value == null) value = '';
       if (priority == null) {
         priority = '';
       }
@@ -4026,12 +4028,17 @@ abstract class CssStyleDeclarationBase {
   }
 
   /** Gets the value of "flex" */
-  String get flex =>
-    getPropertyValue('${Device.cssPrefix}flex');
+  String get flex {
+    String prefix = Device.cssPrefix;
+    if (Device.isFirefox) prefix = '';
+    return getPropertyValue('${prefix}flex');
+  }
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    setProperty('${Device.cssPrefix}flex', value, '');
+    String prefix = Device.cssPrefix;
+    if (Device.isFirefox) prefix = '';
+    setProperty('${prefix}flex', value, '');
   }
 
   /** Gets the value of "flex-basis" */
@@ -10262,59 +10269,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  num get offsetHeight => JS('num', '#.offsetHeight', this).round();
+  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  num get offsetLeft => JS('num', '#.offsetLeft', this).round();
+  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  num get offsetTop => JS('num', '#.offsetTop', this).round();
+  int get offsetTop => JS('num', '#.offsetTop', this).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  num get offsetWidth => JS('num', '#.offsetWidth', this).round();
+  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  num get clientHeight => JS('num', '#.clientHeight', this).round();
+  int get clientHeight => JS('num', '#.clientHeight', this).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  num get clientLeft => JS('num', '#.clientLeft', this).round();
+  int get clientLeft => JS('num', '#.clientLeft', this).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  num get clientTop => JS('num', '#.clientTop', this).round();
+  int get clientTop => JS('num', '#.clientTop', this).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  num get clientWidth => JS('num', '#.clientWidth', this).round();
+  int get clientWidth => JS('num', '#.clientWidth', this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  num get scrollHeight => JS('num', '#.scrollHeight', this).round();
+  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  num get scrollLeft => JS('num', '#.scrollLeft', this).round();
+  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(num value) => JS("void", "#.scrollLeft = #", this, value.round());
+  void set scrollLeft(int value) => JS("void", "#.scrollLeft = #", this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  num get scrollTop => JS('num', '#.scrollTop', this).round();
+  int get scrollTop => JS('num', '#.scrollTop', this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(num value) => JS("void", "#.scrollTop = #", this, value.round());
+  void set scrollTop(int value) => JS("void", "#.scrollTop = #", this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  num get scrollWidth => JS('num', '#.scrollWidth', this).round();
+  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 
   // To suppress missing implicit constructor warnings.
@@ -14679,12 +14686,18 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter.
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * requests only.
    *
    * The Future is completed when the response is available.
    *
    * If specified, `sendData` will send data in the form of a [ByteBuffer],
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
+   *
+   * If specified, [responseType] sets the desired response format for the
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
@@ -15551,6 +15564,23 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
   @DocsEditable()
   int width;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('InjectedScriptHost')
+@Experimental() // untriaged
+class InjectedScriptHost extends Interceptor native "InjectedScriptHost" {
+  // To suppress missing implicit constructor warnings.
+  factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InjectedScriptHost.inspect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void inspect(Object objectId, Object hints) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

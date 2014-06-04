@@ -4,12 +4,12 @@
 
 library path.parsed_path;
 
+import 'internal_style.dart';
 import 'style.dart';
 
-// TODO(rnystrom): Make this public?
 class ParsedPath {
-  /// The [Style] that was used to parse this path.
-  Style style;
+  /// The [InternalStyle] that was used to parse this path.
+  InternalStyle style;
 
   /// The absolute root portion of the path, or `null` if the path is relative.
   /// On POSIX systems, this will be `null` or "/". On Windows, it can be
@@ -40,7 +40,7 @@ class ParsedPath {
   /// `true` if this is an absolute path.
   bool get isAbsolute => root != null;
 
-  factory ParsedPath.parse(String path, Style style) {
+  factory ParsedPath.parse(String path, InternalStyle style) {
     var before = path;
 
     // Remove the root prefix, if any.
@@ -52,19 +52,21 @@ class ParsedPath {
     var parts = [];
     var separators = [];
 
-    var firstSeparator = style.separatorPattern.matchAsPrefix(path);
-    if (firstSeparator != null) {
-      separators.add(firstSeparator[0]);
-      path = path.substring(firstSeparator[0].length);
+    var start = 0;
+
+    if (path.isNotEmpty && style.isSeparator(path.codeUnitAt(0))) {
+      separators.add(path[0]);
+      start = 1;
     } else {
       separators.add('');
     }
 
-    var start = 0;
-    for (var match in style.separatorPattern.allMatches(path)) {
-      parts.add(path.substring(start, match.start));
-      separators.add(match[0]);
-      start = match.end;
+    for (var i = start; i < path.length; i++) {
+      if (style.isSeparator(path.codeUnitAt(i))) {
+        parts.add(path.substring(start, i));
+        separators.add(path[i]);
+        start = i + 1;
+      }
     }
 
     // Add the final part, if any.
@@ -133,8 +135,7 @@ class ParsedPath {
     var newSeparators = new List.generate(
         newParts.length, (_) => style.separator, growable: true);
     newSeparators.insert(0,
-        isAbsolute && newParts.length > 0 &&
-                root.contains(style.needsSeparatorPattern) ?
+        isAbsolute && newParts.length > 0 && style.needsSeparator(root) ?
             style.separator : '');
 
     parts = newParts;

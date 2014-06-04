@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:io";
 import "dart:isolate";
 
@@ -145,9 +146,60 @@ void testClientDetachSocket() {
   });
 }
 
+void testUpgradedConnection() {
+  asyncStart();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.listen((request) {
+      request.response.headers.set('connection', 'upgrade');
+      if (request.headers.value('upgrade') == 'mine') {
+        asyncStart();
+        request.response.detachSocket().then((socket) {
+          socket.pipe(socket).then((_) {
+            asyncEnd();
+          });
+        });
+      } else {
+        request.response.close();
+      }
+    });
+
+    var client = new HttpClient();
+    client.userAgent = null;
+    client.get("127.0.0.1", server.port, "/")
+      .then((request) {
+        request.headers.set('upgrade', 'mine');
+        return request.close();
+      })
+      .then((response) {
+        client.get("127.0.0.1", server.port, "/")
+            .then((request) {
+              response.detachSocket().then((socket) {
+                // We are testing that we can detach the socket, even though
+                // we made a new connection (testing it was not reused).
+                request.close().then((response) {
+                  asyncStart();
+                  response.listen(null, onDone: () {
+                    server.close();
+                    asyncEnd();
+                  });
+                  socket.add([0]);
+                  socket.close();
+                  socket.fold([], (l, d) => l..addAll(d))
+                    .then((data) {
+                      asyncEnd();
+                      Expect.listEquals([0], data);
+                    });
+                });
+              });
+            });
+      });
+  });
+}
+
 void main() {
   testServerDetachSocket();
   testServerDetachSocketNoWriteHeaders();
   testBadServerDetachSocket();
   testClientDetachSocket();
+  testUpgradedConnection();
 }

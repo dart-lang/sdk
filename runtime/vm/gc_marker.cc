@@ -244,12 +244,13 @@ class MarkingVisitor : public ObjectPointerVisitor {
   void DetachCode() {
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
       RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->code_;
+      RawCode* code = func->ptr()->instructions_->ptr()->code_;
       if (!code->IsMarked()) {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
-        func->ptr()->code_ = StubCode::LazyCompile_entry()->code();
+        func->ptr()->instructions_ =
+            StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
         func->ptr()->unoptimized_code_ = Code::null();
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within

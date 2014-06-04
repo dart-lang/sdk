@@ -20,6 +20,7 @@ final _BINARY_OPERATORS = {
   '-':  (a, b) => a - b,
   '*':  (a, b) => a * b,
   '/':  (a, b) => a / b,
+  '%':  (a, b) => a % b,
   '==': (a, b) => a == b,
   '!=': (a, b) => a != b,
   '>':  (a, b) => a > b,
@@ -60,7 +61,7 @@ Object eval(Expression expr, Scope scope) {
  * [ExpressionObsserver].
  */
 ExpressionObserver observe(Expression expr, Scope scope) {
-  var observer = new ObserverBuilder(scope).visit(expr);
+  var observer = new ObserverBuilder().visit(expr);
   return observer;
 }
 
@@ -80,10 +81,8 @@ Object update(ExpressionObserver expr, Scope scope) {
  * operators or function invocations, and any index operations must use a
  * literal index.
  */
-Object assign(Expression expr, Object value, Scope scope) {
-
-  notAssignable() =>
-      throw new EvalException("Expression is not assignable: $expr");
+Object assign(Expression expr, Object value, Scope scope,
+    {bool checkAssignability: true}) {
 
   Expression expression;
   var property;
@@ -101,42 +100,43 @@ Object assign(Expression expr, Object value, Scope scope) {
 
   if (expr is Identifier) {
     expression = empty();
-    Identifier ident = expr;
-    property = ident.value;
+    property = expr.value;
   } else if (expr is Index) {
-    if (expr.argument is! Literal) notAssignable();
     expression = expr.receiver;
-    Literal l = expr.argument;
-    property = l.value;
+    property = expr.argument;
     isIndex = true;
   } else if (expr is Getter) {
     expression = expr.receiver;
     property = expr.name;
-  } else if (expr is Invoke) {
-    expression = expr.receiver;
-    if (expr.method != null) {
-      if (expr.arguments != null) notAssignable();
-      property = expr.method;
-    } else {
-      notAssignable();
-    }
   } else {
-    notAssignable();
+    if (checkAssignability) {
+      throw new EvalException("Expression is not assignable: $expr");
+    }
+    return null;
   }
 
   // transform the values backwards through the filters
   for (var filterExpr in filters) {
     var filter = eval(filterExpr, scope);
     if (filter is! Transformer) {
-      throw new EvalException("filter must implement Transformer: $filterExpr");
+      if (checkAssignability) {
+        throw new EvalException("filter must implement Transformer to be "
+            "assignable: $filterExpr");
+      } else {
+        return null;
+      }
     }
     value = filter.reverse(value);
   }
-  // make the assignment
+  // evaluate the receiver
   var o = eval(expression, scope);
-  if (o == null) throw new EvalException("Can't assign to null: $expression");
+
+  // can't assign to a property on a null LHS object. Silently fail.
+  if (o == null) return null;
+
   if (isIndex) {
-    o[property] = value;
+    var index = eval(property, scope);
+    o[index] = value;
   } else {
     smoke.write(o, smoke.nameToSymbol(property), value);
   }
@@ -152,6 +152,9 @@ Object assign(Expression expr, Object value, Scope scope) {
  * and then finally looks up the name as a property in the model.
  */
 abstract class Scope implements Indexable<String, Object> {
+  static int __seq = 1;
+  final int _seq = __seq++;
+
   Scope._();
 
   /** Create a scope containing a [model] and all of [variables]. */
@@ -185,6 +188,9 @@ abstract class Scope implements Indexable<String, Object> {
   /** Create a new scope extending this scope with an additional variable. */
   Scope childScope(String name, Object value) =>
       new _LocalVariableScope(name, value, this);
+
+  String toString() => 'Scope(seq: $_seq model: $model)';
+
 }
 
 /**
@@ -208,6 +214,8 @@ class _ModelScope extends Scope {
   }
 
   Object _isModelProperty(String name) => name != 'this';
+
+  String toString() => "[model: $model]";
 }
 
 /**
@@ -239,6 +247,8 @@ class _LocalVariableScope extends Scope {
     if (varName == name) return false;
     return parent == null ? false : parent._isModelProperty(name);
   }
+
+  String toString() => "$parent > [local: $varName]";
 }
 
 /** A scope that holds a reference to a global variables. */
@@ -264,6 +274,8 @@ class _GlobalsScope extends Scope {
     if (variables.containsKey(name)) return false;
     return parent == null ? false : parent._isModelProperty(name);
   }
+
+  String toString() => "$parent > [global: ${variables.keys}]";
 }
 
 Object _convert(v) => v is Stream ? new StreamBinding(v) : v;
@@ -323,18 +335,12 @@ class Updater extends RecursiveVisitor {
   visitExpression(ExpressionObserver e) {
     e._observe(scope);
   }
-
-  visitInExpression(InObserver c) {
-    visit(c.right);
-    visitExpression(c);
-  }
 }
 
 class ObserverBuilder extends Visitor {
-  final Scope scope;
   final Queue parents = new Queue();
 
-  ObserverBuilder(this.scope);
+  ObserverBuilder();
 
   visitEmptyExpression(EmptyExpression e) => new EmptyObserver(e);
 
@@ -422,13 +428,11 @@ class ObserverBuilder extends Visitor {
   }
 
   visitInExpression(InExpression i) {
-    // don't visit the left. It's an identifier, but we don't want to evaluate
-    // it, we just want to add it to the comprehension object
-    var left = visit(i.left);
-    var right = visit(i.right);
-    var inexpr = new InObserver(i, left, right);
-    right._parent = inexpr;
-    return inexpr;
+    throw new UnsupportedError("can't eval an 'in' expression");
+  }
+
+  visitAsExpression(AsExpression i) {
+    throw new UnsupportedError("can't eval an 'as' expression");
   }
 }
 
@@ -508,7 +512,6 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
 
   _updateSelf(Scope scope) {
     _value = scope[value];
-
     if (!scope._isModelProperty(value)) return;
     var model = scope.model;
     if (model is! Observable) return;
@@ -711,46 +714,7 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
   accept(Visitor v) => v.visitInvoke(this);
 }
 
-class InObserver extends ExpressionObserver<InExpression>
-    implements InExpression {
-  IdentifierObserver left;
-  ExpressionObserver right;
-
-  InObserver(Expression expr, this.left, this.right) : super(expr);
-
-  _updateSelf(Scope scope) {
-    Identifier identifier = left;
-    var iterable = right._value;
-
-    if (iterable is! Iterable && iterable != null) {
-      throw new EvalException("right side of 'in' is not an iterator");
-    }
-
-    if (iterable is ObservableList) {
-      _subscription = iterable.listChanges.listen((_) => _invalidate(scope));
-    }
-
-    // TODO: make Comprehension observable and update it
-    _value = new Comprehension(identifier.value, iterable);
-  }
-
-  accept(Visitor v) => v.visitInExpression(this);
-}
-
 _toBool(v) => (v == null) ? false : v;
-
-/**
- * A comprehension declaration ("a in b"). [identifier] is the loop variable
- * that's added to the scope during iteration. [iterable] is the set of
- * objects to iterate over.
- */
-class Comprehension {
-  final String identifier;
-  final Iterable iterable;
-
-  Comprehension(this.identifier, Iterable iterable)
-      : iterable = (iterable != null) ? iterable : const [];
-}
 
 class EvalException implements Exception {
   final String message;

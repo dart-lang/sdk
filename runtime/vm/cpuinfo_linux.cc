@@ -28,15 +28,15 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "flags";
   method_ = kCpuInfoCpuId;
   CpuId::InitOnce();
-#elif defined(HOST_ARCH_ARM)
+#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
+  // TODO(zra): Verify that these field names are correct for arm64.
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
-#elif defined(HOST_ARCH_MIPS) || defined(HOST_ARCH_ARM64)
-// TODO(zra): Verify that these field names are correct for arm64.
+#elif defined(HOST_ARCH_MIPS)
   fields_[kCpuInfoProcessor] = "system type";
   fields_[kCpuInfoModel] = "cpu model";
   fields_[kCpuInfoHardware] = "cpu model";

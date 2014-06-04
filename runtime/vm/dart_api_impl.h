@@ -194,13 +194,24 @@ class Api : AllStatic {
   static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
-  static Dart_Handle Null();
+  static Dart_Handle Null() {
+    return null_handle_;
+  }
 
   // Gets a handle to True.
-  static Dart_Handle True();
+  static Dart_Handle True() {
+    return true_handle_;
+  }
 
-  // Gets a handle to False
-  static Dart_Handle False();
+  // Gets a handle to False.
+  static Dart_Handle False() {
+    return false_handle_;
+  }
+
+  // Gets a handle to EmptyString.
+  static Dart_Handle EmptyString() {
+    return empty_string_handle_;
+  }
 
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Isolate* isolate);
@@ -265,6 +276,7 @@ class Api : AllStatic {
   static Dart_Handle true_handle_;
   static Dart_Handle false_handle_;
   static Dart_Handle null_handle_;
+  static Dart_Handle empty_string_handle_;
 
   friend class ApiNativeScope;
 };

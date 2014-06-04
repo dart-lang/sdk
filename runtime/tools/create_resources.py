@@ -127,6 +127,9 @@ def main(args):
           src_path = os.path.join(dirname, f)
           if (os.path.isdir(src_path)):
               continue
+          # Skip devtools version
+          if (src_path.find("index_devtools") != -1):
+              continue
           files.append(src_path)
 
     for arg in args:

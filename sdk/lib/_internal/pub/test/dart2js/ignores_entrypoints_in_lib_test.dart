@@ -13,9 +13,6 @@ main() {
   setUp(() {
     d.dir(appPath, [
       d.appPubspec(),
-      d.dir('asset', [
-        d.file('file.dart', 'void main() => print("hello");'),
-      ]),
       d.dir('lib', [
         d.file('file.dart', 'void main() => print("hello");'),
       ]),
@@ -25,21 +22,19 @@ main() {
     ]).create();
   });
 
-  integration("build ignores Dart entrypoints in lib and asset", () {
+  integration("build ignores Dart entrypoints in lib", () {
     schedulePub(args: ["build", "--all"],
         output: new RegExp(r'Built 1 file to "build".'));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.nothing('asset'),
         d.nothing('lib')
       ])
     ]).validate();
   });
 
-  integration("serve ignores Dart entrypoints in lib and asset", () {
+  integration("serve ignores Dart entrypoints in lib", () {
     pubServe();
-    requestShould404("assets/myapp/main.dart.js");
     requestShould404("packages/myapp/main.dart.js");
     endPubServe();
   });

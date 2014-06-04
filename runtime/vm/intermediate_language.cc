@@ -219,8 +219,13 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
 }
 
 
-bool GuardFieldInstr::AttributesEqual(Instruction* other) const {
-  return field().raw() == other->AsGuardField()->field().raw();
+bool GuardFieldClassInstr::AttributesEqual(Instruction* other) const {
+  return field().raw() == other->AsGuardFieldClass()->field().raw();
+}
+
+
+bool GuardFieldLengthInstr::AttributesEqual(Instruction* other) const {
+  return field().raw() == other->AsGuardFieldLength()->field().raw();
 }
 
 
@@ -1954,9 +1959,6 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
-  // TODO(vegorov): Replace class checks with null checks when ToNullableCid
-  // matches.
-
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kDynamicCid) {
     return this;
@@ -1966,30 +1968,9 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+Instruction* GuardFieldClassInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
     return NULL;  // Nothing to guard.
-  }
-
-  if (field().guarded_list_length() != Field::kNoFixedLength) {
-    // We are still guarding the list length. Check if length is statically
-    // known.
-    StaticCallInstr* call = value()->definition()->AsStaticCall();
-    if (call != NULL) {
-      ConstantInstr* length = NULL;
-      if (call->is_known_list_constructor() &&
-          LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
-        length = call->ArgumentAt(1)->AsConstant();
-      }
-      if (call->is_native_list_factory()) {
-        length = call->ArgumentAt(0)->AsConstant();
-      }
-      if ((length != NULL) && length->value().IsSmi()) {
-        intptr_t known_length = Smi::Cast(length->value()).Value();
-        return (known_length != field().guarded_list_length()) ? this : NULL;
-      }
-    }
-    return this;
   }
 
   if (field().is_nullable() && value()->Type()->IsNull()) {
@@ -2000,6 +1981,40 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
                                              : value()->Type()->ToCid();
   if (field().guarded_cid() == cid) {
     return NULL;  // Value is guaranteed to have this cid.
+  }
+
+  return this;
+}
+
+
+Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!field().needs_length_check()) {
+    return NULL;  // Nothing to guard.
+  }
+
+  const intptr_t expected_length = field().guarded_list_length();
+  if (expected_length == Field::kUnknownFixedLength) {
+    return this;
+  }
+
+  // Check if length is statically known.
+  StaticCallInstr* call = value()->definition()->AsStaticCall();
+  if (call == NULL) {
+    return this;
+  }
+
+  ConstantInstr* length = NULL;
+  if (call->is_known_list_constructor() &&
+      LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
+    length = call->ArgumentAt(1)->AsConstant();
+  }
+  if (call->is_native_list_factory()) {
+    length = call->ArgumentAt(0)->AsConstant();
+  }
+  if ((length != NULL) &&
+      length->value().IsSmi() &&
+      Smi::Cast(length->value()).Value() == expected_length) {
+    return NULL;  // Expected length matched.
   }
 
   return this;

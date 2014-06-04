@@ -188,7 +188,7 @@ void testClassMembers() {
     InterfaceType String_ = env['String'];
     InterfaceType num_ = env['num'];
     InterfaceType int_ = env['int'];
-    InterfaceType dynamic_ = env['dynamic'];
+    DynamicType dynamic_ = env['dynamic'];
     VoidType void_ = env['void'];
     InterfaceType Type_ = env['Type'];
     InterfaceType Invocation_ = env['Invocation'];
@@ -400,7 +400,7 @@ void testInterfaceMembers() {
     abstract class D implements A, B, C {}
     """).then((env) {
 
-    InterfaceType dynamic_ = env['dynamic'];
+    DynamicType dynamic_ = env['dynamic'];
     VoidType void_ = env['void'];
     InterfaceType num_ = env['num'];
     InterfaceType int_ = env['int'];
@@ -566,7 +566,7 @@ void testClassVsInterfaceMembers() {
     abstract class C extends A implements B {}
     """).then((env) {
 
-    InterfaceType dynamic_ = env['dynamic'];
+    DynamicType dynamic_ = env['dynamic'];
     VoidType void_ = env['void'];
     InterfaceType num_ = env['num'];
     InterfaceType int_ = env['int'];
@@ -619,7 +619,7 @@ void testMixinMembers() {
     abstract class C<U, V> extends Object with A<U> implements B<V> {}
     """).then((env) {
 
-    InterfaceType dynamic_ = env['dynamic'];
+    DynamicType dynamic_ = env['dynamic'];
     VoidType void_ = env['void'];
     InterfaceType num_ = env['num'];
     InterfaceType int_ = env['int'];

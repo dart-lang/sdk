@@ -1,3 +1,7 @@
+##0.11.1+1
+
+* Widen the version constraint for `stack_trace`.
+
 ##0.11.0
 
 * Deprecated methods have been removed:

@@ -73,16 +73,16 @@ class CustomElementsAnalysis {
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(Element element, Enqueuer enqueuer) {
+  void registerTypeLiteral(DartType type, Enqueuer enqueuer) {
     // In codegen we see the TypeConstants instead.
     if (!enqueuer.isResolutionQueue) return;
 
-    if (element.isClass) {
+    if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
       // literal is really a demand for the metadata.
-      resolutionJoin.selectedClasses.add(element);
-    } else {
+      resolutionJoin.selectedClasses.add(type.element);
+    } else if (type.isTypeVariable) {
       // This is a type parameter of a parameterized class.
       // TODO(sra): Is there a way to determine which types are bound to the
       // parameter?

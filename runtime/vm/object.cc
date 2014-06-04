@@ -64,6 +64,7 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "fit into a javascript integer.");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
+DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
@@ -4926,12 +4927,12 @@ bool Function::HasBreakpoint() const {
 }
 
 
-void Function::set_code(const Code& value) const {
-  StorePointer(&raw_ptr()->code_, value.raw());
+void Function::SetInstructions(const Code& value) const {
+  StorePointer(&raw_ptr()->instructions_, value.instructions());
 }
 
 void Function::AttachCode(const Code& value) const {
-  set_code(value);
+  SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
     (value.function() == this->raw()));
   value.set_owner(*this);
@@ -4939,14 +4940,16 @@ void Function::AttachCode(const Code& value) const {
 
 
 bool Function::HasCode() const {
-  ASSERT(raw_ptr()->code_ != Code::null());
-  return raw_ptr()->code_ != StubCode::LazyCompile_entry()->code();
+  ASSERT(raw_ptr()->instructions_ != Instructions::null());
+  return raw_ptr()->instructions_ !=
+      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
 }
 
 
 void Function::ClearCode() const {
-  StorePointer(&raw_ptr()->code_, StubCode::LazyCompile_entry()->code());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+  StorePointer(&raw_ptr()->instructions_,
+      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
 }
 
 
@@ -5975,7 +5978,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
-  result.set_code(Code::Handle(StubCode::LazyCompile_entry()->code()));
+  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6300,7 +6303,8 @@ RawScript* Function::script() const {
 
 
 bool Function::HasOptimizedCode() const {
-  return HasCode() && Code::Handle(raw_ptr()->code_).is_optimized();
+  return HasCode() &&  Code::Handle(Instructions::Handle(
+      raw_ptr()->instructions_).code()).is_optimized();
 }
 
 
@@ -6774,6 +6778,7 @@ RawField* Field::New(const String& name,
   result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(FLAG_use_field_guards ? false : true);
+  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
   if (is_final && FLAG_use_field_guards) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
@@ -6819,6 +6824,19 @@ intptr_t Field::guarded_list_length() const {
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
   raw_ptr()->guarded_list_length_ = Smi::New(list_length);
+}
+
+
+intptr_t Field::guarded_list_length_in_object_offset() const {
+  return raw_ptr()->guarded_list_length_in_object_offset_ + kHeapObjectTag;
+}
+
+
+void Field::set_guarded_list_length_in_object_offset(
+    intptr_t list_length_offset) const {
+  raw_ptr()->guarded_list_length_in_object_offset_ =
+      static_cast<int8_t>(list_length_offset - kHeapObjectTag);
+  ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
 
@@ -6983,9 +7001,6 @@ bool Field::IsUninitialized() const {
 
 
 static intptr_t GetListLength(const Object& value) {
-  const intptr_t cid = value.GetClassId();
-  ASSERT(RawObject::IsBuiltinListClassId(cid));
-  // Extract list length.
   if (value.IsTypedData()) {
     const TypedData& list = TypedData::Cast(value);
     return list.Length();
@@ -6998,41 +7013,115 @@ static intptr_t GetListLength(const Object& value) {
   } else if (value.IsExternalTypedData()) {
     // TODO(johnmccutchan): Enable for external typed data.
     return Field::kNoFixedLength;
-  } else if (RawObject::IsTypedDataViewClassId(cid)) {
+  } else if (RawObject::IsTypedDataViewClassId(value.GetClassId())) {
     // TODO(johnmccutchan): Enable for typed data views.
     return Field::kNoFixedLength;
   }
-  UNIMPLEMENTED();
   return Field::kNoFixedLength;
+}
+
+
+static intptr_t GetListLengthOffset(intptr_t cid) {
+  if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::length_offset();
+  } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
+    return Array::length_offset();
+  } else if (cid == kGrowableObjectArrayCid) {
+    // List length is variable.
+    return Field::kUnknownLengthOffset;
+  } else if (RawObject::IsExternalTypedDataClassId(cid)) {
+    // TODO(johnmccutchan): Enable for external typed data.
+    return Field::kUnknownLengthOffset;
+  } else if (RawObject::IsTypedDataViewClassId(cid)) {
+    // TODO(johnmccutchan): Enable for typed data views.
+    return Field::kUnknownLengthOffset;
+  }
+  return Field::kUnknownLengthOffset;
+}
+
+
+const char* Field::GuardedPropertiesAsCString() const {
+  if (guarded_cid() == kIllegalCid) {
+    return "<?>";
+  } else if (guarded_cid() == kDynamicCid) {
+    return "<*>";
+  }
+
+  const Class& cls = Class::Handle(
+      Isolate::Current()->class_table()->At(guarded_cid()));
+  const char* class_name = String::Handle(cls.Name()).ToCString();
+
+  if (RawObject::IsBuiltinListClassId(guarded_cid()) &&
+      !is_nullable() &&
+      is_final()) {
+    ASSERT(guarded_list_length() != kUnknownFixedLength);
+    if (guarded_list_length() == kNoFixedLength) {
+      return Isolate::Current()->current_zone()->PrintToString(
+          "<%s [*]>", class_name);
+    } else {
+      return Isolate::Current()->current_zone()->PrintToString(
+          "<%s [%" Pd " @%" Pd "]>",
+          class_name,
+          guarded_list_length(),
+          guarded_list_length_in_object_offset());
+    }
+  }
+
+  return Isolate::Current()->current_zone()->PrintToString("<%s %s>",
+    is_nullable() ? "nullable" : "not-nullable",
+    class_name);
+}
+
+
+void Field::InitializeGuardedListLengthInObjectOffset() const {
+  if (needs_length_check() &&
+      (guarded_list_length() != Field::kUnknownFixedLength)) {
+    const intptr_t offset = GetListLengthOffset(guarded_cid());
+    set_guarded_list_length_in_object_offset(offset);
+    ASSERT(offset != Field::kUnknownLengthOffset);
+  } else {
+    set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  }
 }
 
 
 bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   const intptr_t cid = value.GetClassId();
-  bool deoptimize = UpdateCid(cid);
-  intptr_t list_length = Field::kNoFixedLength;
-  if ((guarded_cid() != kDynamicCid) &&
-      is_final() && RawObject::IsBuiltinListClassId(cid)) {
-    list_length = GetListLength(value);
-  }
-  deoptimize = UpdateLength(list_length) || deoptimize;
-  if (deoptimize) {
-    DeoptimizeDependentCode();
-  }
-  return deoptimize;
-}
 
-
-bool Field::UpdateCid(intptr_t cid) const {
   if (guarded_cid() == kIllegalCid) {
     // Field is assigned first time.
     set_guarded_cid(cid);
     set_is_nullable(cid == kNullCid);
+
+    // Start tracking length if needed.
+    ASSERT((guarded_list_length() == Field::kUnknownFixedLength) ||
+           (guarded_list_length() == Field::kNoFixedLength));
+    if (needs_length_check()) {
+      ASSERT(guarded_list_length() == Field::kUnknownFixedLength);
+      set_guarded_list_length(GetListLength(value));
+      InitializeGuardedListLengthInObjectOffset();
+    }
+
+    if (FLAG_trace_field_guards) {
+      OS::Print("    => %s\n", GuardedPropertiesAsCString());
+    }
+
     return false;
   }
 
   if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
     // Class id of the assigned value matches expected class id and nullability.
+
+    // If we are tracking length check if it has matches.
+    if (needs_length_check() &&
+        (guarded_list_length() != GetListLength(value))) {
+      ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
+      set_guarded_list_length(Field::kNoFixedLength);
+      set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+      return true;
+    }
+
+    // Everything matches.
     return false;
   }
 
@@ -7051,38 +7140,33 @@ bool Field::UpdateCid(intptr_t cid) const {
     set_is_nullable(true);
   }
 
+  // If we were tracking length drop collected feedback.
+  if (needs_length_check()) {
+    ASSERT(guarded_list_length() != Field::kUnknownFixedLength);
+    set_guarded_list_length(Field::kNoFixedLength);
+    set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  }
+
   // Expected class id or nullability of the field changed.
   return true;
 }
 
 
-bool Field::UpdateLength(intptr_t list_length) const {
-  ASSERT(is_final() || (!is_final() &&
-                        (list_length < Field::kUnknownFixedLength)));
-  ASSERT((list_length == Field::kNoFixedLength) ||
-         (list_length > Field::kUnknownFixedLength));
-  ASSERT(guarded_cid() != kIllegalCid);
-
-  const bool force_invalidate = (guarded_cid() == kDynamicCid) &&
-                                (list_length != Field::kNoFixedLength);
-
-  const bool list_length_unknown =
-      (guarded_list_length() == Field::kUnknownFixedLength);
-  const bool list_length_changed = (guarded_list_length() != list_length);
-
-  if (list_length_unknown && list_length_changed && !force_invalidate) {
-    // List length set for first time.
-    set_guarded_list_length(list_length);
-    return false;
+void Field::RecordStore(const Object& value) const {
+  if (FLAG_trace_field_guards) {
+    OS::Print("Store %s %s <- %s\n",
+              ToCString(),
+              GuardedPropertiesAsCString(),
+              value.ToCString());
   }
 
-  if (!list_length_changed && !force_invalidate) {
-    // List length unchanged.
-    return false;
+  if (UpdateGuardedCidAndLength(value)) {
+    if (FLAG_trace_field_guards) {
+      OS::Print("    => %s\n", GuardedPropertiesAsCString());
+    }
+
+    DeoptimizeDependentCode();
   }
-  // Multiple list lengths assigned here, stop tracking length.
-  set_guarded_list_length(Field::kNoFixedLength);
-  return true;
 }
 
 

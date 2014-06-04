@@ -49,7 +49,7 @@ const char* Symbols::Name(SymbolId symbol) {
 
 const String& Symbols::Keyword(Token::Kind keyword) {
   const int kw_index = keyword - Token::kFirstKeyword;
-  ASSERT((0 <= kw_index) && (kw_index < Token::numKeywords));
+  ASSERT((0 <= kw_index) && (kw_index < Token::kNumKeywords));
   // First keyword symbol is in symbol_handles_[kKwTableStart + 1].
   const intptr_t keyword_id = Symbols::kKwTableStart + 1 + kw_index;
   ASSERT(symbol_handles_[keyword_id] != NULL);

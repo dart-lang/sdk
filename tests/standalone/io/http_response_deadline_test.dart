@@ -59,6 +59,7 @@ void testDeadlineAndDetach(int connections) {
     server.listen((request) {
       request.response.deadline = const Duration(milliseconds: 0);
       request.response.contentLength = 5;
+      request.response.persistentConnection = false;
       request.response.detachSocket().then((socket) {
         new Timer(const Duration(milliseconds: 100), () {
           socket.write('stuff');

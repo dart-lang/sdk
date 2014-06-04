@@ -418,7 +418,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   static String iterableToShortString(Iterable iterable,
                                       [String leftDelimiter = '(',
                                        String rightDelimiter = ')']) {
-    if (_toStringVisiting.contains(iterable)) {
+    if (_isToStringVisiting(iterable)) {
       if (leftDelimiter == "(" && rightDelimiter == ")") {
         // Avoid creating a new string in the "common" case.
         return "(...)";
@@ -430,7 +430,8 @@ abstract class IterableBase<E> implements Iterable<E> {
     try {
       _iterablePartsToStrings(iterable, parts);
     } finally {
-      _toStringVisiting.remove(iterable);
+      assert(identical(_toStringVisiting.last, iterable));
+      _toStringVisiting.removeLast();
     }
     return (new StringBuffer(leftDelimiter)
                 ..writeAll(parts, ", ")
@@ -452,7 +453,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   static String iterableToFullString(Iterable iterable,
                                      [String leftDelimiter = '(',
                                       String rightDelimiter = ')']) {
-    if (_toStringVisiting.contains(iterable)) {
+    if (_isToStringVisiting(iterable)) {
       return "$leftDelimiter...$rightDelimiter";
     }
     StringBuffer buffer = new StringBuffer(leftDelimiter);
@@ -460,14 +461,23 @@ abstract class IterableBase<E> implements Iterable<E> {
     try {
       buffer.writeAll(iterable, ", ");
     } finally {
-      _toStringVisiting.remove(iterable);
+      assert(identical(_toStringVisiting.last, iterable));
+      _toStringVisiting.removeLast();
     }
     buffer.write(rightDelimiter);
     return buffer.toString();
   }
 
   /** A set used to identify cyclic lists during toString() calls. */
-  static Set _toStringVisiting = new HashSet.identity();
+  static final List _toStringVisiting = [];
+
+  /** Check if we are currently visiting `o` in a toString call. */
+  static bool _isToStringVisiting(Object o) {
+    for (int i = 0; i < _toStringVisiting.length; i++) {
+      if (identical(o, _toStringVisiting[i])) return true;
+    }
+    return false;
+  }
 
   /**
    * Convert elments of [iterable] to strings and store them in [parts].

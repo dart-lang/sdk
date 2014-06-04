@@ -1,3 +1,7 @@
+## 1.0.0
+
+* No API changes, just declared stable.
+
 ## 0.9.3+2
 
 * Update the dependency on path.
