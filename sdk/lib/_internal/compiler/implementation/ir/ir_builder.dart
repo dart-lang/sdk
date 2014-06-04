@@ -811,8 +811,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return result;
   }
 
-  // TODO(kmillikin): other literals.
-  //   LiteralSymbol
+  ir.Primitive visitLiteralSymbol(ast.LiteralSymbol node) {
+    assert(isOpen);
+    ir.Constant constant = new ir.Constant(getConstantForNode(node));
+    add(new ir.LetPrim(constant));
+    return constant;
+  }
 
   ir.Primitive visitParenthesizedExpression(
       ast.ParenthesizedExpression node) {

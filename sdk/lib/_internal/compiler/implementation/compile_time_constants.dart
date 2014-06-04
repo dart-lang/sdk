@@ -404,7 +404,8 @@ class CompileTimeConstantEvaluator extends Visitor {
         new DartString.literal(node.slowNameString))];
     }
     return makeConstructedConstant(
-        node, type, compiler.symbolConstructor, createArguments);
+        node, type, compiler.symbolConstructor, createArguments,
+        isLiteralSymbol: true);
   }
 
   Constant makeTypeConstant(DartType elementType) {
@@ -739,7 +740,8 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant makeConstructedConstant(
       Spannable node, InterfaceType type, ConstructorElement constructor,
-      List<Constant> getArguments(ConstructorElement constructor)) {
+      List<Constant> getArguments(ConstructorElement constructor),
+      {bool isLiteralSymbol: false}) {
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);
@@ -758,7 +760,8 @@ class CompileTimeConstantEvaluator extends Visitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    return new ConstructedConstant(constructedType, jsNewArguments);
+    return new ConstructedConstant(constructedType, jsNewArguments,
+        isLiteralSymbol: isLiteralSymbol);
   }
 
   Constant visitParenthesizedExpression(ParenthesizedExpression node) {

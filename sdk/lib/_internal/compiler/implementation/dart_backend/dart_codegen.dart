@@ -396,8 +396,13 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       }
       return new LiteralMap(entries, isConst: true);
     } else {
-      throw "Unsupported constant: $constant";
+      if (constant is dart2js.ConstructedConstant && constant.isLiteralSymbol) {
+        dart2js.StringConstant nameConstant = constant.fields[0];
+        String nameString = nameConstant.value.slowToString();
+        return new LiteralSymbol(nameString);
+      } else {
+        throw "Unsupported constant: $constant";
+      }
     }
   }
 }
-

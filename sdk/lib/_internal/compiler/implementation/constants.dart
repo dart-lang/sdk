@@ -586,13 +586,17 @@ class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
   final int hashCode;
 
-  ConstructedConstant(DartType type, List<Constant> fields)
+  ConstructedConstant(DartType type, List<Constant> fields,
+      {this.isLiteralSymbol: false})
     : this.fields = fields,
       hashCode = computeHash(type, fields),
       super(type) {
     assert(type != null);
   }
   bool get isConstructedObject => true;
+
+  /// True if this constant is constructed as a literal symbol.
+  final bool isLiteralSymbol;
 
   static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.
