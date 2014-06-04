@@ -324,8 +324,24 @@ interface XMLHttpRequest {
 interface AbstractView {};
 
 
-[Suppressed]
-interface InjectedScriptHost {};
+interface InjectedScriptHost {
+    [Custom] void inspect(any objectId, any hints);
+    [Suppressed, Custom] any inspectedObject(long num);
+    [Suppressed, Custom] any internalConstructorName(any obj);
+    [Suppressed, Custom] boolean isHTMLAllCollection(any obj);
+    [Suppressed, Custom] DOMString type(any obj);
+    [Suppressed, Custom] any functionDetails(any obj);
+    [Suppressed, Custom] any[] getInternalProperties(any obj);
+    [Suppressed, Custom] EventListener[] getEventListeners(EventTarget target);
+    [Suppressed, Custom] any evaluate(DOMString text);
+    [Suppressed, Custom] void debugFunction(any fn);
+    [Suppressed, Custom] void undebugFunction(any fn);
+    [Suppressed, Custom] void monitorFunction(any fn);
+    [Suppressed, Custom] void unmonitorFunction(any fn);
+
+    // Only declarative scope (local, with and catch) is accepted. Returns undefined.
+    [Suppressed, Custom] any setFunctionVariableValue(any functionObject, long scopeIndex, DOMString variableName, any newValue);
+};
 
 
 [Suppressed]

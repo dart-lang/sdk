@@ -15570,6 +15570,23 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
+@DomName('InjectedScriptHost')
+@Experimental() // untriaged
+class InjectedScriptHost extends Interceptor native "InjectedScriptHost" {
+  // To suppress missing implicit constructor warnings.
+  factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InjectedScriptHost.inspect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void inspect(Object objectId, Object hints) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('HTMLInputElement')
 class InputElement extends HtmlElement implements
     HiddenInputElement,

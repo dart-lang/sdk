@@ -3900,6 +3900,8 @@ Native_ImageData_height_Getter(mthis) native "ImageData_height_Getter";
 
 Native_ImageData_width_Getter(mthis) native "ImageData_width_Getter";
 
+Native_InjectedScriptHost_inspect_Callback(mthis, objectId, hints) native "InjectedScriptHost_inspect_Callback";
+
 Native_InputMethodContext_compositionEndOffset_Getter(mthis) native "InputMethodContext_compositionEndOffset_Getter";
 
 Native_InputMethodContext_compositionStartOffset_Getter(mthis) native "InputMethodContext_compositionStartOffset_Getter";
@@ -7186,10 +7188,10 @@ Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -7197,9 +7199,9 @@ Native_URL_createObjectUrl(blob_OR_source_OR_stream) {
 
 Native_URL__createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
-Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
+Native_URL__createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
 
-Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
+Native_URL__createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
 
 Native_URL_createObjectUrlFromBlob_Callback(blob) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 

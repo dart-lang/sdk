@@ -5873,6 +5873,14 @@
     },
     "support_level": "stable"
   },
+  "InjectedScriptHost": {
+    "members": {
+      "inspect": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "InputMethodContext": {
     "comment": "http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext",
     "members": {
