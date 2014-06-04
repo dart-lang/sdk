@@ -326,6 +326,16 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                ..dartType = exp.type;
   }
 
+  Expression visitInvokeConstConstructor(tree.InvokeConstConstructor exp) {
+    List args = emitArguments(exp);
+    FunctionElement constructor = exp.target;
+    String name = constructor.name.isEmpty ? null : constructor.name;
+    return new CallNew(emitType(exp.type), args, constructorName: name,
+                       isConst: true)
+               ..constructor = constructor
+               ..dartType = exp.type;
+  }
+
   Expression visitConcatenateStrings(tree.ConcatenateStrings exp) {
     List args = exp.arguments.map(visitExpression).toList(growable:false);
     return new StringConcat(args);

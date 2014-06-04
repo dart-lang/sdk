@@ -1118,23 +1118,32 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   }
 
   ir.Primitive visitNewExpression(ast.NewExpression node) {
-    if (node.isConst) {
-      return giveup(); // TODO(asgerf): Const constructor call.
-    }
+    assert(isOpen);
     FunctionElement element = elements[node.send];
     if (Elements.isUnresolved(element)) {
       return giveup();
     }
-    ast.Node selector = node.send.selector;
+    Selector selector = elements.getSelector(node.send);
+    ast.Node selectorNode = node.send.selector;
     GenericType type = elements.getType(node);
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
     List<ir.Definition> args = node.send.arguments.toList(growable:false)
                                         .map(visit).toList(growable:false);
+    if (node.isConst) {
+      List<ir.Primitive> arguments = new List<ir.Primitive>();
+      node.send.arguments.forEach((ast.Node node) {
+        arguments.add(visit(node));
+      });
+      ir.Primitive result = new ir.InvokeConstConstructor(type, element, selector,
+                                                     arguments);
+      add(new ir.LetPrim(result));
+      return result;
+    }
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
     ir.InvokeConstructor invoke = new ir.InvokeConstructor(
         type,
         element,
-        elements.getSelector(node.send),
+        selector,
         k,
         args);
     add(new ir.LetCont(k, invoke));

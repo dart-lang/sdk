@@ -144,6 +144,14 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
+  visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
+    String dummy = names.name(node);
+    String values = node.arguments.map(formatReference).join(', ');
+    printStmt(dummy, "ConstConstruction ($values)");
+  }
+
+
+
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);

@@ -53,6 +53,7 @@ class BlockCollector extends Visitor {
   visitConcatenateStrings(ConcatenateStrings node) {}
   visitLiteralList(LiteralList node) {}
   visitLiteralMap(LiteralMap node) {}
+  visitInvokeConstConstructor(InvokeConstConstructor node) {}
   visitConstant(Constant node) {}
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
@@ -209,6 +210,10 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, expr(node));
   }
 
+  visitInvokeConstConstructor(InvokeConstConstructor node) {
+    printStatement(null, expr(node));
+  }
+
   visitConditional(Conditional node) {
     printStatement(null, expr(node));
   }
@@ -319,6 +324,17 @@ class SubexpressionVisitor extends Visitor<String, String> {
       entries.add("$key: $value");
     }
     return "map [${entries.join(', ')}]";
+  }
+
+  String visitInvokeConstConstructor(InvokeConstConstructor node) {
+    String callName;
+    if (node.target.name.isEmpty) {
+      callName = '${node.type}';
+    } else {
+      callName = '${node.type}.${node.target.name}';
+    }
+    String arguments = node.arguments.map(visitExpression).join(', ');
+    return "const $callName($arguments)";
   }
 
   String visitConstant(Constant node) {

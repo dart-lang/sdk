@@ -187,6 +187,31 @@ class InvokeConstructor extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
+class InvokeConstConstructor extends Primitive {
+  final GenericType type;
+  final FunctionElement constructor;
+  final List<Reference> arguments;
+  final Selector selector;
+
+  /// The class being instantiated. This is the same as `target.enclosingClass`
+  /// and `type.element`.
+  ClassElement get targetClass => constructor.enclosingElement;
+
+  /// True if this is an invocation of a factory constructor.
+  bool get isFactory => constructor.isFactoryConstructor;
+
+  InvokeConstConstructor(this.type,
+                    this.constructor,
+                    this.selector,
+                    List<Definition> args)
+      : arguments = _referenceList(args) {
+    assert(constructor.isConstructor);
+    assert(type.element == constructor.enclosingElement);
+  }
+
+  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
+}
+
 /// Invoke [toString] on each argument and concatenate the results.
 class ConcatenateStrings extends Expression {
   final Reference continuation;
@@ -339,6 +364,7 @@ abstract class Visitor<T> {
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
   T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
+  T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 

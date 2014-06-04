@@ -195,6 +195,19 @@ class LiteralMap extends Expression {
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 }
 
+class InvokeConstConstructor extends Expression implements Invoke {
+  final GenericType type;
+  final FunctionElement target;
+  final List<Expression> arguments;
+  final Selector selector;
+
+  ClassElement get targetClass => target.enclosingElement;
+
+  InvokeConstConstructor(this.type, this.target, this.selector, this.arguments);
+
+  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -383,6 +396,7 @@ abstract class Visitor<S, E> {
   E visitNot(Not node);
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
+  E visitInvokeConstConstructor(InvokeConstConstructor node);
 
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
@@ -646,6 +660,11 @@ class Builder extends ir.Visitor<Node> {
     return new If(condition, thenStatement, elseStatement);
   }
 
+  Expression visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
+    return new InvokeConstConstructor(node.type, node.constructor, node.selector,
+        translateArguments(node.arguments));
+  }
+
   Expression visitConstant(ir.Constant node) {
     return new Constant(node.value);
   }
@@ -842,6 +861,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
+  Expression visitInvokeConstConstructor(InvokeConstConstructor node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }
@@ -1418,6 +1444,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
       node.elseExpression = tmp;
     }
 
+    return node;
+  }
+
+  Expression visitInvokeConstConstructor(InvokeConstConstructor node) {
+    _rewriteList(node.arguments);
     return node;
   }
 
