@@ -159,8 +159,8 @@ void Handle::Unlock() {
 }
 
 
-bool Handle::DoCreateCompletionPort(HANDLE handle, HANDLE completion_port) {
-  completion_port_ = CreateIoCompletionPort(handle,
+bool Handle::CreateCompletionPort(HANDLE completion_port) {
+  completion_port_ = CreateIoCompletionPort(handle(),
                                             completion_port,
                                             reinterpret_cast<ULONG_PTR>(this),
                                             0);
@@ -168,11 +168,6 @@ bool Handle::DoCreateCompletionPort(HANDLE handle, HANDLE completion_port) {
     return false;
   }
   return true;
-}
-
-
-bool Handle::CreateCompletionPort(HANDLE completion_port) {
-  return DoCreateCompletionPort(handle_, completion_port_);
 }
 
 
@@ -434,12 +429,6 @@ void DirectoryWatchHandle::Stop() {
   }
 
   DoClose();
-}
-
-
-bool SocketHandle::CreateCompletionPort(HANDLE completion_port) {
-  HANDLE handle = reinterpret_cast<HANDLE>(socket());
-  return DoCreateCompletionPort(handle, completion_port);
 }
 
 
@@ -819,6 +808,7 @@ void ClientSocket::DoClose() {
   // Always do a shutdown before initiating a disconnect.
   shutdown(socket(), SD_BOTH);
   IssueDisconnect();
+  handle_ = INVALID_HANDLE_VALUE;
 }
 
 

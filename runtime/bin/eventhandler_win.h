@@ -228,8 +228,7 @@ class Handle {
   void Lock();
   void Unlock();
 
-  bool DoCreateCompletionPort(HANDLE handle, HANDLE completion_port);
-  virtual bool CreateCompletionPort(HANDLE completion_port);
+  bool CreateCompletionPort(HANDLE completion_port);
 
   void Close();
   virtual void DoClose();
@@ -364,14 +363,12 @@ class SocketHandle : public Handle {
  public:
   SOCKET socket() const { return socket_; }
 
-  virtual bool CreateCompletionPort(HANDLE completion_port);
-
  protected:
   explicit SocketHandle(SOCKET s)
-      : Handle(INVALID_HANDLE_VALUE),
+      : Handle(reinterpret_cast<HANDLE>(s)),
         socket_(s) {}
   SocketHandle(SOCKET s, Dart_Port port)
-      : Handle(INVALID_HANDLE_VALUE, port),
+      : Handle(reinterpret_cast<HANDLE>(s), port),
         socket_(s) {}
 
   virtual void HandleIssueError();
