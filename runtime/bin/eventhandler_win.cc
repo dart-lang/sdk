@@ -398,7 +398,7 @@ bool DirectoryWatchHandle::IssueRead() {
   ScopedLock lock(this);
   // It may have been started before, as we start the directory-handler when
   // we create it.
-  if (pending_read_ != NULL) return true;
+  if (pending_read_ != NULL || data_ready_ != NULL) return true;
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   BOOL ok = ReadDirectoryChangesW(handle_,
