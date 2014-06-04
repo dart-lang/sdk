@@ -6,7 +6,8 @@ library operation.analysis;
 
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computers.dart';
+import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';

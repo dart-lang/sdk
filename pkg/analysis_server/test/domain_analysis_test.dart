@@ -6,9 +6,9 @@ library test.domain.analysis;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/computers.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';

@@ -24,15 +24,29 @@ main() {
 
 @ReflectiveTestCase()
 class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
-  List<Map<String, Object>> regions;
-  Map<String, Object> testRegion;
-  List<Map<String, Object>> testTargets;
+  List<_NavigationRegion> regions;
+  _NavigationRegion testRegion;
+  List<_NavigationTarget> testTargets;
 
   void processNotification(Notification notification) {
     if (notification.event == NOTIFICATION_NAVIGATION) {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
-        regions = notification.getParameter(REGIONS);
+        regions = [];
+        List<Map<String, Object>> regionsJson = notification.getParameter(REGIONS);
+        for (Map<String, Object> regionJson in regionsJson) {
+          var regionOffset = regionJson['offset'];
+          var regionLength = regionJson['length'];
+          List<_NavigationTarget> targets = [];
+          for (Map<String, Object> targetJson in regionJson['targets']) {
+            var targetFile = targetJson['file'];
+            var targetOffset = targetJson['offset'];
+            var targetLength = targetJson['length'];
+            targets.add(new _NavigationTarget(targetFile, targetOffset, targetLength));
+          }
+          var region = new _NavigationRegion(regionOffset, regionLength, targets);
+          regions.add(region);
+        }
       }
     }
   }
@@ -55,15 +69,15 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
    * If [exists] is `false`, then fails if such region exists.
    */
   void findRegion(int offset, int length, [bool exists]) {
-    for (Map<String, Object> region in regions) {
-      if (region['offset'] == offset &&
-          (length == -1 || region['length'] == length)) {
+    for (_NavigationRegion region in regions) {
+      if (region.offset == offset &&
+          (length == -1 || region.length == length)) {
         if (exists == false) {
           fail('Not expected to find (offset=$offset; length=$length) in\n'
                '${regions.join('\n')}');
         }
         testRegion = region;
-        testTargets = region['targets'];
+        testTargets = region.targets;
         return;
       }
     }
@@ -106,16 +120,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
-    for (Map<String, Object> target in testTargets) {
-      if (target['file'] == testFile &&
-          target['offset'] == offset &&
-          target['length'] == length) {
-        return;
-      }
-    }
-    fail('Expected to find target (offset=$offset; length=$length) in\n'
-         '${testRegion} in\n'
-         '${regions.join('\n')}');
+    assertHasFileTarget(testFile, offset, length);
   }
 
   /**
@@ -123,10 +128,10 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
    * and with the given [length].
    */
   void assertHasFileTarget(String file, int offset, int length) {
-    for (Map<String, Object> target in testTargets) {
-      if (target['file'] == file &&
-          target['offset'] == offset &&
-          target['length'] == length) {
+    for (_NavigationTarget target in testTargets) {
+      if (target.file == file &&
+          target.offset == offset &&
+          target.length == length) {
         return;
       }
     }
@@ -431,4 +436,22 @@ part "test_unit.dart";
 //      assertNoRegionString('part "test_unit.dart"');
 //    });
   }
+}
+
+
+class _NavigationRegion {
+  final int offset;
+  final int length;
+  final List<_NavigationTarget> targets;
+
+  _NavigationRegion(this.offset, this.length, this.targets);
+}
+
+
+class _NavigationTarget {
+  final String file;
+  final int offset;
+  final int length;
+
+  _NavigationTarget(this.file, this.offset, this.length);
 }
