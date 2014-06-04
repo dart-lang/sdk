@@ -33,21 +33,22 @@ main() {
 
         Future delayed(computation()) {
           return new Future.delayed(
-              new Duration(milliseconds: 100), computation);
+              new Duration(seconds: 1), computation);
         }
 
         watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
           // Delay before we start watching the folder.  This is necessary
-          // because on MacOS, file modifications that occur just before we start
-          // watching are sometimes misclassified as happening just after we
-          // start watching.
+          // because on MacOS, file modifications that occur just before we
+          // start watching are sometimes misclassified as happening just after
+          // we start watching.
           return delayed(() {
             Folder folder = PhysicalResourceProvider.INSTANCE.getResource(path);
             var changesReceived = <WatchEvent>[];
             var subscription = folder.changes.listen(changesReceived.add);
-            // Delay running the rest of the test to allow folder.changes to take
-            // a snapshot of the current directory state.  Otherwise it won't be
-            // able to reliably distinguish new files from modified ones.
+            // Delay running the rest of the test to allow folder.changes to
+            // take a snapshot of the current directory state.  Otherwise it
+            // won't be able to reliably distinguish new files from modified
+            // ones.
             return delayed(() => test(changesReceived)).whenComplete(() {
               subscription.cancel();
             });
