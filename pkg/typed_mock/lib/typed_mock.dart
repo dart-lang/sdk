@@ -364,6 +364,8 @@ class TypedMock {
 /// [ArgumentMatcher] checks whether the given argument satisfies some
 /// condition.
 abstract class ArgumentMatcher {
+  const ArgumentMatcher();
+
   /// Checks whether this matcher accepts the given argument.
   bool matches(val);
 }
@@ -372,7 +374,7 @@ abstract class ArgumentMatcher {
 class _ArgumentMatcher_equals extends ArgumentMatcher {
   final expected;
 
-  _ArgumentMatcher_equals(this.expected);
+  const _ArgumentMatcher_equals(this.expected);
 
   @override
   bool matches(val) {
@@ -382,6 +384,8 @@ class _ArgumentMatcher_equals extends ArgumentMatcher {
 
 
 class _ArgumentMatcher_anyBool extends ArgumentMatcher {
+  const _ArgumentMatcher_anyBool();
+
   @override
   bool matches(val) {
     return val is bool;
@@ -389,10 +393,12 @@ class _ArgumentMatcher_anyBool extends ArgumentMatcher {
 }
 
 /// Matches any [bool] value.
-final anyBool = new _ArgumentMatcher_anyBool() as dynamic;
+final anyBool = const _ArgumentMatcher_anyBool() as dynamic;
 
 
 class _ArgumentMatcher_anyInt extends ArgumentMatcher {
+  const _ArgumentMatcher_anyInt();
+
   @override
   bool matches(val) {
     return val is int;
@@ -400,10 +406,12 @@ class _ArgumentMatcher_anyInt extends ArgumentMatcher {
 }
 
 /// Matches any [int] value.
-final anyInt = new _ArgumentMatcher_anyInt() as dynamic;
+final anyInt = const _ArgumentMatcher_anyInt() as dynamic;
 
 
 class _ArgumentMatcher_anyObject extends ArgumentMatcher {
+  const _ArgumentMatcher_anyObject();
+
   @override
   bool matches(val) {
     return true;
@@ -411,10 +419,12 @@ class _ArgumentMatcher_anyObject extends ArgumentMatcher {
 }
 
 /// Matches any [Object] (or subclass) value.
-final anyObject = new _ArgumentMatcher_anyObject() as dynamic;
+final anyObject = const _ArgumentMatcher_anyObject() as dynamic;
 
 
 class _ArgumentMatcher_anyString extends ArgumentMatcher {
+  const _ArgumentMatcher_anyString();
+
   @override
   bool matches(val) {
     return val is String;
@@ -422,4 +432,4 @@ class _ArgumentMatcher_anyString extends ArgumentMatcher {
 }
 
 /// Matches any [String] value.
-final anyString = new _ArgumentMatcher_anyString() as dynamic;
+final anyString = const _ArgumentMatcher_anyString() as dynamic;
