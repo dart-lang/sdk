@@ -200,36 +200,24 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
     keepAlivePort.close();
 
     SendPort replyTo = message[0];
+    if (replyTo != null) {
+      // TODO(floitsch): don't send ok-message if we can't find the entry point.
+      replyTo.send("started");
+    }
     if (isSpawnUri) {
       assert(message.length == 3);
       List<String> args = message[1];
       var isolateMessage = message[2];
-      if (entryPoint == null) {
-        // Set to null when lookup of "main" failed in C++ code.
-        if (replyTo != null) {
-          replyTo.send(["error",
-                        "No main method in isolate library"]);
-        }
-      } else if (entryPoint is _MainFunctionArgsMessage) {
-        if (replyTo != null) replyTo.send("started");
+      if (entryPoint is _MainFunctionArgsMessage) {
         entryPoint(args, isolateMessage);
       } else if (entryPoint is _MainFunctionArgs) {
-        if (replyTo != null) replyTo.send("started");
         entryPoint(args);
-      } else if (entryPoint is _MainFunction) {
-        if (replyTo != null) replyTo.send("started");
-        entryPoint();
       } else {
-        // Report error back to spawner.
-        if (replyTo != null) {
-          replyTo.send(["error",
-                        "Incorrect parameter count on main: $entryPoint"]);
-        }
+        entryPoint();
       }
     } else {
       assert(message.length == 2);
       var entryMessage = message[1];
-      if (replyTo != null) replyTo.send("started");
       entryPoint(entryMessage);
     }
   }
@@ -268,15 +256,9 @@ patch class Isolate {
       controlPort.send([readyPort.sendPort, args, message]);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
+        assert(readyMessage == 'started');
         readyPort.close();
-        if ('started' == readyMessage) {
-          completer.complete(new Isolate(controlPort));
-        } else {
-          assert(readyMessage is List && readyMessage[0] == "error");
-          String error = readyMessage[1];
-          var remoteError = new IsolateSpawnException(error);
-          completer.completeError(remoteError);
-        }
+        completer.complete(new Isolate(controlPort));
       };
       return completer.future;
     } catch (e, st) {

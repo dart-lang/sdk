@@ -26,11 +26,6 @@ handle_error_test: Fail   # Not implemented yet
 handle_error2_test: Fail  # Not implemented yet
 handle_error3_test: Fail  # Not implemented yet
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid)]
-isolate_create_error_test/05: Fail  # Expected to fail for now.
-isolate_create_error_test/07: Fail  # VM prints error even if it is caught.
-                                    # Web test framework detects this as a fail.
-
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 
@@ -39,7 +34,6 @@ pause_test: Fail  # non-zero timer not supported.
 
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
-isolate_create_error_test: Fail # Cannot find URI of files to spawn.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 browser/typed_data_message_test: Fail # Issue 12624
