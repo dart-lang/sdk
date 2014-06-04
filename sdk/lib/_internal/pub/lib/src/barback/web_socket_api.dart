@@ -23,14 +23,14 @@ import 'asset_environment.dart';
 /// This is a [JSON-RPC 2.0](http://www.jsonrpc.org/specification) server. Its
 /// methods are described in the method-level documentation below.
 class WebSocketApi {
-  final CompatibleWebSocket _socket;
   final AssetEnvironment _environment;
-  final _server = new json_rpc.Server();
+  final json_rpc.Server _server;
 
   /// Whether the application should exit when this connection closes.
   bool _exitOnClose = false;
 
-  WebSocketApi(this._socket, this._environment) {
+  WebSocketApi(CompatibleWebSocket socket, this._environment)
+      : _server = new json_rpc.Server(socket) {
     _server.registerMethod("urlToAssetId", _urlToAssetId);
     _server.registerMethod("pathToUrls", _pathToUrls);
     _server.registerMethod("serveDirectory", _serveDirectory);
@@ -51,11 +51,7 @@ class WebSocketApi {
   /// complete with an error if the socket had an error, otherwise it will
   /// complete to `null`.
   Future listen() {
-    return _socket.listen((request) {
-      _server.parseRequest(request).then((response) {
-        if (response != null) _socket.add(response);
-      });
-    }, cancelOnError: true).asFuture().then((_) {
+    return _server.listen().then((_) {
       if (!_exitOnClose) return;
       log.message("WebSocket connection closed, terminating.");
       flushThenExit(exit_codes.SUCCESS);
