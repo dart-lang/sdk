@@ -6,6 +6,7 @@ library nav_bar_element;
 
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -57,6 +58,19 @@ class NavRefreshElement extends ObservatoryElement {
   }
 }
 
+@CustomTag('nav-control')
+class NavControlElement extends ObservatoryElement {
+  NavControlElement.created() : super.created();
+
+  void forward(Event e, var detail, Element target) {
+    location.forward();
+  }
+
+  void back(Event e, var detail, Element target) {
+    location.back();
+  }
+}
+
 @CustomTag('top-nav-menu')
 class TopNavMenuElement extends ObservatoryElement {
   @published bool last = false;
@@ -77,7 +91,7 @@ class IsolateNavMenuElement extends ObservatoryElement {
   @reflectable
   String get hashLinkWorkaround {
     if (isolate != null) {
-      return isolate.hashLink;
+      return isolate.link;
     } else {
       return '';
     }

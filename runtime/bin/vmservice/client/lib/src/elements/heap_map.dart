@@ -92,13 +92,13 @@ class HeapMapElement extends ObservatoryElement {
 
   void _updateClassList(classList, int freeClassId) {
     for (var member in classList['members']) {
-      if (member['type'] != '@Class') {
+      if (member is! Class) {
         Logger.root.info('$member');
         continue;
       }
-      var classId = int.parse(member['id'].split('/').last);
+      var classId = int.parse(member.id.split('/').last);
       var color = _classIdToRGBA(classId);
-      _addClass(classId, member['name'], color);
+      _addClass(classId, member.name, color);
     }
     _addClass(freeClassId, 'Free', _freeColor);
     _addClass(0, '', _pageSeparationColor);
@@ -148,7 +148,7 @@ class HeapMapElement extends ObservatoryElement {
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';
   }
-  
+
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
     window.location.hash = "/${fragmentation.isolate.link}/address/$address";

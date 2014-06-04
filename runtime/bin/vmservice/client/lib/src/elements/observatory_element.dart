@@ -4,6 +4,7 @@
 
 library observatory_element;
 
+import 'dart:html';
 import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
@@ -22,6 +23,14 @@ class ObservatoryElement extends PolymerElement {
 
   void ready() {
     super.ready();
+  }
+
+  void goto(MouseEvent event, var detail, Element target) {
+    location.onGoto(event, detail, target);
+  }
+
+  String gotoLink(String url) {
+    return location.makeLink(url);
   }
 
   void attributeChanged(String name, var oldValue, var newValue) {

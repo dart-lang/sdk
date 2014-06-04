@@ -10,6 +10,7 @@
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -19,7 +20,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/http/servers')}}">HTTP Servers</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/http/servers'))}}">HTTP Servers</a>
         </li>
       </ul>
 
@@ -27,7 +28,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/sockets')}}">Sockets</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/sockets'))}}">Sockets</a>
         </li>
       </ul>
 
@@ -35,7 +36,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/websockets')}}">WebSockets</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/websockets'))}}">WebSockets</a>
         </li>
       </ul>
 
@@ -43,7 +44,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/file/randomaccessfiles')}}">Random Access Files</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/file/randomaccessfiles'))}}">Random Access Files</a>
         </li>
       </ul>
 
@@ -51,7 +52,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/processes')}}">Processess</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
         </li>
       </ul>
 
@@ -109,7 +110,7 @@
 <polymer-element name="io-http-server-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -158,7 +159,7 @@
 <polymer-element name="io-socket-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -288,7 +289,7 @@
 <polymer-element name="io-web-socket-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -348,7 +349,7 @@
 <polymer-element name="io-random-access-file-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -444,10 +445,10 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <template if="{{ small }}">
-      <a href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
     </template>
     <template if="{{ !small }}">
-      <a href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
+      <a on-click="{{ goto }}" href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
     </template>
   </template>
 </polymer-element>

@@ -29,11 +29,6 @@ abstract class ServiceObject extends Observable {
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
 
-  /// The complete service url of this object with a '#/' prefix.
-  // TODO(turnidge): Figure out why using a getter here messes up polymer.
-  @reflectable String get hashLink => '#/${link}';
-  @reflectable set hashLink(var o) { /* silence polymer */ }
-
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
   bool _loaded = false;
@@ -67,6 +62,9 @@ abstract class ServiceObject extends Observable {
     var obj = null;
     assert(type != 'VM');
     switch (type) {
+      case 'Class':
+        obj = new Class._empty(owner);
+        break;
       case 'Code':
         obj = new Code._empty(owner);
         break;
@@ -252,14 +250,7 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ServiceObject> get(String id) {
-    var parts = id.split('#');
-    assert(parts.length >= 1);
-    // We should never see more than two hashes.
-    assert(parts.length <= 2);
-    // The ID does not include anything after the # (or the # itself).
-    id = parts[0];
-    // I'm serious.
-    assert(!id.contains('#'));
+    assert(id.startsWith('/') == false);
     // Isolates are handled specially, since they can cache sub-objects.
     if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
@@ -283,14 +274,15 @@ abstract class VM extends ServiceObjectOwner {
     if (obj != null) {
       return obj.reload();
     }
+
     // Cache miss.  Get the object from the vm directly.
     return getAsMap(id).then((ObservableMap map) {
-        var obj = new ServiceObject._fromMap(this, map);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-        return obj;
-      });
+      var obj = new ServiceObject._fromMap(this, map);
+      if (obj.canCache) {
+        _cache.putIfAbsent(id, () => obj);
+      }
+      return obj;
+    });
   }
 
   dynamic _reviver(dynamic key, dynamic value) {
@@ -498,8 +490,7 @@ class Isolate extends ServiceObjectOwner {
   @reflectable Isolate get isolate => this;
   @observable ObservableMap counters = new ObservableMap();
 
-  String get link => _id;
-  String get hashLink => '#/$_id';
+  String get link => '/${_id}';
 
   @observable ServiceMap pauseEvent = null;
   bool get _isPaused => pauseEvent != null;
@@ -517,9 +508,7 @@ class Isolate extends ServiceObjectOwner {
   }
 
   /// Creates a link to [id] relative to [this].
-  @reflectable String relativeLink(String id) => '${this.id}/$id';
-  /// Creates a relative link to [id] with a '#/' prefix.
-  @reflectable String relativeHashLink(String id) => '#/${relativeLink(id)}';
+  @reflectable String relativeLink(String id) => '/${this.id}/$id';
 
   static const TAG_ROOT_ID = 'code/tag-0';
 
@@ -585,6 +574,41 @@ class Isolate extends ServiceObjectOwner {
     script._processHits(scriptCoverage['hits']);
   }
 
+  /// Fetches and builds the class hierarchy for this isolate. Returns the
+  /// Object class object.
+  Future<Class> getClassHierarchy() {
+    return get('classes').then(_loadClasses).then(_buildClassHierarchy);
+  }
+
+  /// Given the class list, loads each class.
+  Future<List<Class>> _loadClasses(ServiceMap classList) {
+    assert(classList.serviceType == 'ClassList');
+    var futureClasses = [];
+    for (var cls in classList['members']) {
+      // Skip over non-class classes.
+      if (cls is Class) {
+        futureClasses.add(cls.load());
+      }
+    }
+    return Future.wait(futureClasses);
+  }
+
+  /// Builds the class hierarchy and returns the Object class.
+  Future<Class> _buildClassHierarchy(List<Class> classes) {
+    rootClasses.clear();
+    objectClass = null;
+    for (var cls in classes) {
+      if (cls.superClass == null) {
+        rootClasses.add(cls);
+      }
+      if ((cls.vmName == 'Object') && (cls.isPatch == false)) {
+        objectClass = cls;
+      }
+    }
+    assert(objectClass != null);
+    return new Future.value(objectClass);
+  }
+
   ServiceObject getFromMap(ObservableMap map) {
     if (map == null) {
       return null;
@@ -618,6 +642,9 @@ class Isolate extends ServiceObjectOwner {
         return obj;
       });
   }
+
+  @observable Class objectClass;
+  @observable final rootClasses = new ObservableList<Class>();
 
   @observable Library rootLib;
   @observable ObservableList<Library> libraries =
@@ -906,7 +933,7 @@ class Library extends ServiceObject {
   @observable String url;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
-  @reflectable final classes = new ObservableList<ServiceMap>();
+  @reflectable final classes = new ObservableList<Class>();
   @reflectable final variables = new ObservableList<ServiceMap>();
   @reflectable final functions = new ObservableList<ServiceMap>();
 
@@ -942,6 +969,91 @@ class Library extends ServiceObject {
     variables.addAll(map['variables']);
     functions.clear();
     functions.addAll(map['functions']);
+  }
+}
+
+class Class extends ServiceObject {
+  @observable Library library;
+  @observable Script script;
+  @observable Class superClass;
+
+  @observable bool isAbstract;
+  @observable bool isConst;
+  @observable bool isFinalized;
+  @observable bool isPatch;
+  @observable bool isImplemented;
+
+  @observable int tokenPos;
+
+  @observable ServiceMap error;
+
+  @reflectable final children = new ObservableList<Class>();
+  @reflectable final subClasses = new ObservableList<Class>();
+  @reflectable final fields = new ObservableList<ServiceMap>();
+  @reflectable final functions = new ObservableList<ServiceMap>();
+  @reflectable final interfaces = new ObservableList<Class>();
+
+  bool get canCache => true;
+  bool get immutable => false;
+
+  Class._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  String toString() {
+    return 'Service Class: $vmName';
+  }
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['user_name'];
+    vmName = map['name'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    // We are fully loaded.
+    _loaded = true;
+
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    // Some builtin classes aren't associated with a library.
+    if (map['library'] is Library) {
+      library = map['library'];
+    } else {
+      library = null;
+    }
+
+    script = map['script'];
+
+    isAbstract = map['abstract'];
+    isConst = map['const'];
+    isFinalized = map['finalized'];
+    isPatch = map['patch'];
+    isImplemented = map['implemented'];
+
+    tokenPos = map['tokenPos'];
+
+    subClasses.clear();
+    subClasses.addAll(map['subclasses']);
+
+    fields.clear();
+    fields.addAll(map['fields']);
+
+    functions.clear();
+    functions.addAll(map['functions']);
+
+    superClass = map['super'];
+    if (superClass != null) {
+      superClass._addToChildren(this);
+    }
+    error = map['error'];
+  }
+
+  void _addToChildren(Class cls) {
+    if (children.contains(cls)) {
+      return;
+    }
+    children.add(cls);
   }
 }
 

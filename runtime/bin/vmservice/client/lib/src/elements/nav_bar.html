@@ -81,7 +81,7 @@
     </style>
 
     <li class="menu">
-      <a href="{{ link }}">{{ anchor }}</a>
+      <a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
     <template if="{{ !last }}">
@@ -129,7 +129,7 @@
         text-decoration: none;
       }
     </style>
-    <li><a href="{{ link }}">{{ anchor }}</a>
+    <li><a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
   </template>
@@ -165,9 +165,31 @@
   </template>
 </polymer-element>
 
+<polymer-element name="nav-control" extends="observatory-element">
+  <template>
+    <style>
+      .black {
+        color: #000;
+      }
+      li {
+        float: right;
+        margin: 0;
+      }
+      li button {
+        margin: 3px;
+        padding: 8px;
+      }
+    </style>
+    <li>
+      <button class="black" on-click="{{ back }}">&#9664;</button>
+      <button class="black" on-click="{{ forward }}">&#9654;</button>
+    </li>
+  </template>
+</polymer-element>
+
 <polymer-element name="top-nav-menu">
   <template>
-    <nav-menu link="#/vm" anchor="Observatory" last="{{ last }}">
+    <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
@@ -176,15 +198,15 @@
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}"
+      <nav-menu-item link="{{ isolate.relativeLink('stacktrace') }}"
                      anchor="stack trace"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}"
+      <nav-menu-item link="{{ isolate.relativeLink('profile') }}"
                      anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}"
+      <nav-menu-item link="{{ isolate.relativeLink('allocationprofile') }}"
                      anchor="allocation profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}"
+      <nav-menu-item link="{{ isolate.relativeLink('heapmap') }}"
                      anchor="heap map"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}"
+      <nav-menu-item link="{{ isolate.relativeLink('debug/breakpoints') }}"
                      anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
@@ -193,7 +215,7 @@
 
 <polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ library.hashLink }}"
+    <nav-menu link="{{ library.link }}"
               anchor="{{ library.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
@@ -202,7 +224,7 @@
 
 <polymer-element name="class-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ cls.hashLink }}"
+    <nav-menu link="{{ cls.link }}"
               anchor="{{ cls.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>

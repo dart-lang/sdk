@@ -6,10 +6,10 @@
     <link rel="stylesheet" href="css/shared.css">
     <template if="{{ code.isDartCode }}">
         <template if="{{ code.isOptimized }}">
-          <a href="{{ url }}">*{{ name }}</a>
+          <a on-click="{{ goto }}" href="{{ url }}">*{{ name }}</a>
         </template>
         <template if="{{ !code.isOptimized }}">
-          <a href="{{ url }}">{{ name }}</a>
+          <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
         </template>
     </template>
     <template if="{{ !code.isDartCode }}">

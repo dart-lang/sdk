@@ -659,16 +659,16 @@ hr {
                         isBool(ref.serviceType) ||
                         isInt(ref.serviceType)) ||
                         isDouble(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['valueAsString'] }}</a>
+        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
       <template if="{{ (isType(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['user_name'] }}</a>
+        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isInstance(ref.serviceType) &amp;&amp;
                        ref['closureFunc'] != null}}">
-        <a href="{{ url }}">
+        <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc']['user_name'] }}
         </a>
@@ -676,7 +676,7 @@ hr {
 
       <template if="{{ isInstance(ref.serviceType) &amp;&amp;
                        ref['closureFunc'] == null}}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ field in ref['fields'] }}">
@@ -694,7 +694,7 @@ hr {
       </template>
 
       <template if="{{ isList(ref.serviceType) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ element in ref['elements'] }}">
@@ -1054,7 +1054,7 @@ hr {
     </style>
 
     <li class="menu">
-      <a href="{{ link }}">{{ anchor }}</a>
+      <a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
     <template if="{{ !last }}">
@@ -1102,7 +1102,7 @@ hr {
         text-decoration: none;
       }
     </style>
-    <li><a href="{{ link }}">{{ anchor }}</a>
+    <li><a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
   </template>
@@ -1138,9 +1138,31 @@ hr {
   </template>
 </polymer-element>
 
+<polymer-element name="nav-control" extends="observatory-element">
+  <template>
+    <style>
+      .black {
+        color: #000;
+      }
+      li {
+        float: right;
+        margin: 0;
+      }
+      li button {
+        margin: 3px;
+        padding: 8px;
+      }
+    </style>
+    <li>
+      <button class="black" on-click="{{ back }}">◀</button>
+      <button class="black" on-click="{{ forward }}">▶</button>
+    </li>
+  </template>
+</polymer-element>
+
 <polymer-element name="top-nav-menu">
   <template>
-    <nav-menu link="#/vm" anchor="Observatory" last="{{ last }}">
+    <nav-menu link="/vm" anchor="Observatory" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
@@ -1149,11 +1171,11 @@ hr {
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.relativeHashLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('profile') }}" anchor="cpu profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('allocationprofile') }}" anchor="allocation profile"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('heapmap') }}" anchor="heap map"></nav-menu-item>
-      <nav-menu-item link="{{ isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeLink('profile') }}" anchor="cpu profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeLink('allocationprofile') }}" anchor="allocation profile"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeLink('heapmap') }}" anchor="heap map"></nav-menu-item>
+      <nav-menu-item link="{{ isolate.relativeLink('debug/breakpoints') }}" anchor="breakpoints"></nav-menu-item>
       <content></content>
     </nav-menu>
   </template>
@@ -1161,7 +1183,7 @@ hr {
 
 <polymer-element name="library-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ library.hashLink }}" anchor="{{ library.name }}" last="{{ last }}">
+    <nav-menu link="{{ library.link }}" anchor="{{ library.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
@@ -1169,7 +1191,7 @@ hr {
 
 <polymer-element name="class-nav-menu" extends="observatory-element">
   <template>
-    <nav-menu link="{{ cls.hashLink }}" anchor="{{ cls.name }}" last="{{ last }}">
+    <nav-menu link="{{ cls.link }}" anchor="{{ cls.name }}" last="{{ last }}">
       <content></content>
     </nav-menu>
   </template>
@@ -1417,8 +1439,9 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ msg.isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ msg.isolate.relativeHashLink('debug/breakpoints') }}" anchor="breakpoints" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ gotoLink(msg.isolate.relativeLink('debug/breakpoints')) }}" anchor="breakpoints" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
     <template if="{{ msg['breakpoints'].isEmpty }}">
       <div>
@@ -1676,10 +1699,362 @@ hr {
 .break-wrap {
   word-wrap: break-word;
 }
-</style><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+</style><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
 
 
 </polymer-element>
+
+
+
+
+<polymer-element name="class-tree" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .table {
+        border-collapse: collapse!important;
+        width: 100%;
+        margin-bottom: 20px
+      }
+      .table thead > tr > th,
+      .table tbody > tr > th,
+      .table tfoot > tr > th,
+      .table thead > tr > td,
+      .table tbody > tr > td,
+      .table tfoot > tr > td {
+        padding: 8px;
+        vertical-align: top;
+      }
+      .table thead > tr > th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom:2px solid #ddd;
+      }
+
+      tr:hover > td {
+        background-color: #FFF3E3;
+      }
+      .rowColor0 {
+        background-color: #FFE9CC;
+      }
+      .rowColor1 {
+        background-color: #FFDEB2;
+      }
+      .rowColor2 {
+        background-color: #FFD399;
+      }
+      .rowColor3 {
+        background-color: #FFC87F;
+      }
+      .rowColor4 {
+        background-color: #FFBD66;
+      }
+      .rowColor5 {
+        background-color: #FFB24C;
+      }
+      .rowColor6 {
+        background-color: #FFA733;
+      }
+      .rowColor7 {
+        background-color: #FF9C19;
+      }
+      .rowColor8 {
+        background-color: #FF9100;
+      }
+
+      .tooltip {
+        display: block;
+        position: absolute;
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+      }
+
+      tr:hover .tooltip {
+        display: block;
+        position: absolute;
+        top: 100%;
+        right: 100%;
+        visibility: visible;
+        z-index: 999;
+        width: 400px;
+        color: #ffffff;
+        background-color: #0489c3;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+        transition: visibility 0s linear 0.5s;
+        transition: opacity .4s ease-in-out;
+        opacity: 1;
+      }
+
+      .white {
+        color: #ffffff;
+      }
+    </style>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-control></nav-control>
+    </nav-bar>
+    <div class="content-centered">
+      <h1>Class Hierarchy</h1>
+      <table id="tableTree" class="table">
+        <thead>
+          <tr>
+            <th>Class</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr template="" repeat="{{row in tree.rows }}">
+            <td on-click="{{toggleExpanded}}" class="{{ coloring(row) }}" style="{{ padding(row) }}">
+              <span id="expand" style="{{ row.expanderStyle }}">{{ row.expander }}</span>
+              <class-ref ref="{{ row.cls }}"></class-ref>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+</polymer-element>
+
+
 
   
   
@@ -2055,7 +2430,7 @@ hr {
       <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
         <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
       </template>
-      <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
     </div>
   </template>
   
@@ -2306,7 +2681,7 @@ hr {
      --><template if="{{ qualified &amp;&amp; hasParent }}"><!--
        --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
           </function-ref>.<!--
-     --></template><a href="{{ url }}">{{ name }}</a><!--
+     --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
   --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
 
 </polymer-element>
@@ -2550,10 +2925,10 @@ hr {
 }
 </style>
   <template if="{{ nameIsEmpty }}">
-    <a href="{{ url }}">unnamed</a>
+    <a on-click="{{ goto }}" href="{{ url }}">unnamed</a>
   </template>
   <template if="{{ !nameIsEmpty }}">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </template>
 
@@ -2799,7 +3174,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+  <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element>
@@ -3044,17 +3419,18 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
-      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
       <h1>
-        <template if="{{ cls['abstract'] }}">
+        <template if="{{ cls.isAbstract }}">
           abstract
         </template>
-        <template if="{{ cls['patch'] }}">
+        <template if="{{ cls.isPatch }}">
           patch
         </template>
         class {{ cls.name }}
@@ -3063,32 +3439,32 @@ hr {
         <div class="memberItem">
           <div class="memberName">library</div>
           <div class="memberValue">
-            <library-ref ref="{{ cls['library'] }}"></library-ref>
+            <library-ref ref="{{ cls.library }}"></library-ref>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ cls['script'] }}" pos="{{ cls['tokenPos'] }}">
+            <script-ref ref="{{ cls.script }}" pos="{{ cls.tokenPos }}">
             </script-ref>
           </div>
         </div>
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['super'] != null }}">
+        <template if="{{ cls.superClass != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
-              <class-ref ref="{{ cls['super'] }}"></class-ref>
+              <class-ref ref="{{ cls.superClass }}"></class-ref>
             </div>
           </div>
         </template>
-        <template if="{{ cls['subclasses'].length > 0 }}">
+        <template if="{{ cls.subClasses.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">extended by</div>
             <div class="memberValue">
-              <template repeat="{{ subclass in cls['subclasses'] }}">
+              <template repeat="{{ subclass in cls.subClasses }}">
                 <class-ref ref="{{ subclass }}"></class-ref>
               </template>
             </div>
@@ -3097,11 +3473,11 @@ hr {
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['interfaces'].length > 0 }}">
+        <template if="{{ cls.interfaces.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">implements</div>
             <div class="memberValue">
-              <template repeat="{{ interface in cls['interfaces'] }}">
+              <template repeat="{{ interface in cls.interfaces }}">
                 <class-ref ref="{{ interface }}"></class-ref>
               </template>
             </div>
@@ -3122,19 +3498,19 @@ hr {
       </div>
     </div>
 
-    <template if="{{ cls['error'] != null }}">
+    <template if="{{ cls.error != null }}">
       <!-- TODO(turnidge): Don't use instance-ref for error display here -->
-      <instance-ref ref="{{ cls['error'] }}"></instance-ref>
+      <instance-ref ref="{{ cls.error }}"></instance-ref>
     </template>
 
     <hr>
 
     <div class="content">
-      <template if="{{ cls['fields'].isNotEmpty }}">
+      <template if="{{ cls.fields.isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block expand="{{ cls['fields'].length <= 8 }}">
+        <curly-block expand="{{ cls.fields.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ field in cls['fields'] }}">
+            <template repeat="{{ field in cls.fields }}">
               <div class="memberItem">
                 <div class="memberName">
                   <field-ref ref="{{ field }}"></field-ref>
@@ -3150,11 +3526,11 @@ hr {
         </curly-block><br><br>
       </template>
 
-      <template if="{{ cls['functions'].isNotEmpty }}">
-        functions ({{ cls['functions'].length }})
-        <curly-block expand="{{ cls['functions'].length <= 8 }}">
+      <template if="{{ cls.functions.isNotEmpty }}">
+        functions ({{ cls.functions.length }})
+        <curly-block expand="{{ cls.functions.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ function in cls['functions'] }}">
+            <template repeat="{{ function in cls.functions }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <function-ref ref="{{ function }}" qualified="{{ false }}">
@@ -3419,10 +3795,10 @@ hr {
 </style>
     <template if="{{ code.isDartCode }}">
         <template if="{{ code.isOptimized }}">
-          <a href="{{ url }}">*{{ name }}</a>
+          <a on-click="{{ goto }}" href="{{ url }}">*{{ name }}</a>
         </template>
         <template if="{{ !code.isOptimized }}">
-          <a href="{{ url }}">{{ name }}</a>
+          <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
         </template>
     </template>
     <template if="{{ !code.isDartCode }}">
@@ -3724,6 +4100,7 @@ hr {
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
     <div class="content">
       <template if="{{ code.isDartCode &amp;&amp; code.isOptimized }}">
@@ -4088,6 +4465,7 @@ hr {
 </style>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-control></nav-control>
     </nav-bar>
     <div class="content-centered">
       <h1>{{ error.kind }}</h1>
@@ -4352,8 +4730,9 @@ hr {
       <template if="{{ field['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="{{ field.hashLink }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ field.link }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -4942,8 +5321,9 @@ hr {
 </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <nav-menu link="{{ flagList.isolate.relativeHashLink('flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ flagList.vm.relativeLink('flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content-centered">
@@ -5525,8 +5905,9 @@ hr {
       <template if="{{ function['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="{{ function.hashLink }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ function.link }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -5878,8 +6259,9 @@ hr {
   <nav-bar pad="{{ false }}">
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ fragmentation.isolate }}"></isolate-nav-menu>
-    <nav-menu link="{{ fragmentation.isolate.relativeHashLink('heapmap') }}" anchor="heap map" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ fragmentation.isolate.relativeLink('heapmap') }}" anchor="heap map" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
   </nav-bar>
   <div class="hover">
     <p style="text-align:center">{{ status }}</p>
@@ -6139,6 +6521,7 @@ hr {
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -6148,7 +6531,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/http/servers')}}">HTTP Servers</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/http/servers'))}}">HTTP Servers</a>
         </li>
       </ul>
 
@@ -6156,7 +6539,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/sockets')}}">Sockets</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/sockets'))}}">Sockets</a>
         </li>
       </ul>
 
@@ -6164,7 +6547,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/websockets')}}">WebSockets</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/websockets'))}}">WebSockets</a>
         </li>
       </ul>
 
@@ -6172,7 +6555,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/file/randomaccessfiles')}}">Random Access Files</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/file/randomaccessfiles'))}}">Random Access Files</a>
         </li>
       </ul>
 
@@ -6180,7 +6563,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="{{io.isolate.relativeHashLink('io/processes')}}">Processess</a>
+          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
         </li>
       </ul>
 
@@ -6943,7 +7326,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -7462,7 +7845,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -8297,7 +8680,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -9062,7 +9445,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -10098,10 +10481,10 @@ hr {
 }
 </style>
     <template if="{{ small }}">
-      <a href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
     </template>
     <template if="{{ !small }}">
-      <a href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
+      <a on-click="{{ goto }}" href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
     </template>
   </template>
 </polymer-element>
@@ -10421,7 +10804,6 @@ hr {
 
 
 
-
 <polymer-element name="isolate-ref" extends="service-ref">
 <template><style>
 /* Global styles */
@@ -10659,10 +11041,10 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a href="{{ url }}">{{ ref.name }}</a>
+  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
 </template>
-
 </polymer-element>
+
 
   
   
@@ -11276,28 +11658,33 @@ hr {
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('io') }}">dart:io</a>
+              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('io')) }}">dart:io</a>
             </div>
           </div>
         </template>
@@ -11579,6 +11966,7 @@ hr {
       <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
       </isolate-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -11649,7 +12037,7 @@ hr {
         <div class="flex-item-50-percent">
           <div class="memberItem">
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('debug/breakpoints')) }}">breakpoints</a>
             </div>
           </div>
         </div>
@@ -11944,6 +12332,7 @@ hr {
       <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <template if="{{ instance['error'] != null }}">
@@ -12369,6 +12758,7 @@ hr {
       <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ library }}" last="{{ true }}"></library-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -12489,9 +12879,6 @@ hr {
   </template>
   
 </polymer-element>
-
-  
-  
 
   
   
@@ -12788,10 +13175,11 @@ hr {
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="{{ profile.isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ profile.isolate.relativeLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
   </nav-bar>
 
   <div class="flex-row">
@@ -13196,8 +13584,9 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ profile.isolate.relativeHashLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ profile.isolate.relativeLink('profile') }}" anchor="cpu profile" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
     <style>
       .table {
@@ -13624,8 +14013,8 @@ hr {
       </li>
     </nav-menu>
     <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
-    <nav-refresh callback="{{ refresh }}">
-    </nav-refresh>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
   </nav-bar>
 
   <script-inset id="scriptInset" script="{{ script }}" pos="{{ script.firstTokenPos }}" endpos="{{ script.lastTokenPos }}">
@@ -13879,8 +14268,9 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ trace.isolate.relativeHashLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ trace.isolate.relativeLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
     <template if="{{ trace['members'].isEmpty }}">
       <div class="content">
@@ -14150,6 +14540,7 @@ hr {
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -14174,7 +14565,7 @@ hr {
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="#/flags">flags</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink('/flags') }}">flags</a>
           </div>
         </div>
       </div>
@@ -14199,15 +14590,8 @@ hr {
        an observable property on the old element to an invalid type. -->
   
 </polymer-element>
-<polymer-element name="response-viewer" extends="observatory-element">
-  <template>
-    <service-view object="{{ app.response }}"></service-view>
-  </template>
-  
-</polymer-element><polymer-element name="observatory-application" extends="observatory-element">
-  <template>
-    <response-viewer app="{{ this.app }}"></response-viewer>
-  </template>
+<polymer-element name="observatory-application" extends="observatory-element">
+  <!-- This element explicitly manages its child elements -->
   
 </polymer-element>
 
@@ -14453,6 +14837,7 @@ hr {
 </style>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-control></nav-control>
     </nav-bar>
     <div class="content-centered">
       <h1>{{ exception.kind }}</h1>
@@ -14708,6 +15093,7 @@ hr {
 </style>
     <nav-bar>
       <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-control></nav-control>
     </nav-bar>
     <div class="content-centered">
       <h1>{{ error.kind }}</h1>
@@ -14956,7 +15342,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a href="{{ url }}">{{ ref.name }}</a>
+  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
 </template>
 
 </polymer-element>

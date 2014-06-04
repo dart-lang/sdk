@@ -1,10 +1,8 @@
 <head>
   <link rel="import" href="observatory_element.html">
-  <link rel="import" href="response_viewer.html">
+  <link rel="import" href="service_view.html">
 </head>
 <polymer-element name="observatory-application" extends="observatory-element">
-  <template>
-    <response-viewer app="{{ this.app }}"></response-viewer>
-  </template>
+  <!-- This element explicitly manages its child elements -->
   <script type="application/dart" src="observatory_application.dart"></script>
 </polymer-element>

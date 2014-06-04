@@ -92,8 +92,10 @@ class IsolateViewElement extends ObservatoryElement {
     isolate.updateTagProfile().then((tagProfile) {
       tagProfileChart.update(tagProfile);
       _drawTagProfileChart();
-      // Start the timer again.
-      _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
+      if (_updateTimer != null) {
+        // Start the timer again.
+        _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
+      }
     });
   }
 
@@ -107,6 +109,7 @@ class IsolateViewElement extends ObservatoryElement {
     super.leftView();
     if (_updateTimer != null) {
       _updateTimer.cancel();
+      _updateTimer = null;
     }
   }
 

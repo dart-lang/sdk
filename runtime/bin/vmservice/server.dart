@@ -80,7 +80,7 @@ class HttpRequestClient extends Client {
 
 class Server {
   static const WEBSOCKET_PATH = '/ws';
-  String defaultPath = '/index.html';
+  String observatoryPath = '/index.html';
   final String ip;
   int port;
 
@@ -89,22 +89,35 @@ class Server {
 
   Server(this.service, this.ip, this.port);
 
+  bool _shouldServeObservatory(HttpRequest request) {
+    if (request.headers['Observatory-Version'] != null) {
+      // Request is already coming from Observatory.
+      return false;
+    }
+    // TODO(johnmccutchan): Test with obscure browsers.
+    if (request.headers.value(HttpHeaders.USER_AGENT).contains('Mozilla')) {
+      // Request is coming from a browser but not Observatory application.
+      // Serve Observatory and let the Observatory make the real request.
+      return true;
+    }
+    // All other user agents are assumed to be textual.
+    return false;
+  }
+
   void _requestHandler(HttpRequest request) {
-    // Allow cross origin requests.
+    // Allow cross origin requests with 'observatory' header.
     request.response.headers.add('Access-Control-Allow-Origin', '*');
+    request.response.headers.add('Access-Control-Allow-Headers',
+                                 'Observatory-Version');
 
-    final String path =
-          request.uri.path == '/' ? defaultPath : request.uri.path;
-
-    var resource = Resource.resources[path];
-    if (resource != null) {
-      // Serving up a static resource (e.g. .css, .html, .png).
-      request.response.headers.contentType =
-          ContentType.parse(resource.mimeType);
-      request.response.add(resource.data);
+    if (request.method != 'GET') {
+      // Not a GET request. Do nothing.
       request.response.close();
       return;
     }
+
+    final String path =
+          request.uri.path == '/' ? observatoryPath : request.uri.path;
 
     if (path == WEBSOCKET_PATH) {
       WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
@@ -113,6 +126,19 @@ class Server {
       return;
     }
 
+    var resource = Resource.resources[path];
+    if (resource == null && _shouldServeObservatory(request)) {
+      resource = Resource.resources[observatoryPath];
+      assert(resource != null);
+    }
+    if (resource != null) {
+      // Serving up a static resource (e.g. .css, .html, .png).
+      request.response.headers.contentType =
+          ContentType.parse(resource.mimeType);
+      request.response.add(resource.data);
+      request.response.close();
+      return;
+    }
     var message = new Message.fromUri(request.uri);
     var client = new HttpRequestClient(request, service);
     client.onMessage(null, message);

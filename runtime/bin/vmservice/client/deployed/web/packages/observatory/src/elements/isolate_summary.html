@@ -145,28 +145,33 @@
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('stacktrace') }}">stack trace</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('profile') }}">cpu profile</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('allocationprofile') }}">allocation profile</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a href="{{ isolate.relativeHashLink('heapmap') }}">heap map</a>
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('io') }}">dart:io</a>
+              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('io')) }}">dart:io</a>
             </div>
           </div>
         </template>

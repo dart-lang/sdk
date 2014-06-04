@@ -3,7 +3,7 @@
 </head>
 <polymer-element name="class-ref" extends="service-ref">
 
-<template><link rel="stylesheet" href="css/shared.css"><a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+<template><link rel="stylesheet" href="css/shared.css"><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
 
 <script type="application/dart" src="class_ref.dart"></script>
 </polymer-element>

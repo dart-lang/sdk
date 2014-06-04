@@ -57,6 +57,7 @@
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
       <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
     <div class="content">
       <template if="{{ code.isDartCode && code.isOptimized }}">

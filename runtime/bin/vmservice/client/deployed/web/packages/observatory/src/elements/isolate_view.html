@@ -28,6 +28,7 @@
       <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
       </isolate-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
@@ -99,7 +100,7 @@
         <div class="flex-item-50-percent">
           <div class="memberItem">
             <div class="memberValue">
-              See <a href="{{ isolate.relativeHashLink('debug/breakpoints') }}">breakpoints</a>
+              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('debug/breakpoints')) }}">breakpoints</a>
             </div>
           </div>
         </div>

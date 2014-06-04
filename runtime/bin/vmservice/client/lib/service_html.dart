@@ -32,19 +32,28 @@ class HttpVM extends VM {
   }
 
   Future<String> getString(String id) {
+    // Ensure we don't request host//id.
+    if (host.endsWith('/') && id.startsWith('/')) {
+      id = id.substring(1);
+    }
     Logger.root.info('Fetching $id from $host');
-    return HttpRequest.getString(host + id).catchError((error) {
+    return HttpRequest.request(host + id,
+                               requestHeaders: {
+                                  'Observatory-Version': '1.0'
+                               }).then((HttpRequest request) {
+        return request.responseText;
+      }).catchError((error) {
       // If we get an error here, the network request has failed.
-      Logger.root.severe('HttpRequest.getString failed.');
+      Logger.root.severe('HttpRequest.request failed.');
       var request = error.target;
       return JSON.encode({
           'type': 'ServiceException',
           'id': '',
-          'response': error.target.responseText,
+          'response': request.responseText,
           'kind': 'NetworkException',
-          'message': 'Could not connect to service. Check that you started the'
-                     ' VM with the following flags:\n --enable-vm-service'
-                    ' --pause-isolates-on-exit'
+          'message': 'Could not connect to service (${request.statusText}). '
+                     'Check that you started the VM with the following flags: '
+                     '--observe'
         });
     });
   }

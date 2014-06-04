@@ -11,14 +11,14 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('class-view')
 class ClassViewElement extends ObservatoryElement {
-  @published ServiceMap cls;
+  @published Class cls;
   ClassViewElement.created() : super.created();
 
   Future<ServiceObject> eval(String text) {
     return cls.isolate.get(
         cls.id + "/eval?expr=${Uri.encodeComponent(text)}");
   }
-  
+
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(String dummy) {
     return cls.isolate.get(cls.id + "/retained");
