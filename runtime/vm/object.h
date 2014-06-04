@@ -2970,9 +2970,6 @@ class PcDescriptors : public Object {
  public:
   enum Kind {
     kDeopt,            // Deoptimization continuation point.
-    kEntryPatch,       // Location where to patch entry.
-    kPatchCode,        // Buffer for patching code entry.
-    kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
     kOptStaticCall,    // Call directly to known target, e.g. static call.
     kUnoptStaticCall,  // Call to a known target via a stub.
@@ -3653,10 +3650,17 @@ class Code : public Object {
   }
   intptr_t GetTokenIndexOfPC(uword pc) const;
 
-  // Find pc, return 0 if not found.
+  enum {
+    kInvalidPc = -1
+  };
+
+  // Returns 0 if code is not patchable
+  uword GetEntryPatchPc() const;
   uword GetPatchCodePc() const;
+
   uword GetLazyDeoptPc() const;
 
+  // Find pc, return 0 if not found.
   uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
@@ -3678,6 +3682,29 @@ class Code : public Object {
 
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
+  }
+
+  intptr_t entry_patch_pc_offset() const {
+    return raw_ptr()->entry_patch_pc_offset_;
+  }
+  void set_entry_patch_pc_offset(intptr_t pc) const {
+    raw_ptr()->entry_patch_pc_offset_ = pc;
+  }
+
+
+  intptr_t patch_code_pc_offset() const {
+    return raw_ptr()->patch_code_pc_offset_;
+  }
+  void set_patch_code_pc_offset(intptr_t pc) const {
+    raw_ptr()->patch_code_pc_offset_ = pc;
+  }
+
+
+  intptr_t lazy_deopt_pc_offset() const {
+    return raw_ptr()->lazy_deopt_pc_offset_;
+  }
+  void set_lazy_deopt_pc_offset(intptr_t pc) const {
+    raw_ptr()->lazy_deopt_pc_offset_ = pc;
   }
 
  private:

@@ -987,10 +987,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
       (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = EDI;
     __ LoadObject(function_reg, function);
+
     // Patch point is after the eventually inlined function object.
-    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
+    entry_patch_pc_offset_ = assembler()->CodeSize();
+
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
@@ -1004,9 +1004,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(function_reg == EDI);
     __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
   } else if (!flow_graph().IsCompiledForOsr()) {
-    AddCurrentDescriptor(PcDescriptors::kEntryPatch,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
+    entry_patch_pc_offset_ = assembler()->CodeSize();
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -1106,14 +1104,13 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
-  AddCurrentDescriptor(PcDescriptors::kPatchCode,
-                       Isolate::kNoDeoptId,
-                       0);  // No token position.
+  patch_code_pc_offset_ = assembler()->CodeSize();
   __ jmp(&StubCode::FixCallersTargetLabel());
-  AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
-                       Isolate::kNoDeoptId,
-                       0);  // No token position.
-  __ jmp(&StubCode::DeoptimizeLazyLabel());
+
+  if (is_optimizing()) {
+    lazy_deopt_pc_offset_ = assembler()->CodeSize();
+    __ jmp(&StubCode::DeoptimizeLazyLabel());
+  }
 }
 
 

@@ -103,7 +103,10 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Library::Handle(Library::CoreLibrary()).
               LookupClass(Symbols::List()))),
       parallel_move_resolver_(this),
-      pending_deoptimization_env_(NULL) {
+      pending_deoptimization_env_(NULL),
+      entry_patch_pc_offset_(Code::kInvalidPc),
+      patch_code_pc_offset_(Code::kInvalidPc),
+      lazy_deopt_pc_offset_(Code::kInvalidPc) {
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 }
@@ -700,6 +703,9 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
+  code.set_entry_patch_pc_offset(entry_patch_pc_offset_);
+  code.set_patch_code_pc_offset(patch_code_pc_offset_);
+  code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);
 }
 
 
