@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'log.dart' as log;
+import 'utils.dart';
 
 /// A live-updating progress indicator for long-running log entries.
 class Progress {
@@ -60,19 +61,7 @@ class Progress {
   }
 
   /// Gets the current progress time as a parenthesized, formatted string.
-  String get _time {
-    var elapsed = _stopwatch.elapsed;
-    var time = "(";
-
-    // TODO(rnystrom): Move this somewhere reusable.
-    if (elapsed.inMinutes > 0) {
-      time += "${elapsed.inMinutes}:";
-    }
-
-    var s = elapsed.inSeconds % 59;
-    var ms = (elapsed.inMilliseconds % 1000) ~/ 100;
-    return time + "$s.${ms}s)";
-  }
+  String get _time => "(${niceDuration(_stopwatch.elapsed)})";
 
   /// Refreshes the progress line.
   void _update() {

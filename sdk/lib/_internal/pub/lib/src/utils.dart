@@ -620,6 +620,15 @@ String nicePath(String inputPath) {
   return relative;
 }
 
+/// Returns a human-friendly representation of [duration].
+String niceDuration(Duration duration) {
+  var result = duration.inMinutes > 0 ? "${duration.inMinutes}:" : "";
+
+  var s = duration.inSeconds % 59;
+  var ms = (duration.inMilliseconds % 1000) ~/ 100;
+  return result + "$s.${ms}s";
+}
+
 /// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>
@@ -844,7 +853,8 @@ final _userFacingExceptions = new Set<String>.from([
   'IsolateSpawnException',
   // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
   'FileSystemException', 'HttpException', 'OSError',
-  'ProcessException', 'SocketException', 'WebSocketException'
+  'ProcessException', 'SocketException', 'TimeoutException',
+  'WebSocketException'
 ]);
 
 /// Returns whether [error] is a user-facing error object. This includes both
@@ -865,6 +875,7 @@ bool isUserFacingException(error) {
     error is http.ClientException ||
     error is OSError ||
     error is ProcessException ||
+    error is TimeoutException ||
     error is SocketException ||
     error is WebSocketException;
 }

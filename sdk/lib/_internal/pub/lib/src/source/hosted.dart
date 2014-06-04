@@ -179,8 +179,8 @@ class HostedSource extends CachedSource {
       return httpClient.send(new http.Request("GET", url))
           .then((response) => response.stream)
           .then((stream) {
-        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
-            'fetching URL "$url"');
+        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT, url,
+            'downloading $url');
       }).then((_) {
         // Remove the existing directory if it exists. This will happen if
         // we're forcing a download to repair the cache.

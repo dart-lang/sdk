@@ -630,22 +630,34 @@ Future _doProcess(Function fn, String executable, List<String> args,
       environment: environment));
 }
 
-/// Wraps [input] to provide a timeout. If [input] completes before
-/// [milliseconds] have passed, then the return value completes in the same way.
-/// However, if [milliseconds] pass before [input] has completed, it completes
-/// with a [TimeoutException] with [description] (which should be a fragment
-/// describing the action that timed out).
+/// Wraps [input], an asynchronous network operation to provide a timeout.
+///
+/// If [input] completes before [milliseconds] have passed, then the return
+/// value completes in the same way. However, if [milliseconds] pass before
+/// [input] has completed, it completes with a [TimeoutException] with
+/// [description] (which should be a fragment describing the action that timed
+/// out).
+///
+/// [url] is the URL being accessed asynchronously.
 ///
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
-Future timeout(Future input, int milliseconds, String description) {
+Future timeout(Future input, int milliseconds, Uri url, String description) {
   // TODO(nwiez): Replace this with [Future.timeout].
   var completer = new Completer();
   var duration = new Duration(milliseconds: milliseconds);
   var timer = new Timer(duration, () {
-    completer.completeError(new TimeoutException(
-        'Timed out while $description.', duration),
-        new Chain.current());
+    // Include the duration ourselves in the message instead of passing it to
+    // TimeoutException since we show nicer output.
+    var message = 'Timed out after ${niceDuration(duration)} while '
+                  '$description.';
+
+    if (url.host == "pub.dartlang.org" ||
+        url.host == "storage.googleapis.com") {
+      message += "\nThis is likely a transient error. Please try again later.";
+    }
+
+    completer.completeError(new TimeoutException(message), new Chain.current());
   });
   input.then((value) {
     if (completer.isCompleted) return;

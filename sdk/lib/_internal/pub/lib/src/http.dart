@@ -110,7 +110,8 @@ class PubHttpClient extends http.BaseClient {
     });
 
     if (timeoutLength == null) return future;
-    return timeout(future, timeoutLength, 'fetching URL "${request.url}"');
+    return timeout(future, timeoutLength, request.url,
+        'fetching URL "${request.url}"');
   }
 
   /// Logs the fact that [request] was sent, and information about it.
