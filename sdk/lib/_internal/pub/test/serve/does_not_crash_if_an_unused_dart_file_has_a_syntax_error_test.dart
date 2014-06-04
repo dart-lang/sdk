@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'package:scheduled_test/scheduled_test.dart';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
@@ -31,8 +29,6 @@ main() {
       createLockFile('myapp', pkg: ['barback']);
 
       var server = pubServe();
-      server.stderr.expect("[RewriteImport]:");
-      server.stderr.expect(startsWith("Error in myapp|lib/src/unused.dart:"));
       requestShouldSucceed("foo.out", "foo.out");
       endPubServe();
     });
