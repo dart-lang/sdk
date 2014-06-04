@@ -176,17 +176,19 @@ void Handle::Close() {
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be
     // called again if this socket has pending IO operations in flight.
-    ASSERT(handle_ != INVALID_HANDLE_VALUE);
     MarkClosing();
     // Perform handle type specific closing.
     DoClose();
   }
+  ASSERT(IsHandleClosed());
 }
 
 
 void Handle::DoClose() {
-  CloseHandle(handle_);
-  handle_ = INVALID_HANDLE_VALUE;
+  if (!IsHandleClosed()) {
+    CloseHandle(handle_);
+    handle_ = INVALID_HANDLE_VALUE;
+  }
 }
 
 
@@ -424,11 +426,9 @@ void DirectoryWatchHandle::Stop() {
   if (pending_read_ != NULL) {
     CancelIoEx(handle(), pending_read_->GetCleanOverlapped());
     // Don't dispose of the buffer, as it will still complete (with length 0).
-    pending_read_ = NULL;
   }
 
-  CloseHandle(handle());
-  handle_ = (INVALID_HANDLE_VALUE);
+  DoClose();
 }
 
 

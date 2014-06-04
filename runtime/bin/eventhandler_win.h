@@ -234,6 +234,8 @@ class Handle {
   virtual void DoClose();
   virtual bool IsClosed() = 0;
 
+  bool IsHandleClosed() const { return handle_ == INVALID_HANDLE_VALUE; }
+
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     port_ = port;
     mask_ = mask;
