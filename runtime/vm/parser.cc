@@ -2542,8 +2542,15 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     // TODO(hausner): Remove this limitation if the language spec indeed
     // allows optional parameters.
     if (func.HasOptionalParameters()) {
+      const Class& super_class = Class::Handle(I, current_class().SuperClass());
       ErrorMsg(ctor_pos,
-               "forwarding constructors must not have optional parameters");
+               "cannot generate an implicit mixin application constructor "
+               "forwarding to a super class constructor with optional "
+               "parameters; add a constructor without optional parameters "
+               "to class '%s' that redirects to the constructor with optional "
+               "parameters and invoke it via super from a constructor of the "
+               "class extending the mixin application",
+               String::Handle(I, super_class.Name()).ToCString());
     }
 
     // Prepare user-defined arguments to be forwarded to super call.
