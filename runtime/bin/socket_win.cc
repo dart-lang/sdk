@@ -76,7 +76,7 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
+intptr_t Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
                      RawAddr* addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   socklen_t addr_len = sizeof(addr->ss);
@@ -90,7 +90,7 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-int Socket::SendTo(
+intptr_t Socket::SendTo(
     intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   return handle->SendTo(

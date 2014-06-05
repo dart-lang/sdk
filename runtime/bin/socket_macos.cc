@@ -103,7 +103,7 @@ intptr_t Socket::Available(intptr_t fd) {
 }
 
 
-int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
+intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(read(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
@@ -116,7 +116,7 @@ int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
+intptr_t Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
                      RawAddr* addr) {
   ASSERT(fd >= 0);
   socklen_t addr_len = sizeof(addr->ss);
@@ -131,7 +131,7 @@ int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
 }
 
 
-int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
+intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
@@ -144,7 +144,7 @@ int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-int Socket::SendTo(intptr_t fd, const void* buffer, intptr_t num_bytes,
+intptr_t Socket::SendTo(intptr_t fd, const void* buffer, intptr_t num_bytes,
                    RawAddr addr) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = TEMP_FAILURE_RETRY(
