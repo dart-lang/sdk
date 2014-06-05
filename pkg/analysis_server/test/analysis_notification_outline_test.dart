@@ -639,10 +639,12 @@ class _OutlineKind {
 }
 
 
+/**
+ * An element outline.
+ */
 class _Outline {
   static const List<_Outline> EMPTY_ARRAY = const <_Outline>[];
 
-  _Outline parent;
   final _OutlineKind kind;
   final String name;
   final int nameOffset;

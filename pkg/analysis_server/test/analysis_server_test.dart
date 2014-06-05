@@ -5,7 +5,6 @@
 library test.analysis_server;
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_server.dart';

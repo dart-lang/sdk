@@ -70,20 +70,3 @@ const String REMOVED = 'removed';
 const String RETURN_TYPE = 'returnType';
 const String SUBSCRIPTIONS = 'subscriptions';
 const String VERSION = 'version';
-
-
-// TODO(scheglov) remove it with ContextDomain
-const String APPLY_CHANGES_NAME = 'context.applyChanges';
-const String GET_FIXES_NAME = 'context.getFixes';
-const String SET_OPTIONS_NAME = 'context.setOptions';
-const String SET_PRIORITY_SOURCES_NAME = 'context.setPrioritySources';
-const String CHANGES_PARAM = 'changes';
-const String CONTEXT_ID_PARAM = 'contextId';
-const String MODIFIED_PARAM = "modified";
-const String SOURCES_PARAM = 'sources';
-const String CACHE_SIZE_OPTION = 'cacheSize';
-const String GENERATE_HINTS_OPTION = 'generateHints';
-const String GENERATE_DART2JS_OPTION = 'generateDart2jsHints';
-const String PROVIDE_ERRORS_OPTION = 'provideErrors';
-const String PROVIDE_NAVIGATION_OPTION = 'provideNavigation';
-const String PROVIDE_OUTLINE_OPTION = 'provideOutline';
