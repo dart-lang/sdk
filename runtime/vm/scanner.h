@@ -18,6 +18,7 @@ namespace dart {
 class Array;
 class Library;
 class RawString;
+class ScanContext;
 class String;
 
 // A call to Scan() scans the source one token at at time.
@@ -87,14 +88,9 @@ class Scanner : ValueObject {
                              const String** value);
 
  private:
-  static const int kNumLowercaseChars = 26;
+  friend class ScanContext;
 
-  struct ScanContext {
-    ScanContext* next;
-    char string_delimiter;
-    bool string_is_multiline;
-    int  brace_level;
-  };
+  static const int kNumLowercaseChars = 26;
 
   struct KeywordTable {
     Token::Kind kind;
