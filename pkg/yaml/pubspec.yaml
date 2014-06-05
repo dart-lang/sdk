@@ -1,5 +1,5 @@
 name: yaml
-version: 1.0.0+1
+version: 1.0.0+2
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: A parser for YAML.
@@ -9,4 +9,4 @@ dependencies:
 dev_dependencies:
   unittest: ">=0.9.0 <0.12.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.5.0-dev.0.0 <2.0.0"
