@@ -54,7 +54,7 @@ main() {
 
     test('should parse binary operators', () {
       var operators = ['+', '-', '*', '/', '%', '^', '==', '!=', '>', '<',
-          '>=', '<=', '||', '&&', '&'];
+          '>=', '<=', '||', '&&', '&', '===', '!=='];
       for (var op in operators) {
         expectParse('a $op b', binary(ident('a'), op, ident('b')));
         expectParse('1 $op 2', binary(literal(1), op, literal(2)));

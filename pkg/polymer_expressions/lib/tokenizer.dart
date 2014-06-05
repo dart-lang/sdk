@@ -78,6 +78,8 @@ const _PRECEDENCE = const {
   // equality
   '!=': 7,
   '==': 7,
+  '!==': 7,
+  '===': 7,
 
   // relational
   '>=': 8,
@@ -278,6 +280,11 @@ class Tokenizer {
       if (_TWO_CHAR_OPS.contains(op2)) {
         op = op2;
         _advance();
+        // kind of hacky check for === and !===, could be better / more general
+        if (_next == _EQ && (startChar == _BANG || startChar == _EQ)) {
+          op = op2 + '=';
+          _advance();
+        }
       } else {
         op = new String.fromCharCode(startChar);
       }

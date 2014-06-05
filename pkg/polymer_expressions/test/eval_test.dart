@@ -92,6 +92,13 @@ main() {
       expectEval('1 != 2', true);
       expectEval('1 != null', true);
 
+      var x = {};
+      var y = {};
+      expectEval('x === y', true, null, {'x': x, 'y': x});
+      expectEval('x !== y', false, null, {'x': x, 'y': x});
+      expectEval('x === y', false, null, {'x': x, 'y': y});
+      expectEval('x !== y', true, null, {'x': x, 'y': y});
+
       expectEval('1 > 1', false);
       expectEval('1 > 2', false);
       expectEval('2 > 1', true);

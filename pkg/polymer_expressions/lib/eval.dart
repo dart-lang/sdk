@@ -16,20 +16,22 @@ import 'filter.dart';
 import 'visitor.dart';
 
 final _BINARY_OPERATORS = {
-  '+':  (a, b) => a + b,
-  '-':  (a, b) => a - b,
-  '*':  (a, b) => a * b,
-  '/':  (a, b) => a / b,
-  '%':  (a, b) => a % b,
-  '==': (a, b) => a == b,
-  '!=': (a, b) => a != b,
-  '>':  (a, b) => a > b,
-  '>=': (a, b) => a >= b,
-  '<':  (a, b) => a < b,
-  '<=': (a, b) => a <= b,
-  '||': (a, b) => a || b,
-  '&&': (a, b) => a && b,
-  '|':  (a, f) {
+  '+':   (a, b) => a + b,
+  '-':   (a, b) => a - b,
+  '*':   (a, b) => a * b,
+  '/':   (a, b) => a / b,
+  '%':   (a, b) => a % b,
+  '==':  (a, b) => a == b,
+  '!=':  (a, b) => a != b,
+  '===': (a, b) => identical(a, b),
+  '!==': (a, b) => !identical(a, b),
+  '>':   (a, b) => a > b,
+  '>=':  (a, b) => a >= b,
+  '<':   (a, b) => a < b,
+  '<=':  (a, b) => a <= b,
+  '||':  (a, b) => a || b,
+  '&&':  (a, b) => a && b,
+  '|':   (a, f) {
     if (f is Transformer) return f.forward(a);
     if (f is Filter) return f(a);
     throw new EvalException("Filters must be a one-argument function.");
