@@ -154,7 +154,7 @@ polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 polymer/test/bind_mdv_test: Slow, Pass
 template_binding/test/custom_element_bindings_test: Fail, Timeout # Issue 16717
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-matcher/test/matchers_test: RuntimeError # Issue 17762
+matcher/test/core_matchers_test: RuntimeError # Issue 17762
 
 [ $ie ]
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
