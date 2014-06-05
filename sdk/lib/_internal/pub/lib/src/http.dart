@@ -87,6 +87,21 @@ class PubHttpClient extends http.BaseClient {
              "Upgrade pub to the latest version and try again.");
       }
 
+      if (status == 500 &&
+          (request.url.host == "pub.dartlang.org" ||
+          request.url.host == "storage.googleapis.com")) {
+        var message = "HTTP error 500: Internal Server Error at "
+            "${request.url}.";
+
+        if (request.url.host == "pub.dartlang.org" ||
+            request.url.host == "storage.googleapis.com") {
+          message += "\nThis is likely a transient error. Please try again "
+              "later.";
+        }
+
+        fail(message);
+      }
+
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
