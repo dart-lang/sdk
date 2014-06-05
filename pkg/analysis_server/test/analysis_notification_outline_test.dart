@@ -72,7 +72,7 @@ class B {
         expect(outline_A.name, "A");
         expect(outline_A.nameOffset, testCode.indexOf("A {"));
         expect(outline_A.nameLength, 1);
-        expect(outline_A.arguments, null);
+        expect(outline_A.parameters, null);
         expect(outline_A.returnType, null);
         // A children
         List<_Outline> outlines_A = outline_A.children;
@@ -81,21 +81,21 @@ class B {
           _Outline outline = outlines_A[0];
           expect(outline.kind, _OutlineKind.FIELD);
           expect(outline.name, "fa");
-          expect(outline.arguments, isNull);
+          expect(outline.parameters, isNull);
           expect(outline.returnType, "int");
         }
         {
           _Outline outline = outlines_A[1];
           expect(outline.kind, _OutlineKind.FIELD);
           expect(outline.name, "fb");
-          expect(outline.arguments, isNull);
+          expect(outline.parameters, isNull);
           expect(outline.returnType, "int");
         }
         {
           _Outline outline = outlines_A[2];
           expect(outline.kind, _OutlineKind.FIELD);
           expect(outline.name, "fc");
-          expect(outline.arguments, isNull);
+          expect(outline.parameters, isNull);
           expect(outline.returnType, "String");
         }
         {
@@ -104,7 +104,7 @@ class B {
           expect(outline.name, "A");
           expect(outline.nameOffset, testCode.indexOf("A(int i, String s);"));
           expect(outline.nameLength, "A".length);
-          expect(outline.arguments, "(int i, String s)");
+          expect(outline.parameters, "(int i, String s)");
           expect(outline.returnType, isNull);
           expect(outline.isAbstract, isFalse);
           expect(outline.isStatic, isFalse);
@@ -115,7 +115,7 @@ class B {
           expect(outline.name, "A.name");
           expect(outline.nameOffset, testCode.indexOf("name(num p);"));
           expect(outline.nameLength, "name".length);
-          expect(outline.arguments, "(num p)");
+          expect(outline.parameters, "(num p)");
           expect(outline.returnType, isNull);
           expect(outline.isAbstract, isFalse);
           expect(outline.isStatic, isFalse);
@@ -126,7 +126,7 @@ class B {
           expect(outline.name, "A._privateName");
           expect(outline.nameOffset, testCode.indexOf("_privateName(num p);"));
           expect(outline.nameLength, "_privateName".length);
-          expect(outline.arguments, "(num p)");
+          expect(outline.parameters, "(num p)");
           expect(outline.returnType, isNull);
           expect(outline.isAbstract, isFalse);
           expect(outline.isStatic, isFalse);
@@ -137,7 +137,7 @@ class B {
           expect(outline.name, "ma");
           expect(outline.nameOffset, testCode.indexOf("ma(int pa) => null;"));
           expect(outline.nameLength, "ma".length);
-          expect(outline.arguments, "(int pa)");
+          expect(outline.parameters, "(int pa)");
           expect(outline.returnType, "String");
           expect(outline.isAbstract, isFalse);
           expect(outline.isStatic, isTrue);
@@ -148,7 +148,7 @@ class B {
           expect(outline.name, "_mb");
           expect(outline.nameOffset, testCode.indexOf("_mb(int pb);"));
           expect(outline.nameLength, "_mb".length);
-          expect(outline.arguments, "(int pb)");
+          expect(outline.parameters, "(int pb)");
           expect(outline.returnType, "");
           expect(outline.isAbstract, isTrue);
           expect(outline.isStatic, isFalse);
@@ -159,7 +159,7 @@ class B {
           expect(outline.name, "propA");
           expect(outline.nameOffset, testCode.indexOf("propA => null;"));
           expect(outline.nameLength, "propA".length);
-          expect(outline.arguments, "");
+          expect(outline.parameters, "");
           expect(outline.returnType, "String");
         }
         {
@@ -168,7 +168,7 @@ class B {
           expect(outline.name, "propB");
           expect(outline.nameOffset, testCode.indexOf("propB(int v) {}"));
           expect(outline.nameLength, "propB".length);
-          expect(outline.arguments, "(int v)");
+          expect(outline.parameters, "(int v)");
           expect(outline.returnType, "");
         }
       }
@@ -179,7 +179,7 @@ class B {
         expect(outline_B.name, "B");
         expect(outline_B.nameOffset, testCode.indexOf("B {"));
         expect(outline_B.nameLength, 1);
-        expect(outline_B.arguments, null);
+        expect(outline_B.parameters, null);
         expect(outline_B.returnType, null);
         // B children
         List<_Outline> outlines_B = outline_B.children;
@@ -190,7 +190,7 @@ class B {
           expect(outline.name, "B");
           expect(outline.nameOffset, testCode.indexOf("B(int p);"));
           expect(outline.nameLength, "B".length);
-          expect(outline.arguments, "(int p)");
+          expect(outline.parameters, "(int p)");
           expect(outline.returnType, isNull);
         }
       }
@@ -423,7 +423,7 @@ f() {
         expect(outline_A.name, "A");
         expect(outline_A.nameOffset, testCode.indexOf("A {"));
         expect(outline_A.nameLength, "A".length);
-        expect(outline_A.arguments, null);
+        expect(outline_A.parameters, null);
         expect(outline_A.returnType, null);
         // A children
         List<_Outline> outlines_A = outline_A.children;
@@ -434,7 +434,7 @@ f() {
           expect(constructorOutline.name, "A");
           expect(constructorOutline.nameOffset, testCode.indexOf("A() {"));
           expect(constructorOutline.nameLength, "A".length);
-          expect(constructorOutline.arguments, "()");
+          expect(constructorOutline.parameters, "()");
           expect(constructorOutline.returnType, isNull);
           // local function
           List<_Outline> outlines_constructor = constructorOutline.children;
@@ -445,7 +445,7 @@ f() {
             expect(outline.name, "local_A");
             expect(outline.nameOffset, testCode.indexOf("local_A() {}"));
             expect(outline.nameLength, "local_A".length);
-            expect(outline.arguments, "()");
+            expect(outline.parameters, "()");
             expect(outline.returnType, "int");
           }
         }
@@ -455,7 +455,7 @@ f() {
           expect(outline_m.name, "m");
           expect(outline_m.nameOffset, testCode.indexOf("m() {"));
           expect(outline_m.nameLength, "m".length);
-          expect(outline_m.arguments, "()");
+          expect(outline_m.parameters, "()");
           expect(outline_m.returnType, "");
           // local function
           List<_Outline> methodChildren = outline_m.children;
@@ -466,7 +466,7 @@ f() {
             expect(outline.name, "local_m");
             expect(outline.nameOffset, testCode.indexOf("local_m() {}"));
             expect(outline.nameLength, "local_m".length);
-            expect(outline.arguments, "()");
+            expect(outline.parameters, "()");
             expect(outline.returnType, "");
           }
         }
@@ -478,7 +478,7 @@ f() {
         expect(outline_f.name, "f");
         expect(outline_f.nameOffset, testCode.indexOf("f() {"));
         expect(outline_f.nameLength, "f".length);
-        expect(outline_f.arguments, "()");
+        expect(outline_f.parameters, "()");
         expect(outline_f.returnType, "");
         // f() children
         List<_Outline> outlines_f = outline_f.children;
@@ -489,7 +489,7 @@ f() {
           expect(outline_f1.name, "local_f1");
           expect(outline_f1.nameOffset, testCode.indexOf("local_f1(int i) {}"));
           expect(outline_f1.nameLength, "local_f1".length);
-          expect(outline_f1.arguments, "(int i)");
+          expect(outline_f1.parameters, "(int i)");
           expect(outline_f1.returnType, "");
         }
         {
@@ -498,7 +498,7 @@ f() {
           expect(outline_f2.name, "local_f2");
           expect(outline_f2.nameOffset, testCode.indexOf("local_f2(String s) {"));
           expect(outline_f2.nameLength, "local_f2".length);
-          expect(outline_f2.arguments, "(String s)");
+          expect(outline_f2.parameters, "(String s)");
           expect(outline_f2.returnType, "");
           // local_f2() local function
           List<_Outline> outlines_f2 = outline_f2.children;
@@ -509,7 +509,7 @@ f() {
             expect(outline_f21.name, "local_f21");
             expect(outline_f21.nameOffset, testCode.indexOf("local_f21(int p) {"));
             expect(outline_f21.nameLength, "local_f21".length);
-            expect(outline_f21.arguments, "(int p)");
+            expect(outline_f21.parameters, "(int p)");
             expect(outline_f21.returnType, "");
           }
         }
@@ -540,7 +540,7 @@ set propB(int v) {}
         expect(outline.name, "FTA");
         expect(outline.nameOffset, testCode.indexOf("FTA("));
         expect(outline.nameLength, "FTA".length);
-        expect(outline.arguments, "(int i, String s)");
+        expect(outline.parameters, "(int i, String s)");
         expect(outline.returnType, "String");
       }
       // FTB
@@ -550,7 +550,7 @@ set propB(int v) {}
         expect(outline.name, "FTB");
         expect(outline.nameOffset, testCode.indexOf("FTB("));
         expect(outline.nameLength, "FTB".length);
-        expect(outline.arguments, "(int p)");
+        expect(outline.parameters, "(int p)");
         expect(outline.returnType, "");
       }
       // CTA
@@ -560,7 +560,7 @@ set propB(int v) {}
         expect(outline.name, "CTA");
         expect(outline.nameOffset, testCode.indexOf("CTA ="));
         expect(outline.nameLength, "CTA".length);
-        expect(outline.arguments, isNull);
+        expect(outline.parameters, isNull);
         expect(outline.returnType, isNull);
       }
       // fA
@@ -570,7 +570,7 @@ set propB(int v) {}
         expect(outline.name, "fA");
         expect(outline.nameOffset, testCode.indexOf("fA("));
         expect(outline.nameLength, "fA".length);
-        expect(outline.arguments, "(int i, String s)");
+        expect(outline.parameters, "(int i, String s)");
         expect(outline.returnType, "String");
       }
       // fB
@@ -580,7 +580,7 @@ set propB(int v) {}
         expect(outline.name, "fB");
         expect(outline.nameOffset, testCode.indexOf("fB("));
         expect(outline.nameLength, "fB".length);
-        expect(outline.arguments, "(int p)");
+        expect(outline.parameters, "(int p)");
         expect(outline.returnType, "");
       }
       // propA
@@ -590,7 +590,7 @@ set propB(int v) {}
         expect(outline.name, "propA");
         expect(outline.nameOffset, testCode.indexOf("propA => null;"));
         expect(outline.nameLength, "propA".length);
-        expect(outline.arguments, "");
+        expect(outline.parameters, "");
         expect(outline.returnType, "String");
       }
       // propB
@@ -600,7 +600,7 @@ set propB(int v) {}
         expect(outline.name, "propB");
         expect(outline.nameOffset, testCode.indexOf("propB(int v) {}"));
         expect(outline.nameLength, "propB".length);
-        expect(outline.arguments, "(int v)");
+        expect(outline.parameters, "(int v)");
         expect(outline.returnType, "");
       }
     });
@@ -651,7 +651,7 @@ class _Outline {
   final int elementLength;
   final bool isAbstract;
   final bool isStatic;
-  final String arguments;
+  final String parameters;
   final String returnType;
   final List<_Outline> children = <_Outline>[];
 
@@ -659,7 +659,7 @@ class _Outline {
            this.nameOffset, this.nameLength,
            this.elementOffset, this.elementLength,
            this.isAbstract, this.isStatic,
-           this.arguments, this.returnType);
+           this.parameters, this.returnType);
 
   factory _Outline.fromJson(Map<String, Object> map) {
     _Outline outline = new _Outline(
@@ -667,7 +667,7 @@ class _Outline {
         map[NAME_OFFSET], map[NAME_LENGTH],
         map[ELEMENT_OFFSET], map[ELEMENT_LENGTH],
         map[IS_ABSTRACT], map[IS_STATIC],
-        map[ARGUMENTS], map[RETURN_TYPE]);
+        map[PARAMETERS], map[RETURN_TYPE]);
     List<Map<String, Object>> childrenMaps = map[CHILDREN];
     if (childrenMaps != null) {
       childrenMaps.forEach((childMap) {

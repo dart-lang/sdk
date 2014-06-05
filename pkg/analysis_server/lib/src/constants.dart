@@ -40,7 +40,6 @@ const String NOTIFICATION_OUTLINE =    'analysis.outline';
 
 
 const String ADDED = 'added';
-const String ARGUMENTS = 'arguments';
 const String CHILDREN = 'children';
 const String CONTENT = 'content';
 const String DEFAULT = 'default';
@@ -64,6 +63,7 @@ const String OFFSET = 'offset';
 const String OLD_LENGTH = 'oldLength';
 const String OPTIONS = 'options';
 const String OUTLINE = 'outline';
+const String PARAMETERS = 'parameters';
 const String REFACTORINGS = 'refactorings';
 const String REGIONS = 'regions';
 const String REMOVED = 'removed';

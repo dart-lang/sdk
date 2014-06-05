@@ -249,7 +249,7 @@ class DartUnitOutlineComputer {
 
   _Outline _newUnitOutline() {
     return new _Outline(
-        _OutlineKind.COMPILATION_UNIT, null,
+        _OutlineKind.COMPILATION_UNIT, "<unit>",
         _unit.offset, _unit.length,
         _unit.offset, _unit.length,
         false, false,
@@ -338,7 +338,7 @@ class _Outline {
   final int elementLength;
   final bool isAbstract;
   final bool isStatic;
-  final String arguments;
+  final String parameters;
   final String returnType;
   final List<_Outline> children = <_Outline>[];
 
@@ -346,10 +346,10 @@ class _Outline {
            this.nameOffset, this.nameLength,
            this.elementOffset, this.elementLength,
            this.isAbstract, this.isStatic,
-           this.arguments, this.returnType);
+           this.parameters, this.returnType);
 
   Map<String, Object> toJson() {
-    return {
+    Map<String, Object> json = {
       KIND: kind.name,
       NAME: name,
       NAME_OFFSET: nameOffset,
@@ -357,10 +357,17 @@ class _Outline {
       ELEMENT_OFFSET: elementOffset,
       ELEMENT_LENGTH: elementLength,
       IS_ABSTRACT: isAbstract,
-      IS_STATIC: isStatic,
-      ARGUMENTS: arguments,
-      RETURN_TYPE: returnType,
-      CHILDREN: children.map((child) => child.toJson()).toList(growable: false)
+      IS_STATIC: isStatic
     };
+    if (parameters != null) {
+      json[PARAMETERS] = parameters;
+    }
+    if (returnType != null) {
+      json[RETURN_TYPE] = returnType;
+    }
+    if (children.isNotEmpty) {
+      json[CHILDREN] = children.map((child) => child.toJson()).toList();
+    }
+    return json;
   }
 }
