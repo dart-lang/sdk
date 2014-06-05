@@ -146,6 +146,8 @@ class MockDartSdk implements DartSdk {
   final String sdkVersion = '0';
   List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
   final AnalysisContext context = new _SdkAnalysisContext();
+  DartUriResolver _resolver;
+  DartUriResolver get resolver => _resolver;
 
   MockDartSdk(Map<String, String> sources, {this.reportMissing}) {
     sources.forEach((uriString, contents) {
@@ -155,6 +157,8 @@ class MockDartSdk implements DartSdk {
         ..setDart2JsLibrary()
         ..setVmLibrary();
     });
+    _resolver = new DartUriResolver(this);
+    context.sourceFactory = new SourceFactory([_resolver]);
   }
 
   List<SdkLibrary> get sdkLibraries => _libs.values.toList();

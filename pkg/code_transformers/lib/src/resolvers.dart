@@ -39,7 +39,7 @@ class Resolvers {
   factory Resolvers.fromMock(Map<String, String> sources,
       {bool reportMissing: false}) {
     var sdk = new MockDartSdk(sources, reportMissing: reportMissing);
-    return new Resolvers.fromSdk(sdk, new DartUriResolver(sdk));
+    return new Resolvers.fromSdk(sdk, sdk.resolver);
   }
 
   /// Get a resolver for [transform]. If provided, this resolves the code
