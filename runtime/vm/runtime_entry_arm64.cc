@@ -40,10 +40,18 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
     ExternalLabel label(entry);
-    // Cache the stack pointer in a callee-saved register.
+    // Since we are entering C++ code, we must restore the C stack pointer from
+    // the stack limit to an aligned value nearer to the top of the stack.
+    // We cache the Dart stack pointer and the stack limit in callee-saved
+    // registers, then align and call, restoring CSP and SP on return from the
+    // call.
+    __ mov(R25, CSP);
     __ mov(R26, SP);
+    __ ReserveAlignedFrameSpace(0);
+    __ mov(CSP, SP);
     __ BranchLink(&label, kNoPP);
     __ mov(SP, R26);
+    __ mov(CSP, R25);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

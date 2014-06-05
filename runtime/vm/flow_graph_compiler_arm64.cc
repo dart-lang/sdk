@@ -158,7 +158,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) {
-    __ hlt(0);
+    __ brk(0);
   }
 
   ASSERT(deopt_env() != NULL);
@@ -664,7 +664,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                         3,
                         locs);
     // We should never return here.
-    __ hlt(0);
+    __ brk(0);
 
     __ Bind(&is_assignable);  // For a null object.
     // Restore instantiator (R2) and its type arguments (R1).
@@ -901,7 +901,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ LeaveDartFrame();  // The arguments are still on the stack.
     __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
-    __ hlt(0);
+    __ brk(0);
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
   }
@@ -1073,7 +1073,7 @@ void FlowGraphCompiler::CompileGraph() {
         __ LeaveDartFrame();  // The arguments are still on the stack.
         __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
-        __ hlt(0);
+        __ brk(0);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -1097,7 +1097,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   VisitBlocks();
 
-  __ hlt(0);
+  __ brk(0);
   GenerateDeferredCode();
 
   // Emit function patching code. This will be swapped with the first 3

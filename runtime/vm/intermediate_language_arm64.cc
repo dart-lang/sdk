@@ -92,7 +92,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ sub(R2, SP, Operand(FP));
   __ CompareImmediate(R2, fp_sp_dist, PP);
   __ b(&stack_ok, EQ);
-  __ hlt(0);
+  __ brk(0);
   __ Bind(&stack_ok);
 #endif
   __ LeaveDartFrame();
@@ -348,7 +348,7 @@ static void EmitAssertBoolean(Register reg,
                                 1,
                                 locs);
   // We should never return here.
-  __ hlt(0);
+  __ brk(0);
   __ Bind(&done);
 }
 
@@ -5115,7 +5115,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 kThrowRuntimeEntry,
                                 1,
                                 locs());
-  __ hlt(0);
+  __ brk(0);
 }
 
 
@@ -5132,7 +5132,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 kReThrowRuntimeEntry,
                                 2,
                                 locs());
-  __ hlt(0);
+  __ brk(0);
 }
 
 

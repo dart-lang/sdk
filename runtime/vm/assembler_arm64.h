@@ -684,6 +684,9 @@ class Assembler : public ValueObject {
   void hlt(uint16_t imm) {
     EmitExceptionGenOp(HLT, imm);
   }
+  void brk(uint16_t imm) {
+    EmitExceptionGenOp(BRK, imm);
+  }
 
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {

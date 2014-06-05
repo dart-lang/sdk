@@ -1540,7 +1540,8 @@ void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
 
 
 void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  __ Stop("GenerateClosureCallInlineCacheStub");
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
@@ -1787,8 +1788,23 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
+// Jump to the exception or error handler.
+// LR: return address.
+// R0: program_counter.
+// R1: stack_pointer.
+// R2: frame_pointer.
+// R3: error object.
+// R4: address of stacktrace object.
+// Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  __ Stop("GenerateJumpToExceptionHandlerStub");
+  ASSERT(kExceptionObjectReg == R0);
+  ASSERT(kStackTraceObjectReg == R1);
+  __ mov(LR, R0);  // Program counter.
+  __ mov(SP, R1);  // Stack pointer.
+  __ mov(FP, R2);  // Frame_pointer.
+  __ mov(R0, R3);  // Exception object.
+  __ mov(R1, R4);  // StackTrace object.
+  __ ret();  // Jump to the exception handler code.
 }
 
 
@@ -1809,7 +1825,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag, PP);
   __ LeaveStubFrame();
   __ br(R0);
-  __ hlt(0);
+  __ brk(0);
 }
 
 
