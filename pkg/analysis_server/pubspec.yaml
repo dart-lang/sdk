@@ -11,7 +11,7 @@ dependencies:
   args: any
   logging: any
   path: any
-  typed_mock: any
+  typed_mock: '>=0.0.3'
   watcher: any
 dev_dependencies:
   mock: '>=0.10.0 <0.11.0'
