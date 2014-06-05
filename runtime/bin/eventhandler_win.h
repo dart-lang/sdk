@@ -93,7 +93,7 @@ class OverlappedBuffer {
     wbuf_.buf = GetBufferStart();
     wbuf_.len = GetBufferSize();
     return &wbuf_;
-  };
+  }
 
   void set_data_length(int data_length) { data_length_ = data_length; }
 
@@ -234,6 +234,8 @@ class Handle {
   virtual void DoClose();
   virtual bool IsClosed() = 0;
 
+  bool IsHandleClosed() const { return handle_ == INVALID_HANDLE_VALUE; }
+
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     port_ = port;
     mask_ = mask;
@@ -349,6 +351,8 @@ class DirectoryWatchHandle : public Handle {
 
   virtual bool IssueRead();
 
+  void Stop();
+
  private:
   int events_;
   bool recursive_;
@@ -357,14 +361,20 @@ class DirectoryWatchHandle : public Handle {
 
 class SocketHandle : public Handle {
  public:
-  SOCKET socket() { return reinterpret_cast<SOCKET>(handle_); }
+  SOCKET socket() const { return socket_; }
 
  protected:
-  explicit SocketHandle(SOCKET s) : Handle(reinterpret_cast<HANDLE>(s)) {}
+  explicit SocketHandle(SOCKET s)
+      : Handle(reinterpret_cast<HANDLE>(s)),
+        socket_(s) {}
   SocketHandle(SOCKET s, Dart_Port port)
-      : Handle(reinterpret_cast<HANDLE>(s), port) {}
+      : Handle(reinterpret_cast<HANDLE>(s), port),
+        socket_(s) {}
 
   virtual void HandleIssueError();
+
+ private:
+  const SOCKET socket_;
 };
 
 
@@ -382,7 +392,7 @@ class ListenSocket : public SocketHandle {
     ASSERT(!HasPendingAccept());
     ASSERT(accepted_head_ == NULL);
     ASSERT(accepted_tail_ == NULL);
-  };
+  }
 
   // Socket interface exposing normal socket operations.
   ClientSocket* Accept();
@@ -439,7 +449,7 @@ class ClientSocket : public SocketHandle {
     ASSERT(!HasPendingWrite());
     ASSERT(next_ == NULL);
     ASSERT(closed_ == true);
-  };
+  }
 
   void Shutdown(int how);
 
@@ -484,7 +494,7 @@ class DatagramSocket : public SocketHandle {
     // Don't delete this object until all pending requests have been handled.
     ASSERT(!HasPendingRead());
     ASSERT(!HasPendingWrite());
-  };
+  }
 
   // Internal interface used by the event handler.
   virtual bool IssueRecvFrom();

@@ -226,9 +226,8 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
 class ElementTypeInformation extends ApplyableTypeInformation  {
   final Element element;
 
-  // Marker to disable [handleSpecialCases]. For example, parameters
-  // of closures that are traced can be inferred.
-  bool disableHandleSpecialCases = false;
+  /// Marker to disable inference for closures in [handleSpecialCases].
+  bool disableInferenceForClosures = true;
 
   /**
    * If [element] is a function, [closurizedCount] is the number of
@@ -293,11 +292,10 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
     if (abandonInferencing) return type;
-    if (disableHandleSpecialCases) return null;
 
     if (element.isParameter) {
       Element enclosing = element.enclosingElement;
-      if (Elements.isLocal(enclosing)) {
+      if (Elements.isLocal(enclosing) && disableInferenceForClosures) {
         // Do not infer types for parameters of closures. We do not
         // clear the assignments in case the closure is successfully
         // traced.
@@ -305,7 +303,8 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
         return type;
       } else if (enclosing.isInstanceMember &&
                  (enclosing.name == Compiler.NO_SUCH_METHOD ||
-                  enclosing.name == Compiler.CALL_OPERATOR_NAME)) {
+                  (enclosing.name == Compiler.CALL_OPERATOR_NAME &&
+                   disableInferenceForClosures))) {
         // Do not infer types for parameters of [noSuchMethod] and
         // [call] instance methods.
         giveUp(inferrer);

@@ -25,7 +25,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOf(parameter);
         if (continueAnalyzing) {
-          info.disableHandleSpecialCases = true;
+          info.disableInferenceForClosures = false;
         } else {
           info.giveUp(inferrer);
         }

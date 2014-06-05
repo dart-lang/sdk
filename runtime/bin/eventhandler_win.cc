@@ -160,7 +160,7 @@ void Handle::Unlock() {
 
 
 bool Handle::CreateCompletionPort(HANDLE completion_port) {
-  completion_port_ = CreateIoCompletionPort(handle_,
+  completion_port_ = CreateIoCompletionPort(handle(),
                                             completion_port,
                                             reinterpret_cast<ULONG_PTR>(this),
                                             0);
@@ -176,17 +176,19 @@ void Handle::Close() {
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be
     // called again if this socket has pending IO operations in flight.
-    ASSERT(handle_ != INVALID_HANDLE_VALUE);
     MarkClosing();
     // Perform handle type specific closing.
     DoClose();
   }
+  ASSERT(IsHandleClosed());
 }
 
 
 void Handle::DoClose() {
-  CloseHandle(handle_);
-  handle_ = INVALID_HANDLE_VALUE;
+  if (!IsHandleClosed()) {
+    CloseHandle(handle_);
+    handle_ = INVALID_HANDLE_VALUE;
+  }
 }
 
 
@@ -396,7 +398,7 @@ bool DirectoryWatchHandle::IssueRead() {
   ScopedLock lock(this);
   // It may have been started before, as we start the directory-handler when
   // we create it.
-  if (pending_read_ != NULL) return true;
+  if (pending_read_ != NULL || data_ready_ != NULL) return true;
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   BOOL ok = ReadDirectoryChangesW(handle_,
@@ -414,6 +416,19 @@ bool DirectoryWatchHandle::IssueRead() {
   }
   OverlappedBuffer::DisposeBuffer(buffer);
   return false;
+}
+
+
+void DirectoryWatchHandle::Stop() {
+  ScopedLock lock(this);
+  // Stop the outstanding read, so we can close the handle.
+
+  if (pending_read_ != NULL) {
+    CancelIoEx(handle(), pending_read_->GetCleanOverlapped());
+    // Don't dispose of the buffer, as it will still complete (with length 0).
+  }
+
+  DoClose();
 }
 
 
@@ -793,6 +808,7 @@ void ClientSocket::DoClose() {
   // Always do a shutdown before initiating a disconnect.
   shutdown(socket(), SD_BOTH);
   IssueDisconnect();
+  handle_ = INVALID_HANDLE_VALUE;
 }
 
 

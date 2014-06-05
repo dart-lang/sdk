@@ -73,7 +73,9 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   USE(id);
-  USE(path_id);
+  DirectoryWatchHandle* handle =
+      reinterpret_cast<DirectoryWatchHandle*>(path_id);
+  handle->Stop();
 }
 
 

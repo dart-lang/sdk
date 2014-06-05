@@ -71,6 +71,11 @@ void createSandbox() {
   // Delete the sandbox when done.
   currentSchedule.onComplete.schedule(() {
     if (_sandboxDir != null) {
+      // TODO(rnystrom): Issue 19155. The watcher should already be closed when
+      // we clean up the sandbox.
+      if (_watcherEvents != null) {
+        _watcherEvents.close();
+      }
       new Directory(_sandboxDir).deleteSync(recursive: true);
       _sandboxDir = null;
     }

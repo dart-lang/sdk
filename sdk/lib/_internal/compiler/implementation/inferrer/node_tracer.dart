@@ -230,7 +230,7 @@ abstract class TracerVisitor<T extends TypeInformation>
     String selectorName = info.selector.name;
     List<TypeInformation> arguments = info.arguments.positional;
     return (selectorName == '[]=' && currentUser == arguments[1])
-        || (selectorName == 'insert' && currentUser == arguments[0])
+        || (selectorName == 'insert' && currentUser == arguments[1])
         || (selectorName == 'add' && currentUser == arguments[0]);
   }
 
@@ -238,9 +238,7 @@ abstract class TracerVisitor<T extends TypeInformation>
     if (info.arguments == null) return false;
     var receiverType = info.receiver.type;
     if (!receiverType.isMap) return false;
-    String selectorName = info.selector.name;
-    List<TypeInformation> arguments = info.arguments.positional;
-    return selectorName == '[]=';
+    return info.selector.name == '[]=';
   }
 
   /**
