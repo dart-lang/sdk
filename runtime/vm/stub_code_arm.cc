@@ -216,12 +216,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
   __ mov(R0, Operand(SP));  // Pass the pointer to the NativeArguments.
 
-  // Call native function (setsup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask());
-  __ b(&leaf_call, EQ);
-
   __ mov(R1, Operand(R5));  // Pass the function entrypoint to call.
   // Call native function invocation wrapper or redirection via simulator.
 #if defined(USING_SIMULATOR)
@@ -233,13 +227,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
-  __ b(&done);
-
-  __ Bind(&leaf_call);
-  // Call native function or redirection via simulator.
-  __ blx(R5);
-
-  __ Bind(&done);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kScriptTagId);

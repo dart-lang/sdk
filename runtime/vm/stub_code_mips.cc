@@ -229,11 +229,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A0, Address(SP, 0 * kWordSize));
   __ mov(A0, SP);  // Pass the pointer to the NativeArguments.
 
-  // Call native function (setup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ AndImmediate(CMPRES1, A1, NativeArguments::AutoSetupScopeMask());
-  __ beq(CMPRES1, ZR, &leaf_call);
 
   __ mov(A1, T5);  // Pass the function entrypoint.
   __ ReserveAlignedFrameSpace(2 * kWordSize);  // Just passing A0, A1.
@@ -248,19 +243,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
   __ TraceSimMsg("CallNativeCFunctionStub return");
-  __ b(&done);
-
-  __ Bind(&leaf_call);
-  // Call native function or redirection via simulator.
-  __ ReserveAlignedFrameSpace(kWordSize);  // Just passing A0.
-
-
-  // We defensively always jalr through T9 because it is sometimes required by
-  // the MIPS ABI.
-  __ mov(T9, T5);
-  __ jalr(T9);
-
-  __ Bind(&done);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(A2, VMTag::kScriptTagId);

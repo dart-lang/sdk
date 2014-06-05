@@ -194,17 +194,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
   __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
 
-  // Call native function (setsup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ testq(R10, Immediate(NativeArguments::AutoSetupScopeMask()));
-  __ j(ZERO, &leaf_call);
   __ movq(RSI, RBX);  // Pass pointer to function entrypoint.
   __ call(&NativeEntry::NativeCallWrapperLabel());
-  __ jmp(&done);
-  __ Bind(&leaf_call);
-  __ call(RBX);
-  __ Bind(&done);
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),

@@ -229,12 +229,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(R26, CSP);
   __ mov(CSP, SP);
 
-  // Call native function (setsup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask(), kNoPP);
-  __ b(&leaf_call, EQ);
-
   __ mov(R1, R5);  // Pass the function entrypoint to call.
   // Call native function invocation wrapper or redirection via simulator.
 #if defined(USING_SIMULATOR)
@@ -246,13 +240,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNoPP);
 #endif
-  __ b(&done);
 
-  __ Bind(&leaf_call);
-  // Call native function or redirection via simulator.
-  __ blr(R5);
-
-  __ Bind(&done);
   // Restore SP and CSP.
   __ mov(SP, CSP);
   __ mov(CSP, R26);

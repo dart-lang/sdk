@@ -879,8 +879,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(native_c_function());
+  const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
+  const bool is_leaf_call =
+    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const ExternalLabel* stub_entry;
-  if (is_bootstrap_native()) {
+  if (is_bootstrap_native() || is_leaf_call) {
     stub_entry = &StubCode::CallBootstrapCFunctionLabel();
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
@@ -899,7 +902,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   }
   __ LoadImmediate(T5, entry);
-  __ LoadImmediate(A1, NativeArguments::ComputeArgcTag(function()));
+  __ LoadImmediate(A1, argc_tag);
   compiler->GenerateCall(token_pos(),
                          stub_entry,
                          PcDescriptors::kOther,

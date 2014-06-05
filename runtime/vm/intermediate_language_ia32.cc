@@ -796,6 +796,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(1).reg() == ECX);
   ASSERT(locs()->temp(2).reg() == EDX);
   Register result = locs()->out(0).reg();
+  const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
+  const bool is_leaf_call =
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
@@ -807,10 +810,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movl(EDX, Immediate(NativeArguments::ComputeArgcTag(function())));
-  const ExternalLabel* stub_entry =
-      (is_bootstrap_native()) ? &StubCode::CallBootstrapCFunctionLabel() :
-                                &StubCode::CallNativeCFunctionLabel();
+  __ movl(EDX, Immediate(argc_tag));
+  const ExternalLabel* stub_entry = (is_bootstrap_native() || is_leaf_call) ?
+      &StubCode::CallBootstrapCFunctionLabel() :
+      &StubCode::CallNativeCFunctionLabel();
   compiler->GenerateCall(token_pos(),
                          stub_entry,
                          PcDescriptors::kOther,
@@ -3325,7 +3328,7 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Isolate* isolate,
   ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
   const intptr_t kNumInputs = 2;
   const bool need_temp = (left()->definition() != right()->definition())
-                      &&(left_cid != kSmiCid)
+                      && (left_cid != kSmiCid)
                       && (right_cid != kSmiCid);
   const intptr_t kNumTemps = need_temp ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
