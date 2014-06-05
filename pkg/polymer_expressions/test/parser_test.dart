@@ -11,6 +11,9 @@ import 'package:unittest/unittest.dart';
 expectParse(String s, Expression e) =>
     expect(new Parser(s).parse(), e, reason: s);
 
+final Matcher throwsParseException =
+    throwsA(new isInstanceOf<ParseException>('ParseException'));
+
 main() {
 
   group('parser', () {
@@ -54,12 +57,18 @@ main() {
 
     test('should parse binary operators', () {
       var operators = ['+', '-', '*', '/', '%', '^', '==', '!=', '>', '<',
-          '>=', '<=', '||', '&&', '&', '===', '!=='];
+          '>=', '<=', '||', '&&', '&', '===', '!==', '|'];
       for (var op in operators) {
         expectParse('a $op b', binary(ident('a'), op, ident('b')));
         expectParse('1 $op 2', binary(literal(1), op, literal(2)));
         expectParse('this $op null', binary(ident('this'), op, literal(null)));
       }
+    });
+
+    test('should thrown on unknown operators', () {
+      expect(() => parse('a ?? b'), throwsParseException);
+      expect(() => parse('a &&& b'), throwsParseException);
+      expect(() => parse('a ==== b'), throwsParseException);
     });
 
     test('should give multiply higher associativity than plus', () {
@@ -155,7 +164,7 @@ main() {
       expectParse('a ? b : c', ternary(ident('a'), ident('b'), ident('c')));
       expectParse('a.a ? b.a : c.a', ternary(getter(ident('a'), 'a'),
           getter(ident('b'), 'a'), getter(ident('c'), 'a')));
-      expect(() => parse('a + 1 ? b + 1 :: c.d + 3'), throws);
+      expect(() => parse('a + 1 ? b + 1 :: c.d + 3'), throwsParseException);
     });
 
     test('ternary operators have lowest associativity', () {
@@ -189,7 +198,7 @@ main() {
     });
 
     test('should reject comprehension with non-assignable left expression', () {
-      expect(() => parse('a + 1 in b'), throwsException);
+      expect(() => parse('a + 1 in b'), throwsParseException);
     });
 
     test('should parse "as" expressions', () {
@@ -197,10 +206,9 @@ main() {
     });
 
     skip_test('should reject keywords as identifiers', () {
-      expect(() => parse('a.in'), throws);
-      expect(() => parse('a.as'), throws);
-      // TODO: re-enable when 'this' is a keyword
-//      expect(() => parse('a.this'), throws);
+      expect(() => parse('a.in'), throwsParseException);
+      expect(() => parse('a.as'), throwsParseException);
+      expect(() => parse('a.this'), throwsParseException);
     });
 
     test('should parse map literals', () {
