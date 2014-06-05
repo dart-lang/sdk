@@ -40,7 +40,7 @@ def makeResources(root_dir, input_files, table_name):
     if lineCounter != 0:
       result += '\n   '
     result += ' 0\n};\n\n'
-    resource_url_scrubbed = re.sub(r'\\', '', resource_url)
+    resource_url_scrubbed = re.sub(r'\\', '/', resource_url)
     resources.append(
         (resource_url_scrubbed, resource_name, os.stat(resource_file).st_size));
 
