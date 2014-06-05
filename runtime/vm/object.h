@@ -5304,6 +5304,8 @@ class String : public Instance {
 
   int32_t CharAt(intptr_t index) const;
 
+  Scanner::CharAtFunc CharAtFunc() const;
+
   intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;

@@ -15998,6 +15998,23 @@ int32_t String::CharAt(intptr_t index) const {
 }
 
 
+Scanner::CharAtFunc String::CharAtFunc() const {
+  intptr_t class_id = raw()->GetClassId();
+  ASSERT(RawObject::IsStringClassId(class_id));
+  if (class_id == kOneByteStringCid) {
+    return &OneByteString::CharAt;
+  }
+  if (class_id == kTwoByteStringCid) {
+    return &TwoByteString::CharAt;
+  }
+  if (class_id == kExternalOneByteStringCid) {
+    return &ExternalOneByteString::CharAt;
+  }
+  ASSERT(class_id == kExternalTwoByteStringCid);
+  return &ExternalTwoByteString::CharAt;
+}
+
+
 intptr_t String::CharSize() const {
   intptr_t class_id = raw()->GetClassId();
   if (class_id == kOneByteStringCid || class_id == kExternalOneByteStringCid) {

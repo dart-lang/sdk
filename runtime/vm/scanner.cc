@@ -58,9 +58,12 @@ Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
       saved_context_(NULL),
-      private_key_(String::ZoneHandle(private_key.raw())) {
+      private_key_(String::ZoneHandle(private_key.raw())),
+      char_at_func_(src.CharAtFunc()),
+      isolate_(Isolate::Current()) {
   Reset();
 }
+
 
 Scanner::~Scanner() {
   while (saved_context_ != NULL) {
@@ -154,11 +157,11 @@ bool Scanner::IsIdent(const String& str) {
   if (!str.IsOneByteString()) {
     return false;
   }
-  if (str.Length() == 0 || !IsIdentStartChar(str.CharAt(0))) {
+  if (str.Length() == 0 || !IsIdentStartChar(CallCharAt()(str, 0))) {
     return false;
   }
   for (int i =  1; i < str.Length(); i++) {
-    if (!IsIdentChar(str.CharAt(i))) {
+    if (!IsIdentChar(CallCharAt()(str, i))) {
       return false;
     }
   }
@@ -202,7 +205,7 @@ void Scanner::ReadChar() {
       newline_seen_ = true;
       c0_pos_.line++;
       c0_pos_.column = 0;
-      if (source_.CharAt(lookahead_pos_) == '\r') {
+      if (CallCharAt()(source_, lookahead_pos_) == '\r') {
         // Replace a sequence of '\r' '\n' with a single '\n'.
         if (LookaheadChar(1) == '\n') {
           lookahead_pos_++;
@@ -227,7 +230,7 @@ int32_t Scanner::LookaheadChar(int how_many) {
   ASSERT(how_many >= 0);
   int32_t lookahead_char = '\0';
   if (lookahead_pos_ + how_many < source_length_) {
-    lookahead_char = source_.CharAt(lookahead_pos_ + how_many);
+    lookahead_char = CallCharAt()(source_, lookahead_pos_ + how_many);
   }
   return lookahead_char;
 }
@@ -282,7 +285,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   ASSERT(allow_dollar || (c0_ != '$'));
   int ident_length = 0;
   int ident_pos = lookahead_pos_;
-  int32_t ident_char0 = source_.CharAt(ident_pos);
+  int32_t ident_char0 = CallCharAt()(source_, ident_pos);
   while (IsIdentChar(c0_) && (allow_dollar || (c0_ != '$'))) {
     ReadChar();
     ident_length++;
@@ -292,13 +295,14 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   // Note, can't use strcmp since token_chars is not null-terminated.
   if (('a' <= ident_char0) && (ident_char0 <= 'z')) {
     int i = keywords_char_offset_[ident_char0 - 'a'];
-    while (i < Token::kNumKeywords &&
-           keywords_[i].keyword_chars[0] <= ident_char0) {
+    while ((i < Token::kNumKeywords) &&
+           (keywords_[i].keyword_chars[0] <= ident_char0)) {
       if (keywords_[i].keyword_len == ident_length) {
         const char* keyword = keywords_[i].keyword_chars;
         int char_pos = 1;
         while ((char_pos < ident_length) &&
-               (keyword[char_pos] == source_.CharAt(ident_pos + char_pos))) {
+               (keyword[char_pos] ==
+                   CallCharAt()(source_, ident_pos + char_pos))) {
           char_pos++;
         }
         if (char_pos == ident_length) {
