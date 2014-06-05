@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.string_matchers;
 
-/**
- * Returns a matcher which matches if the match argument is a string and
- * is equal to [value] when compared case-insensitively.
- */
+import 'interfaces.dart';
+
+/// Returns a matcher which matches if the match argument is a string and
+/// is equal to [value] when compared case-insensitively.
 Matcher equalsIgnoringCase(String value) => new _IsEqualIgnoringCase(value);
 
 class _IsEqualIgnoringCase extends _StringMatcher {
   final String _value;
-  String _matchValue;
+  final String _matchValue;
 
-  _IsEqualIgnoringCase(this._value) {
-    _matchValue = _value.toLowerCase();
-  }
+  _IsEqualIgnoringCase(String value)
+      : _value = value,
+        _matchValue = value.toLowerCase();
 
   bool matches(item, Map matchState) =>
       item is String && _matchValue == item.toLowerCase();
@@ -25,24 +25,22 @@ class _IsEqualIgnoringCase extends _StringMatcher {
       description.addDescriptionOf(_value).add(' ignoring case');
 }
 
-/**
- * Returns a matcher which matches if the match argument is a string and
- * is equal to [value] when compared with all runs of whitespace
- * collapsed to single spaces and leading and trailing whitespace removed.
- *
- * For example, `equalsIgnoringCase("hello world")` will match
- * "hello   world", "  hello world" and "hello world  ".
- */
-Matcher equalsIgnoringWhitespace(_string) =>
-    new _IsEqualIgnoringWhitespace(_string);
+/// Returns a matcher which matches if the match argument is a string and
+/// is equal to [value] when compared with all runs of whitespace
+/// collapsed to single spaces and leading and trailing whitespace removed.
+///
+/// For example, `equalsIgnoringCase("hello world")` will match
+/// "hello   world", "  hello world" and "hello world  ".
+Matcher equalsIgnoringWhitespace(String string) =>
+    new _IsEqualIgnoringWhitespace(string);
 
 class _IsEqualIgnoringWhitespace extends _StringMatcher {
   final String _value;
-  String _matchValue;
+  final String _matchValue;
 
-  _IsEqualIgnoringWhitespace(this._value) {
-    _matchValue = collapseWhitespace(_value);
-  }
+  _IsEqualIgnoringWhitespace(String value)
+      : _value = value,
+        _matchValue = collapseWhitespace(value);
 
   bool matches(item, Map matchState) =>
       item is String && _matchValue == collapseWhitespace(item);
@@ -63,33 +61,8 @@ class _IsEqualIgnoringWhitespace extends _StringMatcher {
   }
 }
 
-/**
- * Utility function to collapse whitespace runs to single spaces
- * and strip leading/trailing whitespace.
- */
-String collapseWhitespace(_string) {
-  bool isWhitespace(String ch) => (' \n\r\t'.indexOf(ch) >= 0);
-  StringBuffer result = new StringBuffer();
-  bool skipSpace = true;
-  for (var i = 0; i < _string.length; i++) {
-    var character = _string[i];
-    if (isWhitespace(character)) {
-      if (!skipSpace) {
-        result.write(' ');
-        skipSpace = true;
-      }
-    } else {
-      result.write(character);
-      skipSpace = false;
-    }
-  }
-  return result.toString().trim();
-}
-
-/**
- * Returns a matcher that matches if the match argument is a string and
- * starts with [prefixString].
- */
+/// Returns a matcher that matches if the match argument is a string and
+/// starts with [prefixString].
 Matcher startsWith(String prefixString) => new _StringStartsWith(prefixString);
 
 class _StringStartsWith extends _StringMatcher {
@@ -104,14 +77,11 @@ class _StringStartsWith extends _StringMatcher {
       description.add('a string starting with ').addDescriptionOf(_prefix);
 }
 
-/**
- * Returns a matcher that matches if the match argument is a string and
- * ends with [suffixString].
- */
+/// Returns a matcher that matches if the match argument is a string and
+/// ends with [suffixString].
 Matcher endsWith(String suffixString) => new _StringEndsWith(suffixString);
 
 class _StringEndsWith extends _StringMatcher {
-
   final String _suffix;
 
   const _StringEndsWith(this._suffix);
@@ -123,19 +93,16 @@ class _StringEndsWith extends _StringMatcher {
       description.add('a string ending with ').addDescriptionOf(_suffix);
 }
 
-/**
- * Returns a matcher that matches if the match argument is a string and
- * contains a given list of [substrings] in relative order.
- *
- * For example, `stringContainsInOrder(["a", "e", "i", "o", "u"])` will match
- * "abcdefghijklmnopqrstuvwxyz".
- */
+/// Returns a matcher that matches if the match argument is a string and
+/// contains a given list of [substrings] in relative order.
+///
+/// For example, `stringContainsInOrder(["a", "e", "i", "o", "u"])` will match
+/// "abcdefghijklmnopqrstuvwxyz".
 
-Matcher stringContainsInOrder(substrings) =>
+Matcher stringContainsInOrder(List<String> substrings) =>
     new _StringContainsInOrder(substrings);
 
 class _StringContainsInOrder extends _StringMatcher {
-
   final List<String> _substrings;
 
   const _StringContainsInOrder(this._substrings);
@@ -147,8 +114,7 @@ class _StringContainsInOrder extends _StringMatcher {
     var from_index = 0;
     for (var s in _substrings) {
       from_index = item.indexOf(s, from_index);
-      if (from_index < 0)
-        return false;
+      if (from_index < 0) return false;
     }
     return true;
   }
@@ -158,12 +124,10 @@ class _StringContainsInOrder extends _StringMatcher {
                                                   _substrings);
 }
 
-/**
- * Returns a matcher that matches if the match argument is a string and
- * matches the regular expression given by [re]. [re] can be a RegExp
- * instance or a string; in the latter case it will be used to create
- * a RegExp instance.
- */
+/// Returns a matcher that matches if the match argument is a string and
+/// matches the regular expression given by [re]. [re] can be a [RegExp]
+/// instance or a [String]; in the latter case it will be used to create
+/// a RegExp instance.
 Matcher matches(re) => new _MatchesRegExp(re);
 
 class _MatchesRegExp extends _StringMatcher {
@@ -202,3 +166,26 @@ abstract class _StringMatcher extends Matcher {
     }
   }
 }
+
+/// Utility function to collapse whitespace runs to single spaces
+/// and strip leading/trailing whitespace.
+String collapseWhitespace(String string) {
+  var result = new StringBuffer();
+  var skipSpace = true;
+  for (var i = 0; i < string.length; i++) {
+    var character = string[i];
+    if (_isWhitespace(character)) {
+      if (!skipSpace) {
+        result.write(' ');
+        skipSpace = true;
+      }
+    } else {
+      result.write(character);
+      skipSpace = false;
+    }
+  }
+  return result.toString().trim();
+}
+
+bool _isWhitespace(String ch) =>
+    ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';

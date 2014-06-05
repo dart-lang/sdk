@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.core_matchers;
 
-/**
- * Returns a matcher that matches empty strings, maps or iterables
- * (including collections).
- */
+import 'dart:async';
+
+import 'description.dart';
+import 'expect.dart';
+import 'interfaces.dart';
+
+/// Returns a matcher that matches empty strings, maps or iterables
+/// (including collections).
 const Matcher isEmpty = const _Empty();
 
 class _Empty extends Matcher {
@@ -24,10 +28,10 @@ class _Empty extends Matcher {
   Description describe(Description description) => description.add('empty');
 }
 
-/** A matcher that matches any null value. */
+/// A matcher that matches any null value.
 const Matcher isNull = const _IsNull();
 
-/** A matcher that matches any non-null value. */
+/// A matcher that matches any non-null value.
 const Matcher isNotNull = const _IsNotNull();
 
 class _IsNull extends Matcher {
@@ -42,10 +46,10 @@ class _IsNotNull extends Matcher {
   Description describe(Description description) => description.add('not null');
 }
 
-/** A matcher that matches the Boolean value true. */
+/// A matcher that matches the Boolean value true.
 const Matcher isTrue = const _IsTrue();
 
-/** A matcher that matches anything except the Boolean value true. */
+/// A matcher that matches anything except the Boolean value true.
 const Matcher isFalse = const _IsFalse();
 
 class _IsTrue extends Matcher {
@@ -60,10 +64,8 @@ class _IsFalse extends Matcher {
   Description describe(Description description) => description.add('false');
 }
 
-/**
- * Returns a matches that matches if the value is the same instance
- * as [expected], using [identical].
- */
+/// Returns a matches that matches if the value is the same instance
+/// as [expected], using [identical].
 Matcher same(expected) => new _IsSameAs(expected);
 
 class _IsSameAs extends Matcher {
@@ -75,18 +77,16 @@ class _IsSameAs extends Matcher {
       description.add('same instance as ').addDescriptionOf(_expected);
 }
 
-/**
- * Returns a matcher that matches if the value is structurally equal to
- * [expected].
- *
- * If [expected] is a [Matcher], then it matches using that. Otherwise it tests
- * for equality using `==` on the expected value.
- *
- * For [Iterable]s and [Map]s, this will recursively match the elements. To
- * handle cyclic structures a recursion depth [limit] can be provided. The
- * default limit is 100.
- */
-Matcher equals(expected, [limit=100]) =>
+/// Returns a matcher that matches if the value is structurally equal to
+/// [expected].
+///
+/// If [expected] is a [Matcher], then it matches using that. Otherwise it tests
+/// for equality using `==` on the expected value.
+///
+/// For [Iterable]s and [Map]s, this will recursively match the elements. To
+/// handle cyclic structures a recursion depth [limit] can be provided. The
+/// default limit is 100.
+Matcher equals(expected, [int limit=100]) =>
     expected is String
         ? new _StringEqualsMatcher(expected)
         : new _DeepMatcher(expected, limit);
@@ -96,7 +96,7 @@ class _DeepMatcher extends Matcher {
   final int _limit;
   var count;
 
-  _DeepMatcher(this._expected, [limit = 1000]): this._limit = limit;
+  _DeepMatcher(this._expected, [int limit = 1000]) : this._limit = limit;
 
   // Returns a pair (reason, location)
   List _compareIterables(expected, actual, matcher, depth, location) {
@@ -235,7 +235,7 @@ class _DeepMatcher extends Matcher {
   }
 }
 
-/** A special equality matcher for strings. */
+/// A special equality matcher for strings.
 class _StringEqualsMatcher extends Matcher {
   final String _value;
 
@@ -313,7 +313,7 @@ class _StringEqualsMatcher extends Matcher {
   }
 }
 
-/** A matcher that matches any value. */
+/// A matcher that matches any value.
 const Matcher anything = const _IsAnything();
 
 class _IsAnything extends Matcher {
@@ -322,84 +322,76 @@ class _IsAnything extends Matcher {
   Description describe(Description description) => description.add('anything');
 }
 
-/**
- * Returns a matcher that matches if an object is an instance
- * of [type] (or a subtype).
- *
- * As types are not first class objects in Dart we can only
- * approximate this test by using a generic wrapper class.
- *
- * For example, to test whether 'bar' is an instance of type
- * 'Foo', we would write:
- *
- *     expect(bar, new isInstanceOf<Foo>());
- *
- * To get better error message, supply a name when creating the
- * Type wrapper; e.g.:
- *
- *     expect(bar, new isInstanceOf<Foo>('Foo'));
- *
- * Note that this does not currently work in dart2js; it will
- * match any type, and isNot(new isInstanceof<T>()) will always
- * fail. This is because dart2js currently ignores template type
- * parameters.
- */
+/// Returns a matcher that matches if an object is an instance
+/// of [type] (or a subtype).
+///
+/// As types are not first class objects in Dart we can only
+/// approximate this test by using a generic wrapper class.
+///
+/// For example, to test whether 'bar' is an instance of type
+/// 'Foo', we would write:
+///
+///     expect(bar, new isInstanceOf<Foo>());
+///
+/// To get better error message, supply a name when creating the
+/// Type wrapper; e.g.:
+///
+///     expect(bar, new isInstanceOf<Foo>('Foo'));
+///
+/// Note that this does not currently work in dart2js; it will
+/// match any type, and isNot(new isInstanceof<T>()) will always
+/// fail. This is because dart2js currently ignores template type
+/// parameters.
 class isInstanceOf<T> extends Matcher {
   final String _name;
-  const isInstanceOf([name = 'specified type']): this._name = name;
+  const isInstanceOf([name = 'specified type']) : this._name = name;
   bool matches(obj, Map matchState) => obj is T;
   // The description here is lame :-(
   Description describe(Description description) =>
       description.add('an instance of ${_name}');
 }
 
-/**
- * This can be used to match two kinds of objects:
- *
- *   * A [Function] that throws an exception when called. The function cannot
- *     take any arguments. If you want to test that a function expecting
- *     arguments throws, wrap it in another zero-argument function that calls
- *     the one you want to test.
- *
- *   * A [Future] that completes with an exception. Note that this creates an
- *     asynchronous expectation. The call to `expect()` that includes this will
- *     return immediately and execution will continue. Later, when the future
- *     completes, the actual expectation will run.
- */
+/// This can be used to match two kinds of objects:
+///
+///   * A [Function] that throws an exception when called. The function cannot
+///     take any arguments. If you want to test that a function expecting
+///     arguments throws, wrap it in another zero-argument function that calls
+///     the one you want to test.
+///
+///   * A [Future] that completes with an exception. Note that this creates an
+///     asynchronous expectation. The call to `expect()` that includes this will
+///     return immediately and execution will continue. Later, when the future
+///     completes, the actual expectation will run.
 const Matcher throws = const Throws();
 
-/**
- * This can be used to match two kinds of objects:
- *
- *   * A [Function] that throws an exception when called. The function cannot
- *     take any arguments. If you want to test that a function expecting
- *     arguments throws, wrap it in another zero-argument function that calls
- *     the one you want to test.
- *
- *   * A [Future] that completes with an exception. Note that this creates an
- *     asynchronous expectation. The call to `expect()` that includes this will
- *     return immediately and execution will continue. Later, when the future
- *     completes, the actual expectation will run.
- *
- * In both cases, when an exception is thrown, this will test that the exception
- * object matches [matcher]. If [matcher] is not an instance of [Matcher], it
- * will implicitly be treated as `equals(matcher)`.
- */
+/// This can be used to match two kinds of objects:
+///
+///   * A [Function] that throws an exception when called. The function cannot
+///     take any arguments. If you want to test that a function expecting
+///     arguments throws, wrap it in another zero-argument function that calls
+///     the one you want to test.
+///
+///   * A [Future] that completes with an exception. Note that this creates an
+///     asynchronous expectation. The call to `expect()` that includes this will
+///     return immediately and execution will continue. Later, when the future
+///     completes, the actual expectation will run.
+///
+/// In both cases, when an exception is thrown, this will test that the exception
+/// object matches [matcher]. If [matcher] is not an instance of [Matcher], it
+/// will implicitly be treated as `equals(matcher)`.
 Matcher throwsA(matcher) => new Throws(wrapMatcher(matcher));
 
-/**
- * A matcher that matches a function call against no exception.
- * The function will be called once. Any exceptions will be silently swallowed.
- * The value passed to expect() should be a reference to the function.
- * Note that the function cannot take arguments; to handle this
- * a wrapper will have to be created.
- */
+/// A matcher that matches a function call against no exception.
+/// The function will be called once. Any exceptions will be silently swallowed.
+/// The value passed to expect() should be a reference to the function.
+/// Note that the function cannot take arguments; to handle this
+/// a wrapper will have to be created.
 const Matcher returnsNormally = const _ReturnsNormally();
 
 class Throws extends Matcher {
   final Matcher _matcher;
 
-  const Throws([Matcher matcher]): this._matcher = matcher;
+  const Throws([Matcher matcher]) : this._matcher = matcher;
 
   bool matches(item, Map matchState) {
     if (item is! Function && item is! Future) return false;
@@ -409,7 +401,9 @@ class Throws extends Matcher {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
       item.then((value) {
-        done(() => fail("Expected future to fail, but succeeded with '$value'."));
+        done(() {
+          fail("Expected future to fail, but succeeded with '$value'.");
+        });
       }, onError: (error, trace) {
         done(() {
           if (_matcher == null) return;
@@ -519,179 +513,29 @@ abstract class TypeMatcher extends Matcher {
   Description describe(Description description) => description.add(_name);
 }
 
-/** A matcher for FormatExceptions. */
-const isFormatException = const _FormatException();
-
-/** A matcher for functions that throw FormatException. */
-const Matcher throwsFormatException = const Throws(isFormatException);
-
-class _FormatException extends TypeMatcher {
-  const _FormatException(): super("FormatException");
-  bool matches(item, Map matchState) => item is FormatException;
-}
-
-/** A matcher for Exceptions. */
-const isException = const _Exception();
-
-/** A matcher for functions that throw Exception. */
-const Matcher throwsException = const Throws(isException);
-
-class _Exception extends TypeMatcher {
-  const _Exception(): super("Exception");
-  bool matches(item, Map matchState) => item is Exception;
-}
-
-/** A matcher for ArgumentErrors. */
-const isArgumentError = const _ArgumentError();
-
-/** A matcher for functions that throw ArgumentError. */
-const Matcher throwsArgumentError = const Throws(isArgumentError);
-
-class _ArgumentError extends TypeMatcher {
-  const _ArgumentError(): super("ArgumentError");
-  bool matches(item, Map matchState) => item is ArgumentError;
-}
-
-/** A matcher for RangeErrors. */
-const isRangeError = const _RangeError();
-
-/** A matcher for functions that throw RangeError. */
-const Matcher throwsRangeError = const Throws(isRangeError);
-
-class _RangeError extends TypeMatcher {
-  const _RangeError(): super("RangeError");
-  bool matches(item, Map matchState) => item is RangeError;
-}
-
-/** A matcher for NoSuchMethodErrors. */
-const isNoSuchMethodError = const _NoSuchMethodError();
-
-/** A matcher for functions that throw NoSuchMethodError. */
-const Matcher throwsNoSuchMethodError = const Throws(isNoSuchMethodError);
-
-class _NoSuchMethodError extends TypeMatcher {
-  const _NoSuchMethodError(): super("NoSuchMethodError");
-  bool matches(item, Map matchState) => item is NoSuchMethodError;
-}
-
-/** A matcher for UnimplementedErrors. */
-const isUnimplementedError = const _UnimplementedError();
-
-/** A matcher for functions that throw Exception. */
-const Matcher throwsUnimplementedError = const Throws(isUnimplementedError);
-
-class _UnimplementedError extends TypeMatcher {
-  const _UnimplementedError(): super("UnimplementedError");
-  bool matches(item, Map matchState) => item is UnimplementedError;
-}
-
-/** A matcher for UnsupportedError. */
-const isUnsupportedError = const _UnsupportedError();
-
-/** A matcher for functions that throw UnsupportedError. */
-const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);
-
-class _UnsupportedError extends TypeMatcher {
-  const _UnsupportedError(): super("UnsupportedError");
-  bool matches(item, Map matchState) => item is UnsupportedError;
-}
-
-/** A matcher for StateErrors. */
-const isStateError = const _StateError();
-
-/** A matcher for functions that throw StateError. */
-const Matcher throwsStateError = const Throws(isStateError);
-
-class _StateError extends TypeMatcher {
-  const _StateError(): super("StateError");
-  bool matches(item, Map matchState) => item is StateError;
-}
-
-/** A matcher for FallThroughError. */
-const isFallThroughError = const _FallThroughError();
-
-/** A matcher for functions that throw FallThroughError. */
-const Matcher throwsFallThroughError = const Throws(isFallThroughError);
-
-class _FallThroughError extends TypeMatcher {
-  const _FallThroughError(): super("FallThroughError");
-  bool matches(item, Map matchState) => item is FallThroughError;
-}
-
-/** A matcher for NullThrownError. */
-const isNullThrownError = const _NullThrownError();
-
-/** A matcher for functions that throw NullThrownError. */
-const Matcher throwsNullThrownError = const Throws(isNullThrownError);
-
-class _NullThrownError extends TypeMatcher {
-  const _NullThrownError(): super("NullThrownError");
-  bool matches(item, Map matchState) => item is NullThrownError;
-}
-
-/** A matcher for ConcurrentModificationError. */
-const isConcurrentModificationError = const _ConcurrentModificationError();
-
-/** A matcher for functions that throw ConcurrentModificationError. */
-const Matcher throwsConcurrentModificationError =
-    const Throws(isConcurrentModificationError);
-
-class _ConcurrentModificationError extends TypeMatcher {
-  const _ConcurrentModificationError(): super("ConcurrentModificationError");
-  bool matches(item, Map matchState) => item is ConcurrentModificationError;
-}
-
-/** A matcher for AbstractClassInstantiationError. */
-const isAbstractClassInstantiationError =
-    const _AbstractClassInstantiationError();
-
-/** A matcher for functions that throw AbstractClassInstantiationError. */
-const Matcher throwsAbstractClassInstantiationError =
-    const Throws(isAbstractClassInstantiationError);
-
-class _AbstractClassInstantiationError extends TypeMatcher {
-  const _AbstractClassInstantiationError() :
-  super("AbstractClassInstantiationError");
-  bool matches(item, Map matchState) => item is AbstractClassInstantiationError;
-}
-
-/** A matcher for CyclicInitializationError. */
-const isCyclicInitializationError = const _CyclicInitializationError();
-
-/** A matcher for functions that throw CyclicInitializationError. */
-const Matcher throwsCyclicInitializationError =
-    const Throws(isCyclicInitializationError);
-
-class _CyclicInitializationError extends TypeMatcher {
-  const _CyclicInitializationError(): super("CyclicInitializationError");
-  bool matches(item, Map matchState) => item is CyclicInitializationError;
-}
-
-/** A matcher for Map types. */
-const isMap = const _IsMap();
+/// A matcher for Map types.
+const Matcher isMap = const _IsMap();
 
 class _IsMap extends TypeMatcher {
-  const _IsMap(): super("Map");
+  const _IsMap() : super("Map");
   bool matches(item, Map matchState) => item is Map;
 }
 
-/** A matcher for List types. */
-const isList = const _IsList();
+/// A matcher for List types.
+const Matcher isList = const _IsList();
 
 class _IsList extends TypeMatcher {
-  const _IsList(): super("List");
+  const _IsList() : super("List");
   bool matches(item, Map matchState) => item is List;
 }
 
-/**
- * Returns a matcher that matches if an object has a length property
- * that matches [matcher].
- */
+/// Returns a matcher that matches if an object has a length property
+/// that matches [matcher].
 Matcher hasLength(matcher) => new _HasLength(wrapMatcher(matcher));
 
 class _HasLength extends Matcher {
   final Matcher _matcher;
-  const _HasLength([Matcher matcher = null]): this._matcher = matcher;
+  const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
 
   bool matches(item, Map matchState) {
     try {
@@ -722,18 +566,15 @@ class _HasLength extends Matcher {
   }
 }
 
-/**
- * Returns a matcher that matches if the match argument contains
- * the expected value. For [String]s this means substring matching;
- * for [Map]s it means the map has the key, and for [Iterable]s
- * (including [Iterable]s) it means the iterable has a matching
- * element. In the case of iterables, [expected] can itself be a
- * matcher.
- */
+/// Returns a matcher that matches if the match argument contains
+/// the expected value. For [String]s this means substring matching;
+/// for [Map]s it means the map has the key, and for [Iterable]s
+/// (including [Iterable]s) it means the iterable has a matching
+/// element. In the case of iterables, [expected] can itself be a
+/// matcher.
 Matcher contains(expected) => new _Contains(expected);
 
 class _Contains extends Matcher {
-
   final _expected;
 
   const _Contains(this._expected);
@@ -767,14 +608,11 @@ class _Contains extends Matcher {
   }
 }
 
-/**
- * Returns a matcher that matches if the match argument is in
- * the expected value. This is the converse of [contains].
- */
+/// Returns a matcher that matches if the match argument is in
+/// the expected value. This is the converse of [contains].
 Matcher isIn(expected) => new _In(expected);
 
 class _In extends Matcher {
-
   final _expected;
 
   const _In(this._expected);
@@ -794,18 +632,17 @@ class _In extends Matcher {
       description.add('is in ').addDescriptionOf(_expected);
 }
 
-/**
- * Returns a matcher that uses an arbitrary function that returns
- * true or false for the actual value. For example:
- *
- *     expect(v, predicate((x) => ((x % 2) == 0), "is even"))
- */
-Matcher predicate(Function f, [description = 'satisfies function']) =>
+/// Returns a matcher that uses an arbitrary function that returns
+/// true or false for the actual value. For example:
+///
+///     expect(v, predicate((x) => ((x % 2) == 0), "is even"))
+Matcher predicate(bool f(value), [String description = 'satisfies function']) =>
     new _Predicate(f, description);
 
-class _Predicate extends Matcher {
+typedef bool _PredicateFunction(value);
 
-  final Function _matcher;
+class _Predicate extends Matcher {
+  final _PredicateFunction _matcher;
   final String _description;
 
   const _Predicate(this._matcher, this._description);
@@ -816,27 +653,25 @@ class _Predicate extends Matcher {
       description.add(_description);
 }
 
-/**
- * A useful utility class for implementing other matchers through inheritance.
- * Derived classes should call the base constructor with a feature name and
- * description, and an instance matcher, and should implement the
- * [featureValueOf] abstract method.
- *
- * The feature description will typically describe the item and the feature,
- * while the feature name will just name the feature. For example, we may
- * have a Widget class where each Widget has a price; we could make a
- * [CustomMatcher] that can make assertions about prices with:
- *
- *     class HasPrice extends CustomMatcher {
- *       const HasPrice(matcher) :
- *           super("Widget with price that is", "price", matcher);
- *       featureValueOf(actual) => actual.price;
- *     }
- *
- * and then use this for example like:
- *
- *      expect(inventoryItem, new HasPrice(greaterThan(0)));
- */
+/// A useful utility class for implementing other matchers through inheritance.
+/// Derived classes should call the base constructor with a feature name and
+/// description, and an instance matcher, and should implement the
+/// [featureValueOf] abstract method.
+///
+/// The feature description will typically describe the item and the feature,
+/// while the feature name will just name the feature. For example, we may
+/// have a Widget class where each Widget has a price; we could make a
+/// [CustomMatcher] that can make assertions about prices with:
+///
+///     class HasPrice extends CustomMatcher {
+///       const HasPrice(matcher) :
+///           super("Widget with price that is", "price", matcher);
+///       featureValueOf(actual) => actual.price;
+///     }
+///
+/// and then use this for example like:
+///
+///      expect(inventoryItem, new HasPrice(greaterThan(0)));
 class CustomMatcher extends Matcher {
   final String _featureDescription;
   final String _featureName;
@@ -845,7 +680,7 @@ class CustomMatcher extends Matcher {
   CustomMatcher(this._featureDescription, this._featureName, matcher)
       : this._matcher = wrapMatcher(matcher);
 
-  /** Override this to extract the interesting feature.*/
+  /// Override this to extract the interesting feature.
   featureValueOf(actual) => actual;
 
   bool matches(item, Map matchState) {

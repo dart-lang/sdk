@@ -1,5 +1,5 @@
 name: matcher
-version: 0.10.0
+version: 0.10.0+3
 author: Dart Team <misc@dartlang.org>
 description: Support for specifying test expectations
 homepage: http://www.dartlang.org

@@ -6,44 +6,39 @@ library matcher.description;
 
 import 'interfaces.dart';
 import 'pretty_print.dart';
-import 'utils.dart';
 
-/**
- * The default implementation of IDescription. This should rarely need
- * substitution, although conceivably it is a place where other languages
- * could be supported.
- */
+/// The default implementation of [Description]. This should rarely need
+/// substitution, although conceivably it is a place where other languages
+/// could be supported.
 class StringDescription implements Description {
-  var _out;
+  final StringBuffer _out = new StringBuffer();
 
-  /** Initialize the description with initial contents [init]. */
+  /// Initialize the description with initial contents [init].
   StringDescription([String init = '']) {
-    _out = init;
+    _out.write(init);
   }
 
   int get length => _out.length;
 
-  /** Get the description as a string. */
-  String toString() => _out;
+  /// Get the description as a string.
+  String toString() => _out.toString();
 
-  /** Append [text] to the description.  */
-  Description add(text) {
-    _out = '${_out}${text}';
+  /// Append [text] to the description.
+  Description add(String text) {
+    _out.write(text);
     return this;
   }
 
-  /** Change the value of the description. */
+  /// Change the value of the description.
   Description replace(String text) {
-    _out = text;
-    return this;
+    _out.clear();
+    return add(text);
   }
 
-  /**
-   * Appends a description of [value]. If it is an IMatcher use its
-   * describe method; if it is a string use its literal value after
-   * escaping any embedded control characters; otherwise use its
-   * toString() value and wrap it in angular "quotes".
-   */
+  /// Appends a description of [value]. If it is an IMatcher use its
+  /// describe method; if it is a string use its literal value after
+  /// escaping any embedded control characters; otherwise use its
+  /// toString() value and wrap it in angular "quotes".
   Description addDescriptionOf(value) {
     if (value is Matcher) {
       value.describe(this);
@@ -53,11 +48,9 @@ class StringDescription implements Description {
     return this;
   }
 
-  /**
-   * Append an [Iterable] [list] of objects to the description, using the
-   * specified [separator] and framing the list with [start]
-   * and [end].
-   */
+  /// Append an [Iterable] [list] of objects to the description, using the
+  /// specified [separator] and framing the list with [start]
+  /// and [end].
   Description addAll(String start, String separator, String end,
                        Iterable list) {
     var separate = false;
@@ -71,12 +64,5 @@ class StringDescription implements Description {
     }
     add(end);
     return this;
-  }
-
-  /** Escape the control characters in [string] so that they are visible. */
-  _addEscapedString(String string) {
-    add("'");
-    add(escapeString(string));
-    add("'");
   }
 }
