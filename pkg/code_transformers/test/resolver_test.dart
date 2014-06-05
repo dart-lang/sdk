@@ -14,9 +14,21 @@ import 'package:unittest/unittest.dart';
 
 main() {
   useCompactVMConfiguration();
-  var entryPoint = new AssetId('a', 'web/main.dart');
-  var resolvers = new Resolvers(testingDartSdkDirectory);
+  group('mock sdk', () {
+    resolverTests(new Resolvers.fromMock({
+      'dart:core': 'library dart.core;\nclass Object {}',
+      'dart:async': 'library dart.async;',
+      'dart:html': 'library dart.html;',
+    }));
+  });
 
+  group('real sdk', () {
+    resolverTests(new Resolvers(testingDartSdkDirectory));
+  });
+}
+
+resolverTests(Resolvers resolvers) {
+  var entryPoint = new AssetId('a', 'web/main.dart');
   Future validateResolver({Map<String, String> inputs, validator(Resolver),
       List<String> messages: const[]}) {
     return applyTransformers(

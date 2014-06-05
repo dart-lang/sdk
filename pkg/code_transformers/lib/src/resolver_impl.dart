@@ -11,9 +11,7 @@ import 'package:analyzer/src/generated/constant.dart' show ConstantEvaluator,
        EvaluationResult;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
@@ -22,6 +20,7 @@ import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile, Span;
 
 import 'resolver.dart';
+import 'dart_sdk.dart' show UriAnnotatedSource;
 
 // We should always be using url paths here since it's always Dart/pub code.
 final path = native_path.url;
@@ -51,12 +50,10 @@ class ResolverImpl implements Resolver {
   /// Completer for wrapping up the current phase.
   Completer _currentPhaseComplete;
 
-  /// Handler for all Dart SDK (dart:) sources.
-  DirectoryBasedDartSdk _dartSdk;
-
-  /// Creates a resolver, where [sdkDir] is the root directory of the Dart SDK,
-  /// for resolving `dart:*` imports.
-  ResolverImpl(String sdkDir, {AnalysisOptions options}) {
+  /// Creates a resolver with a given [sdk] implementation for resolving
+  /// `dart:*` imports.
+  ResolverImpl(DartSdk sdk, DartUriResolver dartUriResolver,
+      {AnalysisOptions options}) {
     if (options == null) {
       options = new AnalysisOptionsImpl()
         ..cacheSize = 256 // # of sources to cache ASTs for.
@@ -64,12 +61,8 @@ class ResolverImpl implements Resolver {
         ..analyzeFunctionBodies = true;
     }
     _context.analysisOptions = options;
-
-    _dartSdk = new _DirectoryBasedDartSdkProxy(new JavaFile(sdkDir));
-    _dartSdk.context.analysisOptions = options;
-
-    _context.sourceFactory = new SourceFactory([
-        new DartUriResolverProxy(_dartSdk),
+    sdk.context.analysisOptions = options;
+    _context.sourceFactory = new SourceFactory([dartUriResolver,
         new _AssetUriResolver(this)]);
   }
 
@@ -248,7 +241,7 @@ class ResolverImpl implements Resolver {
     var source = element.source;
     if (source is _AssetBasedSource) {
       return source.getSourceUri(from);
-    } else if (source is _DartSourceProxy) {
+    } else if (source is UriAnnotatedSource) {
       return source.uri;
     }
     // Should not be able to encounter any other source types.
@@ -451,86 +444,6 @@ class _AssetUriResolver implements UriResolver {
       throw new UnsupportedError('restoreAbsolute is not supported');
 
   TransformLogger get logger => _resolver._currentTransform.logger;
-}
-
-
-/// Dart SDK which wraps all Dart sources to ensure they are tracked with Uris.
-///
-/// Just a simple wrapper to make it easy to make sure that all sources we
-/// encounter are either _AssetBasedSource or _DartSourceProxy.
-class _DirectoryBasedDartSdkProxy extends DirectoryBasedDartSdk {
-  _DirectoryBasedDartSdkProxy(JavaFile sdkDirectory) : super(sdkDirectory);
-
-  Source mapDartUri(String dartUri) =>
-      _DartSourceProxy.wrap(super.mapDartUri(dartUri), Uri.parse(dartUri));
-}
-
-
-/// Dart SDK resolver which wraps all Dart sources to ensure they are tracked
-/// with URIs.
-class DartUriResolverProxy implements DartUriResolver {
-  final DartUriResolver _proxy;
-  DartUriResolverProxy(DirectoryBasedDartSdk sdk) :
-      _proxy = new DartUriResolver(sdk);
-
-  Source resolveAbsolute(Uri uri) =>
-    _DartSourceProxy.wrap(_proxy.resolveAbsolute(uri), uri);
-
-  DartSdk get dartSdk => _proxy.dartSdk;
-
-  Source fromEncoding(UriKind kind, Uri uri) =>
-      throw new UnsupportedError('fromEncoding is not supported');
-
-  Uri restoreAbsolute(Source source) =>
-      throw new UnsupportedError('restoreAbsolute is not supported');
-}
-
-/// Source file for dart: sources which track the sources with dart: URIs.
-///
-/// This is primarily to support [Resolver.getImportUri] for Dart SDK (dart:)
-/// based libraries.
-class _DartSourceProxy implements Source {
-
-  /// Absolute URI which this source can be imported from
-  final Uri uri;
-
-  /// Underlying source object.
-  final Source _proxy;
-
-  _DartSourceProxy(this._proxy, this.uri);
-
-  /// Ensures that [source] is a _DartSourceProxy.
-  static _DartSourceProxy wrap(Source source, Uri uri) {
-    if (source == null || source is _DartSourceProxy) return source;
-    return new _DartSourceProxy(source, uri);
-  }
-
-  Source resolveRelative(Uri relativeUri) {
-    // Assume that the type can be accessed via this URI, since these
-    // should only be parts for dart core files.
-    return wrap(_proxy.resolveRelative(relativeUri), uri);
-  }
-
-  bool exists() => _proxy.exists();
-
-  bool operator ==(Object other) =>
-    (other is _DartSourceProxy && _proxy == other._proxy);
-
-  int get hashCode => _proxy.hashCode;
-
-  TimestampedData<String> get contents => _proxy.contents;
-
-  String get encoding => _proxy.encoding;
-
-  String get fullName => _proxy.fullName;
-
-  int get modificationStamp => _proxy.modificationStamp;
-
-  String get shortName => _proxy.shortName;
-
-  UriKind get uriKind => _proxy.uriKind;
-
-  bool get isInSystemLibrary => _proxy.isInSystemLibrary;
 }
 
 /// Get an asset ID for a URL relative to another source asset.
