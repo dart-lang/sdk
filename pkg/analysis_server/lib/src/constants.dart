@@ -40,15 +40,25 @@ const String NOTIFICATION_OUTLINE =    'analysis.outline';
 
 
 const String ADDED = 'added';
+const String ARGUMENTS = 'arguments';
+const String CHILDREN = 'children';
 const String CONTENT = 'content';
 const String DEFAULT = 'default';
+const String ELEMENT_LENGTH = 'elementLength';
+const String ELEMENT_OFFSET = 'elementOffset';
 const String EXCLUDED = 'excluded';
 const String ERRORS = 'errors';
 const String FILE = 'file';
 const String FILES = 'files';
 const String FIXES = 'fixes';
 const String INCLUDED = 'included';
+const String IS_ABSTRACT = 'isAbstract';
+const String IS_STATIC = 'isStatic';
+const String KIND = 'kind';
 const String LENGTH = 'length';
+const String NAME = 'name';
+const String NAME_LENGTH = 'nameLength';
+const String NAME_OFFSET = 'nameOffset';
 const String NEW_LENGTH = 'newLength';
 const String OFFSET = 'offset';
 const String OLD_LENGTH = 'oldLength';
@@ -57,6 +67,7 @@ const String OUTLINE = 'outline';
 const String REFACTORINGS = 'refactorings';
 const String REGIONS = 'regions';
 const String REMOVED = 'removed';
+const String RETURN_TYPE = 'returnType';
 const String SUBSCRIPTIONS = 'subscriptions';
 const String VERSION = 'version';
 

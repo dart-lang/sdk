@@ -325,10 +325,25 @@ class AnalysisServer {
           List<AnalysisError> errors = analysisContext.getErrors(source).errors;
           sendAnalysisNotificationErrors(this, file, errors);
         }
+        // TODO(scheglov)
+        // 1. implement resolveCompilationUnit()
+        // 2. Share "if (dartUnit != null)"
         if (service == AnalysisService.HIGHLIGHTS) {
           CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
           if (dartUnit != null) {
             sendAnalysisNotificationHighlights(this, file, dartUnit);
+          }
+        }
+        if (service == AnalysisService.NAVIGATION) {
+          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+          if (dartUnit != null) {
+            sendAnalysisNotificationNavigation(this, file, dartUnit);
+          }
+        }
+        if (service == AnalysisService.OUTLINE) {
+          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+          if (dartUnit != null) {
+            sendAnalysisNotificationOutline(this, file, dartUnit);
           }
         }
       }

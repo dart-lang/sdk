@@ -8,6 +8,7 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_navigation.dart';
+import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -76,6 +77,9 @@ class PerformAnalysisOperation extends ServerOperation {
         if (server.hasAnalysisSubscription(AnalysisService.NAVIGATION, file)) {
           sendAnalysisNotificationNavigation(server, file, dartUnit);
         }
+        if (server.hasAnalysisSubscription(AnalysisService.OUTLINE, file)) {
+          sendAnalysisNotificationOutline(server, file, dartUnit);
+        }
       }
       if (!source.isInSystemLibrary) {
         sendAnalysisNotificationErrors(server, file, notice.errors);
@@ -84,6 +88,7 @@ class PerformAnalysisOperation extends ServerOperation {
   }
 }
 
+
 void sendAnalysisNotificationErrors(AnalysisServer server,
                                     String file, List<AnalysisError> errors) {
   Notification notification = new Notification(NOTIFICATION_ERRORS);
@@ -91,6 +96,7 @@ void sendAnalysisNotificationErrors(AnalysisServer server,
   notification.setParameter(ERRORS, errors.map(errorToJson).toList());
   server.sendNotification(notification);
 }
+
 
 void sendAnalysisNotificationHighlights(AnalysisServer server,
                                         String file, CompilationUnit dartUnit) {
@@ -102,6 +108,7 @@ void sendAnalysisNotificationHighlights(AnalysisServer server,
   server.sendNotification(notification);
 }
 
+
 void sendAnalysisNotificationNavigation(AnalysisServer server,
                                         String file, CompilationUnit dartUnit) {
   Notification notification = new Notification(NOTIFICATION_NAVIGATION);
@@ -111,6 +118,18 @@ void sendAnalysisNotificationNavigation(AnalysisServer server,
       new DartUnitNavigationComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
+
+
+void sendAnalysisNotificationOutline(AnalysisServer server,
+                                        String file, CompilationUnit dartUnit) {
+  Notification notification = new Notification(NOTIFICATION_OUTLINE);
+  notification.setParameter(FILE, file);
+  notification.setParameter(
+      OUTLINE,
+      new DartUnitOutlineComputer(dartUnit).compute());
+  server.sendNotification(notification);
+}
+
 
 Map<String, Object> errorToJson(AnalysisError analysisError) {
   // TODO(paulberry): move this function into the AnalysisError class.
