@@ -802,6 +802,9 @@ class CallSiteInliner : public ValueObject {
         FlowGraph::AddToGuardedFields(caller_graph_->guarded_fields(),
                                       (*callee_graph->guarded_fields())[i]);
       }
+      // When inlined, we add the deferred prefixes of the callee to the
+      // caller's list of deferred prefixes.
+      caller_graph()->AddToDeferredPrefixes(callee_graph->deferred_prefixes());
 
       // We allocate a ZoneHandle for the unoptimized code so that it cannot be
       // disconnected from its function during the rest of compilation.

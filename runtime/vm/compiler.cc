@@ -59,6 +59,7 @@ DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
+DECLARE_FLAG(bool, trace_patching);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, warning_as_error);
 
@@ -556,8 +557,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         if (optimized) {
           if (osr_id == Isolate::kNoDeoptId) {
             CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
-            if (FLAG_trace_compiler) {
-              OS::Print("--> patching entry %#" Px "\n",
+            if (FLAG_trace_compiler || FLAG_trace_patching) {
+              if (FLAG_trace_compiler) {
+                OS::Print("  ");
+              }
+              OS::Print("Patch unoptimized '%s' entry point %#" Px "\n",
+                  function.ToFullyQualifiedCString(),
                   Code::Handle(function.unoptimized_code()).EntryPoint());
             }
           }
@@ -575,11 +580,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           ASSERT(CodePatcher::CodeIsPatchable(code));
         }
         if (parsed_function->HasDeferredPrefixes()) {
-          GrowableObjectArray* prefixes = parsed_function->DeferredPrefixes();
-          LibraryPrefix& prefix = LibraryPrefix::Handle();
-          for (intptr_t i = 0; i < prefixes->Length(); i++) {
-            prefix ^= prefixes->At(i);
-            prefix.RegisterDependentCode(code);
+          ZoneGrowableArray<const LibraryPrefix*>* prefixes =
+              parsed_function->deferred_prefixes();
+          for (intptr_t i = 0; i < prefixes->length(); i++) {
+            (*prefixes)[i]->RegisterDependentCode(code);
           }
         }
       }

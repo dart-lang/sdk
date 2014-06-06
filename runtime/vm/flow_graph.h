@@ -216,9 +216,14 @@ class FlowGraph : public ZoneAllocated {
 
   static void AddToGuardedFields(ZoneGrowableArray<const Field*>* array,
                                  const Field* field);
+  void AddToDeferredPrefixes(ZoneGrowableArray<const LibraryPrefix*>* from);
 
   ZoneGrowableArray<const Field*>* guarded_fields() const {
     return guarded_fields_;
+  }
+
+  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
+    return deferred_prefixes_;
   }
 
  private:
@@ -300,6 +305,7 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
+  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
 };
 
 

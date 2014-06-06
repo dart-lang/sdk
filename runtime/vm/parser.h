@@ -47,7 +47,7 @@ class ParsedFunction : public ZoneAllocated {
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
-        deferred_prefixes_(NULL),
+        deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -110,8 +110,10 @@ class ParsedFunction : public ZoneAllocated {
   static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
   LocalVariable* EnsureExpressionTemp();
 
-  bool HasDeferredPrefixes() const { return deferred_prefixes_ != NULL; }
-  GrowableObjectArray* DeferredPrefixes() const { return deferred_prefixes_; }
+  bool HasDeferredPrefixes() const { return deferred_prefixes_->length() != 0; }
+  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
+    return deferred_prefixes_;
+  }
   void AddDeferredPrefix(const LibraryPrefix& prefix);
 
   int first_parameter_index() const { return first_parameter_index_; }
@@ -132,7 +134,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
-  GrowableObjectArray* deferred_prefixes_;
+  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
 
   int first_parameter_index_;
   int first_stack_local_index_;

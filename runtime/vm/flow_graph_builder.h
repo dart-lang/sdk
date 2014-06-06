@@ -199,6 +199,10 @@ class FlowGraphBuilder: public ValueObject {
     return guarded_fields_;
   }
 
+  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
+    return parsed_function_->deferred_prefixes();
+  }
+
   intptr_t temp_count() const { return temp_count_; }
   intptr_t AllocateTemp() { return temp_count_++; }
   void DeallocateTemps(intptr_t count) {
