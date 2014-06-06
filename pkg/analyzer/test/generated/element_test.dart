@@ -3269,6 +3269,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.instance));
   }
 
+  void test_isMoreSpecificThan_generic() {
+    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
+    ClassElement classB = ElementFactory.classElement2("B", []);
+    DartType dynamicType = DynamicTypeImpl.instance;
+    InterfaceType typeAOfDynamic = classA.type.substitute4(<DartType> [dynamicType]);
+    InterfaceType typeAOfB = classA.type.substitute4(<DartType> [classB.type]);
+    JUnitTestCase.assertFalse(typeAOfDynamic.isMoreSpecificThan(typeAOfB));
+    JUnitTestCase.assertTrue(typeAOfB.isMoreSpecificThan(typeAOfDynamic));
+  }
+
   void test_isMoreSpecificThan_self() {
     InterfaceType type = ElementFactory.classElement2("A", []).type;
     JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
@@ -3390,6 +3400,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classA.methods = <MethodElement> [ElementFactory.methodElement("call", VoidTypeImpl.instance, [stringType])];
     FunctionType functionType = ElementFactory.functionElement5("f", <ClassElement> [stringType.element]).type;
     JUnitTestCase.assertTrue(classA.type.isSubtypeOf(functionType));
+  }
+
+  void test_isSubtypeOf_generic() {
+    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
+    ClassElement classB = ElementFactory.classElement2("B", []);
+    DartType dynamicType = DynamicTypeImpl.instance;
+    InterfaceType typeAOfDynamic = classA.type.substitute4(<DartType> [dynamicType]);
+    InterfaceType typeAOfB = classA.type.substitute4(<DartType> [classB.type]);
+    JUnitTestCase.assertTrue(typeAOfDynamic.isSubtypeOf(typeAOfB));
+    JUnitTestCase.assertTrue(typeAOfB.isSubtypeOf(typeAOfDynamic));
   }
 
   void test_isSubtypeOf_interface() {
@@ -4100,6 +4120,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_isMoreSpecificThan_dynamic);
       });
+      _ut.test('test_isMoreSpecificThan_generic', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_generic);
+      });
       _ut.test('test_isMoreSpecificThan_self', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_isMoreSpecificThan_self);
@@ -4139,6 +4163,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_isSubtypeOf_function', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_function);
+      });
+      _ut.test('test_isSubtypeOf_generic', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_generic);
       });
       _ut.test('test_isSubtypeOf_interface', () {
         final __test = new InterfaceTypeImplTest();

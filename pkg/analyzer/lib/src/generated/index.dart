@@ -174,6 +174,33 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
 }
 
 /**
+ * Instances of the [ClearOperation] implement an operation that removes all of the
+ * information from the index.
+ */
+class ClearOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  final IndexStore _indexStore;
+
+  ClearOperation(this._indexStore);
+
+  @override
+  bool get isQuery => false;
+
+  @override
+  void performOperation() {
+    _indexStore.clear();
+  }
+
+  @override
+  bool removeWhenSourceRemoved(Source source) => false;
+
+  @override
+  String toString() => "ClearOperation()";
+}
+
+/**
  * Recursively visits [HtmlUnit] and every embedded [Expression].
  */
 abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
@@ -264,6 +291,11 @@ class GetRelationshipsOperation implements IndexOperation {
  * order in which the callbacks for read operations will be invoked.
  */
 abstract class Index {
+  /**
+   * Asynchronously remove from the index all of the information.
+   */
+  void clear();
+
   /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the
    * elements that have the given relationship with the given element. For example, if the element
@@ -1563,6 +1595,11 @@ abstract class IndexStore {
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
 
   /**
+   * Removes all of the information.
+   */
+  void clear();
+
+  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is
@@ -1947,6 +1984,16 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     _recordUnitInLibrary(context, null, source);
     // OK, we can index
     return true;
+  }
+
+  @override
+  void clear() {
+    _canonicalKeys.clear();
+    _keyToLocations.clear();
+    _contextToSourceToKeys.clear();
+    _contextToSourceToLocations.clear();
+    _contextToLibraryToUnits.clear();
+    _contextToUnitToLibraries.clear();
   }
 
   @override

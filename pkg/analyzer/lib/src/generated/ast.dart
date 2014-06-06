@@ -2221,7 +2221,7 @@ abstract class AstNode {
       }
     } else {
       if (_propertyMap == null) {
-        _propertyMap = new Map<String, Object>();
+        _propertyMap = new HashMap<String, Object>();
       }
       _propertyMap[propertyName] = propertyValue;
     }
@@ -4554,7 +4554,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitMapLiteral(MapLiteral node) {
-    Map<String, Object> map = new Map<String, Object>();
+    HashMap<String, Object> map = new HashMap<String, Object>();
     for (MapLiteralEntry entry in node.entries) {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
@@ -14508,7 +14508,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
 
   AstNode _immediateChild;
 
-  Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
+  Map<String, SimpleIdentifier> _locals = new HashMap<String, SimpleIdentifier>();
 
   final int _position;
 
@@ -18305,7 +18305,7 @@ abstract class UriBasedDirective extends Directive {
   }
 
   /**
-   * Validate the given directive, but do not check for existance.
+   * Validate the given directive, but do not check for existence.
    *
    * @return a code indicating the problem if there is one, or `null` no problem
    */
@@ -18588,6 +18588,7 @@ class VariableDeclarationList extends AnnotatedNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     _variables.accept(visitor);
   }

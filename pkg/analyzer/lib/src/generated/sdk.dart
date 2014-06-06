@@ -7,6 +7,7 @@
 
 library engine.sdk;
 
+import 'dart:collection';
 import 'source.dart' show ContentCache, Source, UriKind;
 import 'ast.dart';
 import 'engine.dart' show AnalysisContext;
@@ -101,7 +102,7 @@ class LibraryMap {
   /**
    * A table mapping Dart library URI's to the library.
    */
-  Map<String, SdkLibraryImpl> _libraryMap = new Map<String, SdkLibraryImpl>();
+  HashMap<String, SdkLibraryImpl> _libraryMap = new HashMap<String, SdkLibraryImpl>();
 
   /**
    * Return the library with the given URI, or `null` if the URI does not map to a library.

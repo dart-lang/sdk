@@ -7,6 +7,7 @@
 
 library engine.test_support;
 
+import 'dart:collection';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -453,7 +454,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * A table mapping sources to the line information for the source.
    */
-  Map<Source, LineInfo> _lineInfoMap = new Map<Source, LineInfo>();
+  HashMap<Source, LineInfo> _lineInfoMap = new HashMap<Source, LineInfo>();
 
   /**
    * An empty array of errors used when no errors are expected.
@@ -536,7 +537,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the expected number of each type of error.
     //
-    Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
+    HashMap<ErrorCode, int> expectedCounts = new HashMap<ErrorCode, int>();
     for (ErrorCode code in expectedErrorCodes) {
       int count = expectedCounts[code];
       if (count == null) {
@@ -549,7 +550,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
+    HashMap<ErrorCode, List<AnalysisError>> errorsByCode = new HashMap<ErrorCode, List<AnalysisError>>();
     for (AnalysisError error in _errors) {
       ErrorCode code = error.errorCode;
       List<AnalysisError> list = errorsByCode[code];

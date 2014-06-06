@@ -7,6 +7,7 @@
 
 library engine;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'utilities_collection.dart';
@@ -18,10 +19,10 @@ import 'scanner.dart';
 import 'ast.dart';
 import 'parser.dart' show Parser, IncrementalParser;
 import 'sdk.dart' show DartSdk;
+import 'constant.dart';
 import 'element.dart';
 import 'resolver.dart';
 import 'html.dart' as ht;
-import 'package:analyzer/src/generated/constant.dart';
 
 /**
  * Instances of the class `AnalysisCache` implement an LRU cache of information related to
@@ -867,19 +868,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * An array containing sources whose AST structure is needed in order to resolve the next library
    * to be resolved.
    */
-  Set<Source> _neededForResolution = null;
+  HashSet<Source> _neededForResolution = null;
 
   /**
    * A table mapping sources to the change notices that are waiting to be returned related to that
    * source.
    */
-  Map<Source, ChangeNoticeImpl> _pendingNotices = new Map<Source, ChangeNoticeImpl>();
+  HashMap<Source, ChangeNoticeImpl> _pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
    * A set containing information about the tasks that have been performed since the last change
    * notification. Used to detect infinite loops in [performAnalysisTask].
    */
-  Set<String> _recentTasks = new Set<String>();
+  HashSet<String> _recentTasks = new HashSet<String>();
 
   /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
@@ -1522,7 +1523,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @return a list of the sources that would be processed by [performAnalysisTask]
    */
   List<Source> get sourcesNeedingProcessing {
-    Set<Source> sources = new Set<Source>();
+    HashSet<Source> sources = new HashSet<Source>();
     bool hintsEnabled = _options.hint;
     //
     // Look for priority sources that need to be analyzed.
@@ -2490,7 +2491,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param library the library on which the other libraries depend
    * @param librariesToInvalidate the libraries that depend on the given library
    */
-  void _computeAllLibrariesDependingOn(Source library, Set<Source> librariesToInvalidate) {
+  void _computeAllLibrariesDependingOn(Source library, HashSet<Source> librariesToInvalidate) {
     if (librariesToInvalidate.add(library)) {
       for (Source dependentLibrary in getLibrariesDependingOn(library)) {
         _computeAllLibrariesDependingOn(dependentLibrary, librariesToInvalidate);
@@ -3519,7 +3520,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param hintsEnabled `true` if hints are currently enabled
    * @param sources the set to which sources should be added
    */
-  void _getSourcesNeedingProcessing(Source source, SourceEntry sourceEntry, bool isPriority, bool hintsEnabled, Set<Source> sources) {
+  void _getSourcesNeedingProcessing(Source source, SourceEntry sourceEntry, bool isPriority, bool hintsEnabled, HashSet<Source> sources) {
     if (sourceEntry is DartEntry) {
       DartEntry dartEntry = sourceEntry;
       CacheState scanErrorsState = dartEntry.getState(DartEntry.SCAN_ERRORS);
@@ -3627,7 +3628,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    */
   void _invalidateAllLocalResolutionInformation() {
-    Map<Source, List<Source>> oldPartMap = new Map<Source, List<Source>>();
+    HashMap<Source, List<Source>> oldPartMap = new HashMap<Source, List<Source>>();
     MapIterator<Source, SourceEntry> iterator = _privatePartition.iterator();
     while (iterator.moveNext()) {
       Source source = iterator.key;
@@ -3750,7 +3751,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    *          infinite recursion
    * @return `true` if this library is, or depends on, dart:html
    */
-  bool _isClient(LibraryElement library, Source htmlSource, Set<LibraryElement> visitedLibraries) {
+  bool _isClient(LibraryElement library, Source htmlSource, HashSet<LibraryElement> visitedLibraries) {
     if (visitedLibraries.contains(library)) {
       return false;
     }
@@ -3870,7 +3871,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               LibraryElementImpl libraryElement = library.libraryElement;
               dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
               dartCopy.setValue(DartEntry.IS_LAUNCHABLE, libraryElement.entryPoint != null);
-              dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new Set<LibraryElement>()));
+              dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new HashSet<LibraryElement>()));
             }
           } else {
             dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
@@ -3949,7 +3950,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void _recordElementData(DartEntryImpl dartCopy, LibraryElement library, Source librarySource, Source htmlSource) {
     dartCopy.setValue(DartEntry.ELEMENT, library);
     dartCopy.setValue(DartEntry.IS_LAUNCHABLE, library.entryPoint != null);
-    dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(library, htmlSource, new Set<LibraryElement>()));
+    dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(library, htmlSource, new HashSet<LibraryElement>()));
   }
 
   /**
@@ -4038,7 +4039,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     Source librarySource = task.libraryElement.source;
     CaughtException thrownException = task.exception;
     DartEntry libraryEntry = null;
-    Map<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
+    HashMap<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
     if (hintMap == null) {
       // We don't have any information about which sources to mark as invalid other than the library
       // source.
@@ -4949,7 +4950,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    *
    * @param oldPartMap the table containing the parts associated with each library
    */
-  void _removeFromPartsUsingMap(Map<Source, List<Source>> oldPartMap) {
+  void _removeFromPartsUsingMap(HashMap<Source, List<Source>> oldPartMap) {
     for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
       Source librarySource = entry.getKey();
       List<Source> oldParts = entry.getValue();
@@ -5036,7 +5037,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _workManager.add(source, SourcePriority.HTML);
     } else if (sourceEntry is DartEntry) {
       List<Source> containingLibraries = getLibrariesContaining(source);
-      Set<Source> librariesToInvalidate = new Set<Source>();
+      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
       for (Source containingLibrary in containingLibraries) {
         _computeAllLibrariesDependingOn(containingLibrary, librariesToInvalidate);
       }
@@ -5066,7 +5067,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.recordContentError(new CaughtException(new AnalysisException("This source was marked as being deleted"), null));
       _cache.put(source, htmlCopy);
     } else if (sourceEntry is DartEntry) {
-      Set<Source> libraries = new Set<Source>();
+      HashSet<Source> libraries = new HashSet<Source>();
       for (Source librarySource in getLibrariesContaining(source)) {
         libraries.add(librarySource);
         for (Source dependentLibrary in getLibrariesDependingOn(librarySource)) {
@@ -5095,7 +5096,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
       _invalidateAngularResolution(htmlCopy);
     } else if (sourceEntry is DartEntry) {
-      Set<Source> libraries = new Set<Source>();
+      HashSet<Source> libraries = new HashSet<Source>();
       for (Source librarySource in getLibrariesContaining(source)) {
         libraries.add(librarySource);
         for (Source dependentLibrary in getLibrariesDependingOn(librarySource)) {
@@ -5261,7 +5262,7 @@ class AnalysisContextImpl_CycleBuilder {
    * A table mapping the sources of the defining compilation units of libraries to the
    * representation of the library that has the information needed to resolve the library.
    */
-  Map<Source, ResolvableLibrary> _libraryMap = new Map<Source, ResolvableLibrary>();
+  HashMap<Source, ResolvableLibrary> _libraryMap = new HashMap<Source, ResolvableLibrary>();
 
   /**
    * The dependency graph used to compute the libraries in the cycle.
@@ -5558,7 +5559,7 @@ class AnalysisContextImpl_CycleBuilder {
    *
    * @param library the library being tested
    */
-  void _ensureExports(ResolvableLibrary library, Set<Source> visitedLibraries) {
+  void _ensureExports(ResolvableLibrary library, HashSet<Source> visitedLibraries) {
     List<ResolvableLibrary> dependencies = library.exports;
     int dependencyCount = dependencies.length;
     for (int i = 0; i < dependencyCount; i++) {
@@ -5610,7 +5611,7 @@ class AnalysisContextImpl_CycleBuilder {
    * cycle (but are not themselves in the cycle) have element models built for them.
    */
   void _ensureImportsAndExports() {
-    Set<Source> visitedLibraries = new Set<Source>();
+    HashSet<Source> visitedLibraries = new HashSet<Source>();
     int libraryCount = _librariesInCycle.length;
     for (int i = 0; i < libraryCount; i++) {
       ResolvableLibrary library = _librariesInCycle[i];
@@ -5666,9 +5667,9 @@ class AnalysisContextImpl_CycleBuilder {
     }
   }
 
-  Set<Source> _gatherSources(List<CycleBuilder_LibraryPair> libraryData) {
+  HashSet<Source> _gatherSources(List<CycleBuilder_LibraryPair> libraryData) {
     int libraryCount = libraryData.length;
-    Set<Source> sources = new Set<Source>();
+    HashSet<Source> sources = new HashSet<Source>();
     for (int i = 0; i < libraryCount; i++) {
       List<CycleBuilder_SourceEntryPair> entryPairs = libraryData[i].entryPairs;
       int entryCount = entryPairs.length;
@@ -5784,11 +5785,11 @@ abstract class AnalysisContextStatistics {
  * Implementation of the [AnalysisContextStatistics].
  */
 class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
-  Map<String, AnalysisContextStatistics_CacheRow> _dataMap = new Map<String, AnalysisContextStatistics_CacheRow>();
+  Map<String, AnalysisContextStatistics_CacheRow> _dataMap = new HashMap<String, AnalysisContextStatistics_CacheRow>();
 
   List<Source> _sources = new List<Source>();
 
-  Set<CaughtException> _exceptions = new Set<CaughtException>();
+  HashSet<CaughtException> _exceptions = new HashSet<CaughtException>();
 
   List<AnalysisContextStatistics_PartitionData> _partitionData;
 
@@ -5965,7 +5966,7 @@ class AnalysisDelta {
   /**
    * A mapping from source to what type of analysis should be performed on that source.
    */
-  Map<Source, AnalysisLevel> _analysisMap = new Map<Source, AnalysisLevel>();
+  HashMap<Source, AnalysisLevel> _analysisMap = new HashMap<Source, AnalysisLevel>();
 
   /**
    * Return a collection of the sources that have been added. This is equivalent to calling
@@ -7645,7 +7646,7 @@ class BuildDartElementModelTask extends AnalysisTask {
   /**
    * A table mapping library sources to the information being maintained for those libraries.
    */
-  Map<Source, ResolvableLibrary> _libraryMap = new Map<Source, ResolvableLibrary>();
+  HashMap<Source, ResolvableLibrary> _libraryMap = new HashMap<Source, ResolvableLibrary>();
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -7759,7 +7760,7 @@ class BuildDartElementModelTask extends AnalysisTask {
   void _buildDirectiveModels() {
     AnalysisContext analysisContext = context;
     for (ResolvableLibrary library in librariesInCycle) {
-      Map<String, PrefixElementImpl> nameToPrefixMap = new Map<String, PrefixElementImpl>();
+      HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
       List<ImportElement> imports = new List<ImportElement>();
       List<ExportElement> exports = new List<ExportElement>();
       for (Directive directive in library.definingCompilationUnit.directives) {
@@ -7872,8 +7873,8 @@ class BuildDartElementModelTask extends AnalysisTask {
    *
    * @return the map that was built
    */
-  Map<Source, ResolvableLibrary> _buildLibraryMap() {
-    Map<Source, ResolvableLibrary> libraryMap = new Map<Source, ResolvableLibrary>();
+  HashMap<Source, ResolvableLibrary> _buildLibraryMap() {
+    HashMap<Source, ResolvableLibrary> libraryMap = new HashMap<Source, ResolvableLibrary>();
     int libraryCount = librariesInCycle.length;
     for (int i = 0; i < libraryCount; i++) {
       ResolvableLibrary library = librariesInCycle[i];
@@ -7936,7 +7937,7 @@ abstract class CachePartition {
   /**
    * A table mapping the sources known to the context to the information known about the source.
    */
-  Map<Source, SourceEntry> _sourceMap = new Map<Source, SourceEntry>();
+  HashMap<Source, SourceEntry> _sourceMap = new HashMap<Source, SourceEntry>();
 
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
@@ -8358,13 +8359,13 @@ class ChangeSet {
    * A table mapping the sources whose content has been changed to the current content of those
    * sources.
    */
-  Map<Source, String> _changedContent = new Map<Source, String>();
+  HashMap<Source, String> _changedContent = new HashMap<Source, String>();
 
   /**
    * A table mapping the sources whose content has been changed within a single range to the current
    * content of those sources and information about the affected range.
    */
-  final Map<Source, ChangeSet_ContentChange> changedRanges = new Map<Source, ChangeSet_ContentChange>();
+  final HashMap<Source, ChangeSet_ContentChange> changedRanges = new HashMap<Source, ChangeSet_ContentChange>();
 
   /**
    * A list containing the sources that have been removed.
@@ -8536,7 +8537,7 @@ class ChangeSet {
    * @param label the label used to prefix the sources
    * @return `true` if future lists of sources will need a separator
    */
-  bool _appendSources2(JavaStringBuilder builder, Map<Source, dynamic> sources, bool needsSeparator, String label) {
+  bool _appendSources2(JavaStringBuilder builder, HashMap<Source, dynamic> sources, bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
     }
@@ -10478,7 +10479,7 @@ class GenerateDartHintsTask extends AnalysisTask {
    * A table mapping the sources that were analyzed to the hints that were generated for the
    * sources.
    */
-  Map<Source, TimestampedData<List<AnalysisError>>> _hintMap;
+  HashMap<Source, TimestampedData<List<AnalysisError>>> _hintMap;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -10501,7 +10502,7 @@ class GenerateDartHintsTask extends AnalysisTask {
    * @return a table mapping the sources that were analyzed to the hints that were generated for the
    *         sources
    */
-  Map<Source, TimestampedData<List<AnalysisError>>> get hintMap => _hintMap;
+  HashMap<Source, TimestampedData<List<AnalysisError>>> get hintMap => _hintMap;
 
   @override
   String get taskDescription {
@@ -10531,7 +10532,7 @@ class GenerateDartHintsTask extends AnalysisTask {
     //
     // Store the results.
     //
-    _hintMap = new Map<Source, TimestampedData<List<AnalysisError>>>();
+    _hintMap = new HashMap<Source, TimestampedData<List<AnalysisError>>>();
     for (int i = 0; i < unitCount; i++) {
       int modificationTime = _units[i].modificationTime;
       Source source = _units[i].data.element.source;
@@ -12762,17 +12763,17 @@ class ParseDartTask extends AnalysisTask {
   /**
    * A set containing the sources referenced by 'export' directives.
    */
-  Set<Source> _exportedSources = new Set<Source>();
+  HashSet<Source> _exportedSources = new HashSet<Source>();
 
   /**
    * A set containing the sources referenced by 'import' directives.
    */
-  Set<Source> _importedSources = new Set<Source>();
+  HashSet<Source> _importedSources = new HashSet<Source>();
 
   /**
    * A set containing the sources referenced by 'part' directives.
    */
-  Set<Source> _includedSources = new Set<Source>();
+  HashSet<Source> _includedSources = new HashSet<Source>();
 
   /**
    * The errors that were produced by scanning and parsing the source.
@@ -12907,7 +12908,7 @@ class ParseDartTask extends AnalysisTask {
    * @param sources the set to be converted
    * @return an array containing all of the sources in the given set
    */
-  List<Source> _toArray(Set<Source> sources) {
+  List<Source> _toArray(HashSet<Source> sources) {
     int size = sources.length;
     if (size == 0) {
       return Source.EMPTY_ARRAY;
@@ -13071,7 +13072,7 @@ class PartitionManager {
   /**
    * A table mapping SDK's to the partitions used for those SDK's.
    */
-  Map<DartSdk, SdkCachePartition> _sdkPartitions = new Map<DartSdk, SdkCachePartition>();
+  HashMap<DartSdk, SdkCachePartition> _sdkPartitions = new HashMap<DartSdk, SdkCachePartition>();
 
   /**
    * The default cache size for a Dart SDK partition.
@@ -13654,7 +13655,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /**
    * A HashMap of lists containing the errors that were collected, keyed by each [Source].
    */
-  Map<Source, Set<AnalysisError>> _errors = new Map<Source, Set<AnalysisError>>();
+  Map<Source, HashSet<AnalysisError>> _errors = new HashMap<Source, HashSet<AnalysisError>>();
 
   /**
    * Add all of the errors recorded by the given listener to this listener.
@@ -13673,13 +13674,13 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<MapEntry<Source, Set<AnalysisError>>> entrySet = getMapEntrySet(_errors);
+    Iterable<MapEntry<Source, HashSet<AnalysisError>>> entrySet = getMapEntrySet(_errors);
     int numEntries = entrySet.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, Set<AnalysisError>> entry in entrySet) {
+    for (MapEntry<Source, HashSet<AnalysisError>> entry in entrySet) {
       resultList.addAll(entry.getValue());
     }
     return new List.from(resultList);
@@ -13693,7 +13694,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return the errors collected by the listener for the passed [Source]
    */
   List<AnalysisError> getErrorsForSource(Source source) {
-    Set<AnalysisError> errorsForSource = _errors[source];
+    HashSet<AnalysisError> errorsForSource = _errors[source];
     if (errorsForSource == null) {
       return AnalysisError.NO_ERRORS;
     } else {
@@ -13704,9 +13705,9 @@ class RecordingErrorListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError error) {
     Source source = error.source;
-    Set<AnalysisError> errorsForSource = _errors[source];
+    HashSet<AnalysisError> errorsForSource = _errors[source];
     if (_errors[source] == null) {
-      errorsForSource = new Set<AnalysisError>();
+      errorsForSource = new HashSet<AnalysisError>();
       _errors[source] = errorsForSource;
     }
     errorsForSource.add(error);

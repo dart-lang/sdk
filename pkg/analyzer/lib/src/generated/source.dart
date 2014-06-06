@@ -7,6 +7,7 @@
 
 library engine.source;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, TimestampedData;
@@ -20,13 +21,13 @@ class ContentCache {
    * A table mapping sources to the contents of those sources. This is used to override the default
    * contents of a source.
    */
-  Map<Source, String> _contentMap = new Map<Source, String>();
+  HashMap<Source, String> _contentMap = new HashMap<Source, String>();
 
   /**
    * A table mapping sources to the modification stamps of those sources. This is used when the
    * default contents of a source has been overridden.
    */
-  Map<Source, int> _stampMap = new Map<Source, int>();
+  HashMap<Source, int> _stampMap = new HashMap<Source, int>();
 
   /**
    * Return the contents of the given source, or `null` if this cache does not override the

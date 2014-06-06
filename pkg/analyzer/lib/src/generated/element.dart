@@ -1413,7 +1413,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   bool get hasNonFinalField {
     List<ClassElement> classesToVisit = new List<ClassElement>();
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     classesToVisit.add(this);
     while (!classesToVisit.isEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
@@ -1465,7 +1465,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
-  bool get isOrInheritsProxy => _safeIsOrInheritsProxy(this, new Set<ClassElement>());
+  bool get isOrInheritsProxy => _safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
 
   @override
   bool get isProxy {
@@ -1701,7 +1701,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   PropertyAccessorElement _internalLookUpGetter(String getterName, LibraryElement library, bool includeThisClass) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     ClassElement currentElement = this;
     if (includeThisClass) {
       PropertyAccessorElement element = currentElement.getGetter(getterName);
@@ -1733,7 +1733,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   MethodElement _internalLookUpMethod(String methodName, LibraryElement library, bool includeThisClass) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     ClassElement currentElement = this;
     if (includeThisClass) {
       MethodElement element = currentElement.getMethod(methodName);
@@ -1765,7 +1765,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   PropertyAccessorElement _internalLookUpSetter(String setterName, LibraryElement library, bool includeThisClass) {
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     ClassElement currentElement = this;
     if (includeThisClass) {
       PropertyAccessorElement element = currentElement.getSetter(setterName);
@@ -1796,7 +1796,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  bool _safeIsOrInheritsProxy(ClassElement classElt, Set<ClassElement> visitedClassElts) {
+  bool _safeIsOrInheritsProxy(ClassElement classElt, HashSet<ClassElement> visitedClassElts) {
     if (visitedClassElts.contains(classElt)) {
       return false;
     }
@@ -4624,6 +4624,9 @@ class FieldMember extends VariableMember implements FieldElement {
   PropertyAccessorElement get getter => PropertyAccessorMember.from(baseElement.getter, definingType);
 
   @override
+  DartType get propagatedType => substituteFor(baseElement.propagatedType);
+
+  @override
   PropertyAccessorElement get setter => PropertyAccessorMember.from(baseElement.setter, definingType);
 
   @override
@@ -5148,7 +5151,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name);
 
   @override
-  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
+  bool operator ==(Object object) => internalEquals(object, new HashSet<ElementPair>());
 
   @override
   String get displayName {
@@ -5451,7 +5454,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  bool isAssignableTo(DartType type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
+  bool isAssignableTo(DartType type) => isSubtypeOf2(type, new HashSet<TypeImpl_TypePair>());
 
   @override
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) => substitute2(argumentTypes, typeArguments);
@@ -6528,7 +6531,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @return the computed longest inheritance path to Object
    * @see InterfaceType#getLeastUpperBound(Type)
    */
-  static int computeLongestInheritancePathToObject(InterfaceType type) => _computeLongestInheritancePathToObject(type, 0, new Set<ClassElement>());
+  static int computeLongestInheritancePathToObject(InterfaceType type) => _computeLongestInheritancePathToObject(type, 0, new HashSet<ClassElement>());
 
   /**
    * Returns the set of all superinterfaces of the passed [Type].
@@ -6537,7 +6540,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @return the [Set] of superinterfaces of the passed [Type]
    * @see #getLeastUpperBound(Type)
    */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => _computeSuperinterfaceSet(type, new Set<InterfaceType>());
+  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
   /**
    * This method computes the longest inheritance path from some passed [Type] to Object. This
@@ -6552,7 +6555,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeLongestInheritancePathToObject(Type)
    * @see #getLeastUpperBound(Type)
    */
-  static int _computeLongestInheritancePathToObject(InterfaceType type, int depth, Set<ClassElement> visitedClasses) {
+  static int _computeLongestInheritancePathToObject(InterfaceType type, int depth, HashSet<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
     // Object case
     if (classElement.supertype == null || visitedClasses.contains(classElement)) {
@@ -6596,7 +6599,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeSuperinterfaceSet(Type)
    * @see #getLeastUpperBound(Type)
    */
-  static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, Set<InterfaceType> set) {
+  static Set<InterfaceType> _computeSuperinterfaceSet(InterfaceType type, HashSet<InterfaceType> set) {
     Element element = type.element;
     if (element != null) {
       List<InterfaceType> superinterfaces = type.interfaces;
@@ -6624,7 +6627,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @return the intersection of the given sets of types
    */
   static List<InterfaceType> _intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
-    Set<InterfaceType> result = new Set<InterfaceType>.from(first);
+    Set<InterfaceType> result = new HashSet<InterfaceType>.from(first);
     result.retainAll(second);
     return new List.from(result);
   }
@@ -6688,7 +6691,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl.con2(String name) : super(null, name);
 
   @override
-  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
+  bool operator ==(Object object) => internalEquals(object, new HashSet<ElementPair>());
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -6960,7 +6963,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -6998,7 +7001,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -7036,7 +7039,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -7114,7 +7117,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (type is! InterfaceType) {
       return false;
     }
-    return _isMoreSpecificThan(type as InterfaceType, new Set<ClassElement>(), withDynamic, visitedTypePairs);
+    return _isMoreSpecificThan(type as InterfaceType, new HashSet<ClassElement>(), withDynamic, visitedTypePairs);
   }
 
   @override
@@ -7138,10 +7141,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this == type) {
       return true;
     }
-    return _isSubtypeOf(type as InterfaceType, new Set<ClassElement>(), visitedTypePairs);
+    return _isSubtypeOf(type as InterfaceType, new HashSet<ClassElement>(), visitedTypePairs);
   }
 
-  bool _isMoreSpecificThan(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool _isMoreSpecificThan(InterfaceType s, HashSet<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //
     // A type T is more specific than a type S, written T << S,  if one of the following conditions
     // is met:
@@ -7205,7 +7208,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return false;
   }
 
-  bool _isSubtypeOf(InterfaceType type, Set<ClassElement> visitedClasses, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool _isSubtypeOf(InterfaceType type, HashSet<ClassElement> visitedClasses, Set<TypeImpl_TypePair> visitedTypePairs) {
     InterfaceType typeT = this;
     InterfaceType typeS = type;
     ClassElement elementT = element;
@@ -7627,7 +7630,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<LibraryElement> get exportedLibraries {
-    Set<LibraryElement> libraries = new Set<LibraryElement>();
+    HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
     for (ExportElement element in _exports) {
       LibraryElement library = element.exportedLibrary;
       if (library != null) {
@@ -7642,7 +7645,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<LibraryElement> get importedLibraries {
-    Set<LibraryElement> libraries = new Set<LibraryElement>();
+    HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
     for (ImportElement element in _imports) {
       LibraryElement library = element.importedLibrary;
       if (library != null) {
@@ -7691,7 +7694,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<PrefixElement> get prefixes {
-    Set<PrefixElement> prefixes = new Set<PrefixElement>();
+    HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
     for (ImportElement element in _imports) {
       PrefixElement prefix = element.prefix;
       if (prefix != null) {
@@ -8220,6 +8223,9 @@ abstract class Member implements Element {
    * @return the result of transforming the type
    */
   DartType substituteFor(DartType type) {
+    if (type == null) {
+      return null;
+    }
     List<DartType> argumentTypes = _definingType.typeArguments;
     List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
     return type.substitute2(argumentTypes, parameterTypes);
@@ -8596,7 +8602,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param elements the list to which the element(s) are to be added
    * @param element the element(s) to be added
    */
-  static void _add(Set<Element> elements, Element element) {
+  static void _add(HashSet<Element> elements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
       for (Element conflictingElement in element.conflictingElements) {
         elements.add(conflictingElement);
@@ -8616,7 +8622,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @return an array containing all of the conflicting elements
    */
   static List<Element> _computeConflictingElements(Element firstElement, Element secondElement) {
-    Set<Element> elements = new Set<Element>();
+    HashSet<Element> elements = new HashSet<Element>();
     _add(elements, firstElement);
     _add(elements, secondElement);
     return new List.from(elements);
@@ -9810,6 +9816,14 @@ abstract class PropertyInducingElement implements VariableElement {
   PropertyAccessorElement get getter;
 
   /**
+   * Return the propagated type of this variable, or `null` if type propagation has not been
+   * performed, for example because the variable is not final.
+   *
+   * @return the propagated type of this variable
+   */
+  DartType get propagatedType;
+
+  /**
    * Return the setter associated with this variable, or `null` if the variable is effectively
    * `final` and therefore does not have a setter associated with it. (This can happen either
    * because the variable is explicitly defined as being `final` or because the variable is
@@ -9844,6 +9858,12 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
    * `final` and therefore does not have a setter associated with it.
    */
   PropertyAccessorElement setter;
+
+  /**
+   * The propagated type of this variable, or `null` if type propagation has not been
+   * performed.
+   */
+  DartType propagatedType;
 
   /**
    * An empty array of elements.
@@ -10387,7 +10407,7 @@ abstract class TypeImpl implements DartType {
   DartType getLeastUpperBound(DartType type) => null;
 
   @override
-  bool isAssignableTo(DartType type) => isAssignableTo2(type, new Set<TypeImpl_TypePair>());
+  bool isAssignableTo(DartType type) => isAssignableTo2(type, new HashSet<TypeImpl_TypePair>());
 
   /**
    * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
@@ -10414,7 +10434,7 @@ abstract class TypeImpl implements DartType {
   bool get isDynamic => false;
 
   @override
-  bool isMoreSpecificThan(DartType type) => isMoreSpecificThan2(type, false, new Set<TypeImpl_TypePair>());
+  bool isMoreSpecificThan(DartType type) => isMoreSpecificThan2(type, false, new HashSet<TypeImpl_TypePair>());
 
   /**
    * Return `true` if this type is more specific than the given type.
@@ -10443,7 +10463,7 @@ abstract class TypeImpl implements DartType {
   bool get isObject => false;
 
   @override
-  bool isSubtypeOf(DartType type) => isSubtypeOf2(type, new Set<TypeImpl_TypePair>());
+  bool isSubtypeOf(DartType type) => isSubtypeOf2(type, new HashSet<TypeImpl_TypePair>());
 
   /**
    * Return `true` if this type is a subtype of the given type.
@@ -10700,11 +10720,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (s.isDynamic) {
       return true;
     }
-    return _isMoreSpecificThan(s, new Set<DartType>(), withDynamic, visitedTypePairs);
+    return _isMoreSpecificThan(s, new HashSet<DartType>(), withDynamic, visitedTypePairs);
   }
 
   @override
-  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new Set<TypeImpl_TypePair>());
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new HashSet<TypeImpl_TypePair>());
 
   bool _isMoreSpecificThan(DartType s, Set<DartType> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     //

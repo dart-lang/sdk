@@ -7661,6 +7661,12 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
   }
 
+  void test_parseFunctionBody_skip_block_invalid() {
+    ParserTestCase.parseFunctionBodies = false;
+    FunctionBody functionBody = ParserTestCase.parse3("parseFunctionBody", <Object> [false, null, false], "{", [ParserErrorCode.EXPECTED_TOKEN]);
+    EngineTestCase.assertInstanceOf((obj) => obj is EmptyFunctionBody, EmptyFunctionBody, functionBody);
+  }
+
   void test_parseFunctionBody_skip_blocks() {
     ParserTestCase.parseFunctionBodies = false;
     FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{ {} }");
@@ -10994,6 +11000,10 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseFunctionBody_skip_block', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionBody_skip_block);
+      });
+      _ut.test('test_parseFunctionBody_skip_block_invalid', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_skip_block_invalid);
       });
       _ut.test('test_parseFunctionBody_skip_blocks', () {
         final __test = new SimpleParserTest();

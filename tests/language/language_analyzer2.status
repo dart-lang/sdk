@@ -159,20 +159,6 @@ override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
 
-# analyzer issue 17983
-override_inheritance_generic_test/08: MissingStaticWarning # Issue 17983
-override_inheritance_field_test/32: MissingStaticWarning # Issue 17983
-override_inheritance_field_test/09: MissingStaticWarning # Issue 17983
-
-# missing warning for override
-override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
-override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
-
-# flaky override tests
-override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
-override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
-override_inheritance_generic_test/09: MissingStaticWarning, Pass # Issue 16498
-
 # The following tests are currently assumed to be failing because the test is wrong.
 #
 application_negative_test: CompileTimeError # Test Issue 14528

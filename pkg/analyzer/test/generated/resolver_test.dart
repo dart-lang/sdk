@@ -7,6 +7,7 @@
 
 library engine.resolver_test;
 
+import 'dart:collection';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -179,7 +180,7 @@ class AnalysisContextFactory {
     htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
-    Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
+    HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
     elementMap[asyncSource] = asyncLibrary;
     elementMap[htmlSource] = htmlLibrary;
@@ -2053,6 +2054,36 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  static int x;", "  A([this.x]) {}", "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
+    verify([source]);
+  }
+
+  void test_instanceMemberAccessFromFactory_named() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() {}",
+        "  A();",
+        "  factory A.make() {",
+        "    m();",
+        "    return new A();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    verify([source]);
+  }
+
+  void test_instanceMemberAccessFromFactory_unnamed() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() {}",
+        "  A._();",
+        "  factory A() {",
+        "    m();",
+        "    return new A._();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
     verify([source]);
   }
 
@@ -4713,6 +4744,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_initializingFormalForStaticField', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_initializingFormalForStaticField);
+      });
+      _ut.test('test_instanceMemberAccessFromFactory_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromFactory_named);
+      });
+      _ut.test('test_instanceMemberAccessFromFactory_unnamed', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instanceMemberAccessFromFactory_unnamed);
       });
       _ut.test('test_instanceMemberAccessFromStatic_field', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -9204,9 +9243,66 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
+  void test_lookupOverrides_noParentClasses() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElementImpl methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classA.methods = <MethodElement> [methodM];
+    EngineTestCase.assertSizeOfList(0, _inheritanceManager.lookupOverrides(classA, methodName));
+    _assertNoErrors(classA);
+  }
+
+  void test_lookupOverrides_overrideBaseClass() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classA.methods = <MethodElement> [methodMinA];
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classB.methods = <MethodElement> [methodMinB];
+    List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], new List.from(overrides));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+  }
+
+  void test_lookupOverrides_overrideInterface() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classA.methods = <MethodElement> [methodMinA];
+    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    classB.interfaces = <InterfaceType> [classA.type];
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classB.methods = <MethodElement> [methodMinB];
+    List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], new List.from(overrides));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+  }
+
+  void test_lookupOverrides_overrideTwoInterfaces() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String methodName = "m";
+    MethodElementImpl methodMinA = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
+    classA.methods = <MethodElement> [methodMinA];
+    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.doubleType, []);
+    classB.methods = <MethodElement> [methodMinB];
+    ClassElementImpl classC = ElementFactory.classElement2("C", []);
+    classC.interfaces = <InterfaceType> [classA.type, classB.type];
+    MethodElementImpl methodMinC = ElementFactory.methodElement(methodName, _typeProvider.numType, []);
+    classC.methods = <MethodElement> [methodMinC];
+    List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classC, methodName);
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA, methodMinB], new List.from(overrides));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+    _assertNoErrors(classC);
+  }
+
   void _assertErrors(ClassElement classElt, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    Set<AnalysisError> actualErrors = _inheritanceManager.getErrors(classElt);
+    HashSet<AnalysisError> actualErrors = _inheritanceManager.getErrors(classElt);
     if (actualErrors != null) {
       for (AnalysisError error in actualErrors) {
         errorListener.onError(error);
@@ -9451,6 +9547,22 @@ class InheritanceManagerTest extends EngineTestCase {
       _ut.test('test_lookupMember_setter_static', () {
         final __test = new InheritanceManagerTest();
         runJUnitTest(__test, __test.test_lookupMember_setter_static);
+      });
+      _ut.test('test_lookupOverrides_noParentClasses', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_lookupOverrides_noParentClasses);
+      });
+      _ut.test('test_lookupOverrides_overrideBaseClass', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_lookupOverrides_overrideBaseClass);
+      });
+      _ut.test('test_lookupOverrides_overrideInterface', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_lookupOverrides_overrideInterface);
+      });
+      _ut.test('test_lookupOverrides_overrideTwoInterfaces', () {
+        final __test = new InheritanceManagerTest();
+        runJUnitTest(__test, __test.test_lookupOverrides_overrideTwoInterfaces);
       });
     });
   }
@@ -15961,6 +16073,19 @@ class NonHintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_unnecessaryCast_generics() {
+    // dartbug.com/18953
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'dart:async';",
+        "Future<int> f() => new Future.value(0);",
+        "void g(bool c) {",
+        "  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unnecessaryCast_type_dynamic() {
     Source source = addSource(EngineTestCase.createSource(["m(v) {", "  var b = Object as dynamic;", "}"]));
     resolve(source);
@@ -16258,6 +16383,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_unnecessaryCast_dynamic_type', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_unnecessaryCast_dynamic_type);
+      });
+      _ut.test('test_unnecessaryCast_generics', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_unnecessaryCast_generics);
       });
       _ut.test('test_unnecessaryCast_type_dynamic', () {
         final __test = new NonHintCodeTest();
@@ -18570,7 +18699,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new Map<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p1"] = dynamicType;
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(dynamicType, null, null, expectedNamedTypes, resultType);
@@ -18585,7 +18714,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p]), AstFactory.expressionFunctionBody(_resolvedInteger(0)));
     _analyze5(p);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new Map<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p"] = dynamicType;
     _assertFunctionType(_typeProvider.intType, null, null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
@@ -18628,7 +18757,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.blockFunctionBody2([]));
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new Map<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(dynamicType, <DartType> [dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
@@ -18644,7 +18773,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionExpression node = _resolvedFunctionExpression(AstFactory.formalParameterList([p1, p2]), AstFactory.expressionFunctionBody(_resolvedInteger(0)));
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new Map<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(_typeProvider.intType, <DartType> [dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
@@ -21566,58 +21695,6 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
 }
 
 class StaticWarningCodeTest extends ResolverTestCase {
-  void fail_invalidGetterOverrideReturnType_twoInterfaces_conflicting() {
-    // 17983
-    Source source = addSource(EngineTestCase.createSource([
-        "abstract class I<U> {",
-        "  U get g => null;",
-        "}",
-        "abstract class J<V> {",
-        "  V get g => null;",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  double get g => null;",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
-    verify([source]);
-  }
-
-  void fail_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() {
-    // 17983
-    // language/override_inheritance_generic_test/08
-    Source source = addSource(EngineTestCase.createSource([
-        "abstract class I<U> {",
-        "  m(U u) => null;",
-        "}",
-        "abstract class J<V> {",
-        "  m(V v) => null;",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  m(double d) {}",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
-    verify([source]);
-  }
-
-  void fail_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting() {
-    // 17983
-    Source source = addSource(EngineTestCase.createSource([
-        "abstract class I<U> {",
-        "  set s(U u) {}",
-        "}",
-        "abstract class J<V> {",
-        "  set s(V v) {}",
-        "}",
-        "class B implements I<int>, J<String> {",
-        "  set s(double d) {}",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
-    verify([source]);
-  }
-
   void fail_undefinedGetter() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
@@ -22862,6 +22939,22 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidGetterOverrideReturnType_twoInterfaces_conflicting() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  U get g => null;",
+        "}",
+        "abstract class J<V> {",
+        "  V get g => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  double get g => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE]);
+    verify([source]);
+  }
+
   void test_invalidMethodOverrideNamedParamType() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -22928,6 +23021,23 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "abstract class A implements I, J {}",
         "class B extends A {",
         "  m(String n) {}",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() {
+    // language/override_inheritance_generic_test/08
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  m(U u) => null;",
+        "}",
+        "abstract class J<V> {",
+        "  m(V v) => null;",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  m(double d) {}",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE]);
@@ -23209,6 +23319,22 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "abstract class A implements I, J {}",
         "class B extends A {",
         "  set setter14(String _) => null;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
+    verify([source]);
+  }
+
+  void test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class I<U> {",
+        "  set s(U u) {}",
+        "}",
+        "abstract class J<V> {",
+        "  set s(V v) {}",
+        "}",
+        "class B implements I<int>, J<String> {",
+        "  set s(double d) {}",
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE]);
@@ -24771,6 +24897,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidGetterOverrideReturnType_twoInterfaces);
       });
+      _ut.test('test_invalidGetterOverrideReturnType_twoInterfaces_conflicting', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidGetterOverrideReturnType_twoInterfaces_conflicting);
+      });
       _ut.test('test_invalidMethodOverrideNamedParamType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideNamedParamType);
@@ -24790,6 +24920,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_invalidMethodOverrideNormalParamType_twoInterfaces', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_twoInterfaces);
+      });
+      _ut.test('test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting);
       });
       _ut.test('test_invalidMethodOverrideOptionalParamType', () {
         final __test = new StaticWarningCodeTest();
@@ -24870,6 +25004,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_invalidSetterOverrideNormalParamType_twoInterfaces', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType_twoInterfaces);
+      });
+      _ut.test('test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidSetterOverrideNormalParamType_twoInterfaces_conflicting);
       });
       _ut.test('test_listElementTypeNotAssignable', () {
         final __test = new StaticWarningCodeTest();
@@ -25527,7 +25665,7 @@ class SubtypeManagerTest extends EngineTestCase {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.supertype = classB.type;
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
-    Set<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
+    HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
     EngineTestCase.assertSizeOfSet(2, subtypesOfA);
     EngineTestCase.assertContains(arraySubtypesOfA, [classA, classB]);
@@ -25547,9 +25685,9 @@ class SubtypeManagerTest extends EngineTestCase {
     ClassElementImpl classD = ElementFactory.classElement("D", classB.type, []);
     ClassElementImpl classE = ElementFactory.classElement("E", classB.type, []);
     _definingCompilationUnit.types = <ClassElement> [classA, classB, classC, classD, classE];
-    Set<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
+    HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    Set<ClassElement> subtypesOfB = _subtypeManager.computeAllSubtypes(classB);
+    HashSet<ClassElement> subtypesOfB = _subtypeManager.computeAllSubtypes(classB);
     List<ClassElement> arraySubtypesOfB = new List.from(subtypesOfB);
     EngineTestCase.assertSizeOfSet(4, subtypesOfA);
     EngineTestCase.assertContains(arraySubtypesOfA, [classB, classC, classD, classE]);
@@ -25563,7 +25701,7 @@ class SubtypeManagerTest extends EngineTestCase {
     //
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     _definingCompilationUnit.types = <ClassElement> [classA];
-    Set<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
+    HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     EngineTestCase.assertSizeOfSet(0, subtypesOfA);
   }
 
@@ -25575,7 +25713,7 @@ class SubtypeManagerTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
-    Set<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
+    HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
     EngineTestCase.assertSizeOfSet(1, subtypesOfA);
     EngineTestCase.assertContains(arraySubtypesOfA, [classB]);
@@ -26245,6 +26383,124 @@ class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "context", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertEquals("CanvasRenderingContext2D", identifier.propagatedType.name);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance() {
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["class A {", "  final v = 0;", "}"]));
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "f(A a) {",
+        "  return a.v; // marker",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_inherited() {
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["class A {", "  final v = 0;", "}"]));
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "class B extends A {",
+        "  m() {",
+        "    return v; // marker",
+        "  }",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["class A {", "  final v = 0;", "}"]));
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "f(p) {",
+        "  if (p is A) {",
+        "    return p.v; // marker",
+        "  }",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
+  }
+
+  void test_finalPropertyInducingVariable_classMember_static() {
+    addNamedSource("/lib.dart", EngineTestCase.createSource(["class A {", "  static final V = 0;", "}"]));
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "f() {",
+        "  return A.V; // marker",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // marker", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
+  }
+
+  void test_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart' as p;",
+        "f() {",
+        "  var v2 = p.V; // prefixed",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // prefixed", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
+  }
+
+  void test_finalPropertyInducingVariable_topLevelVaraible_simple() {
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = EngineTestCase.createSource([
+        "import 'lib.dart';",
+        "f() {",
+        "  return V; // simple",
+        "}"]);
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // simple", (node) => node is SimpleIdentifier);
+      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
+      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
+    }
   }
 
   void test_forEach() {
@@ -27016,6 +27272,30 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_assignment_null', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_assignment_null);
+      });
+      _ut.test('test_finalPropertyInducingVariable_classMember_instance', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_classMember_instance);
+      });
+      _ut.test('test_finalPropertyInducingVariable_classMember_instance_inherited', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_classMember_instance_inherited);
+      });
+      _ut.test('test_finalPropertyInducingVariable_classMember_instance_propagatedTarget', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_classMember_instance_propagatedTarget);
+      });
+      _ut.test('test_finalPropertyInducingVariable_classMember_static', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_classMember_static);
+      });
+      _ut.test('test_finalPropertyInducingVariable_topLevelVaraible_prefixed', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_topLevelVaraible_prefixed);
+      });
+      _ut.test('test_finalPropertyInducingVariable_topLevelVaraible_simple', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_finalPropertyInducingVariable_topLevelVaraible_simple);
       });
       _ut.test('test_forEach', () {
         final __test = new TypePropagationTest();
