@@ -80,7 +80,8 @@ abstract class ContextDirectoryManager {
     Set<Folder> oldFolders = currentFolders.difference(includedFolders);
     // remove old contexts
     for (Folder folder in oldFolders) {
-      // TODO(scheglov) implement
+      _currentDirectoryInfo.remove(folder);
+      removeContext(folder);
     }
     // add new contexts
     for (Folder folder in newFolders) {
@@ -193,4 +194,9 @@ abstract class ContextDirectoryManager {
    * changes that need to be applied to the context.
    */
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * Remove the context associated with the given [folder].
+   */
+  void removeContext(Folder folder);
 }

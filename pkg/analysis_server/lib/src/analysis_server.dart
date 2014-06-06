@@ -38,6 +38,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
       : super(resourceProvider);
 
+  @override
   void addContext(Folder folder, File pubspecFile) {
     ContextDirectory contextDirectory = new ContextDirectory(
         analysisServer.defaultSdk, folder, pubspecFile);
@@ -45,8 +46,14 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
     analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
   }
 
+  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     analysisServer.folderMap[contextFolder].context.applyChanges(changeSet);
+  }
+
+  @override
+  void removeContext(Folder folder) {
+    analysisServer.folderMap.remove(folder);
   }
 }
 

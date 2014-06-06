@@ -21,9 +21,10 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void addContext(Folder folder, File pubspecFile) {
-    currentContextPaths.add(folder.path);
-    currentContextPubspecPaths[folder.path] = pubspecFile != null ? pubspecFile.path : null;
-    currentContextFilePaths[folder.path] = new Set<String>();
+    String path = folder.path;
+    currentContextPaths.add(path);
+    currentContextPubspecPaths[path] = pubspecFile != null ? pubspecFile.path : null;
+    currentContextFilePaths[path] = new Set<String>();
   }
 
   @override
@@ -38,6 +39,14 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
       filePaths.remove(source.fullName);
     }
     // TODO(paulberry): handle source.changedSources.
+  }
+
+  @override
+  void removeContext(Folder folder) {
+    String path = folder.path;
+    currentContextPaths.remove(path);
+    currentContextPubspecPaths.remove(path);
+    currentContextFilePaths.remove(path);
   }
 }
 
