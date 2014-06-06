@@ -808,7 +808,8 @@ class SourceVisitor implements AstVisitor {
     for (var i = 0; i < size; i++) {
       var parameter = parameters[i];
       if (i > 0) {
-        append(', ');
+        append(',');
+        space();
       }
       if (groupEnd == null && parameter is DefaultFormalParameter) {
         if (identical(parameter.kind, ParameterKind.NAMED)) {
@@ -1061,7 +1062,7 @@ class SourceVisitor implements AstVisitor {
     if (!node.isGetter) {
       visit(node.parameters);
     }
-    visitPrefixedBody(space, node.body);
+    visitPrefixedBody(nonBreakingSpace, node.body);
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1180,7 +1181,7 @@ class SourceVisitor implements AstVisitor {
   visitSimpleFormalParameter(SimpleFormalParameter node) {
     visitMemberMetadata(node.metadata);
     modifier(node.keyword);
-    visitNode(node.type, followedBy: space);
+    visitNode(node.type, followedBy: nonBreakingSpace);
     visit(node.identifier);
   }
 
