@@ -107,6 +107,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   CodeObservers::InitOnce();
   ThreadInterrupter::InitOnce();
   Profiler::InitOnce();
+  SemiSpace::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();

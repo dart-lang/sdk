@@ -25,6 +25,42 @@ class ScavengerVisitor;
 
 DECLARE_FLAG(bool, gc_at_alloc);
 
+
+// Wrapper around VirtualMemory that adds caching and handles the empty case.
+class SemiSpace {
+ public:
+  static void InitOnce();
+
+  // Get a space of the given size. Returns NULL on out of memory. If size is 0,
+  // returns an empty space: pointer(), start() and end() all return NULL.
+  static SemiSpace* New(intptr_t size);
+
+  // Hand back an unused space.
+  void Delete();
+
+  void* pointer() const { return region_.pointer(); }
+  uword start() const { return region_.start(); }
+  uword end() const { return region_.end(); }
+  intptr_t size() const { return static_cast<intptr_t>(region_.size()); }
+  bool Contains(uword address) const { return region_.Contains(address); }
+
+  // Set write protection mode for this space. The space must not be protected
+  // when Delete is called.
+  // TODO(koda): Remember protection mode in VirtualMemory and assert this.
+  void WriteProtect(bool read_only);
+
+ private:
+  explicit SemiSpace(VirtualMemory* reserved);
+  ~SemiSpace();
+
+  VirtualMemory* reserved_;  // NULL for an emtpy space.
+  MemoryRegion region_;
+
+  static SemiSpace* cache_;
+  static Mutex* mutex_;
+};
+
+
 class Scavenger {
  public:
   Scavenger(Heap* heap, intptr_t max_capacity_in_words, uword object_alignment);
@@ -38,7 +74,7 @@ class Scavenger {
     // No reasonable algorithm should be checking for objects in from space. At
     // least unless it is debugging code. This might need to be relaxed later,
     // but currently it helps prevent dumb bugs.
-    ASSERT(!from_->Contains(addr));
+    ASSERT(from_ == NULL || !from_->Contains(addr));
     return to_->Contains(addr);
   }
 
@@ -183,9 +219,8 @@ class Scavenger {
 
   void ProcessWeakTables();
 
-  VirtualMemory* space_;
-  MemoryRegion* to_;
-  MemoryRegion* from_;
+  SemiSpace* from_;
+  SemiSpace* to_;
 
   Heap* heap_;
 

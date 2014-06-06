@@ -6,6 +6,7 @@
 #define VM_MEMORY_REGION_H_
 
 #include "platform/assert.h"
+#include "vm/allocation.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -13,10 +14,16 @@ namespace dart {
 // Memory regions are useful for accessing memory with bounds check in
 // debug mode. They can be safely passed by value and do not assume ownership
 // of the region.
-class MemoryRegion {
+class MemoryRegion : public ValueObject {
  public:
   MemoryRegion() : pointer_(NULL), size_(0) { }
   MemoryRegion(void* pointer, uword size) : pointer_(pointer), size_(size) { }
+  MemoryRegion(const MemoryRegion& other) : ValueObject() { *this = other; }
+  MemoryRegion& operator=(const MemoryRegion& other) {
+    pointer_ = other.pointer_;
+    size_ = other.size_;
+    return *this;
+  }
 
   void* pointer() const { return pointer_; }
   uword size() const { return size_; }
@@ -68,8 +75,6 @@ class MemoryRegion {
 
   void* pointer_;
   uword size_;
-
-  DISALLOW_COPY_AND_ASSIGN(MemoryRegion);
 };
 
 }  // namespace dart

@@ -14,6 +14,7 @@
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
@@ -285,7 +286,8 @@ class ScavengerWeakVisitor : public HandleVisitor {
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
  public:
-  VerifyStoreBufferPointerVisitor(Isolate* isolate, MemoryRegion* to)
+  VerifyStoreBufferPointerVisitor(Isolate* isolate,
+                                  const SemiSpace* to)
       : ObjectPointerVisitor(isolate), to_(to) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
@@ -298,10 +300,85 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  MemoryRegion* to_;
+  const SemiSpace* to_;
 
   DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
 };
+
+
+SemiSpace::SemiSpace(VirtualMemory* reserved)
+    : reserved_(reserved), region_(NULL, 0) {
+  if (reserved != NULL) {
+    region_ = MemoryRegion(reserved_->address(), reserved_->size());
+  }
+}
+
+
+SemiSpace::~SemiSpace() {
+  if (reserved_ != NULL) {
+#if defined(DEBUG)
+    memset(reserved_->address(), 0xf3, size());
+#endif  // defined(DEBUG)
+    delete reserved_;
+  }
+}
+
+
+Mutex* SemiSpace::mutex_ = NULL;
+SemiSpace* SemiSpace::cache_ = NULL;
+
+
+void SemiSpace::InitOnce() {
+  ASSERT(mutex_ == NULL);
+  mutex_ = new Mutex();
+  ASSERT(mutex_ != NULL);
+}
+
+
+SemiSpace* SemiSpace::New(intptr_t size) {
+  {
+    MutexLocker locker(mutex_);
+    if (cache_ != NULL && cache_->size() == size) {
+      SemiSpace* result = cache_;
+      cache_ = NULL;
+      return result;
+    }
+  }
+  if (size == 0) {
+    return new SemiSpace(NULL);
+  } else {
+    VirtualMemory* reserved = VirtualMemory::Reserve(size);
+    if ((reserved == NULL) || !reserved->Commit(VirtualMemory::kReadWrite)) {
+      // TODO(koda): If cache_ is not empty, we could try to delete it.
+      delete reserved;
+      return NULL;
+    }
+#if defined(DEBUG)
+    memset(reserved->address(), 0xf3, size);
+#endif  // defined(DEBUG)
+    return new SemiSpace(reserved);
+  }
+}
+
+
+void SemiSpace::Delete() {
+  SemiSpace* old_cache = NULL;
+  {
+    MutexLocker locker(mutex_);
+    old_cache = cache_;
+    cache_ = this;
+  }
+  delete old_cache;
+}
+
+
+void SemiSpace::WriteProtect(bool read_only) {
+  if (reserved_ != NULL) {
+    bool success = reserved_->Protect(
+        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+    ASSERT(success);
+  }
+}
 
 
 Scavenger::Scavenger(Heap* heap,
@@ -317,31 +394,12 @@ Scavenger::Scavenger(Heap* heap,
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
 
-  if (max_capacity_in_words == 0) {
-    space_ = NULL;
-    to_ = new MemoryRegion(NULL, 0);
-    from_ = new MemoryRegion(NULL, 0);
-  } else {
-    // Allocate the virtual memory for this scavenge heap.
-    space_ = VirtualMemory::Reserve(max_capacity_in_words << kWordSizeLog2);
-    if (space_ == NULL) {
-      FATAL("Out of memory.\n");
-    }
-
-    // Allocate the entire space at the beginning.
-    space_->Commit(false);
-
-    // Setup the semi spaces.
-    uword semi_space_size = space_->size() / 2;
-    ASSERT((semi_space_size & (VirtualMemory::PageSize() - 1)) == 0);
-    to_ = new MemoryRegion(space_->address(), semi_space_size);
-    uword middle = space_->start() + semi_space_size;
-    from_ = new MemoryRegion(reinterpret_cast<void*>(middle), semi_space_size);
+  const intptr_t semi_space_size = (max_capacity_in_words / 2) * kWordSize;
+  to_ = SemiSpace::New(semi_space_size);
+  if (to_ == NULL) {
+    FATAL("Out of memory.\n");
   }
-
-  // Make sure that the two semi-spaces are aligned properly.
-  ASSERT(Utils::IsAligned(to_->start(), kObjectAlignment));
-  ASSERT(Utils::IsAligned(from_->start(), kObjectAlignment));
+  from_ = NULL;
 
   // Setup local fields.
   top_ = FirstObjectStart();
@@ -349,18 +407,13 @@ Scavenger::Scavenger(Heap* heap,
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
-
-#if defined(DEBUG)
-  memset(to_->pointer(), 0xf3, to_->size());
-  memset(from_->pointer(), 0xf3, from_->size());
-#endif  // defined(DEBUG)
 }
 
 
 Scavenger::~Scavenger() {
-  delete to_;
-  delete from_;
-  delete space_;
+  ASSERT(!scavenging_);
+  ASSERT(from_ == NULL);
+  to_->Delete();
 }
 
 
@@ -370,9 +423,13 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   }
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
-  MemoryRegion* temp = from_;
   from_ = to_;
-  to_ = temp;
+  to_ = SemiSpace::New(from_->size());
+  if (to_ == NULL) {
+    // TODO(koda): We could try to recover (collect old space, wait for another
+    // isolate to finish scavenge, etc.).
+    FATAL("Out of memory.\n");
+  }
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
@@ -399,9 +456,9 @@ void Scavenger::Epilogue(Isolate* isolate,
 #if defined(DEBUG)
   VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
   heap_->IterateOldPointers(&verify_store_buffer_visitor);
-
-  memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
+  from_->Delete();
+  from_ = NULL;
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
@@ -739,10 +796,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
 
 void Scavenger::WriteProtect(bool read_only) {
-  if (space_ != NULL) {
-    space_->Protect(
-        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
-  }
+  ASSERT(!scavenging_);
+  ASSERT(from_ == NULL);
+  to_->WriteProtect(read_only);
 }
 
 
