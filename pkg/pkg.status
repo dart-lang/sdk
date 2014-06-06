@@ -146,6 +146,34 @@ polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
 polymer/test/register_test: Fail # Issue 18870
+polymer/test/auto_binding_test: RuntimeError # Issue 19265
+polymer/test/attr_deserialize_test: RuntimeError # Issue 19265
+polymer/test/attr_mustache_test: RuntimeError # Issue 19265
+polymer/test/bind_test: RuntimeError # Issue 19265
+polymer/test/bind_mdv_test: RuntimeError # Issue 19265
+polymer/test/custom_event_test: RuntimeError # Issue 19265
+polymer/test/entered_view_test: RuntimeError # Issue 19265
+polymer/test/event_handlers_test: RuntimeError # Issue 19265
+polymer/test/event_path_declarative_test: RuntimeError # Issue 19265
+polymer/test/event_path_test: RuntimeError # Issue 19265
+polymer/test/events_test: RuntimeError # Issue 19265
+polymer/test/instance_attrs_test: RuntimeError # Issue 19265
+polymer/test/js_interop_test: RuntimeError # Issue 19265
+polymer/test/mirror_loader_test: RuntimeError # Issue 19265
+polymer/test/nested_binding_test: RuntimeError # Issue 19265
+polymer/test/noscript_test: RuntimeError # Issue 19265
+polymer/test/prop_attr_bind_reflection_test: RuntimeError # Issue 19265
+polymer/test/prop_attr_reflection_test: RuntimeError # Issue 19265
+polymer/test/property_change_test: RuntimeError # Issue 19265
+polymer/test/property_observe_test: RuntimeError # Issue 19265
+polymer/test/publish_attributes_test: RuntimeError # Issue 19265
+polymer/test/publish_inherited_properties_test: RuntimeError # Issue 19265
+polymer/test/take_attributes_test: RuntimeError # Issue 19265
+polymer/test/template_distribute_dynamic_test: RuntimeError # Issue 19265
+polymer/test/unbind_test: RuntimeError # Issue 19265
+
+[ $runtime == ie11 ]
+polymer/test/event_handlers_test: RuntimeError # Issue 19265
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
