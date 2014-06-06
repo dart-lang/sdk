@@ -19,6 +19,10 @@ cc/Sleep: Pass, Fail
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
+[ $mode == debug ]
+# This is a benchmark that is not informative in debug mode.
+cc/CorelibIsolateStartup: Skip
+
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 [ $system == windows ]
