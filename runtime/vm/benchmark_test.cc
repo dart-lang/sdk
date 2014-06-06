@@ -57,33 +57,17 @@ BENCHMARK(CorelibCompileAll) {
 // Measure creation of core isolate from a snapshot.
 //
 BENCHMARK(CorelibIsolateStartup) {
-  const int kNumIterations = 100;
-  char* err = NULL;
-  Dart_Isolate base_isolate = Dart_CurrentIsolate();
-  Dart_Isolate test_isolate = Dart_CreateIsolate(NULL, NULL,
-                                                 bin::snapshot_buffer,
-                                                 NULL, &err);
-  EXPECT(test_isolate != NULL);
-  Dart_EnterScope();
-  uint8_t* buffer = NULL;
-  intptr_t size = 0;
-  Dart_Handle result = Dart_CreateSnapshot(&buffer, &size);
-  EXPECT_VALID(result);
-  Timer timer(true, "Core Isolate startup benchmark");
-  timer.Start();
+  const int kNumIterations = 1000;
+  Timer timer(true, "CorelibIsolateStartup");
+  Isolate* isolate = Isolate::Current();
   for (int i = 0; i < kNumIterations; i++) {
-    Dart_Isolate new_isolate =
-        Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
-    EXPECT(new_isolate != NULL);
+    timer.Start();
+    TestCase::CreateTestIsolate();
+    timer.Stop();
     Dart_ShutdownIsolate();
   }
-  timer.Stop();
-  int64_t elapsed_time = timer.TotalElapsedTime();
-  benchmark->set_score(elapsed_time / kNumIterations);
-  Dart_EnterIsolate(test_isolate);
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
-  Dart_EnterIsolate(base_isolate);
+  benchmark->set_score(timer.TotalElapsedTime() / kNumIterations);
+  Isolate::SetCurrent(isolate);
 }
 
 
