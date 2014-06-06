@@ -184,6 +184,30 @@ main() {
           'class C {\n'
           '}\n'
       );
+      expectCUFormatsTo(
+          'main() {\n'
+          '//  print(1);\n'
+          '//  print(2);\n'
+          '  print(3);\n'
+          '}\n',
+          'main() {\n'
+          '//  print(1);\n'
+          '//  print(2);\n'
+          '  print(3);\n'
+          '}\n'
+      );
+      expectCUFormatsTo(
+          'class A {\n'
+          '//  int a;\n'
+          '//  int b;\n'
+          '  int c;\n'
+          '}\n',
+          'class A {\n'
+          '//  int a;\n'
+          '//  int b;\n'
+          '  int c;\n'
+          '}\n'
+      );
     });
 
     test('CU - nested functions', () {

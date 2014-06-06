@@ -1686,6 +1686,10 @@ class SourceVisitor implements AstVisitor {
   }
 
 
+  /// Test if this EOL [comment] is at the beginning of a line.
+  bool isAtBOL(Token comment) =>
+      lineInfo.getLocation(comment.offset).columnNumber == 1;
+
   /// Test if this [comment] is at the end of a line.
   bool isAtEOL(Token comment) =>
       comment != null && comment.toString().trim().startsWith(twoSlashes) &&
@@ -1699,6 +1703,11 @@ class SourceVisitor implements AstVisitor {
       if (ws > 0 && leadingSpaces == 0) {
         space();
       }
+    }
+
+    // Don't indent commented-out lines
+    if (isAtBOL(comment)) {
+      writer.currentLine.clear();
     }
 
     append(comment.toString().trim());

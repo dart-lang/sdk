@@ -33,6 +33,10 @@ class Line {
     tokens.add(token);
   }
 
+  void clear() {
+    tokens.clear();
+  }
+
   bool isEmpty() => tokens.isEmpty;
 
   bool isWhitespace() => tokens.every(
