@@ -327,7 +327,7 @@ observePathTests() {
     expect(model._foo, 'hi');
     expect(observer.value, 'hi');
 
-    expect(model.log, [#foo, const Symbol('foo='), #foo]);
+    expect(model.log, [#foo, const Symbol('foo='), #foo, #foo]);
 
     // These shouldn't throw
     observer = new PathObserver(model, 'bar');
@@ -345,7 +345,7 @@ observePathTests() {
     model.log.clear();
 
     observer.value = 'hi';
-    expect(model.log, ['[]= foo hi']);
+    expect(model.log, ['[]= foo hi', '[] foo']);
     expect(model._foo, 'hi');
 
     expect(observer.value, 'hi');
@@ -358,7 +358,7 @@ observePathTests() {
     model.log.clear();
 
     observer.value = 42;
-    expect(model.log, ['[]= bar 42']);
+    expect(model.log, ['[]= bar 42', '[] bar']);
     model.log.clear();
   });
 }

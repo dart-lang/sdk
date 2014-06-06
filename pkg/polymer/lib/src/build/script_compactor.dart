@@ -554,7 +554,7 @@ class _HtmlExtractor extends TreeVisitor {
   }
 
   void _addExpression(String stringExpression, bool inEvent, bool isTwoWay,
-      SourceSpan span) {
+      span) {
 
     if (inEvent) {
       if (stringExpression.startsWith('@')) {
