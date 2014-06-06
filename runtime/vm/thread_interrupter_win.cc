@@ -26,9 +26,9 @@ class ThreadInterrupterWin : public AllStatic {
       state->fp = static_cast<uintptr_t>(context.Ebp);
       state->sp = static_cast<uintptr_t>(context.Esp);
 #elif defined(TARGET_ARCH_X64)
-      state->pc = reinterpret_cast<uintptr_t>(context.Rip);
-      state->fp = reinterpret_cast<uintptr_t>(context.Rbp);
-      state->sp = reinterpret_cast<uintptr_t>(context.Rsp);
+      state->pc = static_cast<uintptr_t>(context.Rip);
+      state->fp = static_cast<uintptr_t>(context.Rbp);
+      state->sp = static_cast<uintptr_t>(context.Rsp);
 #else
       UNIMPLEMENTED();
 #endif

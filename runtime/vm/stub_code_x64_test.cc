@@ -86,8 +86,8 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ enter(Immediate(0));
   __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(RDI, smi1, PP);  // Set up argument 1 smi1.
-  __ LoadObject(RSI, smi2, PP);  // Set up argument 2 smi2.
+  __ LoadObject(CallingConventions::kArg1Reg, smi1, PP);
+  __ LoadObject(CallingConventions::kArg2Reg, smi2, PP);
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
   __ leave();
   __ ret();  // Return value is in RAX.

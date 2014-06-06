@@ -714,6 +714,9 @@ class Assembler : public ValueObject {
     cmpxchgl(address, reg);
   }
 
+  void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+  void PopRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
@@ -725,6 +728,11 @@ class Assembler : public ValueObject {
   void LeaveCallRuntimeFrame();
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+
+  // Call runtime function. Reserves shadow space on the stack before calling
+  // if platform ABI requires that. Does not restore RSP after the call itself.
+  void CallCFunction(const ExternalLabel* label);
+  void CallCFunction(Register reg);
 
   /*
    * Loading and comparing classes of objects.

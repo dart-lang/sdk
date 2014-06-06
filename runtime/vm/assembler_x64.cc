@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/cpu.h"
 #include "vm/heap.h"
+#include "vm/locations.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -2816,37 +2817,69 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
-// TODO(srdjan): Add XMM registers once they are used by the compiler.
-// Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
-static const intptr_t kNumberOfVolatileCpuRegisters = 9;
-static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
-    RAX, RCX, RDX, RSI, RDI, R8, R9, R10, R11
-};
+void Assembler::PushRegisters(intptr_t cpu_register_set,
+                              intptr_t xmm_register_set) {
+  const intptr_t xmm_regs_count = RegisterSet::RegisterCount(xmm_register_set);
+  if (xmm_regs_count > 0) {
+    AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
+    // Store XMM registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
+        movups(Address(RSP, offset), xmm_reg);
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
+  }
 
-// XMM0 is used only as a scratch register in the optimized code. No need to
-// save it.
-static const intptr_t kNumberOfVolatileXmmRegisters =
-    kNumberOfXmmRegisters - 1;
+  // Store general purpose registers with the highest register number at the
+  // lowest address.
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (RegisterSet::Contains(cpu_register_set, reg)) {
+      pushq(reg);
+    }
+  }
+}
+
+
+void Assembler::PopRegisters(intptr_t cpu_register_set,
+                             intptr_t xmm_register_set) {
+  // General purpose registers have the highest register number at the
+  // lowest address.
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (RegisterSet::Contains(cpu_register_set, reg)) {
+      popq(reg);
+    }
+  }
+
+  const intptr_t xmm_regs_count = RegisterSet::RegisterCount(xmm_register_set);
+  if (xmm_regs_count > 0) {
+    // XMM registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+      if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
+        movups(xmm_reg, Address(RSP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
+    AddImmediate(RSP, Immediate(offset), PP);
+  }
+}
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   EnterFrame(0);
 
-  // Preserve volatile CPU registers.
-  for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
-    pushq(volatile_cpu_registers[i]);
-  }
-
-  // Preserve all XMM registers except XMM0
-  subq(RSP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
-  // Store XMM registers with the lowest register number at the lowest
-  // address.
-  intptr_t offset = 0;
-  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movups(Address(RSP, offset), xmm_reg);
-    offset += kFpuRegisterSize;
-  }
+  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+  PushRegisters(CallingConventions::kVolatileCpuRegisters,
+                CallingConventions::kVolatileXmmRegisters);
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -2856,27 +2889,38 @@ void Assembler::LeaveCallRuntimeFrame() {
   // RSP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
+  const intptr_t kPushedCpuRegistersCount =
+      RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
+  const intptr_t kPushedXmmRegistersCount =
+      RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
   const intptr_t kPushedRegistersSize =
-      kNumberOfVolatileCpuRegisters * kWordSize +
-      kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
+      kPushedCpuRegistersCount * kWordSize +
+      kPushedXmmRegistersCount * kFpuRegisterSize;
   leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
-  // Restore all XMM registers except XMM0
-  // XMM registers have the lowest register number at the lowest address.
-  intptr_t offset = 0;
-  for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-    XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movups(xmm_reg, Address(RSP, offset));
-    offset += kFpuRegisterSize;
-  }
-  addq(RSP, Immediate(offset));
-
-  // Restore volatile CPU registers.
-  for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
-    popq(volatile_cpu_registers[i]);
-  }
+  // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
+  PopRegisters(CallingConventions::kVolatileCpuRegisters,
+               CallingConventions::kVolatileXmmRegisters);
 
   leave();
+}
+
+
+void Assembler::CallCFunction(const ExternalLabel* label) {
+  // Reserve shadow space for outgoing arguments.
+  if (CallingConventions::kShadowSpaceBytes != 0) {
+    subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
+  call(label);
+}
+
+
+void Assembler::CallCFunction(Register reg) {
+  // Reserve shadow space for outgoing arguments.
+  if (CallingConventions::kShadowSpaceBytes != 0) {
+    subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
+  call(reg);
 }
 
 

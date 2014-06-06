@@ -1448,58 +1448,15 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
-  // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    __ AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
-    // Store XMM registers with the lowest register number at the lowest
-    // address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(Address(RSP, offset), xmm_reg);
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-  }
-
-  // Store general purpose registers with the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ pushq(reg);
-    }
-  }
+  // TODO(vegorov): avoid saving non-volatile registers.
+  __ PushRegisters(locs->live_registers()->cpu_registers(),
+                   locs->live_registers()->fpu_registers());
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ popq(reg);
-    }
-  }
-
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    // XMM registers have the lowest register number at the lowest address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(xmm_reg, Address(RSP, offset));
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-    __ AddImmediate(RSP, Immediate(offset), PP);
-  }
+  __ PopRegisters(locs->live_registers()->cpu_registers(),
+                  locs->live_registers()->fpu_registers());
 }
 
 

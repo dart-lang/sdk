@@ -487,13 +487,57 @@ RawSmi* BigintOperations::ToSmi(const Bigint& bigint) {
 }
 
 
+static double Uint64ToDouble(uint64_t x) {
+#if _WIN64
+  // For static_cast<double>(x) MSVC x64 generates
+  //
+  //    cvtsi2sd xmm0, rax
+  //    test  rax, rax
+  //    jns done
+  //    addsd xmm0, static_cast<double>(2^64)
+  //  done:
+  //
+  // while GCC -m64 generates
+  //
+  //    test rax, rax
+  //    js negative
+  //    cvtsi2sd xmm0, rax
+  //    jmp done
+  //  negative:
+  //    mov rdx, rax
+  //    shr rdx, 1
+  //    and eax, 0x1
+  //    or rdx, rax
+  //    cvtsi2sd xmm0, rdx
+  //    addsd xmm0, xmm0
+  //  done:
+  //
+  // which results in a different rounding.
+  //
+  // For consistency between platforms fallback to GCC style converstion
+  // on Win64.
+  //
+  const int64_t y = static_cast<int64_t>(x);
+  if (y > 0) {
+    return static_cast<double>(y);
+  } else {
+    const double half = static_cast<double>(
+        static_cast<int64_t>(x >> 1) | (y & 1));
+    return half + half;
+  }
+#else
+  return static_cast<double>(x);
+#endif
+}
+
+
 RawDouble* BigintOperations::ToDouble(const Bigint& bigint) {
   ASSERT(IsClamped(bigint));
   if (bigint.IsZero()) {
     return Double::New(0.0);
   }
   if (AbsFitsIntoUint64(bigint)) {
-    double absolute_value = static_cast<double>(AbsToUint64(bigint));
+    double absolute_value = Uint64ToDouble(AbsToUint64(bigint));
     double result = bigint.IsNegative() ? -absolute_value : absolute_value;
     return Double::New(result);
   }

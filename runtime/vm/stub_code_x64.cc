@@ -88,7 +88,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ addq(RAX, Immediate(1 * kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
-  __ call(RBX);
+#if defined(_WIN64)
+  ASSERT(sizeof(NativeArguments) > CallingConventions::kRegisterTransferLimit);
+  __ movq(CallingConventions::kArg1Reg, RSP);
+#endif
+  __ CallCFunction(RBX);
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
@@ -126,6 +130,9 @@ END_LEAF_RUNTIME_ENTRY
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ EnterCallRuntimeFrame(0);
   // Call the runtime leaf function. RDI already contains the parameter.
+#if defined(_WIN64)
+  __ movq(CallingConventions::kArg1Reg, RDI);
+#endif
   __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -192,10 +199,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
-  __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
 
-  __ movq(RSI, RBX);  // Pass pointer to function entrypoint.
-  __ call(&NativeEntry::NativeCallWrapperLabel());
+  // Pass the pointer to the NativeArguments.
+  __ movq(CallingConventions::kArg1Reg, RSP);
+  // Pass pointer to function entrypoint.
+  __ movq(CallingConventions::kArg2Reg, RBX);
+  __ CallCFunction(&NativeEntry::NativeCallWrapperLabel());
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
@@ -279,8 +288,10 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
   __ movq(Address(RSP, retval_offset), RAX);  // Set retval in NativeArguments.
-  __ movq(RDI, RSP);  // Pass the pointer to the NativeArguments.
-  __ call(RBX);
+
+  // Pass the pointer to the NativeArguments.
+  __ movq(CallingConventions::kArg1Reg, RSP);
+  __ CallCFunction(RBX);
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
@@ -429,8 +440,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movq(RDI, RSP);  // Pass address of saved registers block.
-  __ ReserveAlignedFrameSpace(0);
+  // Pass address of saved registers block.
+  __ movq(CallingConventions::kArg1Reg, RSP);
+  __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
   // Result (RAX) is stack-size (FP - SP) in bytes.
 
@@ -457,7 +469,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ pushq(RBX);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(0);
-  __ movq(RDI, RBP);  // Pass last FP as parameter in RDI.
+  // Pass last FP as a parameter.
+  __ movq(CallingConventions::kArg1Reg, RBP);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (preserve_result) {
     // Restore result into RBX.
@@ -676,6 +689,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ EnterFrame(0);
 
+  const Register kEntryPointReg = CallingConventions::kArg1Reg;
+  const Register kArgDescReg    = CallingConventions::kArg2Reg;
+  const Register kArgsReg       = CallingConventions::kArg3Reg;
+  const Register kNewContextReg = CallingConventions::kArg4Reg;
+
   // At this point, the stack looks like:
   // | saved RBP                                      | <-- RBP
   // | saved PC (return to DartEntry::InvokeFunction) |
@@ -683,16 +701,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kInitialOffset = 1;
   // Save arguments descriptor array and new context.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
-  __ pushq(RSI);
+  __ pushq(kArgDescReg);
   const intptr_t kNewContextOffset = -(kInitialOffset + 1) * kWordSize;
-  __ pushq(RCX);
+  __ pushq(kNewContextReg);
 
   // Save C++ ABI callee-saved registers.
-  __ pushq(RBX);
-  __ pushq(R12);
-  __ pushq(R13);
-  __ pushq(R14);
-  __ pushq(R15);
+  __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
+                   CallingConventions::kCalleeSaveXmmRegisters);
 
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
@@ -710,28 +725,50 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // compiled or runtime stub code.
 
   // Cache the new Context pointer into CTX while executing Dart code.
-  __ movq(CTX, Address(RCX, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(CTX, Address(kNewContextReg, VMHandles::kOffsetOfRawPtrInHandle));
+
+  const Register kIsolateReg = RBX;
 
   // Load Isolate pointer from Context structure into R8.
-  __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
 
   // Save the current VMTag on the stack.
-  ASSERT(kSavedVMTagSlotFromEntryFp == -8);
-  __ movq(RAX, Address(R8, Isolate::vm_tag_offset()));
+  __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
   __ pushq(RAX);
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ leaq(RAX, Address(RBP, kSavedVMTagSlotFromEntryFp * kWordSize));
+    __ cmpq(RAX, RSP);
+    __ j(EQUAL, &ok);
+    __ Stop("kSavedVMTagSlotFromEntryFp mismatch");
+    __ Bind(&ok);
+  }
+#endif
 
   // Mark that the isolate is executing Dart code.
-  __ movq(Address(R8, Isolate::vm_tag_offset()),
+  __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()),
           Immediate(VMTag::kScriptTagId));
 
   // Save the top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -9);
-  __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
+  __ movq(RAX, Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
-  __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ leaq(RAX, Address(RBP, kExitLinkSlotFromEntryFp * kWordSize));
+    __ cmpq(RAX, RSP);
+    __ j(EQUAL, &ok);
+    __ Stop("kExitLinkSlotFromEntryFp mismatch");
+    __ Bind(&ok);
+  }
+#endif
+
+  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()),
+          Immediate(0));
 
   // Save the old Context pointer. Use RAX as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
@@ -740,19 +777,31 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -10);
-  __ movq(RAX, Address(R8, Isolate::top_context_offset()));
+  __ movq(RAX, Address(kIsolateReg, Isolate::top_context_offset()));
   __ pushq(RAX);
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ leaq(RAX, Address(RBP, kSavedContextSlotFromEntryFp * kWordSize));
+    __ cmpq(RAX, RSP);
+    __ j(EQUAL, &ok);
+    __ Stop("kSavedContextSlotFromEntryFp mismatch");
+    __ Bind(&ok);
+  }
+#endif
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
-  __ movq(R10, Address(RSI, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
+
+  // Push arguments. At this point we only need to preserve kEntryPointReg.
+  ASSERT(kEntryPointReg != RDX);
 
   // Load number of arguments into RBX.
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ SmiUntag(RBX);
 
   // Compute address of 'arguments array' data area into RDX.
-  __ movq(RDX, Address(RDX, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(RDX, Address(kArgsReg, VMHandles::kOffsetOfRawPtrInHandle));
   __ leaq(RDX, FieldAddress(RDX, Array::data_offset()));
 
   // Set up arguments for the Dart call.
@@ -762,51 +811,45 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
   __ movq(RAX, Immediate(0));
   __ Bind(&push_arguments);
-  __ movq(RCX, Address(RDX, RAX, TIMES_8, 0));  // RDX is start of arguments.
-  __ pushq(RCX);
+  __ pushq(Address(RDX, RAX, TIMES_8, 0));
   __ incq(RAX);
   __ cmpq(RAX, RBX);
   __ j(LESS, &push_arguments, Assembler::kNearJump);
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
-  __ call(RDI);  // R10 is the arguments descriptor array.
+  __ call(kEntryPointReg);  // R10 is the arguments descriptor array.
 
-  // Read the saved new Context pointer.
+  // Restore CTX from the saved context handle.
   __ movq(CTX, Address(RBP, kNewContextOffset));
   __ movq(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Read the saved arguments descriptor array to obtain the number of passed
   // arguments.
-  __ movq(RSI, Address(RBP, kArgumentsDescOffset));
-  __ movq(R10, Address(RSI, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(kArgDescReg, Address(RBP, kArgumentsDescOffset));
+  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
   __ movq(RDX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
   // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ movq(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
 
   // Restore the saved Context pointer into the Isolate structure.
-  // Uses RCX as a temporary register for this.
-  __ popq(RCX);
-  __ movq(Address(CTX, Isolate::top_context_offset()), RCX);
+  __ popq(RDX);
+  __ movq(Address(kIsolateReg, Isolate::top_context_offset()), RDX);
 
   // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses RDX as a temporary register for this.
   __ popq(RDX);
-  __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), RDX);
+  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()), RDX);
 
   // Restore the current VMTag from the stack.
   __ popq(RDX);
-  __ movq(Address(CTX, Isolate::vm_tag_offset()), RDX);
+  __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()), RDX);
 
   // Restore C++ ABI callee-saved registers.
-  __ popq(R15);
-  __ popq(R14);
-  __ popq(R13);
-  __ popq(R12);
-  __ popq(RBX);
+  __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
+                  CallingConventions::kCalleeSaveXmmRegisters);
 
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -996,7 +1039,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ movq(RDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(CallingConventions::kArg1Reg,
+          FieldAddress(CTX, Context::isolate_offset()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1658,20 +1702,30 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 
 // Jump to the exception or error handler.
 // TOS + 0: return address
-// RDI: program counter
-// RSI: stack pointer
-// RDX: frame_pointer
-// RCX: exception object
-// R8: stacktrace object
+// Arg1: program counter
+// Arg2: stack pointer
+// Arg3: frame_pointer
+// Arg4: exception object
+// Arg5: stacktrace object
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
   ASSERT(kStackTraceObjectReg == RDX);
-  __ movq(RBP, RDX);  // target frame pointer.
-  __ movq(kStackTraceObjectReg, R8);  // stacktrace object.
-  __ movq(kExceptionObjectReg, RCX);  // exception object.
-  __ movq(RSP, RSI);   // target stack_pointer.
-  __ jmp(RDI);  // Jump to the exception handler code.
+  ASSERT(CallingConventions::kArg4Reg != kStackTraceObjectReg);
+  ASSERT(CallingConventions::kArg1Reg != kStackTraceObjectReg);
+
+#if defined(_WIN64)
+  Register stacktrace_reg = RBX;
+  __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
+#else
+  Register stacktrace_reg = CallingConventions::kArg5Reg;
+#endif
+
+  __ movq(RBP, CallingConventions::kArg3Reg);
+  __ movq(RSP, CallingConventions::kArg2Reg);
+  __ movq(kStackTraceObjectReg, stacktrace_reg);
+  __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
+  __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 
 
@@ -1747,8 +1801,8 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
-  __ movq(RDI, left);
-  __ movq(RSI, right);
+  __ movq(CallingConventions::kArg1Reg, left);
+  __ movq(CallingConventions::kArg2Reg, right);
   __ CallRuntime(kBigintCompareRuntimeEntry, 2);
   // Result in RAX, 0 means equal.
   __ LeaveFrame();

@@ -19,6 +19,7 @@
       },
       'Dart_Win_x64_Base': {
         'abstract': 1,
+        'msvs_configuration_platform': 'x64',
       },
       'Dart_Win_simarm_Base': {
         'abstract': 1,

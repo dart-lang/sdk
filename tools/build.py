@@ -401,16 +401,25 @@ def Main():
             project_file = 'dart.sln'
             if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
               project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
+            # Select a platform suffix to pass to devenv.
+            if arch == 'ia32':
+              platform_suffix = 'Win32'
+            elif arch == 'x64':
+              platform_suffix = 'x64'
+            else:
+              print 'Unsupported arch for MSVC build: %s' % arch
+              return 1
+            config_name = '%s|%s' % (build_config, platform_suffix)
             if target == 'all':
               args = [options.devenv + os.sep + options.executable,
                       '/build',
-                      build_config,
+                      config_name,
                       project_file
                      ]
             else:
               args = [options.devenv + os.sep + options.executable,
                       '/build',
-                      build_config,
+                      config_name,
                       '/project',
                       target,
                       project_file

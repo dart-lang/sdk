@@ -4803,7 +4803,7 @@ LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* result = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::RequiresFpuRegister());
-  result->set_out(0, Location:: Location::RequiresRegister());
+  result->set_out(0, Location::RequiresRegister());
   result->set_temp(0, Location::RequiresRegister());
   return result;
 }
