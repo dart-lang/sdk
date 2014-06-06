@@ -1030,7 +1030,7 @@ class SourceVisitor implements AstVisitor {
 
   visitMapLiteral(MapLiteral node) {
     modifier(node.constKeyword);
-    visitNode(node.typeArguments, followedBy: space);
+    visitNode(node.typeArguments);
     token(node.leftBracket);
     if (!node.entries.isEmpty) {
       newlines();

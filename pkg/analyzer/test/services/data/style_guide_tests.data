@@ -153,10 +153,12 @@ flow() {
 >>> DON'T use a space after (, [, and {, or before ), ], and }.
 spaces() {
   var numbers = <int> [ 1, 2,( 3+4 ) ];
+  var mapLiteral = <int, int> {};
 }
 <<<
 spaces() {
   var numbers = <int>[1, 2, (3 + 4)];
+  var mapLiteral = <int, int>{};
 }
 >>> DO use a space before { in function and method bodies.
 getEmptyFn(a){
