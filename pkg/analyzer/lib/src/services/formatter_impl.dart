@@ -425,7 +425,6 @@ class SourceVisitor implements AstVisitor {
     token(node.leftParenthesis);
     breakableNonSpace();
     visitCommaSeparatedNodes(node.arguments);
-    breakableNonSpace();
     token(node.rightParenthesis);
   }
 
