@@ -792,8 +792,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: fail # Call to deferred non-loaded functions does not throw NoSuchMethodError.
-
 Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021

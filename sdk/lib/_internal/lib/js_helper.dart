@@ -2789,7 +2789,7 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-class DeferredNotLoadedError extends Error {
+class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   String libraryName;
 
   DeferredNotLoadedError(this.libraryName);
