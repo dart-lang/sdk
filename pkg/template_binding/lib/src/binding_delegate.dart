@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library template_binding.src.binding_delegate;
-
-import 'dart:html';
-import 'package:template_binding/template_binding.dart' show TemplateInstance;
+part of template_binding;
 
 /**
  * Template Bindings native features enables a wide-range of use cases,
@@ -39,7 +36,7 @@ import 'package:template_binding/template_binding.dart' show TemplateInstance;
  * for more information about the binding delegate.
  */
 // TODO(jmesserly): need better api docs here. The link above seems out of date.
-abstract class BindingDelegate {
+class BindingDelegate {
   /**
    * Prepares a binding. This is called immediately after parsing a mustache
    * token with `{{ path }}` in the context of the [node] and the property named
@@ -64,6 +61,13 @@ abstract class BindingDelegate {
    */
   PrepareInstancePositionChangedFunction prepareInstancePositionChanged(
       Element template) => null;
+
+  Expando<_InstanceBindingMap> _bindingMaps;
+
+  // TODO(jmesserly): if we have use this everywhere, we can avoid many
+  // delegate != null checks throughout the code, simplifying things.
+  // For now we just use it for _bindingMaps.
+  static final _DEFAULT = new BindingDelegate();
 }
 
 typedef PrepareBindingFunction(model, Node node, bool oneTime);

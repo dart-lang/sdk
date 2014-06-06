@@ -41,6 +41,7 @@ class PathObserver extends _Observer implements Bindable {
   /// Sets the value at this path.
   void set value(Object newValue) {
     if (_path != null) _path.setValueFrom(_object, newValue);
+    _discardChanges();
   }
 
   int get _reportArgumentCount => 2;
@@ -431,7 +432,7 @@ class CompoundObserver extends _Observer implements Bindable {
       throw new StateError('Cannot add observers once started.');
     }
 
-    observer.open(_deliver);
+    observer.open((_) => deliver());
     _observed..add(_observerSentinel)..add(observer);
   }
 
@@ -532,10 +533,7 @@ abstract class _Observer extends Bindable {
     return _value;
   }
 
-  get value {
-    _check(skipChanges: true);
-    return _value;
-  }
+  get value => _discardChanges();
 
   void close() {
     if (!_isOpen) return;
@@ -545,9 +543,12 @@ abstract class _Observer extends Bindable {
     _notifyCallback = null;
   }
 
-  void _deliver(_) {
-    if (_isOpen) _dirtyCheck();
+  _discardChanges() {
+    _check(skipChanges: true);
+    return _value;
   }
+
+  bool deliver() => _isOpen ? _dirtyCheck() : false;
 
   bool _dirtyCheck() {
     var cycles = 0;

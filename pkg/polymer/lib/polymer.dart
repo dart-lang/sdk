@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -37,14 +37,15 @@
 /// Tips for converting your apps from Web UI to Polymer.dart.
 library polymer;
 
-// Last ported from:
-// https://github.com/Polymer/polymer-dev/tree/37eea00e13b9f86ab21c85a955585e8e4237e3d2
-// TODO(jmesserly): we need to do a redundancy check. Some code like the FOUC
-// protection seems out of date, as if left over from the older
-// b7200854b2441a22ce89f6563963f36c50f5150d baseline.
+// Last ported from: Fri May 30 12:45:10 2014 -0700
+// https://github.com/Polymer/polymer-dev/tree/32cc3e470e8ed760a9e596a24fe9b3ac2a87737c
+
+// Note: we are still missing some tests for new features. Use
+// git diff 37eea00e13b9f86ab21c85a955585e8e4237e3d2 test
+// from polymer-dev to see the changes.
 
 import 'dart:async';
-import 'dart:collection' show HashMap, HashSet;
+import 'dart:collection';
 import 'dart:html';
 import 'dart:js' as js show context;
 import 'dart:js' hide context;
@@ -72,17 +73,20 @@ import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
 import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:polymer_expressions/polymer_expressions.dart'
-    show PolymerExpressions;
+    as polymer_expressions;
 import 'package:smoke/smoke.dart' as smoke;
 import 'package:template_binding/template_binding.dart';
 
+import 'auto_binding.dart';
 import 'deserialize.dart' as deserialize;
 import 'src/mirror_loader.dart' as loader; // ** see important note above
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';
+export 'auto_binding.dart';
 
 part 'src/declaration.dart';
+part 'src/events.dart';
 part 'src/instance.dart';
 part 'src/job.dart';
 part 'src/loader.dart';

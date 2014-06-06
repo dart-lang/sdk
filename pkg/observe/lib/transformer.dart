@@ -129,7 +129,7 @@ bool _isObservableAnnotation(Annotation node) =>
 bool _isAnnotationContant(Annotation m, String name) =>
     m.name.name == name && m.constructorName == null && m.arguments == null;
 
-bool _isAnnotationType(Annotation m, String name) => m.name == name;
+bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
 
 void _transformClass(ClassDeclaration cls, TextEditTransaction code,
     SourceFile file, TransformLogger logger) {

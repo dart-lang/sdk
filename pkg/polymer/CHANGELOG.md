@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.11.0-dev
+  * Event bindings with `@` are no longer supported.
+
 #### Pub version 0.10.1
   * Reduce the analyzer work by mocking a small subset of the core libraries.
 

@@ -12,16 +12,16 @@ import 'package:unittest/html_config.dart';
 class XTest extends PolymerElement {
   @observable List list;
 
-  final _enteredView = new Completer();
+  final _attached = new Completer();
   Future onTestDone;
 
   XTest.created() : super.created() {
-    onTestDone = _enteredView.future.then(_runTest);
+    onTestDone = _attached.future.then(_runTest);
   }
 
-  enteredView() {
-    super.enteredView();
-    _enteredView.complete();
+  attached() {
+    super.attached();
+    _attached.complete();
   }
 
   _runTest(_) {

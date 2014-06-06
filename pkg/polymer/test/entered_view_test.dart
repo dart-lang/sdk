@@ -23,9 +23,9 @@ class XInner extends PolymerElement {
 
   XInner.created() : super.created();
 
-  enteredView() {
+  attached() {
     enteredCount++;
-    super.enteredView();
+    super.attached();
   }
 }
 
@@ -44,7 +44,7 @@ main() => initPolymer().run(() {
       // it goes before we do.
       return new Future(() {
         XInner inner = outer.shadowRoot.querySelector('x-inner');
-        expect(inner.enteredCount, 1, reason: 'enteredView should be called');
+        expect(inner.enteredCount, 1, reason: 'attached should be called');
       });
     });
   });

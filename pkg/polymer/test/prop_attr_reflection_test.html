@@ -7,19 +7,20 @@ BSD-style license that can be found in the LICENSE file.
 <html>
   <head>
   <!--polymer-test: this comment is needed for test_suite.dart-->
-    <title>publish attributes</title>
+    <title>property to attribute reflection</title>
     <link rel="import" href="packages/polymer/polymer.html">
     <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
   </head>
   <body>
 
     <x-foo></x-foo>
-    <polymer-element name="x-foo" attributes="foo baz">
-    </polymer-element>
+    <polymer-element name="x-foo"></polymer-element>
 
     <x-bar></x-bar>
-    <polymer-element name="x-bar" extends="x-foo" attributes="zot zim str obj">
-    </polymer-element>
+    <polymer-element name="x-bar" extends="x-foo"></polymer-element>
+
+    <x-zot></x-zot>
+    <polymer-element name="x-zot" extends="x-bar"></polymer-element>
 
     <x-compose></x-compose>
     <polymer-element name="x-compose">

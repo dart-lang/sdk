@@ -17,7 +17,7 @@ main() {
   useHtmlConfiguration();
 
   var registered = customElementsReady.then((_) {
-    document.register('my-div', MyDivElement);
+    document.registerElement('my-div', MyDivElement);
   });
 
   setUp(() => registered);

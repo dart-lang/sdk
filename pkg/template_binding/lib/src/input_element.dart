@@ -21,7 +21,8 @@ class _InputElementExtension extends _ElementExtension {
       return null;
     }
 
-    _self.unbind(name);
-    return bindings[name] = new _InputBinding(_node, value, name);
+    // Note: call _updateBindings to always store binding reflection, because
+    // checkboxes may need to update bindings of other checkboxes.
+    return _updateBindings(name, new _InputBinding(_node, value, name));
   }
 }

@@ -23,6 +23,14 @@ class XTest extends PolymerElement {
 
   XTest.created() : super.created();
 
+  @override
+  parseDeclaration(elementElement) {
+    var template = fetchTemplate(elementElement);
+    if (template != null) {
+      lightFromTemplate(template);
+    }
+  }
+
   ready() {
     super.ready();
     for (var i = 0; i < 10; i++) {
@@ -56,31 +64,31 @@ class XTest extends PolymerElement {
   }
 
   Future _runTests() {
-    fire('tap', toNode: $['div']);
+    fire('tap', onNode: $['div']);
     expect(_testCount, 2, reason: 'event heard at div and host');
     expect(_lastEvent, 'tap', reason: 'tap handled');
-    fire('focus', toNode: $['input'], canBubble: false);
+    fire('focus', onNode: $['input'], canBubble: false);
     expect(_testCount, 3, reason: 'event heard by input');
     expect(_lastEvent, 'focus', reason: 'focus handled');
-    fire('blur', toNode: $['input'], canBubble: false);
+    fire('blur', onNode: $['input'], canBubble: false);
     expect(_testCount, 4, reason: 'event heard by input');
     expect(_lastEvent, 'blur', reason: 'blur handled');
-    fire('scroll', toNode: $['list'], canBubble: false);
+    fire('scroll', onNode: $['list'], canBubble: false);
     expect(_testCount, 5, reason: 'event heard by list');
     expect(_lastEvent, 'scroll', reason: 'scroll handled');
 
     return onMutation($['list']).then((_) {
       var l1 = $['list'].querySelectorAll('.list1')[4];
-      fire('tap', toNode: l1, canBubble: false);
+      fire('tap', onNode: l1, canBubble: false);
       expect(_testCount, 6, reason: 'event heard by list1 item');
       expect(_lastEvent, 'tap', reason: 'tap handled');
       expect(_lastMessage, 'x-test callback <mini-model 4>');
 
       var l2 = $['list'].querySelectorAll('.list2')[3];
-      fire('tap', toNode: l2, canBubble: false);
+      fire('tap', onNode: l2, canBubble: false);
       expect(_testCount, 7, reason: 'event heard by list2 item');
       expect(_lastEvent, 'tap', reason: 'tap handled by model');
-      expect(_lastMessage, 'mini-model callback <mini-model 3>');
+      expect(_lastMessage, 'x-test callback x-test');
     });
   }
 }

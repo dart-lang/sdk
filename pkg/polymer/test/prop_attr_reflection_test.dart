@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,23 +11,36 @@ import 'package:polymer/polymer.dart';
 class XFoo extends PolymerElement {
   XFoo.created() : super.created();
 
-  @published var foo = '';
-  @published String baz = '';
+  @PublishedProperty(reflect: true) var foo = '';
+  @PublishedProperty(reflect: true) String baz = '';
+
+  @PublishedProperty(reflect: true) var def1, def2;
 }
 
 class XBar extends XFoo {
   XBar.created() : super.created();
 
-  @published int zot = 3;
-  @published bool zim = false;
-  @published String str = 'str';
-  @published Object obj;
+  @PublishedProperty(reflect: true) int zot = 3;
+  @PublishedProperty(reflect: true) bool zim = false;
+  @PublishedProperty(reflect: true) String str = 'str';
+  @PublishedProperty(reflect: true) Object obj;
+}
+
+class XZot extends XBar {
+  // Dart note: trying to make this roughly equivalent to the JS
+  @PublishedProperty(reflect: false) int get zot => super.zot;
+  @PublishedProperty(reflect: false) set zot(int x) { super.zot = x; }
+
+  XZot.created() : super.created() {
+    zot = 2;
+    str = 'str2';
+  }
 }
 
 class XCompose extends PolymerElement {
   XCompose.created() : super.created();
 
-  @published bool zim = false;
+  @observable bool zim = false;
 }
 
 Future onAttributeChange(Element node) {
@@ -48,16 +61,29 @@ main() => initPolymer().run(() {
   // Most tests use @CustomTag, here we test out the impertive register:
   Polymer.register('x-foo', XFoo);
   Polymer.register('x-bar', XBar);
+  Polymer.register('x-zot', XZot);
   Polymer.register('x-compose', XCompose);
 
-  test('property attribute reflection', () {
+  test('property to attribute reflection', () {
     var xcompose = querySelector('x-compose');
     var xfoo = querySelector('x-foo');
     var xbar = querySelector('x-bar');
+    var xzot = querySelector('x-zot');
     xfoo.foo = 5;
+    xfoo.attributes['def1'] = '15';
+    xfoo.def2 = 15;
+
+    // Dart note: our test here is more async than JS until we change
+    // Polymer.dart bindings to work like observe.js "bindToInstance".
     return onAttributeChange(xfoo).then((_) {
       expect(xcompose.$['bar'].attributes.containsKey('zim'), false,
           reason: 'attribute bound to property updates when binding is made');
+
+      expect(xfoo.attributes['def2'], '15',
+          reason: 'default valued published property reflects to attr');
+
+      expect(xfoo.def1, 15,
+          reason: 'attr updates default valued published property');
 
       expect('${xfoo.foo}', xfoo.attributes['foo'],
           reason: 'attribute reflects property as string');
@@ -113,6 +139,17 @@ main() => initPolymer().run(() {
     }).then((_) => onAttributeChange(xbar)).then((_) {
       expect(xbar.attributes['obj'], 'hi', reason:
           'reflect property based on current type');
+
+      expect(xzot.str, 'str2');
+      expect(xzot.zot, 2);
+      xzot.str = 'hello';
+      xzot.zot = 5;
+    }).then((_) => onAttributeChange(xzot)).then((_) {
+      expect(xzot.attributes['str'], xzot.str);
+      // TODO(jmesserly): the JS test seems backwards of the description text.
+      // Is it because it doesn't do "Platform.flush()"?
+      expect(xzot.attributes['zot'], '5',
+          reason: 'extendee reflect false not honored');
     });
   });
 });

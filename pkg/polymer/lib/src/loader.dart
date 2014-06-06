@@ -60,6 +60,10 @@ void startPolymer(List<Function> initializers, [bool deployMode = true]) {
         'Please check that the list of entry points in your pubspec.yaml '
         'is correct. If you are using pub-serve, you may need to restart it.';
   }
+
+  Polymer.registerSync('d-auto-binding', AutoBindingElement,
+      extendsTag: 'template');
+
   for (var initializer in initializers) {
     initializer();
   }
@@ -97,7 +101,7 @@ void _hookJsPolymer() {
   var zone = Zone.current;
 
   polymerJs.callMethod('whenPolymerReady',
-      [zone.bindCallback(() => Polymer._ready.complete())]);
+      [zone.bindCallback(() => Polymer._onReady.complete())]);
 
   var polyElem = document.createElement('polymer-element');
   var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];

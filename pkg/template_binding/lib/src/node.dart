@@ -7,14 +7,24 @@ part of template_binding;
 /** Extensions to the [Node] API. */
 class NodeBindExtension {
   final Node _node;
-  Map<String, Bindable> _bindings;
+
+  /**
+   * Gets the data bindings that are associated with this node, if any.
+   *
+   * This starts out null, and if [enableBindingsReflection] is enabled, calls
+   * to [bind] will initialize this field and the binding.
+   */
+  // Dart note: in JS this has a trailing underscore, meaning "private".
+  // But in dart if we made it _bindings, it wouldn't be accessible at all.
+  // It is unfortunately needed to implement Node.bind correctly.
+  Map<String, Bindable> bindings;
 
   NodeBindExtension._(this._node);
 
   /**
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
-   * Returns the `Bindable` instance.
+   * Returns the [Bindable] instance.
    */
   Bindable bind(String name, value, {bool oneTime: false}) {
     // TODO(jmesserly): in Dart we could deliver an async error, which would
@@ -24,33 +34,18 @@ class NodeBindExtension {
     return null;
   }
 
-  /** Unbinds the attribute [name]. */
-  void unbind(String name) {
-    if (_bindings == null) return;
-    var binding = bindings.remove(name);
-    if (binding != null) binding.close();
-  }
-
-  /** Unbinds all bound attributes. */
-  void unbindAll() {
-    if (_bindings == null) return;
-    for (var binding in bindings.values.toList()) {
-      if (binding != null) binding.close();
-    }
-    _bindings = null;
-  }
-
-  // TODO(jmesserly): we should return a read-only wrapper here.
-  /** Gets the data bindings that are associated with this node. */
-  Map<String, Bindable> get bindings {
-    if (_bindings == null) _bindings = new LinkedHashMap<String, Bindable>();
-    return _bindings;
-  }
+  /**
+   * Called when all [bind] calls are finished for a given template expansion.
+   */
+  void bindFinished() {}
 
   /**
    * Dispatch support so custom HtmlElement's can override these methods.
-   * A public method like [this.bind] should not call another public method such
-   * as [this.unbind]. Instead it should dispatch through [_self.unbind].
+   *
+   * A public method like [this.bind] should not call another public method.
+   *
+   * Instead it should dispatch through [_self] to give the "overridden" method
+   * a chance to intercept.
    */
   NodeBindExtension get _self => _node is NodeBindExtension ? _node : this;
 
@@ -63,6 +58,17 @@ class NodeBindExtension {
 
   _open(Bindable bindable, callback(value)) =>
       callback(bindable.open(callback));
+
+  Bindable _maybeUpdateBindings(String name, Bindable binding) {
+    return enableBindingsReflection ? _updateBindings(name, binding) : binding;
+  }
+
+  Bindable _updateBindings(String name, Bindable binding) {
+    if (bindings == null) bindings = {};
+    var old = bindings[name];
+    if (old != null) old.close();
+    return bindings[name] = binding;
+  }
 }
 
 

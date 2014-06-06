@@ -13,11 +13,13 @@
   </head>
   <body>
 
-  <polymer-element name="js-element" attributes="baz">
+  <polymer-element name="js-element">
     <template>FOOBAR</template>
     <script>
     Polymer('js-element', {
-      baz: 42,
+      publish: {
+        baz: {value: 42, reflect: true}
+      },
       aJsMethod: function(inc) {
         this.shadowRoot.textContent = this.baz + inc;
       },

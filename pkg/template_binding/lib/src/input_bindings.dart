@@ -107,9 +107,12 @@ class _InputBinding extends Bindable {
       case 'select-multiple':
       case 'select-one':
         return element.onChange;
-      default:
-        return element.onInput;
+      case 'range':
+        if (window.navigator.userAgent.contains(new RegExp('Trident|MSIE'))) {
+          return element.onChange;
+        }
     }
+    return element.onInput;
   }
 
   // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
@@ -148,3 +151,17 @@ class _InputBinding extends Bindable {
     return value is int ? value : 0;
   }
 }
+
+_getTreeScope(Node node) {
+  Node parent;
+  while ((parent = node.parentNode) != null ) {
+    node = parent;
+  }
+
+  return _hasGetElementById(node) ? node : null;
+}
+
+// Note: JS code tests that getElementById is present. We can't do that
+// easily, so instead check for the types known to implement it.
+bool _hasGetElementById(Node node) =>
+    node is Document || node is ShadowRoot || node is SvgSvgElement;

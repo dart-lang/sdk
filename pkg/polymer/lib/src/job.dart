@@ -4,43 +4,45 @@
 
 part of polymer;
 
-/// Invoke [callback] in [wait], unless the job is re-registered,
-/// which resets the timer. For example:
-///
-///     _myJob = runJob(_myJob, callback, const Duration(milliseconds: 100));
-///
-/// Returns a job handle which can be used to re-register a job.
-// Dart note: renamed to runJob to avoid conflict with instance member "job".
-_Job _runJob(_Job job, void callback(), Duration wait) {
-  if (job != null) {
-    job.stop();
-  } else {
-    job = new _Job();
-  }
-  job.go(callback, wait);
-  return job;
-}
-
-// Public in Polymer.js but private as not sure it's the correct API for Dart.
-// Switch to Timer when 14414 is addressed.
-class _Job {
+/// Like [Timer] but can be restarted, and if no duration is supplied uses
+/// [window.requestAnimationFrame] instead of a 0-duration timer.
+// TODO(jmesserly): need to find a better name here. Also this feels more like a
+// system level API, but doesn't map exactly to any of our other primitives.
+class PolymerJob {
   Function _callback;
   Timer _timer;
+  int _id; // for requestAnimationFrame
 
-  void go(void callback(), Duration wait) {
-    this._callback = callback;
-    _timer = new Timer(wait, complete);
+  PolymerJob._();
+
+  bool get isScheduled => _timer != null || _id != null;
+
+  /// Starts the job. If the job is already running, it will [stop] first.
+  void start(void callback(), [Duration wait]) {
+    stop();
+    _callback = callback;
+    if (wait == null) {
+      _id = window.requestAnimationFrame((_) => complete());
+    } else {
+      _timer = new Timer(wait, complete);
+    }
   }
 
+  /// Stops the job. It can be restarted by calling [start] with a new callback.
   void stop() {
+    if (_id != null) {
+      window.cancelAnimationFrame(_id);
+      _id = null;
+    }
     if (_timer != null) {
       _timer.cancel();
       _timer = null;
     }
   }
 
+  /// Synchronously completes the job.
   void complete() {
-    if (_timer != null) {
+    if (isScheduled) {
       stop();
       _callback();
     }
