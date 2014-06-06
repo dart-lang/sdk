@@ -5,6 +5,7 @@
 library analysis.server;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
@@ -95,7 +96,8 @@ class AnalysisServer {
   /**
    * A table mapping [Folder]s to the [ContextDirectory]s associated with them.
    */
-  final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
+  final Map<Folder, ContextDirectory> folderMap =
+      new HashMap<Folder, ContextDirectory>();
 
   /**
    * A queue of the operations to perform in this server.
@@ -109,13 +111,14 @@ class AnalysisServer {
   /**
    * A set of the [ServerService]s to send notifications for.
    */
-  Set<ServerService> serverServices = new Set<ServerService>();
+  Set<ServerService> serverServices = new HashSet<ServerService>();
 
   /**
    * A table mapping [AnalysisService]s to the file paths for which these
    * notifications should be sent.
    */
-  Map<AnalysisService, Set<String>> analysisServices = <AnalysisService, Set<String>>{};
+  Map<AnalysisService, Set<String>> analysisServices =
+      new HashMap<AnalysisService, Set<String>>();
 
   /**
    * True if any exceptions thrown by analysis should be propagated up the call
@@ -257,10 +260,6 @@ class AnalysisServer {
    * the current context being analyzed or `null` if analysis is complete.
    */
   void sendStatusNotification(String contextId) {
-//    if (contextId == lastStatusNotificationContextId) {
-//      return;
-//    }
-//    lastStatusNotificationContextId = contextId;
     Notification notification = new Notification(NOTIFICATION_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {

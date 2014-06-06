@@ -4,6 +4,8 @@
 
 library domain.analysis;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -83,14 +85,14 @@ class AnalysisDomainHandler implements RequestHandler {
     {
       RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
       Map<String, List<String>> subStringMap = subDatum.asStringListMap();
-      subMap = new Map<AnalysisService, Set<String>>();
+      subMap = new HashMap<AnalysisService, Set<String>>();
       subStringMap.forEach((String serviceName, List<String> paths) {
         AnalysisService service = Enum2.valueOf(AnalysisService.VALUES, serviceName);
         if (service == null) {
           throw new RequestFailure(
               new Response.unknownAnalysisService(request, serviceName));
         }
-        subMap[service] = new Set.from(paths);
+        subMap[service] = new HashSet.from(paths);
       });
     }
     server.setAnalysisSubscriptions(subMap);
@@ -98,7 +100,7 @@ class AnalysisDomainHandler implements RequestHandler {
   }
 
   Response updateContent(Request request) {
-    var changes = new Map<String, ContentChange>();
+    var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
     filesDatum.forEachMap((file, changeDatum) {
       var change = new ContentChange();

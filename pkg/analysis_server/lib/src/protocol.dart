@@ -4,6 +4,7 @@
 
 library protocol;
 
+import 'dart:collection';
 import 'dart:convert' show JsonDecoder;
 
 /**
@@ -77,7 +78,7 @@ class Request {
   /**
    * A table mapping the names of request parameters to their values.
    */
-  final Map<String, Object> params = new Map<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * A decoder that can be used to decode strings into JSON objects.
@@ -438,7 +439,7 @@ class Response {
    * A table mapping the names of result fields to their values. The table
    * should be empty if there was an error.
    */
-  final Map<String, Object> result = new Map<String, Object>();
+  final Map<String, Object> result = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created instance to represent a response to a request
@@ -646,7 +647,7 @@ class RequestError {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final Map<String, Object> data = new Map<String, Object>();
+  final Map<String, Object> data = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Error] to have the given [code] and [message].
@@ -765,7 +766,7 @@ class Notification {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final Map<String, Object> params = new Map<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.

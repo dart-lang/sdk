@@ -5,6 +5,7 @@
 library context.directory.manager;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -25,7 +26,7 @@ class _ContextDirectoryInfo {
    * Map from full path to the [Source] object, for each source that has been
    * added to the context.
    */
-  Map<String, Source> sources = <String, Source>{};
+  Map<String, Source> sources = new HashMap<String, Source>();
 }
 
 /**
@@ -38,7 +39,7 @@ abstract class ContextDirectoryManager {
    * recent successful call to [setRoots].
    */
   Map<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
-      <Folder, _ContextDirectoryInfo>{};
+      new HashMap<Folder, _ContextDirectoryInfo>();
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -54,7 +55,7 @@ abstract class ContextDirectoryManager {
   void setRoots(List<String> includedPaths,
                 List<String> excludedPaths) {
     // included
-    Set<Folder> includedFolders = new Set<Folder>();
+    Set<Folder> includedFolders = new HashSet<Folder>();
     for (int i = 0; i < includedPaths.length; i++) {
       String path = includedPaths[i];
       Resource resource = resourceProvider.getResource(path);
@@ -73,7 +74,7 @@ abstract class ContextDirectoryManager {
       throw new UnimplementedError(
           'Excluded paths are not supported yet');
     }
-    Set<Folder> excludedFolders = new Set<Folder>();
+    Set<Folder> excludedFolders = new HashSet<Folder>();
     // diff
     Set<Folder> currentFolders = _currentDirectoryInfo.keys.toSet();
     Set<Folder> newFolders = includedFolders.difference(currentFolders);

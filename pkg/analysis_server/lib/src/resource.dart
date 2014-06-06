@@ -5,6 +5,7 @@
 library resource;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
@@ -265,11 +266,12 @@ class _MemoryFolder extends _MemoryResource implements Folder {
  * Use `/` as a path separator.
  */
 class MemoryResourceProvider implements ResourceProvider {
-  final Map<String, _MemoryResource> _pathToResource = <String, _MemoryResource>{};
-  final Map<String, String> _pathToContent = <String, String>{};
-  final Map<String, int> _pathToTimestamp = <String, int>{};
+  final Map<String, _MemoryResource> _pathToResource =
+      new HashMap<String, _MemoryResource>();
+  final Map<String, String> _pathToContent = new HashMap<String, String>();
+  final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
   final Map<String, StreamController<WatchEvent>> _pathToWatcher =
-      <String, StreamController<WatchEvent>>{};
+      new HashMap<String, StreamController<WatchEvent>>();
   int nextStamp = 0;
 
   @override
