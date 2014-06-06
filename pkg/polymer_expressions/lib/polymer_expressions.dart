@@ -257,15 +257,13 @@ class PolymerExpressions extends BindingDelegate {
 typedef Object _Converter(Object);
 
 class _Binding extends Bindable {
-  static int __seq = 1;
-
-  final int _seq = __seq++;
-
   final Scope _scope;
   final _Converter _converter;
   final Expression _expr;
+
   Function _callback;
   StreamSubscription _sub;
+  ExpressionObserver _observer;
   var _value;
 
   _Binding(this._expr, this._scope, [converter])
@@ -311,18 +309,19 @@ class _Binding extends Bindable {
     if (_callback != null) throw new StateError('already open');
 
     _callback = callback;
-    final expr = observe(_expr, _scope);
-    _sub = expr.onUpdate.listen(_check)..onError((e, s) {
+    _observer = observe(_expr, _scope);
+    _sub = _observer.onUpdate.listen(_check)..onError((e, s) {
       new Completer().completeError(
-          "Error evaluating expression '$expr': $e", s);
+          "Error evaluating expression '$_observer': $e", s);
     });
+
     try {
       // this causes a call to _updateValue with the new value
-      update(expr, _scope);
-      _check(expr.currentValue, skipChanges: true);
+      update(_observer, _scope);
+      _check(_observer.currentValue, skipChanges: true);
     } catch (e, s) {
       new Completer().completeError(
-          "Error evaluating expression '$expr': $e", s);
+          "Error evaluating expression '$_observer': $e", s);
     }
     return _value;
   }
@@ -333,6 +332,9 @@ class _Binding extends Bindable {
     _sub.cancel();
     _sub = null;
     _callback = null;
+
+    new Closer().visit(_observer);
+    _observer = null;
   }
 }
 

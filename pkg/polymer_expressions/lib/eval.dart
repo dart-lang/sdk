@@ -150,9 +150,6 @@ Object assign(Expression expr, Object value, Scope scope,
  * and then finally looks up the name as a property in the model.
  */
 abstract class Scope implements Indexable<String, Object> {
-  static int __seq = 1;
-  final int _seq = __seq++;
-
   Scope._();
 
   /** Create a scope containing a [model] and all of [variables]. */
@@ -186,9 +183,6 @@ abstract class Scope implements Indexable<String, Object> {
   /** Create a new scope extending this scope with an additional variable. */
   Scope childScope(String name, Object value) =>
       new _LocalVariableScope(name, value, this);
-
-  String toString() => 'Scope(seq: $_seq model: $model)';
-
 }
 
 /**
@@ -305,12 +299,15 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
     }
   }
 
-  _observe(Scope scope) {
-    // unobserve last value
+  _unobserve() {
     if (_subscription != null) {
       _subscription.cancel();
       _subscription = null;
     }
+  }
+
+  _observe(Scope scope) {
+    _unobserve();
 
     var _oldValue = _value;
 
@@ -332,6 +329,16 @@ class Updater extends RecursiveVisitor {
 
   visitExpression(ExpressionObserver e) {
     e._observe(scope);
+  }
+}
+
+class Closer extends RecursiveVisitor {
+  static final _instance = new Closer._();
+  factory Closer() => _instance;
+  Closer._();
+
+  visitExpression(ExpressionObserver e) {
+    e._unobserve();
   }
 }
 
