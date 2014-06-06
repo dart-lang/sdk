@@ -1000,6 +1000,7 @@ void DatagramSocket::DoClose() {
   closesocket(socket());
   MarkClosedRead();
   MarkClosedWrite();
+  handle_ = INVALID_HANDLE_VALUE;
 }
 
 
