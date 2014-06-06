@@ -292,6 +292,12 @@ abstract class TracerVisitor<T extends TypeInformation>
       bailout('Used as key in Map');
     }
 
+    if (info.targetsIncludeNoSuchMethod &&
+        info.arguments != null &&
+        info.arguments.contains(currentUser)) {
+      bailout('Passed to noSuchMethod');
+    }
+
     Iterable<Element> inferredTargetTypes = info.targets.map((element) {
       return inferrer.types.getInferredTypeOf(element);
     });

@@ -248,6 +248,19 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     });
   }
 
+  String getInferredSignatureOf(FunctionElement function) {
+    ElementTypeInformation info = getInferredTypeOf(function);
+    FunctionElement impl = function.implementation;
+    FunctionSignature signature = impl.functionSignature;
+    var res = "";
+    signature.forEachParameter((Element parameter) {
+      TypeInformation type = getInferredTypeOf(parameter);
+      res += "${res.isEmpty ? '(' : ', '}${type.type} ${parameter.name}";
+    });
+    res += ") -> ${info.type}";
+    return res;
+  }
+
   TypeInformation nonNullSubtype(ClassElement type) {
     return getConcreteTypeFor(new TypeMask.nonNullSubtype(type.declaration));
   }
@@ -639,6 +652,25 @@ class TypeGraphInferrerEngine
               'for ${(info.type as MapTypeMask).allocationNode} '
               'at ${(info.type as MapTypeMask).allocationElement} '
               'after ${info.refineCount}');
+      });
+      types.allocatedClosures.forEach((TypeInformation info) {
+        if (info is ElementTypeInformation) {
+          print('${types.getInferredSignatureOf(info.element)} for '
+                '${info.element}');
+        } else if (info is ClosureTypeInformation) {
+          print('${types.getInferredSignatureOf(info.element)} for '
+                '${info.element}');
+        } else if (info is DynamicCallSiteTypeInformation) {
+          for (Element target in info.targets) {
+            if (target is FunctionElement) {
+              print('${types.getInferredSignatureOf(target)} for ${target}');
+            } else {
+              print('${types.getInferredTypeOf(target).type} for ${target}');
+            }
+          }
+        } else {
+          print('${info.type} for some unknown kind of closure');
+        }
       });
       analyzedElements.forEach((Element elem) {
         TypeInformation type = types.getInferredTypeOf(elem);
