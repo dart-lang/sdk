@@ -293,7 +293,7 @@ class SnapshotReader : public BaseReader {
   RawStacktrace* NewStacktrace();
 
  private:
-  class BackRefNode : public ZoneAllocated {
+  class BackRefNode : public ValueObject {
    public:
     BackRefNode(Object* reference, DeserializeState state)
         : reference_(reference), state_(state) {}
@@ -301,11 +301,15 @@ class SnapshotReader : public BaseReader {
     bool is_deserialized() const { return state_ == kIsDeserialized; }
     void set_state(DeserializeState state) { state_ = state; }
 
+    BackRefNode& operator=(const BackRefNode& other) {
+      reference_ = other.reference_;
+      state_ = other.state_;
+      return *this;
+    }
+
    private:
     Object* reference_;
     DeserializeState state_;
-
-    DISALLOW_COPY_AND_ASSIGN(BackRefNode);
   };
 
   // Allocate uninitialized objects, this is used when reading a full snapshot.
@@ -345,7 +349,7 @@ class SnapshotReader : public BaseReader {
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
   UnhandledException& error_;  // Error handle.
-  GrowableArray<BackRefNode*> backward_references_;
+  GrowableArray<BackRefNode> backward_references_;
 
   friend class ApiError;
   friend class Array;

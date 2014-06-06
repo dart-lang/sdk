@@ -174,9 +174,9 @@ RawObject* SnapshotReader::ReadObject() {
   if (setjmp(*jump.Set()) == 0) {
     Object& obj = Object::Handle(ReadObjectImpl());
     for (intptr_t i = 0; i < backward_references_.length(); i++) {
-      if (!backward_references_[i]->is_deserialized()) {
+      if (!backward_references_[i].is_deserialized()) {
         ReadObjectImpl();
-        backward_references_[i]->set_state(kIsDeserialized);
+        backward_references_[i].set_state(kIsDeserialized);
       }
     }
     return obj.raw();
@@ -341,8 +341,7 @@ void SnapshotReader::AddBackRef(intptr_t id,
                                 DeserializeState state) {
   intptr_t index = (id - kMaxPredefinedObjectIds);
   ASSERT(index == backward_references_.length());
-  BackRefNode* node = new BackRefNode(obj, state);
-  ASSERT(node != NULL);
+  BackRefNode node(obj, state);
   backward_references_.Add(node);
 }
 
@@ -351,7 +350,7 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
   ASSERT(id >= kMaxPredefinedObjectIds);
   intptr_t index = (id - kMaxPredefinedObjectIds);
   if (index < backward_references_.length()) {
-    return backward_references_[index]->reference();
+    return backward_references_[index].reference();
   }
   return NULL;
 }
@@ -374,9 +373,9 @@ void SnapshotReader::ReadFullSnapshot() {
     *(object_store->from() + i) = ReadObjectImpl();
   }
   for (intptr_t i = 0; i < backward_references_.length(); i++) {
-    if (!backward_references_[i]->is_deserialized()) {
+    if (!backward_references_[i].is_deserialized()) {
       ReadObjectImpl();
-      backward_references_[i]->set_state(kIsDeserialized);
+      backward_references_[i].set_state(kIsDeserialized);
     }
   }
 
