@@ -392,3 +392,4 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
 LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 19127.
+LayoutTests/fast/dom/HTMLLinkElement/prefetch-beforeload_t01: Pass, Fail # Issue 19274.

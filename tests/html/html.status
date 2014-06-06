@@ -48,6 +48,8 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip #Issue 17666
 element_offset_test/offset: Pass, Fail # Issue 17550
 mouse_event_test: Skip # Times out. Issue 19127
 css_test/supportsPointConversions: Skip # Times out. Issue 19127
+css_test/functional: Skip # Times out. Issue 19276
+blob_constructor_test: Skip # Times out. Issue 19276
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: RuntimeError # Issue 19127
 
