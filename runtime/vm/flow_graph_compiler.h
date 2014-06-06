@@ -331,7 +331,8 @@ class FlowGraphCompiler : public ValueObject {
                           const Function& function,
                           intptr_t argument_count,
                           const Array& argument_names,
-                          LocationSummary* locs);
+                          LocationSummary* locs,
+                          const ICData& ic_data);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -475,12 +476,11 @@ class FlowGraphCompiler : public ValueObject {
                                intptr_t token_pos,
                                LocationSummary* locs);
 
-  void EmitUnoptimizedStaticCall(const Function& function,
-                                 const Array& arguments_descriptor,
-                                 intptr_t argument_count,
+  void EmitUnoptimizedStaticCall(intptr_t argument_count,
                                  intptr_t deopt_id,
                                  intptr_t token_pos,
-                                 LocationSummary* locs);
+                                 LocationSummary* locs,
+                                 const ICData& ic_data);
 
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,

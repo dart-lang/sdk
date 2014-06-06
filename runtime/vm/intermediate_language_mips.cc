@@ -987,7 +987,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                CallFunction(),
                                kNumberOfArguments,
                                kNoArgumentNames,
-                               locs());
+                               locs(),
+                               ICData::Handle());
   ASSERT(locs()->out(0).reg() == V0);
 }
 
@@ -3860,7 +3861,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                target,
                                kNumberOfArguments,
                                Object::null_array(),  // No argument names.,
-                               locs());
+                               locs(),
+                               ICData::Handle());
   __ Bind(&done);
 }
 
@@ -4236,7 +4238,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names(),
-                                 locs());
+                                 locs(),
+                                 ICData::Handle());
     return;
   }
 

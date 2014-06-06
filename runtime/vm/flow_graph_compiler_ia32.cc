@@ -1169,27 +1169,11 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
+    LocationSummary* locs,
+    const ICData& ic_data) {
   uword label_address = 0;
   if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();

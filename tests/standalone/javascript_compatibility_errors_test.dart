@@ -158,16 +158,18 @@ bool isJavascriptCompatibilityError(e) =>
     e is Error && "$e".contains("Javascript Compatibility Error");
 
 main() {
-  // Since the warning (or error in case of --warning_as_error) is issued at
-  // most once per location, the Expect.throw must guard the whole loop.
-  Expect.throws(
-      () {
-        for (var i = 0; i < 20; i++) {
-          h(i, i * 1.0);
-        }
-      },
-      isJavascriptCompatibilityError);
-
+  // The warning (or error in case of --warning_as_error) is issued at
+  // most once per location.
+  var numWarnings = 0;
+  for (var i = 0; i < 20; i++) {
+    try {
+      h(i, i * 1.0);
+    } catch(e) {
+      Expect.isTrue(isJavascriptCompatibilityError(e));
+      numWarnings++;
+    }
+  }
+  Expect.equals(1, numWarnings);
   // No warnings (errors) should be issued after this point.
   for (var i = 0; i < 20; i++) {
     k(i * 1.0, i);

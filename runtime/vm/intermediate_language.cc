@@ -2336,6 +2336,26 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
+                                               argument_names()));
+    // TODO(srdjan): Improve performance of function recognition.
+    MethodRecognizer::Kind recognized_kind =
+        MethodRecognizer::RecognizeKind(function());
+    int num_args_checked = 0;
+    if ((recognized_kind == MethodRecognizer::kMathMin) ||
+        (recognized_kind == MethodRecognizer::kMathMax)) {
+      num_args_checked = 2;
+    }
+    call_ic_data = ICData::New(compiler->parsed_function().function(),
+                               String::Handle(function().name()),
+                               arguments_descriptor,
+                               deopt_id(),
+                               num_args_checked);  // No arguments checked.
+    call_ic_data.AddTarget(function());
+  }
   if (!compiler->is_optimizing()) {
     // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
     // and therefore need a deoptimization descriptor.
@@ -2348,7 +2368,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                function(),
                                ArgumentCount(),
                                argument_names(),
-                               locs());
+                               locs(),
+                               call_ic_data);
 }
 
 

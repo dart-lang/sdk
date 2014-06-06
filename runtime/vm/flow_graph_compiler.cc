@@ -888,21 +888,32 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
-                                           LocationSummary* locs) {
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
-                                                 argument_names));
+                                           LocationSummary* locs,
+                                           const ICData& ic_data) {
+  const Array& arguments_descriptor = Array::ZoneHandle(
+      ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
+                                                  argument_names)
+                       : ic_data.arguments_descriptor());
   // Proper reporting of Javascript incompatibilities requires icdata and
   // may therefore prevent the optimization of some static calls.
   if (is_optimizing() &&
       !(FLAG_warn_on_javascript_compatibility &&
         (MethodRecognizer::RecognizeKind(function) ==
          MethodRecognizer::kObjectIdentical))) {
-    EmitOptimizedStaticCall(function, arguments_descriptor, argument_count,
-                            deopt_id, token_pos, locs);
+    EmitOptimizedStaticCall(function, arguments_descriptor,
+                            argument_count, deopt_id, token_pos, locs);
   } else {
-    EmitUnoptimizedStaticCall(function, arguments_descriptor, argument_count,
-                              deopt_id, token_pos, locs);
+    ICData& call_ic_data = ICData::ZoneHandle(ic_data.raw());
+    if (call_ic_data.IsNull()) {
+      call_ic_data = ICData::New(parsed_function().function(),  // Caller fun.
+                                 String::Handle(function.name()),
+                                 arguments_descriptor,
+                                 deopt_id,
+                                 0);  // No arguments checked.
+      call_ic_data.AddTarget(function);
+    }
+    EmitUnoptimizedStaticCall(argument_count, deopt_id, token_pos, locs,
+                              call_ic_data);
   }
 }
 
