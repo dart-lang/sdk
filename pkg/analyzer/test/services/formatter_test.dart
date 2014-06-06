@@ -1000,6 +1000,51 @@ main() {
                           transforms: false);
     });
 
+    test('String - multiline - short - same line', () {
+      expectCUFormatsTo(
+        'main() {\n'
+        '  print("""01234567890123456789012345678901234567890123456789""");\n'
+        '}\n',
+        'main() {\n'
+        '  print("""01234567890123456789012345678901234567890123456789""");\n'
+        '}\n'
+      );
+    });
+
+    test('String - multiline - short - next line', () {
+      expectCUFormatsTo(
+        'main() {\n'
+        '  print("""\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '""");\n'
+        '}\n',
+        'main() {\n'
+        '  print("""\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '""");\n'
+        '}\n'
+      );
+    });
+
+    test('String - multiline - long', () {
+      expectCUFormatsTo(
+        'main() {\n'
+        '  print("""\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '""");\n'
+        '}\n',
+        'main() {\n'
+        '  print("""\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '01234567890123456789012345678901234567890123456789\n'
+        '""");\n'
+        '}\n'
+      );
+    });
+
     // smoketest to ensure we're enforcing the 'no gratuitous linebreaks'
     // opinion
     test('CU (eat newlines)', () {
@@ -1264,6 +1309,15 @@ main() {
       writer.newline();
       writer.write('baz');
       expect(writer.toString(), equals('foo\n  bar\nbaz'));
+    });
+
+    test('write - multiline', () {
+      var writer = new SourceWriter();
+      writer.indent();
+      writer.newline();
+      writer.write('aaa\nbbb\nccc');
+      expect(writer.toString(), equals('\n  aaa\nbbb\nccc'));
+      expect(writer.currentLine.toString(), equals('ccc'));
     });
 
   });
