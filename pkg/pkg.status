@@ -24,6 +24,28 @@ polymer/test/build/script_compactor_test: Pass, Slow
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
 
+[ $compiler == none && ($runtime == dartium) ]
+polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
+polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
+polymer/test/bind_test: Pass, RuntimeError # Issue 18931
+polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
+polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_path_declarative_test: Pass, RuntimeError # Issue 18931
+polymer/test/events_test: Pass, RuntimeError # Issue 18931
+polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
+polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
+polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
+polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
+polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
+polymer/test/register_test: Pass, RuntimeError # Issue 18931
+polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
+
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
 analysis_server/test/domain_context_test: Pass, Timeout
@@ -61,8 +83,8 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-[ $compiler == dart2js && $checked && $runtime == drt ]
-polymer/test/event_handlers_test: RuntimeError # Issue 19190
+[ $checked && $runtime == drt ]
+polymer/test/event_handlers_test: Pass, RuntimeError # Issue 19190
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
