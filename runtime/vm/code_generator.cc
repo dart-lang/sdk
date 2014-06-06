@@ -32,10 +32,10 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
     " native entries.");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(int, optimization_counter_threshold, 15000,
+DEFINE_FLAG(int, optimization_counter_threshold, 30000,
     "Function's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
-DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
+DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
     "Debugging: stops program if deoptimizing same function too often");
