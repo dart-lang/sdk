@@ -1082,38 +1082,80 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitSendSet(ast.SendSet node) {
     assert(isOpen);
     Element element = elements[node];
-    if (node.assignmentOperator.source != '=') return giveup();
-    if (Elements.isLocal(element)) {
-      // Exactly one argument expected for a simple assignment.
-      assert(!node.arguments.isEmpty);
-      assert(node.arguments.tail.isEmpty);
-      ir.Primitive result = visit(node.arguments.head);
-      assignedVars[variableIndex[element]] = result;
-      return result;
-    } else if (Elements.isStaticOrTopLevel(element)) {
-      // TODO(asgerf): static and top-level
-      return giveup();
-    } else if (node.receiver == null) {
-      // Nodes that fall in this case:
-      // - Unresolved top-level
-      // - Assignment to final variable (will not be resolved)
-      return giveup();
-    } else {
-      // Setter or index-setter invocation
-      assert(node.receiver != null);
-      if (node.receiver.isSuper()) return giveup();
+    ast.Operator op = node.assignmentOperator;
+    ir.Primitive result;
+    ir.Primitive getter;
+    if (op.source == '=') {
+      if (Elements.isLocal(element)) {
+        // Exactly one argument expected for a simple assignment.
+        assert(!node.arguments.isEmpty);
+        assert(node.arguments.tail.isEmpty);
+        result = visit(node.arguments.head);
+        assignedVars[variableIndex[element]] = result;
+        return result;
+      } else if (Elements.isStaticOrTopLevel(element)) {
+        // TODO(asgerf): static and top-level
+        return giveup();
+      } else if (node.receiver == null) {
+        // Nodes that fall in this case:
+        // - Unresolved top-level
+        // - Assignment to final variable (will not be resolved)
+        return giveup();
+      } else {
+        // Setter or index-setter invocation
+        assert(node.receiver != null);
+        if (node.receiver.isSuper()) return giveup();
 
-      ir.Primitive receiver = visit(node.receiver);
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
-      Selector selector = elements.getSelector(node);
-      assert(selector.kind == SelectorKind.SETTER ||
-             selector.kind == SelectorKind.INDEX);
-      List<ir.Definition> args = node.arguments.toList(growable:false)
-                                     .map(visit).toList(growable:false);
-      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, args);
+        ir.Primitive receiver = visit(node.receiver);
+        ir.Parameter v = new ir.Parameter(null);
+        ir.Continuation k = new ir.Continuation([v]);
+        Selector selector = elements.getSelector(node);
+        assert(selector.kind == SelectorKind.SETTER ||
+            selector.kind == SelectorKind.INDEX);
+        List<ir.Definition> args = node.arguments.toList(growable: false)
+            .map(visit).toList(growable: false);
+        ir.InvokeMethod invoke =
+            new ir.InvokeMethod(receiver, selector, k, args);
+        add(new ir.LetCont(k, invoke));
+        return args.last;
+      }
+    } else if (ast.Operator.COMPLEX_OPERATORS.contains(op.source)) {
+      Element selectorElement = elements[node.selector];
+      if (selectorElement != null && !selectorElement.isAssignable) {
+        return giveup();
+      }
+      if (!Elements.isLocal(selectorElement)) return giveup();
+
+      Selector selector = elements.getOperatorSelectorInComplexSendSet(node);
+      getter = lookupLocal(selectorElement);
+
+      ir.Primitive arg;
+      if (ast.Operator.INCREMENT_OPERATORS.contains(op.source)) {
+        assert(node.arguments.isEmpty);
+        arg = new ir.Constant(constantSystem.createInt(1));
+        add(new ir.LetPrim(arg));
+      } else {
+        assert(!node.arguments.isEmpty);
+        assert(node.arguments.tail.isEmpty);
+        arg = visit(node.arguments.head);
+      }
+      result = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([result]);
+      ir.Expression invoke = new ir.InvokeMethod(getter, selector, k, [arg]);
       add(new ir.LetCont(k, invoke));
-      return args.last;
+
+      assignedVars[variableIndex[element]] = result;
+
+      if (ast.Operator.INCREMENT_OPERATORS.contains(op.source) &&
+          !node.isPrefix) {
+        assert(getter != null);
+        return getter;
+      } else {
+        return result;
+      }
+    } else {
+      compiler.internalError(node, "Unknown assignment operator ${op.source}");
+      return null;
     }
   }
 

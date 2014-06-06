@@ -1003,6 +1003,12 @@ class Identifier extends Expression {
 }
 
 class Operator extends Identifier {
+  static const COMPLEX_OPERATORS =
+      const ["--", "++", '+=', "-=", "*=", "/=", "%=", "&=", "|=", "~/=", "^=",
+             ">>=", "<<="];
+
+  static const INCREMENT_OPERATORS = const <String>["++", "--"];
+
   Operator(Token token) : super(token);
 
   Operator asOperator() => this;
