@@ -16,6 +16,8 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
+pkg/polymer: PubGetError # unreleased -dev dependency
+pkg/polymer_expressions: PubGetError # unreleased -dev dependency
 
 [ $use_public_packages && $builder_tag == russian ]
 samples/third_party/todomvc: Fail # Issue 18104
