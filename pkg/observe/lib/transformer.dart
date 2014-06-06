@@ -8,6 +8,7 @@ library observe.transformer;
 
 import 'dart:async';
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -84,7 +85,7 @@ class ObservableTransformer extends Transformer {
 
 TextEditTransaction _transformCompilationUnit(
     String inputCode, SourceFile sourceFile, TransformLogger logger) {
-  var unit = _parseCompilationUnit(inputCode);
+  var unit = parseCompilationUnit(inputCode, suppressErrors: true);
   var code = new TextEditTransaction(inputCode, sourceFile);
   for (var directive in unit.directives) {
     if (directive is LibraryDirective && _hasObservable(directive)) {
@@ -107,21 +108,6 @@ TextEditTransaction _transformCompilationUnit(
     }
   }
   return code;
-}
-
-/// Parse [code] using analyzer.
-CompilationUnit _parseCompilationUnit(String code) {
-  var errorListener = new _ErrorCollector();
-  var reader = new CharSequenceReader(code);
-  var scanner = new Scanner(null, reader, errorListener);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
-  return parser.parseCompilationUnit(token);
-}
-
-class _ErrorCollector extends AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-  onError(error) => errors.add(error);
 }
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

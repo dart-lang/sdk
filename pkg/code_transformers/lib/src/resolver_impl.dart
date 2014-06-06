@@ -5,7 +5,7 @@
 library code_transformer.src.resolver_impl;
 
 import 'dart:async';
-import 'package:analyzer/analyzer.dart' show parseCompilationUnit;
+import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart' show ConstantEvaluator,
        EvaluationResult;
@@ -313,7 +313,7 @@ class _AssetBasedSource extends Source {
   /// any analyzer resolution.
   void updateDependencies(String contents) {
     if (contents == _contents) return;
-    var unit = parseCompilationUnit(contents, suppressErrors: true);
+    var unit = parseDirectives(contents, suppressErrors: true);
     _dependentAssets = unit.directives
         .where((d) => (d is ImportDirective || d is PartDirective ||
             d is ExportDirective))

@@ -8,6 +8,7 @@ library polymer.src.build.import_inliner;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
@@ -51,7 +52,7 @@ class _HtmlInliner extends PolymerTransformer {
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
-      changed = _extractScripts(document, docId);
+      changed = _extractScripts(document);
       return _visitImports(document);
     }).then((importsFound) {
       changed = changed || importsFound;
@@ -144,7 +145,8 @@ class _HtmlInliner extends PolymerTransformer {
     return readAsHtml(id, transform).then((doc) {
       new _UrlNormalizer(transform, id).visit(doc);
       return _visitImports(doc).then((_) {
-        _extractScripts(doc, id);
+        // _UrlNormalizer already ensures there is a library name.
+        _extractScripts(doc, injectLibraryName: false);
 
         // TODO(jmesserly): figure out how this is working in vulcanizer.
         // Do they produce a <body> tag with a <head> and <body> inside?
@@ -198,7 +200,7 @@ class _HtmlInliner extends PolymerTransformer {
   /// to be able to compile them.
   ///
   /// This also validates that there weren't any duplicate scripts.
-  bool _extractScripts(Document doc, AssetId sourceId) {
+  bool _extractScripts(Document doc, {bool injectLibraryName: true}) {
     bool changed = false;
     for (var script in doc.querySelectorAll('script')) {
       if (script.attributes['type'] != TYPE_DART) continue;
@@ -215,21 +217,8 @@ class _HtmlInliner extends PolymerTransformer {
       changed = true;
 
       var newId = docId.addExtension('.$count.dart');
-      // TODO(jmesserly): consolidate this check with our other parsing of the
-      // Dart code, so we only parse it once.
-      if (!_hasLibraryDirective(code)) {
-        // Inject a library tag with an appropriate library name.
-
-        // Transform AssetId into a package name. For example:
-        //   myPkgName|lib/foo/bar.html -> myPkgName.foo.bar_html
-        //   myPkgName|web/foo/bar.html -> myPkgName.web.foo.bar_html
-        // This should roughly match the recommended library name conventions.
-        var libName = '${path.withoutExtension(sourceId.path)}_'
-            '${path.extension(sourceId.path).substring(1)}';
-        if (libName.startsWith('lib/')) libName = libName.substring(4);
-        libName = libName.replaceAll('/', '.').replaceAll('-', '_');
-        libName = '${sourceId.package}.${libName}_$count';
-
+      if (injectLibraryName && !_hasLibraryDirective(code)) {
+        var libName = _libraryNameFor(docId, count);
         code = "library $libName;\n$code";
       }
       extractedFiles.add(newId);
@@ -239,9 +228,24 @@ class _HtmlInliner extends PolymerTransformer {
   }
 }
 
+/// Transform AssetId into a library name. For example:
+///
+///     myPkgName|lib/foo/bar.html -> myPkgName.foo.bar_html
+///     myPkgName|web/foo/bar.html -> myPkgName.web.foo.bar_html
+///
+/// This should roughly match the recommended library name conventions.
+String _libraryNameFor(AssetId id, int suffix) {
+  var name = '${path.withoutExtension(id.path)}_'
+      '${path.extension(id.path).substring(1)}';
+  if (name.startsWith('lib/')) name = name.substring(4);
+  name = name.replaceAll('/', '.').replaceAll('-', '_');
+  return '${id.package}.${name}_$suffix';
+}
+
 /// Parse [code] and determine whether it has a library directive.
 bool _hasLibraryDirective(String code) =>
-    parseCompilationUnit(code).directives.any((d) => d is LibraryDirective);
+    parseDirectives(code, suppressErrors: true)
+        .directives.any((d) => d is LibraryDirective);
 
 
 /// Recursively inlines the contents of HTML imports. Produces as output a
@@ -279,6 +283,9 @@ class _UrlNormalizer extends TreeVisitor {
   /// Asset where the original content (and original url) was found.
   final AssetId sourceId;
 
+  /// Counter used to ensure that every library name we inject is unique.
+  int _count = 0;
+
   _UrlNormalizer(this.transform, this.sourceId);
 
   visitElement(Element node) {
@@ -292,7 +299,8 @@ class _UrlNormalizer extends TreeVisitor {
     if (node.localName == 'style') {
       node.text = visitCss(node.text);
     } else if (node.localName == 'script' &&
-        node.attributes['type'] == TYPE_DART) {
+        node.attributes['type'] == TYPE_DART &&
+        !node.attributes.containsKey('src')) {
       // TODO(jmesserly): we might need to visit JS too to handle ES Harmony
       // modules.
       node.text = visitInlineDart(node.text);
@@ -321,10 +329,10 @@ class _UrlNormalizer extends TreeVisitor {
   }
 
   String visitInlineDart(String code) {
-    var unit = parseCompilationUnit(code);
+    var unit = parseDirectives(code, suppressErrors: true);
     var file = new SourceFile.text(spanUrlFor(sourceId, transform), code);
     var output = new TextEditTransaction(code, file);
-
+    var foundLibraryDirective = false;
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
         var uri = directive.uri.stringValue;
@@ -339,7 +347,15 @@ class _UrlNormalizer extends TreeVisitor {
         if (newUri != uri) {
           output.edit(span.start.offset, span.end.offset, "'$newUri'");
         }
+      } else if (directive is LibraryDirective) {
+        foundLibraryDirective = true;
       }
+    }
+
+    if (!foundLibraryDirective) {
+      // Ensure all inline scripts also have a library name.
+      var libName = _libraryNameFor(sourceId, _count++);
+      output.edit(0, 0, "library $libName;\n");
     }
 
     if (!output.hasEdits) return code;

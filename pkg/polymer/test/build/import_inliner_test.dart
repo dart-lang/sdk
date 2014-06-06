@@ -147,7 +147,7 @@ void importTests() {
           '</body></html>',
       'a|web/test.html._data': expectedData([
           'web/test.html.1.dart','web/test.html.0.dart']),
-      'a|web/test.html.1.dart': 'library a.web.test2_html_1;\n/*forth*/',
+      'a|web/test.html.1.dart': 'library a.web.test2_html_0;\n/*forth*/',
       'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*fifth*/',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head></head><body><script>/*third*/</script>'

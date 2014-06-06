@@ -145,7 +145,7 @@ class MockDartSdk implements DartSdk {
   final Map<String, SdkLibrary> _libs = {};
   final String sdkVersion = '0';
   List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
-  final AnalysisContext context = new _SdkAnalysisContext();
+  final AnalysisContext context = new SdkAnalysisContext();
   DartUriResolver _resolver;
   DartUriResolver get resolver => _resolver;
 
@@ -211,19 +211,4 @@ class _MockSdkSource implements UriAnnotatedSource {
 
   Source resolveRelative(Uri relativeUri) =>
       throw new UnsupportedError('not expecting relative urls in dart: mocks');
-}
-
-// TODO(sigmund): delete once we bump the dependency on analyzer.  We copied
-// this code from SdkAnalysisContext in 'analyzer/src/generated/engine.dart' to
-// prevent bumping the dependency on analyzer. We should remove this as soon as
-// we start depending on analyzer >= 0.15.5.
-class _SdkAnalysisContext extends AnalysisContextImpl {
-  @override
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    if (factory == null) return super.createCacheFromSourceFactory(factory);
-    var sdk = factory.dartSdk;
-    if (sdk == null) throw "Missing a DartUriResolver in source factory";
-    return new AnalysisCache(
-        [AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
-  }
 }
