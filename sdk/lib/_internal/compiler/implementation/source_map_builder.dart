@@ -183,15 +183,15 @@ class SourceMapBuilder {
     encodeVLQ(output, sourceUrlIndex - previousSourceUrlIndex);
     encodeVLQ(output, sourceLine - previousSourceLine);
     encodeVLQ(output, sourceColumn - previousSourceColumn);
-    updatePreviousSourceLocation(entry.sourceLocation);
 
-    if (sourceName == null) {
-      return;
+    if (sourceName != null) {
+      int sourceNameIndex = indexOf(sourceNameList, sourceName, sourceNameMap);
+      encodeVLQ(output, sourceNameIndex - previousSourceNameIndex);
     }
 
-    int sourceNameIndex = indexOf(sourceNameList, sourceName, sourceNameMap);
-    encodeVLQ(output, sourceNameIndex - previousSourceNameIndex);
-
+    // Update previous source location to ensure the next indices are relative
+    // to those if [entry.sourceLocation].
+    updatePreviousSourceLocation(entry.sourceLocation);
   }
 
   int indexOf(List<String> list, String value, Map<String, int> map) {
@@ -254,14 +254,14 @@ abstract class SourceFileLocation {
 
 class TokenSourceFileLocation extends SourceFileLocation {
   final Token token;
+  final String name;
 
-  TokenSourceFileLocation(SourceFile sourceFile, this.token)
+  TokenSourceFileLocation(SourceFile sourceFile, this.token, this.name)
     : super(sourceFile);
 
   int get offset => token.charOffset;
 
   String getSourceName() {
-    if (token.isIdentifier()) return token.value;
-    return null;
+    return name;
   }
 }
