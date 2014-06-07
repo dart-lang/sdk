@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+    <title>auto-binding test</title>
+    <link rel="import" href="packages/polymer/polymer.html">
+    <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  </head>
+  <body unresolved>
+
+    <div>top</div>
+
+    <template id="one" is="d-auto-binding">
+      <h2 id="h" on-tap="{{eventAction}}">{{greeting}}</h2>
+    </template>
+
+    <template id="two" is="d-auto-binding">
+      <div>Say something: <input value="{{value}}"></div>
+      <div>You said: {{value}}</div>
+    </template>
+
+    <div>bottom</div>
+
+    <script type="application/dart" src="auto_binding_test.dart"></script>
+
+  </body>
+</html>

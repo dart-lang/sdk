@@ -42,8 +42,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     use_far_branches_(false),
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
-    guarded_fields_(builder.guarded_fields()),
-    deferred_prefixes_(builder.deferred_prefixes()) {
+    guarded_fields_(builder.guarded_fields()) {
   DiscoverBlocks();
 }
 
@@ -61,21 +60,6 @@ void FlowGraph::AddToGuardedFields(
     }
   }
   array->Add(field);
-}
-
-
-void FlowGraph::AddToDeferredPrefixes(
-    ZoneGrowableArray<const LibraryPrefix*>* from) {
-  ZoneGrowableArray<const LibraryPrefix*>* to = deferred_prefixes();
-  for (intptr_t i = 0; i < from->length(); i++) {
-    const  LibraryPrefix* prefix = (*from)[i];
-    for (intptr_t j = 0; j < to->length(); j++) {
-      if ((*to)[j]->raw() == prefix->raw()) {
-        return;
-      }
-    }
-    to->Add(prefix);
-  }
 }
 
 

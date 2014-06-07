@@ -135,12 +135,16 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
 void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
   ASSERT(prefix.is_deferred_load());
   ASSERT(!prefix.is_loaded());
-  for (intptr_t i = 0; i < deferred_prefixes_->length(); i++) {
-    if ((*deferred_prefixes_)[i]->raw() == prefix.raw()) {
+  if (deferred_prefixes_ == NULL) {
+    deferred_prefixes_ =
+        &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  }
+  for (intptr_t i = 0; i < deferred_prefixes_->Length(); i++) {
+    if (deferred_prefixes_->At(i) == prefix.raw()) {
       return;
     }
   }
-  deferred_prefixes_->Add(&LibraryPrefix::ZoneHandle(I, prefix.raw()));
+  deferred_prefixes_->Add(prefix);
 }
 
 

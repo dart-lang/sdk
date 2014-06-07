@@ -1,0 +1,21 @@
+## 0.10.0+3
+
+* Removed `@deprecated` annotation on matchers due to 
+[Issue 19173](https://code.google.com/p/dart/issues/detail?id=19173)
+
+## 0.10.0+2
+
+* Added types to a number of constants.
+
+## 0.10.0+1
+
+* Matchers related to bad language use have been removed. These represent code
+structure that should rarely or never be validated in tests.
+    * `isAbstractClassInstantiationError`
+    * `throwsAbstractClassInstantiationError`
+    * `isFallThroughError`
+    * `throwsFallThroughError`
+
+* Added types to a number of method arguments.
+
+* The structure of the library and test code has been updated.
