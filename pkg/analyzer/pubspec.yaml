@@ -1,5 +1,5 @@
 name: analyzer
-version: 0.15.7
+version: 0.15.8-dev
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: http://www.dartlang.org
@@ -10,4 +10,4 @@ dependencies:
   logging: '>=0.9.0 <0.10.0'
   path: '>=0.9.0 <2.0.0'
 dev_dependencies:
-  unittest: '>=0.9.0 <0.11.0'
+  unittest: '>=0.9.0 <0.12.0'
