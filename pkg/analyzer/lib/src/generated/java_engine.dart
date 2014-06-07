@@ -1,5 +1,6 @@
 library java.engine;
 
+import 'interner.dart';
 import 'java_core.dart';
 
 /**
@@ -10,7 +11,10 @@ typedef bool Predicate<E>(E argument);
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String>[];
-  static String intern(String s) => s;
+
+  static Interner INTERNER = new NullInterner();
+
+  static String intern(String string) => INTERNER.intern(string);
   static bool isTagName(String s) {
     if (s == null || s.length == 0) {
       return false;
