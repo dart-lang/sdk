@@ -1052,14 +1052,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   SourceFile currentSourceFile() {
-    Element element = sourceElement;
-    // TODO(johnniwinther): remove the 'element.patch' hack.
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      if (functionElement.patch != null) element = functionElement.patch;
-    }
-    Script script = element.compilationUnit.script;
-    return script.file;
+    return sourceElement.implementation.compilationUnit.script.file;
   }
 
   void checkValidSourceFileLocation(
@@ -2307,7 +2300,7 @@ class SsaBuilder extends ResolvedVisitor {
   SourceFileLocation sourceFileLocationForToken(ast.Node node, Token token) {
     SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
-        new TokenSourceFileLocation(sourceFile, token);
+        new TokenSourceFileLocation(sourceFile, token, sourceElement.name);
     checkValidSourceFileLocation(location, sourceFile, token.charOffset);
     return location;
   }

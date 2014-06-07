@@ -633,10 +633,12 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
     caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   }
   if (FLAG_trace_patching) {
-    OS::PrintErr("PatchStaticCall: patching from %#" Px " to '%s' %#" Px "\n",
+    OS::PrintErr("PatchStaticCall: patching caller pc %#" Px ""
+        " to '%s' new entry point %#" Px " (%s)\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
-        target_code.EntryPoint());
+        target_code.EntryPoint(),
+        target_code.is_optimized() ? "optimized" : "unoptimized");
   }
   arguments.SetReturn(target_code);
 }
@@ -1293,9 +1295,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   }
   if (FLAG_trace_patching) {
-    OS::PrintErr("FixCallersTarget: patching from %#" Px " to '%s' %#" Px "\n",
+    OS::PrintErr("FixCallersTarget: caller %#" Px " "
+        "target '%s' %#" Px " -> %#" Px "\n",
         frame->pc(),
         target_function.ToFullyQualifiedCString(),
+        target_code.EntryPoint(),
         current_target_code.EntryPoint());
   }
   arguments.SetReturn(current_target_code);

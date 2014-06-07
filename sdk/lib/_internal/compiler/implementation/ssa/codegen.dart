@@ -19,6 +19,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // TODO(sra): Attaching positions might be cleaner if the source position
     // was on a wrapping node.
     SourceFile sourceFile = sourceFileOfElement(element);
+    String name = element.name;
     AstElement implementation = element.implementation;
     ast.Node expression = implementation.node;
     Token beginToken;
@@ -34,21 +35,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // checks below.
     var sourcePosition, endSourcePosition;
     if (beginToken.charOffset < sourceFile.length) {
-      sourcePosition = new TokenSourceFileLocation(sourceFile, beginToken);
+      sourcePosition =
+          new TokenSourceFileLocation(sourceFile, beginToken, name);
     }
     if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition = new TokenSourceFileLocation(sourceFile, endToken);
+      endSourcePosition =
+          new TokenSourceFileLocation(sourceFile, endToken, name);
     }
     return node.withPosition(sourcePosition, endSourcePosition);
   }
 
   SourceFile sourceFileOfElement(Element element) {
-    // TODO(johnniwinther): remove the 'element.patch' hack.
-    FunctionElement functionElement = element.asFunctionElement();
-    if (functionElement != null && functionElement.patch != null) {
-      element = functionElement.patch;
-    }
-    return element.compilationUnit.script.file;
+    return element.implementation.compilationUnit.script.file;
   }
 
   js.Fun buildJavaScriptFunction(FunctionElement element,

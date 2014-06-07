@@ -562,6 +562,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
+  bool get targetsIncludeNoSuchMethod {
+    return targets.any((Element e) {
+      return e is FunctionElement &&
+             e.isInstanceMember &&
+             e.name == Compiler.NO_SUCH_METHOD;
+    });
+  }
+
   /**
    * We optimize certain operations on the [int] class because we know
    * more about their return type than the actual Dart code. For
