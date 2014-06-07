@@ -44,25 +44,37 @@ void runReflectiveTests(Type type) {
     if (memberMirror is! MethodMirror || !memberMirror.isRegularMethod) {
       return;
     }
-    // check name
     String memberName = MirrorSystem.getName(symbol);
+    // test_
     if (memberName.startsWith('test_')) {
       String testName = memberName.substring('test_'.length);
       test(testName, () {
-        InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
-        _invokeSymbolIfExists(instanceMirror, #setUp);
-        var testReturn = instanceMirror.invoke(symbol, []).reflectee;
-        if (testReturn is Future) {
-          return testReturn.whenComplete(() {
-            _invokeSymbolIfExists(instanceMirror, #tearDown);
-          });
-        } else {
-          _invokeSymbolIfExists(instanceMirror, #tearDown);
-          return testReturn;
-        }
+        _runTest(classMirror, symbol);
+      });
+      return;
+    }
+    // solo_test_
+    if (memberName.startsWith('solo_test_')) {
+      String testName = memberName.substring('solo_test_'.length);
+      solo_test(testName, () {
+        _runTest(classMirror, symbol);
       });
     }
   });
+}
+
+void _runTest(ClassMirror classMirror, Symbol symbol) {
+  InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
+  _invokeSymbolIfExists(instanceMirror, #setUp);
+  var testReturn = instanceMirror.invoke(symbol, []).reflectee;
+  if (testReturn is Future) {
+    return testReturn.whenComplete(() {
+      _invokeSymbolIfExists(instanceMirror, #tearDown);
+    });
+  } else {
+    _invokeSymbolIfExists(instanceMirror, #tearDown);
+    return testReturn;
+  }
 }
 
 
