@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.btree;
+library index.b_plus_tree;
 
 
 /**
- * A simple B+Tree implementation.
+ * A simple B+ tree (http://en.wikipedia.org/wiki/B+_tree) implementation.
  */
-class BTree<K, V> {
+class BPlusTree<K, V> {
   /**
    * The [Comparator] to compare keys.
    */
@@ -29,7 +29,7 @@ class BTree<K, V> {
    */
   _Node<K, V> _root;
 
-  BTree(this._maxIndexKeys, this._maxLeafKeys, this._comparator) {
+  BPlusTree(this._maxIndexKeys, this._maxLeafKeys, this._comparator) {
     _root = new _LeafNode(_maxLeafKeys, _comparator);
   }
 

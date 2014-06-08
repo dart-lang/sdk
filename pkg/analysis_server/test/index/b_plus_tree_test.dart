@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.btree;
+library test.index.b_plus_tree;
 
 import 'dart:math';
 
-import 'package:analysis_server/src/index/btree.dart';
+import 'package:analysis_server/src/index/b_plus_tree.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -15,18 +15,18 @@ import '../reflective_tests.dart';
 main() {
   groupSep = ' | ';
   group('BTree', () {
-    runReflectiveTests(BTreeTest);
+    runReflectiveTests(BPlusTreeTest);
   });
 }
 
 
-void _assertDebugString(BTree tree, String expected) {
+void _assertDebugString(BPlusTree tree, String expected) {
   String dump = _getDebugString(tree);
   expect(dump, expected);
 }
 
 
-String _getDebugString(BTree tree) {
+String _getDebugString(BPlusTree tree) {
   StringBuffer buffer = new StringBuffer();
   tree.writeOn(buffer);
   return buffer.toString();
@@ -37,8 +37,8 @@ int _intComparator(int a, int b) => a - b;
 
 
 @ReflectiveTestCase()
-class BTreeTest {
-  BTree<int, String> tree = new BTree<int, String>(4, 4, _intComparator);
+class BPlusTreeTest {
+  BPlusTree<int, String> tree = new BPlusTree<int, String>(4, 4, _intComparator);
 
   test_NoSuchMethodError() {
     expect(() {
@@ -171,7 +171,7 @@ INode {
   }
 
   void test_remove_inner_borrowLeft() {
-    tree = new BTree<int, String>(10, 4, _intComparator);
+    tree = new BPlusTree<int, String>(10, 4, _intComparator);
     for (int i = 100; i < 125; i++) {
       _insert(i, 'V$i');
     }
@@ -258,7 +258,7 @@ INode {
   }
 
   void test_remove_inner_borrowRight() {
-    tree = new BTree<int, String>(10, 4, _intComparator);
+    tree = new BPlusTree<int, String>(10, 4, _intComparator);
     for (int i = 100; i < 135; i++) {
       _insert(i, 'V$i');
     }
@@ -480,7 +480,7 @@ INode {
   }
 
   void test_remove_leaf_borrowLeft() {
-    tree = new BTree<int, String>(10, 10, _intComparator);
+    tree = new BPlusTree<int, String>(10, 10, _intComparator);
     for (int i = 20; i < 40; i++) {
       _insert(i, 'V$i');
     }
@@ -509,7 +509,7 @@ INode {
   }
 
   void test_remove_leaf_borrowRight() {
-    tree = new BTree<int, String>(10, 10, _intComparator);
+    tree = new BPlusTree<int, String>(10, 10, _intComparator);
     _insertValues(15);
     _assertDebugString(tree, '''
 INode {
@@ -632,7 +632,7 @@ INode {
   }
 
   void test_stress_random() {
-    tree = new BTree<int, String>(10, 10, _intComparator);
+    tree = new BPlusTree<int, String>(10, 10, _intComparator);
     int maxKey = 1000000;
     int tryCount = 1000;
     Set<int> keys = new Set<int>();
