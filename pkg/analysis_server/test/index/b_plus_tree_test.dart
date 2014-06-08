@@ -26,6 +26,11 @@ void _assertDebugString(BPlusTree tree, String expected) {
 }
 
 
+_TestBTree<int, String> _createTree(int maxIndexKeys, int maxLeafKeys) {
+  return new _TestBTree<int, String>(maxIndexKeys, maxLeafKeys, _intComparator);
+}
+
+
 String _getDebugString(BPlusTree tree) {
   StringBuffer buffer = new StringBuffer();
   tree.writeOn(buffer);
@@ -38,7 +43,7 @@ int _intComparator(int a, int b) => a - b;
 
 @ReflectiveTestCase()
 class BPlusTreeTest {
-  BPlusTree<int, String> tree = new BPlusTree<int, String>(4, 4, _intComparator);
+  BPlusTree<int, String, dynamic> tree = _createTree(4, 4);
 
   test_NoSuchMethodError() {
     expect(() {
@@ -171,7 +176,7 @@ INode {
   }
 
   void test_remove_inner_borrowLeft() {
-    tree = new BPlusTree<int, String>(10, 4, _intComparator);
+    tree = _createTree(10, 4);
     for (int i = 100; i < 125; i++) {
       _insert(i, 'V$i');
     }
@@ -258,7 +263,7 @@ INode {
   }
 
   void test_remove_inner_borrowRight() {
-    tree = new BPlusTree<int, String>(10, 4, _intComparator);
+    tree = _createTree(10, 4);
     for (int i = 100; i < 135; i++) {
       _insert(i, 'V$i');
     }
@@ -480,7 +485,7 @@ INode {
   }
 
   void test_remove_leaf_borrowLeft() {
-    tree = new BPlusTree<int, String>(10, 10, _intComparator);
+    tree = _createTree(10, 10);
     for (int i = 20; i < 40; i++) {
       _insert(i, 'V$i');
     }
@@ -509,7 +514,7 @@ INode {
   }
 
   void test_remove_leaf_borrowRight() {
-    tree = new BPlusTree<int, String>(10, 10, _intComparator);
+    tree = _createTree(10, 10);
     _insertValues(15);
     _assertDebugString(tree, '''
 INode {
@@ -632,7 +637,7 @@ INode {
   }
 
   void test_stress_random() {
-    tree = new BPlusTree<int, String>(10, 10, _intComparator);
+    tree = _createTree(10, 10);
     int maxKey = 1000000;
     int tryCount = 1000;
     Set<int> keys = new Set<int>();
@@ -673,4 +678,9 @@ INode {
       _insert(i, 'V$i');
     }
   }
+}
+
+class _TestBTree<K, V> extends BPlusTree<K, V, int> {
+  _TestBTree(int maxIndexKeys, int maxLeafKeys, Comparator<K> comparator) :
+      super(maxIndexKeys, maxLeafKeys, comparator, new MemoryNodeManager());
 }
