@@ -49,7 +49,7 @@ void runReflectiveTests(Type type) {
     if (memberName.startsWith('test_')) {
       String testName = memberName.substring('test_'.length);
       test(testName, () {
-        _runTest(classMirror, symbol);
+        return _runTest(classMirror, symbol);
       });
       return;
     }
@@ -57,13 +57,13 @@ void runReflectiveTests(Type type) {
     if (memberName.startsWith('solo_test_')) {
       String testName = memberName.substring('solo_test_'.length);
       solo_test(testName, () {
-        _runTest(classMirror, symbol);
+        return _runTest(classMirror, symbol);
       });
     }
   });
 }
 
-void _runTest(ClassMirror classMirror, Symbol symbol) {
+_runTest(ClassMirror classMirror, Symbol symbol) {
   InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
   _invokeSymbolIfExists(instanceMirror, #setUp);
   var testReturn = instanceMirror.invoke(symbol, []).reflectee;
