@@ -39,6 +39,8 @@ deferred_constraints_type_annotation_test/*: Fail, Pass # Issue 17523
 deferred_constraints_constants_test/*: Fail, Pass # Issue 17523
 deferred_shadow_load_library_test: Fail # Issue 17523
 deferred_closurize_load_library_test: Fail  # Issue 17523
+deferred_inlined_test: Fail  # Issue 17523
+deferred_optimized_test: Fail  # Issue 17523
 
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
