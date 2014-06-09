@@ -2637,8 +2637,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+          (right_range == NULL) || right_range->IsNegative();
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
         __ bltz(right, deopt);
@@ -2978,7 +2977,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(&done);
         __ Bind(&subtract);
         __ subu(result, result, TMP);
-      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      } else if (right_range->IsPositive()) {
         // Right is positive.
         __ addu(result, result, TMP);
       } else {
@@ -2998,7 +2997,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       if ((right_range == NULL) ||
-          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
         Label ok;
         __ BranchSignedLessEqual(temp, kCountLimit, &ok);
         __ LoadImmediate(temp, kCountLimit);
@@ -4198,7 +4197,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(&done);
       __ Bind(&subtract);
       __ subu(result_mod, result_mod, TMP);
-    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+    } else if (right_range->IsPositive()) {
       // Right is positive.
       __ addu(result_mod, result_mod, TMP);
     } else {

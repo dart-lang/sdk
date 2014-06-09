@@ -53,10 +53,73 @@ TEST_CASE(RangeTests) {
   Range* range_x = new Range(
       RangeBoundary::FromConstant(-15),
       RangeBoundary::FromConstant(100));
+  EXPECT(negative->IsNegative());
+  EXPECT(positive->IsPositive());
   EXPECT(zero->Overlaps(0, 0));
   EXPECT(positive->Overlaps(0, 0));
   EXPECT(!negative->Overlaps(0, 0));
   EXPECT(range_x->Overlaps(0, 0));
+  EXPECT(range_x->IsWithin(-15, 100));
+  EXPECT(!range_x->IsWithin(-15, 99));
+  EXPECT(!range_x->IsWithin(-14, 100));
+}
+
+
+TEST_CASE(RangeTestsInfinity) {
+  // +/- inf overflowed.
+  EXPECT(RangeBoundary::NegativeInfinity().Overflowed());
+  EXPECT(RangeBoundary::PositiveInfinity().Overflowed());
+
+  Range* all = new Range(RangeBoundary::NegativeInfinity(),
+                         RangeBoundary::PositiveInfinity());
+  EXPECT(all->Overlaps(0, 0));
+  EXPECT(all->Overlaps(-1, 1));
+  EXPECT(!all->IsWithin(0, 100));
+  Range* positive = new Range(RangeBoundary::FromConstant(0),
+                              RangeBoundary::PositiveInfinity());
+  EXPECT(positive->IsPositive());
+  EXPECT(!positive->IsNegative());
+  EXPECT(positive->Overlaps(0, 1));
+  EXPECT(positive->Overlaps(1, 100));
+  EXPECT(positive->Overlaps(-1, 0));
+  EXPECT(!positive->Overlaps(-2, -1));
+  Range* negative = new Range(RangeBoundary::NegativeInfinity(),
+                              RangeBoundary::FromConstant(-1));
+  EXPECT(negative->IsNegative());
+  EXPECT(!negative->IsPositive());
+  EXPECT(!negative->Overlaps(0, 1));
+  EXPECT(!negative->Overlaps(1, 100));
+  EXPECT(negative->Overlaps(-1, 0));
+  EXPECT(negative->Overlaps(-2, -1));
+  Range* negpos = new Range(RangeBoundary::NegativeInfinity(),
+                            RangeBoundary::FromConstant(0));
+  EXPECT(!negpos->IsNegative());
+  EXPECT(!negpos->IsPositive());
+
+  Range* a = new Range(RangeBoundary::NegativeInfinity(),
+                       RangeBoundary::FromConstant(1));
+
+  Range* b = new Range(RangeBoundary::NegativeInfinity(),
+                       RangeBoundary::FromConstant(31));
+
+  Range* c = new Range(RangeBoundary::NegativeInfinity(),
+                       RangeBoundary::FromConstant(32));
+
+  EXPECT(a->OnlyLessThanOrEqualTo(31));
+  EXPECT(b->OnlyLessThanOrEqualTo(31));
+  EXPECT(!c->OnlyLessThanOrEqualTo(31));
+
+  Range* unsatisfiable = new Range(RangeBoundary::PositiveInfinity(),
+                                   RangeBoundary::NegativeInfinity());
+  EXPECT(unsatisfiable->IsUnsatisfiable());
+
+  Range* unsatisfiable_right = new Range(RangeBoundary::PositiveInfinity(),
+                                         RangeBoundary::FromConstant(0));
+  EXPECT(unsatisfiable_right->IsUnsatisfiable());
+
+  Range* unsatisfiable_left = new Range(RangeBoundary::FromConstant(0),
+                                        RangeBoundary::NegativeInfinity());
+  EXPECT(unsatisfiable_left->IsUnsatisfiable());
 }
 
 }  // namespace dart

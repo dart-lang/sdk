@@ -1233,14 +1233,13 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kSHR: {
       // Can't deopt if shift-count is known positive.
       Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL)
-          || !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+      return (right_range == NULL) || right_range->IsNegative();
     }
     case Token::kSHL: {
       Range* right_range = this->right()->definition()->range();
       if ((right_range != NULL) && is_truncating()) {
         // Can deoptimize if right can be negative.
-        return !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+        return right_range->IsNegative();
       }
       return true;
     }
@@ -2465,18 +2464,20 @@ RangeBoundary RangeBoundary::FromDefinition(Definition* defn, intptr_t offs) {
 
 
 RangeBoundary RangeBoundary::LowerBound() const {
+  if (IsNegativeInfinity()) return *this;
   if (IsConstant()) return *this;
   return Add(Range::ConstantMin(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             OverflowedMinSmi());
+             NegativeInfinity());
 }
 
 
 RangeBoundary RangeBoundary::UpperBound() const {
+  if (IsPositiveInfinity()) return *this;
   if (IsConstant()) return *this;
   return Add(Range::ConstantMax(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
-             OverflowedMaxSmi());
+             PositiveInfinity());
 }
 
 
@@ -2537,7 +2538,9 @@ static bool IsEqual(const RangeBoundary& a, const RangeBoundary& b) {
 
 static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
                                           const RangeBoundary& overflow) {
-  if (a.IsConstant()) return a;
+  if (a.IsConstant() || a.IsNegativeInfinity() || a.IsPositiveInfinity()) {
+    return a;
+  }
 
   intptr_t offset = a.offset();
   Definition* symbol = a.symbol();
@@ -2594,13 +2597,13 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
   const intptr_t offset = range->max().offset() + a->offset();
 
   if (!Smi::IsValid(offset)) {
-    *a = RangeBoundary::OverflowedMaxSmi();
+    *a = RangeBoundary::PositiveInfinity();
     return true;
   }
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->max().symbol(), offset),
-      RangeBoundary::OverflowedMaxSmi());
+      RangeBoundary::PositiveInfinity());
 
   return true;
 }
@@ -2614,13 +2617,13 @@ static bool CanonicalizeMinBoundary(RangeBoundary* a) {
 
   const intptr_t offset = range->min().offset() + a->offset();
   if (!Smi::IsValid(offset)) {
-    *a = RangeBoundary::OverflowedMinSmi();
+    *a = RangeBoundary::NegativeInfinity();
     return true;
   }
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->min().symbol(), offset),
-      RangeBoundary::OverflowedMinSmi());
+      RangeBoundary::NegativeInfinity());
 
   return true;
 }
@@ -2685,10 +2688,10 @@ void ConstraintInstr::InferRange() {
     if (value_range != NULL) {
       RangeBoundary canonical_a =
           CanonicalizeBoundary(constraint()->min(),
-                               RangeBoundary::OverflowedMinSmi());
+                               RangeBoundary::NegativeInfinity());
       RangeBoundary canonical_b =
           CanonicalizeBoundary(value_range->min(),
-                               RangeBoundary::OverflowedMinSmi());
+                               RangeBoundary::NegativeInfinity());
 
       do {
         if (DependOnSameSymbol(canonical_a, canonical_b)) {
@@ -2716,10 +2719,10 @@ void ConstraintInstr::InferRange() {
     if (value_range != NULL) {
       RangeBoundary canonical_b =
           CanonicalizeBoundary(value_range->max(),
-                               RangeBoundary::OverflowedMaxSmi());
+                               RangeBoundary::PositiveInfinity());
       RangeBoundary canonical_a =
           CanonicalizeBoundary(constraint()->max(),
-                               RangeBoundary::OverflowedMaxSmi());
+                               RangeBoundary::PositiveInfinity());
 
       do {
         if (DependOnSameSymbol(canonical_a, canonical_b)) {
@@ -3060,14 +3063,14 @@ void BinarySmiOpInstr::InferRange() {
         min =
           RangeBoundary::Add(Range::ConstantMin(left_range),
                              Range::ConstantMin(right_range),
-                             RangeBoundary::OverflowedMinSmi());
+                             RangeBoundary::NegativeInfinity());
       }
 
       if (!SymbolicAdd(left_max, right_range->max(), &max)) {
         max =
           RangeBoundary::Add(Range::ConstantMax(right_range),
                              Range::ConstantMax(left_range),
-                             RangeBoundary::OverflowedMaxSmi());
+                             RangeBoundary::PositiveInfinity());
       }
       break;
 
@@ -3076,14 +3079,14 @@ void BinarySmiOpInstr::InferRange() {
         min =
           RangeBoundary::Sub(Range::ConstantMin(left_range),
                              Range::ConstantMax(right_range),
-                             RangeBoundary::OverflowedMinSmi());
+                             RangeBoundary::NegativeInfinity());
       }
 
       if (!SymbolicSub(left_max, right_range->min(), &max)) {
         max =
           RangeBoundary::Sub(Range::ConstantMax(left_range),
                              Range::ConstantMin(right_range),
-                             RangeBoundary::OverflowedMaxSmi());
+                             RangeBoundary::PositiveInfinity());
       }
       break;
 
@@ -3142,17 +3145,72 @@ void BinarySmiOpInstr::InferRange() {
 }
 
 
+bool Range::IsPositive() const {
+  if (min().IsNegativeInfinity()) {
+    return false;
+  }
+  if (min().LowerBound().value() < 0) {
+    return false;
+  }
+  if (max().IsPositiveInfinity()) {
+    return true;
+  }
+  return max().UpperBound().value() >= 0;
+}
+
+
+bool Range::IsNegative() const {
+  if (max().IsPositiveInfinity()) {
+    return false;
+  }
+  if (max().UpperBound().value() >= 0) {
+    return false;
+  }
+  if (min().IsNegativeInfinity()) {
+    return true;
+  }
+  return min().LowerBound().value() < 0;
+}
+
+
+bool Range::OnlyLessThanOrEqualTo(intptr_t val) const {
+  if (max().IsPositiveInfinity()) {
+    // Cannot be true.
+    return false;
+  }
+  if (max().UpperBound().value() > val) {
+    // Not true.
+    return false;
+  }
+  if (!min().IsNegativeInfinity()) {
+    if (min().LowerBound().value() > val) {
+      // Lower bound is > value.
+      return false;
+    }
+  }
+  return true;
+}
+
+
 // Inclusive.
 bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
-  if (min().LowerBound().value() < min_int) return false;
-  if (max().UpperBound().value() > max_int) return false;
+  RangeBoundary lower_min = min().LowerBound();
+  if (lower_min.IsNegativeInfinity() || (lower_min.value() < min_int)) {
+    return false;
+  }
+  RangeBoundary upper_max = max().UpperBound();
+  if (upper_max.IsPositiveInfinity() || (upper_max.value() > max_int)) {
+    return false;
+  }
   return true;
 }
 
 
 bool Range::Overlaps(intptr_t min_int, intptr_t max_int) const {
-  const intptr_t this_min = min().LowerBound().value();
-  const intptr_t this_max = max().UpperBound().value();
+  const intptr_t this_min = min().IsNegativeInfinity() ?
+      kIntptrMin : min().LowerBound().value();
+  const intptr_t this_max = max().IsPositiveInfinity() ?
+      kIntptrMax : max().UpperBound().value();
   if ((this_min <= min_int) && (min_int <= this_max)) return true;
   if ((this_min <= max_int) && (max_int <= this_max)) return true;
   if ((min_int < this_min) && (max_int > this_max)) return true;
@@ -3161,6 +3219,10 @@ bool Range::Overlaps(intptr_t min_int, intptr_t max_int) const {
 
 
 bool Range::IsUnsatisfiable() const {
+  // Infinity case: [+inf, ...] || [..., -inf]
+  if (min().IsPositiveInfinity() || max().IsNegativeInfinity()) {
+    return true;
+  }
   // Constant case: For example [0, -1].
   if (Range::ConstantMin(this).value() > Range::ConstantMax(this).value()) {
     return true;
@@ -3192,18 +3254,26 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   }
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
-                                           RangeBoundary::OverflowedMaxSmi());
+                                           RangeBoundary::PositiveInfinity());
 
   if (max.Overflowed()) {
     return false;
   }
 
+
+  RangeBoundary max_upper = max.UpperBound();
+  RangeBoundary length_lower = length.LowerBound();
+
+  if (max_upper.Overflowed() || length_lower.Overflowed()) {
+    return false;
+  }
+
   // Try to compare constant boundaries.
-  if (max.UpperBound().value() < length.LowerBound().value()) {
+  if (max_upper.value() < length_lower.value()) {
     return true;
   }
 
-  length = CanonicalizeBoundary(length, RangeBoundary::OverflowedMaxSmi());
+  length = CanonicalizeBoundary(length, RangeBoundary::PositiveInfinity());
   if (length.Overflowed()) {
     return false;
   }

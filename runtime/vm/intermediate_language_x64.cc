@@ -2654,8 +2654,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+          (right_range == NULL) || right_range->IsNegative();
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
         __ CompareImmediate(right, Immediate(0), PP);
@@ -3107,7 +3106,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&all_done, Assembler::kNearJump);
         __ Bind(&subtract);
         __ subq(result, right);
-      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      } else if (right_range->IsPositive()) {
         // Right is positive.
         __ addq(result, right);
       } else {
@@ -3127,7 +3126,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // sarq operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
       if ((right_range == NULL) ||
-          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
         __ CompareImmediate(right, Immediate(kCountLimit), PP);
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
@@ -5249,7 +5248,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jmp(&all_done, Assembler::kNearJump);
       __ Bind(&subtract);
       __ subq(RDX, right);
-    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+    } else if (right_range->IsPositive()) {
       // Right is positive.
       __ addq(RDX, right);
     } else {

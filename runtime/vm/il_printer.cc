@@ -296,18 +296,18 @@ const char* Range::ToCString(Range* range) {
 void RangeBoundary::PrintTo(BufferFormatter* f) const {
   switch (kind_) {
     case kSymbol:
-      f->Print("v%" Pd,
+      f->Print("v%" Pd "",
                reinterpret_cast<Definition*>(value_)->ssa_temp_index());
-      if (offset_ != 0) f->Print("%+" Pd, offset_);
+      if (offset_ != 0) f->Print("%+" Pd "", offset_);
+      break;
+    case kNegativeInfinity:
+      f->Print("-inf");
+      break;
+    case kPositiveInfinity:
+      f->Print("+inf");
       break;
     case kConstant:
-      if (value_ == kMinusInfinity) {
-        f->Print("-inf");
-      } else if (value_ == kPlusInfinity) {
-        f->Print("+inf");
-      } else {
-        f->Print("%" Pd, value_);
-      }
+      f->Print("%" Pd "", value_);
       break;
     case kUnknown:
       f->Print("_|_");

@@ -2934,8 +2934,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+          (right_range == NULL) || right_range->IsNegative();
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
         __ cmp(right, Operand(0));
@@ -3322,7 +3321,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       if ((right_range == NULL) ||
-          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
         __ CompareImmediate(IP, kCountLimit);
         __ LoadImmediate(IP, kCountLimit, GT);
       }

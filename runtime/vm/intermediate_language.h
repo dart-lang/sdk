@@ -2484,7 +2484,13 @@ class RedefinitionInstr : public TemplateDefinition<1> {
 
 class RangeBoundary : public ValueObject {
  public:
-  enum Kind { kUnknown, kSymbol, kConstant };
+  enum Kind {
+    kUnknown,
+    kNegativeInfinity,
+    kPositiveInfinity,
+    kSymbol,
+    kConstant,
+  };
 
   RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) { }
 
@@ -2505,6 +2511,14 @@ class RangeBoundary : public ValueObject {
     return RangeBoundary(kConstant, val, 0);
   }
 
+  static RangeBoundary NegativeInfinity() {
+    return RangeBoundary(kNegativeInfinity, 0, 0);
+  }
+
+  static RangeBoundary PositiveInfinity() {
+    return RangeBoundary(kPositiveInfinity, 0, 0);
+  }
+
   static RangeBoundary FromDefinition(Definition* defn, intptr_t offs = 0);
 
   static RangeBoundary MinSmi() {
@@ -2515,40 +2529,35 @@ class RangeBoundary : public ValueObject {
     return FromConstant(Smi::kMaxValue);
   }
 
-  static const intptr_t kMinusInfinity = Smi::kMinValue - 1;
-  static const intptr_t kPlusInfinity = Smi::kMaxValue + 1;
-
-  static RangeBoundary OverflowedMinSmi() {
-    return FromConstant(Smi::kMinValue - 1);
-  }
-
-  static RangeBoundary OverflowedMaxSmi() {
-    return FromConstant(Smi::kMaxValue + 1);
-  }
-
   static RangeBoundary Min(RangeBoundary a, RangeBoundary b);
 
   static RangeBoundary Max(RangeBoundary a, RangeBoundary b);
 
   bool Overflowed() const {
-    return IsConstant() && !Smi::IsValid(value());
+    // If the value is a constant outside of Smi range or infinity.
+    return (IsConstant() && !Smi::IsValid(value())) || IsInfinity();
   }
 
   RangeBoundary Clamp() const {
-    if (IsConstant()) {
+    if (IsNegativeInfinity()) {
+      return MinSmi();
+    } else if (IsPositiveInfinity()) {
+      return MaxSmi();
+    } else if (IsConstant()) {
       if (value() < Smi::kMinValue) return MinSmi();
       if (value() > Smi::kMaxValue) return MaxSmi();
     }
     return *this;
   }
 
-  bool Equals(const RangeBoundary& other) const {
-    return (kind_ == other.kind_) && (value_ == other.value_);
-  }
-
   bool IsUnknown() const { return kind_ == kUnknown; }
   bool IsConstant() const { return kind_ == kConstant; }
   bool IsSymbol() const { return kind_ == kSymbol; }
+  bool IsNegativeInfinity() const { return kind_ == kNegativeInfinity; }
+  bool IsPositiveInfinity() const { return kind_ == kPositiveInfinity; }
+  bool IsInfinity() const {
+    return IsNegativeInfinity() || IsPositiveInfinity();
+  }
 
   intptr_t value() const {
     ASSERT(IsConstant());
@@ -2618,19 +2627,28 @@ class Range : public ZoneAllocated {
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
 
-  bool Equals(Range* other) {
-    return min_.Equals(other->min_) && max_.Equals(other->max_);
-  }
-
   static RangeBoundary ConstantMin(const Range* range) {
-    if (range == NULL) return RangeBoundary::MinSmi();
+    if (range == NULL) {
+      return RangeBoundary::MinSmi();
+    }
     return range->min().LowerBound().Clamp();
   }
 
   static RangeBoundary ConstantMax(const Range* range) {
-    if (range == NULL) return RangeBoundary::MaxSmi();
+    if (range == NULL) {
+      return RangeBoundary::MaxSmi();
+    }
     return range->max().UpperBound().Clamp();
   }
+
+  // [0, +inf]
+  bool IsPositive() const;
+
+  // [-inf, 0)
+  bool IsNegative() const;
+
+  // [-inf, val].
+  bool OnlyLessThanOrEqualTo(intptr_t val) const;
 
   // Inclusive.
   bool IsWithin(intptr_t min_int, intptr_t max_int) const;
