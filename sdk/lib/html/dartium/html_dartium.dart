@@ -1226,10 +1226,6 @@ class BeforeLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('BeforeLoadEvent.url')
-  @DocsEditable()
-  String get url => _blink.Native_BeforeLoadEvent_url_Getter(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1962,36 +1958,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * The current default path of this canvas context, if there is one.
-   *
-   * ## Other resources
-   *
-   * * [Current default path]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
-   * from WHATWG.
-   */
-  @DomName('CanvasRenderingContext2D.currentPath')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
-  @Experimental()
-  Path get currentPath => _blink.Native_CanvasRenderingContext2D_currentPath_Getter(this);
-
-  /**
-   * The current default path of this canvas context, if there is one.
-   *
-   * ## Other resources
-   *
-   * * [Current default path]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
-   * from WHATWG.
-   */
-  @DomName('CanvasRenderingContext2D.currentPath')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
-  @Experimental()
-  void set currentPath(Path value) => _blink.Native_CanvasRenderingContext2D_currentPath_Setter(this, value);
-
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2318,15 +2284,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.translate')
   @DocsEditable()
   void translate(num tx, num ty) => _blink.Native_CanvasRenderingContext2D_translate_Callback(this, tx, ty);
-
-  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  ImageData getImageDataHD(num sx, num sy, num sw, num sh) => _blink.Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(this, sx, sy, sw, sh);
-
-  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) => _blink.Native_CanvasRenderingContext2D_putImageDataHD(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 
 
   /**
@@ -8525,11 +8482,6 @@ class DomImplementation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMImplementation.createCSSStyleSheet')
-  @DocsEditable()
-  @Experimental() // non-standard
-  CssStyleSheet createCssStyleSheet(String title, String media) => _blink.Native_DOMImplementation_createCSSStyleSheet_Callback(this, title, media);
-
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
   XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => _blink.Native_DOMImplementation_createDocument_Callback(this, namespaceURI, qualifiedName, doctype);
@@ -13684,7 +13636,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete() => _blink.Native_HTMLFormElement_requestAutocomplete_Callback(this);
+  void requestAutocomplete(Map details) => _blink.Native_HTMLFormElement_requestAutocomplete_Callback(this, details);
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -16975,38 +16927,6 @@ class InputElement extends HtmlElement implements
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
   List<Entry> get entries => _blink.Native_HTMLInputElement_webkitEntries_Getter(this);
-
-  @DomName('HTMLInputElement.webkitGrammar')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  bool get grammar => _blink.Native_HTMLInputElement_webkitGrammar_Getter(this);
-
-  @DomName('HTMLInputElement.webkitGrammar')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  void set grammar(bool value) => _blink.Native_HTMLInputElement_webkitGrammar_Setter(this, value);
-
-  @DomName('HTMLInputElement.webkitSpeech')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  bool get speech => _blink.Native_HTMLInputElement_webkitSpeech_Getter(this);
-
-  @DomName('HTMLInputElement.webkitSpeech')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  void set speech(bool value) => _blink.Native_HTMLInputElement_webkitSpeech_Setter(this, value);
 
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -24841,14 +24761,6 @@ class ShadowRoot extends DocumentFragment {
   @DocsEditable()
   Element get activeElement => _blink.Native_ShadowRoot_activeElement_Getter(this);
 
-  @DomName('ShadowRoot.applyAuthorStyles')
-  @DocsEditable()
-  bool get _applyAuthorStyles => _blink.Native_ShadowRoot_applyAuthorStyles_Getter(this);
-
-  @DomName('ShadowRoot.applyAuthorStyles')
-  @DocsEditable()
-  void set _applyAuthorStyles(bool value) => _blink.Native_ShadowRoot_applyAuthorStyles_Setter(this, value);
-
   @DomName('ShadowRoot.host')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25407,10 +25319,6 @@ class SpeechInputEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('SpeechInputEvent.results')
-  @DocsEditable()
-  List<SpeechInputResult> get results => _blink.Native_SpeechInputEvent_results_Getter(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25426,14 +25334,6 @@ class SpeechInputEvent extends Event {
 class SpeechInputResult extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputResult._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputResult.confidence')
-  @DocsEditable()
-  double get confidence => _blink.Native_SpeechInputResult_confidence_Getter(this);
-
-  @DomName('SpeechInputResult.utterance')
-  @DocsEditable()
-  String get utterance => _blink.Native_SpeechInputResult_utterance_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27524,11 +27424,6 @@ class TimedItem extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   Player get player => _blink.Native_TimedItem_player_Getter(this);
-
-  @DomName('TimedItem.specified')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Timing get specified => _blink.Native_TimedItem_specified_Getter(this);
 
   @DomName('TimedItem.startTime')
   @DocsEditable()
@@ -31048,11 +30943,6 @@ class WorkerCrypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WorkerCrypto._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('WorkerCrypto.getRandomValues')
-  @DocsEditable()
-  @Experimental() // untriaged
-  TypedData getRandomValues(TypedData array) => _blink.Native_WorkerCrypto_getRandomValues_Callback(this, array);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31123,14 +31013,6 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   WorkerGlobalScope get self => _blink.Native_WorkerGlobalScope_self_Getter(this);
-
-  @DomName('WorkerGlobalScope.webkitNotifications')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Experimental() // untriaged
-  _NotificationCenter get _webkitNotifications => _blink.Native_WorkerGlobalScope_webkitNotifications_Getter(this);
 
   @DomName('WorkerGlobalScope.close')
   @DocsEditable()
@@ -32641,10 +32523,6 @@ abstract class _ServiceWorker extends NativeFieldWrapperClass2 {
 class _SpeechInputResultList extends NativeFieldWrapperClass2 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List<SpeechInputResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputResultList.length')
-  @DocsEditable()
-  int get length => _blink.Native_SpeechInputResultList_length_Getter(this);
 
   SpeechInputResult operator[](int index) {
     if (index < 0 || index >= length)

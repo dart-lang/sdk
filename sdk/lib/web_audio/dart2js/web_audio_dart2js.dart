@@ -82,10 +82,6 @@ class AudioBuffer extends Interceptor native "AudioBuffer" {
   @DocsEditable()
   final double duration;
 
-  @DomName('AudioBuffer.gain')
-  @DocsEditable()
-  num gain;
-
   @DomName('AudioBuffer.length')
   @DocsEditable()
   final int length;
@@ -186,10 +182,6 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   @DocsEditable()
   AudioBuffer buffer;
 
-  @DomName('AudioBufferSourceNode.gain')
-  @DocsEditable()
-  final AudioParam gain;
-
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
   bool loop;
@@ -205,10 +197,6 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
   final AudioParam playbackRate;
-
-  @DomName('AudioBufferSourceNode.playbackState')
-  @DocsEditable()
-  final int playbackState;
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable()
@@ -254,10 +242,6 @@ class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
 
-  @DomName('AudioContext.activeSourceCount')
-  @DocsEditable()
-  final int activeSourceCount;
-
   @DomName('AudioContext.currentTime')
   @DocsEditable()
   final double currentTime;
@@ -286,11 +270,6 @@ class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" 
   @DocsEditable()
   AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) native;
 
-  @JSName('createBuffer')
-  @DomName('AudioContext.createBuffer')
-  @DocsEditable()
-  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) native;
-
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
   AudioBufferSourceNode createBufferSource() native;
@@ -311,21 +290,9 @@ class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" 
   @DocsEditable()
   DelayNode createDelay([num maxDelayTime]) native;
 
-  @DomName('AudioContext.createDelayNode')
-  @DocsEditable()
-  DelayNode createDelayNode([num maxDelayTime]) native;
-
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
   DynamicsCompressorNode createDynamicsCompressor() native;
-
-  @DomName('AudioContext.createGainNode')
-  @DocsEditable()
-  GainNode createGainNode() native;
-
-  @DomName('AudioContext.createJavaScriptNode')
-  @DocsEditable()
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
@@ -566,10 +533,6 @@ class AudioParam extends Interceptor native "AudioParam" {
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable()
   void setTargetAtTime(num target, num time, num timeConstant) native;
-
-  @DomName('AudioParam.setTargetValueAtTime')
-  @DocsEditable()
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable()
@@ -936,10 +899,6 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
   @DomName('OscillatorNode.frequency')
   @DocsEditable()
   final AudioParam frequency;
-
-  @DomName('OscillatorNode.playbackState')
-  @DocsEditable()
-  final int playbackState;
 
   @DomName('OscillatorNode.type')
   @DocsEditable()

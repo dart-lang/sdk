@@ -715,10 +715,6 @@ class BaseElement extends HtmlElement native "HTMLBaseElement" {
 class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
   // To suppress missing implicit constructor warnings.
   factory BeforeLoadEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('BeforeLoadEvent.url')
-  @DocsEditable()
-  final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1403,21 +1399,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * The current default path of this canvas context, if there is one.
-   *
-   * ## Other resources
-   *
-   * * [Current default path]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
-   * from WHATWG.
-   */
-  @DomName('CanvasRenderingContext2D.currentPath')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
-  @Experimental()
-  Path currentPath;
-
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1706,57 +1687,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.translate')
   @DocsEditable()
   void translate(num tx, num ty) native;
-
-  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Creates('ImageData|=Object')
-  ImageData getImageDataHD(num sx, num sy, num sw, num sh) {
-    return convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
-  }
-  @JSName('webkitGetImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Creates('ImageData|=Object')
-  _getImageDataHD_1(sx, sy, sw, sh) native;
-
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      var imagedata_1 = convertDartToNative_ImageData(imagedata);
-      _putImageDataHD_1(imagedata_1, dx, dy);
-      return;
-    }
-    if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
-      var imagedata_2 = convertDartToNative_ImageData(imagedata);
-      _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('webkitPutImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void _putImageDataHD_1(imagedata, dx, dy) native;
-  @JSName('webkitPutImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void _putImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
   /**
@@ -8015,12 +7945,6 @@ class DomImplementation extends Interceptor native "DOMImplementation" {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('createCSSStyleSheet')
-  @DomName('DOMImplementation.createCSSStyleSheet')
-  @DocsEditable()
-  @Experimental() // non-standard
-  CssStyleSheet createCssStyleSheet(String title, String media) native;
-
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
   XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) native;
@@ -13401,7 +13325,17 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete() native;
+  void requestAutocomplete(Map details) {
+    var details_1 = convertDartToNative_Dictionary(details);
+    _requestAutocomplete_1(details_1);
+    return;
+  }
+  @JSName('requestAutocomplete')
+  @DomName('HTMLFormElement.requestAutocomplete')
+  @DocsEditable()
+  // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
+  @Experimental()
+  void _requestAutocomplete_1(details) native;
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -15845,24 +15779,6 @@ class InputElement extends HtmlElement implements
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
   final List<Entry> entries;
-
-  @JSName('webkitGrammar')
-  @DomName('HTMLInputElement.webkitGrammar')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  bool grammar;
-
-  @JSName('webkitSpeech')
-  @DomName('HTMLInputElement.webkitSpeech')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  bool speech;
 
   @JSName('webkitdirectory')
   @DomName('HTMLInputElement.webkitdirectory')
@@ -23371,11 +23287,6 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @DocsEditable()
   final Element activeElement;
 
-  @JSName('applyAuthorStyles')
-  @DomName('ShadowRoot.applyAuthorStyles')
-  @DocsEditable()
-  bool _applyAuthorStyles;
-
   @DomName('ShadowRoot.host')
   @DocsEditable()
   @Experimental() // untriaged
@@ -23865,12 +23776,6 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
 class SpeechInputEvent extends Event native "SpeechInputEvent" {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputEvent.results')
-  @DocsEditable()
-  @Returns('_SpeechInputResultList')
-  @Creates('_SpeechInputResultList')
-  final List<SpeechInputResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23884,14 +23789,6 @@ class SpeechInputEvent extends Event native "SpeechInputEvent" {
 class SpeechInputResult extends Interceptor native "SpeechInputResult" {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputResult._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputResult.confidence')
-  @DocsEditable()
-  final double confidence;
-
-  @DomName('SpeechInputResult.utterance')
-  @DocsEditable()
-  final String utterance;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25823,11 +25720,6 @@ class TimedItem extends Interceptor native "TimedItem" {
   @DocsEditable()
   @Experimental() // untriaged
   final Player player;
-
-  @DomName('TimedItem.specified')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Timing specified;
 
   @DomName('TimedItem.startTime')
   @DocsEditable()
@@ -29527,13 +29419,6 @@ class WorkerConsole extends ConsoleBase native "WorkerConsole" {
 class WorkerCrypto extends Interceptor native "WorkerCrypto" {
   // To suppress missing implicit constructor warnings.
   factory WorkerCrypto._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WorkerCrypto.getRandomValues')
-  @DocsEditable()
-  @Experimental() // untriaged
-  @Creates('TypedData')
-  @Returns('TypedData|Null')
-  TypedData getRandomValues(TypedData array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29602,15 +29487,6 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   final WorkerGlobalScope self;
-
-  @JSName('webkitNotifications')
-  @DomName('WorkerGlobalScope.webkitNotifications')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Experimental() // untriaged
-  final _NotificationCenter _webkitNotifications;
 
   @DomName('WorkerGlobalScope.close')
   @DocsEditable()
@@ -31003,10 +30879,6 @@ abstract class _ServiceWorker extends Interceptor native "ServiceWorker" {
 class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputResultList.length')
-  @DocsEditable()
-  int get length => JS("int", "#.length", this);
 
   SpeechInputResult operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,

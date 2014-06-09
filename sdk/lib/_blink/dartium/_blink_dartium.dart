@@ -127,8 +127,6 @@ Native_TimedItem_localTime_Getter(mthis) native "TimedItem_localTime_Getter";
 
 Native_TimedItem_player_Getter(mthis) native "TimedItem_player_Getter";
 
-Native_TimedItem_specified_Getter(mthis) native "TimedItem_specified_Getter";
-
 Native_TimedItem_startTime_Getter(mthis) native "TimedItem_startTime_Getter";
 
   // Generated overload resolver
@@ -217,10 +215,6 @@ Native_Attr_value_Setter(mthis, value) native "Attr_value_Setter";
 
 Native_AudioBuffer_duration_Getter(mthis) native "AudioBuffer_duration_Getter";
 
-Native_AudioBuffer_gain_Getter(mthis) native "AudioBuffer_gain_Getter";
-
-Native_AudioBuffer_gain_Setter(mthis, value) native "AudioBuffer_gain_Setter";
-
 Native_AudioBuffer_length_Getter(mthis) native "AudioBuffer_length_Getter";
 
 Native_AudioBuffer_numberOfChannels_Getter(mthis) native "AudioBuffer_numberOfChannels_Getter";
@@ -232,8 +226,6 @@ Native_AudioBuffer_getChannelData_Callback(mthis, channelIndex) native "AudioBuf
 Native_AudioBufferSourceNode_buffer_Getter(mthis) native "AudioBufferSourceNode_buffer_Getter";
 
 Native_AudioBufferSourceNode_buffer_Setter(mthis, value) native "AudioBufferSourceNode_buffer_Setter";
-
-Native_AudioBufferSourceNode_gain_Getter(mthis) native "AudioBufferSourceNode_gain_Getter";
 
 Native_AudioBufferSourceNode_loop_Getter(mthis) native "AudioBufferSourceNode_loop_Getter";
 
@@ -248,8 +240,6 @@ Native_AudioBufferSourceNode_loopStart_Getter(mthis) native "AudioBufferSourceNo
 Native_AudioBufferSourceNode_loopStart_Setter(mthis, value) native "AudioBufferSourceNode_loopStart_Setter";
 
 Native_AudioBufferSourceNode_playbackRate_Getter(mthis) native "AudioBufferSourceNode_playbackRate_Getter";
-
-Native_AudioBufferSourceNode_playbackState_Getter(mthis) native "AudioBufferSourceNode_playbackState_Getter";
 
 Native_AudioBufferSourceNode_noteGrainOn_Callback(mthis, when, grainOffset, grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback_RESOLVER_STRING_3_double_double_double";
 
@@ -304,8 +294,6 @@ Native_AudioContext_AudioContext() {
 
 Native_AudioContext__create_1constructorCallback() native "AudioContext_constructorCallback_RESOLVER_STRING_0_";
 
-Native_AudioContext_activeSourceCount_Getter(mthis) native "AudioContext_activeSourceCount_Getter";
-
 Native_AudioContext_currentTime_Getter(mthis) native "AudioContext_currentTime_Getter";
 
 Native_AudioContext_destination_Getter(mthis) native "AudioContext_destination_Getter";
@@ -319,8 +307,6 @@ Native_AudioContext_createAnalyser_Callback(mthis) native "AudioContext_createAn
 Native_AudioContext_createBiquadFilter_Callback(mthis) native "AudioContext_createBiquadFilter_Callback_RESOLVER_STRING_0_";
 
 Native_AudioContext_createBuffer_Callback(mthis, numberOfChannels, numberOfFrames, sampleRate) native "AudioContext_createBuffer_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_float";
-
-Native_AudioContext_createBufferFromBuffer_Callback(mthis, buffer, mixToMono) native "AudioContext_createBuffer_Callback_RESOLVER_STRING_2_ArrayBuffer_boolean";
 
 Native_AudioContext_createBufferSource_Callback(mthis) native "AudioContext_createBufferSource_Callback_RESOLVER_STRING_0_";
 
@@ -362,40 +348,9 @@ Native_AudioContext__createDelay_1_Callback(mthis, maxDelayTime) native "AudioCo
 
 Native_AudioContext__createDelay_2_Callback(mthis) native "AudioContext_createDelay_Callback_RESOLVER_STRING_0_";
 
-  // Generated overload resolver
-Native_AudioContext_createDelayNode(mthis, maxDelayTime) {
-    if (maxDelayTime != null) {
-      return Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime);
-    }
-    return Native_AudioContext__createDelayNode_2_Callback(mthis);
-  }
-
-Native_AudioContext__createDelayNode_1_Callback(mthis, maxDelayTime) native "AudioContext_createDelayNode_Callback_RESOLVER_STRING_1_double";
-
-Native_AudioContext__createDelayNode_2_Callback(mthis) native "AudioContext_createDelayNode_Callback_RESOLVER_STRING_0_";
-
 Native_AudioContext_createDynamicsCompressor_Callback(mthis) native "AudioContext_createDynamicsCompressor_Callback_RESOLVER_STRING_0_";
 
 Native_AudioContext_createGain_Callback(mthis) native "AudioContext_createGain_Callback_RESOLVER_STRING_0_";
-
-Native_AudioContext_createGainNode_Callback(mthis) native "AudioContext_createGainNode_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-Native_AudioContext_createJavaScriptNode(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) {
-    if (numberOfOutputChannels != null) {
-      return Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (numberOfInputChannels != null) {
-      return Native_AudioContext__createJavaScriptNode_2_Callback(mthis, bufferSize, numberOfInputChannels);
-    }
-    return Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize);
-  }
-
-Native_AudioContext__createJavaScriptNode_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_unsigned long";
-
-Native_AudioContext__createJavaScriptNode_2_Callback(mthis, bufferSize, numberOfInputChannels) native "AudioContext_createJavaScriptNode_Callback_RESOLVER_STRING_2_unsigned long_unsigned long";
-
-Native_AudioContext__createJavaScriptNode_3_Callback(mthis, bufferSize) native "AudioContext_createJavaScriptNode_Callback_RESOLVER_STRING_1_unsigned long";
 
 Native_AudioContext_createMediaElementSource_Callback(mthis, mediaElement) native "AudioContext_createMediaElementSource_Callback_RESOLVER_STRING_1_HTMLMediaElement";
 
@@ -475,8 +430,6 @@ Native_AudioParam_linearRampToValueAtTime_Callback(mthis, value, time) native "A
 
 Native_AudioParam_setTargetAtTime_Callback(mthis, target, time, timeConstant) native "AudioParam_setTargetAtTime_Callback_RESOLVER_STRING_3_float_double_double";
 
-Native_AudioParam_setTargetValueAtTime_Callback(mthis, targetValue, time, timeConstant) native "AudioParam_setTargetValueAtTime_Callback_RESOLVER_STRING_3_float_double_double";
-
 Native_AudioParam_setValueAtTime_Callback(mthis, value, time) native "AudioParam_setValueAtTime_Callback_RESOLVER_STRING_2_float_double";
 
 Native_AudioParam_setValueCurveAtTime_Callback(mthis, values, time, duration) native "AudioParam_setValueCurveAtTime_Callback";
@@ -516,8 +469,6 @@ Native_AudioProcessingEvent_outputBuffer_Getter(mthis) native "AudioProcessingEv
 Native_AutocompleteErrorEvent_reason_Getter(mthis) native "AutocompleteErrorEvent_reason_Getter";
 
 Native_BarProp_visible_Getter(mthis) native "BarProp_visible_Getter";
-
-Native_BeforeLoadEvent_url_Getter(mthis) native "BeforeLoadEvent_url_Getter";
 
 Native_BeforeUnloadEvent_returnValue_Getter(mthis) native "BeforeUnloadEvent_returnValue_Getter";
 
@@ -764,10 +715,6 @@ Native_Canvas2DContextAttributes_alpha_Setter(mthis, value) native "Canvas2DCont
 Native_CanvasGradient_addColorStop_Callback(mthis, offset, color) native "CanvasGradient_addColorStop_Callback_RESOLVER_STRING_2_float_DOMString";
 
 Native_CanvasRenderingContext_canvas_Getter(mthis) native "CanvasRenderingContext2D_canvas_Getter";
-
-Native_CanvasRenderingContext2D_currentPath_Getter(mthis) native "CanvasRenderingContext2D_currentPath_Getter";
-
-Native_CanvasRenderingContext2D_currentPath_Setter(mthis, value) native "CanvasRenderingContext2D_currentPath_Setter";
 
 Native_CanvasRenderingContext2D_currentTransform_Getter(mthis) native "CanvasRenderingContext2D_currentTransform_Getter";
 
@@ -1047,7 +994,7 @@ Native_CanvasRenderingContext2D_save_Callback(mthis) native "CanvasRenderingCont
 
 Native_CanvasRenderingContext2D_scale_Callback(mthis, sx, sy) native "CanvasRenderingContext2D_scale_Callback_RESOLVER_STRING_2_float_float";
 
-Native_CanvasRenderingContext2D_setLineDash_Callback(mthis, dash) native "CanvasRenderingContext2D_setLineDash_Callback_RESOLVER_STRING_1_sequence<float>";
+Native_CanvasRenderingContext2D_setLineDash_Callback(mthis, dash) native "CanvasRenderingContext2D_setLineDash_Callback_RESOLVER_STRING_1_sequence<unrestricted float>";
 
 Native_CanvasRenderingContext2D_setTransform_Callback(mthis, m11, m12, m21, m22, dx, dy) native "CanvasRenderingContext2D_setTransform_Callback_RESOLVER_STRING_6_float_float_float_float_float_float";
 
@@ -1072,25 +1019,6 @@ Native_CanvasRenderingContext2D__strokeText_2_Callback(mthis, text, x, y) native
 Native_CanvasRenderingContext2D_transform_Callback(mthis, m11, m12, m21, m22, dx, dy) native "CanvasRenderingContext2D_transform_Callback_RESOLVER_STRING_6_float_float_float_float_float_float";
 
 Native_CanvasRenderingContext2D_translate_Callback(mthis, tx, ty) native "CanvasRenderingContext2D_translate_Callback_RESOLVER_STRING_2_float_float";
-
-Native_CanvasRenderingContext2D_webkitGetImageDataHD_Callback(mthis, sx, sy, sw, sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback_RESOLVER_STRING_4_float_float_float_float";
-
-  // Generated overload resolver
-Native_CanvasRenderingContext2D_putImageDataHD(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy);
-      return;
-    }
-    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
-      Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-Native_CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_Callback_RESOLVER_STRING_3_ImageData_float_float";
-
-Native_CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_Callback_RESOLVER_STRING_7_ImageData_float_float_float_float_float_float";
 
 Native_ClientRect_bottom_Getter(mthis) native "ClientRect_bottom_Getter";
 
@@ -1277,8 +1205,6 @@ Native_DOMFileSystem_name_Getter(mthis) native "DOMFileSystem_name_Getter";
 
 Native_DOMFileSystem_root_Getter(mthis) native "DOMFileSystem_root_Getter";
 
-Native_DOMImplementation_createCSSStyleSheet_Callback(mthis, title, media) native "DOMImplementation_createCSSStyleSheet_Callback_RESOLVER_STRING_2_DOMString_DOMString";
-
 Native_DOMImplementation_createDocument_Callback(mthis, namespaceURI, qualifiedName, doctype) native "DOMImplementation_createDocument_Callback_RESOLVER_STRING_3_DOMString_DOMString_DocumentType";
 
 Native_DOMImplementation_createDocumentType_Callback(mthis, qualifiedName, publicId, systemId) native "DOMImplementation_createDocumentType_Callback_RESOLVER_STRING_3_DOMString_DOMString_DOMString";
@@ -1447,8 +1373,6 @@ Native_WorkerGlobalScope_navigator_Getter(mthis) native "WorkerGlobalScope_navig
 Native_WorkerGlobalScope_performance_Getter(mthis) native "WorkerGlobalScope_performance_Getter";
 
 Native_WorkerGlobalScope_self_Getter(mthis) native "WorkerGlobalScope_self_Getter";
-
-Native_WorkerGlobalScope_webkitNotifications_Getter(mthis) native "WorkerGlobalScope_webkitNotifications_Getter";
 
 Native_WorkerGlobalScope_close_Callback(mthis) native "WorkerGlobalScope_close_Callback_RESOLVER_STRING_0_";
 
@@ -2130,7 +2054,7 @@ Native_GainNode_gain_Getter(mthis) native "GainNode_gain_Getter";
 
 Native_Gamepad_axes_Getter(mthis) native "Gamepad_axes_Getter";
 
-Native_Gamepad_buttons_Getter(mthis) native "Gamepad_buttons_Getter";
+Native_Gamepad_buttons_Getter(mthis) native "WebKitGamepad_buttons_Getter";
 
 Native_Gamepad_id_Getter(mthis) native "Gamepad_id_Getter";
 
@@ -2722,7 +2646,7 @@ Native_HTMLFormElement___getter___Callback(mthis, index) native "HTMLFormElement
 
 Native_HTMLFormElement_checkValidity_Callback(mthis) native "HTMLFormElement_checkValidity_Callback_RESOLVER_STRING_0_";
 
-Native_HTMLFormElement_requestAutocomplete_Callback(mthis) native "HTMLFormElement_requestAutocomplete_Callback_RESOLVER_STRING_0_";
+Native_HTMLFormElement_requestAutocomplete_Callback(mthis, details) native "HTMLFormElement_requestAutocomplete_Callback_RESOLVER_STRING_1_Dictionary";
 
 Native_HTMLFormElement_reset_Callback(mthis) native "HTMLFormElement_reset_Callback_RESOLVER_STRING_0_";
 
@@ -2959,14 +2883,6 @@ Native_HTMLInputElement_valueAsNumber_Getter(mthis) native "HTMLInputElement_val
 Native_HTMLInputElement_valueAsNumber_Setter(mthis, value) native "HTMLInputElement_valueAsNumber_Setter";
 
 Native_HTMLInputElement_webkitEntries_Getter(mthis) native "HTMLInputElement_webkitEntries_Getter";
-
-Native_HTMLInputElement_webkitGrammar_Getter(mthis) native "HTMLInputElement_webkitGrammar_Getter";
-
-Native_HTMLInputElement_webkitGrammar_Setter(mthis, value) native "HTMLInputElement_webkitGrammar_Setter";
-
-Native_HTMLInputElement_webkitSpeech_Getter(mthis) native "HTMLInputElement_webkitSpeech_Getter";
-
-Native_HTMLInputElement_webkitSpeech_Setter(mthis, value) native "HTMLInputElement_webkitSpeech_Setter";
 
 Native_HTMLInputElement_webkitdirectory_Getter(mthis) native "HTMLInputElement_webkitdirectory_Getter";
 
@@ -4511,8 +4427,6 @@ Native_OscillatorNode_detune_Getter(mthis) native "OscillatorNode_detune_Getter"
 
 Native_OscillatorNode_frequency_Getter(mthis) native "OscillatorNode_frequency_Getter";
 
-Native_OscillatorNode_playbackState_Getter(mthis) native "OscillatorNode_playbackState_Getter";
-
 Native_OscillatorNode_type_Getter(mthis) native "OscillatorNode_type_Getter";
 
 Native_OscillatorNode_type_Setter(mthis, value) native "OscillatorNode_type_Setter";
@@ -5293,8 +5207,6 @@ Native_SVGCircleElement_r_Getter(mthis) native "SVGCircleElement_r_Getter";
 
 Native_SVGClipPathElement_clipPathUnits_Getter(mthis) native "SVGClipPathElement_clipPathUnits_Getter";
 
-Native_SVGElementInstance_childNodes_Getter(mthis) native "SVGElementInstance_childNodes_Getter";
-
 Native_SVGElementInstance_correspondingElement_Getter(mthis) native "SVGElementInstance_correspondingElement_Getter";
 
 Native_SVGElementInstance_correspondingUseElement_Getter(mthis) native "SVGElementInstance_correspondingUseElement_Getter";
@@ -5308,8 +5220,6 @@ Native_SVGElementInstance_nextSibling_Getter(mthis) native "SVGElementInstance_n
 Native_SVGElementInstance_parentNode_Getter(mthis) native "SVGElementInstance_parentNode_Getter";
 
 Native_SVGElementInstance_previousSibling_Getter(mthis) native "SVGElementInstance_previousSibling_Getter";
-
-Native_SVGElementInstanceList_length_Getter(mthis) native "SVGElementInstanceList_length_Getter";
 
 Native_SVGElementInstanceList_NativeIndexed_Getter(mthis, index) native "SVGElementInstanceList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
@@ -6273,14 +6183,6 @@ Native_SVGZoomAndPan_zoomAndPan_Getter(mthis) native "SVGZoomAndPan_zoomAndPan_G
 
 Native_SVGZoomAndPan_zoomAndPan_Setter(mthis, value) native "SVGZoomAndPan_zoomAndPan_Setter";
 
-Native_SVGSVGElement_contentScriptType_Getter(mthis) native "SVGSVGElement_contentScriptType_Getter";
-
-Native_SVGSVGElement_contentScriptType_Setter(mthis, value) native "SVGSVGElement_contentScriptType_Setter";
-
-Native_SVGSVGElement_contentStyleType_Getter(mthis) native "SVGSVGElement_contentStyleType_Getter";
-
-Native_SVGSVGElement_contentStyleType_Setter(mthis, value) native "SVGSVGElement_contentStyleType_Setter";
-
 Native_SVGSVGElement_currentScale_Getter(mthis) native "SVGSVGElement_currentScale_Getter";
 
 Native_SVGSVGElement_currentScale_Setter(mthis, value) native "SVGSVGElement_currentScale_Setter";
@@ -6465,13 +6367,13 @@ Native_SVGUseElement_x_Getter(mthis) native "SVGUseElement_x_Getter";
 
 Native_SVGUseElement_y_Getter(mthis) native "SVGUseElement_y_Getter";
 
-Native_SVGUseElement_requiredExtensions_Getter(mthis) native "SVGUseElement_requiredExtensions_Getter";
+Native_SVGUseElement_requiredExtensions_Getter(mthis) native "SVGGraphicsElement_requiredExtensions_Getter";
 
-Native_SVGUseElement_requiredFeatures_Getter(mthis) native "SVGUseElement_requiredFeatures_Getter";
+Native_SVGUseElement_requiredFeatures_Getter(mthis) native "SVGGraphicsElement_requiredFeatures_Getter";
 
-Native_SVGUseElement_systemLanguage_Getter(mthis) native "SVGUseElement_systemLanguage_Getter";
+Native_SVGUseElement_systemLanguage_Getter(mthis) native "SVGGraphicsElement_systemLanguage_Getter";
 
-Native_SVGUseElement_hasExtension_Callback(mthis, extension) native "SVGUseElement_hasExtension_Callback_RESOLVER_STRING_1_DOMString";
+Native_SVGUseElement_hasExtension_Callback(mthis, extension) native "SVGGraphicsElement_hasExtension_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_SVGUseElement_href_Getter(mthis) native "SVGUseElement_href_Getter";
 
@@ -6614,10 +6516,6 @@ Native_Selection_setPosition_Callback(mthis, node, offset) native "Selection_set
 Native_Selection_toString_Callback(mthis) native "Selection_toString_Callback_RESOLVER_STRING_0_";
 
 Native_ShadowRoot_activeElement_Getter(mthis) native "ShadowRoot_activeElement_Getter";
-
-Native_ShadowRoot_applyAuthorStyles_Getter(mthis) native "ShadowRoot_applyAuthorStyles_Getter";
-
-Native_ShadowRoot_applyAuthorStyles_Setter(mthis, value) native "ShadowRoot_applyAuthorStyles_Setter";
 
 Native_ShadowRoot_host_Getter(mthis) native "ShadowRoot_host_Getter";
 
@@ -6769,14 +6667,6 @@ Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight) native "Spee
 Native_SpeechGrammarList__addFromUri_2_Callback(mthis, src) native "SpeechGrammarList_addFromUri_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_SpeechGrammarList_item_Callback(mthis, index) native "SpeechGrammarList_item_Callback_RESOLVER_STRING_1_unsigned long";
-
-Native_SpeechInputEvent_results_Getter(mthis) native "SpeechInputEvent_results_Getter";
-
-Native_SpeechInputResult_confidence_Getter(mthis) native "SpeechInputResult_confidence_Getter";
-
-Native_SpeechInputResult_utterance_Getter(mthis) native "SpeechInputResult_utterance_Getter";
-
-Native_SpeechInputResultList_length_Getter(mthis) native "SpeechInputResultList_length_Getter";
 
 Native_SpeechInputResultList_NativeIndexed_Getter(mthis, index) native "SpeechInputResultList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
@@ -8181,8 +8071,6 @@ Native_Worker__create_1constructorCallback(scriptUrl) native "Worker_constructor
 Native_Worker_postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback";
 
 Native_Worker_terminate_Callback(mthis) native "Worker_terminate_Callback_RESOLVER_STRING_0_";
-
-Native_WorkerCrypto_getRandomValues_Callback(mthis, array) native "WorkerCrypto_getRandomValues_Callback";
 
 Native_WorkerPerformance_now_Callback(mthis) native "WorkerPerformance_now_Callback_RESOLVER_STRING_0_";
 

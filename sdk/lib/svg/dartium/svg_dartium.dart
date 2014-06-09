@@ -1366,10 +1366,6 @@ class ElementInstance extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('SVGElementInstance.childNodes')
-  @DocsEditable()
-  List<ElementInstance> get childNodes => _blink.Native_SVGElementInstance_childNodes_Getter(this);
-
   @DomName('SVGElementInstance.correspondingElement')
   @DocsEditable()
   SvgElement get correspondingElement => _blink.Native_SVGElementInstance_correspondingElement_Getter(this);
@@ -6775,22 +6771,6 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
    */
   SvgSvgElement.created() : super.created();
 
-  @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable()
-  String get contentScriptType => _blink.Native_SVGSVGElement_contentScriptType_Getter(this);
-
-  @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable()
-  void set contentScriptType(String value) => _blink.Native_SVGSVGElement_contentScriptType_Setter(this, value);
-
-  @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable()
-  String get contentStyleType => _blink.Native_SVGSVGElement_contentStyleType_Getter(this);
-
-  @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable()
-  void set contentStyleType(String value) => _blink.Native_SVGSVGElement_contentStyleType_Setter(this, value);
-
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
   num get currentScale => _blink.Native_SVGSVGElement_currentScale_Getter(this);
@@ -7781,10 +7761,6 @@ class ZoomEvent extends UIEvent {
 class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGElementInstanceList.length')
-  @DocsEditable()
-  int get length => _blink.Native_SVGElementInstanceList_length_Getter(this);
 
   ElementInstance operator[](int index) {
     if (index < 0 || index >= length)

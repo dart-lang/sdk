@@ -1120,12 +1120,6 @@ class ElementInstance extends EventTarget native "SVGElementInstance" {
   @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('SVGElementInstance.childNodes')
-  @DocsEditable()
-  @Returns('_ElementInstanceList')
-  @Creates('_ElementInstanceList')
-  final List<ElementInstance> childNodes;
-
   @DomName('SVGElementInstance.correspondingElement')
   @DocsEditable()
   final SvgElement correspondingElement;
@@ -6012,14 +6006,6 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
    */
   SvgSvgElement.created() : super.created();
 
-  @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable()
-  String contentScriptType;
-
-  @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable()
-  String contentStyleType;
-
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
   num currentScale;
@@ -6954,10 +6940,6 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> native "SVGElementInstanceList" {
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGElementInstanceList.length')
-  @DocsEditable()
-  int get length => JS("int", "#.length", this);
 
   ElementInstance operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,

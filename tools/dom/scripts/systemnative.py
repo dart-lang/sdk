@@ -33,7 +33,22 @@ _cpp_resolver_string_map = {
     # We don't know how to get GLenum to show up as the correct type in this
     # script and don't want to bother fixing it the right way.
     'WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<GLenum>' :
-        'WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<unsigned long>'
+        'WebGLDrawBuffers_drawBuffersWEBGL_Callback_RESOLVER_STRING_1_sequence<unsigned long>',
+    # Blink 36 fixes.
+    'CanvasRenderingContext2D_setLineDash_Callback_RESOLVER_STRING_1_sequence<float>' :
+        'CanvasRenderingContext2D_setLineDash_Callback_RESOLVER_STRING_1_sequence<unrestricted float>',
+
+    # SVGGraphicsElement is base class.
+    'SVGUseElement_hasExtension_Callback_RESOLVER_STRING_1_DOMString' :
+        'SVGGraphicsElement_hasExtension_Callback_RESOLVER_STRING_1_DOMString',
+    'SVGUseElement_systemLanguage_Getter' :
+        'SVGGraphicsElement_systemLanguage_Getter',
+    'SVGUseElement_requiredFeatures_Getter' :
+        'SVGGraphicsElement_requiredFeatures_Getter',
+    'SVGUseElement_requiredExtensions_Getter' :
+        'SVGGraphicsElement_requiredExtensions_Getter',
+
+    'Gamepad_buttons_Getter' : 'WebKitGamepad_buttons_Getter',
 }
 
 # TODO(vsm): This logic needs to pulled from the source IDL.  These tables are

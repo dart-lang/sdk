@@ -394,4 +394,103 @@ interface Screen {
     boolean lockOrientation(sequence<DOMString> orientations);
 };
 
+[Supplemental] interface CanvasRenderingContext2D {
+    [Suppressed] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy);
+    [Suppressed] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy, float dirtyX, float dirtyY, float dirtyWidth, float dirtyHeight);
+    [Suppressed] ImageData webkitGetImageDataHD(float sx, float sy, float sw, float sh);
+    [Suppressed] attribute Path currentPath;
+};
+
+[Supplemental] interface AudioParam {
+    [Suppressed] void setTargetValueAtTime(float target, double time, double timeConstant);
+    void setTargetAtTime(float target, double time, double timeConstant);
+};
+
+[Supplemental] interface AudioContext {
+    // Number of AudioBufferSourceNodes that are currently playing.
+    [Suppressed] readonly attribute unsigned long activeSourceCount;
+    [Suppressed] ScriptProcessorNode createJavaScriptNode(unsigned long bufferSize, optional unsigned long numberOfInputChannels, optional unsigned long numberOfOutputChannels);
+    [Suppressed] AudioBuffer createBuffer(ArrayBuffer? buffer, boolean mixToMono);
+    [Suppressed] GainNode createGainNode();
+    [Suppressed] DelayNode createDelayNode(optional double maxDelayTime);
+};
+
+[Supplemental] interface HTMLInputElement {
+    [Suppressed] attribute boolean webkitSpeech;
+    [Suppressed] attribute boolean webkitGrammar;
+};
+
+[Supplemental] interface ShadowRoot {
+    [Suppressed] attribute boolean applyAuthorStyles;
+};
+
+[Supplemental] interface BeforeLoadEvent {
+    [Suppressed] readonly attribute DOMString url;
+};
+
+[Supplemental] interface OscillatorNode {
+    [Suppressed] readonly attribute unsigned short playbackState;
+};
+
+[Supplemental] interface SVGElementInstance {
+    [Suppressed] readonly attribute SVGElementInstanceList childNodes;
+};
+
+[Supplemental] interface TimedItem {
+    [Suppressed] readonly attribute Timing specified;
+};
+
+[Supplemental] interface DOMImplementation {
+    [Suppressed]
+    CSSStyleSheet createCSSStyleSheet([Default=Undefined] optional DOMString title,
+                                      [Default=Undefined] optional DOMString media);
+};
+
+[Supplemental] interface SVGSVGElement {
+    [Suppressed] attribute DOMString contentStyleType;
+    [Suppressed] attribute DOMString contentScriptType;
+};
+
+[Supplemental] interface WorkerGlobalScope {
+    [Suppressed] readonly attribute NotificationCenter webkitNotifications;
+};
+
+[Supplemental] interface AudioBuffer {
+    [Suppressed] attribute float gain;
+};
+
+[Supplemental] interface WorkerCrypto {
+    [Suppressed] ArrayBufferView getRandomValues(ArrayBufferView array);
+};
+
+[Supplemental] interface HTMLFormElement {
+    void requestAutocomplete([Default=Undefined] optional Dictionary details);
+    [Suppressed] void requestAutocomplete();
+};
+
+[Supplemental] interface AudioBufferSourceNode {
+    [Suppressed] readonly attribute unsigned short playbackState;
+};
+
+[Supplemental] interface SVGElementInstanceList {
+    [Suppressed] readonly attribute unsigned long length;
+};
+
+[Supplemental] interface SpeechInputResult {
+    [Suppressed] readonly attribute DOMString utterance;
+    [Suppressed] readonly attribute float confidence;
+};
+
+[Supplemental] interface SpeechInputEvent : Event {
+    [Suppressed] readonly attribute SpeechInputResultList results;
+};
+
+[Supplemental] interface SpeechInputResultList {
+    [Suppressed] readonly attribute unsigned long length;
+};
+
+[Supplemental] interface AudioBufferSourceNode : AudioSourceNode {
+    [Suppressed] readonly attribute AudioParam gain;
+};
+
 Element implements GlobalEventHandlers;
