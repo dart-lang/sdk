@@ -6941,6 +6941,10 @@ class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, 
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGElementInstanceList.length')
+  @DocsEditable()
+  int get length => JS("int", "#.length", this);
+
   ElementInstance operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))

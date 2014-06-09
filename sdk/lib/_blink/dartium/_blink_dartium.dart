@@ -5221,6 +5221,8 @@ Native_SVGElementInstance_parentNode_Getter(mthis) native "SVGElementInstance_pa
 
 Native_SVGElementInstance_previousSibling_Getter(mthis) native "SVGElementInstance_previousSibling_Getter";
 
+Native_SVGElementInstanceList_length_Getter(mthis) native "SVGElementInstanceList_length_Getter";
+
 Native_SVGElementInstanceList_NativeIndexed_Getter(mthis, index) native "SVGElementInstanceList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
 Native_SVGElementInstanceList_item_Callback(mthis, index) native "SVGElementInstanceList_item_Callback_RESOLVER_STRING_1_unsigned long";
@@ -6667,6 +6669,8 @@ Native_SpeechGrammarList__addFromUri_1_Callback(mthis, src, weight) native "Spee
 Native_SpeechGrammarList__addFromUri_2_Callback(mthis, src) native "SpeechGrammarList_addFromUri_Callback_RESOLVER_STRING_1_DOMString";
 
 Native_SpeechGrammarList_item_Callback(mthis, index) native "SpeechGrammarList_item_Callback_RESOLVER_STRING_1_unsigned long";
+
+Native_SpeechInputResultList_length_Getter(mthis) native "SpeechInputResultList_length_Getter";
 
 Native_SpeechInputResultList_NativeIndexed_Getter(mthis, index) native "SpeechInputResultList_item_Callback_RESOLVER_STRING_1_unsigned long";
 

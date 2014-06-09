@@ -30880,6 +30880,10 @@ class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResul
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SpeechInputResultList.length')
+  @DocsEditable()
+  int get length => JS("int", "#.length", this);
+
   SpeechInputResult operator[](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))

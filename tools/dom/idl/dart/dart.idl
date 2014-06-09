@@ -472,10 +472,6 @@ interface Screen {
     [Suppressed] readonly attribute unsigned short playbackState;
 };
 
-[Supplemental] interface SVGElementInstanceList {
-    [Suppressed] readonly attribute unsigned long length;
-};
-
 [Supplemental] interface SpeechInputResult {
     [Suppressed] readonly attribute DOMString utterance;
     [Suppressed] readonly attribute float confidence;
@@ -483,10 +479,6 @@ interface Screen {
 
 [Supplemental] interface SpeechInputEvent : Event {
     [Suppressed] readonly attribute SpeechInputResultList results;
-};
-
-[Supplemental] interface SpeechInputResultList {
-    [Suppressed] readonly attribute unsigned long length;
 };
 
 [Supplemental] interface AudioBufferSourceNode : AudioSourceNode {

@@ -7762,6 +7762,10 @@ class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<Eleme
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGElementInstanceList.length')
+  @DocsEditable()
+  int get length => _blink.Native_SVGElementInstanceList_length_Getter(this);
+
   ElementInstance operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);

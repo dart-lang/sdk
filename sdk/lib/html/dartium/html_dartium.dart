@@ -32524,6 +32524,10 @@ class _SpeechInputResultList extends NativeFieldWrapperClass2 with ListMixin<Spe
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SpeechInputResultList.length')
+  @DocsEditable()
+  int get length => _blink.Native_SpeechInputResultList_length_Getter(this);
+
   SpeechInputResult operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
