@@ -10,12 +10,15 @@ import 'dart:js' show context, JsObject;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'package:web_components/interop.dart';
+import 'package:web_components/polyfill.dart';
 
 main() {
   useHtmlConfiguration();
   registerDartType('x-a', XAWrapper);
   registerDartType('x-b', XBWrapper, extendsTag: 'div');
   registerDartType('x-c', XCWrapper);
+
+  setUp(() => customElementsReady);
 
   test('interop is supported', () {
     expect(isSupported, isTrue);

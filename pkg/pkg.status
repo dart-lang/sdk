@@ -45,6 +45,8 @@ polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/register_test: Pass, RuntimeError # Issue 18931
 polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
+web_components/test/interop_test: Pass, RuntimeError # Issue 18931
+web_components/test/interop2_test: Pass, RuntimeError # Issue 18931
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
