@@ -13048,13 +13048,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
     return Integer::Cast(*this).Equals(other);
   }
   if (IsDouble() && other.IsDouble()) {
-    if (Double::Cast(*this).CanonicalizeEquals(other)) return true;
-    // Check for NaN.
-    const Double& a_double = Double::Cast(*this);
-    const Double& b_double = Double::Cast(other);
-    if (isnan(a_double.value()) && isnan(b_double.value())) {
-      return true;
-    }
+    return Double::Cast(*this).CanonicalizeEquals(other);
   }
   return false;
 }

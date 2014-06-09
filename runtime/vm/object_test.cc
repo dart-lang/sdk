@@ -524,10 +524,26 @@ TEST_CASE(Double) {
     EXPECT(!dbl1.OperatorEquals(Smi::Handle(Smi::New(3))));
     EXPECT(!dbl1.OperatorEquals(Double::Handle()));
     const Double& nan0 = Double::Handle(Double::New(NAN));
+    EXPECT(isnan(nan0.value()));
     EXPECT(nan0.IsIdenticalTo(nan0));
     EXPECT(nan0.CanonicalizeEquals(nan0));
     EXPECT(!nan0.OperatorEquals(nan0));
-    // TODO(18738): Test bitwise different NaNs after agreement on spec.
+    const Double& nan = Double::Handle(Double::New(0.0/0.0));
+    const Double& inf = Double::Handle(Double::New(1.0/0.0));
+    EXPECT(isnan(nan.value()));
+    EXPECT(!isnan(inf.value()));
+    EXPECT(!nan.IsIdenticalTo(inf));
+    EXPECT(!nan.CanonicalizeEquals(inf));
+    EXPECT(!nan.OperatorEquals(inf));
+    const Double& nan1 = Double::Handle(
+        Double::New(bit_cast<double>(kMaxUint64 - 0)));
+    const Double& nan2 = Double::Handle(
+        Double::New(bit_cast<double>(kMaxUint64 - 1)));
+    EXPECT(isnan(nan1.value()));
+    EXPECT(isnan(nan2.value()));
+    EXPECT(!nan1.IsIdenticalTo(nan2));
+    EXPECT(!nan1.CanonicalizeEquals(nan2));
+    EXPECT(!nan1.OperatorEquals(nan2));
   }
   {
     const String& dbl_str0 = String::Handle(String::New("bla"));
