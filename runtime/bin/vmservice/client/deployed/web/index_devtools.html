@@ -1148,15 +1148,17 @@ hr {
         float: right;
         margin: 0;
       }
-      li button {
+      button {
         margin: 3px;
         padding: 8px;
       }
     </style>
+    <!-- Disable until issues with history in Dartium are fixed
     <li>
-      <button class="black" on-click="{{ back }}">◀</button>
-      <button class="black" on-click="{{ forward }}">▶</button>
+      <button class="black" on-click="{{ back }}">&#9664;</button>
+      <button class="black" on-click="{{ forward }}">&#9654;</button>
     </li>
+    -->
   </template>
 </polymer-element>
 
@@ -11681,6 +11683,7 @@ hr {
             See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
+        <!-- Disable io link until UI is properly implemented.
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
@@ -11688,6 +11691,7 @@ hr {
             </div>
           </div>
         </template>
+        -->
       </div>
       <div class="flex-item-10-percent">
       </div>
