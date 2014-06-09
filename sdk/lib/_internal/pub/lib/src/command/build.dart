@@ -53,7 +53,7 @@ class BuildCommand extends BarbackCommand {
     // Since this server will only be hit by the transformer loader and isn't
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
-    return AssetEnvironment.create(entrypoint, "127.0.0.1", 0, mode,
+    return AssetEnvironment.create(entrypoint, "localhost", 0, mode,
         WatcherType.NONE, useDart2JS: true)
           .then((environment) {
       // Show in-progress errors, but not results. Those get handled

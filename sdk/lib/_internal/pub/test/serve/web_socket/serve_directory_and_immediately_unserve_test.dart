@@ -42,8 +42,7 @@ main() {
         // of the new server and "unserveDirectory" returns the URL of the
         // server that was turned off. We're asserting that the same server was
         // both started and stopped.
-        expect(results[0]["result"]["url"],
-            matches(r"http://127\.0\.0\.1:\d+"));
+        expect(results[0]["result"]["url"], matches(r"http://localhost:\d+"));
         expect(results[0]["result"], equals(results[1]["result"]));
       });
     });

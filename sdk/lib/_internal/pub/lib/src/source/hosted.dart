@@ -274,7 +274,9 @@ class OfflineHostedSource extends HostedSource {
 ///
 /// This behavior is a bug, but is being preserved for compatibility.
 String _urlToDirectory(String url) {
-  url = url.replaceAll(new RegExp(r"^https?://"), "");
+  // Normalize all loopback URLs to "localhost".
+  url = url.replaceAllMapped(new RegExp(r"^https?://(127\.0\.0\.1|\[::1\])?"),
+      (match) => match[1] == null ? '' : 'localhost');
   return replace(url, new RegExp(r'[<>:"\\/|?*%]'),
       (match) => '%${match[0].codeUnitAt(0)}');
 }
@@ -298,17 +300,7 @@ String _directoryToUrl(String url) {
   var scheme = "https";
 
   // See if it's a loopback IP address.
-  try {
-    var urlWithoutPort = url.replaceAll(new RegExp(":.*"), "");
-    var address = new io.InternetAddress(urlWithoutPort);
-    if (address.isLoopback) scheme = "http";
-  } on ArgumentError catch(error) {
-    // If we got here, it's not a raw IP address, so it's probably a regular
-    // URL.
-  }
-
-  if (url == "localhost") scheme = "http";
-
+  if (isLoopback(url.replaceAll(new RegExp(":.*"), ""))) scheme = "http";
   return "$scheme://$url";
 }
 

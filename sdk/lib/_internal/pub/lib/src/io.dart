@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'exit_codes.dart' as exit_codes;
@@ -684,6 +685,15 @@ Future withTempDir(Future fn(String path)) {
     return syncFuture(() => fn(tempDir))
         .whenComplete(() => deleteEntry(tempDir));
   });
+}
+
+/// Binds an [HttpServer] to [host] and [port].
+///
+/// If [host] is "localhost", this will automatically listen on both the IPv4
+/// and IPv6 loopback addresses.
+Future<HttpServer> bindServer(String host, int port) {
+  if (host == 'localhost') return HttpMultiServer.loopback(port);
+  return HttpServer.bind(host, port);
 }
 
 /// Extracts a `.tar.gz` file from [stream] to [destination]. Returns whether

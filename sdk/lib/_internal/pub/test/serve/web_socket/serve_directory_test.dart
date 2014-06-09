@@ -27,7 +27,7 @@ main() {
 
     // Bind the new directory.
     expectWebSocketResult("serveDirectory", {"path": "test"}, {
-      "url": matches(r"http://127\.0\.0\.1:\d+")
+      "url": matches(r"http://localhost:\d+")
     }).then((response) {
       var url = Uri.parse(response["url"]);
       registerServerPort("test", url.port);

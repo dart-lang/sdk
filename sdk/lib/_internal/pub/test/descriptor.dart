@@ -145,7 +145,7 @@ Descriptor cacheDir(Map packages, {bool includePubspecs: false}) {
 Descriptor hostedCache(Iterable<Descriptor> contents) {
   return dir(cachePath, [
     dir('hosted', [
-      async(port.then((p) => dir('127.0.0.1%58$p', contents)))
+      async(port.then((p) => dir('localhost%58$p', contents)))
     ])
   ]);
 }

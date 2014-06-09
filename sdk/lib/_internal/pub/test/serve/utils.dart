@@ -144,7 +144,6 @@ ScheduledProcess startPubServe({Iterable<String> args,
   var pubArgs = [
     "serve",
     "--port=0", // Use port 0 to get an ephemeral port.
-    "--hostname=127.0.0.1", // Force IPv4 on bots.
     "--force-poll",
     "--log-admin-url"
   ];
@@ -206,9 +205,9 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
 
 /// The regular expression for parsing pub's output line describing the URL for
 /// the server.
-final _parsePortRegExp = new RegExp(r"([^ ]+) +on http://127\.0\.0\.1:(\d+)");
+final _parsePortRegExp = new RegExp(r"([^ ]+) +on http://localhost:(\d+)");
 
-/// Parses the port number from the "Running admin server on 127.0.0.1:1234"
+/// Parses the port number from the "Running admin server on localhost:1234"
 /// line printed by pub serve.
 bool _parseAdminPort(String line) {
   var match = _parsePortRegExp.firstMatch(line);
@@ -217,7 +216,7 @@ bool _parseAdminPort(String line) {
   return true;
 }
 
-/// Parses the port number from the "Serving blah on 127.0.0.1:1234" line
+/// Parses the port number from the "Serving blah on localhost:1234" line
 /// printed by pub serve.
 bool _parsePort(String line) {
   var match = _parsePortRegExp.firstMatch(line);
@@ -322,7 +321,7 @@ Future _ensureWebSocket() {
   expect(_pubServer, isNotNull);
   expect(_adminPort, isNotNull);
 
-  return WebSocket.connect("ws://127.0.0.1:$_adminPort").then((socket) {
+  return WebSocket.connect("ws://localhost:$_adminPort").then((socket) {
     _webSocket = socket;
     // TODO(rnystrom): Works around #13913.
     _webSocketBroadcastStream = _webSocket.map(JSON.decode).asBroadcastStream();
@@ -480,7 +479,7 @@ registerServerPort(String root, int port) {
 String _getServerUrlSync([String root, String path]) {
   if (root == null) root = 'web';
   expect(_ports, contains(root));
-  var url = "http://127.0.0.1:${_ports[root]}";
+  var url = "http://localhost:${_ports[root]}";
   if (path != null) url = "$url/$path";
   return url;
 }

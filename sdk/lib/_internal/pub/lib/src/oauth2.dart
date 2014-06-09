@@ -169,29 +169,28 @@ Future<Client> _authorize() {
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
   // the code is received.
-  var server;
   var completer = new Completer();
-  shelf_io.serve((request) {
-    if (request.url.path != "/") {
-      return new shelf.Response.notFound('Invalid URI.');
-    }
+  bindServer('localhost', 0).then((server) {
+    shelf_io.serveRequests(server, (request) {
+      if (request.url.path != "/") {
+        return new shelf.Response.notFound('Invalid URI.');
+      }
 
-    log.message('Authorization received, processing...');
-    var queryString = request.url.query;
-    if (queryString == null) queryString = '';
+      log.message('Authorization received, processing...');
+      var queryString = request.url.query;
+      if (queryString == null) queryString = '';
 
-    // Closing the server here is safe, since it will wait until the response is
-    // sent to actually shut down.
-    server.close();
-    chainToCompleter(grant.handleAuthorizationResponse(queryToMap(queryString)),
-        completer);
+      // Closing the server here is safe, since it will wait until the response
+      // is sent to actually shut down.
+      server.close();
+      chainToCompleter(grant.handleAuthorizationResponse(queryToMap(queryString)),
+          completer);
 
-    return new shelf.Response.found('http://pub.dartlang.org/authorized');
-  }, '127.0.0.1', 0).then((server_) {
-    server = server_;
+      return new shelf.Response.found('http://pub.dartlang.org/authorized');
+    });
 
     var authUrl = grant.getAuthorizationUrl(
-        Uri.parse('http://127.0.0.1:${server.port}'), scopes: _scopes);
+        Uri.parse('http://localhost:${server.port}'), scopes: _scopes);
 
     log.message(
         'Pub needs your authorization to upload packages on your behalf.\n'

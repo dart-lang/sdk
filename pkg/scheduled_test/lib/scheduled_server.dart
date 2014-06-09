@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -39,16 +40,17 @@ class ScheduledServer {
   ScheduledServer._(this._server, this.description);
 
   /// Creates a new server listening on an automatically-allocated port on
-  /// 127.0.0.1. [description] is used to refer to the server in debugging
-  /// messages.
+  /// localhost (both IPv4 and IPv6, if available).
+  ///
+  /// [description] is used to refer to the server in debugging messages.
   factory ScheduledServer([String description]) {
     var id = _count++;
     if (description == null) description = 'scheduled server $id';
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return shelf_io.serve(scheduledServer._handleRequest, "127.0.0.1", 0)
-          .then((server) {
+      return HttpMultiServer.loopback(0).then((server) {
+        shelf_io.serveRequests(server, scheduledServer._handleRequest);
         currentSchedule.onComplete.schedule(() => server.close(force: true));
         return server;
       });
@@ -60,7 +62,7 @@ class ScheduledServer {
   Future<int> get port => _server.then((s) => s.port);
 
   /// The base URL of the server, including its port.
-  Future<Uri> get url => port.then((p) => Uri.parse("http://127.0.0.1:$p"));
+  Future<Uri> get url => port.then((p) => Uri.parse("http://localhost:$p"));
 
   /// Schedules [handler] to handle a request to the server with [method] and
   /// [path]. The schedule will wait until an HTTP request is received. If that

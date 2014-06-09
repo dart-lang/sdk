@@ -1,3 +1,8 @@
+## 0.11.0+6
+
+* Use `http_multi_server` to bind to both the IPv4 and IPv6 loopback addresses
+  for scheduled_test.
+
 ## 0.11.0+5
 
 * Widen the version constraint for `stack_trace`.

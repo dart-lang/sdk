@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../barback.dart';
+import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'base_server.dart';
@@ -46,7 +47,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   /// the root directory.
   static Future<BarbackServer> bind(AssetEnvironment environment,
       String host, int port, String rootDirectory) {
-    return Chain.track(HttpServer.bind(host, port)).then((server) {
+    return Chain.track(bindServer(host, port)).then((server) {
       log.fine('Bound "$rootDirectory" to $host:$port.');
       return new BarbackServer._(environment, server, rootDirectory);
     });

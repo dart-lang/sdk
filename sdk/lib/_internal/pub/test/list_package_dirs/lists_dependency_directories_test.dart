@@ -36,7 +36,7 @@ main() {
           "packages": {
             "foo": path.join(sandboxDir, "foo", "lib"),
             "bar": port.then((p) => path.join(sandboxDir, cachePath, "hosted",
-                "127.0.0.1%58$p", "bar-1.0.0", "lib")),
+                "localhost%58$p", "bar-1.0.0", "lib")),
             "myapp": canonicalize(path.join(sandboxDir, appPath, "lib"))
           },
           "input_files": [

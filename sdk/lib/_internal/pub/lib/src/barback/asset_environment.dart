@@ -302,10 +302,11 @@ class AssetEnvironment {
   Future<AssetId> getAssetIdForUrl(Uri url) {
     return Future.wait(_directories.values.map((dir) => dir.server))
         .then((servers) {
-      var server = servers.firstWhere(
-          (server) => server.address.host == url.host &&
-              server.port == url.port,
-          orElse: () => null);
+      var server = servers.firstWhere((server) {
+        if (server.port != url.port) return false;
+        return isLoopback(server.address.host) == isLoopback(url.host) ||
+            server.address.host == url.host;
+      }, orElse: () => null);
       if (server == null) return null;
       return server.urlToId(url);
     });

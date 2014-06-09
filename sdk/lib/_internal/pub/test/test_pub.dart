@@ -170,7 +170,7 @@ void serve([List<d.Descriptor> contents]) {
             .catchError((error) {
           return new shelf.Response.notFound('File "$path" not found.');
         });
-      }, '127.0.0.1', 0).then((server) {
+      }, 'localhost', 0).then((server) {
         _server = server;
         _portCompleter.complete(_server.port);
         currentSchedule.onComplete.schedule(_closeServer);
@@ -535,7 +535,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     // dependencies will look there.
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://127.0.0.1:$p";
+        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
         return environment;
       });
     }

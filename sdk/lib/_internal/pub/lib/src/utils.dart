@@ -190,6 +190,10 @@ String quoteRegExp(String string) {
 ///
 /// Handles properly formatting IPv6 addresses.
 Uri baseUrlForAddress(InternetAddress address, int port) {
+  if (address.isLoopback) {
+    return new Uri(scheme: "http", host: "localhost", port: port);
+  }
+
   // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
   // URL ambiguity with the ":" in the address.
   if (address.type == InternetAddressType.IP_V6) {
@@ -197,6 +201,27 @@ Uri baseUrlForAddress(InternetAddress address, int port) {
   }
 
   return new Uri(scheme: "http", host: address.address, port: port);
+}
+
+/// Returns whether [host] is a host for a localhost or loopback URL.
+///
+/// Unlike [InternetAddress.isLoopback], this hostnames from URLs as well as
+/// from [InternetAddress]es, including "localhost".
+bool isLoopback(String host) {
+  if (host == 'localhost') return true;
+
+  // IPv6 hosts in URLs are surrounded by square brackets.
+  if (host.startsWith("[") && host.endsWith("]")) {
+    host = host.substring(1, host.length - 1);
+  }
+
+  try {
+    return new InternetAddress(host).isLoopback;
+  } on ArgumentError catch (_) {
+    // The host isn't an IP address and isn't "localhost', so it's almost
+    // certainly not a loopback host.
+    return false;
+  }
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only
