@@ -75,11 +75,11 @@ abstract class LocationManager extends Observable {
 /// Uses location.hash to encode application urls.
 class HashLocationManager extends LocationManager {
   void _onStartup() {
-    String initialPath = '/${window.location.hash}';
+    String initialPath = '${window.location.hash}';
     if ((window.location.hash == '') || (window.location.hash == '#')) {
-      initialPath = '/#${_initialPath}';
+      initialPath = '#${_initialPath}';
     }
-    window.history.replaceState(initialPath, document.title, initialPath);
+    window.history.pushState(initialPath, document.title, initialPath);
     _go(window.location.hash);
   }
 

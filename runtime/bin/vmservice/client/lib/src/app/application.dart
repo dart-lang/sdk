@@ -47,6 +47,10 @@ class ServiceObjectPane extends Pane {
   void visit(String url) {
     assert(element != null);
     assert(canVisit(url));
+    if (url == '') {
+      // Nothing requested.
+      return;
+    }
     /// Request url from VM and display it.
     app.vm.get(url).then((obj) {
       ServiceObjectViewElement pane = element;

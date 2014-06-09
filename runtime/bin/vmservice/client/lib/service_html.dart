@@ -162,7 +162,7 @@ class DartiumVM extends VM {
     Map message = {};
     message['id'] = idString;
     message['method'] = 'observatoryQuery';
-    message['query'] = '/$path';
+    message['query'] = '$path';
     _requestSerial++;
     var completer = new Completer();
     _pendingRequests[idString] = completer;
