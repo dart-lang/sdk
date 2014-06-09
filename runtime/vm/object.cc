@@ -2523,12 +2523,13 @@ class WeakCodeReferences : public ValueObject {
         if (!CodePatcher::IsEntryPatched(code)) {
           CodePatcher::PatchEntry(code);
         }
-      } else if (!function.HasCode() && (code.GetEntryPatchPc() != 0)) {
-        // The code has already been disconnected, make it invalid. Do not
-        // bother with OSR compiled code that has no valid entry-patch.
-        ReportSwitchingCode(code);
-        if (!CodePatcher::IsEntryPatched(code)) {
-          CodePatcher::PatchEntry(code);
+      } else {
+        // Make non-OSR code non-entrant.
+        if (code.GetEntryPatchPc() != 0) {
+          if (!CodePatcher::IsEntryPatched(code)) {
+            ReportSwitchingCode(code);
+            CodePatcher::PatchEntry(code);
+          }
         }
       }
     }
@@ -9647,7 +9648,7 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("Prefix '%s': deleting %s code for %s function '%s'\n",
+      OS::PrintErr("Prefix '%s': disabling %s code for %s function '%s'\n",
         String::Handle(prefix_.name()).ToCString(),
         code.is_optimized() ? "optimized" : "unoptimized",
         CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
