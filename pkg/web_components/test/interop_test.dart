@@ -14,11 +14,11 @@ import 'package:web_components/polyfill.dart';
 
 main() {
   useHtmlConfiguration();
-  registerDartType('x-a', XAWrapper);
-  registerDartType('x-b', XBWrapper, extendsTag: 'div');
-  registerDartType('x-c', XCWrapper);
-
-  setUp(() => customElementsReady);
+  setUp(() => customElementsReady.then((_) {
+    registerDartType('x-a', XAWrapper);
+    registerDartType('x-b', XBWrapper, extendsTag: 'div');
+    registerDartType('x-c', XCWrapper);
+  }));
 
   test('interop is supported', () {
     expect(isSupported, isTrue);
