@@ -528,13 +528,6 @@ TEST_CASE(Double) {
     EXPECT(nan0.IsIdenticalTo(nan0));
     EXPECT(nan0.CanonicalizeEquals(nan0));
     EXPECT(!nan0.OperatorEquals(nan0));
-    const Double& nan = Double::Handle(Double::New(0.0/0.0));
-    const Double& inf = Double::Handle(Double::New(1.0/0.0));
-    EXPECT(isnan(nan.value()));
-    EXPECT(!isnan(inf.value()));
-    EXPECT(!nan.IsIdenticalTo(inf));
-    EXPECT(!nan.CanonicalizeEquals(inf));
-    EXPECT(!nan.OperatorEquals(inf));
     const Double& nan1 = Double::Handle(
         Double::New(bit_cast<double>(kMaxUint64 - 0)));
     const Double& nan2 = Double::Handle(
