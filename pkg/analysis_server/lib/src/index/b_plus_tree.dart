@@ -232,7 +232,7 @@ class MemoryNodeManager<K, V> implements NodeManager<K, V, int> {
   }
 
   @override
-  void writeIndex(int id, IndexNodeData<K, V> data) {
+  void writeIndex(int id, IndexNodeData<K, int> data) {
     _indexDataMap[id] = data;
   }
 
@@ -280,7 +280,7 @@ abstract class NodeManager<K, V, N> {
   /**
    * Writes information about the index node with the given identifier.
    */
-  void writeIndex(N id, IndexNodeData<K, V> data);
+  void writeIndex(N id, IndexNodeData<K, N> data);
 
   /**
    * Writes information about the leaf node with the given identifier.

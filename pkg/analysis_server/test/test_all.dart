@@ -10,6 +10,7 @@ import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel_test.dart' as channel_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
 import 'domain_server_test.dart' as domain_server_test;
+import 'index/test_all.dart' as index_test_all;
 import 'operation/test_all.dart' as operation_test;
 import 'protocol_test.dart' as protocol_test;
 import 'resource_test.dart' as resource_test;
@@ -27,6 +28,7 @@ main() {
     channel_test.main();
     domain_analysis_test.main();
     domain_server_test.main();
+    index_test_all.main();
     operation_test.main();
     protocol_test.main();
     resource_test.main();
