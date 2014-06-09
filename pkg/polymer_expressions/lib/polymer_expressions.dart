@@ -143,8 +143,6 @@ class PolymerExpressions extends BindingDelegate {
       };
     }
 
-    // We have an ident, so it's a bind/as or repeat/in expression
-    assert(templateBind(template).templateInstance == null);
     return (model) {
       var existingScope = _scopes[template];
       if (existingScope != null) {

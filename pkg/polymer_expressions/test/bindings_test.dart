@@ -46,6 +46,23 @@ main() => dirtyCheckZone().run(() {
       });
     });
 
+    // regression test for issue 19296
+    test('should not throw when data changes', () {
+      var model = new NotifyModel();
+      var tag = new Element.html('<template>'
+          '<template repeat="{{ i in x }}">{{ i }}</template></template>');
+      TemplateBindExtension.bootstrap(tag);
+      var template = templateBind(tag);
+      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+
+      return new Future(() {
+        model.x = [1, 2, 3];
+      }).then(_nextMicrotask).then((_) {
+        expect(testDiv.text,'123');
+      });
+    });
+
+
     test('should update text content when data changes', () {
       var model = new NotifyModel('abcde');
       var tag = new Element.html(
