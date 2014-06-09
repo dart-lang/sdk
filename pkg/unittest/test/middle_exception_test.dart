@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
 var testName = 'late exception test';
 
@@ -23,5 +25,5 @@ var testFunction = (_) {
   });
 };
 
-var expected = buildStatusString(2, 1, 0,
+final expected = buildStatusString(2, 1, 0,
     'testOne::testTwo:Expected: false Actual: <true>:testThree');

@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
 var testName = 'async setup teardown test';
 
@@ -53,7 +55,7 @@ var testFunction = (_) {
   test('post groups', () {});
 };
 
-var expected = buildStatusString(2, 0, 3,
+final expected = buildStatusString(2, 0, 3,
     'good setup/good teardown foo1::'
     'good setup/bad teardown foo2:'
     'Teardown failed: Caught Failed to complete tearDown:'

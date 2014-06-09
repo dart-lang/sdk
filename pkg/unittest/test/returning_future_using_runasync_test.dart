@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
 var testName = 'test returning future using scheduleMicrotask';
 
@@ -64,7 +66,7 @@ var testFunction = (_) {
   });
 };
 
-var expected = buildStatusString(2, 4, 0,
+final expected = buildStatusString(2, 4, 0,
     'successful::'
     'fail1:Expected: <false> Actual: <true>:'
     'error1:Callback called more times than expected (1).:'

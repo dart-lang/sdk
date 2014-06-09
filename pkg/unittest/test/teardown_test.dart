@@ -3,21 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
-var testName = 'setup and teardown test';
+var testName = 'teardown test';
 
 var testFunction = (TestConfiguration testConfig) {
   group('a', () {
-    setUp(() { testConfig.setup = 'setup'; });
     tearDown(() { testConfig.teardown = 'teardown'; });
     test(testName, () {});
   });
 };
 
-var expected = buildStatusString(1, 0, 0, 'a $testName', count: 0,
-    setup: 'setup', teardown: 'teardown');
+var expected = buildStatusString(1, 0, 0, 'a $testName',
+    count: 0, setup: '', teardown: 'teardown');

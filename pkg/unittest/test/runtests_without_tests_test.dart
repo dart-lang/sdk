@@ -3,19 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
-var testName = 'testcases immutable';
+var testName = 'runTests() without tests';
 
 var testFunction = (_) {
-  test(testName, () {
-    expect(() => testCases.clear(), throwsUnsupportedError);
-    expect(() => testCases.removeLast(), throwsUnsupportedError);
-  });
+  runTests();
 };
 
-var expected = buildStatusString(1, 0, 0, testName);
+var expected = buildStatusString(0, 0, 0, null);

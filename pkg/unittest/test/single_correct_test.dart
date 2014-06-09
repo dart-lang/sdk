@@ -3,19 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library unittestTest;
-import 'dart:isolate';
+
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
-var testName = 'async exception test';
+var testName = 'single correct test';
 
 var testFunction = (_) {
-  test(testName, () {
-    expectAsync(() {});
-    _defer(() { throw "error!"; });
-  });
+  test(testName, () => expect(2 + 3, equals(5)));
 };
 
-var expected = buildStatusString(0, 1, 0, testName, message: 'Caught error!');
+var expected = buildStatusString(1, 0, 0, testName);

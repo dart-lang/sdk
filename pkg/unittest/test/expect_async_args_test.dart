@@ -4,11 +4,12 @@
 
 library unittestTest;
 
-import 'dart:isolate';
 import 'dart:async';
+import 'dart:isolate';
+
 import 'package:unittest/unittest.dart';
 
-part 'unittest_test_utils.dart';
+part 'utils.dart';
 
 var testFunction = (TestConfiguration testConfig) {
   List<int> _getArgs([a = 0, b = 0, c = 0, d = 0, e = 0, f = 0]) {
