@@ -137,7 +137,7 @@ polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html
 third_party/angular_tests/browser_test: Skip # uses dart:html
-web_components/test/location_wrapper_test: Skip # uses dart:html
+web_components/test/*: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -259,6 +259,7 @@ polymer/e2e_test/bad_import1: RuntimeError # Issue 17596
 polymer/e2e_test/bad_import2: RuntimeError # Issue 17596
 polymer/e2e_test/bad_import3: Fail, OK # tests broken import
 polymer/test/mirror_loader_test: Skip # tests development only behavior
+web_components/test/interop_test: Fail # Issue 19322 (note: delete interop2_test when fixing this test)
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.

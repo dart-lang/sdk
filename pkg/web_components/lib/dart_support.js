@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Teaches dart2js about the wrapping that is done by the Shadow DOM polyfill.
 (function() {
   var ShadowDOMPolyfill = window.ShadowDOMPolyfill;
   if (!ShadowDOMPolyfill) return;
@@ -63,3 +64,58 @@
     }
   });
 })();
+
+// Updates document.registerElement so Dart can see when Javascript custom
+// elements are created, and wrap them to provide a Dart friendly API.
+(function (doc) {
+  var upgraders = {};
+  var originalRegisterElement = doc.registerElement;
+  if (!originalRegisterElement) {
+    throw new Error('document.registerElement is not present.');
+  }
+
+  function registerElement(name, options) {
+    var proto, extendsOption;
+    if (options !== undefined) {
+      proto = options.prototype;
+    } else {
+      proto = Object.create(HTMLElement.prototype);
+      options = {protoptype: proto};
+    }
+
+    var original = proto.createdCallback;
+    var newCallback = function() {
+      original.call(this);
+      var name = this.getAttribute('is') || this.localName;
+      var upgrader = upgraders[name.toLowerCase()];
+      if (upgrader) upgrader(this);
+    };
+
+    var descriptor = Object.getOwnPropertyDescriptor(proto, 'createdCallback');
+    if (!descriptor || descriptor.writable) {
+      proto.createdCallback = newCallback;
+    } else if (descriptor.configurable) {
+      descriptor['value'] = newCallback;
+      Object.defineProperty(proto, 'createdCallback', descriptor);
+    } else {
+      console.error("Couldn't patch prototype to notify Dart when " + name +
+          " elements are created. This can be fixed by making the " +
+          "createdCallback in " + name + " a configurable property.");
+    }
+    return originalRegisterElement.call(this, name, options);
+  }
+
+  function registerDartTypeUpgrader(name, upgrader) {
+    if (!upgrader) return;
+    name = name.toLowerCase();
+    var existing = upgraders[name];
+    if (existing) {
+      console.error('Already have a Dart type associated with ' + name);
+      return;
+    }
+    upgraders[name] = upgrader;
+  }
+
+  doc._registerDartTypeUpgrader = registerDartTypeUpgrader;
+  doc.registerElement = registerElement;
+})(document);
