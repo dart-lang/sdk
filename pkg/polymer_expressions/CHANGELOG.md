@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the
 polymer_expressions package.
 
 #### Pub version 0.11.0
+  * Remove faulty assert that threw when an iterable field was updated.
+  
+#### Pub version 0.11.0
   * Scopes created by templates are created less often and nested properly. The
     previous version had a bug with respect to the names visible in 
     <template releat> tags without an "in" expression, and <template bind> tags.

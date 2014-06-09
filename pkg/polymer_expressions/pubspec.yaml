@@ -1,5 +1,5 @@
 name: polymer_expressions
-version: 0.11.0
+version: 0.11.1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: An expressive custom binding syntax for HTML templates
 homepage: http://www.dartlang.org/polymer-dart/
