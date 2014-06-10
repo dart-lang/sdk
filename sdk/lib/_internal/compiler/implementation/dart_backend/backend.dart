@@ -474,7 +474,9 @@ class DartBackend extends Backend {
     return new Future.value();
   }
 
-  void onTypeLiteral(DartType type, Registry registry) {
+  void registerTypeLiteral(DartType type,
+                           Enqueuer enqueuer,
+                           Registry registry) {
     if (type.isInterfaceType) {
       usedTypeLiterals.add(type.element);
     }

@@ -73,10 +73,9 @@ class CustomElementsAnalysis {
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(DartType type, Registry registry) {
-    assert(registry.isForResolution);
+  void registerTypeLiteral(DartType type, Enqueuer enqueuer) {
     // In codegen we see the TypeConstants instead.
-    if (!registry.isForResolution) return;
+    if (!enqueuer.isResolutionQueue) return;
 
     if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to

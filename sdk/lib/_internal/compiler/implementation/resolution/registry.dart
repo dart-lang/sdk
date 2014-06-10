@@ -17,8 +17,6 @@ class ResolutionRegistry extends Registry {
 
   ResolutionRegistry.internal(this.compiler, this.mapping);
 
-  bool get isForResolution => true;
-
   Element get currentElement => mapping.currentElement;
 
   ResolutionEnqueuer get world => compiler.enqueuer.resolution;
@@ -198,7 +196,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerLazyField() {
-    backend.onLazyField(this);
+    backend.registerLazyField(this);
   }
 
   void registerMetadataConstant(Constant constant) {
@@ -206,25 +204,23 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerThrowRuntimeError() {
-    backend.onThrowRuntimeError(this);
+    backend.registerThrowRuntimeError(this);
   }
 
   void registerTypeVariableBoundCheck() {
-    backend.onTypeVariableBoundCheck(this);
+    backend.registerTypeVariableBoundCheck(this);
   }
 
   void registerThrowNoSuchMethod() {
-    backend.onThrowNoSuchMethod(this);
+    backend.registerThrowNoSuchMethod(this);
   }
 
   void registerIsCheck(DartType type) {
     world.registerIsCheck(type, this);
-    backend.onIsCheck(type, this);
   }
 
   void registerAsCheck(DartType type) {
-    registerIsCheck(type);
-    backend.onAsCheck(type, this);
+    world.registerAsCheck(type, this);
   }
 
   void registerClosure(Element element) {
@@ -240,7 +236,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerSuperNoSuchMethod() {
-    backend.onSuperNoSuchMethod(this);
+    backend.registerSuperNoSuchMethod(this);
   }
 
   void registerClassUsingVariableExpression(ClassElement element) {
@@ -248,13 +244,12 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerTypeVariableExpression() {
-    backend.onTypeVariableExpression(this);
+    backend.registerTypeVariableExpression(this);
   }
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
-    backend.onTypeLiteral(type, this);
-    world.registerInstantiatedClass(compiler.typeClass, this);
+    world.registerTypeLiteral(type, this);
   }
 
   // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
@@ -276,11 +271,11 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerConstSymbol(String name) {
-    backend.registerConstSymbol(name, this);
+    world.registerConstSymbol(name, this);
   }
 
   void registerSymbolConstructor() {
-    backend.onSymbolConstructor(this);
+    backend.registerSymbolConstructor(this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -292,11 +287,11 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerAbstractClassInstantiation() {
-    backend.onAbstractClassInstantiation(this);
+    backend.registerAbstractClassInstantiation(this);
   }
 
   void registerNewSymbol() {
-    backend.registerNewSymbol(this);
+    world.registerNewSymbol(this);
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
@@ -304,23 +299,23 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerStringInterpolation() {
-    backend.onStringInterpolation(this);
+    backend.registerStringInterpolation(this);
   }
 
   void registerConstantMap() {
-    backend.onConstantMap(this);
+    backend.registerConstantMap(this);
   }
 
   void registerFallThroughError() {
-    backend.onFallThroughError(this);
+    backend.registerFallThroughError(this);
   }
 
   void registerCatchStatement() {
-    backend.onCatchStatement(this);
+    backend.registerCatchStatement(world, this);
   }
 
   void registerStackTraceInCatch() {
-    backend.onStackTraceInCatch(this);
+    backend.registerStackTraceInCatch(this);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -333,7 +328,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerThrowExpression() {
-    backend.onThrowExpression(this);
+    backend.registerThrowExpression(this);
   }
 
   void registerDependency(Element element) {
@@ -341,15 +336,4 @@ class ResolutionRegistry extends Registry {
   }
 
   Setlet<Element> get otherDependencies => mapping.otherDependencies;
-
-  void registerStaticInvocation(Element element) {
-    if (element == null) return;
-    world.addToWorkList(element);
-    registerDependency(element);
-  }
-
-  void registerInstantiation(ClassElement element) {
-    if (element == null) return;
-    world.registerInstantiatedClass(element, this);
-  }
 }
