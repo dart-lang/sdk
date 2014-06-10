@@ -11,7 +11,6 @@ pkg/docgen: Pass, Slow
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError
-pkg/polymer_expressions: PubGetError # unreleased 0.11.0
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
 
