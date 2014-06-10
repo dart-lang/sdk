@@ -35,6 +35,7 @@ polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_declarative_test: Pass, RuntimeError # Issue 18931
 polymer/test/events_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
+polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
@@ -132,6 +133,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/js_custom_event_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html
 polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
@@ -218,6 +220,7 @@ polymer/e2e_test/experimental_boot: Skip
 
 [ $compiler == dart2js && $csp ]
 polymer/test/noscript_test: Fail # Issue 17326
+polymer/test/js_custom_event_test: Fail # Issue 17326
 polymer/test/js_interop_test: Fail # Issue 17326
 
 # This test cannot run under CSP because it is injecting a JavaScript polyfill

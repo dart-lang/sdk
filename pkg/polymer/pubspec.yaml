@@ -16,11 +16,11 @@ dependencies:
   logging: '>=0.9.0 <0.10.0'
   observe: '>=0.10.0 <0.11.0'
   path: '>=0.9.0 <2.0.0'
-  polymer_expressions: '>=0.10.0 <0.11.0'
+  polymer_expressions: '>=0.11.0 <0.12.0'
   smoke: '>=0.1.0 <0.2.0'
   source_maps: '>=0.9.0 <0.10.0'
   template_binding: '>=0.11.0-dev <0.12.0'
-  web_components: '>=0.3.3 <0.4.0'
+  web_components: '>=0.3.5-dev <0.4.0'
   yaml: '>=0.9.0 <2.0.0'
 dev_dependencies:
   unittest: '>=0.10.0 <0.11.0'

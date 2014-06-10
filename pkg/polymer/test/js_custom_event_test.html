@@ -1,0 +1,37 @@
+<!doctype html>
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>event path</title>
+    <link rel="import" href="packages/polymer/polymer.html">
+    <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  </head>
+  <body>
+
+  <polymer-element name="x-test">
+    <template>
+    <div id="a" on-my-event={{myEventHandler}}></div>
+    </template>
+  </polymer-element>
+  <x-test></x-test>
+  <script>
+    function fireEvent() {
+      var x = document.querySelector('x-test');
+      var a = x.shadowRoot.querySelector('#a');
+      var e = new CustomEvent('my-event', {
+          bubbles: true,
+          cancelable: true,
+          // `a` included as a regression for issue 19315.
+          detail: {value: 42, item: a}
+      });
+      a.dispatchEvent(e);
+    }
+  </script>
+  <script type="application/dart" src="js_custom_event_test.dart"></script>
+  </body>
+</html>
