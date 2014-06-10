@@ -9311,10 +9311,11 @@ bool Library::IsKeyUsed(intptr_t key) {
 
 void Library::AllocatePrivateKey() const {
   const String& url = String::Handle(this->url());
-  intptr_t key_value = url.Hash();
-  while (Library::IsKeyUsed(key_value)) {
-    key_value++;
+  intptr_t key_value = url.Hash() & kIntptrMax;
+  while ((key_value == 0) || Library::IsKeyUsed(key_value)) {
+    key_value = (key_value + 1) & kIntptrMax;
   }
+  ASSERT(key_value > 0);
   char private_key[32];
   OS::SNPrint(private_key, sizeof(private_key),
               "%c%" Pd "", kPrivateKeySeparator, key_value);
