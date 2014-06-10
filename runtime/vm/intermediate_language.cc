@@ -1233,13 +1233,13 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     case Token::kSHR: {
       // Can't deopt if shift-count is known positive.
       Range* right_range = this->right()->definition()->range();
-      return (right_range == NULL) || right_range->IsNegative();
+      return (right_range == NULL) || !right_range->IsPositive();
     }
     case Token::kSHL: {
       Range* right_range = this->right()->definition()->range();
       if ((right_range != NULL) && is_truncating()) {
         // Can deoptimize if right can be negative.
-        return right_range->IsNegative();
+        return !right_range->IsPositive();
       }
       return true;
     }
