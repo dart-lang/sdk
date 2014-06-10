@@ -767,6 +767,10 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
+  // Remove this isolate from the list *before* we start tearing it down, to
+  // avoid exposing it in a state of decay.
+  RemoveIsolateFromList(this);
+
   // Create an area where we do have a zone and a handle scope so that we can
   // call VM functions while tearing this isolate down.
   {
@@ -810,7 +814,6 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
-  RemoveIsolateFromList(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
