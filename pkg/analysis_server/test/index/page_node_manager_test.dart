@@ -53,7 +53,7 @@ _treeWithPageNodeManager() {
   int tryCount = 1000;
   Set<int> keys = new Set<int>();
   {
-    Random random = new Random();
+    Random random = new Random(37);
     for (int i = 0; i < tryCount; i++) {
       int key = random.nextInt(maxKey);
       keys.add(key);
@@ -66,7 +66,7 @@ _treeWithPageNodeManager() {
   }
   // remove random keys
   {
-    Random random = new Random();
+    Random random = new Random(37);
     for (int key in new Set<int>.from(keys)) {
       if (random.nextBool()) {
         keys.remove(key);
@@ -229,6 +229,14 @@ class _FixedStringCodecTest {
     // decode
     expect(codec.decode(buffer), 'AB');
   }
+
+  test_russian() {
+    // encode
+    codec.encode(buffer, 'ЩУКА');
+    expect(bytes, [0, 4, 4, 41, 4, 35, 4, 26, 4, 16]);
+    // decode
+    expect(codec.decode(buffer), 'ЩУКА');
+  }
 }
 
 
@@ -284,6 +292,14 @@ class _MemoryPageManagerTest {
     expect(() {
       Uint8List page = new Uint8List(PAGE_SIZE);
       manager.write(42, page);
+    }, throws);
+  }
+
+  test_write_invalidLength() {
+    int id = manager.alloc();
+    Uint8List page = new Uint8List(0);
+    expect(() {
+      manager.write(id, page);
     }, throws);
   }
 }

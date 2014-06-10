@@ -192,6 +192,10 @@ class MemoryPageManager implements PageManager {
     if (!_pages.containsKey(id)) {
       throw new StateError('Page $id does not exist.');
     }
+    if (page.length != pageSizeInBytes) {
+      throw new ArgumentError('Page $id has length ${page.length}, '
+          'but $pageSizeInBytes is expected.');
+    }
     _pages[id] = page;
   }
 }
@@ -218,6 +222,9 @@ abstract class PageManager {
 
   /**
    * Reads the page with the given identifier and returns its content.
+   *
+   * An internal representation of the page is returned, any changes made to it
+   * may be accessible to other clients reading the same page.
    */
   Uint8List read(int id);
 
@@ -232,10 +239,10 @@ abstract class PageManager {
  * A [NodeManager] that keeps nodes in [PageManager].
  */
 class PageNodeManager<K, V> implements NodeManager<K, V, int> {
-  static const int INDEX_OFFSET_DATA = 4;
-  static const int INDEX_OFFSET_KEY_COUNT = 0;
-  static const int LEAF_OFFSET_DATA = 4;
-  static const int LEAF_OFFSET_KEY_COUNT = 0;
+  static const int _INDEX_OFFSET_DATA = 4;
+  static const int _INDEX_OFFSET_KEY_COUNT = 0;
+  static const int _LEAF_OFFSET_DATA = 4;
+  static const int _LEAF_OFFSET_KEY_COUNT = 0;
 
   final Set<int> _indexPages = new HashSet<int>();
   Codec<K> _keyCodec;
@@ -249,7 +256,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
   int get maxIndexKeys {
     int keySize = _keyCodec.sizeInBytes;
     int childSize = 4;
-    int dataSize = _pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    int dataSize = _pageManager.pageSizeInBytes - _INDEX_OFFSET_DATA;
     return (dataSize - childSize) ~/ (keySize + childSize);
   }
 
@@ -257,7 +264,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
   int get maxLeafKeys {
     int keySize = _keyCodec.sizeInBytes;
     int valueSize = _valueCodec.sizeInBytes;
-    int dataSize = _pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    int dataSize = _pageManager.pageSizeInBytes - _INDEX_OFFSET_DATA;
     return dataSize ~/ (keySize + valueSize);
   }
 
@@ -294,13 +301,13 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     int keyCount;
     {
       ByteData data = new ByteData.view(page.buffer);
-      keyCount = data.getInt32(INDEX_OFFSET_KEY_COUNT);
+      keyCount = data.getInt32(_INDEX_OFFSET_KEY_COUNT);
     }
     // read keys/children
     List<K> keys = new List<K>();
     List<int> children = new List<int>();
     int keySize = _keyCodec.sizeInBytes;
-    int offset = INDEX_OFFSET_DATA;
+    int offset = _INDEX_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // read child
       {
@@ -334,14 +341,14 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     int keyCount;
     {
       ByteData data = new ByteData.view(page.buffer);
-      keyCount = data.getInt32(LEAF_OFFSET_KEY_COUNT);
+      keyCount = data.getInt32(_LEAF_OFFSET_KEY_COUNT);
     }
     // read keys/children
     List<K> keys = new List<K>();
     List<V> values = new List<V>();
     int keySize = _keyCodec.sizeInBytes;
     int valueSize = _valueCodec.sizeInBytes;
-    int offset = LEAF_OFFSET_DATA;
+    int offset = _LEAF_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // read key
       {
@@ -369,11 +376,11 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     int keyCount = data.keys.length;
     {
       ByteData byteData = new ByteData.view(page.buffer);
-      byteData.setUint32(PageNodeManager.INDEX_OFFSET_KEY_COUNT, keyCount);
+      byteData.setUint32(PageNodeManager._INDEX_OFFSET_KEY_COUNT, keyCount);
     }
     // write keys/children
     int keySize = _keyCodec.sizeInBytes;
-    int offset = PageNodeManager.INDEX_OFFSET_DATA;
+    int offset = PageNodeManager._INDEX_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // write child
       {
@@ -404,12 +411,12 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     int keyCount = data.keys.length;
     {
       ByteData byteData = new ByteData.view(page.buffer);
-      byteData.setUint32(PageNodeManager.LEAF_OFFSET_KEY_COUNT, keyCount);
+      byteData.setUint32(PageNodeManager._LEAF_OFFSET_KEY_COUNT, keyCount);
     }
     // write keys/values
     int keySize = _keyCodec.sizeInBytes;
     int valueSize = _valueCodec.sizeInBytes;
-    int offset = PageNodeManager.LEAF_OFFSET_DATA;
+    int offset = PageNodeManager._LEAF_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // write key
       {

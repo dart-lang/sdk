@@ -642,7 +642,7 @@ INode {
     int tryCount = 1000;
     Set<int> keys = new Set<int>();
     {
-      Random random = new Random();
+      Random random = new Random(37);
       for (int i = 0; i < tryCount; i++) {
         int key = random.nextInt(maxKey);
         keys.add(key);
@@ -655,7 +655,7 @@ INode {
     }
     // remove random keys
     {
-      Random random = new Random();
+      Random random = new Random(37);
       for (int key in new Set<int>.from(keys)) {
         if (random.nextBool()) {
           keys.remove(key);

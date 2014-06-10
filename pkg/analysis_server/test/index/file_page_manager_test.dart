@@ -4,6 +4,7 @@
 
 library test.index.file_page_manager;
 
+import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -70,7 +71,7 @@ class _FilePageManagerTest {
     int tryCount = 1000;
     Set<int> keys = new Set<int>();
     {
-      Random random = new Random();
+      Random random = new Random(37);
       for (int i = 0; i < tryCount; i++) {
         int key = random.nextInt(maxKey);
         keys.add(key);
@@ -83,12 +84,18 @@ class _FilePageManagerTest {
     }
     // remove random keys
     {
-      Random random = new Random();
+      Random random = new Random(37);
+      Set<int> removedKeys = new HashSet<int>();
       for (int key in new Set<int>.from(keys)) {
         if (random.nextBool()) {
+          removedKeys.add(key);
           keys.remove(key);
           expect(tree.remove(key), 'V$key');
         }
+      }
+      // check the removed keys are actually gone
+      for (int key in removedKeys) {
+        expect(tree.find(key), isNull);
       }
     }
     // find every remaining key
