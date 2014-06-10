@@ -272,9 +272,23 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitInvokeStatic(tree.InvokeStatic exp) {
-    List<Argument> args = emitArguments(exp);
-    return new CallStatic(null, exp.target.name, args)
-               ..element = exp.target;
+    switch (exp.selector.kind) {
+      case SelectorKind.GETTER:
+        return new Identifier(exp.target.name)..element = exp.target;
+
+      case SelectorKind.SETTER:
+        return new Assignment(
+            new Identifier(exp.target.name)..element = exp.target,
+            '=',
+            visitExpression(exp.arguments[0]));
+
+      case SelectorKind.CALL:
+        return new CallStatic(null, exp.target.name, emitArguments(exp))
+                   ..element = exp.target;
+
+      default:
+        throw "Unexpected selector kind: ${exp.selector.kind}";
+    }
   }
 
   Expression visitInvokeMethod(tree.InvokeMethod exp) {
@@ -379,6 +393,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     } else if (type is DynamicType) {
       return new TypeAnnotation("dynamic")
           ..dartType = type;
+    } else if (type is MalformedType) {
+      // treat malformed types as dynamic
+      return new TypeAnnotation("dynamic")
+          ..dartType = const DynamicType();
     } else {
       throw "Unsupported type annotation: $type";
     }
@@ -386,7 +404,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   /// Like [emitType] except the dynamic type is converted to null.
   TypeAnnotation emitOptionalType(DartType type) {
-    if (type.isDynamic) {
+    if (type.treatAsDynamic) {
       return null;
     } else {
       return emitType(type);

@@ -330,6 +330,10 @@ class Conditional extends Expression {
 /// The unparser does not concern itself with scoping rules, and it is the
 /// responsibility of the AST creator to ensure that the identifier resolves
 /// to the proper definition.
+/// For the time being, this class is also used to reference static fields and
+/// top-level variables that are qualified with a class and/or library name,
+/// assuming the [element] is set. This is likely to change when the old backend
+/// is replaced.
 class Identifier extends Expression {
   final String name;
 

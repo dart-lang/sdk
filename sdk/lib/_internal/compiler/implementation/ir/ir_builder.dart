@@ -923,10 +923,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, []);
       add(new ir.LetCont(k, invoke));
       return v;
+    } else if (element.isField) {
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.GETTER);
+      ir.InvokeStatic invoke = new ir.InvokeStatic(element, selector, k, []);
+      add(new ir.LetCont(k, invoke));
+      return v;
     } else {
-      // TODO(asgerf): static and top-level
-      // NOTE: Index-getters are OperatorSends, not GetterSends
-      return giveup();
+      return giveup(); // TODO: figure out what's missing here
     }
   }
 
@@ -1039,10 +1045,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    // TODO(lry): support static fields. (separate IR instruction?)
-    if (element.isField || element.isGetter) return giveup();
-    // TODO(kmillikin): support static setters.
-    if (element.isSetter) return giveup();
     // TODO(lry): support constructors / factory calls.
     if (element.isConstructor) return giveup();
     // TODO(lry): support foreign functions.
@@ -1054,9 +1056,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (element == compiler.identicalFunction) giveup();
 
     Selector selector = elements.getSelector(node);
-
-    // TODO(kmillikin): support a receiver: A.m().
-    if (node.receiver != null) return giveup();
 
     // TODO(lry): support default arguments, need support for locals.
     List<ir.Definition> arguments = node.arguments.toList(growable:false)
@@ -1094,8 +1093,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         assignedVars[variableIndex[element]] = result;
         return result;
       } else if (Elements.isStaticOrTopLevel(element)) {
-        // TODO(asgerf): static and top-level
-        return giveup();
+        assert(element.isField || element.isSetter);
+        assert(!node.arguments.isEmpty && node.arguments.tail.isEmpty);
+        ir.Parameter v = new ir.Parameter(null);
+        ir.Continuation k = new ir.Continuation([v]);
+        Selector selector = elements.getSelector(node);
+        ir.Definition arg = visit(node.arguments.head);
+        ir.InvokeStatic invoke =
+            new ir.InvokeStatic(element, selector, k, [arg]);
+        add(new ir.LetCont(k, invoke));
+        return arg;
       } else if (node.receiver == null) {
         // Nodes that fall in this case:
         // - Unresolved top-level

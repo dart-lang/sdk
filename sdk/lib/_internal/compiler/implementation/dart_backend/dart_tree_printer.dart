@@ -12,6 +12,11 @@ import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' as elements;
 import '../dart_types.dart' as types;
 
+/// If true, the unparser will insert a coment in front of every function
+/// it emits. This helps indicate which functions were translated by the new
+/// backend.
+const bool INSERT_NEW_BACKEND_COMMENT = true;
+
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {
   dart2js.TreeElementMapping treeElements;
@@ -218,6 +223,18 @@ class TreePrinter {
     }
   }
 
+  tree.Node makeStaticReceiver(elements.Element element) {
+    if (element.enclosingElement is elements.ClassElement) {
+      tree.Send send = new tree.Send(
+          null,
+          makeIdentifier(element.enclosingElement.name));
+      treeElements[send] = element.enclosingElement;
+      return send;
+    } else {
+      return null;
+    }
+  }
+
   tree.Node makeArgument(Argument arg) {
     if (arg is Expression) {
       return makeExpression(arg);
@@ -252,7 +269,7 @@ class TreePrinter {
       tree.NodeList arguments;
       elements.Element element;
       if (left is Identifier) {
-        receiver = null;
+        receiver = makeStaticReceiver(left.element);
         selector = makeIdentifier(left.name);
         arguments = singleton(makeExpression(exp.right));
         element = left.element;
@@ -286,14 +303,16 @@ class TreePrinter {
       tree.Node selector;
       Expression callee = exp.callee;
       elements.Element element;
+      tree.Node receiver;
       if (callee is Identifier) {
+        receiver = makeStaticReceiver(callee.element);
         selector = makeIdentifier(callee.name);
         element = callee.element;
       } else {
         selector = makeExp(callee, CALLEE, beginStmt: beginStmt);
       }
       result = new tree.Send(
-          null,
+          receiver,
           selector,
           argList(exp.arguments.map(makeArgument)));
       if (callee is Identifier) {
@@ -331,7 +350,7 @@ class TreePrinter {
     } else if (exp is CallStatic) {
       precedence = CALLEE;
       result = new tree.Send(
-          makeName(exp.className),
+          makeStaticReceiver(exp.element),
           makeIdentifier(exp.methodName),
           argList(exp.arguments.map(makeArgument)));
       setElement(result, exp.element, exp);
@@ -356,7 +375,7 @@ class TreePrinter {
       result = new tree.FunctionExpression(
           exp.name != null ? makeIdentifier(exp.name) : null,
           makeParameters(exp.parameters),
-          makeBlock(exp.body),
+          makeFunctionBody(exp.body),
           exp.returnType != null ? makeType(exp.returnType) : null,
           makeEmptyModifiers(), // TODO(asgerf): Function modifiers?
           null,  // initializers
@@ -364,7 +383,9 @@ class TreePrinter {
       setElement(result, exp.element, exp);
     } else if (exp is Identifier) {
       precedence = CALLEE;
-      result = new tree.Send(null, makeIdentifier(exp.name));
+      result = new tree.Send(
+          makeStaticReceiver(exp.element),
+          makeIdentifier(exp.name));
       setElement(result, exp.element, exp);
     } else if (exp is Increment) {
       Expression lvalue = exp.expression;
@@ -373,6 +394,7 @@ class TreePrinter {
       tree.Node argument;
       bool innerBeginStmt = beginStmt && !exp.isPrefix;
       if (lvalue is Identifier) {
+        receiver = makeStaticReceiver(lvalue.element);
         selector = makeIdentifier(lvalue.name);
       } else if (lvalue is FieldExpression) {
         receiver = makeExp(lvalue.object, PRIMARY, beginStmt: innerBeginStmt);
@@ -518,6 +540,20 @@ class TreePrinter {
         makeExpression(en.value));
   }
 
+  /// A comment token to be inserted when [INSERT_NEW_BACKEND_COMMENT] is true.
+  final SymbolToken newBackendComment = new SymbolToken(
+      const PrecedenceInfo('/* new backend */ ', 0, OPEN_CURLY_BRACKET_TOKEN),
+      -1);
+
+  tree.Node makeFunctionBody(Statement stmt) {
+    if (INSERT_NEW_BACKEND_COMMENT) {
+      return new tree.Block(makeList('', [makeBlock(stmt)],
+                                     open: newBackendComment));
+    } else {
+      return makeBlock(stmt);
+    }
+  }
+
   /// Produces a statement in a context where only blocks are allowed.
   tree.Node makeBlock(Statement stmt) {
     if (stmt is Block)
@@ -617,7 +653,7 @@ class TreePrinter {
       return new tree.FunctionDeclaration(new tree.FunctionExpression(
           stmt.name != null ? makeIdentifier(stmt.name) : null,
           makeParameters(stmt.parameters),
-          makeBlock(stmt.body),
+          makeFunctionBody(stmt.body),
           stmt.returnType != null ? makeType(stmt.returnType) : null,
           makeEmptyModifiers(), // TODO(asgerf): Function modifiers?
           null,  // initializers

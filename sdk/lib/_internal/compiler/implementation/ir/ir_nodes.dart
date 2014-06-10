@@ -8,7 +8,8 @@ library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' as dart2js show Constant;
 import '../elements/elements.dart'
-    show FunctionElement, LibraryElement, ParameterElement, ClassElement;
+    show FunctionElement, LibraryElement, ParameterElement, ClassElement,
+         Element;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 
@@ -105,9 +106,10 @@ abstract class Invoke {
   List<Reference> get arguments;
 }
 
-/// Invoke a static function in tail position.
+/// Invoke a static function or static field getter/setter.
 class InvokeStatic extends Expression implements Invoke {
-  final FunctionElement target;
+  /// [FunctionElement] or [FieldElement].
+  final Element target;
 
   /**
    * The selector encodes how the function is invoked: number of positional
@@ -123,7 +125,6 @@ class InvokeStatic extends Expression implements Invoke {
                List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
 

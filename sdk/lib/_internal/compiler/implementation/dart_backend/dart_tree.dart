@@ -110,12 +110,12 @@ abstract class Invoke {
 }
 
 /**
- * A call to a static target.
+ * A call to a static function or getter/setter to a static field.
  *
  * In contrast to the CPS-based IR, the arguments can be arbitrary expressions.
  */
 class InvokeStatic extends Expression implements Invoke {
-  final FunctionElement target;
+  final Element target;
   final List<Expression> arguments;
   final Selector selector;
 
