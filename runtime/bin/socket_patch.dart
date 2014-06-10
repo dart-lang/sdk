@@ -286,6 +286,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Handlers and receive port for socket events from the event handler.
   final List eventHandlers = new List(EVENT_COUNT + 1);
   RawReceivePort eventPort;
+  bool flagsSent = false;
 
   // The type flags for this socket.
   final int typeFlags;
@@ -457,6 +458,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                                       port: port);
           }
           if (port != 0) socket.localPort = port;
+          socket.connectToEventHandler();
           return socket;
         });
   }
@@ -759,7 +761,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void returnTokens(int tokenBatchSize) {
-    if (eventPort != null && !isClosing && !isClosed) {
+    if (!isClosing && !isClosed) {
+      assert(eventPort != null);
       // Return in batches.
       if (tokens == tokenBatchSize) {
         assert(tokens < (1 << FIRST_COMMAND));
@@ -782,7 +785,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     sendWriteEvents = write;
     if (read) issueReadEvent();
     if (write) issueWriteEvent();
-    if (eventPort == null && !isClosing) {
+    if (!flagsSent && !isClosing) {
+      flagsSent = true;
       int flags = typeFlags & TYPE_TYPE_MASK;
       if (!isClosedRead) flags |= 1 << READ_EVENT;
       if (!isClosedWrite) flags |= 1 << WRITE_EVENT;

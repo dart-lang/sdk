@@ -207,9 +207,11 @@ class SocketExceptionTest {
         int errors = 0;
         client.add(new List.filled(SIZE, 0));
         client.close();
-        client.done.catchError((error) {
-          server.close();
-        });
+        client.done
+            .catchError((_) {})
+            .whenComplete(() {
+              server.close();
+            });
         // Destroy other socket now.
         completer.complete(null);
       });

@@ -15,6 +15,8 @@ final Map _servicePathMap = {
   'processes' : _processesServiceObject,
 };
 
+String _getServicePath(obj) => obj._servicePath;
+
 String _serviceObjectHandler(List<String> paths,
                              List<String> keys,
                              List<String> values) {
