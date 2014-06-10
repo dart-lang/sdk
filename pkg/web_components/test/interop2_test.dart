@@ -16,13 +16,15 @@ import 'package:unittest/unittest.dart';
 import 'package:web_components/interop.dart';
 import 'package:web_components/polyfill.dart';
 
-main() {
-  useHtmlConfiguration();
-  setUp(() => customElementsReady.then((_) {
+final globalSetup = customElementsReady.then((_) {
     registerDartType('x-a', XAWrapper);
     registerDartType('x-b', XBWrapper, extendsTag: 'div');
     registerDartType('x-c', XCWrapper);
-  }));
+  });
+
+main() {
+  useHtmlConfiguration();
+  setUp(() => globalSetup);
 
   test('interop is supported', () {
     expect(isSupported, isTrue);
