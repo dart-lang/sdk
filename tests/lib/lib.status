@@ -292,8 +292,8 @@ async/deferred/deferred_fail_to_load_test: Fail
 async/deferred/deferred_in_isolate_test: Fail
 
 [$compiler == none && $runtime == ContentShellOnAndroid ]
-mirrors/lazy_static_test: Skip # Times out. Issue 19276
-mirrors/mirrors_reader_test: Skip # Times out. Issue 19276
+mirrors/lazy_static_test: Skip # Times out. Issue 19127
+mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime != d8 ]
 async/schedule_microtask_test: Fail # Issue 9002

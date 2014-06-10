@@ -80,7 +80,7 @@ spawn_uri_nested_vm_test: Skip # Issue 14463
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-nested_spawn2_test: Skip # Issue 19276: This test is timing out.
+nested_spawn2_test: Skip # Issue 19127: This test is timing out.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
