@@ -22,7 +22,7 @@ main() {
 class _LRUCacheTest {
   LRUCache<int, String> cache = new LRUCache<int, String>(3);
 
-  void test_evict() {
+  void test_evict_notGet() {
     List<int> evictedKeys = new List<int>();
     List<String> evictedValues = new List<String>();
     cache = new LRUCache<int, String>(3, (int key, String value) {
@@ -41,6 +41,31 @@ class _LRUCacheTest {
     expect(cache.get(1), 'A');
     expect(cache.get(2), isNull);
     expect(cache.get(3), 'C');
+    expect(cache.get(4), 'D');
+    // check eviction listener
+    expect(evictedKeys, contains(2));
+    expect(evictedValues, contains('B'));
+  }
+
+  void test_evict_notPut() {
+    List<int> evictedKeys = new List<int>();
+    List<String> evictedValues = new List<String>();
+    cache = new LRUCache<int, String>(3, (int key, String value) {
+      evictedKeys.add(key);
+      evictedValues.add(value);
+    });
+    // fill
+    cache.put(1, 'A');
+    cache.put(2, 'B');
+    cache.put(3, 'C');
+    // put '1' and '3'
+    cache.put(1, 'AA');
+    cache.put(3, 'CC');
+    // put '4', evict '2'
+    cache.put(4, 'D');
+    expect(cache.get(1), 'AA');
+    expect(cache.get(2), isNull);
+    expect(cache.get(3), 'CC');
     expect(cache.get(4), 'D');
     // check eviction listener
     expect(evictedKeys, contains(2));

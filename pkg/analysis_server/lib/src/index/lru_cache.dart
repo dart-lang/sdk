@@ -16,7 +16,7 @@ typedef EvictionHandler<K, V>(K key, V value);
  * A hash-table based cache implementation.
  *
  * When it reaches the specified number of items, the item that has not been
- * accessed recently is evicted.
+ * accessed (both get and put) recently is evicted.
  */
 class LRUCache<K, V> {
   final LinkedHashSet<K> _lastKeys = new LinkedHashSet<K>();
@@ -54,6 +54,7 @@ class LRUCache<K, V> {
    * evicted.
    */
   void put(K key, V value) {
+    _lastKeys.remove(key);
     _lastKeys.add(key);
     if (_lastKeys.length > _maxSize) {
       K evictedKey = _lastKeys.first;

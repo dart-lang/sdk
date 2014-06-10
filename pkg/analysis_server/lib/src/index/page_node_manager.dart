@@ -22,19 +22,10 @@ class CachingNodeManager<K, V, N> implements NodeManager<K, V, N> {
 
   CachingNodeManager(this._delegate, int indexNodeCacheSize,
       int leafNodeCacheSize) {
-    // TODO(scheglov) method pointers don't work with mocks
-//    _indexCache = new LRUCache<N, IndexNodeData<K, N>>(indexNodeCacheSize,
-//        _delegate.writeIndex);
-//    _leafCache = new LRUCache<N, LeafNodeData<K, V>>(leafNodeCacheSize,
-//        _delegate.writeLeaf);
     _indexCache = new LRUCache<N, IndexNodeData<K, N>>(indexNodeCacheSize,
-        (N key, IndexNodeData<K, N> value) {
-      _delegate.writeIndex(key, value);
-    });
-    _leafCache = new LRUCache<N, LeafNodeData<K, V>>(leafNodeCacheSize, (N key,
-        LeafNodeData<K, V> value) {
-      _delegate.writeLeaf(key, value);
-    });
+        _delegate.writeIndex);
+    _leafCache = new LRUCache<N, LeafNodeData<K, V>>(leafNodeCacheSize,
+        _delegate.writeLeaf);
   }
 
   @override

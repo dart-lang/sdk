@@ -83,11 +83,19 @@ _treeWithPageNodeManager() {
 
 @ReflectiveTestCase()
 class _CachingNodeManagerTest {
-  NodeManager<int, String, int> delegate = new _NodeManagerMock<int, String, int>();
+  _NodeManagerMock<int, String, int> delegate = new _NodeManagerMock<int,
+      String, int>();
   NodeManager<int, String, int> manager;
 
   void setUp() {
+    when(delegate.writeIndex).thenReturn((key, value) {
+      delegate.writeIndex(key, value);
+    });
+    when(delegate.writeLeaf).thenReturn((key, value) {
+      delegate.writeLeaf(key, value);
+    });
     manager = new CachingNodeManager<int, String, int>(delegate, 4, 4);
+    resetInteractions(delegate);
   }
 
   void test_maxIndexKeys() {
@@ -161,11 +169,7 @@ class _CachingNodeManagerTest {
     manager.writeIndex(3, data);
     manager.writeIndex(4, data);
     manager.writeIndex(1, data);
-    // TODO(scheglov) method pointers don't work with mocks
-    // TODO(scheglov) add resetInteractions(mock)
-    // TODO(scheglov) verifyZeroInteractions() should accept 'dynamic'
-//    verifyZeroInteractions(delegate as TypedMock);
-    verify(delegate.writeIndex(anyInt, anyObject)).never();
+    verifyZeroInteractions(delegate);
     // only 4 nodes can be cached, 5-th one cause write to the delegate
     manager.writeIndex(5, data);
     verify(delegate.writeIndex(2, data)).once();
@@ -178,11 +182,7 @@ class _CachingNodeManagerTest {
     manager.writeLeaf(3, data);
     manager.writeLeaf(4, data);
     manager.writeLeaf(1, data);
-    // TODO(scheglov) method pointers don't work with mocks
-    // TODO(scheglov) add resetInteractions(mock)
-    // TODO(scheglov) verifyZeroInteractions() should accept 'dynamic'
-//    verifyZeroInteractions(delegate as TypedMock);
-    verify(delegate.writeLeaf(anyInt, anyObject)).never();
+    verifyZeroInteractions(delegate);
     // only 4 nodes can be cached, 5-th one cause write to the delegate
     manager.writeLeaf(5, data);
     verify(delegate.writeLeaf(2, data)).once();
@@ -290,7 +290,8 @@ class _MemoryPageManagerTest {
 
 
 
-class _NodeManagerMock<K, V, N> extends TypedMock implements NodeManager<K, V, N> {
+class _NodeManagerMock<K, V, N> extends TypedMock implements NodeManager<K, V,
+    N> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
