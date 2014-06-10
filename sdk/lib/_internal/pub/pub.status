@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-test/hosted/version_negotiation_test: Pass, Timeout # Issue 14346
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 
 # Pub only runs on the VM, so just rule out all compilers.

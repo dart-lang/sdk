@@ -55,10 +55,6 @@ main() {
       server.handle('GET', '/api/packages/foo',
           (request) => new shelf.Response(406));
 
-      // TODO(nweiz): this shouldn't request the versions twice (issue 11077).
-      server.handle('GET', '/api/packages/foo',
-          (request) => new shelf.Response(406));
-
       pub.shouldExit(1);
 
       pub.stderr.expect(emitsLines(

@@ -476,7 +476,7 @@ class Traverser {
 
         // Not overridden.
         return dep;
-      });
+      }).toSet();
 
       // Make sure the package doesn't have any bad dependencies.
       for (var dep in deps) {

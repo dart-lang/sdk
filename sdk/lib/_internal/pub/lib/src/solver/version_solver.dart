@@ -7,6 +7,8 @@ library pub.solver.version_solver;
 import 'dart:async';
 import "dart:convert";
 
+import 'package:stack_trace/stack_trace.dart';
+
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
@@ -111,6 +113,9 @@ class PubspecCache {
   /// The already-requested cached version lists.
   final _versions = new Map<PackageRef, List<PackageId>>();
 
+  /// The errors from failed version list requests.
+  final _versionErrors = new Map<PackageRef, Pair<Object, Chain>>();
+
   /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
 
@@ -175,6 +180,14 @@ class PubspecCache {
       _versionCacheHits++;
       return new Future.value(versions);
     }
+
+    // See if we cached a failure.
+    var error = _versionErrors[package];
+    if (error != null) {
+      _versionCacheHits++;
+      return new Future.error(error.first, error.last);
+    }
+
     _versionCacheMisses++;
 
     var source = _sources[package.source];
@@ -187,6 +200,12 @@ class PubspecCache {
           (version) => package.atVersion(version)).toList();
       _versions[package] = ids;
       return ids;
+    }).catchError((error, trace) {
+      // If an error occurs, cache that too. We only want to do one request
+      // for any given package, successful or not.
+      log.solver("Could not get versions for $package:\n$error\n\n$trace");
+      _versionErrors[package] = new Pair(error, new Chain.forTrace(trace));
+      throw error;
     });
   }
 
