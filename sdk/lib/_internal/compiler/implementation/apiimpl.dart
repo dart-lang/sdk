@@ -43,8 +43,10 @@ class Compiler extends leg.Compiler {
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
+            generateSourceMap: !hasOption(options, '--no-source-maps'),
             analyzeAllFlag: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),
+            analyzeMain: hasOption(options, '--analyze-main'),
             analyzeSignaturesOnly:
                 hasOption(options, '--analyze-signatures-only'),
             strips: extractCsvOption(options, '--force-strip='),

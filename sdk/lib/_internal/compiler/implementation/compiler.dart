@@ -506,6 +506,10 @@ abstract class Compiler implements DiagnosticListener {
   final int maxConcreteTypeSize;
   final bool analyzeAllFlag;
   final bool analyzeOnly;
+
+  /// If true, disable tree-shaking for the main script.
+  final bool analyzeMain;
+
   /**
    * If true, skip analysis of method bodies and field initializers. Implies
    * [analyzeOnly].
@@ -776,6 +780,7 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool analyzeAllFlag: false,
             bool analyzeOnly: false,
+            this.analyzeMain: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.verbose: false,
@@ -1224,6 +1229,8 @@ abstract class Compiler implements DiagnosticListener {
         log('Enqueuing $uri');
         fullyEnqueueLibrary(lib, enqueuer.resolution);
       });
+    } else if (analyzeMain && mainApp != null) {
+      fullyEnqueueLibrary(mainApp, enqueuer.resolution);
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
