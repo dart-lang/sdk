@@ -1,5 +1,5 @@
 name: typed_mock
-version: 0.0.3
+version: 0.0.4
 author: Dart Team <misc@dartlang.org>
 description: A library for mocking classes using Mockito-like syntax
 homepage: http://www.dartlang.org

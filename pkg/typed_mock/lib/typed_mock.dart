@@ -39,6 +39,14 @@ Behavior when(_ignored) {
   }
 }
 
+
+/// Clears all interactions remembered so far.
+resetInteractions(TypedMock mock) {
+  mock._invocations.clear();
+  mock._verifiedInvocations.clear();
+}
+
+
 /// Verifies certain behavior happened a specified number of times.
 Verifier verify(_ignored) {
   try {
