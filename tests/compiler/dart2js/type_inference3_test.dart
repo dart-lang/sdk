@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -14,7 +15,8 @@ sum(param0, param1) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, entry: 'sum');
-  RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
-  Expect.isTrue(regexp.hasMatch(generated));
+  asyncTest(() => compile(TEST_ONE, entry: 'sum', check: (String generated) {
+    RegExp regexp = new RegExp(getNumberTypeCheck('(param1|b)'));
+    Expect.isTrue(regexp.hasMatch(generated));
+  }));
 }

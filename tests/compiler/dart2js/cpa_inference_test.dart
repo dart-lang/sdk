@@ -188,7 +188,7 @@ const String CORELIB = r'''
 
 Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = new MockCompiler(
+  MockCompiler compiler = new MockCompiler.internal(
       coreSource: CORELIB,
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);

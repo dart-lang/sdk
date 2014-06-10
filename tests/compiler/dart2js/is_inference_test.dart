@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_IF = r"""
@@ -69,20 +71,23 @@ test(param) {
 }
 """;
 
-compileAndTest(String code) {
-  String generated = compile(code, entry: 'test');
-  RegExp validAdd =
-      new RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
-  RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");
-  Expect.isTrue(validAdd.hasMatch(generated));
-  Expect.isFalse(invalidAdd.hasMatch(generated));
+Future compileAndTest(String code) {
+  return compile(code, entry: 'test', check: (String generated) {
+    RegExp validAdd =
+        new RegExp("($anyIdentifier \\+ 42)|($anyIdentifier \\+= 42)");
+    RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");
+    Expect.isTrue(validAdd.hasMatch(generated));
+    Expect.isFalse(invalidAdd.hasMatch(generated));
+  });
 }
 
 main() {
-  compileAndTest(TEST_IF);
-  compileAndTest(TEST_IF_ELSE);
-  compileAndTest(TEST_IF_RETURN);
-  compileAndTest(TEST_IF_NOT_ELSE);
-  compileAndTest(TEST_IF_NOT_RETURN);
-  compileAndTest(TEST_IF_NOT_ELSE_RETURN);
+  asyncTest(() => Future.wait([
+    compileAndTest(TEST_IF),
+    compileAndTest(TEST_IF_ELSE),
+    compileAndTest(TEST_IF_RETURN),
+    compileAndTest(TEST_IF_NOT_ELSE),
+    compileAndTest(TEST_IF_NOT_RETURN),
+    compileAndTest(TEST_IF_NOT_ELSE_RETURN),
+  ]));
 }

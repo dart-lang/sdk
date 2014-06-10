@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -52,12 +54,18 @@ foo(a) {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, entry: 'foo');
-  Expect.isTrue(generated.contains(r'for ('));
-  generated = compile(TEST_TWO, entry: 'foo');
-  Expect.isTrue(!generated.contains(r'break'));
-  generated = compile(TEST_THREE, entry: 'foo');
-  Expect.isTrue(generated.contains(r'continue'));
-  generated = compile(TEST_FOUR, entry: 'foo');
-  Expect.isTrue(generated.contains(r'continue'));
+  asyncTest(() => Future.wait([
+    compile(TEST_ONE, entry: 'foo', check: (String generated) {
+      Expect.isTrue(generated.contains(r'for ('));
+    }),
+    compile(TEST_TWO, entry: 'foo', check: (String generated) {
+      Expect.isTrue(!generated.contains(r'break'));
+    }),
+    compile(TEST_THREE, entry: 'foo', check: (String generated) {
+      Expect.isTrue(generated.contains(r'continue'));
+    }),
+    compile(TEST_FOUR, entry: 'foo', check: (String generated) {
+      Expect.isTrue(generated.contains(r'continue'));
+    }),
+  ]));
 }

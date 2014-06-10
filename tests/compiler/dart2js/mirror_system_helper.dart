@@ -17,7 +17,7 @@ final Uri SOURCE_URI = new Uri(scheme: SOURCE, path: SOURCE);
 
 // TODO(johnniwinther): Move this to a mirrors helper library.
 Future<MirrorSystem> createMirrorSystem(String source) {
-  MockCompiler compiler = new MockCompiler(
+  MockCompiler compiler = new MockCompiler.internal(
       analyzeOnly: true,
       analyzeAll: true,
       preserveComments: true);

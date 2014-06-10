@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import "compiler_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'compiler_helper.dart';
 
 const String TEST = """
 foo() {
@@ -14,12 +15,13 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST, entry: 'foo');
-  // Make sure we have all the type information we need.
-  Expect.isFalse(generated.contains('bailout'));
-  Expect.isFalse(generated.contains('interceptor'));
-  // Make sure we don't go through an interceptor.
-  Expect.isTrue(
-      generated.contains(r'a.$indexSet(a') ||
-      generated.contains(r'.$indexSet(0'));
+  asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
+    // Make sure we have all the type information we need.
+    Expect.isFalse(generated.contains('bailout'));
+    Expect.isFalse(generated.contains('interceptor'));
+    // Make sure we don't go through an interceptor.
+    Expect.isTrue(
+        generated.contains(r'a.$indexSet(a') ||
+        generated.contains(r'.$indexSet(0'));
+  }));
 }

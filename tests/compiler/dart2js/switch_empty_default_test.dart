@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String SIMPLY_EMPTY = """
@@ -119,10 +120,12 @@ main() {
   var defOrCase3 = new RegExp(r"(default:|case 3):");
   var case3 = new RegExp(r"case 3:");
 
-  compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def);
-  compileAndDoNotMatch(TOTAL, 'main', defOrCase3);
-  compileAndDoNotMatch(OPTIMIZED, 'main', def);
-  compileAndMatch(LABEL, 'main', case3);
-  compileAndMatch(DEFLABEL, 'main', def);
-  compileAndMatch(EMPTYDEFLABEL, 'main', def);
+  asyncTest(() => Future.wait([
+    compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def),
+    compileAndDoNotMatch(TOTAL, 'main', defOrCase3),
+    compileAndDoNotMatch(OPTIMIZED, 'main', def),
+    compileAndMatch(LABEL, 'main', case3),
+    compileAndMatch(DEFLABEL, 'main', def),
+    compileAndMatch(EMPTYDEFLABEL, 'main', def),
+  ]));
 }

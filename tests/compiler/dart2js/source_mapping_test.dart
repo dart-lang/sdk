@@ -11,7 +11,7 @@ import "mock_compiler.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
-  MockCompiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler.internal();
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   JavaScriptBackend backend = compiler.backend;

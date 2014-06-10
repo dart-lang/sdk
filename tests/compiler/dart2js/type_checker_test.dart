@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
@@ -19,13 +21,6 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
 final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;
-
-DartType voidType;
-DartType intType;
-DartType boolType;
-DartType stringType;
-DartType doubleType;
-DartType objectType;
 
 main() {
   List tests = [testSimpleTypes,
@@ -60,166 +55,194 @@ main() {
                 testTypePromotionHints,
                 testFunctionCall,
                 testCascade];
-  for (Function test in tests) {
-    setup();
-    test();
+  asyncTest(() => Future.forEach(tests, (test) => setup(test)));
+}
+
+testSimpleTypes(MockCompiler compiler) {
+  checkType(DartType type, String code) {
+    Expect.equals(type, analyzeType(compiler, code));
   }
+
+  checkType(compiler.intClass.computeType(compiler), "3");
+  checkType(compiler.boolClass.computeType(compiler), "false");
+  checkType(compiler.boolClass.computeType(compiler), "true");
+  checkType(compiler.stringClass.computeType(compiler), "'hestfisk'");
 }
 
-testSimpleTypes() {
-  Expect.equals(intType, analyzeType("3"));
-  Expect.equals(boolType, analyzeType("false"));
-  Expect.equals(boolType, analyzeType("true"));
-  Expect.equals(stringType, analyzeType("'hestfisk'"));
+testReturn(MockCompiler compiler) {
+  check(String code, [expectedWarnings]) {
+    analyzeTopLevel(compiler, code, expectedWarnings);
+  }
+
+  check("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
+  check("int bar() { return 'hest'; }", NOT_ASSIGNABLE);
+  check("void baz() { var x; return x; }");
+  check(returnWithType("int", "'string'"), NOT_ASSIGNABLE);
+  check(returnWithType("", "'string'"));
+  check(returnWithType("Object", "'string'"));
+  check(returnWithType("String", "'string'"));
+  check(returnWithType("String", null));
+  check(returnWithType("int", null));
+  check(returnWithType("void", ""));
+  check(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID);
+  check(returnWithType("void", null));
+  check(returnWithType("String", ""), MessageKind.RETURN_NOTHING);
+  // check("String foo() {};"); // Should probably fail.
 }
 
-testReturn() {
-  analyzeTopLevel("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
-  analyzeTopLevel("int bar() { return 'hest'; }",
-                  NOT_ASSIGNABLE);
-  analyzeTopLevel("void baz() { var x; return x; }");
-  analyzeTopLevel(returnWithType("int", "'string'"),
-                  NOT_ASSIGNABLE);
-  analyzeTopLevel(returnWithType("", "'string'"));
-  analyzeTopLevel(returnWithType("Object", "'string'"));
-  analyzeTopLevel(returnWithType("String", "'string'"));
-  analyzeTopLevel(returnWithType("String", null));
-  analyzeTopLevel(returnWithType("int", null));
-  analyzeTopLevel(returnWithType("void", ""));
-  analyzeTopLevel(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID);
-  analyzeTopLevel(returnWithType("void", null));
-  analyzeTopLevel(returnWithType("String", ""), MessageKind.RETURN_NOTHING);
-  // analyzeTopLevel("String foo() {};"); // Should probably fail.
-}
+testFor(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
 
-testFor() {
-  analyze("for (var x;true;x = x + 1) {}");
-  analyze("for (var x;null;x = x + 1) {}");
-  analyze("for (var x;0;x = x + 1) {}", warnings: NOT_ASSIGNABLE);
-  analyze("for (var x;'';x = x + 1) {}", warnings: NOT_ASSIGNABLE);
+  check("for (var x;true;x = x + 1) {}");
+  check("for (var x;null;x = x + 1) {}");
+  check("for (var x;0;x = x + 1) {}", warnings: NOT_ASSIGNABLE);
+  check("for (var x;'';x = x + 1) {}", warnings: NOT_ASSIGNABLE);
 
-   analyze("for (;true;) {}");
-   analyze("for (;null;) {}");
-   analyze("for (;0;) {}", warnings: NOT_ASSIGNABLE);
-   analyze("for (;'';) {}", warnings: NOT_ASSIGNABLE);
+  check("for (;true;) {}");
+  check("for (;null;) {}");
+  check("for (;0;) {}", warnings: NOT_ASSIGNABLE);
+  check("for (;'';) {}", warnings: NOT_ASSIGNABLE);
 
   // Foreach tests
 //  TODO(karlklose): for each is not yet implemented.
-//  analyze("{ List<String> strings = ['1','2','3']; " +
-//          "for (String s in strings) {} }");
-//  analyze("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
-//          NOT_ASSIGNABLE);
-//  analyze("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
+//  check("{ List<String> strings = ['1','2','3']; " +
+//        "for (String s in strings) {} }");
+//  check("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
+//        NOT_ASSIGNABLE);
+//  check("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
 }
 
-testWhile() {
-  analyze("while (true) {}");
-  analyze("while (null) {}");
-  analyze("while (0) {}", warnings: NOT_ASSIGNABLE);
-  analyze("while ('') {}", warnings: NOT_ASSIGNABLE);
+testWhile(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
 
-  analyze("do {} while (true);");
-  analyze("do {} while (null);");
-  analyze("do {} while (0);", warnings: NOT_ASSIGNABLE);
-  analyze("do {} while ('');", warnings: NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (true);", warnings: NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (null);", warnings: NOT_ASSIGNABLE);
+  check("while (true) {}");
+  check("while (null) {}");
+  check("while (0) {}", warnings: NOT_ASSIGNABLE);
+  check("while ('') {}", warnings: NOT_ASSIGNABLE);
+
+  check("do {} while (true);");
+  check("do {} while (null);");
+  check("do {} while (0);", warnings: NOT_ASSIGNABLE);
+  check("do {} while ('');", warnings: NOT_ASSIGNABLE);
+  check("do { int i = 0.5; } while (true);", warnings: NOT_ASSIGNABLE);
+  check("do { int i = 0.5; } while (null);", warnings: NOT_ASSIGNABLE);
 }
 
-testTry() {
-  analyze("try {} finally {}");
-  analyze("try {} catch (e) { int i = e;} finally {}");
-  analyze("try {} catch (e, s) { int i = e; StackTrace j = s; } finally {}");
-  analyze("try {} on String catch (e) {} finally {}");
-  analyze("try { int i = ''; } finally {}", warnings: NOT_ASSIGNABLE);
-  analyze("try {} finally { int i = ''; }", warnings: NOT_ASSIGNABLE);
-  analyze("try {} on String catch (e) { int i = e; } finally {}",
-          warnings: NOT_ASSIGNABLE);
-  analyze("try {} catch (e, s) { int i = e; int j = s; } finally {}",
-          warnings: NOT_ASSIGNABLE);
-  analyze("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
-          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+testTry(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
+  check("try {} finally {}");
+  check("try {} catch (e) { int i = e;} finally {}");
+  check("try {} catch (e, s) { int i = e; StackTrace j = s; } finally {}");
+  check("try {} on String catch (e) {} finally {}");
+  check("try { int i = ''; } finally {}", warnings: NOT_ASSIGNABLE);
+  check("try {} finally { int i = ''; }", warnings: NOT_ASSIGNABLE);
+  check("try {} on String catch (e) { int i = e; } finally {}",
+        warnings: NOT_ASSIGNABLE);
+  check("try {} catch (e, s) { int i = e; int j = s; } finally {}",
+        warnings: NOT_ASSIGNABLE);
+  check("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
+        warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 
-testSwitch() {
-  analyze("switch (0) { case 1: break; case 2: break; }");
-  analyze("switch (0) { case 1: int i = ''; break; case 2: break; }",
-          warnings: NOT_ASSIGNABLE);
-  analyze("switch (0) { case '': break; }",
-          warnings: NOT_ASSIGNABLE);
-  analyze("switch ('') { case 1: break; case 2: break; }",
-          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
-  analyze("switch (1.5) { case 1: break; case 2: break; }",
-          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+testSwitch(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
+  check("switch (0) { case 1: break; case 2: break; }");
+  check("switch (0) { case 1: int i = ''; break; case 2: break; }",
+        warnings: NOT_ASSIGNABLE);
+  check("switch (0) { case '': break; }",
+        warnings: NOT_ASSIGNABLE);
+  check("switch ('') { case 1: break; case 2: break; }",
+        warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+  check("switch (1.5) { case 1: break; case 2: break; }",
+        warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
-testOperators() {
+testOperators(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
   // TODO(karlklose): add the DartC tests for operators when we can parse
   // classes with operators.
   for (final op in ['+', '-', '*', '/', '%', '~/', '|', '&']) {
-    analyze("{ var i = 1 ${op} 2; }");
-    analyze("{ var i = 1; i ${op}= 2; }");
-    analyze("{ int i; var j = (i = true) ${op} 2; }",
-            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
-    analyze("{ int i; var j = 1 ${op} (i = true); }",
-            warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check("{ var i = 1 ${op} 2; }");
+    check("{ var i = 1; i ${op}= 2; }");
+    check("{ int i; var j = (i = true) ${op} 2; }",
+          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+    check("{ int i; var j = 1 ${op} (i = true); }",
+          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['-', '~']) {
-    analyze("{ var i = ${op}1; }");
-    analyze("{ int i; var j = ${op}(i = true); }",
-            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+    check("{ var i = ${op}1; }");
+    check("{ int i; var j = ${op}(i = true); }",
+          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
   }
   for (final op in ['++', '--']) {
-    analyze("{ int i = 1; int j = i${op}; }");
-    analyze("{ int i = 1; bool j = i${op}; }", warnings: NOT_ASSIGNABLE);
-    analyze("{ bool b = true; bool j = b${op}; }",
-            warnings: MessageKind.OPERATOR_NOT_FOUND);
-    analyze("{ bool b = true; int j = ${op}b; }",
-            warnings: MessageKind.OPERATOR_NOT_FOUND);
+    check("{ int i = 1; int j = i${op}; }");
+    check("{ int i = 1; bool j = i${op}; }", warnings: NOT_ASSIGNABLE);
+    check("{ bool b = true; bool j = b${op}; }",
+          warnings: MessageKind.OPERATOR_NOT_FOUND);
+    check("{ bool b = true; int j = ${op}b; }",
+          warnings: MessageKind.OPERATOR_NOT_FOUND);
   }
   for (final op in ['||', '&&']) {
-    analyze("{ bool b = (true ${op} false); }");
-    analyze("{ int b = true ${op} false; }", warnings: NOT_ASSIGNABLE);
-    analyze("{ bool b = (1 ${op} false); }", warnings: NOT_ASSIGNABLE);
-    analyze("{ bool b = (true ${op} 2); }", warnings: NOT_ASSIGNABLE);
+    check("{ bool b = (true ${op} false); }");
+    check("{ int b = true ${op} false; }", warnings: NOT_ASSIGNABLE);
+    check("{ bool b = (1 ${op} false); }", warnings: NOT_ASSIGNABLE);
+    check("{ bool b = (true ${op} 2); }", warnings: NOT_ASSIGNABLE);
   }
   for (final op in ['>', '<', '<=', '>=']) {
-    analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
-    analyze("{ int i; bool b = (i = true) ${op} 2; }",
-            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
-    analyze("{ int i; bool b = 1 ${op} (i = true); }",
-            warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check("{ bool b = 1 ${op} 2; }");
+    check("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
+    check("{ int i; bool b = (i = true) ${op} 2; }",
+          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+    check("{ int i; bool b = 1 ${op} (i = true); }",
+          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['==', '!=']) {
-    analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
-    analyze("{ int i; bool b = (i = true) ${op} 2; }",
-            warnings: NOT_ASSIGNABLE);
-    analyze("{ int i; bool b = 1 ${op} (i = true); }",
-            warnings: NOT_ASSIGNABLE);
+    check("{ bool b = 1 ${op} 2; }");
+    check("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
+    check("{ int i; bool b = (i = true) ${op} 2; }",
+          warnings: NOT_ASSIGNABLE);
+    check("{ int i; bool b = 1 ${op} (i = true); }",
+          warnings: NOT_ASSIGNABLE);
   }
 }
 
-void testConstructorInvocationArgumentCount() {
+void testConstructorInvocationArgumentCount(MockCompiler compiler) {
   compiler.parseScript("""
      class C1 { C1(x, y); }
      class C2 { C2(int x, int y); }
   """);
+
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
   // calls to untyped constructor C1
-  analyze("new C1(1, 2);");
-  analyze("new C1();", warnings: MessageKind.MISSING_ARGUMENT);
-  analyze("new C1(1);", warnings: MessageKind.MISSING_ARGUMENT);
-  analyze("new C1(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
+  check("new C1(1, 2);");
+  check("new C1();", warnings: MessageKind.MISSING_ARGUMENT);
+  check("new C1(1);", warnings: MessageKind.MISSING_ARGUMENT);
+  check("new C1(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
   // calls to typed constructor C2
-  analyze("new C2(1, 2);");
-  analyze("new C2();", warnings: MessageKind.MISSING_ARGUMENT);
-  analyze("new C2(1);", warnings: MessageKind.MISSING_ARGUMENT);
-  analyze("new C2(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
+  check("new C2(1, 2);");
+  check("new C2();", warnings: MessageKind.MISSING_ARGUMENT);
+  check("new C2(1);", warnings: MessageKind.MISSING_ARGUMENT);
+  check("new C2(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
 }
 
-void testConstructorInvocationArgumentTypes() {
+void testConstructorInvocationArgumentTypes(MockCompiler compiler) {
   compiler.parseScript("""
     class C1 { C1(x); }
     class C2 { C2(int x); }
@@ -229,24 +252,31 @@ void testConstructorInvocationArgumentTypes() {
       C3.named(this.field);
     }
   """);
-  analyze("new C1(42);");
-  analyze("new C1('string');");
-  analyze("new C2(42);");
-  analyze("new C2('string');",
-          warnings: NOT_ASSIGNABLE);
-  analyze("new C3(42);");
-  analyze("new C3('string');",
-          warnings: NOT_ASSIGNABLE);
-  analyze("new C3.named(42);");
-  analyze("new C3.named('string');",
-          warnings: NOT_ASSIGNABLE);
+
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
+  check("new C1(42);");
+  check("new C1('string');");
+  check("new C2(42);");
+  check("new C2('string');",
+        warnings: NOT_ASSIGNABLE);
+  check("new C3(42);");
+  check("new C3('string');",
+        warnings: NOT_ASSIGNABLE);
+  check("new C3.named(42);");
+  check("new C3.named('string');",
+        warnings: NOT_ASSIGNABLE);
 }
 
-void testMethodInvocationArgumentCount() {
+void testMethodInvocationArgumentCount(MockCompiler compiler) {
   compiler.parseScript(CLASS_WITH_METHODS);
 
   check(String text, [expectedWarnings]) {
-    analyze("{ ClassWithMethods c; $text }", warnings: expectedWarnings);
+    analyze(compiler,
+            "{ ClassWithMethods c; $text }",
+            warnings: expectedWarnings);
   }
 
   check("c.untypedNoArgumentMethod(1);", MessageKind.ADDITIONAL_ARGUMENT);
@@ -323,11 +353,12 @@ void testMethodInvocationArgumentCount() {
          MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
 }
 
-void testMethodInvocations() {
+void testMethodInvocations(MockCompiler compiler) {
   compiler.parseScript(CLASS_WITH_METHODS);
 
   check(String text, [expectedWarnings]){
-    analyze("""{
+    analyze(compiler,
+            """{
                ClassWithMethods c;
                SubClass d;
                var e;
@@ -464,177 +495,184 @@ void testMethodInvocations() {
   check("foo(a: localMethod(1));", NOT_ASSIGNABLE);
 }
 
-testMethodInvocationsInClass() {
-  LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
-  compiler.parseScript(CLASS_WITH_METHODS, library);
-  ClassElement ClassWithMethods = library.find("ClassWithMethods");
-  ClassWithMethods.ensureResolved(compiler);
-  Element c = ClassWithMethods.lookupLocalMember('method');
-  assert(c != null);
-  ClassElement SubClass = library.find("SubClass");
-  SubClass.ensureResolved(compiler);
-  Element d = SubClass.lookupLocalMember('method');
-  assert(d != null);
+Future testMethodInvocationsInClass(MockCompiler compiler) {
+  return MockCompiler.create((MockCompiler compiler) {
+    LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
+    compiler.parseScript(CLASS_WITH_METHODS, library);
+    ClassElement ClassWithMethods = library.find("ClassWithMethods");
+    ClassWithMethods.ensureResolved(compiler);
+    Element c = ClassWithMethods.lookupLocalMember('method');
+    assert(c != null);
+    ClassElement SubClass = library.find("SubClass");
+    SubClass.ensureResolved(compiler);
+    Element d = SubClass.lookupLocalMember('method');
+    assert(d != null);
 
-  check(Element element, String text, [expectedWarnings]){
-    analyzeIn(element,
-              """{
-                   var e;
-                   int i;
-                   int j;
-                   int localMethod(String str) { return 0; }
-                   $text
-                 }""",
-              expectedWarnings);
-  }
-
-
-  check(c, "int k = untypedNoArgumentMethod();");
-  check(c, "ClassWithMethods x = untypedNoArgumentMethod();");
-  check(d, "ClassWithMethods x = untypedNoArgumentMethod();");
-  check(d, "int k = intMethod();");
-  check(c, "int k = untypedOneArgumentMethod(this);");
-  check(c, "ClassWithMethods x = untypedOneArgumentMethod(1);");
-  check(c, "int k = untypedOneArgumentMethod('string');");
-  check(c, "int k = untypedOneArgumentMethod(i);");
-  check(d, "int k = untypedOneArgumentMethod(this);");
-  check(d, "ClassWithMethods x = untypedOneArgumentMethod(1);");
-  check(d, "int k = untypedOneArgumentMethod('string');");
-  check(d, "int k = untypedOneArgumentMethod(i);");
-
-  check(c, "int k = untypedTwoArgumentMethod(1, 'string');");
-  check(c, "int k = untypedTwoArgumentMethod(i, j);");
-  check(c, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
-  check(d, "int k = untypedTwoArgumentMethod(1, 'string');");
-  check(d, "int k = untypedTwoArgumentMethod(i, j);");
-  check(d, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
-
-  check(c, "int k = intNoArgumentMethod();");
-  check(c, "ClassWithMethods x = intNoArgumentMethod();",
-        NOT_ASSIGNABLE);
-
-  check(c, "int k = intOneArgumentMethod('');", NOT_ASSIGNABLE);
-  check(c, "ClassWithMethods x = intOneArgumentMethod(1);",
-        NOT_ASSIGNABLE);
-  check(c, "int k = intOneArgumentMethod('string');",
-        NOT_ASSIGNABLE);
-  check(c, "int k = intOneArgumentMethod(i);");
-
-  check(c, "int k = intTwoArgumentMethod(1, 'string');",
-        NOT_ASSIGNABLE);
-  check(c, "int k = intTwoArgumentMethod(i, j);");
-  check(c, "ClassWithMethods x = intTwoArgumentMethod(i, j);",
-        NOT_ASSIGNABLE);
-
-  check(c, "functionField();");
-  check(d, "functionField();");
-  check(c, "functionField(1);");
-  check(d, "functionField('string');");
-
-  check(c, "intField();", MessageKind.NOT_CALLABLE);
-  check(d, "intField();", MessageKind.NOT_CALLABLE);
-
-  check(c, "untypedField();");
-  check(d, "untypedField();");
-  check(c, "untypedField(1);");
-  check(d, "untypedField('string');");
+    check(Element element, String text, [expectedWarnings]){
+      analyzeIn(compiler,
+                element,
+                """{
+                     var e;
+                     int i;
+                     int j;
+                     int localMethod(String str) { return 0; }
+                     $text
+                   }""",
+                expectedWarnings);
+    }
 
 
-  check(c, "intOneArgumentOneOptionalMethod('');",
-        NOT_ASSIGNABLE);
-  check(c, "intOneArgumentOneOptionalMethod('', '');",
-        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check(c, "int k = untypedNoArgumentMethod();");
+    check(c, "ClassWithMethods x = untypedNoArgumentMethod();");
+    check(d, "ClassWithMethods x = untypedNoArgumentMethod();");
+    check(d, "int k = intMethod();");
+    check(c, "int k = untypedOneArgumentMethod(this);");
+    check(c, "ClassWithMethods x = untypedOneArgumentMethod(1);");
+    check(c, "int k = untypedOneArgumentMethod('string');");
+    check(c, "int k = untypedOneArgumentMethod(i);");
+    check(d, "int k = untypedOneArgumentMethod(this);");
+    check(d, "ClassWithMethods x = untypedOneArgumentMethod(1);");
+    check(d, "int k = untypedOneArgumentMethod('string');");
+    check(d, "int k = untypedOneArgumentMethod(i);");
 
-  check(c, "intTwoOptionalMethod('');", NOT_ASSIGNABLE);
-  check(c, "intTwoOptionalMethod('', '');",
-        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check(c, "int k = untypedTwoArgumentMethod(1, 'string');");
+    check(c, "int k = untypedTwoArgumentMethod(i, j);");
+    check(c, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
+    check(d, "int k = untypedTwoArgumentMethod(1, 'string');");
+    check(d, "int k = untypedTwoArgumentMethod(i, j);");
+    check(d, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
 
-  check(c, "intOneArgumentOneNamedMethod('');",
-        NOT_ASSIGNABLE);
-  check(c, "intOneArgumentOneNamedMethod('', b: '');",
-        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check(c, "int k = intNoArgumentMethod();");
+    check(c, "ClassWithMethods x = intNoArgumentMethod();",
+          NOT_ASSIGNABLE);
 
-  check(c, "intTwoNamedMethod(a: '');", NOT_ASSIGNABLE);
-  check(c, "intTwoNamedMethod(b: '');", NOT_ASSIGNABLE);
-  check(c, "intTwoNamedMethod(a: '', b: '');",
-        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
-  check(c, "intTwoNamedMethod(b: '', a: '');",
-        [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check(c, "int k = intOneArgumentMethod('');", NOT_ASSIGNABLE);
+    check(c, "ClassWithMethods x = intOneArgumentMethod(1);",
+          NOT_ASSIGNABLE);
+    check(c, "int k = intOneArgumentMethod('string');",
+          NOT_ASSIGNABLE);
+    check(c, "int k = intOneArgumentMethod(i);");
 
-  // Invocation of dynamic variable.
-  check(c, "e();");
-  check(c, "e(1);");
-  check(c, "e('string');");
+    check(c, "int k = intTwoArgumentMethod(1, 'string');",
+          NOT_ASSIGNABLE);
+    check(c, "int k = intTwoArgumentMethod(i, j);");
+    check(c, "ClassWithMethods x = intTwoArgumentMethod(i, j);",
+          NOT_ASSIGNABLE);
 
-  // Invocation on local method.
-  check(c, "localMethod();", MessageKind.MISSING_ARGUMENT);
-  check(c, "localMethod(1);", NOT_ASSIGNABLE);
-  check(c, "localMethod('string');");
-  check(c, "int k = localMethod('string');");
-  check(c, "String k = localMethod('string');", NOT_ASSIGNABLE);
+    check(c, "functionField();");
+    check(d, "functionField();");
+    check(c, "functionField(1);");
+    check(d, "functionField('string');");
 
-  // Invocation on parenthesized expressions.
-  check(c, "(e)();");
-  check(c, "(e)(1);");
-  check(c, "(e)('string');");
-  check(c, "(foo)();", MEMBER_NOT_FOUND);
-  check(c, "(foo)(1);", MEMBER_NOT_FOUND);
-  check(c, "(foo)('string');", MEMBER_NOT_FOUND);
+    check(c, "intField();", MessageKind.NOT_CALLABLE);
+    check(d, "intField();", MessageKind.NOT_CALLABLE);
 
-  // Invocations on function expressions.
-  check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
-  check(c, "(foo){}(1);");
-  check(c, "(foo){}('string');");
-  check(c, "(int foo){}('string');", NOT_ASSIGNABLE);
-  check(c, "(String foo){}('string');");
-  check(c, "int k = int bar(String foo){ return 0; }('string');");
-  check(c, "int k = String bar(String foo){ return foo; }('string');",
-        NOT_ASSIGNABLE);
+    check(c, "untypedField();");
+    check(d, "untypedField();");
+    check(c, "untypedField(1);");
+    check(d, "untypedField('string');");
 
-  // Static invocations.
-  check(c, "staticMethod();",
-        MessageKind.MISSING_ARGUMENT);
-  check(c, "staticMethod(1);",
-        NOT_ASSIGNABLE);
-  check(c, "staticMethod('string');");
-  check(c, "int k = staticMethod('string');");
-  check(c, "String k = staticMethod('string');",
-        NOT_ASSIGNABLE);
-  check(d, "staticMethod();", MessageKind.METHOD_NOT_FOUND);
-  check(d, "staticMethod(1);", MessageKind.METHOD_NOT_FOUND);
-  check(d, "staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
-  check(d, "int k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
-  check(d, "String k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
 
-  // Invocation on dynamic variable.
-  check(c, "e.foo();");
-  check(c, "e.foo(1);");
-  check(c, "e.foo('string');");
+    check(c, "intOneArgumentOneOptionalMethod('');",
+          NOT_ASSIGNABLE);
+    check(c, "intOneArgumentOneOptionalMethod('', '');",
+          [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 
-  // Invocation on unresolved variable.
-  check(c, "foo();", MessageKind.METHOD_NOT_FOUND);
-  check(c, "foo(1);", MessageKind.METHOD_NOT_FOUND);
-  check(c, "foo('string');", MessageKind.METHOD_NOT_FOUND);
-  check(c, "foo(a: 'string');", MessageKind.METHOD_NOT_FOUND);
-  check(c, "foo(a: localMethod(1));",
-      [MessageKind.METHOD_NOT_FOUND, NOT_ASSIGNABLE]);
+    check(c, "intTwoOptionalMethod('');", NOT_ASSIGNABLE);
+    check(c, "intTwoOptionalMethod('', '');",
+          [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+
+    check(c, "intOneArgumentOneNamedMethod('');",
+          NOT_ASSIGNABLE);
+    check(c, "intOneArgumentOneNamedMethod('', b: '');",
+          [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+
+    check(c, "intTwoNamedMethod(a: '');", NOT_ASSIGNABLE);
+    check(c, "intTwoNamedMethod(b: '');", NOT_ASSIGNABLE);
+    check(c, "intTwoNamedMethod(a: '', b: '');",
+          [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+    check(c, "intTwoNamedMethod(b: '', a: '');",
+          [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+
+    // Invocation of dynamic variable.
+    check(c, "e();");
+    check(c, "e(1);");
+    check(c, "e('string');");
+
+    // Invocation on local method.
+    check(c, "localMethod();", MessageKind.MISSING_ARGUMENT);
+    check(c, "localMethod(1);", NOT_ASSIGNABLE);
+    check(c, "localMethod('string');");
+    check(c, "int k = localMethod('string');");
+    check(c, "String k = localMethod('string');", NOT_ASSIGNABLE);
+
+    // Invocation on parenthesized expressions.
+    check(c, "(e)();");
+    check(c, "(e)(1);");
+    check(c, "(e)('string');");
+    check(c, "(foo)();", MEMBER_NOT_FOUND);
+    check(c, "(foo)(1);", MEMBER_NOT_FOUND);
+    check(c, "(foo)('string');", MEMBER_NOT_FOUND);
+
+    // Invocations on function expressions.
+    check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
+    check(c, "(foo){}(1);");
+    check(c, "(foo){}('string');");
+    check(c, "(int foo){}('string');", NOT_ASSIGNABLE);
+    check(c, "(String foo){}('string');");
+    check(c, "int k = int bar(String foo){ return 0; }('string');");
+    check(c, "int k = String bar(String foo){ return foo; }('string');",
+          NOT_ASSIGNABLE);
+
+    // Static invocations.
+    check(c, "staticMethod();",
+          MessageKind.MISSING_ARGUMENT);
+    check(c, "staticMethod(1);",
+          NOT_ASSIGNABLE);
+    check(c, "staticMethod('string');");
+    check(c, "int k = staticMethod('string');");
+    check(c, "String k = staticMethod('string');",
+          NOT_ASSIGNABLE);
+    check(d, "staticMethod();", MessageKind.METHOD_NOT_FOUND);
+    check(d, "staticMethod(1);", MessageKind.METHOD_NOT_FOUND);
+    check(d, "staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+    check(d, "int k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+    check(d, "String k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+
+    // Invocation on dynamic variable.
+    check(c, "e.foo();");
+    check(c, "e.foo(1);");
+    check(c, "e.foo('string');");
+
+    // Invocation on unresolved variable.
+    check(c, "foo();", MessageKind.METHOD_NOT_FOUND);
+    check(c, "foo(1);", MessageKind.METHOD_NOT_FOUND);
+    check(c, "foo('string');", MessageKind.METHOD_NOT_FOUND);
+    check(c, "foo(a: 'string');", MessageKind.METHOD_NOT_FOUND);
+    check(c, "foo(a: localMethod(1));",
+          [MessageKind.METHOD_NOT_FOUND, NOT_ASSIGNABLE]);
+  });
 }
 
 /** Tests analysis of returns (not required by the specification). */
-void testControlFlow() {
-  analyzeTopLevel("void foo() { if (true) { return; } }");
-  analyzeTopLevel("foo() { if (true) { return; } }");
-  analyzeTopLevel("int foo() { if (true) { return 1; } }",
-                  MessageKind.MAYBE_MISSING_RETURN);
+void testControlFlow(MockCompiler compiler) {
+  check(String code, [expectedWarnings]) {
+    analyzeTopLevel(compiler, code, expectedWarnings);
+  }
+
+  check("void foo() { if (true) { return; } }");
+  check("foo() { if (true) { return; } }");
+  check("int foo() { if (true) { return 1; } }",
+        MessageKind.MAYBE_MISSING_RETURN);
   final bar =
       """void bar() {
         if (true) {
           if (true) { return; } else { return; }
         } else { return; }
       }""";
-  analyzeTopLevel(bar);
-  analyzeTopLevel("void baz() { return; int i = 1; }",
-                  MessageKind.UNREACHABLE_CODE);
+  check(bar);
+  check("void baz() { return; int i = 1; }",
+        MessageKind.UNREACHABLE_CODE);
   final qux =
       """void qux() {
         if (true) {
@@ -647,25 +685,26 @@ void testControlFlow() {
         }
         throw 'fisk';
       }""";
-  analyzeTopLevel(qux);
-  analyzeTopLevel("int hest() {}", MessageKind.MISSING_RETURN);
+  check(qux);
+  check("int hest() {}", MessageKind.MISSING_RETURN);
   final fisk = """int fisk() {
                     if (true) {
                       if (true) { return 1; } else {}
                     } else { return 1; }
                   }""";
-  analyzeTopLevel(fisk, MessageKind.MAYBE_MISSING_RETURN);
-  analyzeTopLevel("int foo() { while(true) { return 1; } }");
-  analyzeTopLevel("int foo() { while(true) { return 1; } return 2; }",
-                  MessageKind.UNREACHABLE_CODE);
+  check(fisk, MessageKind.MAYBE_MISSING_RETURN);
+  check("int foo() { while(true) { return 1; } }");
+  check("int foo() { while(true) { return 1; } return 2; }",
+        MessageKind.UNREACHABLE_CODE);
 }
 
 
-void testFunctionCall() {
+void testFunctionCall(MockCompiler compiler) {
   compiler.parseScript(CLASS_WITH_METHODS);
 
   check(String text, [expectedWarnings]){
-    analyze("""{
+    analyze(compiler,
+            """{
                ClassWithMethods x;
                int localMethod(String str) { return 0; }
                String2Int string2int;
@@ -716,10 +755,10 @@ void testFunctionCall() {
   check("int k = subFunction.call(0);");
 }
 
-testNewExpression() {
+testNewExpression(MockCompiler compiler) {
   compiler.parseScript("class A {}");
-  analyze("A a = new A();");
-  analyze("int i = new A();", warnings: NOT_ASSIGNABLE);
+  analyze(compiler, "A a = new A();");
+  analyze(compiler, "int i = new A();", warnings: NOT_ASSIGNABLE);
 
 // TODO(karlklose): constructors are not yet implemented.
 //  compiler.parseScript(
@@ -752,51 +791,58 @@ testNewExpression() {
 //  analyze("Bar<String> x = new Bar<String>.make('');");
 }
 
-testConditionalExpression() {
-  analyze("int i = true ? 2 : 1;");
-  analyze("int i = true ? 'hest' : 1;");
-  analyze("int i = true ? 'hest' : 'fisk';", warnings: NOT_ASSIGNABLE);
-  analyze("String s = true ? 'hest' : 'fisk';");
+testConditionalExpression(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
 
-  analyze("true ? 1 : 2;");
-  analyze("null ? 1 : 2;");
-  analyze("0 ? 1 : 2;", warnings: NOT_ASSIGNABLE);
-  analyze("'' ? 1 : 2;", warnings: NOT_ASSIGNABLE);
-  analyze("{ int i; true ? i = 2.7 : 2; }",
+  check("int i = true ? 2 : 1;");
+  check("int i = true ? 'hest' : 1;");
+  check("int i = true ? 'hest' : 'fisk';", warnings: NOT_ASSIGNABLE);
+  check("String s = true ? 'hest' : 'fisk';");
+
+  check("true ? 1 : 2;");
+  check("null ? 1 : 2;");
+  check("0 ? 1 : 2;", warnings: NOT_ASSIGNABLE);
+  check("'' ? 1 : 2;", warnings: NOT_ASSIGNABLE);
+  check("{ int i; true ? i = 2.7 : 2; }",
           warnings: NOT_ASSIGNABLE);
-  analyze("{ int i; true ? 2 : i = 2.7; }",
+  check("{ int i; true ? 2 : i = 2.7; }",
           warnings: NOT_ASSIGNABLE);
-  analyze("{ int i; i = true ? 2.7 : 2; }");
+  check("{ int i; i = true ? 2.7 : 2; }");
 }
 
-testIfStatement() {
-  analyze("if (true) {}");
-  analyze("if (null) {}");
-  analyze("if (0) {}",
+testIfStatement(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
+  check("if (true) {}");
+  check("if (null) {}");
+  check("if (0) {}",
           warnings: NOT_ASSIGNABLE);
-  analyze("if ('') {}",
+  check("if ('') {}",
           warnings: NOT_ASSIGNABLE);
-  analyze("{ int i = 27; if (true) { i = 2.7; } else {} }",
+  check("{ int i = 27; if (true) { i = 2.7; } else {} }",
           warnings: NOT_ASSIGNABLE);
-  analyze("{ int i = 27; if (true) {} else { i = 2.7; } }",
+  check("{ int i = 27; if (true) {} else { i = 2.7; } }",
           warnings: NOT_ASSIGNABLE);
 }
 
-testThis() {
+testThis(MockCompiler compiler) {
   String script = """class Foo {
                        void method() {}
                      }""";
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement foo = library.find("Foo");
+  compiler.parseScript(script);
+  ClassElement foo = compiler.mainApp.find("Foo");
   foo.ensureResolved(compiler);
   Element method = foo.lookupLocalMember('method');
-  analyzeIn(method, "{ int i = this; }", NOT_ASSIGNABLE);
-  analyzeIn(method, "{ Object o = this; }");
-  analyzeIn(method, "{ Foo f = this; }");
+  analyzeIn(compiler, method, "{ int i = this; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ Object o = this; }");
+  analyzeIn(compiler, method, "{ Foo f = this; }");
 }
 
-testSuper() {
+testSuper(MockCompiler compiler) {
   String script = r'''
     class A {
       String field = "42";
@@ -807,14 +853,13 @@ testSuper() {
       void method() {}
     }
     ''';
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement B = library.find("B");
+  compiler.parseScript(script);
+  ClassElement B = compiler.mainApp.find("B");
   B.ensureResolved(compiler);
   Element method = B.lookupLocalMember('method');
-  analyzeIn(method, "{ int i = super.field; }", NOT_ASSIGNABLE);
-  analyzeIn(method, "{ Object o = super.field; }");
-  analyzeIn(method, "{ String s = super.field; }");
+  analyzeIn(compiler, method, "{ int i = super.field; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ Object o = super.field; }");
+  analyzeIn(compiler, method, "{ String s = super.field; }");
 }
 
 const String CLASSES_WITH_OPERATORS = '''
@@ -870,7 +915,7 @@ class MismatchC {
 }
 ''';
 
-testOperatorsAssignability() {
+testOperatorsAssignability(MockCompiler compiler) {
   compiler.parseScript(CLASSES_WITH_OPERATORS);
 
   // Tests against Operators.
@@ -883,7 +928,7 @@ testOperatorsAssignability() {
       """;
 
   check(String text, [expectedWarnings]) {
-    analyze('$header $text }', warnings: expectedWarnings);
+    analyze(compiler, '$header $text }', warnings: expectedWarnings);
   }
 
   // Positive tests on operators.
@@ -1092,40 +1137,44 @@ testOperatorsAssignability() {
       [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
-void testFieldInitializers() {
-  analyzeTopLevel("""int i = 0;""");
-  analyzeTopLevel("""int i = '';""", NOT_ASSIGNABLE);
+void testFieldInitializers(MockCompiler compiler) {
+  check(String code, [expectedWarnings]) {
+    analyzeTopLevel(compiler, code, expectedWarnings);
+  }
 
-  analyzeTopLevel("""class Class {
-                       int i = 0;
-                     }""");
-  analyzeTopLevel("""class Class {
-                       int i = '';
-                     }""", NOT_ASSIGNABLE);
+
+  check("""int i = 0;""");
+  check("""int i = '';""", NOT_ASSIGNABLE);
+
+  check("""class Class {
+             int i = 0;
+           }""");
+  check("""class Class {
+             int i = '';
+           }""", NOT_ASSIGNABLE);
 }
 
-void testTypeVariableExpressions() {
+void testTypeVariableExpressions(MockCompiler compiler) {
   String script = """class Foo<T> {
                        void method() {}
                      }""";
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement foo = library.find("Foo");
+  compiler.parseScript(script);
+  ClassElement foo = compiler.mainApp.find("Foo");
   foo.ensureResolved(compiler);
   Element method = foo.lookupLocalMember('method');
 
-  analyzeIn(method, "{ Type type = T; }");
-  analyzeIn(method, "{ T type = T; }", NOT_ASSIGNABLE);
-  analyzeIn(method, "{ int type = T; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ Type type = T; }");
+  analyzeIn(compiler, method, "{ T type = T; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ int type = T; }", NOT_ASSIGNABLE);
 
-  analyzeIn(method, "{ String typeName = T.toString(); }");
-  analyzeIn(method, "{ T.foo; }", MEMBER_NOT_FOUND);
-  analyzeIn(method, "{ T.foo = 0; }", MessageKind.SETTER_NOT_FOUND);
-  analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
-  analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+  analyzeIn(compiler, method, "{ String typeName = T.toString(); }");
+  analyzeIn(compiler, method, "{ T.foo; }", MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo = 0; }", MessageKind.SETTER_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
 }
 
-void testTypeVariableLookup1() {
+void testTypeVariableLookup1(MockCompiler compiler) {
   String script = """
 class Foo {
   int field;
@@ -1141,14 +1190,13 @@ class Test<S extends Foo, T> {
 }
 """;
 
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement classTest = library.find("Test");
+  compiler.parseScript(script);
+  ClassElement classTest = compiler.mainApp.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", message);
   }
 
   test('s.field');
@@ -1168,7 +1216,7 @@ class Test<S extends Foo, T> {
   test('String v = s.getter', NOT_ASSIGNABLE);
 }
 
-void testTypeVariableLookup2() {
+void testTypeVariableLookup2(MockCompiler compiler) {
   String script = """
 class Foo {
   int field;
@@ -1182,14 +1230,13 @@ class Test<S extends T, T extends Foo> {
   test() {}
 }""";
 
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement classTest = library.find("Test");
+  compiler.parseScript(script);
+  ClassElement classTest = compiler.mainApp.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", message);
   }
 
   test('s.field');
@@ -1198,21 +1245,20 @@ class Test<S extends T, T extends Foo> {
   test('s.getter');
 }
 
-void testTypeVariableLookup3() {
+void testTypeVariableLookup3(MockCompiler compiler) {
   String script = """
 class Test<S extends T, T extends S> {
   S s;
   test() {}
 }""";
 
-  LibraryElement library = mockLibrary(compiler, script);
-  compiler.parseScript(script, library);
-  ClassElement classTest = library.find("Test");
+  compiler.parseScript(script);
+  ClassElement classTest = compiler.mainApp.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", message);
   }
 
   test('s.toString');
@@ -1222,22 +1268,34 @@ class Test<S extends T, T extends S> {
   test('s.getter', MEMBER_NOT_FOUND);
 }
 
-void testFunctionTypeLookup() {
-  analyze('(int f(int)) => f.toString;');
-  analyze('(int f(int)) => f.toString();');
-  analyze('(int f(int)) => f.foo;', warnings: MEMBER_NOT_FOUND);
-  analyze('(int f(int)) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
+void testFunctionTypeLookup(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
+  check('(int f(int)) => f.toString;');
+  check('(int f(int)) => f.toString();');
+  check('(int f(int)) => f.foo;', warnings: MEMBER_NOT_FOUND);
+  check('(int f(int)) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
-void testTypedefLookup() {
+void testTypedefLookup(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
   compiler.parseScript("typedef int F(int);");
-  analyze('(F f) => f.toString;');
-  analyze('(F f) => f.toString();');
-  analyze('(F f) => f.foo;', warnings: MEMBER_NOT_FOUND);
-  analyze('(F f) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
+  check('(F f) => f.toString;');
+  check('(F f) => f.toString();');
+  check('(F f) => f.foo;', warnings: MEMBER_NOT_FOUND);
+  check('(F f) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
-void testTypeLiteral() {
+void testTypeLiteral(MockCompiler compiler) {
+  check(String code, {warnings}) {
+    analyze(compiler, code, warnings: warnings);
+  }
+
   final String source = r"""class Class {
                               static var field = null;
                               static method() {}
@@ -1245,33 +1303,33 @@ void testTypeLiteral() {
   compiler.parseScript(source);
 
   // Check direct access.
-  analyze('Type m() => int;');
-  analyze('int m() => int;', warnings: NOT_ASSIGNABLE);
+  check('Type m() => int;');
+  check('int m() => int;', warnings: NOT_ASSIGNABLE);
 
   // Check access in assignment.
-  analyze('m(Type val) => val = Class;');
-  analyze('m(int val) => val = Class;', warnings: NOT_ASSIGNABLE);
+  check('m(Type val) => val = Class;');
+  check('m(int val) => val = Class;', warnings: NOT_ASSIGNABLE);
 
   // Check access as argument.
-  analyze('m(Type val) => m(int);');
-  analyze('m(int val) => m(int);', warnings: NOT_ASSIGNABLE);
+  check('m(Type val) => m(int);');
+  check('m(int val) => m(int);', warnings: NOT_ASSIGNABLE);
 
   // Check access as argument in member access.
-  analyze('m(Type val) => m(int).foo;');
-  analyze('m(int val) => m(int).foo;', warnings: NOT_ASSIGNABLE);
+  check('m(Type val) => m(int).foo;');
+  check('m(int val) => m(int).foo;', warnings: NOT_ASSIGNABLE);
 
   // Check static property access.
-  analyze('m() => Class.field;');
-  analyze('m() => (Class).field;', warnings: MEMBER_NOT_FOUND);
+  check('m() => Class.field;');
+  check('m() => (Class).field;', warnings: MEMBER_NOT_FOUND);
 
   // Check static method access.
-  analyze('m() => Class.method();');
-  analyze('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
+  check('m() => Class.method();');
+  check('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
-void testInitializers() {
+void testInitializers(MockCompiler compiler) {
   check(String text, [expectedWarnings]) {
-    analyzeTopLevel(text, expectedWarnings);
+    analyzeTopLevel(compiler, text, expectedWarnings);
   }
 
   // Check initializers.
@@ -1453,7 +1511,7 @@ void testInitializers() {
             ''', NOT_ASSIGNABLE);
 }
 
-void testGetterSetterInvocation() {
+void testGetterSetterInvocation(MockCompiler compiler) {
   compiler.parseScript(r'''int get variable => 0;
                            void set variable(String s) {}
 
@@ -1485,7 +1543,7 @@ void testGetterSetterInvocation() {
                            ''');
 
   check(String text, [expectedWarnings]) {
-    analyze('{ $text }', warnings: expectedWarnings);
+    analyze(compiler, '{ $text }', warnings: expectedWarnings);
   }
 
   check("variable = '';");
@@ -1548,7 +1606,7 @@ void testGetterSetterInvocation() {
   check("sc.setterField = 0;");
 }
 
-testTypePromotionHints() {
+testTypePromotionHints(MockCompiler compiler) {
   compiler.parseScript(r'''class A {
                              var a = "a";
                            }
@@ -1573,7 +1631,11 @@ testTypePromotionHints() {
                            ''');
 
   check(String text, {warnings, hints, infos}) {
-    analyze('{ $text }', warnings: warnings, hints: hints, infos: infos);
+    analyze(compiler,
+            '{ $text }',
+            warnings: warnings,
+            hints: hints,
+            infos: infos);
   }
 
   check(r'''
@@ -1717,7 +1779,7 @@ testTypePromotionHints() {
       infos: []);
 }
 
-void testCascade() {
+void testCascade(MockCompiler compiler) {
   compiler.parseScript(r'''typedef A AFunc();
                            typedef Function FuncFunc();
                            class A {
@@ -1740,7 +1802,11 @@ void testCascade() {
                            ''');
 
   check(String text, {warnings, hints, infos}) {
-    analyze('{ $text }', warnings: warnings, hints: hints, infos: infos);
+    analyze(compiler,
+            '{ $text }',
+            warnings: warnings,
+            hints: hints,
+            infos: infos);
   }
 
   check('A a = new A()..a;');
@@ -1921,9 +1987,6 @@ class SubClass extends ClassWithMethods implements I {
 }
 class SubFunction implements Function {}''';
 
-Types types;
-MockCompiler compiler;
-
 String returnWithType(String type, expression) {
   return "$type foo() { return $expression; }";
 }
@@ -1965,7 +2028,7 @@ class String implements Pattern {
 }
 ''';
 
-void setup() {
+Future setup(test(MockCompiler compiler)) {
   RegExp classNum = new RegExp(r'abstract class num {}');
   Expect.isTrue(DEFAULT_CORELIB.contains(classNum));
   RegExp classInt = new RegExp(r'abstract class int extends num { }');
@@ -1978,24 +2041,18 @@ void setup() {
       .replaceAll(classInt, INT_SOURCE)
       .replaceAll(classString, STRING_SOURCE);
 
-  compiler = new MockCompiler(coreSource: CORE_SOURCE);
-  types = compiler.types;
-  voidType = const VoidType();
-  intType = compiler.intClass.computeType(compiler);
-  doubleType = compiler.doubleClass.computeType(compiler);
-  boolType = compiler.boolClass.computeType(compiler);
-  stringType = compiler.stringClass.computeType(compiler);
-  objectType = compiler.objectClass.computeType(compiler);
+  MockCompiler compiler = new MockCompiler.internal(coreSource: CORE_SOURCE);
+  return compiler.init().then((_) => test(compiler));
 }
 
-DartType analyzeType(String text) {
+DartType analyzeType(MockCompiler compiler, String text) {
   var node = parseExpression(text);
-  TypeCheckerVisitor visitor =
-      new TypeCheckerVisitor(compiler, new TreeElementMapping(null), types);
+  TypeCheckerVisitor visitor = new TypeCheckerVisitor(
+      compiler, new TreeElementMapping(null), compiler.types);
   return visitor.analyze(node);
 }
 
-analyzeTopLevel(String text, [expectedWarnings]) {
+analyzeTopLevel(MockCompiler compiler, String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
@@ -2030,7 +2087,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   }
   // Type check last class declaration or member.
   TypeCheckerVisitor checker =
-      new TypeCheckerVisitor(compiler, mapping, types);
+      new TypeCheckerVisitor(compiler, mapping, compiler.types);
   compiler.clearMessages();
   checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
@@ -2044,7 +2101,9 @@ analyzeTopLevel(String text, [expectedWarnings]) {
  * a list of [MessageKind]s. If [hints] and [infos] are [:null:] the
  * corresponding message kinds are ignored.
  */
-analyze(String text, {errors, warnings, List hints, List infos}) {
+analyze(MockCompiler compiler,
+        String text,
+        {errors, warnings, List hints, List infos}) {
   if (warnings == null) warnings = [];
   if (warnings is !List) warnings = [warnings];
   if (errors == null) errors = [];
@@ -2061,8 +2120,8 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
     new CompilationUnitElementX(new Script(null, null, null), compiler.mainApp);
   Element function = new MockElement(compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
-  TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
-                                                                types);
+  TypeCheckerVisitor checker = new TypeCheckerVisitor(
+      compiler, elements, compiler.types);
   compiler.clearMessages();
   checker.analyze(node);
   compareWarningKinds(text, warnings, compiler.warnings);
@@ -2072,7 +2131,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   compiler.diagnosticHandler = null;
 }
 
-void generateOutput(String text) {
+void generateOutput(MockCompiler compiler, String text) {
   for (WarningMessage message in compiler.warnings) {
     Node node = message.node;
     var beginToken = node.getBeginToken();
@@ -2085,7 +2144,10 @@ void generateOutput(String text) {
   }
 }
 
-analyzeIn(Element element, String text, [expectedWarnings]) {
+analyzeIn(MockCompiler compiler,
+          Element element,
+          String text,
+          [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
@@ -2095,10 +2157,10 @@ analyzeIn(Element element, String text, [expectedWarnings]) {
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);
-  TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
-                                                                types);
+  TypeCheckerVisitor checker = new TypeCheckerVisitor(
+      compiler, elements, compiler.types);
   compiler.clearMessages();
   checker.analyze(node);
-  generateOutput(text);
+  generateOutput(compiler, text);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
 }

@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
-import "parser_helper.dart";
+
 
 class CallbackMockCompiler extends MockCompiler {
-  CallbackMockCompiler();
+  CallbackMockCompiler() : super.internal();
 
   var onError;
   var onWarning;
@@ -39,19 +40,21 @@ class CallbackMockCompiler extends MockCompiler {
   }
 }
 
-testErrorHandling() {
+Future testErrorHandling() {
   // Test that compiler.currentElement is set correctly when
   // reporting errors/warnings.
   CallbackMockCompiler compiler = new CallbackMockCompiler();
-  ResolverVisitor visitor = compiler.resolverVisitor();
-  compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
-  FunctionElement foo = compiler.mainApp.find('foo');
-  compiler.setOnWarning(
-      (c, n, m) => Expect.equals(foo, compiler.currentElement));
-  foo.computeType(compiler);
-  Expect.equals(1, compiler.warnings.length);
+  return compiler.init().then((_) {
+    ResolverVisitor visitor = compiler.resolverVisitor();
+    compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
+    FunctionElement foo = compiler.mainApp.find('foo');
+    compiler.setOnWarning(
+        (c, n, m) => Expect.equals(foo, compiler.currentElement));
+    foo.computeType(compiler);
+    Expect.equals(1, compiler.warnings.length);
+  });
 }
 
 main() {
-  testErrorHandling();
+  asyncTest(() => testErrorHandling());
 }

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
 
 const String TEST_INVOCATION0 = r"""
 main() {
@@ -41,29 +41,35 @@ class A {
 main() { new A().foo(1); }
 """;
 
-closureInvocation(bool minify, String prefix) {
-  String generated = compile(TEST_INVOCATION0, minify: minify);
-  Expect.isTrue(generated.contains(".$prefix\$0()"));
-  generated = compile(TEST_INVOCATION1, minify: minify);
-  Expect.isTrue(generated.contains(".$prefix\$1(1)"));
-  generated = compile(TEST_INVOCATION2, minify: minify);
-  Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
+Future closureInvocation(bool minify, String prefix) {
+  return Future.wait([
+    compile(TEST_INVOCATION0, minify: minify, check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$0()"));
+    }),
+    compile(TEST_INVOCATION1, minify: minify, check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$1(1)"));
+    }),
+    compile(TEST_INVOCATION2, minify: minify, check: (String generated) {
+      Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
+    })
+  ]);
 }
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
-closureBailout(bool minify, String prefix) {
-  asyncTest(() => compileAll(TEST_BAILOUT, minify: minify)
-      .then((generated) {
+Future closureBailout(bool minify, String prefix) {
+  return compileAll(TEST_BAILOUT, minify: minify).then((generated) {
     RegExp regexp = new RegExp("$prefix\\\$0:${minify ? "" : " "}function");
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
-  }));
+  });
 }
 
 main() {
-  closureInvocation(false, "call");
-  closureInvocation(true, "");
-  closureBailout(false, "call");
-  closureBailout(true, "");
+  asyncTest(() => Future.wait([
+    closureInvocation(false, "call"),
+    closureInvocation(true, ""),
+    closureBailout(false, "call"),
+    closureBailout(true, ""),
+  ]));
 }

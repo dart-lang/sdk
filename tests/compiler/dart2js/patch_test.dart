@@ -15,9 +15,9 @@ import "parser_helper.dart";
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false}) {
   String core = "$DEFAULT_CORELIB\n$script";
-  MockCompiler compiler = new MockCompiler(coreSource: core,
-                                           analyzeAll: analyzeAll,
-                                           analyzeOnly: analyzeOnly);
+  MockCompiler compiler = new MockCompiler.internal(coreSource: core,
+                                                    analyzeAll: analyzeAll,
+                                                    analyzeOnly: analyzeOnly);
   var uri = Uri.parse("core.dartp");
   compiler.sourceFiles[uri.toString()] = new MockFile(patch);
   var handler = new LibraryDependencyHandler(compiler);

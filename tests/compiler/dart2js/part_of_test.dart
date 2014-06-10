@@ -22,7 +22,7 @@ part of bar;
 ''';
 
 void main() {
-  var compiler = new MockCompiler();
+  var compiler = new MockCompiler.internal();
   compiler.registerSource(libraryUri, LIBRARY_SOURCE);
   compiler.registerSource(partUri, PART_SOURCE);
 

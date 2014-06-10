@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
@@ -25,9 +26,10 @@ class Bar {
 ''';
 
 main() {
-  MockCompiler compiler = new MockCompiler();
-  testClass(TEST_0, compiler);
-  testClass(TEST_1, compiler);
+  asyncTest(() => MockCompiler.create((MockCompiler compiler) {
+    testClass(TEST_0, compiler);
+    testClass(TEST_1, compiler);
+  }));
 }
 
 testClass(String code, MockCompiler compiler) {

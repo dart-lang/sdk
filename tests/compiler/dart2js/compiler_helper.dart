@@ -45,42 +45,48 @@ export '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';
 
-import 'parser_helper.dart';
-
-String compile(String code, {String entry: 'main',
-                             String coreSource: DEFAULT_CORELIB,
-                             String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
-                             bool enableTypeAssertions: false,
-                             bool minify: false,
-                             bool analyzeAll: false,
-                             bool disableInlining: true}) {
-  MockCompiler compiler =
-      new MockCompiler(enableTypeAssertions: enableTypeAssertions,
-                       coreSource: coreSource,
-                       // Type inference does not run when manually
-                       // compiling a method.
-                       disableTypeInference: true,
-                       interceptorsSource: interceptorsSource,
-                       enableMinification: minify,
-                       disableInlining: disableInlining);
-  compiler.parseScript(code);
-  lego.Element element = compiler.mainApp.find(entry);
-  if (element == null) return null;
-  compiler.phase = Compiler.PHASE_RESOLVING;
-  compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
-                                  compiler.globalDependencies);
-  compiler.processQueue(compiler.enqueuer.resolution, element);
-  compiler.world.populate();
-  var context = new js.JavaScriptItemCompilationContext();
-  leg.ResolutionWorkItem resolutionWork =
-      new leg.ResolutionWorkItem(element, context);
-  resolutionWork.run(compiler, compiler.enqueuer.resolution);
-  leg.CodegenWorkItem work =
-      new leg.CodegenWorkItem(element, context);
-  compiler.phase = Compiler.PHASE_COMPILING;
-  work.run(compiler, compiler.enqueuer.codegen);
-  js.JavaScriptBackend backend = compiler.backend;
-  return backend.assembleCode(element);
+Future<String> compile(String code,
+                       {String entry: 'main',
+                        String coreSource: DEFAULT_CORELIB,
+                        String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+                        bool enableTypeAssertions: false,
+                        bool minify: false,
+                        bool analyzeAll: false,
+                        bool disableInlining: true,
+                        void check(String generated)}) {
+  MockCompiler compiler = new MockCompiler.internal(
+      enableTypeAssertions: enableTypeAssertions,
+      coreSource: coreSource,
+      // Type inference does not run when manually
+      // compiling a method.
+      disableTypeInference: true,
+      interceptorsSource: interceptorsSource,
+      enableMinification: minify,
+      disableInlining: disableInlining);
+  return compiler.init().then((_) {
+    compiler.parseScript(code);
+    lego.Element element = compiler.mainApp.find(entry);
+    if (element == null) return null;
+    compiler.phase = Compiler.PHASE_RESOLVING;
+    compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
+                                    compiler.globalDependencies);
+    compiler.processQueue(compiler.enqueuer.resolution, element);
+    compiler.world.populate();
+    var context = new js.JavaScriptItemCompilationContext();
+    leg.ResolutionWorkItem resolutionWork =
+        new leg.ResolutionWorkItem(element, context);
+    resolutionWork.run(compiler, compiler.enqueuer.resolution);
+    leg.CodegenWorkItem work =
+        new leg.CodegenWorkItem(element, context);
+    compiler.phase = Compiler.PHASE_COMPILING;
+    work.run(compiler, compiler.enqueuer.codegen);
+    js.JavaScriptBackend backend = compiler.backend;
+    String generated = backend.assembleCode(element);
+    if (check != null) {
+      check(generated);
+    }
+    return generated;
+  });
 }
 
 // TODO(herhut): Disallow warnings and errors during compilation by default.
@@ -92,7 +98,7 @@ MockCompiler compilerFor(String code, Uri uri,
                           bool minify: false,
                           int expectedErrors,
                           int expectedWarnings}) {
-  MockCompiler compiler = new MockCompiler(
+  MockCompiler compiler = new MockCompiler.internal(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,
       coreSource: coreSource,
@@ -193,7 +199,7 @@ String getNumberTypeCheck(String variable) {
   return """\\(typeof $variable ?!== ?"number"\\)""";
 }
 
-bool checkNumberOfMatches(Iterator it, int nb) {
+void checkNumberOfMatches(Iterator it, int nb) {
   bool hasNext = it.moveNext();
   for (int i = 0; i < nb; i++) {
     Expect.isTrue(hasNext, "Found less than $nb matches");
@@ -202,40 +208,43 @@ bool checkNumberOfMatches(Iterator it, int nb) {
   Expect.isFalse(hasNext, "Found more than $nb matches");
 }
 
-void compileAndMatch(String code, String entry, RegExp regexp) {
-  String generated = compile(code, entry: entry);
-  Expect.isTrue(regexp.hasMatch(generated),
-                '"$generated" does not match /$regexp/');
+Future compileAndMatch(String code, String entry, RegExp regexp) {
+  return compile(code, entry: entry, check: (String generated) {
+    Expect.isTrue(regexp.hasMatch(generated),
+                  '"$generated" does not match /$regexp/');
+  });
 }
 
-void compileAndDoNotMatch(String code, String entry, RegExp regexp) {
-  String generated = compile(code, entry: entry);
-  Expect.isFalse(regexp.hasMatch(generated),
-                 '"$generated" has a match in /$regexp/');
+Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
+  return compile(code, entry: entry, check: (String generated) {
+    Expect.isFalse(regexp.hasMatch(generated),
+                   '"$generated" has a match in /$regexp/');
+  });
 }
 
 int length(Link link) => link.isEmpty ? 0 : length(link.tail) + 1;
 
 // Does a compile and then a match where every 'x' is replaced by something
 // that matches any variable, and every space is optional.
-void compileAndMatchFuzzy(String code, String entry, String regexp) {
-  compileAndMatchFuzzyHelper(code, entry, regexp, true);
+Future compileAndMatchFuzzy(String code, String entry, String regexp) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp, true);
 }
 
-void compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
-  compileAndMatchFuzzyHelper(code, entry, regexp, false);
+Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
+  return compileAndMatchFuzzyHelper(code, entry, regexp, false);
 }
 
-void compileAndMatchFuzzyHelper(
+Future compileAndMatchFuzzyHelper(
     String code, String entry, String regexp, bool shouldMatch) {
-  String generated = compile(code, entry: entry);
-  final xRe = new RegExp('\\bx\\b');
-  regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
-  final spaceRe = new RegExp('\\s+');
-  regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
-  if (shouldMatch) {
-    Expect.isTrue(new RegExp(regexp).hasMatch(generated));
-  } else {
-    Expect.isFalse(new RegExp(regexp).hasMatch(generated));
-  }
+  return compile(code, entry: entry, check: (String generated) {
+    final xRe = new RegExp('\\bx\\b');
+    regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
+    final spaceRe = new RegExp('\\s+');
+    regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
+    if (shouldMatch) {
+      Expect.isTrue(new RegExp(regexp).hasMatch(generated));
+    } else {
+      Expect.isFalse(new RegExp(regexp).hasMatch(generated));
+    }
+  });
 }

@@ -45,7 +45,7 @@ void analyze(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
-  MockCompiler compiler = new MockCompiler(analyzeOnly: true);
+  MockCompiler compiler = new MockCompiler.internal(analyzeOnly: true);
   compiler.registerSource(Uri.parse(PRIVATE_SOURCE_URI), PRIVATE_SOURCE);
   compiler.diagnosticHandler = (uri, int begin, int end, String message, kind) {
     SourceFile sourceFile = compiler.sourceFiles[uri.toString()];

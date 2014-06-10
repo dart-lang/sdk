@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import "package:expect/expect.dart";
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String CODE = """
@@ -27,5 +27,5 @@ main() {
   // The `==` is strengthened to a HIdentity instruction.  The HIdentity follows
   // `x.link`, so x cannot be `null`.
   var compare = new RegExp(r'x === x\.get\$link\(\)');
-  compileAndMatch(CODE, 'main', compare);
+  asyncTest(() => compileAndMatch(CODE, 'main', compare));
 }

@@ -263,24 +263,25 @@ class MockCompiler extends Compiler {
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
-  MockCompiler({String coreSource: DEFAULT_CORELIB,
-                String helperSource: DEFAULT_HELPERLIB,
-                String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
-                String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
-                bool enableTypeAssertions: false,
-                bool enableMinification: false,
-                bool enableConcreteTypeInference: false,
-                int maxConcreteTypeSize: 5,
-                bool disableTypeInference: false,
-                bool analyzeAll: false,
-                bool analyzeOnly: false,
-                bool emitJavaScript: true,
-                bool preserveComments: false,
-                // Our unit tests check code generation output that is
-                // affected by inlining support.
-                bool disableInlining: true,
-                int this.expectedWarnings,
-                int this.expectedErrors})
+  MockCompiler.internal(
+      {String coreSource: DEFAULT_CORELIB,
+       String helperSource: DEFAULT_HELPERLIB,
+       String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+       String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
+       bool enableTypeAssertions: false,
+       bool enableMinification: false,
+       bool enableConcreteTypeInference: false,
+       int maxConcreteTypeSize: 5,
+       bool disableTypeInference: false,
+       bool analyzeAll: false,
+       bool analyzeOnly: false,
+       bool emitJavaScript: true,
+       bool preserveComments: false,
+       // Our unit tests check code generation output that is
+       // affected by inlining support.
+       bool disableInlining: true,
+       int this.expectedWarnings,
+       int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
@@ -323,6 +324,12 @@ class MockCompiler extends Compiler {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
+  }
+
+  /// Initialize the mock compiler with an empty main library.
+  Future init() {
+    // Stub for initialization.
+    return new Future.value();
   }
 
   Future runCompiler(Uri uri) {
@@ -473,6 +480,12 @@ class MockCompiler extends Compiler {
     return element != null
         ? element
         : new ErroneousElementX(null, null, name, container);
+  }
+
+  /// Create a new [MockCompiler] and apply it asynchronously to [f].
+  static Future create(f(MockCompiler compiler)) {
+    MockCompiler compiler = new MockCompiler.internal();
+    return compiler.init().then((_) => f(compiler));
   }
 }
 

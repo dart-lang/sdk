@@ -24,13 +24,14 @@ export 'exporting.dart';
 ''';
 
 void main() {
-  var compiler = new MockCompiler();
-  compiler.registerSource(exportingLibraryUri, EXPORTING_LIBRARY_SOURCE);
-  compiler.registerSource(reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
-
-  // Load exporting library before the reexporting library.
-  asyncTest(() => compiler.libraryLoader.loadLibrary(
-      exportingLibraryUri, null, exportingLibraryUri).then((exportingLibrary) {
+  var compiler;
+  asyncTest(() => MockCompiler.create((MockCompiler c) {
+    compiler = c;
+    compiler.registerSource(exportingLibraryUri, EXPORTING_LIBRARY_SOURCE);
+    compiler.registerSource(reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
+    return compiler.libraryLoader.loadLibrary(
+        exportingLibraryUri, null, exportingLibraryUri);
+  }).then((exportingLibrary) {
     Expect.isTrue(exportingLibrary.exportsHandled);
     var foo = findInExports(exportingLibrary, 'foo');
     Expect.isNotNull(foo);

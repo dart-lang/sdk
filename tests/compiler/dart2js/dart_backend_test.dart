@@ -463,19 +463,21 @@ main() {
   localfoo();
 }
 ''';
-  MockCompiler compiler = new MockCompiler(emitJavaScript: false);
-  assert(compiler.backend is DartBackend);
-  compiler.parseScript(src);
-  FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
-  compiler.processQueue(compiler.enqueuer.resolution, mainElement);
-  PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
-  FunctionExpression mainNode = mainElement.parseNode(compiler);
-  Block body = mainNode.body;
-  FunctionDeclaration functionDeclaration = body.statements.nodes.head;
-  FunctionExpression fooNode = functionDeclaration.function;
-  LocalPlaceholder fooPlaceholder =
-      collector.functionScopes[mainElement].localPlaceholders.first;
-  Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
+  MockCompiler compiler = new MockCompiler.internal(emitJavaScript: false);
+  asyncTest(() => compiler.init().then((_) {
+    assert(compiler.backend is DartBackend);
+    compiler.parseScript(src);
+    FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
+    compiler.processQueue(compiler.enqueuer.resolution, mainElement);
+    PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
+    FunctionExpression mainNode = mainElement.parseNode(compiler);
+    Block body = mainNode.body;
+    FunctionDeclaration functionDeclaration = body.statements.nodes.head;
+    FunctionExpression fooNode = functionDeclaration.function;
+    LocalPlaceholder fooPlaceholder =
+        collector.functionScopes[mainElement].localPlaceholders.first;
+    Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
+  }));
 }
 
 testTypeVariablesAreRenamed() {

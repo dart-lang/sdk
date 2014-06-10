@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library boolified_operator_test;
-import "package:expect/expect.dart";
+
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_EQUAL = r"""
@@ -50,27 +53,30 @@ foo(param0, param1) {
 main() {
   RegExp regexp = new RegExp('=== true');
 
-  String generated = compile(TEST_EQUAL, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('eqB'));
-
-  generated = compile(TEST_EQUAL_NULL, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('== null'));
-
-  generated = compile(TEST_LESS, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('ltB'));
-
-  generated = compile(TEST_LESS_EQUAL, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('leB'));
-  
-  generated = compile(TEST_GREATER, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('gtB'));
-  
-  generated = compile(TEST_GREATER_EQUAL, entry: 'foo');
-  Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('geB'));
+  asyncTest(() => Future.wait([
+    compile(TEST_EQUAL, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('eqB'));
+    }),
+    compile(TEST_EQUAL_NULL, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('== null'));
+    }),
+    compile(TEST_LESS, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('ltB'));
+    }),
+    compile(TEST_LESS_EQUAL, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('leB'));
+    }),
+    compile(TEST_GREATER, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('gtB'));
+    }),
+    compile(TEST_GREATER_EQUAL, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('=== true'));
+      Expect.isTrue(generated.contains('geB'));
+    }),
+  ]));
 }

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -106,33 +107,41 @@ main() {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = new RegExp(r"1 \+ [a-z]+");
-  checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
+  asyncTest(() => Future.wait([
+    compile(TEST_ONE, entry: 'foo', check: (String generated) {
+      RegExp regexp = new RegExp(r"1 \+ [a-z]+");
+      checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
+    }),
 
-  generated = compile(TEST_TWO, entry: 'foo');
-  checkNumberOfMatches(new RegExp("length").allMatches(generated).iterator, 1);
+    compile(TEST_TWO, entry: 'foo', check: (String generated) {
+      checkNumberOfMatches(
+          new RegExp("length").allMatches(generated).iterator, 1);
+    }),
 
-  generated = compile(TEST_THREE, entry: 'foo');
-  checkNumberOfMatches(new RegExp("number").allMatches(generated).iterator, 1);
+    compile(TEST_THREE, entry: 'foo', check: (String generated) {
+      checkNumberOfMatches(
+          new RegExp("number").allMatches(generated).iterator, 1);
+    }),
 
-  generated = compile(TEST_FOUR, entry: 'foo');
-  checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
+    compile(TEST_FOUR, entry: 'foo', check: (String generated) {
+      checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
+    }),
 
-  asyncTest(() => compileAll(TEST_FIVE).then((generated) {
-    checkNumberOfMatches(
-        new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
-  }));
+    compileAll(TEST_FIVE).then((generated) {
+      checkNumberOfMatches(
+          new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
+    }),
 
-  asyncTest(() => compileAll(TEST_SIX).then((generated) {
-    Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
-  }));
+    compileAll(TEST_SIX).then((generated) {
+      Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+    }),
 
-  asyncTest(() => compileAll(TEST_SEVEN).then((generated) {
-    Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
-  }));
+    compileAll(TEST_SEVEN).then((generated) {
+      Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+    }),
 
-  asyncTest(() => compileAll(TEST_EIGHT).then((generated) {
-    Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
-  }));
+    compileAll(TEST_EIGHT).then((generated) {
+      Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
+    }),
+  ]));
 }
