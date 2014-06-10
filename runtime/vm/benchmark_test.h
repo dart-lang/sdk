@@ -25,11 +25,11 @@ namespace bin {
 extern const uint8_t* snapshot_buffer;
 }
 
-// The BENCHMARK macro is used for benchmarking a specific functionality
-// of the VM
-#define BENCHMARK(name)                                                        \
+// The BENCHMARK macros are used for benchmarking a specific functionality
+// of the VM.
+#define BENCHMARK_HELPER(name, kind)                                           \
   void Dart_Benchmark##name(Benchmark* benchmark);                             \
-  static Benchmark kRegister##name(Dart_Benchmark##name, #name);               \
+  static Benchmark kRegister##name(Dart_Benchmark##name, #name, kind);         \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_heap_growth_space_ratio = 100;                                        \
@@ -39,6 +39,9 @@ extern const uint8_t* snapshot_buffer;
     Dart_BenchmarkHelper##name(benchmark);                                     \
   }                                                                            \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark)
+
+#define BENCHMARK(name) BENCHMARK_HELPER(name, "RunTime")
+#define BENCHMARK_SIZE(name) BENCHMARK_HELPER(name, "CodeSize")
 
 
 inline Dart_Handle NewString(const char* str) {
@@ -50,9 +53,10 @@ class Benchmark {
  public:
   typedef void (RunEntry)(Benchmark* benchmark);
 
-  Benchmark(RunEntry* run, const char* name) :
+  Benchmark(RunEntry* run, const char* name, const char* score_kind) :
       run_(run),
       name_(name),
+      score_kind_(score_kind),
       score_(0),
       isolate_(NULL),
       next_(NULL) {
@@ -66,6 +70,7 @@ class Benchmark {
 
   // Accessors.
   const char* name() const { return name_; }
+  const char* score_kind() const { return score_kind_; }
   void set_score(intptr_t value) { score_ = value; }
   intptr_t score() const { return score_; }
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
@@ -92,6 +97,7 @@ class Benchmark {
 
   RunEntry* const run_;
   const char* name_;
+  const char* score_kind_;
   intptr_t score_;
   Dart_Isolate isolate_;
   Benchmark* next_;

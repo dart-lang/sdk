@@ -394,7 +394,7 @@ static uint8_t* malloc_allocator(
 }
 
 
-BENCHMARK(CoreSnapshotSize) {
+BENCHMARK_SIZE(CoreSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
       "import 'dart:core';\n"
@@ -422,7 +422,7 @@ BENCHMARK(CoreSnapshotSize) {
 }
 
 
-BENCHMARK(StandaloneSnapshotSize) {
+BENCHMARK_SIZE(StandaloneSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
       "import 'dart:core';\n"
