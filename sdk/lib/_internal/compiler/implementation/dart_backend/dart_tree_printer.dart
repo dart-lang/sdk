@@ -224,6 +224,7 @@ class TreePrinter {
   }
 
   tree.Node makeStaticReceiver(elements.Element element) {
+    if (element == null) return null;
     if (element.enclosingElement is elements.ClassElement) {
       tree.Send send = new tree.Send(
           null,
