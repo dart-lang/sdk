@@ -30,6 +30,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   // Get the message from the string stream and dump it on stderr.
   std::string message = stream.str();
   fprintf(stderr, "%s", message.c_str());
+  fflush(stderr);
 
   // In case of failed assertions, abort right away. Otherwise, wait
   // until the program is exiting before producing a non-zero exit
