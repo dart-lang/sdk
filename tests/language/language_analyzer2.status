@@ -15,6 +15,10 @@ method_override7_test/03: Fail # Issue 11496
 
 type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
 
+external_test/21: Fail
+external_test/24: Fail
+external_test/25: Fail
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -168,7 +172,6 @@ bad_named_constructor_negative_test: CompileTimeError # Test Issue 18693
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 18695
 empty_block_case_test: StaticWarning # Test Issue 18701
 error_stacktrace_test: StaticWarning # Test Issue 18702
-external_test/20: StaticWarning # Test Issue 18703
 
 const_counter_negative_test: CompileTimeError
 const_optional_args_negative_test: CompileTimeError

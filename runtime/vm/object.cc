@@ -225,16 +225,20 @@ RawString* String::IdentifierPrettyName(const String& name) {
   String& segment = String::Handle();
   intptr_t start_pos = 0;
   for (intptr_t i = 0; i < name.Length(); i++) {
-    if (name.CharAt(i) == '@') {
+    if (name.CharAt(i) == '@' &&
+        (i+1) < name.Length() &&
+        (name.CharAt(i+1) >= '0') &&
+        (name.CharAt(i+1) <= '9')) {
       // Append the current segment to the unmangled name.
       segment = String::SubString(name, start_pos, (i - start_pos));
       unmangled_name = String::Concat(unmangled_name, segment);
 
-      // Advance until past the name mangling.
+      // Advance until past the name mangling. The private keys are only
+      // numbers so we skip until the first non-number.
       i++;  // Skip the '@'.
       while ((i < name.Length()) &&
-             (name.CharAt(i) != '&') &&
-             (name.CharAt(i) != '.')) {
+             (name.CharAt(i) >= '0') &&
+             (name.CharAt(i) <= '9')) {
         i++;
       }
       start_pos = i;
@@ -9313,7 +9317,7 @@ void Library::AllocatePrivateKey() const {
   }
   char private_key[32];
   OS::SNPrint(private_key, sizeof(private_key),
-              "%c%#" Px "", kPrivateKeySeparator, key_value);
+              "%c%" Pd "", kPrivateKeySeparator, key_value);
   StorePointer(&raw_ptr()->private_key_, String::New(private_key, Heap::kOld));
 }
 

@@ -2851,6 +2851,18 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Some constructors have no function body.
     ConsumeToken();
+    if (func.is_external()) {
+      // Body of an external method contains a single throw.
+      const String& function_name = String::ZoneHandle(func.name());
+      current_block_->statements->Add(
+          ThrowNoSuchMethodError(TokenPos(),
+                                 cls,
+                                 function_name,
+                                 NULL,   // No arguments.
+                                 InvocationMirror::kStatic,
+                                 InvocationMirror::kMethod,
+                                 NULL));  // No existing function.
+    }
   } else {
     UnexpectedToken();
   }
@@ -3020,7 +3032,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     const String& function_name = String::ZoneHandle(I, func.name());
     current_block_->statements->Add(
         ThrowNoSuchMethodError(TokenPos(),
-                               current_class(),
+                               Class::Handle(func.Owner()),
                                function_name,
                                NULL,  // Ignore arguments.
                                func.is_static() ?
@@ -3267,6 +3279,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                "for optional parameters",
                method->name->ToCString());
     }
+    if (method->has_external) {
+      ErrorMsg(TokenPos(),
+               "external factory constructor '%s' may not have redirection",
+               method->name->ToCString());
+    }
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
     is_redirecting = true;
@@ -3294,6 +3311,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     // Parse initializers.
     if (!method->IsConstructor()) {
       ErrorMsg("initializers only allowed on constructors");
+    }
+    if (method->has_external) {
+      ErrorMsg(TokenPos(),
+               "external constructor '%s' may not have initializers",
+               method->name->ToCString());
     }
     if ((LookaheadToken(1) == Token::kTHIS) &&
         ((LookaheadToken(2) == Token::kLPAREN) ||
@@ -3326,23 +3348,32 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Only constructors can redirect to another method.
   ASSERT((method->redirect_name == NULL) || method->IsConstructor());
 
+  if (method->IsConstructor() &&
+      method->has_external &&
+      method->params.has_field_initializer) {
+    ErrorMsg(method->name_pos,
+             "external constructor '%s' may not have field initializers",
+             method->name->ToCString());
+  }
+
   intptr_t method_end_pos = TokenPos();
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
-      ErrorMsg(method->name_pos,
+      ErrorMsg(TokenPos(),
                "abstract method '%s' may not have a function body",
                method->name->ToCString());
     } else if (method->has_external) {
-      ErrorMsg(method->name_pos,
-               "external method '%s' may not have a function body",
+      ErrorMsg(TokenPos(),
+               "external %s '%s' may not have a function body",
+               method->IsFactoryOrConstructor() ? "constructor" : "method",
                method->name->ToCString());
     } else if (method->IsConstructor() && method->has_const) {
-      ErrorMsg(method->name_pos,
+      ErrorMsg(TokenPos(),
                "const constructor '%s' may not have a function body",
                method->name->ToCString());
     } else if (method->IsFactory() && method->has_const) {
-      ErrorMsg(method->name_pos,
+      ErrorMsg(TokenPos(),
                "const factory '%s' may not have a function body",
                method->name->ToCString());
     }

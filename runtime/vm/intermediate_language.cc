@@ -551,6 +551,7 @@ void MethodRecognizer::InitializeState() {
 #define SET_IS_RECOGNIZED(class_name, function_name, dest, fp)                 \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   ASSERT(!func.IsNull());                                                      \
+  ASSERT(func.CheckSourceFingerprint(fp));                                     \
   func.set_is_recognized(true);                                                \
 
   RECOGNIZED_LIST(SET_IS_RECOGNIZED);

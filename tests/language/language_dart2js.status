@@ -33,6 +33,9 @@ ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
 ref_before_declaration_test/06: MissingCompileTimeError
 
+external_test/10: Fail
+external_test/20: Fail
+
 prefix3_negative_test: Crash # Issue 17139
 setter_declaration2_negative_test: Crash # Issue 17139
 
