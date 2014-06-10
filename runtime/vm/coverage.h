@@ -15,6 +15,7 @@ DECLARE_FLAG(charp, coverage_dir);
 // Forward declarations.
 class Class;
 class Function;
+template <typename T> class GrowableArray;
 class Isolate;
 class JSONArray;
 class JSONStream;
@@ -27,7 +28,8 @@ class CodeCoverage : public AllStatic {
  private:
   static void PrintClass(const Class& cls, const JSONArray& arr);
   static void CompileAndAdd(const Function& function,
-                            const JSONArray& hits_arr);
+                            const JSONArray& hits_arr,
+                            const GrowableArray<intptr_t>& pos_to_line);
 };
 
 }  // namespace dart

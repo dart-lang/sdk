@@ -18,8 +18,30 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
             "Enable writing coverage data into specified directory.");
 
 
+// map[token_pos] -> line-number.
+static void ComputeTokenPosToLineNumberMap(const Script& script,
+                                           GrowableArray<intptr_t>* map) {
+  const TokenStream& tkns = TokenStream::Handle(script.tokens());
+  const intptr_t len = ExternalTypedData::Handle(tkns.GetStream()).Length();
+  map->Clear();
+  for (intptr_t i = 0; i < len; i++) {
+    map->Add(-1);
+  }
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  intptr_t cur_line = script.line_offset() + 1;
+  while (tkit.CurrentTokenKind() != Token::kEOS) {
+    (*map)[tkit.CurrentPosition()] = cur_line;
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      cur_line++;
+    }
+    tkit.Advance();
+  }
+}
+
+
 void CodeCoverage::CompileAndAdd(const Function& function,
-                                 const JSONArray& hits_arr) {
+                                 const JSONArray& hits_arr,
+                                 const GrowableArray<intptr_t>& pos_to_line) {
   Isolate* isolate = Isolate::Current();
   if (!function.HasCode()) {
     // If the function should not be compiled or if the compilation failed,
@@ -46,7 +68,6 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   ASSERT(function.HasCode());
 
   // Print the hit counts for all IC datas.
-  const Script& script = Script::Handle(function.script());
   const Code& code = Code::Handle(function.unoptimized_code());
   const Array& ic_array = Array::Handle(code.ExtractTypeFeedbackArray());
   const PcDescriptors& descriptors = PcDescriptors::Handle(
@@ -63,8 +84,13 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       ic_data ^= ic_array.At(deopt_id);
       if (!ic_data.IsNull()) {
         intptr_t token_pos = descriptors.TokenPos(j);
-        intptr_t line = -1;
-        script.GetTokenLocation(token_pos, &line, NULL);
+        intptr_t line = pos_to_line[token_pos];
+#if defined(DEBUG)
+        const Script& script = Script::Handle(function.script());
+        intptr_t test_line = -1;
+        script.GetTokenLocation(token_pos, &test_line, NULL);
+        ASSERT(test_line == line);
+#endif
         hits_arr.AddValue(line);
         hits_arr.AddValue(ic_data.AggregateCount());
       }
@@ -81,13 +107,14 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
   Script& script = Script::Handle();
   String& saved_url = String::Handle();
   String& url = String::Handle();
-
+  GrowableArray<intptr_t> pos_to_line;
   int i = 0;
   while (i < functions.Length()) {
     HANDLESCOPE(isolate);
     function ^= functions.At(i);
     JSONObject jsobj(&jsarr);
     script = function.script();
+    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
     saved_url = script.url();
     jsobj.AddProperty("source", saved_url.ToCString());
     jsobj.AddProperty("script", script);
@@ -100,12 +127,13 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       script = function.script();
       url = script.url();
       if (!url.Equals(saved_url)) {
+        pos_to_line.Clear();
         break;
       }
-      CompileAndAdd(function, hits_arr);
+      CompileAndAdd(function, hits_arr, pos_to_line);
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
-        CompileAndAdd(function, hits_arr);
+        CompileAndAdd(function, hits_arr, pos_to_line);
       }
       i++;
     }
@@ -115,6 +143,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       GrowableObjectArray::Handle(cls.closures());
   if (!closures.IsNull()) {
     i = 0;
+    pos_to_line.Clear();
     // We need to keep rechecking the length of the closures array, as handling
     // a closure potentially adds new entries to the end.
     while (i < closures.Length()) {
@@ -122,6 +151,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       function ^= closures.At(i);
       JSONObject jsobj(&jsarr);
       script = function.script();
+      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
       saved_url = script.url();
       jsobj.AddProperty("source", saved_url.ToCString());
       jsobj.AddProperty("script", script);
@@ -134,9 +164,10 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
         script = function.script();
         url = script.url();
         if (!url.Equals(saved_url)) {
+          pos_to_line.Clear();
           break;
         }
-        CompileAndAdd(function, hits_arr);
+        CompileAndAdd(function, hits_arr, pos_to_line);
         i++;
       }
     }
