@@ -77,6 +77,7 @@ dart/inline_stack_frame_test: RuntimeError
 cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 
 [ $arch == mips && $mode == debug ]
+cc/JSON_JSONStream_Options: Crash # Issue 19328
 cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
