@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'b_plus_tree_test.dart' as b_plus_tree_test;
 import 'page_node_manager_test.dart' as page_node_manager_test;
+import 'file_page_manager_test.dart' as file_page_manager_test;
 
 
 /**
@@ -15,8 +16,9 @@ import 'page_node_manager_test.dart' as page_node_manager_test;
  */
 main() {
   groupSep = ' | ';
-  group('analysis_server', () {
+  group('index', () {
     b_plus_tree_test.main();
     page_node_manager_test.main();
+    file_page_manager_test.main();
   });
 }

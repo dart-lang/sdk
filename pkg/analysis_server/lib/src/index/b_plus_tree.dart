@@ -43,8 +43,10 @@ class BPlusTree<K, V, N> {
   /**
    * Creates a new [BPlusTree] instance.
    */
-  BPlusTree(this._maxIndexKeys, this._maxLeafKeys, this._comparator,
-      this._manager) {
+  BPlusTree(this._comparator, NodeManager<K, V, N> manager)
+      : _manager = manager,
+        _maxIndexKeys = manager.maxIndexKeys,
+        _maxLeafKeys = manager.maxLeafKeys {
     _root = _newLeafNode();
     _writeLeafNode(_root);
   }
@@ -188,10 +190,15 @@ class LeafNodeData<K, V> {
  * An implementation of [NodeManager] that keeps node information in memory.
  */
 class MemoryNodeManager<K, V> implements NodeManager<K, V, int> {
+  final int maxIndexKeys;
+  final int maxLeafKeys;
   Map<int, IndexNodeData> _indexDataMap = new HashMap<int, IndexNodeData>();
   Map<int, LeafNodeData> _leafDataMap = new HashMap<int, LeafNodeData>();
+
   int _nextPageIndexId = 0;
   int _nextPageLeafId = 1;
+
+  MemoryNodeManager(this.maxIndexKeys, this.maxLeafKeys);
 
   @override
   int createIndex() {
@@ -247,6 +254,16 @@ class MemoryNodeManager<K, V> implements NodeManager<K, V, int> {
  * A manager that manages nodes.
  */
 abstract class NodeManager<K, V, N> {
+  /**
+   * The maximum number of keys in an index node.
+   */
+  int get maxIndexKeys;
+
+  /**
+   * The maximum number of keys in a leaf node.
+   */
+  int get maxLeafKeys;
+
   /**
    * Generates an identifier for a new index node.
    */
@@ -569,8 +586,7 @@ class _LeafNode<K, V, N> extends _Node<K, V, N> {
           int halfExcess = (leftLength - minKeys + 1) ~/ 2;
           int newLeftLength = leftLength - halfExcess;
           keys.insertAll(0, left.keys.getRange(newLeftLength, leftLength));
-          values.insertAll(0, left.values.getRange(newLeftLength,
-              leftLength));
+          values.insertAll(0, left.values.getRange(newLeftLength, leftLength));
           left.keys.length = newLeftLength;
           left.values.length = newLeftLength;
           tree._writeLeafNode(this);

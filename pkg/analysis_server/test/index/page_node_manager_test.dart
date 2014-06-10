@@ -44,11 +44,9 @@ _treeWithPageNodeManager() {
   NodeManager<int, String, int> nodeManager = new PageNodeManager<int, String>(
       pageManager, Uint32Codec.INSTANCE, new FixedStringCodec(7));
 //  NodeManager<int, String, int> nodeManager = new MemoryNodeManager();
-  int maxIndexKeys = (pageSize - 64) ~/ (4 + 4);
-  int maxLeafKeys = (pageSize - 64) ~/ (4 + (2 + 2 * 7));
-  print('maxIndexKeys: $maxIndexKeys   maxLeafKeys: $maxLeafKeys');
-  BPlusTree<int, String, int> tree = new BPlusTree(maxIndexKeys, maxLeafKeys,
-      _intComparator, nodeManager);
+  print('maxIndexKeys: ${nodeManager.maxIndexKeys}   '
+      'maxLeafKeys: ${nodeManager.maxLeafKeys}');
+  BPlusTree<int, String, int> tree = new BPlusTree(_intComparator, nodeManager);
   int maxKey = 1000000;
   int tryCount = 1000;
   Set<int> keys = new Set<int>();

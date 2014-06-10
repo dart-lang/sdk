@@ -682,5 +682,5 @@ INode {
 
 class _TestBTree<K, V> extends BPlusTree<K, V, int> {
   _TestBTree(int maxIndexKeys, int maxLeafKeys, Comparator<K> comparator) :
-      super(maxIndexKeys, maxLeafKeys, comparator, new MemoryNodeManager());
+      super(comparator, new MemoryNodeManager(maxIndexKeys, maxLeafKeys));
 }

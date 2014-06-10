@@ -169,6 +169,22 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
   PageNodeManager(this.pageManager, this.keyCodec, this.valueCodec);
 
   @override
+  int get maxIndexKeys {
+    int keySize = keyCodec.sizeInBytes;
+    int childSize = 4;
+    int dataSize = pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    return (dataSize - childSize) ~/ (keySize + childSize);
+  }
+
+  @override
+  int get maxLeafKeys {
+    int keySize = keyCodec.sizeInBytes;
+    int valueSize = valueCodec.sizeInBytes;
+    int dataSize = pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    return dataSize ~/ (keySize + valueSize);
+  }
+
+  @override
   int createIndex() {
     int id = pageManager.alloc();
     indexPages.add(id);
