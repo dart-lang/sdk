@@ -23346,20 +23346,39 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   static bool get supported =>
       JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
 
-  @deprecated
-  bool get resetStyleInheritance => this._resetStyleInheritance;
-
-  @deprecated
-  void set resetStyleInheritance(bool value) {
-    this._resetStyleInheritance = value;
+  static bool _shadowRootDeprecationReported = false;
+  static void _shadowRootDeprecationReport() {
+    if (!_shadowRootDeprecationReported) {
+      window.console.warn('''
+ShadowRoot.resetStyleInheritance and ShadowRoot.applyAuthorStyles now deprecated in dart:html.
+Please remove them from your code.
+''');
+      _shadowRootDeprecationReported = true;
+    }
   }
 
   @deprecated
-  bool get applyAuthorStyles => this._applyAuthorStyles;
+  bool get resetStyleInheritance {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    _shadowRootDeprecationReport();
+  }
+
+  @deprecated
+  bool get applyAuthorStyles {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
 
   @deprecated
   void set applyAuthorStyles(bool value) {
-    this._applyAuthorStyles = value;
+    _shadowRootDeprecationReport();
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

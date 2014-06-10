@@ -15,7 +15,6 @@ $else
   static final bool supported = true;
 $endif
 
-$if DART_USE_BLINK
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {
     if (!_shadowRootDeprecationReported) {
@@ -50,21 +49,4 @@ Please remove them from your code.
   void set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
-$else
-  @deprecated
-  bool get resetStyleInheritance => this._resetStyleInheritance;
-
-  @deprecated
-  void set resetStyleInheritance(bool value) {
-    this._resetStyleInheritance = value;
-  }
-
-  @deprecated
-  bool get applyAuthorStyles => this._applyAuthorStyles;
-
-  @deprecated
-  void set applyAuthorStyles(bool value) {
-    this._applyAuthorStyles = value;
-  }
-$endif
 }
