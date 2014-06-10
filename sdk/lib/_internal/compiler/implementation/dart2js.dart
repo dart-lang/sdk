@@ -54,11 +54,14 @@ class OptionHandler {
  * For example, in ['--out=fisk.js'] and ['-ohest.js'], the parameters
  * are ['fisk.js'] and ['hest.js'], respectively.
  */
-String extractParameter(String argument) {
+String extractParameter(String argument, {bool isOptionalArgument: false}) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
   Match m = new RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
-  if (m == null) helpAndFail('Unknown option "$argument".');
+  if (m == null) {
+    if (isOptionalArgument) return null;
+    helpAndFail('Unknown option "$argument".');
+  }
   return m[2];
 }
 
@@ -73,7 +76,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   for (OptionHandler handler in handlers) {
     patterns.add(handler.pattern);
   }
-  var pattern = new RegExp('^(${patterns.join(")\$|(")})\$');
+  var pattern = new RegExp('^(${patterns.join(")\$|^(")})\$');
 
   Iterator<String> arguments = argv.iterator;
   OUTER: while (arguments.moveNext()) {
@@ -224,6 +227,14 @@ Future compile(List<String> argv) {
     passThrough('--categories=${categories.join(",")}');
   }
 
+  void handleThrowOnError(String argument) {
+    diagnosticHandler.throwOnError = true;
+    String parameter = extractParameter(argument, isOptionalArgument: true);
+    if (parameter != null) {
+      diagnosticHandler.throwOnErrorCount = int.parse(parameter);
+    }
+  }
+
   handleShortOptions(String argument) {
     var shortOptions = argument.substring(1).split("");
     for (var shortOption in shortOptions) {
@@ -261,8 +272,7 @@ Future compile(List<String> argv) {
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chvm?]+', handleShortOptions),
-    new OptionHandler('--throw-on-error',
-                      (_) => diagnosticHandler.throwOnError = true),
+    new OptionHandler('--throw-on-error(?:=[0-9]+)?', handleThrowOnError),
     new OptionHandler('--suppress-warnings', (_) {
       diagnosticHandler.showWarnings = false;
       passThrough('--suppress-warnings');
