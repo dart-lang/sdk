@@ -1023,21 +1023,26 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
 
 intptr_t Isolate::ProfileInterrupt() {
-  if (profiler_data() == NULL) {
+  // Other threads might be modifying these fields. Save them in locals so that
+  // we can at least trust the NULL check.
+  IsolateProfilerData* prof_data = profiler_data();
+  if (prof_data == NULL) {
     // Profiler not setup for isolate.
     return 0;
   }
-  if (profiler_data()->blocked()) {
+  if (prof_data->blocked()) {
     // Profiler blocked for this isolate.
     return 0;
   }
-  if ((debugger() != NULL) && debugger()->IsPaused()) {
+  Debugger* debug = debugger();
+  if ((debug != NULL) && debug->IsPaused()) {
     // Paused at breakpoint. Don't tick.
     return 0;
   }
-  if ((message_handler() != NULL) &&
-      (message_handler()->paused_on_start() ||
-       message_handler()->paused_on_exit())) {
+  MessageHandler* msg_handler = message_handler();
+  if ((msg_handler != NULL) &&
+      (msg_handler->paused_on_start() ||
+       msg_handler->paused_on_exit())) {
     // Paused at start / exit . Don't tick.
     return 0;
   }
