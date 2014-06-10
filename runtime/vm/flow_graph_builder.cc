@@ -109,7 +109,7 @@ class NestedStatement : public ValueObject {
   NestedStatement* outer_;
 
   JoinEntryInstr* break_target_;
-  intptr_t try_index_;
+  const intptr_t try_index_;
 };
 
 

@@ -52,8 +52,7 @@ static void SwapCode(intptr_t num_bytes, char* code, char* buffer) {
 // The patch code buffer contains the jmp code which will be inserted at
 // entry point.
 void CodePatcher::PatchEntry(const Code& code) {
-  const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
-                                                PcDescriptors::kEntryPatch);
+  const uword patch_addr = code.GetEntryPatchPc();
   ASSERT(patch_addr != 0);
   JumpPattern jmp_entry(patch_addr, code);
   ASSERT(!jmp_entry.IsValid());
@@ -77,8 +76,7 @@ void CodePatcher::PatchEntry(const Code& code) {
 // The entry point is a jmp instruction, the patch code buffer contains
 // original code, the entry point contains the jump instruction.
 void CodePatcher::RestoreEntry(const Code& code) {
-  const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
-                                                PcDescriptors::kEntryPatch);
+  const uword patch_addr = code.GetEntryPatchPc();
   ASSERT(patch_addr != 0);
   JumpPattern jmp_entry(patch_addr, code);
   ASSERT(jmp_entry.IsValid());
@@ -102,8 +100,7 @@ void CodePatcher::RestoreEntry(const Code& code) {
 
 
 bool CodePatcher::IsEntryPatched(const Code& code) {
-  const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
-                                                PcDescriptors::kEntryPatch);
+  const uword patch_addr = code.GetEntryPatchPc();
   if (patch_addr == 0) {
     return false;
   }
@@ -113,9 +110,8 @@ bool CodePatcher::IsEntryPatched(const Code& code) {
 
 
 bool CodePatcher::CodeIsPatchable(const Code& code) {
-  const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
-                                                PcDescriptors::kEntryPatch);
-  // kEntryPatch may not exist which means the function is not patchable.
+  const uword patch_addr = code.GetEntryPatchPc();
+  // Zero means means that the function is not patchable.
   if (patch_addr == 0) {
     return false;
   }

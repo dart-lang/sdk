@@ -2523,6 +2523,13 @@ class WeakCodeReferences : public ValueObject {
         if (!CodePatcher::IsEntryPatched(code)) {
           CodePatcher::PatchEntry(code);
         }
+      } else if (!function.HasCode() && (code.GetEntryPatchPc() != 0)) {
+        // The code has already been disconnected, make it invalid. Do not
+        // bother with OSR compiled code that has no valid entry-patch.
+        ReportSwitchingCode(code);
+        if (!CodePatcher::IsEntryPatched(code)) {
+          CodePatcher::PatchEntry(code);
+        }
       }
     }
   }
@@ -10129,9 +10136,6 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
     case PcDescriptors::kDeopt:           return "deopt        ";
-    case PcDescriptors::kEntryPatch:      return "entry-patch  ";
-    case PcDescriptors::kPatchCode:       return "patch        ";
-    case PcDescriptors::kLazyDeoptJump:   return "lazy-deopt   ";
     case PcDescriptors::kIcCall:          return "ic-call      ";
     case PcDescriptors::kOptStaticCall:   return "opt-call     ";
     case PcDescriptors::kUnoptStaticCall: return "unopt-call   ";
@@ -11618,6 +11622,9 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
+    result.set_entry_patch_pc_offset(kInvalidPc);
+    result.set_patch_code_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -11897,15 +11904,21 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+uword Code::GetEntryPatchPc() const {
+  return (entry_patch_pc_offset() != kInvalidPc)
+      ? EntryPoint() + entry_patch_pc_offset() : 0;
+}
+
+
 uword Code::GetPatchCodePc() const {
-  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  return descriptors.GetPcForKind(PcDescriptors::kPatchCode);
+  return (patch_code_pc_offset() != kInvalidPc)
+      ? EntryPoint() + patch_code_pc_offset() : 0;
 }
 
 
 uword Code::GetLazyDeoptPc() const {
-  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  return descriptors.GetPcForKind(PcDescriptors::kLazyDeoptJump);
+  return (lazy_deopt_pc_offset() != kInvalidPc)
+      ? EntryPoint() + lazy_deopt_pc_offset() : 0;
 }
 
 

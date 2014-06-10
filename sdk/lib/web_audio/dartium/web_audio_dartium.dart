@@ -128,14 +128,6 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   @DocsEditable()
   double get duration => _blink.Native_AudioBuffer_duration_Getter(this);
 
-  @DomName('AudioBuffer.gain')
-  @DocsEditable()
-  num get gain => _blink.Native_AudioBuffer_gain_Getter(this);
-
-  @DomName('AudioBuffer.gain')
-  @DocsEditable()
-  void set gain(num value) => _blink.Native_AudioBuffer_gain_Setter(this, value);
-
   @DomName('AudioBuffer.length')
   @DocsEditable()
   int get length => _blink.Native_AudioBuffer_length_Getter(this);
@@ -214,10 +206,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   void set buffer(AudioBuffer value) => _blink.Native_AudioBufferSourceNode_buffer_Setter(this, value);
 
-  @DomName('AudioBufferSourceNode.gain')
-  @DocsEditable()
-  AudioParam get gain => _blink.Native_AudioBufferSourceNode_gain_Getter(this);
-
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
   bool get loop => _blink.Native_AudioBufferSourceNode_loop_Getter(this);
@@ -245,10 +233,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
   AudioParam get playbackRate => _blink.Native_AudioBufferSourceNode_playbackRate_Getter(this);
-
-  @DomName('AudioBufferSourceNode.playbackState')
-  @DocsEditable()
-  int get playbackState => _blink.Native_AudioBufferSourceNode_playbackState_Getter(this);
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable()
@@ -302,10 +286,6 @@ class AudioContext extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('AudioContext.activeSourceCount')
-  @DocsEditable()
-  int get activeSourceCount => _blink.Native_AudioContext_activeSourceCount_Getter(this);
-
   @DomName('AudioContext.currentTime')
   @DocsEditable()
   double get currentTime => _blink.Native_AudioContext_currentTime_Getter(this);
@@ -334,10 +314,6 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   AudioBuffer createBuffer(int numberOfChannels, int numberOfFrames, num sampleRate) => _blink.Native_AudioContext_createBuffer_Callback(this, numberOfChannels, numberOfFrames, sampleRate);
 
-  @DomName('AudioContext.createBufferFromBuffer')
-  @DocsEditable()
-  AudioBuffer createBufferFromBuffer(ByteBuffer buffer, bool mixToMono) => _blink.Native_AudioContext_createBufferFromBuffer_Callback(this, buffer, mixToMono);
-
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
   AudioBufferSourceNode createBufferSource() => _blink.Native_AudioContext_createBufferSource_Callback(this);
@@ -352,8 +328,6 @@ class AudioContext extends EventTarget {
 
   DelayNode createDelay([num maxDelayTime]) => _blink.Native_AudioContext_createDelay(this, maxDelayTime);
 
-  DelayNode createDelayNode([num maxDelayTime]) => _blink.Native_AudioContext_createDelayNode(this, maxDelayTime);
-
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
   DynamicsCompressorNode createDynamicsCompressor() => _blink.Native_AudioContext_createDynamicsCompressor_Callback(this);
@@ -361,12 +335,6 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.createGain')
   @DocsEditable()
   GainNode createGain() => _blink.Native_AudioContext_createGain_Callback(this);
-
-  @DomName('AudioContext.createGainNode')
-  @DocsEditable()
-  GainNode createGainNode() => _blink.Native_AudioContext_createGainNode_Callback(this);
-
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) => _blink.Native_AudioContext_createJavaScriptNode(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
@@ -611,10 +579,6 @@ class AudioParam extends NativeFieldWrapperClass2 {
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable()
   void setTargetAtTime(num target, num time, num timeConstant) => _blink.Native_AudioParam_setTargetAtTime_Callback(this, target, time, timeConstant);
-
-  @DomName('AudioParam.setTargetValueAtTime')
-  @DocsEditable()
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) => _blink.Native_AudioParam_setTargetValueAtTime_Callback(this, targetValue, time, timeConstant);
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable()
@@ -1035,10 +999,6 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.frequency')
   @DocsEditable()
   AudioParam get frequency => _blink.Native_OscillatorNode_frequency_Getter(this);
-
-  @DomName('OscillatorNode.playbackState')
-  @DocsEditable()
-  int get playbackState => _blink.Native_OscillatorNode_playbackState_Getter(this);
 
   @DomName('OscillatorNode.type')
   @DocsEditable()

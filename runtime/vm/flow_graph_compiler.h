@@ -594,6 +594,10 @@ class FlowGraphCompiler : public ValueObject {
   // In future AddDeoptStub should be moved out of the instruction template.
   Environment* pending_deoptimization_env_;
 
+  intptr_t entry_patch_pc_offset_;
+  intptr_t patch_code_pc_offset_;
+  intptr_t lazy_deopt_pc_offset_;
+
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };
 

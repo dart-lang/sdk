@@ -1120,12 +1120,6 @@ class ElementInstance extends EventTarget native "SVGElementInstance" {
   @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('SVGElementInstance.childNodes')
-  @DocsEditable()
-  @Returns('_ElementInstanceList')
-  @Creates('_ElementInstanceList')
-  final List<ElementInstance> childNodes;
-
   @DomName('SVGElementInstance.correspondingElement')
   @DocsEditable()
   final SvgElement correspondingElement;
@@ -6011,14 +6005,6 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
    * This can only be called by subclasses from their created constructor.
    */
   SvgSvgElement.created() : super.created();
-
-  @DomName('SVGSVGElement.contentScriptType')
-  @DocsEditable()
-  String contentScriptType;
-
-  @DomName('SVGSVGElement.contentStyleType')
-  @DocsEditable()
-  String contentStyleType;
 
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()

@@ -840,6 +840,11 @@ class RawCode : public RawObject {
   // architectures.
   intptr_t state_bits_;  // state, is_optimized, is_alive.
 
+  // PC offsets for code patching.
+  intptr_t entry_patch_pc_offset_;
+  intptr_t patch_code_pc_offset_;
+  intptr_t lazy_deopt_pc_offset_;
+
   // Variable length data follows here.
   int32_t data_[0];
 
