@@ -103,11 +103,7 @@ void _hookJsPolymer() {
   polymerJs.callMethod('whenPolymerReady',
       [zone.bindCallback(() => Polymer._onReady.complete())]);
 
-  var polyElem = document.createElement('polymer-element');
-  var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];
-  if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
-
-  JsFunction originalRegister = proto['register'];
+  JsFunction originalRegister = _polymerElementProto['register'];
   if (originalRegister == null) {
     throw new StateError('polymer.js must expose "register" function on '
         'polymer-element to enable polymer.dart to interoperate.');
@@ -127,5 +123,14 @@ void _hookJsPolymer() {
     return originalRegister.apply([name, extendee], thisArg: jsElem);
   }
 
-  proto['register'] = new JsFunction.withThis(registerDart);
+  _polymerElementProto['register'] = new JsFunction.withThis(registerDart);
 }
+
+// Note: we cache this so we can use it later to look up 'init'.
+// See registerSync.
+JsObject _polymerElementProto = () {
+  var polyElem = document.createElement('polymer-element');
+  var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];
+  if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
+  return proto;
+}();

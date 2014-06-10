@@ -132,7 +132,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (extendsTag != null) poly.attributes['extends'] = extendsTag;
     if (template != null) poly.append(template);
 
-    new JsObject.fromBrowserObject(poly).callMethod('init');
+    // TODO(jmesserly): conceptually this is just:
+    //     new JsObject.fromBrowserObject(poly).callMethod('init')
+    //
+    // However doing it that way hits an issue with JS-interop in IE10: we get a
+    // JsObject that wraps something other than `poly`, due to improper caching.
+    // By reusing _polymerElementProto that we used for 'register', we can
+    // then call apply on it to invoke init() with the correct `this` pointer.
+    JsFunction init = _polymerElementProto['init'];
+    init.apply([], thisArg: poly);
   }
 
   // Note: these are from src/declaration/import.js
