@@ -102,9 +102,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
           asset: id);
     }
 
-    logRequest(request, "Loading $id");
     return environment.barback.getAssetById(id).then((result) {
-      logRequest(request, "getAssetById($id) returned");
       return result;
     }).then((asset) => _serveAsset(request, asset)).catchError((error, trace) {
       if (error is! AssetNotFoundException) throw error;

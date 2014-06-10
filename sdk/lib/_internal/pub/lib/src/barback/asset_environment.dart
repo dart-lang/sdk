@@ -351,94 +351,96 @@ class AssetEnvironment {
   /// Returns a [Future] that completes once all inputs and transformers are
   /// loaded.
   Future _load({bool useDart2JS}) {
-    // If the entrypoint package manually configures the dart2js
-    // transformer, don't include it in the built-in transformer list.
-    //
-    // TODO(nweiz): if/when we support more built-in transformers, make
-    // this more general.
-    var containsDart2JS = graph.entrypoint.root.pubspec.transformers
-        .any((transformers) => transformers
-        .any((id) => id.package == '\$dart2js'));
+    return log.progress("Initializing barback", () {
+      // If the entrypoint package manually configures the dart2js
+      // transformer, don't include it in the built-in transformer list.
+      //
+      // TODO(nweiz): if/when we support more built-in transformers, make
+      // this more general.
+      var containsDart2JS = graph.entrypoint.root.pubspec.transformers
+          .any((transformers) => transformers
+          .any((id) => id.package == '\$dart2js'));
 
-    if (!containsDart2JS && useDart2JS) {
-      _builtInTransformers.addAll([
-        new Dart2JSTransformer(this, mode),
-        new DartForwardingTransformer(mode)
-      ]);
-    }
+      if (!containsDart2JS && useDart2JS) {
+        _builtInTransformers.addAll([
+          new Dart2JSTransformer(this, mode),
+          new DartForwardingTransformer(mode)
+        ]);
+      }
 
-    // "$pub" is a psuedo-package that allows pub's transformer-loading
-    // infrastructure to share code with pub proper. We provide it only during
-    // the initial transformer loading process.
-    var dartPath = assetPath('dart');
-    var pubSources = listDir(dartPath, recursive: true)
-        // Don't include directories.
-        .where((file) => path.extension(file) == ".dart")
-        .map((library) {
-      var idPath = path.join('lib', path.relative(library, from: dartPath));
-      return new AssetId('\$pub', path.toUri(idPath).toString());
-    });
-
-    // "$sdk" is a pseudo-package that allows the dart2js transformer to find
-    // the Dart core libraries without hitting the file system directly. This
-    // ensures they work with source maps.
-    var libPath = path.join(sdk.rootDirectory, "lib");
-    var sdkSources = listDir(libPath, recursive: true)
-        .where((file) => path.extension(file) == ".dart")
-        .map((file) {
-      var idPath = path.join("lib",
-          path.relative(file, from: sdk.rootDirectory));
-      return new AssetId('\$sdk', path.toUri(idPath).toString());
-    });
-
-    // Bind a server that we can use to load the transformers.
-    var transformerServer;
-    return BarbackServer.bind(this, _hostname, 0, null).then((server) {
-      transformerServer = server;
-
-      var errorStream = barback.errors.map((error) {
-        // Even most normally non-fatal barback errors should take down pub if
-        // they happen during the initial load process.
-        if (error is! AssetLoadException) throw error;
-
-        log.error(log.red(error.message));
-        log.fine(error.stackTrace.terse);
+      // "$pub" is a psuedo-package that allows pub's transformer-loading
+      // infrastructure to share code with pub proper. We provide it only during
+      // the initial transformer loading process.
+      var dartPath = assetPath('dart');
+      var pubSources = listDir(dartPath, recursive: true)
+          // Don't include directories.
+          .where((file) => path.extension(file) == ".dart")
+          .map((library) {
+        var idPath = path.join('lib', path.relative(library, from: dartPath));
+        return new AssetId('\$pub', path.toUri(idPath).toString());
       });
 
-      return _withStreamErrors(() {
-        return log.progress("Loading source assets", () {
-          barback.updateSources(pubSources);
-          barback.updateSources(sdkSources);
-          return _provideSources();
-        });
-      }, [errorStream, barback.results]);
-    }).then((_) {
-      log.fine("Provided sources.");
-      var completer = new Completer();
-
-      var errorStream = barback.errors.map((error) {
-        // Now that we're loading transformers, errors they log shouldn't be
-        // fatal, since we're starting to run them on real user assets which may
-        // have e.g. syntax errors. If an error would cause a transformer to
-        // fail to load, the load failure will cause us to exit.
-        if (error is! TransformerException) throw error;
-
-        var message = error.error.toString();
-        if (error.stackTrace != null) {
-          message += "\n" + error.stackTrace.terse.toString();
-        }
-
-        _log(new LogEntry(error.transform, error.transform.primaryId,
-                LogLevel.ERROR, message, null));
+      // "$sdk" is a pseudo-package that allows the dart2js transformer to find
+      // the Dart core libraries without hitting the file system directly. This
+      // ensures they work with source maps.
+      var libPath = path.join(sdk.rootDirectory, "lib");
+      var sdkSources = listDir(libPath, recursive: true)
+          .where((file) => path.extension(file) == ".dart")
+          .map((file) {
+        var idPath = path.join("lib",
+            path.relative(file, from: sdk.rootDirectory));
+        return new AssetId('\$sdk', path.toUri(idPath).toString());
       });
 
-      return _withStreamErrors(() {
-        return loadAllTransformers(this, transformerServer).then((_) {
-          log.fine("Loaded transformers.");
-          return transformerServer.close();
+      // Bind a server that we can use to load the transformers.
+      var transformerServer;
+      return BarbackServer.bind(this, _hostname, 0, null).then((server) {
+        transformerServer = server;
+
+        var errorStream = barback.errors.map((error) {
+          // Even most normally non-fatal barback errors should take down pub if
+          // they happen during the initial load process.
+          if (error is! AssetLoadException) throw error;
+
+          log.error(log.red(error.message));
+          log.fine(error.stackTrace.terse);
         });
-      }, [errorStream, barback.results, transformerServer.results]);
-    }).then((_) => barback.removeSources(pubSources));
+
+        return _withStreamErrors(() {
+          return log.progress("Loading source assets", () {
+            barback.updateSources(pubSources);
+            barback.updateSources(sdkSources);
+            return _provideSources();
+          });
+        }, [errorStream, barback.results]);
+      }).then((_) {
+        log.fine("Provided sources.");
+        var completer = new Completer();
+
+        var errorStream = barback.errors.map((error) {
+          // Now that we're loading transformers, errors they log shouldn't be
+          // fatal, since we're starting to run them on real user assets which
+          // may have e.g. syntax errors. If an error would cause a transformer
+          // to fail to load, the load failure will cause us to exit.
+          if (error is! TransformerException) throw error;
+
+          var message = error.error.toString();
+          if (error.stackTrace != null) {
+            message += "\n" + error.stackTrace.terse.toString();
+          }
+
+          _log(new LogEntry(error.transform, error.transform.primaryId,
+                  LogLevel.ERROR, message, null));
+        });
+
+        return _withStreamErrors(() {
+          return log.progress("Loading transformers", () {
+            return loadAllTransformers(this, transformerServer)
+                .then((_) => transformerServer.close());
+          }, fine: true);
+        }, [errorStream, barback.results, transformerServer.results]);
+      }).then((_) => barback.removeSources(pubSources));
+    }, fine: true);
   }
 
   /// Provides the public source assets in the environment to barback.

@@ -22,46 +22,62 @@ class Progress {
   /// progress is done, a single entry will be added to the log for it.
   final String _message;
 
-  Progress(this._message) {
+  /// Gets the current progress time as a parenthesized, formatted string.
+  String get _time => "(${niceDuration(_stopwatch.elapsed)})";
+
+  /// Creates a new progress indicator.
+  ///
+  /// If [fine] is passed, this will log progress messages on [log.Level.FINE]
+  /// as opposed to [log.Level.MESSAGE].
+  Progress(this._message, {bool fine: false}) {
     _stopwatch.start();
 
-    if (log.json.enabled) return;
+    // Only animate if we're writing to a TTY in human format and we're not
+    // emitting FINE logging information. If we are, we'll just print the start
+    // and end messages anyway.
+    bool animate = !log.isLevelVisible(log.Level.FINE) &&
+        stdioType(stdout) == StdioType.TERMINAL;
+    (animate || fine ? log.fine : log.message)("$_message...");
 
-    // Only animate if we're writing to a TTY in human format.
-    if (stdioType(stdout) == StdioType.TERMINAL) {
+    if (!animate || log.json.enabled) return;
+
+    _update();
+    _timer = new Timer.periodic(new Duration(milliseconds: 100), (_) {
       _update();
-      _timer = new Timer.periodic(new Duration(milliseconds: 100), (_) {
-        _update();
-      });
-    } else {
-      stdout.write("$_message... ");
-    }
+    });
   }
 
   /// Stops the progress indicator.
-  ///
-  /// Returns the complete final progress message.
-  String stop() {
+  void stop() {
     _stopwatch.stop();
 
-    // If we aren't animating, just log the final time.
-    if (log.json.enabled) {
-      // Do nothing.
-    } else if (_timer == null) {
-      stdout.writeln(_time);
-    } else {
-      _timer.cancel();
+    // Always log the final time as [log.fine] because for the most part normal
+    // users don't care about the precise time information beyond what's shown
+    // in the animation.
+    log.fine("$_message finished $_time.");
 
-      // Show one final update.
-      _update();
-      stdout.writeln();
-    }
-
-    return "$_message... ${_time}";
+    // If we were animating, print one final update to show the user the final
+    // time.
+    if (_timer == null) return;
+    _timer.cancel();
+    _timer = null;
+    _update();
+    stdout.writeln();
   }
 
-  /// Gets the current progress time as a parenthesized, formatted string.
-  String get _time => "(${niceDuration(_stopwatch.elapsed)})";
+  /// Stop animating the progress indicator.
+  ///
+  /// This will continue running the stopwatch so that the full time can be
+  /// logged in [stop].
+  void stopAnimating() {
+    if (_timer == null) return;
+
+    // Print a final message without a time indicator so that we don't leave a
+    // misleading half-complete time indicator on the console.
+    stdout.writeln("\r$_message...");
+    _timer.cancel();
+    _timer = null;
+  }
 
   /// Refreshes the progress line.
   void _update() {

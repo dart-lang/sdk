@@ -37,8 +37,13 @@ const _MAX_TRANSCRIPT = 10000;
 /// [recordTranscript()] is called.
 Transcript<Entry> _transcript;
 
-/// The currently-running progress indicator or `null` if there is none.
-Progress _progress;
+/// All currently-running progress indicators.
+final _progresses = new Set<Progress>();
+
+/// The currently-animated progress indicator, if any.
+///
+/// This will also be in [_progresses].
+Progress _animatedProgress;
 
 final _cyan = getSpecial('\u001b[36m');
 final _green = getSpecial('\u001b[32m');
@@ -222,29 +227,27 @@ void dumpTranscript() {
 }
 
 /// Prints [message] then displays an updated elapsed time until the future
-/// returned by [callback] completes. If anything else is logged during this
-/// (include another call to [progress]) that cancels the progress.
-Future progress(String message, Future callback()) {
+/// returned by [callback] completes.
+///
+/// If anything else is logged during this (including another call to
+/// [progress]) that cancels the progress animation, although the total time
+/// will still be printed once it finishes. If [fine] is passed, the progress
+/// information will only be visible at [Level.FINE].
+Future progress(String message, Future callback(), {bool fine: false}) {
   _stopProgress();
-  _progress = new Progress(message);
+  var progress = new Progress(message, fine: fine);
+  _animatedProgress = progress;
+  _progresses.add(progress);
   return callback().whenComplete(() {
-    var message = _stopProgress();
-
-    // Add the progress message to the transcript.
-    if (_transcript != null && message != null) {
-      _transcript.add(new Entry(Level.MESSAGE, [message]));
-    }
+    progress.stop();
+    _progresses.remove(progress);
   });
 }
 
-/// Stops the running progress indicator, if currently running.
-///
-/// Returns the final progress message, if any, otherwise `null`.
-String _stopProgress() {
-  if (_progress == null) return null;
-  var message = _progress.stop();
-  _progress = null;
-  return message;
+/// Stops animating the running progress indicator, if currently running.
+void _stopProgress() {
+  if (_animatedProgress != null) _animatedProgress.stopAnimating();
+  _animatedProgress = null;
 }
 
 /// Wraps [text] in the ANSI escape codes to make it bold when on a platform
@@ -332,6 +335,9 @@ void showAll() {
   _loggers[Level.SOLVER]  = _logToStderrWithLabel;
   _loggers[Level.FINE]    = _logToStderrWithLabel;
 }
+
+/// Returns whether or not logs at [level] will be printed.
+bool isLevelVisible(Level level) => _loggers[level] != null;
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {
