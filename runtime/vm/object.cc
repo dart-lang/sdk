@@ -7815,12 +7815,15 @@ RawString* Script::GenerateSource() const {
 
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
+  Isolate* isolate = Isolate::Current();
   const GrowableObjectArray& info =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const String& source = String::Handle(Source());
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  const String& source = String::Handle(isolate, Source());
   const String& key = Symbols::Empty();
-  const Object& line_separator = Object::Handle();
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  const Object& line_separator = Object::Handle(isolate);
+  const TokenStream& tkns = TokenStream::Handle(isolate, tokens());
+  Smi& value = Smi::Handle(isolate);
+  String& tokenValue = String::Handle(isolate);
   ASSERT(!tkns.IsNull());
   TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
   int current_line = -1;
@@ -7858,7 +7861,7 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
           (s.current_token().kind == Token::kINTERPOL_VAR ||
            s.current_token().kind == Token::kINTERPOL_START) &&
           tkit.CurrentTokenKind() == Token::kSTRING) {
-        const String& tokenValue = String::Handle(tkit.CurrentLiteral());
+        tokenValue = tkit.CurrentLiteral();
         if (tokenValue.Length() == 0) {
           tkit.Advance();
         }
@@ -7870,19 +7873,22 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
     if (token_line != current_line) {
       // emit line
       info.Add(line_separator);
-      info.Add(Smi::Handle(Smi::New(token_line + line_offset())));
+      value = Smi::New(token_line + line_offset());
+      info.Add(value);
       current_line = token_line;
     }
     // TODO(hausner): Could optimize here by not reporting tokens
     // that will never be a location used by the debugger, e.g.
     // braces, semicolons, most keywords etc.
-    info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
+    value = Smi::New(tkit.CurrentPosition());
+    info.Add(value);
     int column = s.current_token().position.column;
     // On the first line of the script we must add the column offset.
     if (token_line == 1) {
       column += col_offset();
     }
-    info.Add(Smi::Handle(Smi::New(column)));
+    value = Smi::New(column);
+    info.Add(value);
     tkit.Advance();
     s.Scan();
   }
