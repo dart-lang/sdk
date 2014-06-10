@@ -23,10 +23,12 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
                                            GrowableArray<intptr_t>* map) {
   const TokenStream& tkns = TokenStream::Handle(script.tokens());
   const intptr_t len = ExternalTypedData::Handle(tkns.GetStream()).Length();
-  map->Clear();
+  map->SetLength(len);
+#if defined(DEBUG)
   for (intptr_t i = 0; i < len; i++) {
-    map->Add(-1);
+    (*map)[i] = -1;
   }
+#endif
   TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
   intptr_t cur_line = script.line_offset() + 1;
   while (tkit.CurrentTokenKind() != Token::kEOS) {
