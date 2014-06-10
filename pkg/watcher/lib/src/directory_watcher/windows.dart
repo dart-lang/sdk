@@ -28,11 +28,8 @@ class _EventBatcher {
   final List<FileSystemEvent> events = [];
   Timer timer;
 
-  void addEvent(FileSystemEvent event) {
+  void addEvent(FileSystemEvent event, void callback()) {
     events.add(event);
-  }
-
-  void startTimer(void callback()) {
     if (timer != null) {
       timer.cancel();
     }
@@ -78,18 +75,19 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// the directory to determine its initial state.
   StreamSubscription<FileSystemEntity> _initialListSubscription;
 
-  /// The subscriptions to the [Directory.list] call for listing the contents of
-  /// subdirectories that was moved into the watched directory.
+  /// The subscriptions to the [Directory.list] calls for listing the contents
+  /// of subdirectories that were moved into the watched directory.
   final Set<StreamSubscription<FileSystemEntity>> _listSubscriptions
       = new HashSet<StreamSubscription<FileSystemEntity>>();
 
   _WindowsDirectoryWatcher(String directory)
       : directory = directory, _files = new PathSet(directory) {
-    _startWatch();
-    _startParentWatcher();
-
     // Before we're ready to emit events, wait for [_listDir] to complete.
-    _listDir().then(_readyCompleter.complete);
+    _listDir().then((_) {
+      _startWatch();
+      _startParentWatcher();
+      _readyCompleter.complete();
+    });
   }
 
   void close() {
@@ -111,13 +109,13 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   }
 
   /// On Windows, if [directory] is deleted, we will not receive any event.
+  ///
   /// Instead, we add a watcher on the parent folder (if any), that can notify
-  /// us about [directory].
-  /// This also includes events such as moves.
+  /// us about [directory]. This also includes events such as moves.
   void _startParentWatcher() {
     var absoluteDir = p.absolute(directory);
     var parent = p.dirname(absoluteDir);
-    // Check if we [directory] is already the root directory.
+    // Check if [directory] is already the root directory.
     if (FileSystemEntity.identicalSync(parent, directory)) return;
     var parentStream = Chain.track(
         new Directory(parent).watch(recursive: false));
@@ -140,26 +138,19 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         close();
       }
     }, onError: (error) {
-      // Ignore errors, simply close the stream.
+      // Ignore errors, simply close the stream. The user listens on
+      // [directory], and while it can fail to listen on the parent, we may
+      // still be able to listen on the path requested.
       _parentWatchSubscription.cancel();
       _parentWatchSubscription = null;
     });
   }
 
   void _onEvent(FileSystemEvent event) {
-    // If we get a event before we're ready to begin emitting events,
-    // ignore those events and re-list the directory.
-    if (!isReady) {
-      _listDir().then((_) {
-       _readyCompleter.complete();
-      });
-      return;
-    }
-
-    _EventBatcher batcher = _eventBatchers.putIfAbsent(
+    assert(isReady);
+    final batcher = _eventBatchers.putIfAbsent(
         event.path, () => new _EventBatcher());
-    batcher.addEvent(event);
-    batcher.startTimer(() {
+    batcher.addEvent(event, () {
       _eventBatchers.remove(event.path);
       _onBatch(batcher.events);
     });
@@ -246,8 +237,7 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
     for (var event in batch) {
       if (event is FileSystemMoveEvent) {
-        FileSystemMoveEvent moveEvent = event;
-        addEvent(moveEvent.destination, event);
+        addEvent(event.destination, event);
       }
       addEvent(event.path, event);
     }
@@ -366,7 +356,7 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   void _onDone() {
     _watchSubscription = null;
 
-    // Emit remove-events for any remaining files.
+    // Emit remove events for any remaining files.
     for (var file in _files.toSet()) {
       _emitEvent(ChangeType.REMOVE, file);
     }
@@ -376,7 +366,7 @@ class _WindowsDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// Start or restart the underlying [Directory.watch] stream.
   void _startWatch() {
-    // Batch the events changes together so that we can dedup events.
+    // Batch the events together so that we can dedup events.
     var innerStream =
         Chain.track(new Directory(directory).watch(recursive: true));
     _watchSubscription = innerStream.listen(_onEvent,

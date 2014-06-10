@@ -78,6 +78,20 @@ sharedTests() {
     ]);
   });
 
+  test('when the watched directory is moved, removes all files', () {
+    writeFile("dir/a.txt");
+    writeFile("dir/b.txt");
+
+    startWatcher(dir: "dir");
+
+    renameDir("dir", "moved_dir");
+    createDir("dir");
+    inAnyOrder([
+      isRemoveEvent("dir/a.txt"),
+      isRemoveEvent("dir/b.txt")
+    ]);
+  });
+
   group("moves", () {
     test('notifies when a file is moved within the watched directory', () {
       writeFile("old.txt");

@@ -23,19 +23,5 @@ main() {
     expect(new DirectoryWatcher('.'),
         new isInstanceOf<WindowsDirectoryWatcher>());
   });
-
-  test('when the watched directory is moved, removes all files', () {
-    writeFile("dir/a.txt");
-    writeFile("dir/b.txt");
-
-    startWatcher(dir: "dir");
-
-    renameDir("dir", "moved_dir");
-    createDir("dir");
-    inAnyOrder([
-      isRemoveEvent("dir/a.txt"),
-      isRemoveEvent("dir/b.txt")
-    ]);
-  });
 }
 
