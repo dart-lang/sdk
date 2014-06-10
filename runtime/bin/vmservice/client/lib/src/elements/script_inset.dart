@@ -21,6 +21,7 @@ class ScriptInsetElement extends ObservatoryElement {
   void scriptChanged(oldValue) {
     _updateProperties();
     notifyPropertyChange(#hitStyle, 0, 1);
+    notifyPropertyChange(#lines, 0, 1);
   }
 
   void posChanged(oldValue) {
@@ -28,6 +29,7 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   coverageChanged(oldValue) {
+    _updateProperties();
     notifyPropertyChange(#lines, 0, 1);
     notifyPropertyChange(#hitStyle, 0, 1);
   }
@@ -65,7 +67,7 @@ class ScriptInsetElement extends ObservatoryElement {
     lines.clear();
     var startLineNumber = script.tokenToLine(pos);
     if (startLineNumber != null) {
-      if (endPos == null) {  
+      if (endPos == null) {
         lines.add(script.lines[startLineNumber - 1]);
       } else {
         var endLineNumber = script.tokenToLine(endPos);

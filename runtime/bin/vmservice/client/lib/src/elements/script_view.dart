@@ -35,6 +35,10 @@ class ScriptViewElement extends ObservatoryElement {
   }
 
   void refreshCoverage(var done) {
-    script.isolate.refreshCoverage().whenComplete(done);
+    script.isolate.refreshCoverage().then((_) {
+      ScriptInsetElement sie = shadowRoot.querySelector('#scriptInset');
+      showCoverage = true;
+      sie.coverage = showCoverage;
+    }).whenComplete(done);
   }
 }

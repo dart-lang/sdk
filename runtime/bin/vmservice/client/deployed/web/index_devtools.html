@@ -6816,6 +6816,9 @@ hr {
     <template if="{{ ref.serviceType == 'Socket' }}">
       <io-socket-ref ref="{{ ref }}"></io-socket-ref>
     </template>
+    <template if="{{ ref.serviceType == 'HttpServerConnection' }}">
+      <io-http-server-connection-ref ref="{{ ref }}"></io-http-server-connection-ref>
+    </template>
     <template if="{{ ref.serviceType == 'HttpServer' }}">
       <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
     </template>
@@ -7596,11 +7599,534 @@ hr {
         </div>
         <div class="memberItem">
           <div class="memberName">Active connections</div>
-          <div class="memberValue">{{ httpServer['active'] }}</div>
+          <ul class="list-group">
+            <template repeat="{{ connection in httpServer['active'] }}">
+              <li class="list-group-item">
+                <io-http-server-connection-ref ref="{{ connection }}"></io-http-server-connection-ref>
+              </li>
+            </template>
+          </ul>
         </div>
         <div class="memberItem">
           <div class="memberName">Idle connections</div>
-          <div class="memberValue">{{ httpServer['idle'] }}</div>
+          <ul class="list-group">
+            <template repeat="{{ connection in httpServer['idle'] }}">
+              <li class="list-group-item">
+                <io-http-server-connection-ref ref="{{ connection }}"></io-http-server-connection-ref>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-connection-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-connection-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>HttpConnection</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Socket</div>
+          <div class="memberValue"><io-socket-ref ref="{{ connection['socket'] }}"></io-socket-ref></div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">State</div>
+          <div class="memberValue">{{ connection['state'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Server</div>
+          <div class="memberValue"><io-http-server-ref ref="{{ connection['server'] }}"></io-http-server-ref></div>
         </div>
       </div>
     </div>
