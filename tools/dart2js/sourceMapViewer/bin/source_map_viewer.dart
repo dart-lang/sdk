@@ -18,8 +18,7 @@ import 'package:http_server/http_server.dart';
  * available.
  */
 
-Directory rootDir = null;
-String sourceMapFile;
+Uri sourceMapFile;
 
 void main(List<String> args) {
   if (args.length != 1) {
@@ -35,9 +34,8 @@ void main(List<String> args) {
     return;
   }
 
-  sourceMapFile = basename(mapFile.path);
-  rootDir = mapFile.parent;
-  startServer(rootDir);
+  sourceMapFile = toUri(mapFile.path);
+  startServer();
 }
 
 // Sends the content of the file requested in the path parameter.
@@ -48,17 +46,16 @@ void handleFile(HttpRequest request) {
     return;
   }
 
-  path = rootDir.path + '/' + path;
-  new File(Uri.parse(path).toFilePath()).openRead()
-    .pipe(request.response).catchError((e) {
-  print("Error: $e");
+  Uri uri = sourceMapFile.resolve(path);
+  new File.fromUri(uri).openRead().pipe(request.response).catchError((e) {
+    print("Error: $e");
     request.response.close();
   });
 }
 
 // Sends back the name of the source map file.
 void handleSourceMapFile(HttpRequest request) {
-  request.response.write(sourceMapFile);
+  request.response.write(basename(sourceMapFile.path));
   request.response.close();
 }
 
@@ -69,8 +66,15 @@ void handleSourceMapFile(HttpRequest request) {
 //
 // /map serves the name of the map file such that its content can be requested
 // with a /file request as above.
-void startServer(Directory dir) {
-  rootDir = dir;
+void startServer() {
+  String root = fromUri(Platform.script.resolve('../build/web/'));
+  Directory directory = new Directory(root);
+  if (!directory.existsSync()) {
+    print("Directory '$root' does not exist. "
+          "Run 'pub build' to generate the output.");
+    exit(-1);
+  }
+
   // Use port 0 to get an ephemeral port.
   int port = 0;
   HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
@@ -83,7 +87,7 @@ void startServer(Directory dir) {
 
     // Set up default handler. This will serve files from our 'build'
     // directory. Disable jail root, as packages are local symlinks.
-    VirtualDirectory virDir = new http_server.VirtualDirectory(dir.path)
+    VirtualDirectory virDir = new http_server.VirtualDirectory(root)
       ..jailRoot = false
       ..allowDirectoryListing = true;
 
