@@ -1154,9 +1154,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       Dart_WeakPersistentHandleFinalizer callback =
           object->value.as_external_typed_data.callback;
       WriteSmi(length);
-      WriteIntptrValue(reinterpret_cast<intptr_t>(data));
-      WriteIntptrValue(reinterpret_cast<intptr_t>(peer));
-      WriteIntptrValue(reinterpret_cast<intptr_t>(callback));
+      WriteRawPointerValue(reinterpret_cast<intptr_t>(data));
+      WriteRawPointerValue(reinterpret_cast<intptr_t>(peer));
+      WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
       break;
     }
     default:

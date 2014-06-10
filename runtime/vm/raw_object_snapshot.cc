@@ -2381,13 +2381,13 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kFull);
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t length = reader->ReadSmiValue();
-  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadIntptrValue());
+  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadRawPointerValue());
   const ExternalTypedData& obj = ExternalTypedData::Handle(
       ExternalTypedData::New(cid, data, length));
-  void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());
+  void* peer = reinterpret_cast<void*>(reader->ReadRawPointerValue());
   Dart_WeakPersistentHandleFinalizer callback =
       reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
-          reader->ReadIntptrValue());
+          reader->ReadRawPointerValue());
   obj.AddFinalizer(peer, callback);
   return obj.raw();
 }

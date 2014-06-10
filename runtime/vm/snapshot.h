@@ -181,6 +181,11 @@ class BaseReader {
     return static_cast<intptr_t>(value);
   }
 
+  intptr_t ReadRawPointerValue() {
+    int64_t value = Read<int64_t>();
+    return static_cast<intptr_t>(value);
+  }
+
   void ReadBytes(uint8_t* addr, intptr_t len) {
     stream_.ReadBytes(addr, len);
   }
@@ -399,6 +404,11 @@ class BaseWriter {
 
   // Writes an intptr_t type value out.
   void WriteIntptrValue(intptr_t value) {
+    ASSERT((value >= kMinInt32) && (value <= kMaxInt32));
+    Write<int64_t>(value);
+  }
+
+  void WriteRawPointerValue(intptr_t value) {
     Write<int64_t>(value);
   }
 
