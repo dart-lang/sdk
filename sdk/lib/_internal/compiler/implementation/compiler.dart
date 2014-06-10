@@ -495,6 +495,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
+  final bool disableDeferredLoading;
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
 
@@ -782,6 +783,7 @@ abstract class Compiler implements DiagnosticListener {
             this.outputUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
+            this.disableDeferredLoading: false,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,

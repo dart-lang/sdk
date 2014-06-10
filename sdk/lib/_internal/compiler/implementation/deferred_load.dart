@@ -698,6 +698,10 @@ class DeferredLoadTask extends CompilerTask {
           Import previousDeferredImport = prefixDeferredImport[prefix];
           bool isDeferred = _isImportDeferred(import);
           if (isDeferred) {
+            if (compiler.disableDeferredLoading) {
+              compiler.reportFatalError(import,
+                  MessageKind.DEFERRED_LOADING_DISABLED);
+            }
             if (prefix == null) {
               compiler.reportError(import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);

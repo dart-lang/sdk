@@ -297,6 +297,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--disable-type-inference', implyCompilation),
     new OptionHandler('--terse', passThrough),
+    new OptionHandler('--disable-deferred-loading', passThrough),
     new OptionHandler('--dump-info', implyCompilation),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
@@ -612,6 +613,9 @@ be removed in a future version:
     is "Client".  Possible categories can be seen by providing an
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
+
+  --disable-deferred-loading
+    Disables the experimental 'deferred loading' language feature.
 
   --dump-info
     Generates an out.info.html file with information about the generated code.
