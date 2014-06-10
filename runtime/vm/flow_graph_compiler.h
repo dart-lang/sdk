@@ -346,6 +346,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  bool NeedsEdgeCounter(TargetEntryInstr* block);
+
   void EmitEdgeCounter();
 
   void EmitOptimizedInstanceCall(ExternalLabel* target_label,

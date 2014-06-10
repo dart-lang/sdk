@@ -27,6 +27,7 @@ namespace dart {
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
+DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
@@ -969,6 +970,15 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
+}
+
+
+bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
+  // Only emit an edge counter if there is not goto at the end of the block,
+  // except for the entry block.
+  return (FLAG_emit_edge_counters
+      && (!block->last_instruction()->IsGoto()
+          || (block == flow_graph().graph_entry()->normal_entry())));
 }
 
 

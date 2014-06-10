@@ -37,7 +37,13 @@ static void SetEdgeWeight(Instruction* instruction,
                           intptr_t entry_count) {
   TargetEntryInstr* target = successor->AsTargetEntry();
   if (target != NULL) {
-    intptr_t count = ComputeEdgeCount(unoptimized_code, target->deopt_id());
+    // If this block ends in a goto, the edge count of this edge is the same
+    // as the count on the single outgoing edge. This is true as long as the
+    // block does not throw an exception.
+    GotoInstr* jump = target->last_instruction()->AsGoto();
+    const intptr_t deopt_id =
+        (jump != NULL)  ? jump->deopt_id() : target->deopt_id();
+    intptr_t count = ComputeEdgeCount(unoptimized_code, deopt_id);
     if ((count >= 0) && (entry_count != 0)) {
       double weight =
           static_cast<double>(count) / static_cast<double>(entry_count);

@@ -8,6 +8,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/dart_entry.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -6000,7 +6001,7 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (compiler->NeedsEdgeCounter(this)) {
       compiler->EmitEdgeCounter();
     }
     // The deoptimization descriptor points after the edge counter code for
