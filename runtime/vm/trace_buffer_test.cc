@@ -10,9 +10,10 @@
 
 namespace dart {
 
-
-UNIT_TEST_CASE(TraceBufferEmpty) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+TEST_CASE(TraceBufferEmpty) {
+  Isolate* isolate = Isolate::Current();
+  TraceBuffer::Init(isolate, 3);
+  TraceBuffer* trace_buffer = isolate->trace_buffer();
   {
     JSONStream js;
     trace_buffer->PrintToJSONStream(&js);
@@ -22,8 +23,10 @@ UNIT_TEST_CASE(TraceBufferEmpty) {
 }
 
 
-UNIT_TEST_CASE(TraceBufferClear) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+TEST_CASE(TraceBufferClear) {
+  Isolate* isolate = Isolate::Current();
+  TraceBuffer::Init(isolate, 3);
+  TraceBuffer* trace_buffer = isolate->trace_buffer();
   trace_buffer->Trace(kMicrosecondsPerSecond * 1, "abc");
   trace_buffer->Clear();
   {
@@ -35,8 +38,10 @@ UNIT_TEST_CASE(TraceBufferClear) {
 }
 
 
-UNIT_TEST_CASE(TraceBufferTrace) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+TEST_CASE(TraceBufferTrace) {
+  Isolate* isolate = Isolate::Current();
+  TraceBuffer::Init(isolate, 3);
+  TraceBuffer* trace_buffer = isolate->trace_buffer();
 
   trace_buffer->Trace(kMicrosecondsPerSecond * 1, "abc");
   {
@@ -85,8 +90,10 @@ UNIT_TEST_CASE(TraceBufferTrace) {
 }
 
 
-UNIT_TEST_CASE(TraceBufferTraceF) {
-  TraceBuffer* trace_buffer = new TraceBuffer(3);
+TEST_CASE(TraceBufferTraceF) {
+  Isolate* isolate = Isolate::Current();
+  TraceBuffer::Init(isolate, 3);
+  TraceBuffer* trace_buffer = isolate->trace_buffer();
   trace_buffer->TraceF("foo %d %s", 99, "bar");
   {
     JSONStream js;

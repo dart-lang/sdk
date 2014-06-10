@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"
 #include "vm/trace_buffer.h"
 
 namespace dart {
 
-TraceBuffer::TraceBuffer(intptr_t capacity) : ring_capacity_(capacity) {
+TraceBuffer::TraceBuffer(Isolate* isolate, intptr_t capacity)
+    : isolate_(isolate), ring_capacity_(capacity) {
   ring_cursor_ = 0;
-  Init();
+  ring_ = reinterpret_cast<TraceBufferEntry*>(
+      calloc(ring_capacity_, sizeof(TraceBufferEntry)));  // NOLINT
 }
 
 
@@ -18,12 +21,16 @@ TraceBuffer::~TraceBuffer() {
   ASSERT(ring_ != NULL);
   Clear();
   free(ring_);
+  if (isolate_ != NULL) {
+    isolate_->set_trace_buffer(NULL);
+    isolate_ = NULL;
+  }
 }
 
 
-void TraceBuffer::Init() {
-  ring_ = reinterpret_cast<TraceBufferEntry*>(
-      calloc(ring_capacity_, sizeof(TraceBufferEntry)));  // NOLINT
+void TraceBuffer::Init(Isolate* isolate, intptr_t capacity) {
+  TraceBuffer* trace_buffer = new TraceBuffer(isolate, capacity);
+  isolate->set_trace_buffer(trace_buffer);
 }
 
 

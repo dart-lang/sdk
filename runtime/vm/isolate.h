@@ -15,6 +15,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
+#include "vm/trace_buffer.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -446,6 +447,13 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  void set_trace_buffer(TraceBuffer* buffer) {
+    trace_buffer_ = buffer;
+  }
+  TraceBuffer* trace_buffer() {
+    return trace_buffer_;
+  }
+
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -596,6 +604,9 @@ class Isolate : public BaseIsolate {
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
+
+  // Trace buffer support.
+  TraceBuffer* trace_buffer_;
 
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;

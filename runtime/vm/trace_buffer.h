@@ -25,7 +25,8 @@ class TraceBuffer {
  public:
   static const intptr_t kDefaultCapacity = 1024;
 
-  explicit TraceBuffer(intptr_t capacity = kDefaultCapacity);
+  static void Init(Isolate* isolate, intptr_t capacity = kDefaultCapacity);
+
   ~TraceBuffer();
 
   void Clear();
@@ -39,11 +40,12 @@ class TraceBuffer {
   void PrintToJSONStream(JSONStream* stream) const;
 
  private:
-  void Init();
+  TraceBuffer(Isolate* isolate, intptr_t capacity);
   void Cleanup();
   void Fill(TraceBufferEntry* entry, int64_t micros, char* msg);
   void AppendTrace(int64_t micros, char* message);
 
+  Isolate* isolate_;
   TraceBufferEntry* ring_;
   const intptr_t ring_capacity_;
   intptr_t ring_cursor_;

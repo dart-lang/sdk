@@ -353,6 +353,7 @@ Isolate::Isolate()
       stack_frame_index_(-1),
       cha_used_(false),
       object_id_ring_(NULL),
+      trace_buffer_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
