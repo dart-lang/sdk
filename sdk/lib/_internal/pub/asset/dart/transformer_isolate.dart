@@ -93,7 +93,7 @@ MethodMirror _getConstructor(ClassMirror classMirror, String constructor) {
 // Older barbacks don't support [AggregateTransformer], and calling
 // [reflectClass] on an undefined class will throw an error, so we just define a
 // null getter for them.
-//# if barback >=0.14.1-dev
+//# if barback >=0.14.1
 ClassMirror get _aggregateTransformerClass =>
     reflectClass(AggregateTransformer);
 //# else

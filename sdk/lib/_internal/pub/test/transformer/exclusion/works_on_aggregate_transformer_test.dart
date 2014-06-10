@@ -37,7 +37,7 @@ class ManyToOneTransformer extends AggregateTransformer {
 
 main() {
   initConfig();
-  withBarbackVersions(">=0.14.1-dev", () {
+  withBarbackVersions(">=0.14.1", () {
     integration("works on an aggregate transformer", () {
       d.dir(appPath, [
         d.pubspec({
