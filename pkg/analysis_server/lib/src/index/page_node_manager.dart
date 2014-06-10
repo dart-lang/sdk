@@ -7,7 +7,92 @@ library index.page_node_manager;
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/index/lru_cache.dart';
+
 import 'b_plus_tree.dart';
+
+
+/**
+ * A [NodeManager] that caches a specified number of index and leaf nodes.
+ */
+class CachingNodeManager<K, V, N> implements NodeManager<K, V, N> {
+  final NodeManager<K, V, N> _delegate;
+  LRUCache<N, IndexNodeData<K, N>> _indexCache;
+  LRUCache<N, LeafNodeData<K, V>> _leafCache;
+
+  CachingNodeManager(this._delegate, int indexNodeCacheSize,
+      int leafNodeCacheSize) {
+    // TODO(scheglov) method pointers don't work with mocks
+//    _indexCache = new LRUCache<N, IndexNodeData<K, N>>(indexNodeCacheSize,
+//        _delegate.writeIndex);
+//    _leafCache = new LRUCache<N, LeafNodeData<K, V>>(leafNodeCacheSize,
+//        _delegate.writeLeaf);
+    _indexCache = new LRUCache<N, IndexNodeData<K, N>>(indexNodeCacheSize,
+        (N key, IndexNodeData<K, N> value) {
+      _delegate.writeIndex(key, value);
+    });
+    _leafCache = new LRUCache<N, LeafNodeData<K, V>>(leafNodeCacheSize, (N key,
+        LeafNodeData<K, V> value) {
+      _delegate.writeLeaf(key, value);
+    });
+  }
+
+  @override
+  int get maxIndexKeys => _delegate.maxIndexKeys;
+
+  @override
+  int get maxLeafKeys => _delegate.maxLeafKeys;
+
+  @override
+  N createIndex() {
+    return _delegate.createIndex();
+  }
+
+  @override
+  N createLeaf() {
+    return _delegate.createLeaf();
+  }
+
+  @override
+  void delete(N id) {
+    _indexCache.remove(id);
+    _leafCache.remove(id);
+    _delegate.delete(id);
+  }
+
+  @override
+  bool isIndex(N id) {
+    return _delegate.isIndex(id);
+  }
+
+  @override
+  IndexNodeData<K, N> readIndex(N id) {
+    IndexNodeData<K, N> data = _indexCache.get(id);
+    if (data != null) {
+      return data;
+    }
+    return _delegate.readIndex(id);
+  }
+
+  @override
+  LeafNodeData<K, V> readLeaf(N id) {
+    LeafNodeData<K, V> data = _leafCache.get(id);
+    if (data != null) {
+      return data;
+    }
+    return _delegate.readLeaf(id);
+  }
+
+  @override
+  void writeIndex(N id, IndexNodeData<K, N> data) {
+    _indexCache.put(id, data);
+  }
+
+  @override
+  void writeLeaf(N id, LeafNodeData<K, V> data) {
+    _leafCache.put(id, data);
+  }
+}
 
 
 /**
@@ -67,8 +152,9 @@ class FixedStringCodec implements Codec<String> {
     }
     buffer.setUint16(0, length);
     int offset = 2;
-    for (int codeUnit in value.codeUnits) {
-      buffer.setUint16(offset, codeUnit);
+    List<int> codeUnits = value.codeUnits;
+    for (int i = 0; i < length; i++) {
+      buffer.setUint16(offset, codeUnits[i]);
       offset += 2;
     }
   }
@@ -160,59 +246,59 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
   static const int LEAF_OFFSET_DATA = 4;
   static const int LEAF_OFFSET_KEY_COUNT = 0;
 
-  final Set<int> indexPages = new HashSet<int>();
-  Codec<K> keyCodec;
-  final Set<int> leafPages = new HashSet<int>();
-  PageManager pageManager;
-  Codec<V> valueCodec;
+  final Set<int> _indexPages = new HashSet<int>();
+  Codec<K> _keyCodec;
+  final Set<int> _leafPages = new HashSet<int>();
+  PageManager _pageManager;
+  Codec<V> _valueCodec;
 
-  PageNodeManager(this.pageManager, this.keyCodec, this.valueCodec);
+  PageNodeManager(this._pageManager, this._keyCodec, this._valueCodec);
 
   @override
   int get maxIndexKeys {
-    int keySize = keyCodec.sizeInBytes;
+    int keySize = _keyCodec.sizeInBytes;
     int childSize = 4;
-    int dataSize = pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    int dataSize = _pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
     return (dataSize - childSize) ~/ (keySize + childSize);
   }
 
   @override
   int get maxLeafKeys {
-    int keySize = keyCodec.sizeInBytes;
-    int valueSize = valueCodec.sizeInBytes;
-    int dataSize = pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
+    int keySize = _keyCodec.sizeInBytes;
+    int valueSize = _valueCodec.sizeInBytes;
+    int dataSize = _pageManager.pageSizeInBytes - INDEX_OFFSET_DATA;
     return dataSize ~/ (keySize + valueSize);
   }
 
   @override
   int createIndex() {
-    int id = pageManager.alloc();
-    indexPages.add(id);
+    int id = _pageManager.alloc();
+    _indexPages.add(id);
     return id;
   }
 
   @override
   int createLeaf() {
-    int id = pageManager.alloc();
-    leafPages.add(id);
+    int id = _pageManager.alloc();
+    _leafPages.add(id);
     return id;
   }
 
   @override
   void delete(int id) {
-    pageManager.free(id);
-    indexPages.remove(id);
-    leafPages.remove(id);
+    _pageManager.free(id);
+    _indexPages.remove(id);
+    _leafPages.remove(id);
   }
 
   @override
   bool isIndex(int id) {
-    return indexPages.contains(id);
+    return _indexPages.contains(id);
   }
 
   @override
   IndexNodeData<K, int> readIndex(int id) {
-    Uint8List page = pageManager.read(id);
+    Uint8List page = _pageManager.read(id);
     // read header
     int keyCount;
     {
@@ -222,7 +308,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     // read keys/children
     List<K> keys = new List<K>();
     List<int> children = new List<int>();
-    int keySize = keyCodec.sizeInBytes;
+    int keySize = _keyCodec.sizeInBytes;
     int offset = INDEX_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // read child
@@ -235,7 +321,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
       // read key
       {
         ByteData byteData = new ByteData.view(page.buffer, offset, keySize);
-        K key = keyCodec.decode(byteData);
+        K key = _keyCodec.decode(byteData);
         keys.add(key);
         offset += keySize;
       }
@@ -252,7 +338,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
 
   @override
   LeafNodeData<K, V> readLeaf(int id) {
-    Uint8List page = pageManager.read(id);
+    Uint8List page = _pageManager.read(id);
     // read header
     int keyCount;
     {
@@ -262,21 +348,21 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
     // read keys/children
     List<K> keys = new List<K>();
     List<V> values = new List<V>();
-    int keySize = keyCodec.sizeInBytes;
-    int valueSize = valueCodec.sizeInBytes;
+    int keySize = _keyCodec.sizeInBytes;
+    int valueSize = _valueCodec.sizeInBytes;
     int offset = LEAF_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // read key
       {
         ByteData byteData = new ByteData.view(page.buffer, offset, keySize);
-        K key = keyCodec.decode(byteData);
+        K key = _keyCodec.decode(byteData);
         keys.add(key);
         offset += keySize;
       }
       // read value
       {
         ByteData byteData = new ByteData.view(page.buffer, offset);
-        V value = valueCodec.decode(byteData);
+        V value = _valueCodec.decode(byteData);
         values.add(value);
         offset += valueSize;
       }
@@ -287,16 +373,16 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
 
   @override
   void writeIndex(int id, IndexNodeData<K, int> data) {
-    Uint8List page = new Uint8List(pageManager.pageSizeInBytes);
+    Uint8List page = new Uint8List(_pageManager.pageSizeInBytes);
     // write header
     int keyCount = data.keys.length;
     {
       ByteData byteData = new ByteData.view(page.buffer);
-      byteData.setUint32(INDEX_OFFSET_KEY_COUNT, keyCount);
+      byteData.setUint32(PageNodeManager.INDEX_OFFSET_KEY_COUNT, keyCount);
     }
     // write keys/children
-    int keySize = keyCodec.sizeInBytes;
-    int offset = INDEX_OFFSET_DATA;
+    int keySize = _keyCodec.sizeInBytes;
+    int offset = PageNodeManager.INDEX_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // write child
       {
@@ -307,7 +393,7 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
       // write key
       {
         ByteData byteData = new ByteData.view(page.buffer, offset, keySize);
-        keyCodec.encode(byteData, data.keys[i]);
+        _keyCodec.encode(byteData, data.keys[i]);
         offset += keySize;
       }
     }
@@ -317,38 +403,38 @@ class PageNodeManager<K, V> implements NodeManager<K, V, int> {
       byteData.setUint32(0, data.children.last);
     }
     // write page
-    pageManager.write(id, page);
+    _pageManager.write(id, page);
   }
 
   @override
   void writeLeaf(int id, LeafNodeData<K, V> data) {
-    Uint8List page = new Uint8List(pageManager.pageSizeInBytes);
+    Uint8List page = new Uint8List(_pageManager.pageSizeInBytes);
     // write header
     int keyCount = data.keys.length;
     {
       ByteData byteData = new ByteData.view(page.buffer);
-      byteData.setUint32(LEAF_OFFSET_KEY_COUNT, keyCount);
+      byteData.setUint32(PageNodeManager.LEAF_OFFSET_KEY_COUNT, keyCount);
     }
     // write keys/values
-    int keySize = keyCodec.sizeInBytes;
-    int valueSize = valueCodec.sizeInBytes;
-    int offset = LEAF_OFFSET_DATA;
+    int keySize = _keyCodec.sizeInBytes;
+    int valueSize = _valueCodec.sizeInBytes;
+    int offset = PageNodeManager.LEAF_OFFSET_DATA;
     for (int i = 0; i < keyCount; i++) {
       // write key
       {
         ByteData byteData = new ByteData.view(page.buffer, offset, keySize);
-        keyCodec.encode(byteData, data.keys[i]);
+        _keyCodec.encode(byteData, data.keys[i]);
         offset += keySize;
       }
       // write value
       {
         ByteData byteData = new ByteData.view(page.buffer, offset);
-        valueCodec.encode(byteData, data.values[i]);
+        _valueCodec.encode(byteData, data.values[i]);
         offset += valueSize;
       }
     }
     // write page
-    pageManager.write(id, page);
+    _pageManager.write(id, page);
   }
 }
 

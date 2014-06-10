@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:analysis_server/src/index/b_plus_tree.dart';
 import 'package:analysis_server/src/index/page_node_manager.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -16,6 +17,9 @@ import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  group('_CachingNodeManagerTest', () {
+    runReflectiveTests(_CachingNodeManagerTest);
+  });
   group('FixedStringCodecTest', () {
     runReflectiveTests(_FixedStringCodecTest);
   });
@@ -44,8 +48,6 @@ _treeWithPageNodeManager() {
   NodeManager<int, String, int> nodeManager = new PageNodeManager<int, String>(
       pageManager, Uint32Codec.INSTANCE, new FixedStringCodec(7));
 //  NodeManager<int, String, int> nodeManager = new MemoryNodeManager();
-  print('maxIndexKeys: ${nodeManager.maxIndexKeys}   '
-      'maxLeafKeys: ${nodeManager.maxLeafKeys}');
   BPlusTree<int, String, int> tree = new BPlusTree(_intComparator, nodeManager);
   int maxKey = 1000000;
   int tryCount = 1000;
@@ -75,6 +77,115 @@ _treeWithPageNodeManager() {
   // find every remaining key
   for (int key in keys) {
     expect(tree.find(key), 'V$key');
+  }
+}
+
+
+@ReflectiveTestCase()
+class _CachingNodeManagerTest {
+  NodeManager<int, String, int> delegate = new _NodeManagerMock<int, String, int>();
+  NodeManager<int, String, int> manager;
+
+  void setUp() {
+    manager = new CachingNodeManager<int, String, int>(delegate, 4, 4);
+  }
+
+  void test_maxIndexKeys() {
+    when(delegate.maxIndexKeys).thenReturn(42);
+    expect(manager.maxIndexKeys, 42);
+  }
+
+  void test_maxLeafKeys() {
+    when(delegate.maxLeafKeys).thenReturn(42);
+    expect(manager.maxLeafKeys, 42);
+  }
+
+  void test_createIndex() {
+    when(delegate.createIndex()).thenReturn(77);
+    expect(manager.createIndex(), 77);
+  }
+
+  void test_createLeaf() {
+    when(delegate.createLeaf()).thenReturn(99);
+    expect(manager.createLeaf(), 99);
+  }
+
+  void test_delete() {
+    manager.delete(42);
+    verify(delegate.delete(42)).once();
+  }
+
+  void test_isIndex() {
+    when(delegate.isIndex(1)).thenReturn(true);
+    when(delegate.isIndex(2)).thenReturn(false);
+    expect(manager.isIndex(1), isTrue);
+    expect(manager.isIndex(2), isFalse);
+  }
+
+  void test_readIndex_cached() {
+    var data = new IndexNodeData<int, int>([1, 2], [10, 20, 30]);
+    manager.writeIndex(2, data);
+    expect(manager.readIndex(2), data);
+    // delete, forces request to the delegate
+    manager.delete(2);
+    manager.readIndex(2);
+    verify(delegate.readIndex(2)).once();
+  }
+
+  void test_readIndex_delegate() {
+    var data = new IndexNodeData<int, int>([1, 2], [10, 20, 30]);
+    when(delegate.readIndex(2)).thenReturn(data);
+    expect(manager.readIndex(2), data);
+  }
+
+  void test_readLeaf_cached() {
+    var data = new LeafNodeData<int, String>([1, 2, 3], ['A', 'B', 'C']);
+    manager.writeLeaf(2, data);
+    expect(manager.readLeaf(2), data);
+    // delete, forces request to the delegate
+    manager.delete(2);
+    manager.readLeaf(2);
+    verify(delegate.readLeaf(2)).once();
+  }
+
+  void test_readLeaf_delegate() {
+    var data = new LeafNodeData<int, String>([1, 2, 3], ['A', 'B', 'C']);
+    when(delegate.readLeaf(2)).thenReturn(data);
+    expect(manager.readLeaf(2), data);
+  }
+
+  void test_writeIndex() {
+    var data = new IndexNodeData<int, int>([1], [10, 20]);
+    manager.writeIndex(1, data);
+    manager.writeIndex(2, data);
+    manager.writeIndex(3, data);
+    manager.writeIndex(4, data);
+    manager.writeIndex(1, data);
+    // TODO(scheglov) method pointers don't work with mocks
+    // TODO(scheglov) add resetInteractions(mock)
+    // TODO(scheglov) verifyZeroInteractions() should accept 'dynamic'
+//    verifyZeroInteractions(delegate as TypedMock);
+    verify(delegate.writeIndex(anyInt, anyObject)).never();
+    // only 4 nodes can be cached, 5-th one cause write to the delegate
+    manager.writeIndex(5, data);
+    verify(delegate.writeIndex(2, data)).once();
+  }
+
+  void test_writeLeaf() {
+    var data = new LeafNodeData<int, String>([1, 2], ['A', 'B']);
+    manager.writeLeaf(1, data);
+    manager.writeLeaf(2, data);
+    manager.writeLeaf(3, data);
+    manager.writeLeaf(4, data);
+    manager.writeLeaf(1, data);
+    // TODO(scheglov) method pointers don't work with mocks
+    // TODO(scheglov) add resetInteractions(mock)
+    // TODO(scheglov) verifyZeroInteractions() should accept 'dynamic'
+//    verifyZeroInteractions(delegate as TypedMock);
+    verify(delegate.writeLeaf(anyInt, anyObject)).never();
+    // only 4 nodes can be cached, 5-th one cause write to the delegate
+    manager.writeLeaf(5, data);
+    verify(delegate.writeLeaf(2, data)).once();
   }
 }
 
@@ -119,7 +230,6 @@ class _FixedStringCodecTest {
     expect(codec.decode(buffer), 'AB');
   }
 }
-
 
 
 @ReflectiveTestCase()
@@ -176,6 +286,12 @@ class _MemoryPageManagerTest {
       manager.write(42, page);
     }, throws);
   }
+}
+
+
+
+class _NodeManagerMock<K, V, N> extends TypedMock implements NodeManager<K, V, N> {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 

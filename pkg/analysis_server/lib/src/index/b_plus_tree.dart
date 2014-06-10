@@ -123,8 +123,8 @@ class BPlusTree<K, V, N> {
   _IndexNode<K, V, N> _readIndexNode(N id) {
     IndexNodeData<K, N> data = _manager.readIndex(id);
     _IndexNode<K, V, N> node = new _IndexNode<K, V, N>(this, id, _maxIndexKeys);
-    node.keys.addAll(data.keys);
-    node.children.addAll(data.children);
+    node.keys = data.keys;
+    node.children = data.children;
     return node;
   }
 
@@ -134,8 +134,8 @@ class BPlusTree<K, V, N> {
   _LeafNode<K, V, N> _readLeafNode(N id) {
     _LeafNode<K, V, N> node = new _LeafNode<K, V, N>(this, id, _maxLeafKeys);
     LeafNodeData<K, V> data = _manager.readLeaf(id);
-    node.keys.addAll(data.keys);
-    node.values.addAll(data.values);
+    node.keys = data.keys;
+    node.values = data.values;
     return node;
   }
 
@@ -310,7 +310,7 @@ abstract class NodeManager<K, V, N> {
  * An index node with keys and children references.
  */
 class _IndexNode<K, V, N> extends _Node<K, V, N> {
-  final List<N> children = new List<N>();
+  List<N> children = new List<N>();
   final int maxKeys;
   final int minKeys;
 
@@ -488,12 +488,20 @@ class _IndexNode<K, V, N> extends _Node<K, V, N> {
    * Returns the index of the child into which [key] should be inserted.
    */
   int _findChildIndex(K key) {
-    for (int i = 0; i < keys.length; i++) {
-      if (comparator(keys[i], key) > 0) {
-        return i;
+    int lo = 0;
+    int hi = keys.length - 1;
+    while (lo <= hi) {
+      int mid = lo + (hi - lo) ~/ 2;
+      int compare = comparator(key, keys[mid]);
+      if (compare < 0) {
+        hi = mid - 1;
+      } else if (compare > 0) {
+        lo = mid + 1;
+      } else {
+        return mid + 1;
       }
     }
-    return keys.length;
+    return lo;
   }
 
   void _insertNotFull(K key, V value) {
@@ -516,7 +524,7 @@ class _IndexNode<K, V, N> extends _Node<K, V, N> {
 class _LeafNode<K, V, N> extends _Node<K, V, N> {
   final int maxKeys;
   final int minKeys;
-  final List<V> values = new List<V>();
+  List<V> values = new List<V>();
 
   _LeafNode(BPlusTree<K, V, N> tree, N id, int maxKeys)
       : super(tree, id),
@@ -645,12 +653,20 @@ class _LeafNode<K, V, N> extends _Node<K, V, N> {
    * Returns the index where [key] should be inserted.
    */
   int _findKeyIndex(K key) {
-    for (int i = 0; i < keys.length; i++) {
-      if (comparator(keys[i], key) >= 0) {
-        return i;
+    int lo = 0;
+    int hi = keys.length - 1;
+    while (lo <= hi) {
+      int mid = lo + (hi - lo) ~/ 2;
+      int compare = comparator(key, keys[mid]);
+      if (compare < 0) {
+        hi = mid - 1;
+      } else if (compare > 0) {
+        lo = mid + 1;
+      } else {
+        return mid;
       }
     }
-    return keys.length;
+    return lo;
   }
 
   void _insertNotFull(K key, V value, int index) {
@@ -682,7 +698,7 @@ abstract class _Node<K, V, N> {
   /**
    *  The list of keys.
    */
-  final List<K> keys = new List<K>();
+  List<K> keys = new List<K>();
 
   /**
    * The [NodeManager] for this tree.

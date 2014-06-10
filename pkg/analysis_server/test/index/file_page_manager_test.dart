@@ -31,7 +31,7 @@ int _intComparator(int a, int b) => a - b;
 @ReflectiveTestCase()
 class _FilePageManagerTest {
   FilePageManager manager;
-  int pageSize = 256;
+  int pageSize = 1024;
   Directory tempDir;
 
   void setUp() {
@@ -62,10 +62,10 @@ class _FilePageManagerTest {
   void test_btree_stress_random() {
     NodeManager<int, String, int> nodeManager = new PageNodeManager<int,
         String>(manager, Uint32Codec.INSTANCE, new FixedStringCodec(7));
-    print('maxIndexKeys: ${nodeManager.maxIndexKeys}   '
-        'maxLeafKeys: ${nodeManager.maxLeafKeys}');
+    nodeManager = new CachingNodeManager(nodeManager, 32, 32);
     BPlusTree<int, String, int> tree = new BPlusTree(_intComparator,
         nodeManager);
+    // insert
     int maxKey = 1000000;
     int tryCount = 1000;
     Set<int> keys = new Set<int>();
