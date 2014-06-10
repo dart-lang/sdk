@@ -6,6 +6,7 @@
 final Map _servicePathMap = {
   'http' : {
     'servers' : _httpServersServiceObject,
+    'serverconnections' : _httpServerConnectionsServiceObject,
   },
   'sockets' : _socketsServiceObject,
   'websockets' : _webSocketsServiceObject,
@@ -85,6 +86,17 @@ Map _httpServersServiceObject(args) {
     'members': _HttpServer._servers.values
         .map((server) => server._toJSON(true)).toList(),
   };
+}
+
+Map _httpServerConnectionsServiceObject(args) {
+  if (args.length == 1) {
+    var connection = _HttpConnection._connections[int.parse(args.first)];
+    if (connection == null) {
+      return {};
+    }
+    return connection._toJSON(false);
+  }
+  return _makeServiceError("http/serverconnections can not be listed");
 }
 
 Map _socketsServiceObject(args) {

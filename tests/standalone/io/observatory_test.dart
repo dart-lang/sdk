@@ -36,8 +36,8 @@ Future testHttpServer1() {
     Expect.equals(map['address'], 'localhost');
     Expect.equals(map['port'], server.port);
     Expect.equals(map['closed'], false);
-    Expect.equals(map['idle'], 0);
-    Expect.equals(map['active'], 0);
+    Expect.listEquals(map['idle'], []);
+    Expect.listEquals(map['active'], []);
     var socket = map['socket'];
     Expect.equals(socket['type'], '@Socket');
     Expect.equals(socket['kind'], 'Listening');
@@ -49,9 +49,45 @@ Future testHttpServer1() {
 }
 
 
+Future testHttpServerConnection1() {
+  return HttpServer.bind('localhost', 0).then((server) {
+    server.listen((request) {
+      var map = lookupServiceObject(getServicePath(server));
+      Expect.listEquals(map['idle'], []);
+      Expect.equals(map['active'].length, 1);
+      var active = map['active'].first;
+      Expect.equals(active['type'], '@HttpServerConnection');
+      var path = active['id'];
+      map = lookupServiceObject(path);
+      Expect.equals(map['type'], 'HttpServerConnection');
+      var socket = map['socket'];
+      Expect.equals(socket['type'], '@Socket');
+      Expect.equals(socket['kind'], 'Normal');
+      // Validate owner back-ref.
+      socket = lookupServiceObject(socket['id']);
+      Expect.equals(socket['owner']['id'], path);
+      request.response.close();
+    });
+    var client = new HttpClient();
+    return client.get('localhost', server.port, '/')
+        .then((request) => request.close())
+        .then((response) => response.drain())
+        .then((_) {
+          // The connection should be idle now.
+          var map = lookupServiceObject(getServicePath(server));
+          Expect.equals(map['idle'].length, 1);
+          Expect.listEquals(map['active'], []);
+          return server.close();
+        });
+
+  });
+}
+
+
 void main() {
   final tests = [
     testHttpServer1(),
+    testHttpServerConnection1(),
   ];
 
   asyncStart();

@@ -68,6 +68,9 @@
     <template if="{{ ref.serviceType == 'Socket' }}">
       <io-socket-ref ref="{{ ref }}"></io-socket-ref>
     </template>
+    <template if="{{ ref.serviceType == 'HttpServerConnection' }}">
+      <io-http-server-connection-ref ref="{{ ref }}"></io-http-server-connection-ref>
+    </template>
     <template if="{{ ref.serviceType == 'HttpServer' }}">
       <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
     </template>
@@ -143,11 +146,64 @@
         </div>
         <div class="memberItem">
           <div class="memberName">Active connections</div>
-          <div class="memberValue">{{ httpServer['active'] }}</div>
+          <ul class="list-group">
+            <template repeat="{{ connection in httpServer['active'] }}">
+              <li class="list-group-item">
+                <io-http-server-connection-ref ref="{{ connection }}"></io-http-server-connection-ref>
+              </li>
+            </template>
+          </ul>
         </div>
         <div class="memberItem">
           <div class="memberName">Idle connections</div>
-          <div class="memberValue">{{ httpServer['idle'] }}</div>
+          <ul class="list-group">
+            <template repeat="{{ connection in httpServer['idle'] }}">
+              <li class="list-group-item">
+                <io-http-server-connection-ref ref="{{ connection }}"></io-http-server-connection-ref>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <br>
+    <hr>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-connection-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <a href="{{ url }}">{{ name }}</a>
+  </template>
+</polymer-element>
+
+<polymer-element name="io-http-server-connection-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <h1>HttpConnection</h1>
+
+      <br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Socket</div>
+          <div class="memberValue"><io-socket-ref ref="{{ connection['socket'] }}"></io-socket-ref></div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">State</div>
+          <div class="memberValue">{{ connection['state'] }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Server</div>
+          <div class="memberValue"><io-http-server-ref ref="{{ connection['server'] }}"></io-http-server-ref></div>
         </div>
       </div>
     </div>
