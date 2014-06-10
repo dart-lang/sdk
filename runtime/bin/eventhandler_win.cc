@@ -606,7 +606,7 @@ bool ListenSocket::IsClosed() {
 }
 
 
-int Handle::Available() {
+intptr_t Handle::Available() {
   ScopedLock lock(this);
   if (data_ready_ == NULL) return 0;
   ASSERT(!data_ready_->IsEmpty());
@@ -614,10 +614,11 @@ int Handle::Available() {
 }
 
 
-int Handle::Read(void* buffer, int num_bytes) {
+intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   ScopedLock lock(this);
   if (data_ready_ == NULL) return 0;
-  num_bytes = data_ready_->Read(buffer, num_bytes);
+  num_bytes = data_ready_->Read(
+      buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->IsEmpty()) {
     OverlappedBuffer::DisposeBuffer(data_ready_);
     data_ready_ = NULL;
@@ -627,11 +628,12 @@ int Handle::Read(void* buffer, int num_bytes) {
 }
 
 
-int Handle::RecvFrom(
-    void* buffer, int num_bytes, struct sockaddr* sa, socklen_t sa_len) {
+intptr_t Handle::RecvFrom(
+    void* buffer, intptr_t num_bytes, struct sockaddr* sa, socklen_t sa_len) {
   ScopedLock lock(this);
   if (data_ready_ == NULL) return 0;
-  num_bytes = data_ready_->Read(buffer, num_bytes);
+  num_bytes = data_ready_->Read(
+      buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->from()->sa_family == AF_INET) {
     ASSERT(sa_len >= sizeof(struct sockaddr_in));
     memmove(sa, data_ready_->from(), sizeof(struct sockaddr_in));
@@ -649,21 +651,24 @@ int Handle::RecvFrom(
 }
 
 
-int Handle::Write(const void* buffer, int num_bytes) {
+intptr_t Handle::Write(const void* buffer, intptr_t num_bytes) {
   ScopedLock lock(this);
   if (pending_write_ != NULL) return 0;
   if (num_bytes > kBufferSize) num_bytes = kBufferSize;
   ASSERT(SupportsOverlappedIO());
   if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
-  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
-  pending_write_->Write(buffer, num_bytes);
+  int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
+  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(truncated_bytes);
+  pending_write_->Write(buffer, truncated_bytes);
   if (!IssueWrite()) return -1;
-  return num_bytes;
+  return truncated_bytes;
 }
 
 
-int Handle::SendTo(
-    const void* buffer, int num_bytes, struct sockaddr* sa, socklen_t sa_len) {
+intptr_t Handle::SendTo(const void* buffer,
+                        intptr_t num_bytes,
+                        struct sockaddr* sa,
+                        socklen_t sa_len) {
   ScopedLock lock(this);
   if (pending_write_ != NULL) return 0;
   if (num_bytes > kBufferSize) num_bytes = kBufferSize;
@@ -725,7 +730,7 @@ void StdHandle::WriteSyncCompleteAsync() {
   }
 }
 
-int StdHandle::Write(const void* buffer, int num_bytes) {
+intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
   ScopedLock lock(this);
   if (pending_write_ != NULL) return 0;
   if (num_bytes > kBufferSize) num_bytes = kBufferSize;
@@ -752,9 +757,11 @@ int StdHandle::Write(const void* buffer, int num_bytes) {
       locker.Wait(Monitor::kNoTimeout);
     }
   }
+  // Only queue up to INT_MAX bytes.
+  int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
   // Create buffer and notify thread about the new handle.
-  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(num_bytes);
-  pending_write_->Write(buffer, num_bytes);
+  pending_write_ = OverlappedBuffer::AllocateWriteBuffer(truncated_bytes);
+  pending_write_->Write(buffer, truncated_bytes);
   locker.Notify();
   return 0;
 }
