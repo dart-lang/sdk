@@ -49,7 +49,7 @@ Future<Set> loadTransformers(AssetEnvironment environment,
         'configuration': JSON.encode(id.configuration)
       }).then((transformers) {
         transformers = transformers.map(
-            (transformer) => deserializeTransformerOrGroup(transformer, id))
+            (transformer) => deserializeTransformerLike(transformer, id))
             .toSet();
         log.fine("Transformers from $assetId: $transformers");
         return transformers;
