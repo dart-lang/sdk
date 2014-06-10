@@ -259,6 +259,17 @@ class AnalysisException implements Exception {
    * [cause].
    */
   AnalysisException([this.message = 'Exception', this.cause = null]);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("AnalysisException: ");
+    buffer.writeln(message);
+    if (cause != null) {
+      buffer.write('Caused by ');
+      cause._writeOn(buffer);
+    }
+    return buffer.toString();
+  }
 }
 
 
@@ -270,7 +281,7 @@ class CaughtException implements Exception {
   /**
    * The exception that was caught.
    */
-  final Exception exception;
+  final Object exception;
 
   /**
    * The stack trace associated with the exception.
