@@ -550,7 +550,7 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # co19-roll r722: Please
 LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLMeterElement/set-meter-properties_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Skip # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLObjectElement/children-changed_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLObjectElement/children-changed_t01: Pass, RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: Skip # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # co19-roll r722: Please triage this failure.
