@@ -705,14 +705,13 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  intptr_t num_flds = (func.raw()->to() - func.raw()->from());
+  intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
-  // Set up code pointer with the lazy-compile-stub.
-  func.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
-
+  // Initialize all fields that are not part of the snapshot.
+  func.ClearCode();
   return func.raw();
 }
 
@@ -745,11 +744,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to_no_code());
-
-  // Write null for the instructions and unoptimized code.
-  writer->WriteVMIsolateObject(kNullObject);
-  writer->WriteVMIsolateObject(kNullObject);
+  visitor.VisitPointers(from(), to_snapshot());
 }
 
 

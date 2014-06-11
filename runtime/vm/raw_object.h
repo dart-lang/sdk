@@ -620,6 +620,9 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
 
   intptr_t token_pos_;
   intptr_t end_token_pos_;
