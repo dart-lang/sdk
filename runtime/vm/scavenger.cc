@@ -22,8 +22,9 @@
 
 namespace dart {
 
-  DEFINE_FLAG(int, early_tenuring_threshold, 66, "Skip TO space when promoting"
-                                                 " above this percentage.");
+DEFINE_FLAG(int, early_tenuring_threshold, 66,
+            "When more than this percentage of promotion candidates survive, "
+            "promote all survivors of next scavenge.");
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -424,6 +425,7 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   from_ = to_;
+  // TODO(koda): Use stats_history_ to decide new to-space size.
   to_ = SemiSpace::New(from_->size());
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
@@ -441,15 +443,18 @@ void Scavenger::Epilogue(Isolate* isolate,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
-  int promotion_ratio = static_cast<int>(
-      (static_cast<double>(visitor->bytes_promoted()) /
-       static_cast<double>(to_->size())) * 100.0);
-  if (promotion_ratio < FLAG_early_tenuring_threshold) {
+  double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
+  if (stats_history_.Size() >= 2) {
+    // Previous scavenge is only given half as much weight.
+    avg_frac += 0.5 * stats_history_.Get(1).PromoCandidatesSuccessFraction();
+    avg_frac /= 1.0 + 0.5;  // Normalize.
+  }
+  if (avg_frac < (FLAG_early_tenuring_threshold / 100.0)) {
     // Remember the limit to which objects have been copied.
     survivor_end_ = top_;
   } else {
     // Move survivor end to the end of the to_ space, making all surviving
-    // objects candidates for promotion.
+    // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
 
@@ -765,6 +770,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
+  SpaceUsage usage_before = GetCurrentUsage();
+  intptr_t promo_candidate_words =
+      (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
   const bool prologue_weak_are_strong = !invoke_api_callbacks;
   IterateRoots(isolate, &visitor, prologue_weak_are_strong);
@@ -781,6 +789,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
+  stats_history_.Add(ScavengeStats(start, end,
+                                   usage_before, GetCurrentUsage(),
+                                   promo_candidate_words,
+                                   visitor.bytes_promoted() >> kWordSizeLog2));
   Epilogue(isolate, &visitor, invoke_api_callbacks);
 
   if (FLAG_verify_after_gc) {

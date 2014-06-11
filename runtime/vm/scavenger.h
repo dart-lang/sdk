@@ -11,6 +11,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
+#include "vm/ring_buffer.h"
 #include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
@@ -58,6 +59,47 @@ class SemiSpace {
 
   static SemiSpace* cache_;
   static Mutex* mutex_;
+};
+
+
+// Statistics for a particular scavenge.
+class ScavengeStats {
+ public:
+  ScavengeStats() {}
+  ScavengeStats(int64_t start_micros,
+                int64_t end_micros,
+                SpaceUsage before,
+                SpaceUsage after,
+                intptr_t promo_candidates_in_words,
+                intptr_t promoted_in_words) :
+      start_micros_(start_micros),
+      end_micros_(end_micros),
+      before_(before),
+      after_(after),
+      promo_candidates_in_words_(promo_candidates_in_words),
+      promoted_in_words_(promoted_in_words) {}
+
+  // Of all data before scavenge, what fraction was found to be garbage?
+  double GarbageFraction() const {
+    intptr_t survived = after_.used_in_words + promoted_in_words_;
+    return 1.0 - (survived / static_cast<double>(before_.used_in_words));
+  }
+
+  // Fraction of promotion candidates that survived and was thereby promoted.
+  // Returns zero if there were no promotion candidates.
+  double PromoCandidatesSuccessFraction() const {
+    return promo_candidates_in_words_ > 0 ?
+        promoted_in_words_ / static_cast<double>(promo_candidates_in_words_) :
+        0.0;
+  }
+
+ private:
+  int64_t start_micros_;
+  int64_t end_micros_;
+  SpaceUsage before_;
+  SpaceUsage after_;
+  intptr_t promo_candidates_in_words_;
+  intptr_t promoted_in_words_;
 };
 
 
@@ -244,6 +286,8 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
+  static const int kStatsHistoryCapacity = 2;
+  RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
 
   // The total size of external data associated with objects in this scavenger.
   intptr_t external_size_;
