@@ -444,6 +444,8 @@ class ZoneCompileType : public ZoneAllocated {
 // another compile type.
 class ConstrainedCompileType : public ZoneCompileType {
  public:
+  virtual ~ConstrainedCompileType() { }
+
   // Recompute compile type.
   virtual void Update() = 0;
 
@@ -820,6 +822,8 @@ class Instruction : public ZoneAllocated {
         env_(NULL),
         locs_(NULL),
         place_id_(kNoPlaceId) { }
+
+  virtual ~Instruction() { }
 
   virtual Tag tag() const = 0;
 

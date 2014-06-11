@@ -129,6 +129,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
   class SimpleZoneObject : public ZoneAllocated {
    public:
     SimpleZoneObject() : slot(marker++) { }
+    virtual ~SimpleZoneObject() { }
     virtual int GetSlot() { return slot; }
     int slot;
   };

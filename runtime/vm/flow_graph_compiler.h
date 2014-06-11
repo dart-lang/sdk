@@ -118,6 +118,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
         deopt_env_(deopt_env) {
     ASSERT(deopt_env != NULL);
   }
+  virtual ~CompilerDeoptInfo() { }
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder,
@@ -173,6 +174,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 class SlowPathCode : public ZoneAllocated {
  public:
   SlowPathCode() : entry_label_(), exit_label_() { }
+  virtual ~SlowPathCode() { }
 
   Label* entry_label() { return &entry_label_; }
   Label* exit_label() { return &exit_label_; }

@@ -89,9 +89,6 @@ class AllStatic {
 class ZoneAllocated {
  public:
   ZoneAllocated() { }
-  // It would be ideal if the destructor method could be made private,
-  // but the g++ compiler complains when this is subclassed.
-  virtual ~ZoneAllocated();
 
   // Implicitly allocate the object in the current zone.
   void* operator new(uword size);
