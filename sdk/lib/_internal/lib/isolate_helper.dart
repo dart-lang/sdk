@@ -699,6 +699,15 @@ typedef _MainFunctionArgsMessage(args, message);
 /// when 'dart:isolate' has been imported.
 class IsolateNatives {
 
+  // We set [enableSpawnWorker] to true (not null) when calling isolate
+  // primitives that require support for spawning workers. The field starts out
+  // by being null, and dart2js' type inference will track if it can have a
+  // non-null value. So by testing if this value is not null, we generate code
+  // that dart2js knows is dead when worker support isn't needed.
+  // TODO(herhut): Initialize this to false when able to track compile-time
+  // constants.
+  static var enableSpawnWorker;
+
   static String thisScript = computeThisScript();
 
   /// Associates an ID with a native worker object.
@@ -803,14 +812,7 @@ class IsolateNatives {
         _globalState.topEventLoop.run();
         break;
       case 'spawn-worker':
-        var replyPort = msg['replyPort'];
-        spawn(msg['functionName'], msg['uri'],
-              msg['args'], msg['msg'],
-              false, msg['isSpawnUri'], msg['startPaused']).then((msg) {
-          replyPort.send(msg);
-        }, onError: (String errorMessage) {
-          replyPort.send([_SPAWN_FAILED_SIGNAL, errorMessage]);
-        });
+        if (enableSpawnWorker != null) handleSpawnWorkerRequest(msg);
         break;
       case 'message':
         SendPort port = msg['port'];
@@ -839,6 +841,17 @@ class IsolateNatives {
       case 'error':
         throw msg['msg'];
     }
+  }
+
+  static handleSpawnWorkerRequest(msg) {
+    var replyPort = msg['replyPort'];
+    spawn(msg['functionName'], msg['uri'],
+          msg['args'], msg['msg'],
+          false, msg['isSpawnUri'], msg['startPaused']).then((msg) {
+      replyPort.send(msg);
+    }, onError: (String errorMessage) {
+      replyPort.send([_SPAWN_FAILED_SIGNAL, errorMessage]);
+    });
   }
 
   /** Log a message, forwarding to the main [_Manager] if appropriate. */
@@ -880,6 +893,7 @@ class IsolateNatives {
   static Future<List> spawnFunction(void topLevelFunction(message),
                                     var message,
                                     bool startPaused) {
+    IsolateNatives.enableSpawnWorker = true;
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
       throw new UnsupportedError(
@@ -892,6 +906,7 @@ class IsolateNatives {
 
   static Future<List> spawnUri(Uri uri, List<String> args, var message,
                                bool startPaused) {
+    IsolateNatives.enableSpawnWorker = true;
     bool isLight = false;
     bool isSpawnUri = true;
     return spawn(null, uri.toString(), args, message,
