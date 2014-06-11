@@ -39,11 +39,13 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool releaseMode = settings.mode == BarbackMode.RELEASE;
   bool jsOption = args['js'];
   bool csp = args['csp'] == true; // defaults to false
+  bool lint = args['lint'] != false; // defaults to true
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
       directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
       contentSecurityPolicy: csp,
-      releaseMode: releaseMode);
+      releaseMode: releaseMode,
+      lint: lint);
 }
 
 _readEntrypoints(value) {
@@ -71,6 +73,9 @@ _readEntrypoints(value) {
 /// is actually imported.
 List<List<Transformer>> createDeployPhases(
     TransformOptions options, {String sdkDir}) {
+  // TODO(sigmund): this should be done differently. We should lint everything
+  // that is reachable and have the option to lint the rest (similar to how
+  // dart2js can analyze reachable code or entire libraries).
   var phases = options.lint ? [[new Linter(options)]] : [];
   return phases..addAll([
     [new ImportInliner(options)],
