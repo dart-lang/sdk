@@ -708,7 +708,7 @@ class CallSiteInliner : public ValueObject {
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  param_stubs);
-        ASSERT(callee_graph->VerifyUseLists());
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       {
@@ -718,12 +718,12 @@ class CallSiteInliner : public ValueObject {
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
-        ASSERT(callee_graph->VerifyUseLists());
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
         // Optimize (a << b) & c patterns, merge instructions. Must occur before
         // 'SelectRepresentations' which inserts conversion nodes.
         optimizer.TryOptimizePatterns();
-        ASSERT(callee_graph->VerifyUseLists());
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       if (FLAG_trace_inlining &&
@@ -933,7 +933,7 @@ class CallSiteInliner : public ValueObject {
     }
 
     // Check that inlining maintains use lists.
-    ASSERT(!FLAG_verify_compiler || caller_graph_->VerifyUseLists());
+    DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->VerifyUseLists());
   }
 
   static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {

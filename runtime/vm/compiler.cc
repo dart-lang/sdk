@@ -319,7 +319,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                          isolate);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
         if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
           FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
         }
@@ -335,12 +335,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
 
         FlowGraphOptimizer optimizer(flow_graph);
         optimizer.ApplyICData();
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Optimize (a << b) & c patterns, merge operations.
         // Run early in order to have more opportunity to optimize left shifts.
         optimizer.TryOptimizePatterns();
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
@@ -348,30 +348,30 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                            &CompilerStats::graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           // Use propagated class-ids to create more inlining opportunities.
           optimizer.ApplyClassIds();
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           FlowGraphInliner inliner(flow_graph);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
         // Propagate types and eliminate more type tests.
         FlowGraphTypePropagator::Propagate(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Use propagated class-ids to optimize further.
         optimizer.ApplyClassIds();
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Propagate types for potentially newly added instructions by
         // ApplyClassIds(). Must occur before canonicalization.
         FlowGraphTypePropagator::Propagate(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Do optimizations that depend on the propagated type information.
         if (optimizer.Canonicalize()) {
@@ -379,37 +379,37 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // like "if (a & const == 0) { }".
           optimizer.Canonicalize();
         }
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         BranchSimplifier::Simplify(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         IfConverter::Simplify(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         if (FLAG_constant_propagation) {
           ConstantPropagator::Optimize(flow_graph);
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // A canonicalization pass to remove e.g. smi checks on smi constants.
           optimizer.Canonicalize();
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // Canonicalization introduced more opportunities for constant
           // propagation.
           ConstantPropagator::Optimize(flow_graph);
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
         // Propagate types and eliminate even more type tests.
         // Recompute types after constant propagation to infer more precise
         // types for uses that were previously reached by now eliminated phis.
         FlowGraphTypePropagator::Propagate(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Unbox doubles. Performed after constant propagation to minimize
         // interference from phis merging double values and tagged
         // values coming from dead paths.
         optimizer.SelectRepresentations();
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         if (FLAG_common_subexpression_elimination ||
             FLAG_loop_invariant_code_motion) {
@@ -418,12 +418,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
 
         if (FLAG_common_subexpression_elimination) {
           if (DominatorBasedCSE::Optimize(flow_graph)) {
-            ASSERT(flow_graph->VerifyUseLists());
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
             // Do another round of CSE to take secondary effects into account:
             // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
             // TODO(fschneider): Change to a one-pass optimization pass.
             DominatorBasedCSE::Optimize(flow_graph);
-            ASSERT(flow_graph->VerifyUseLists());
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
           }
         }
 
@@ -432,7 +432,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         if (FLAG_loop_invariant_code_motion) {
           LICM licm(flow_graph);
           licm.Optimize();
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
         flow_graph->RemoveRedefinitions();
 
@@ -440,7 +440,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         // Run after CSE in order to have more opportunity to merge
         // instructions that have same inputs.
         optimizer.TryOptimizePatterns();
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         DeadStoreElimination::Optimize(flow_graph);
 
@@ -448,13 +448,13 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // Propagate types after store-load-forwarding. Some phis may have
           // become smi phis that can be processed by range analysis.
           FlowGraphTypePropagator::Propagate(flow_graph);
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
           optimizer.InferSmiRanges();
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
         if (FLAG_constant_propagation) {
@@ -462,13 +462,13 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // find unreachable branch targets and eliminate branches that have
           // the same true- and false-target.
           ConstantPropagator::OptimizeBranches(flow_graph);
-          ASSERT(flow_graph->VerifyUseLists());
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
         // Recompute types after code movement was done to ensure correct
         // reaching types for hoisted values.
         FlowGraphTypePropagator::Propagate(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Optimize try-blocks.
         TryCatchAnalyzer::Optimize(flow_graph);
@@ -479,7 +479,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.EliminateEnvironments();
 
         DeadCodeElimination::EliminateDeadPhis(flow_graph);
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Attempt to sink allocations of temporary non-escaping objects to
         // the deoptimization path.
@@ -490,7 +490,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
         }
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Ensure that all phis inserted by optimization passes have consistent
         // representations.
@@ -504,7 +504,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // TODO(vegorov): implement a separate representation folding pass.
           optimizer.Canonicalize();
         }
-        ASSERT(flow_graph->VerifyUseLists());
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         if (sinking != NULL) {
           // Remove all MaterializeObject instructions inserted by allocation
