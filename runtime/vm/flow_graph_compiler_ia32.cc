@@ -28,7 +28,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
