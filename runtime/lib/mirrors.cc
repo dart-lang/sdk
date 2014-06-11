@@ -385,6 +385,10 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
+  if (str.Equals("dart:builtin") || str.Equals("dart:_blink")) {
+    // Censored library (grumble).
+    return Instance::null();
+  }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
 }
@@ -406,6 +410,10 @@ static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
   const Library& importee = Library::Handle(ns.library());
   const Instance& importee_mirror =
       Instance::Handle(CreateLibraryMirror(importee));
+  if (importee_mirror.IsNull()) {
+    // Imported library is censored: censor the import.
+    return Instance::null();
+  }
 
   const Array& show_names = Array::Handle(ns.show_names());
   const Array& hide_names = Array::Handle(ns.hide_names());
@@ -461,7 +469,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
     ns ^= ports.At(i);
     if (!ns.IsNull()) {
       dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
-      deps.Add(dep);
+      if (!dep.IsNull()) {
+        deps.Add(dep);
+      }
     }
   }
 
@@ -470,7 +480,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
     dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false);
-    deps.Add(dep);
+    if (!dep.IsNull()) {
+      deps.Add(dep);
+    }
   }
 
   // Prefixed imports.
@@ -486,7 +498,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
         ns ^= ports.At(i);
         if (!ns.IsNull()) {
           dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true);
-          deps.Add(dep);
+          if (!dep.IsNull()) {
+            deps.Add(dep);
+          }
         }
       }
     }
@@ -549,18 +563,21 @@ static RawInstance* CreateIsolateMirror() {
 
 static RawInstance* CreateMirrorSystem() {
   Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
 
   const intptr_t num_libraries = libraries.Length();
-  const Array& library_mirrors = Array::Handle(Array::New(num_libraries));
-  Library& library = Library::Handle();
-  Instance& library_mirror = Instance::Handle();
+  const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
+      isolate, GrowableObjectArray::New(num_libraries));
+  Library& library = Library::Handle(isolate);
+  Instance& library_mirror = Instance::Handle(isolate);
 
   for (int i = 0; i < num_libraries; i++) {
     library ^= libraries.At(i);
     library_mirror = CreateLibraryMirror(library);
-    library_mirrors.SetAt(i, library_mirror);
+    if (!library_mirror.IsNull()) {
+      library_mirrors.Add(library_mirror);
+    }
   }
 
   const Instance& isolate_mirror = Instance::Handle(CreateIsolateMirror());
