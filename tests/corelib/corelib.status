@@ -163,3 +163,7 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 [ $runtime == ie9 || $runtime == ie10 ]
 num_parse_test: RuntimeError  # Issue 15316
 num_parse_test/01: RuntimeError  # Issue 15316
+
+[ $system == windows && $arch == x64 ]
+stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
+
