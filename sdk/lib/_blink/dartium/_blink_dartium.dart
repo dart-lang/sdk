@@ -8133,10 +8133,10 @@ class BlinkURL {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -8144,9 +8144,9 @@ class BlinkURL {
 
   static $_createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
-  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
+  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
 
-  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
+  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
 
   static $createObjectUrlFromBlob_Callback(blob) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
@@ -9358,21 +9358,92 @@ class BlinkXSLTProcessor {
 
 // TODO(vsm): This should be moved out of this library.  Into dart:html?
 Type _getType(String key) {
+  var result;
+
   // TODO(vsm): Add Cross Frame and JS types here as well.
-  if (htmlBlinkMap.containsKey(key))
-    return htmlBlinkMap[key]();
-  if (indexed_dbBlinkMap.containsKey(key))
-    return indexed_dbBlinkMap[key]();
-  if (web_audioBlinkMap.containsKey(key))
-    return web_audioBlinkMap[key]();
-  if (web_glBlinkMap.containsKey(key))
-    return web_glBlinkMap[key]();
-  if (web_sqlBlinkMap.containsKey(key))
-    return web_sqlBlinkMap[key]();
-  if (svgBlinkMap.containsKey(key))
-    return svgBlinkMap[key]();
+
+  // Check the html library.
+  result = _getHtmlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web gl library.
+  result = _getWebGlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the indexed db library.
+  result = _getIndexDbType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web audio library.
+  result = _getWebAudioType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web sql library.
+  result = _getWebSqlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the svg library.
+  result = _getSvgType(key);
+  if (result != null) {
+    return result;
+  }
+
   return null;
-}// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+}
+
+Type _getHtmlType(String key) {
+  if (htmlBlinkMap.containsKey(key)) {
+    return htmlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebGlType(String key) {
+  if (web_glBlinkMap.containsKey(key)) {
+    return web_glBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getIndexDbType(String key) {
+  if (indexed_dbBlinkMap.containsKey(key)) {
+    return indexed_dbBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebAudioType(String key) {
+  if (web_audioBlinkMap.containsKey(key)) {
+    return web_audioBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebSqlType(String key) {
+  if (web_sqlBlinkMap.containsKey(key)) {
+    return web_sqlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getSvgType(String key) {
+  if (svgBlinkMap.containsKey(key)) {
+    return svgBlinkMap[key]();
+  }
+  return null;
+}
+
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
