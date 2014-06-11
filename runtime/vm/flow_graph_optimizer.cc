@@ -7205,9 +7205,9 @@ class LoadOptimizer : public ValueObject {
       if (a->is_alive()) {
         a->mark_dead();
         a->block()->RemovePhi(a);
+        a->UnuseAllInputs();
       }
     }
-
     return true;
   }
 
@@ -7234,9 +7234,7 @@ class LoadOptimizer : public ValueObject {
     for (intptr_t i = 0; i < phis_.length(); i++) {
       PhiInstr* phi = phis_[i];
       if (!phi->HasUses() || EliminateRedundantPhi(phi)) {
-        for (intptr_t j = phi->InputCount() - 1; j >= 0; --j) {
-          phi->InputAt(j)->RemoveFromUseList();
-        }
+        phi->UnuseAllInputs();
         phis_[i] = NULL;
       }
     }
@@ -7246,9 +7244,7 @@ class LoadOptimizer : public ValueObject {
     for (intptr_t i = 0; i < phis_.length(); i++) {
       PhiInstr* phi = phis_[i];
       if ((phi != NULL) && (!phi->HasUses() || !EmitPhi(phi))) {
-        for (intptr_t j = phi->InputCount() - 1; j >= 0; --j) {
-          phi->InputAt(j)->RemoveFromUseList();
-        }
+        phi->UnuseAllInputs();
       }
     }
   }

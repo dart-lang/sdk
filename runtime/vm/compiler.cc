@@ -479,6 +479,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.EliminateEnvironments();
 
         DeadCodeElimination::EliminateDeadPhis(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Attempt to sink allocations of temporary non-escaping objects to
         // the deoptimization path.
@@ -489,6 +490,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
         }
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Ensure that all phis inserted by optimization passes have consistent
         // representations.
