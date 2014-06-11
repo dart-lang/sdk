@@ -37,7 +37,7 @@ class _KeyRangeFactoryProvider {
 }
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
-const indexed_dbBlinkMap = const {
+final indexed_dbBlinkMap = {
 $!TYPE_MAP
 };
 $endif

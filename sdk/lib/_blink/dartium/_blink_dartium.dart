@@ -9360,17 +9360,17 @@ class BlinkXSLTProcessor {
 Type _getType(String key) {
   // TODO(vsm): Add Cross Frame and JS types here as well.
   if (htmlBlinkMap.containsKey(key))
-    return htmlBlinkMap[key];
+    return htmlBlinkMap[key]();
   if (indexed_dbBlinkMap.containsKey(key))
-    return indexed_dbBlinkMap[key];
+    return indexed_dbBlinkMap[key]();
   if (web_audioBlinkMap.containsKey(key))
-    return web_audioBlinkMap[key];
+    return web_audioBlinkMap[key]();
   if (web_glBlinkMap.containsKey(key))
-    return web_glBlinkMap[key];
+    return web_glBlinkMap[key]();
   if (web_sqlBlinkMap.containsKey(key))
-    return web_sqlBlinkMap[key];
+    return web_sqlBlinkMap[key]();
   if (svgBlinkMap.containsKey(key))
-    return svgBlinkMap[key];
+    return svgBlinkMap[key]();
   return null;
 }// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -25,13 +25,13 @@ import 'dart:_blink' as _blink;
 
 
 // FIXME: Can we make this private?
-const web_sqlBlinkMap = const {
-  'Database': SqlDatabase,
-  'SQLError': SqlError,
-  'SQLResultSet': SqlResultSet,
-  'SQLResultSetRowList': SqlResultSetRowList,
-  'SQLTransaction': SqlTransaction,
-  'SQLTransactionSync': _SQLTransactionSync,
+final web_sqlBlinkMap = {
+  'Database': () => SqlDatabase,
+  'SQLError': () => SqlError,
+  'SQLResultSet': () => SqlResultSet,
+  'SQLResultSetRowList': () => SqlResultSetRowList,
+  'SQLTransaction': () => SqlTransaction,
+  'SQLTransactionSync': () => _SQLTransactionSync,
 
 };
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -35,18 +35,18 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
-const indexed_dbBlinkMap = const {
-  'IDBCursor': Cursor,
-  'IDBCursorWithValue': CursorWithValue,
-  'IDBDatabase': Database,
-  'IDBFactory': IdbFactory,
-  'IDBIndex': Index,
-  'IDBKeyRange': KeyRange,
-  'IDBObjectStore': ObjectStore,
-  'IDBOpenDBRequest': OpenDBRequest,
-  'IDBRequest': Request,
-  'IDBTransaction': Transaction,
-  'IDBVersionChangeEvent': VersionChangeEvent,
+final indexed_dbBlinkMap = {
+  'IDBCursor': () => Cursor,
+  'IDBCursorWithValue': () => CursorWithValue,
+  'IDBDatabase': () => Database,
+  'IDBFactory': () => IdbFactory,
+  'IDBIndex': () => Index,
+  'IDBKeyRange': () => KeyRange,
+  'IDBObjectStore': () => ObjectStore,
+  'IDBOpenDBRequest': () => OpenDBRequest,
+  'IDBRequest': () => Request,
+  'IDBTransaction': () => Transaction,
+  'IDBVersionChangeEvent': () => VersionChangeEvent,
 
 };
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
