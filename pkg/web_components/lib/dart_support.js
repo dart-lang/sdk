@@ -116,6 +116,33 @@
     upgraders[name] = upgrader;
   }
 
+
+  // Native custom elements outside the app in Chrome have constructor
+  // names like "x-tag", which need to be translated to the DOM
+  // element they extend.  When using the shadow dom polyfill this is
+  // take care of above.
+  var ShadowDOMPolyfill = window.ShadowDOMPolyfill;
+  if (!ShadowDOMPolyfill) {
+    // dartNativeDispatchHooksTransformer is described on initHooks() in
+    // sdk/lib/_internal/lib/native_helper.dart.
+    if (typeof window.dartNativeDispatchHooksTransformer == 'undefined')
+    window.dartNativeDispatchHooksTransformer = [];
+
+    window.dartNativeDispatchHooksTransformer.push(function(hooks) {
+      var originalGetUnknownTag = hooks.getUnknownTag;
+      hooks.getUnknownTag = function(o, tag) {
+        if (/-/.test(tag)) {  // "x-tag"
+          var s = Object.prototype.toString.call(o);
+          var match = s.match(/^\[object ([A-Za-z]*Element)\]$/);
+          if (match) {
+            return match[1];
+	  }
+          return originalGetUnknownTag(o, tag);
+        }
+      };
+    });
+  }
+
   doc._registerDartTypeUpgrader = registerDartTypeUpgrader;
   doc.registerElement = registerElement;
 })(document);

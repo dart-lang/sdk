@@ -248,9 +248,6 @@ polymer/e2e_test/bad_import2: RuntimeError # Issue 17596
 polymer/e2e_test/bad_import3: Fail, OK # tests broken import
 polymer/test/mirror_loader_test: Skip # tests development only behavior
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) ]
-web_components/test/interop_test: Fail # Issue 19322
-
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
