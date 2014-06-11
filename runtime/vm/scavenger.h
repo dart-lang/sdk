@@ -93,6 +93,10 @@ class ScavengeStats {
         0.0;
   }
 
+  int64_t DurationMicros() const {
+    return end_micros_ - start_micros_;
+  }
+
  private:
   int64_t start_micros_;
   int64_t end_micros_;
