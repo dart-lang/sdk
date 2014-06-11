@@ -416,11 +416,19 @@ class Uri {
    *
    * Examples:
    *
-   *     // Create the URI http://example.org/path?q=abc.
-   *     new Uri.http("google.com", "/search", { "q" : "dart" });http://example.org/path?q=abc.
-   *     new Uri.http("user:pass@localhost:8080, "");  // http://user:pass@localhost:8080/
-   *     new Uri.http("example.org, "a b");  // http://example.org/a%20b
-   *     new Uri.http("example.org, "/a%2F");  // http://example.org/a%25%2F
+   * ```
+   * // http://example.org/path?q=dart.
+   * new Uri.http("google.com", "/search", { "q" : "dart" });
+   *
+   * // http://user:pass@localhost:8080
+   * new Uri.http("user:pass@localhost:8080", "");
+   *
+   * // http://example.org/a%20b
+   * new Uri.http("example.org", "a b");
+   *
+   * // http://example.org/a%252F
+   * new Uri.http("example.org", "/a%2F");
+   * ```
    *
    * The `scheme` is always set to `http`.
    *
@@ -540,26 +548,52 @@ class Uri {
    * a value for [windows]. Passing `true` will use Windows
    * semantics and passing `false` will use non-Windows semantics.
    *
-   * Examples using non-Windows semantics (resulting URI in comment):
+   * Examples using non-Windows semantics:
    *
-   *     new Uri.file("xxx/yyy");  // xxx/yyy
-   *     new Uri.file("xxx/yyy/");  // xxx/yyy/
-   *     new Uri.file("/xxx/yyy");  // file:///xxx/yyy
-   *     new Uri.file("/xxx/yyy/");  // file:///xxx/yyy/
-   *     new Uri.file("C:");  // C:
+   * ```
+   * // xxx/yyy
+   * new Uri.file("xxx/yyy", windows: false);
    *
-   * Examples using Windows semantics (resulting URI in comment):
+   * // xxx/yyy/
+   * new Uri.file("xxx/yyy/", windows: false);
    *
-   *     new Uri.file(r"xxx\yyy");  // xxx/yyy
-   *     new Uri.file(r"xxx\yyy\");  // xxx/yyy/
-   *     new Uri.file(r"\xxx\yyy");  // file:///xxx/yyy
-   *     new Uri.file(r"\xxx\yyy/");  // file:///xxx/yyy/
-   *     new Uri.file(r"C:\xxx\yyy");  // file:///C:/xxx/yyy
-   *     new Uri.file(r"C:xxx\yyy");  // Throws as path with drive letter
-   *                                  // is not absolute.
-   *     new Uri.file(r"\\server\share\file");  // file://server/share/file
-   *     new Uri.file(r"C:");  // Throws as path with drive letter
-   *                           // is not absolute.
+   * // file:///xxx/yyy
+   * new Uri.file("/xxx/yyy", windows: false);
+   *
+   * // file:///xxx/yyy/
+   * new Uri.file("/xxx/yyy/", windows: false);
+   *
+   * // C:
+   * new Uri.file("C:", windows: false);
+   * ```
+   *
+   * Examples using Windows semantics:
+   *
+   * ```
+   * // xxx/yyy
+   * new Uri.file(r"xxx\yyy", windows: true);
+   *
+   * // xxx/yyy/
+   * new Uri.file(r"xxx\yyy\", windows: true);
+   *
+   * file:///xxx/yyy
+   * new Uri.file(r"\xxx\yyy", windows: true);
+   *
+   * file:///xxx/yyy/
+   * new Uri.file(r"\xxx\yyy/", windows: true);
+   *
+   * // file:///C:/xxx/yyy
+   * new Uri.file(r"C:\xxx\yyy", windows: true);
+   *
+   * // This throws an error. A path with a drive letter is not absolute.
+   * new Uri.file(r"C:", windows: true);
+   *
+   * // This throws an error. A path with a drive letter is not absolute.
+   * new Uri.file(r"C:xxx\yyy", windows: true);
+   *
+   * // file://server/share/file
+   * new Uri.file(r"\\server\share\file", windows: true);
+   * ```
    *
    * If the path passed is not a legal file path [ArgumentError] is thrown.
    */
