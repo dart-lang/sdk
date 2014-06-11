@@ -3,7 +3,7 @@
 </head>
 <polymer-element name="vm-ref" extends="service-ref">
 <template><link rel="stylesheet" href="css/shared.css">
-  <a href="{{ url }}">{{ ref.name }}</a>
+  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
 </template>
 <script type="application/dart" src="vm_ref.dart"></script>
 </polymer-element>

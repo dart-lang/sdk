@@ -21,8 +21,9 @@
       <template if="{{ function['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="{{ function.hashLink }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ function.link }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">

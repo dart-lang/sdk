@@ -34,16 +34,16 @@
                         isBool(ref.serviceType) ||
                         isInt(ref.serviceType)) ||
                         isDouble(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['valueAsString'] }}</a>
+        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
       <template if="{{ (isType(ref.serviceType)) }}">
-        <a href="{{ url }}">{{ ref['user_name'] }}</a>
+        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isInstance(ref.serviceType) &&
                        ref['closureFunc'] != null}}">
-        <a href="{{ url }}">
+        <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc']['user_name'] }}
         </a>
@@ -51,7 +51,7 @@
 
       <template if="{{ isInstance(ref.serviceType) &&
                        ref['closureFunc'] == null}}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em></a>
+        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ field in ref['fields'] }}">
@@ -69,7 +69,7 @@
       </template>
 
       <template if="{{ isList(ref.serviceType) }}">
-        <a href="{{ url }}"><em>{{ ref['class']['user_name'] }}</em> ({{ ref['length']}})</a>
+        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ element in ref['elements'] }}">

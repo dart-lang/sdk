@@ -4,10 +4,10 @@
 <polymer-element name="library-ref" extends="service-ref">
 <template><link rel="stylesheet" href="css/shared.css">
   <template if="{{ nameIsEmpty }}">
-    <a href="{{ url }}">unnamed</a>
+    <a on-click="{{ goto }}" href="{{ url }}">unnamed</a>
   </template>
   <template if="{{ !nameIsEmpty }}">
-    <a href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
   </template>
 </template>
 <script type="application/dart" src="library_ref.dart"></script>

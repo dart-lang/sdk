@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
-      <nav-menu link="{{ flagList.isolate.relativeHashLink('flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ flagList.vm.relativeLink('flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content-centered">

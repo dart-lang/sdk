@@ -1,9 +1,8 @@
-<head>
 <link rel="import" href="service_ref.html">
-</head>
 <polymer-element name="isolate-ref" extends="service-ref">
 <template><link rel="stylesheet" href="css/shared.css">
-  <a href="{{ url }}">{{ ref.name }}</a>
+  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
 </template>
-<script type="application/dart" src="isolate_ref.dart"></script>
 </polymer-element>
+
+<script type="application/dart" src="isolate_ref.dart"></script>

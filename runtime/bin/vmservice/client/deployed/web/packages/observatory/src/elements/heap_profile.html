@@ -41,10 +41,11 @@
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="{{ profile.isolate.relativeHashLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ profile.isolate.relativeLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    <nav-control></nav-control>
   </nav-bar>
 
   <div class="flex-row">

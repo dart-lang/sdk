@@ -16,17 +16,18 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
-      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
       <h1>
-        <template if="{{ cls['abstract'] }}">
+        <template if="{{ cls.isAbstract }}">
           abstract
         </template>
-        <template if="{{ cls['patch'] }}">
+        <template if="{{ cls.isPatch }}">
           patch
         </template>
         class {{ cls.name }}
@@ -35,32 +36,32 @@
         <div class="memberItem">
           <div class="memberName">library</div>
           <div class="memberValue">
-            <library-ref ref="{{ cls['library'] }}"></library-ref>
+            <library-ref ref="{{ cls.library }}"></library-ref>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ cls['script'] }}" pos="{{ cls['tokenPos'] }}">
+            <script-ref ref="{{ cls.script }}" pos="{{ cls.tokenPos }}">
             </script-ref>
           </div>
         </div>
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['super'] != null }}">
+        <template if="{{ cls.superClass != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
-              <class-ref ref="{{ cls['super'] }}"></class-ref>
+              <class-ref ref="{{ cls.superClass }}"></class-ref>
             </div>
           </div>
         </template>
-        <template if="{{ cls['subclasses'].length > 0 }}">
+        <template if="{{ cls.subClasses.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">extended by</div>
             <div class="memberValue">
-              <template repeat="{{ subclass in cls['subclasses'] }}">
+              <template repeat="{{ subclass in cls.subClasses }}">
                 <class-ref ref="{{ subclass }}"></class-ref>
               </template>
             </div>
@@ -69,11 +70,11 @@
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['interfaces'].length > 0 }}">
+        <template if="{{ cls.interfaces.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">implements</div>
             <div class="memberValue">
-              <template repeat="{{ interface in cls['interfaces'] }}">
+              <template repeat="{{ interface in cls.interfaces }}">
                 <class-ref ref="{{ interface }}"></class-ref>
               </template>
             </div>
@@ -94,19 +95,19 @@
       </div>
     </div>
 
-    <template if="{{ cls['error'] != null }}">
+    <template if="{{ cls.error != null }}">
       <!-- TODO(turnidge): Don't use instance-ref for error display here -->
-      <instance-ref ref="{{ cls['error'] }}"></instance-ref>
+      <instance-ref ref="{{ cls.error }}"></instance-ref>
     </template>
 
     <hr>
 
     <div class="content">
-      <template if="{{ cls['fields'].isNotEmpty }}">
+      <template if="{{ cls.fields.isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block expand="{{ cls['fields'].length <= 8 }}">
+        <curly-block expand="{{ cls.fields.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ field in cls['fields'] }}">
+            <template repeat="{{ field in cls.fields }}">
               <div class="memberItem">
                 <div class="memberName">
                   <field-ref ref="{{ field }}"></field-ref>
@@ -122,11 +123,11 @@
         </curly-block><br><br>
       </template>
 
-      <template if="{{ cls['functions'].isNotEmpty }}">
-        functions ({{ cls['functions'].length }})
-        <curly-block expand="{{ cls['functions'].length <= 8 }}">
+      <template if="{{ cls.functions.isNotEmpty }}">
+        functions ({{ cls.functions.length }})
+        <curly-block expand="{{ cls.functions.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ function in cls['functions'] }}">
+            <template repeat="{{ function in cls.functions }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <function-ref ref="{{ function }}" qualified="{{ false }}">
