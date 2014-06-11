@@ -11050,7 +11050,7 @@ void ICData::AddTarget(const Function& target) const {
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   ASSERT(!target.IsNull());
-  DEBUG_ASSERT(!HasCheck(class_ids));
+  ASSERT(!HasCheck(class_ids));
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == NumArgsTested());
   const intptr_t old_num = NumberOfChecks();
