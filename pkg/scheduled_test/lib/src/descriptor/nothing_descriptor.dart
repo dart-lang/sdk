@@ -31,6 +31,8 @@ class NothingDescriptor extends Descriptor {
       fail("Expected nothing to exist at '$fullPath', but found a file.");
     } else if (new Directory(fullPath).existsSync()) {
       fail("Expected nothing to exist at '$fullPath', but found a directory.");
+    } else if (new Link(fullPath).existsSync()) {
+      fail("Expected nothing to exist at '$fullPath', but found a link.");
     } else {
       return;
     }

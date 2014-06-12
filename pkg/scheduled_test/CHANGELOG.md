@@ -1,3 +1,7 @@
+## 0.11.0+7
+
+* A `nothing()` descriptor will fail if a broken symlink is present.
+
 ## 0.11.0+6
 
 * Use `http_multi_server` to bind to both the IPv4 and IPv6 loopback addresses
