@@ -1070,7 +1070,7 @@ Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co1
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A20_t01: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/05_Strings_A20_t01: fail # Issue 19386
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
