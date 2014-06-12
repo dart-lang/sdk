@@ -1292,9 +1292,11 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ Pop(R6);  // Restore.
     __ LeaveStubFrame();
   }
-  __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ LoadFieldFromOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
   __ add(R7, R7, Operand(1));
-  __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ StoreFieldToOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
 }
 
 
@@ -1305,9 +1307,11 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register func_reg = temp_reg;
   ASSERT(temp_reg == R6);
   __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset(), kNoPP);
-  __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ LoadFieldFromOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
   __ AddImmediate(R7, R7, 1, kNoPP);
-  __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ StoreFieldToOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
 }
 
 
@@ -1360,7 +1364,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset(), kNoPP);
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found, get_class_id_as_smi;
+  Label loop, update, test, found;
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset(), kNoPP);
   // R6: ic_data_array with check entries: classes and target functions.
@@ -1677,8 +1681,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
     __ LoadObject(R4, Object::null_object(), PP);
-    __ LoadFieldFromOffset(
-        R5, R3, Class::type_arguments_field_offset_in_words_offset(), kNoPP);
+    __ LoadFieldFromOffset(R5, R3,
+        Class::type_arguments_field_offset_in_words_offset(), kNoPP, kWord);
     __ CompareImmediate(R5, Class::kNoTypeArguments, kNoPP);
     __ b(&has_no_type_arguments, EQ);
     __ add(R5, R0, Operand(R5, LSL, 3));

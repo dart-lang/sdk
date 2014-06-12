@@ -507,10 +507,10 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   intptr_t id_;  // Class Id, also index in the class table.
-  intptr_t token_pos_;
-  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
-  intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
-  intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
+  int32_t token_pos_;
+  int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
+  int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
+  int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;  // Number of native fields in class.
@@ -535,7 +535,7 @@ class RawUnresolvedClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
-  intptr_t token_pos_;
+  int32_t token_pos_;
 };
 
 
@@ -624,9 +624,9 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
 
-  intptr_t token_pos_;
-  intptr_t end_token_pos_;
-  intptr_t usage_counter_;  // Incremented while function is running.
+  int32_t token_pos_;
+  int32_t end_token_pos_;
+  int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
@@ -684,10 +684,10 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
-  intptr_t token_pos_;
-  intptr_t guarded_cid_;
-  intptr_t is_nullable_;  // kNullCid if field can contain null value and
-                          // any other value otherwise.
+  int32_t token_pos_;
+  int32_t guarded_cid_;
+  int32_t is_nullable_;  // kNullCid if field can contain null value and
+                         // any other value otherwise.
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM, MIPS).
@@ -749,8 +749,8 @@ class RawScript : public RawObject {
   RawTokenStream* tokens_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->tokens_); }
 
-  intptr_t line_offset_;
-  intptr_t col_offset_;
+  int32_t line_offset_;
+  int32_t col_offset_;
   int8_t kind_;  // Of type Kind.
 };
 
@@ -781,9 +781,9 @@ class RawLibrary : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
-  intptr_t index_;               // Library id number.
-  intptr_t num_imports_;         // Number of entries in imports_.
-  intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
+  int32_t index_;               // Library id number.
+  int32_t num_imports_;         // Number of entries in imports_.
+  int32_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   bool corelib_imported_;
@@ -1066,7 +1066,7 @@ class RawMegamorphicCache : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->mask_);
   }
 
-  intptr_t filled_entry_count_;
+  int32_t filled_entry_count_;
 };
 
 
@@ -1107,7 +1107,7 @@ class RawLanguageError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
-  intptr_t token_pos_;  // Source position in script_.
+  int32_t token_pos_;  // Source position in script_.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
 
@@ -1155,7 +1155,7 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
   }
-  intptr_t num_imports_;          // Number of library entries in libraries_.
+  int32_t num_imports_;          // Number of library entries in libraries_.
   bool is_deferred_load_;
   bool is_loaded_;
 };
@@ -1191,7 +1191,7 @@ class RawType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
-  intptr_t token_pos_;
+  int32_t token_pos_;
   int8_t type_state_;
 };
 
@@ -1221,8 +1221,8 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  intptr_t index_;
-  intptr_t token_pos_;
+  int32_t index_;
+  int32_t token_pos_;
   int8_t type_state_;
 };
 

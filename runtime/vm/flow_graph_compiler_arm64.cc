@@ -974,7 +974,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
     intptr_t threshold = FLAG_optimization_counter_threshold;
     __ LoadFieldFromOffset(
-        R7, function_reg, Function::usage_counter_offset(), new_pp);
+        R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
@@ -982,7 +982,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     } else {
       __ add(R7, R7, Operand(1));
       __ StoreFieldToOffset(
-          R7, function_reg, Function::usage_counter_offset(), new_pp);
+          R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
     }
     __ CompareImmediate(R7, threshold, new_pp);
     ASSERT(function_reg == R6);

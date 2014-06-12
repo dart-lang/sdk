@@ -350,6 +350,7 @@ class Assembler : public ValueObject {
   void movl(Register dst, const Immediate& imm);
   void movl(Register dst, const Address& src);
   void movl(const Address& dst, Register src);
+  void movl(const Address& dst, const Immediate& imm);
 
   void movzxb(Register dst, Register src);
   void movzxb(Register dst, const Address& src);

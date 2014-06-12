@@ -1221,7 +1221,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ popq(func_reg);     // Restore.
     __ LeaveStubFrame();
   }
-  __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
 
@@ -1232,7 +1232,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register func_reg = temp_reg;
   ASSERT(ic_reg != func_reg);
   __ movq(func_reg, FieldAddress(ic_reg, ICData::owner_offset()));
-  __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ incl(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
 
 
@@ -1600,9 +1600,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
     __ movq(R13, R12);
-    __ movq(RDI, FieldAddress(R10,
+    __ movl(RDI, FieldAddress(R10,
         Class::type_arguments_field_offset_in_words_offset()));
-    __ cmpq(RDI, Immediate(Class::kNoTypeArguments));
+    __ cmpl(RDI, Immediate(Class::kNoTypeArguments));
     __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
     __ movq(R13, FieldAddress(RAX, RDI, TIMES_8, 0));
     __ Bind(&has_no_type_arguments);

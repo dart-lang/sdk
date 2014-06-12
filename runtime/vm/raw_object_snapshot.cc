@@ -39,7 +39,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    intptr_t class_id = reader->ReadIntptrValue();
+    int32_t class_id = reader->Read<int32_t>();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
@@ -60,14 +60,14 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // Set all non object fields.
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // Instance size of a VM defined class is already set up.
-      cls.set_instance_size_in_words(reader->ReadIntptrValue());
-      cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
+      cls.set_instance_size_in_words(reader->Read<int32_t>());
+      cls.set_next_field_offset_in_words(reader->Read<int32_t>());
     }
-    cls.set_type_arguments_field_offset_in_words(reader->ReadIntptrValue());
+    cls.set_type_arguments_field_offset_in_words(reader->Read<int32_t>());
     cls.set_num_type_arguments(reader->Read<int16_t>());
     cls.set_num_own_type_arguments(reader->Read<int16_t>());
     cls.set_num_native_fields(reader->Read<uint16_t>());
-    cls.set_token_pos(reader->ReadIntptrValue());
+    cls.set_token_pos(reader->Read<int32_t>());
     cls.set_state_bits(reader->Read<uint16_t>());
 
     // Set all the object fields.
@@ -101,20 +101,20 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
-    intptr_t class_id = ptr()->id_;
-    writer->WriteIntptrValue(class_id);
+    int32_t class_id = ptr()->id_;
+    writer->Write<int32_t>(class_id);
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
       // the class table.
-      writer->WriteIntptrValue(ptr()->instance_size_in_words_);
-      writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
+      writer->Write<int32_t>(ptr()->instance_size_in_words_);
+      writer->Write<int32_t>(ptr()->next_field_offset_in_words_);
     }
-    writer->WriteIntptrValue(ptr()->type_arguments_field_offset_in_words_);
+    writer->Write<int32_t>(ptr()->type_arguments_field_offset_in_words_);
     writer->Write<int16_t>(ptr()->num_type_arguments_);
     writer->Write<int16_t>(ptr()->num_own_type_arguments_);
     writer->Write<uint16_t>(ptr()->num_native_fields_);
-    writer->WriteIntptrValue(ptr()->token_pos_);
+    writer->Write<int32_t>(ptr()->token_pos_);
     writer->Write<uint16_t>(ptr()->state_bits_);
 
     // Write out all the object pointer fields.
@@ -141,7 +141,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   unresolved_class.set_tags(tags);
 
   // Set all non object fields.
-  unresolved_class.set_token_pos(reader->ReadIntptrValue());
+  unresolved_class.set_token_pos(reader->Read<int32_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -170,7 +170,7 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -205,7 +205,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
-  type.set_token_pos(reader->ReadIntptrValue());
+  type.set_token_pos(reader->Read<int32_t>());
   type.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -256,7 +256,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields. Since we will be canonicalizing
@@ -328,8 +328,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_tags(tags);
 
   // Set all non object fields.
-  type_parameter.set_index(reader->ReadIntptrValue());
-  type_parameter.set_token_pos(reader->ReadIntptrValue());
+  type_parameter.set_index(reader->Read<int32_t>());
+  type_parameter.set_token_pos(reader->Read<int32_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -363,8 +363,8 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->index_);
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->index_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -692,12 +692,12 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_tags(tags);
 
   // Set all the non object fields.
-  func.set_token_pos(reader->ReadIntptrValue());
-  func.set_end_token_pos(reader->ReadIntptrValue());
-  func.set_usage_counter(reader->ReadIntptrValue());
-  func.set_num_fixed_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_parameters(reader->ReadIntptrValue());
-  func.set_deoptimization_counter(reader->ReadIntptrValue());
+  func.set_token_pos(reader->Read<int32_t>());
+  func.set_end_token_pos(reader->Read<int32_t>());
+  func.set_usage_counter(reader->Read<int32_t>());
+  func.set_num_fixed_parameters(reader->Read<int16_t>());
+  func.set_num_optional_parameters(reader->Read<int16_t>());
+  func.set_deoptimization_counter(reader->Read<int16_t>());
   func.set_kind_tag(reader->Read<uint16_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -705,13 +705,14 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
+  intptr_t num_flds = (func.raw()->to() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
-  // Initialize all fields that are not part of the snapshot.
-  func.ClearCode();
+  // Set up code pointer with the lazy-compile-stub.
+  func.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+
   return func.raw();
 }
 
@@ -732,19 +733,23 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->end_token_pos_);
-  writer->WriteIntptrValue(ptr()->usage_counter_);
-  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
-  writer->WriteIntptrValue(ptr()->deoptimization_counter_);
+  writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->end_token_pos_);
+  writer->Write<int32_t>(ptr()->usage_counter_);
+  writer->Write<int16_t>(ptr()->num_fixed_parameters_);
+  writer->Write<int16_t>(ptr()->num_optional_parameters_);
+  writer->Write<int16_t>(ptr()->deoptimization_counter_);
   writer->Write<uint16_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to_snapshot());
+  visitor.VisitPointers(from(), to_no_code());
+
+  // Write null for the instructions and unoptimized code.
+  writer->WriteVMIsolateObject(kNullObject);
+  writer->WriteVMIsolateObject(kNullObject);
 }
 
 
@@ -765,9 +770,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_tags(tags);
 
   // Set all non object fields.
-  field.set_token_pos(reader->ReadIntptrValue());
-  field.set_guarded_cid(reader->ReadIntptrValue());
-  field.set_is_nullable(reader->ReadIntptrValue());
+  field.set_token_pos(reader->Read<int32_t>());
+  field.set_guarded_cid(reader->Read<int32_t>());
+  field.set_is_nullable(reader->Read<int32_t>());
   field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -800,9 +805,9 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->guarded_cid_);
-  writer->WriteIntptrValue(ptr()->is_nullable_);
+  writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->guarded_cid_);
+  writer->Write<int32_t>(ptr()->is_nullable_);
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.
@@ -1011,9 +1016,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.set_tags(tags);
 
     // Set all non object fields.
-    library.raw_ptr()->index_ = reader->ReadIntptrValue();
-    library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
-    library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
+    library.raw_ptr()->index_ = reader->Read<int32_t>();
+    library.raw_ptr()->num_imports_ = reader->Read<int32_t>();
+    library.raw_ptr()->num_anonymous_ = reader->Read<int32_t>();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
     library.raw_ptr()->is_dart_scheme_ = reader->Read<bool>();
     library.raw_ptr()->debuggable_ = reader->Read<bool>();
@@ -1066,9 +1071,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->WriteIntptrValue(ptr()->index_);
-    writer->WriteIntptrValue(ptr()->num_imports_);
-    writer->WriteIntptrValue(ptr()->num_anonymous_);
+    writer->Write<int32_t>(ptr()->index_);
+    writer->Write<int32_t>(ptr()->num_imports_);
+    writer->Write<int32_t>(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
@@ -1108,7 +1113,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.set_tags(tags);
 
   // Set all non object fields.
-  prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->num_imports_ = reader->Read<int32_t>();
   prefix.raw_ptr()->is_deferred_load_ = reader->Read<bool>();
   prefix.raw_ptr()->is_loaded_ = reader->Read<bool>();
 
@@ -1140,7 +1145,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->WriteIntptrValue(ptr()->num_imports_);
+  writer->Write<int32_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
   writer->Write<bool>(ptr()->is_loaded_);
 
@@ -1514,7 +1519,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   language_error.set_tags(tags);
 
   // Set all non object fields.
-  language_error.set_token_pos(reader->ReadIntptrValue());
+  language_error.set_token_pos(reader->Read<int32_t>());
   language_error.set_kind(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -1545,7 +1550,7 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<uint8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.

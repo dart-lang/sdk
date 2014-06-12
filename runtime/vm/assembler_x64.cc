@@ -240,6 +240,12 @@ void Assembler::movl(const Address& dst, Register src) {
 }
 
 
+void Assembler::movl(const Address& dst, const Immediate& imm) {
+  movl(TMP, imm);
+  movl(dst, TMP);
+}
+
+
 void Assembler::movzxb(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

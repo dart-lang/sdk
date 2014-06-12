@@ -1005,16 +1005,14 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
-      __ CompareImmediate(
+      __ cmpl(
           FieldAddress(function_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_reoptimization_counter_threshold),
-          new_pp);
+          Immediate(FLAG_reoptimization_counter_threshold));
     } else {
-      __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
-      __ CompareImmediate(
+      __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
+      __ cmpl(
           FieldAddress(function_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold),
-          new_pp);
+          Immediate(FLAG_optimization_counter_threshold));
     }
     ASSERT(function_reg == RDI);
     __ J(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel(), R13);
