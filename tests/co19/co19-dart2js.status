@@ -20,6 +20,7 @@ LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # Issue 18549
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
 Language/05_Variables/05_Variables_A11_t01: fail # Please triage this issue.
+Language/12_Expressions/05_Strings_A20_t01: fail # Issue 19386
 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
@@ -1070,7 +1071,6 @@ Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co1
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/05_Strings_A20_t01: fail # Issue 19386
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
