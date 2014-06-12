@@ -51,9 +51,11 @@ css_test/supportsPointConversions: Skip # Times out. Issue 19127
 css_test/functional: Skip # Times out. Issue 19127
 element_offset_test/offset: Skip # Issue 19127, 17550
 mouse_event_test: Skip # Times out. Issue 19127
+typed_arrays_arraybuffer_test: Skip # Times out. Issue 19127
 typed_arrays_range_checks_test: Skip # Times out. Issue 19127
 websocket_test/supported: Skip # Times out. Issue 19127
 websocket_test/websocket: Skip # Times out. Issue 19127
+worker_api_test: Skip # Times out. Issue 19127
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
