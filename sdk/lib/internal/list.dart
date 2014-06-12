@@ -110,6 +110,11 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
         "Cannot change the length of an unmodifiable list");
   }
 
+  void set last(E value) {
+    throw new UnsupportedError(
+        "Cannot modify an unmodifiable list");
+  }
+
   /** This operation is not supported by an unmodifiable list. */
   void setAll(int at, Iterable<E> iterable) {
     throw new UnsupportedError(

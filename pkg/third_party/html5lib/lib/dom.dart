@@ -852,6 +852,10 @@ class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
     this[index].replaceWith(value);
   }
 
+  void set last(Element value) {
+    this.last.replaceWith(value);
+  }
+
   void set length(int newLength) {
     final len = this.length;
     if (newLength >= len) {

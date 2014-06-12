@@ -124,6 +124,10 @@ class DelegatingList<E> extends DelegatingIterable<E> implements List<E> {
     _listBase[index] = value;
   }
 
+  void set last(E value) {
+    _listBase.last = value;
+  }
+
   void add(E value) {
     _listBase.add(value);
   }
@@ -427,7 +431,7 @@ class MapKeySet<E> extends _DelegatingIterableBase<E>
 
 /**
  * Creates a modifiable [Set] view of the values of a [Map].
- * 
+ *
  * The `Set` view assumes that the keys of the `Map` can be uniquely determined
  * from the values. The `keyForValue` function passed to the constructor finds
  * the key for a single value. The `keyForValue` function should be consistent

@@ -154,6 +154,16 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
   void set length(int newLength);
 
   /**
+   * Replaces the last element of the list with [value].
+   *
+   * Using `list.last = value` is equivalent to `list[list.length - 1] = value`,
+   * only shorter and more readable.
+   *
+   * The list must be modifiable and must have a length greater than zero.
+   */
+  void set last(E value);
+
+  /**
    * Adds [value] to the end of this list,
    * extending the length by one.
    *

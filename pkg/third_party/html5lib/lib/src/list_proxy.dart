@@ -47,6 +47,7 @@ class ListProxy<E> extends IterableBase<E> implements List<E> {
   set length(int value) { _list.length = value; }
   void add(E value) { _list.add(value); }
 
+  void set last(E value) { _list.last = value; }
   void addLast(E value) { add(value); }
   void addAll(Iterable<E> collection) { _list.addAll(collection); }
   void sort([int compare(E a, E b)]) { _list.sort(compare); }

@@ -45,6 +45,12 @@ void main() {
   testTypedGrowableList(new Uint32List(0).toList());
   testTypedGrowableList(new Int32List(0).toList());
 
+  // Lists based on ListBase and ListMixin.
+  testGrowableList(new BaseList());
+  testGrowableList(new BaseList().toList());
+  testGrowableList(new MixinList());
+  testGrowableList(new MixinList().toList());
+
   testListConstructor();
 }
 
@@ -69,6 +75,23 @@ void testTypedLengthInvariantOperations(List list) {
   for (int i = 0; i < list.length; i++) {
     list[i] = i;
   }
+
+  // last=
+  Expect.listEquals([0, 1, 2, 3], list);
+  list.last = 47;
+  Expect.listEquals([0, 1, 2, 47], list);
+  list.last -= 5;
+  Expect.listEquals([0, 1, 2, 42], list);
+  list.last++;
+  Expect.listEquals([0, 1, 2, 43], list);
+  ++list.last;
+  Expect.listEquals([0, 1, 2, 44], list);
+  list.last--;
+  Expect.listEquals([0, 1, 2, 43], list);
+  --list.last;
+  Expect.listEquals([0, 1, 2, 42], list);
+  list.last = 3;
+  Expect.listEquals([0, 1, 2, 3], list);
 
   // indexOf, lastIndexOf
   for (int i = 0; i < 4; i++) {
@@ -504,3 +527,15 @@ void testListConstructor() {
   Expect.throws(() { new List.filled(-2, 42); });  // Not negative.
   Expect.throws(() { new List.filled(null, 42); });  // Not null.
 }
+
+abstract class ListImpl<E>{
+  List _base = [];
+  int get length => _base.length;
+  void set length(int length) { _base.length = length; }
+  E operator[](int index) => _base[index];
+  void operator[]=(int index, E value) { _base[index] = value; }
+}
+
+class BaseList<E> = ListBase<E> with ListImpl<E>;
+
+class MixinList<E> = ListImpl<E> with ListMixin<E>;

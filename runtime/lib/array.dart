@@ -243,6 +243,11 @@ class _List<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
+  void set last(E value) {
+    if (length == 0) throw IterableElementError.noElement();
+    this[length - 1] = value;
+  }
+
   E get single {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
@@ -284,6 +289,10 @@ class _ImmutableList<E> implements List<E> {
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {
+    throw UnmodifiableListError.change();
+  }
+
+  void set last(E value) {
     throw UnmodifiableListError.change();
   }
 

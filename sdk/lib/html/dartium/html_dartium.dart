@@ -34814,7 +34814,11 @@ abstract class ImmutableListMixin<E> implements List<E> {
     return new FixedSizeListIterator<E>(this);
   }
 
-  // From Collection<E>:
+  // From List<E>:
+  void set last(E value) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   void add(E value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -34823,7 +34827,6 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<E>:
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }

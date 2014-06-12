@@ -364,6 +364,12 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     JS('void', r'#[#] = #', this, index, value);
   }
 
+  void set last(E value) {
+    checkMutable('indexed set');
+    if (length == 0) throw IterableElementError.noElement();
+    JS('void', r'#[#] = #', this, this.length - 1, value);
+  }
+
   Map<int, E> asMap() {
     return IterableMixinWorkaround.asMapList(this);
   }

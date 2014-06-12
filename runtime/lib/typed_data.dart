@@ -409,6 +409,11 @@ abstract class _TypedListBase {
         "Cannot resize a fixed-length list");
   }
 
+  void set last(value) {
+    if (isEmpty) throw IterableElementError.noElement();
+    this[length - 1] = value;
+  }
+
   void add(value) {
     throw new UnsupportedError(
         "Cannot add to a fixed-length list");

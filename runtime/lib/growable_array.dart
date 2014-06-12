@@ -156,6 +156,11 @@ class _GrowableList<T> implements List<T> {
 
   void operator []=(int index, T value) native "GrowableList_setIndexed";
 
+  void set last(T value) {
+    if (length == 0) throw IterableElementError.noElement();
+    this[length - 1] = value;
+  }
+
   // The length of this growable array. It is always less than or equal to the
   // length of the object array, which itself is always greater than 0, so that
   // grow() does not have to check for a zero length object array before
