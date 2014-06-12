@@ -40,7 +40,8 @@ def UploadSetACL(gsutil, local, remote):
 def UploadAPKs(options):
   with bot.BuildStep('Upload apk'):
     revision = utils.GetSVNRevision()
-    namer = bot_utils.GCSNamer()
+    channel = bot_utils.GetChannelFromName(bot_name)
+    namer = bot_utils.GCSNamer(channel=channel)
     gsutil = bot_utils.GSUtil()
 
     web_link_prefix = 'https://storage.cloud.google.com/'
