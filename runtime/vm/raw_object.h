@@ -506,7 +506,7 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t id_;  // Class Id, also index in the class table.
+  int32_t id_;  // Class Id, also index in the class table.
   int32_t token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
