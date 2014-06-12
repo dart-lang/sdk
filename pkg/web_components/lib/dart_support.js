@@ -68,10 +68,17 @@
 // Updates document.registerElement so Dart can see when Javascript custom
 // elements are created, and wrap them to provide a Dart friendly API.
 (function (doc) {
-  var upgraders = {};
+  var upgraders = {};       // upgrader associated with a custom-tag.
+  var unpatchableTags = {}; // set of custom-tags that can't be patched.
   var originalRegisterElement = doc.registerElement;
   if (!originalRegisterElement) {
     throw new Error('document.registerElement is not present.');
+  }
+
+  function reportError(name) {
+    console.error("Couldn't patch prototype to notify Dart when " + name +
+        " elements are created. This can be fixed by making the " +
+        "createdCallback in " + name + " a configurable property.");
   }
 
   function registerElement(name, options) {
@@ -98,9 +105,8 @@
       descriptor['value'] = newCallback;
       Object.defineProperty(proto, 'createdCallback', descriptor);
     } else {
-      console.error("Couldn't patch prototype to notify Dart when " + name +
-          " elements are created. This can be fixed by making the " +
-          "createdCallback in " + name + " a configurable property.");
+      unpatchableTags[name] = true;
+      if (upgraders[name]) reportError(name);
     }
     return originalRegisterElement.call(this, name, options);
   }
@@ -114,6 +120,7 @@
       return;
     }
     upgraders[name] = upgrader;
+    if (unpatchableTags[name]) reportError(name);
   }
 
 
