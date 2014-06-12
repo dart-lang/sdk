@@ -8084,7 +8084,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     result = ThrowNoSuchMethodError(
         original->token_pos(),
         *target_cls,
-        name,
+        String::Handle(I, Field::SetterName(name)),
         NULL,  // No arguments.
         InvocationMirror::kStatic,
         original->IsLoadLocalNode() ?

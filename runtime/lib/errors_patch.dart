@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:mirrors' show MirrorSystem;
+
 patch class Error {
   /* patch */ static String _objectToString(Object object) {
     return Object._toString(object);
@@ -216,7 +218,7 @@ patch class NoSuchMethodError {
     var args_message = args_mismatch ? " with matching arguments" : "";
     var msg;
     var memberName =
-        (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
+        (_memberName == null) ? "" : MirrorSystem.getName(_memberName);
 
     if (type == _InvocationMirror._LOCAL_VAR) {
       return "cannot assign to final variable '$memberName'.\n\n";
@@ -280,7 +282,7 @@ patch class NoSuchMethodError {
         if (i > 0) {
           actual_buf.write(", ");
         }
-        actual_buf.write(internal.Symbol.getName(key));
+        actual_buf.write(MirrorSystem.getName(key));
         actual_buf.write(": ");
         actual_buf.write(Error.safeToString(value));
         i++;
@@ -297,7 +299,7 @@ patch class NoSuchMethodError {
       receiver_str = Error.safeToString(_receiver);
     }
     var memberName =
-        (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
+        (_memberName == null) ? "" : MirrorSystem.getName(_memberName);
     var type = _invocation_type & _InvocationMirror._TYPE_MASK;
     if (type == _InvocationMirror._LOCAL_VAR) {
       msg_buf.write(

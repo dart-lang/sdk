@@ -85,6 +85,7 @@ mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/method_mirror_location_test: RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When removing this line please change the "endsWith" to "/mirrors_test.dart".
+mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/parameter_test/none: RuntimeError # Issue 6490
@@ -249,8 +250,6 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
-mirrors/mirrors_nsm_test/vm: Fail # Issue 18042
-
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 mirrors/immutable_collections_test: Pass, Slow # Dartium debug uses -O0
@@ -306,6 +305,8 @@ mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return 
 
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+mirrors/mirrors_nsm_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
 

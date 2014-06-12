@@ -65,6 +65,7 @@ static void ThrowInvokeError(const Error& error) {
 static void ThrowNoSuchMethod(const Instance& receiver,
                               const String& function_name,
                               const Function& function,
+                              const Array& arguments,
                               const InvocationMirror::Call call,
                               const InvocationMirror::Type type) {
   const Smi& invocation_type = Smi::Handle(Smi::New(
@@ -74,10 +75,8 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(0, receiver);
   args.SetAt(1, function_name);
   args.SetAt(2, invocation_type);
-  // Parameter 3 (actual arguments): We omit this parameter to get the same
-  // error message as one would get by invoking the function non-reflectively.
-  // Parameter 4 (named arguments): We omit this parameters since we cannot
-  // invoke functions with named parameters reflectively (using mirrors).
+  args.SetAt(3, arguments);
+  // TODO(rmacnak): Argument 4 (attempted argument names).
   if (!function.IsNull()) {
     const intptr_t total_num_parameters = function.NumParameters();
     const Array& array = Array::Handle(Array::New(total_num_parameters));
@@ -677,6 +676,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
     ThrowNoSuchMethod(Instance::null_instance(),
                       getter_name,
                       getter,
+                      Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kGetter);
     UNREACHABLE();
@@ -714,6 +714,7 @@ static RawInstance* InvokeClassGetter(const Class& klass,
         ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                           getter_name,
                           getter,
+                          Object::null_array(),
                           InvocationMirror::kStatic,
                           InvocationMirror::kGetter);
         UNREACHABLE();
@@ -1443,6 +1444,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       function_name,
                       function,
+                      Object::null_array(),
                       InvocationMirror::kStatic,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1481,26 +1483,27 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
   Function& setter = Function::Handle();
-  if (field.IsNull()) {
-    const String& internal_setter_name = String::Handle(
+  const String& internal_setter_name = String::Handle(
       Field::SetterName(setter_name));
 
+  if (field.IsNull()) {
     setter = klass.LookupStaticFunction(internal_setter_name);
+
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
 
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                        setter_name,
+                        internal_setter_name,
                         setter,
+                        args,
                         InvocationMirror::kStatic,
                         InvocationMirror::kSetter);
       UNREACHABLE();
     }
 
     // Invoke the setter and return the result.
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
-
     Object& result = Object::Handle(
         DartEntry::InvokeFunction(setter, args));
     if (result.IsError()) {
@@ -1512,8 +1515,9 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
 
   if (field.is_final()) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      setter_name,
+                      internal_setter_name,
                       setter,
+                      Object::null_array(),
                       InvocationMirror::kStatic,
                       InvocationMirror::kSetter);
     UNREACHABLE();
@@ -1557,6 +1561,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_constructor_name,
                       lookup_constructor,
+                      Object::null_array(),
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1634,6 +1639,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_constructor_name,
                       redirected_constructor,
+                      Object::null_array(),
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1696,26 +1702,28 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
     const Instance& getter_result =
-        Instance::Handle(InvokeLibraryGetter(library, function_name, true));
-    // Make room for the closure (receiver) in arguments.
-    intptr_t numArgs = args.Length();
-    const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-    Object& temp = Object::Handle();
-    for (int i = 0; i < numArgs; i++) {
-      temp = args.At(i);
-      call_args.SetAt(i + 1, temp);
+        Instance::Handle(InvokeLibraryGetter(library, function_name, false));
+    if (getter_result.raw() != Object::sentinel().raw()) {
+      // Make room for the closure (receiver) in arguments.
+      intptr_t numArgs = args.Length();
+      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      Object& temp = Object::Handle();
+      for (int i = 0; i < numArgs; i++) {
+        temp = args.At(i);
+        call_args.SetAt(i + 1, temp);
+      }
+      call_args.SetAt(0, getter_result);
+      const Array& call_args_descriptor_array = Array::Handle(
+          ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      // Call closure.
+      const Object& call_result = Object::Handle(
+          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
+      if (call_result.IsError()) {
+        ThrowInvokeError(Error::Cast(call_result));
+        UNREACHABLE();
+      }
+      return call_result.raw();
     }
-    call_args.SetAt(0, getter_result);
-    const Array& call_args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
-    // Call closure.
-    const Object& call_result = Object::Handle(
-        DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
-    if (call_result.IsError()) {
-      ThrowInvokeError(Error::Cast(call_result));
-      UNREACHABLE();
-    }
-    return call_result.raw();
   }
 
   const Array& args_descriptor_array =
@@ -1728,6 +1736,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
     ThrowNoSuchMethod(Instance::null_instance(),
                       function_name,
                       function,
+                      Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1769,25 +1778,27 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   const Field& field = Field::Handle(
       library.LookupLocalField(setter_name));
   Function& setter = Function::Handle();
+  const String& internal_setter_name =
+      String::Handle(Field::SetterName(setter_name));
 
   if (field.IsNull()) {
-    const String& internal_setter_name =
-        String::Handle(Field::SetterName(setter_name));
-
     setter = library.LookupLocalFunction(internal_setter_name);
+
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
+
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(Instance::null_instance(),
-                        setter_name,
+                        internal_setter_name,
                         setter,
+                        args,
                         InvocationMirror::kTopLevel,
                         InvocationMirror::kSetter);
       UNREACHABLE();
     }
 
     // Invoke the setter and return the result.
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, value);
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(setter, args));
     if (result.IsError()) {
@@ -1799,8 +1810,9 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
 
   if (field.is_final()) {
     ThrowNoSuchMethod(Instance::null_instance(),
-                      setter_name,
+                      internal_setter_name,
                       setter,
+                      Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kSetter);
     UNREACHABLE();
