@@ -776,8 +776,8 @@ class _HashSetIterator<E> implements Iterator<E> {
   final _HashSet _set;
   final int _modificationCount;
   int _index = 0;
-  _HashSetEntry _next = null;
-  E _current = null;
+  _HashSetEntry _next;
+  E _current;
 
   _HashSetIterator(_HashSet hashSet)
       : _set = hashSet, _modificationCount = hashSet._modificationCount;
@@ -851,7 +851,6 @@ abstract class _LinkedHashMapIterator<T> implements Iterator<T> {
   int _modificationCount;
   _LinkedHashMapIterator(LinkedHashMap map)
       : _map = map,
-        _current = null,
         _next = map._nextEntry,
         _modificationCount = map._modificationCount;
 
