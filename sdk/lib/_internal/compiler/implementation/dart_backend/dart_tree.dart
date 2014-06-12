@@ -38,7 +38,7 @@ abstract class Node {
  * The base class of [Expression]s.
  */
 abstract class Expression extends Node {
-  accept(Visitor v);
+  accept(ExpressionVisitor v);
 
   /// Temporary variable used by [StatementRewriter].
   /// If set to true, this expression has already had enclosing assignments
@@ -51,7 +51,7 @@ abstract class Expression extends Node {
 abstract class Statement extends Node {
   Statement get next;
   void set next(Statement s);
-  accept(Visitor v);
+  accept(StatementVisitor v);
 }
 
 /**
@@ -70,13 +70,13 @@ class Label {
     return cachedName;
   }
 
-  /// Number of [Break] statements that target this label.
+  /// Number of [Break] or [Continue] statements that target this label.
   /// The [Break] constructor will increment this automatically, but the
   /// counter must be decremented by hand when a [Break] becomes orphaned.
-  int breakCount = 0;
+  int useCount = 0;
 
-  /// The [LabeledStatement] binding this label.
-  LabeledStatement binding;
+  /// The [LabeledStatement] or [WhileTrue] binding this label.
+  JumpTarget binding;
 }
 
 /**
@@ -98,7 +98,7 @@ class Variable extends Expression {
 
   Variable(this.element);
 
-  accept(Visitor visitor) => visitor.visitVariable(this);
+  accept(ExpressionVisitor visitor) => visitor.visitVariable(this);
 }
 
 /**
@@ -121,7 +121,7 @@ class InvokeStatic extends Expression implements Invoke {
 
   InvokeStatic(this.target, this.selector, this.arguments);
 
-  accept(Visitor visitor) => visitor.visitInvokeStatic(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
 }
 
 /**
@@ -139,7 +139,7 @@ class InvokeMethod extends Expression implements Invoke {
     assert(receiver != null);
   }
 
-  accept(Visitor visitor) => visitor.visitInvokeMethod(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeMethod(this);
 }
 
 /**
@@ -155,7 +155,7 @@ class InvokeConstructor extends Expression implements Invoke {
 
   ClassElement get targetClass => target.enclosingElement;
 
-  accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
 /// Calls [toString] on each argument and concatenates the results.
@@ -164,7 +164,7 @@ class ConcatenateStrings extends Expression {
 
   ConcatenateStrings(this.arguments);
 
-  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+  accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
 /**
@@ -175,7 +175,7 @@ class Constant extends Expression {
 
   Constant(this.value);
 
-  accept(Visitor visitor) => visitor.visitConstant(this);
+  accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 }
 
 class LiteralList extends Expression {
@@ -183,7 +183,7 @@ class LiteralList extends Expression {
 
   LiteralList(this.values) ;
 
-  accept(Visitor visitor) => visitor.visitLiteralList(this);
+  accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
 }
 
 class LiteralMap extends Expression {
@@ -192,7 +192,7 @@ class LiteralMap extends Expression {
 
   LiteralMap(this.keys, this.values) ;
 
-  accept(Visitor visitor) => visitor.visitLiteralMap(this);
+  accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
 }
 
 class InvokeConstConstructor extends Expression implements Invoke {
@@ -205,7 +205,7 @@ class InvokeConstConstructor extends Expression implements Invoke {
 
   InvokeConstConstructor(this.type, this.target, this.selector, this.arguments);
 
-  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeConstConstructor(this);
 }
 
 /// A conditional expression.
@@ -216,7 +216,7 @@ class Conditional extends Expression {
 
   Conditional(this.condition, this.thenExpression, this.elseExpression);
 
-  accept(Visitor visitor) => visitor.visitConditional(this);
+  accept(ExpressionVisitor visitor) => visitor.visitConditional(this);
 }
 
 /// An && or || expression. The operator is internally represented as a boolean
@@ -232,7 +232,7 @@ class LogicalOperator extends Expression {
 
   String get operator => isAnd ? '&&' : '||';
 
-  accept(Visitor visitor) => visitor.visitLogicalOperator(this);
+  accept(ExpressionVisitor visitor) => visitor.visitLogicalOperator(this);
 }
 
 /// Logical negation.
@@ -241,14 +241,20 @@ class Not extends Expression {
 
   Not(this.operand);
 
-  accept(Visitor visitor) => visitor.visitNot(this);
+  accept(ExpressionVisitor visitor) => visitor.visitNot(this);
+}
+
+/// A [LabeledStatement] or [WhileTrue] or [WhileCondition].
+abstract class JumpTarget extends Statement {
+  Label get label;
+  Statement get body;
 }
 
 /**
  * A labeled statement.  Breaks to the label within the labeled statement
  * target the successor statement.
  */
-class LabeledStatement extends Statement {
+class LabeledStatement extends JumpTarget {
   Statement next;
   final Label label;
   Statement body;
@@ -258,7 +264,99 @@ class LabeledStatement extends Statement {
     label.binding = this;
   }
 
-  accept(Visitor visitor) => visitor.visitLabeledStatement(this);
+  accept(StatementVisitor visitor) => visitor.visitLabeledStatement(this);
+}
+
+/// A [WhileTrue] or [WhileCondition] loop.
+abstract class Loop extends JumpTarget {
+  /// When a [Continue] to a loop is executed, all update expressions are
+  /// evaluated right-to-left before control resumes at the head of the loop.
+  List<Expression> get updates;
+}
+
+/**
+ * A labeled while(true) loop.
+ */
+class WhileTrue extends Loop {
+  final Label label;
+  Statement body;
+  final List<Expression> updates = <Expression>[];
+
+  WhileTrue(this.label, this.body) {
+    assert(label.binding == null);
+    label.binding = this;
+  }
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  accept(StatementVisitor visitor) => visitor.visitWhileTrue(this);
+}
+
+/**
+ * A while loop with a condition. If the condition is false, control resumes
+ * at the [next] statement.
+ *
+ * It is NOT valid to target this statement with a [Break].
+ * The only way to reach [next] is for the condition to evaluate to false.
+ *
+ * [WhileCondition] statements are introduced in the [LoopRewriter] and is
+ * assumed not to occur before then.
+ */
+class WhileCondition extends Loop {
+  final Label label;
+  Expression condition;
+  Statement body;
+  Statement next;
+  final List<Expression> updates;
+
+  WhileCondition(this.label, this.condition, this.body,
+                 this.next, this.updates) {
+    assert(label.binding == null);
+    label.binding = this;
+  }
+
+  accept(StatementVisitor visitor) => visitor.visitWhileCondition(this);
+}
+
+
+/// A [Break] or [Continue] statement.
+abstract class Jump extends Statement {
+  Label get target;
+}
+
+/**
+ * A break from an enclosing [LabeledStatement].  The break targets the
+ * labeled statement's successor statement.
+ */
+class Break extends Jump {
+  final Label target;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Break(this.target) {
+    ++target.useCount;
+  }
+
+  accept(StatementVisitor visitor) => visitor.visitBreak(this);
+}
+
+/**
+ * A continue to an enclosing [WhileTrue] loop.  The continue targets the
+ * loop's body.
+ */
+class Continue extends Jump {
+  final Label target;
+
+  Statement get next => null;
+  void set next(Statement s) => throw 'UNREACHABLE';
+
+  Continue(this.target) {
+    ++target.useCount;
+  }
+
+  accept(StatementVisitor visitor) => visitor.visitContinue(this);
 }
 
 /**
@@ -275,8 +373,9 @@ class Assign extends Statement {
 
   Assign(this.variable, this.definition, this.next, this.hasExactlyOneUse);
 
-  accept(Visitor visitor) => visitor.visitAssign(this);
+  accept(StatementVisitor visitor) => visitor.visitAssign(this);
 }
+
 
 /**
  * A return exit from the function.
@@ -293,47 +392,11 @@ class Return extends Statement {
 
   Return(this.value);
 
-  accept(Visitor visitor) => visitor.visitReturn(this);
+  accept(StatementVisitor visitor) => visitor.visitReturn(this);
 }
 
-/**
- * A break from an enclosing [LabeledStatement].  The break targets the
- * labeled statement's successor statement.
- */
-class Break extends Statement {
-  Label _target;
 
-  Label get target => _target;
-  void set target(Label newTarget) {
-    ++newTarget.breakCount;
-    --_target.breakCount;
-    _target = newTarget;
-  }
 
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  Break(this._target) {
-    ++target.breakCount;
-  }
-
-  accept(Visitor visitor) => visitor.visitBreak(this);
-}
-
-/**
- * A continue to an enclosing [While] loop.  The continue targets the
- * loop's body.
- */
-class Continue extends Statement {
-  Label target;
-
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  Continue(this.target);
-
-  accept(Visitor visitor) => visitor.visitContinue(this);
-}
 
 /**
  * A conditional branch based on the true value of an [Expression].
@@ -348,22 +411,7 @@ class If extends Statement {
 
   If(this.condition, this.thenStatement, this.elseStatement);
 
-  accept(Visitor visitor) => visitor.visitIf(this);
-}
-
-/**
- * A labeled while(true) loop.
- */
-class While extends Statement {
-  final Label label;
-  Statement body;
-
-  While(this.label, this.body);
-
-  Statement get next => null;
-  void set next(Statement s) => throw 'UNREACHABLE';
-
-  accept(Visitor visitor) => visitor.visitWhile(this);
+  accept(StatementVisitor visitor) => visitor.visitIf(this);
 }
 
 
@@ -373,7 +421,7 @@ class ExpressionStatement extends Statement {
 
   ExpressionStatement(this.expression, this.next);
 
-  accept(Visitor visitor) => visitor.visitExpressionStatement(this);
+  accept(StatementVisitor visitor) => visitor.visitExpressionStatement(this);
 }
 
 class FunctionDefinition extends Node {
@@ -383,7 +431,7 @@ class FunctionDefinition extends Node {
   FunctionDefinition(this.parameters, this.body);
 }
 
-abstract class Visitor<S, E> {
+abstract class ExpressionVisitor<E> {
   E visitExpression(Expression e) => e.accept(this);
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
@@ -397,7 +445,9 @@ abstract class Visitor<S, E> {
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
   E visitInvokeConstConstructor(InvokeConstConstructor node);
+}
 
+abstract class StatementVisitor<S> {
   S visitStatement(Statement s) => s.accept(this);
   S visitLabeledStatement(LabeledStatement node);
   S visitAssign(Assign node);
@@ -405,8 +455,15 @@ abstract class Visitor<S, E> {
   S visitBreak(Break node);
   S visitContinue(Continue node);
   S visitIf(If node);
-  S visitWhile(While node);
+  S visitWhileTrue(WhileTrue node);
+  S visitWhileCondition(WhileCondition node);
   S visitExpressionStatement(ExpressionStatement node);
+}
+
+abstract class Visitor<S,E> implements ExpressionVisitor<E>,
+                                       StatementVisitor<S> {
+   E visitExpression(Expression e) => e.accept(this);
+   S visitStatement(Statement s) => s.accept(this);
 }
 
 /**
@@ -636,7 +693,7 @@ class Builder extends ir.Visitor<Node> {
             if (cont.isRecursive) {
               return node.isRecursive
                   ? new Continue(labels[cont])
-                  : new While(labels[cont], visit(cont.body));
+                  : new WhileTrue(labels[cont], visit(cont.body));
             } else {
               return cont.hasExactlyOneUse
                   ? visit(cont.body)
@@ -776,11 +833,11 @@ class Builder extends ir.Visitor<Node> {
  * REDIRECT BREAKS:
  * Labeled statements whose next is a break become flattened and all breaks
  * to their label are redirected.
- * For example:
+ * For example, where 'jump' is either break or continue:
  *
- *   L0: {... break L0 ...}; break L1
+ *   L0: {... break L0 ...}; jump L1
  *     ==>
- *   {... break L1 ...}
+ *   {... jump L1 ...}
  *
  * This may trigger a flattening of nested ifs in case the eliminated label
  * separated two ifs.
@@ -792,13 +849,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
   /// Substitution map for labels. Any break to a label L should be substituted
   /// for a break to L' if L maps to L'.
-  Map<Label, Label> labelRedirects = <Label, Label>{};
+  Map<Label, Jump> labelRedirects = <Label, Jump>{};
 
   /// Returns the redirect target of [label] or [label] itself if it should not
   /// be redirected.
-  Label redirect(Label label) {
-    Label newTarget = labelRedirects[label];
-    return newTarget != null ? newTarget : label;
+  Jump redirect(Break jump) {
+    Jump newJump = labelRedirects[jump.target];
+    return newJump != null ? newJump : jump;
   }
 
   void rewrite(FunctionDefinition definition) {
@@ -918,10 +975,11 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
   Statement visitBreak(Break node) {
     // Redirect through chain of breaks.
-    // Note that breakCount was accounted for at visitLabeledStatement.
-    node.target = redirect(node.target);
-    if (node.target.breakCount == 1) {
-      --node.target.breakCount;
+    // Note that useCount was accounted for at visitLabeledStatement.
+    // Note redirect may return either a Break or Continue statement.
+    node = redirect(node);
+    if (node is Break && node.target.useCount == 1) {
+      --node.target.useCount;
       return visitStatement(node.target.binding.next);
     }
     return node;
@@ -932,16 +990,16 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Statement visitLabeledStatement(LabeledStatement node) {
-    if (node.next is Break) {
-      // Eliminate label if next is just a break statement
+    if (node.next is Jump) {
+      // Eliminate label if next is a break or continue statement
       // Breaks to this label are redirected to the outer label.
       // Note that breakCount for the two labels is updated proactively here
       // so breaks can reliably tell if they should inline their target.
-      Break next = node.next;
-      Label newTarget = redirect(next.target);
-      labelRedirects[node.label] = newTarget;
-      newTarget.breakCount += node.label.breakCount;
-      node.label.breakCount = 0;
+      Jump next = node.next;
+      Jump newJump = redirect(next);
+      labelRedirects[node.label] = newJump;
+      newJump.target.useCount += node.label.useCount - 1;
+      node.label.useCount = 0;
       Statement result = visitStatement(node.body);
       labelRedirects.remove(node.label); // Save some space.
       return result;
@@ -949,7 +1007,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
     node.body = visitStatement(node.body);
 
-    if (node.label.breakCount == 0) {
+    if (node.label.useCount == 0) {
       // Eliminate the label if next was inlined at a break
       return node.body;
     }
@@ -991,7 +1049,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
-  Statement visitWhile(While node) {
+  Statement visitWhileTrue(WhileTrue node) {
     // Do not propagate assignments into loops.  Doing so is not safe for
     // variables modified in the loop (the initial value will be propagated).
     List<Assign> savedEnvironment = environment;
@@ -1000,6 +1058,11 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     assert(environment.isEmpty);
     environment = savedEnvironment;
     return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    // Not introduced yet
+    throw "Unexpected WhileCondition in StatementRewriter";
   }
 
   Expression visitConstant(Constant node) {
@@ -1088,7 +1151,11 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   /// If two breaks are combined, the label's break counter will be decremented.
   static Statement combineStatements(Statement s, Statement t) {
     if (s is Break && t is Break && s.target == t.target) {
-      --t.target.breakCount; // Two breaks become one.
+      --t.target.useCount; // Two breaks become one.
+      return s;
+    }
+    if (s is Continue && t is Continue && s.target == t.target) {
+      --t.target.useCount; // Two continues become one.
       return s;
     }
     if (s is Return && t is Return && equivalentExpressions(s.value, t.value)) {
@@ -1175,7 +1242,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
             makeCondition(outerIf.condition, branch1),
             makeCondition(innerIf.condition, branch2));
         outerIf.thenStatement = innerThen;
-        --innerElse.target.breakCount;
+        --innerElse.target.useCount;
 
         // Try to inline the remaining break.  Do not propagate assignments.
         List<Assign> savedEnvironment = environment;
@@ -1199,6 +1266,124 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 }
 
+/// Rewrites [WhileTrue] statements with an [If] body into a [WhileCondition],
+/// in situations where only one of the branches contains a [Continue] to the
+/// loop. Schematically:
+///
+///   L:
+///   while (true) {
+///     if (E) {
+///       S1  (has references to L)
+///     } else {
+///       S2  (has no references to L)
+///     }
+///   }
+///     ==>
+///   L:
+///   while (E) {
+///     S1
+///   };
+///   S2
+///
+/// A similar transformation is used when S2 occurs in the 'then' position.
+///
+/// Note that the above pattern needs no iteration since nested ifs
+/// have been collapsed previously in the [StatementRewriter] phase.
+class LoopRewriter extends StatementVisitor<Statement> {
+
+  Set<Label> usedContinueLabels = new Set<Label>();
+
+  void rewrite(FunctionDefinition function) {
+    function.body = visitStatement(function.body);
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitAssign(Assign node) {
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitReturn(Return node) {
+    return node;
+  }
+
+  Statement visitBreak(Break node) {
+    return node;
+  }
+
+  Statement visitContinue(Continue node) {
+    usedContinueLabels.add(node.target);
+    return node;
+  }
+
+  Statement visitIf(If node) {
+    node.thenStatement = visitStatement(node.thenStatement);
+    node.elseStatement = visitStatement(node.elseStatement);
+    return node;
+  }
+
+  Statement visitWhileTrue(WhileTrue node) {
+    assert(!usedContinueLabels.contains(node.label));
+    if (node.body is If) {
+      If body = node.body;
+      body.thenStatement = visitStatement(body.thenStatement);
+      bool thenHasContinue = usedContinueLabels.remove(node.label);
+      body.elseStatement = visitStatement(body.elseStatement);
+      bool elseHasContinue = usedContinueLabels.remove(node.label);
+      if (thenHasContinue && !elseHasContinue) {
+        node.label.binding = null; // Prepare to rebind the label.
+        return new WhileCondition(
+            node.label,
+            body.condition,
+            body.thenStatement,
+            body.elseStatement,
+            node.updates);
+      } else if (!thenHasContinue && elseHasContinue) {
+        node.label.binding = null;
+        return new WhileCondition(
+            node.label,
+            new Not(body.condition),
+            body.elseStatement,
+            body.thenStatement,
+            node.updates);
+      }
+    } else {
+      node.body = visitStatement(node.body);
+      usedContinueLabels.remove(node.label);
+    }
+    return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    // Note: not reachable but the implementation is trivial
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    node.next = visitStatement(node.next);
+    // for (;;) { ... E; continue* L ... }
+    //   ==>
+    // for(;;E) { ... continue* L ... }
+    if (node.next is Continue) {
+      Continue jump = node.next;
+      if (jump.target.useCount == 1) {
+        Loop target = jump.target.binding;
+        target.updates.add(node.expression);
+        return jump; // Return the continue statement.
+        // NOTE: The pattern may reclick in an enclosing expression statement.
+      }
+    }
+    return node;
+  }
+
+}
 
 
 /// Rewrites logical expressions to be more compact.
@@ -1334,8 +1519,15 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
-  Statement visitWhile(While node) {
+  Statement visitWhileTrue(WhileTrue node) {
     node.body = visitStatement(node.body);
+    return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    node.condition = makeCondition(node.condition, true, liftNots: false);
+    node.body = visitStatement(node.body);
+    node.next = visitStatement(node.next);
     return node;
   }
 

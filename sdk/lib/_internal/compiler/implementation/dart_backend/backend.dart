@@ -237,6 +237,8 @@ class DartBackend extends Backend {
         treeElements = new TreeElementMapping(element);
         new tree.StatementRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Statement rewriter', definition);
+        new tree.LoopRewriter().rewrite(definition);
+        compiler.tracer.traceGraph('Loop rewriter', definition);
         new tree.LogicalRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Logical rewriter', definition);
         node = dart_codegen.emit(element, treeElements, definition);

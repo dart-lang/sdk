@@ -26,6 +26,18 @@ loop2(x) {
     return n;
 }
 
+loop3(x) {
+    var n = 0;
+    if (x < 100) {
+        while (n < x) {
+            n = n + 1;
+            baz();
+        }
+    }
+    baz();
+    return n;
+}
+
 f1(b) {
   while (b)
     return 1;
@@ -47,6 +59,10 @@ main() {
     Expect.equals(0,  loop2(-10));
     Expect.equals(10, loop2(10));
     Expect.equals(0,  loop2(200));
+
+    Expect.equals(0,  loop3(-10));
+    Expect.equals(10, loop3(10));
+    Expect.equals(0,  loop3(200));
 
     Expect.equals(1, f1(true));
     Expect.equals(2, f1(false));

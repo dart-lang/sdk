@@ -212,7 +212,15 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   void visitContinue(tree.Continue stmt) {
-    statementBuffer.add(new Continue(stmt.target.name));
+    tree.Statement fall = fallthrough;
+    if (stmt.target.binding == fall) {
+      // Fall through to continue target
+    } else if (fall is tree.Continue && fall.target == stmt.target) {
+      // Fall through to equivalent continue
+    } else {
+      usedLabels.add(stmt.target);
+      statementBuffer.add(new Continue(stmt.target.name));
+    }
   }
 
   void visitIf(tree.If stmt) {
@@ -227,19 +235,57 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     statementBuffer = savedBuffer;
   }
 
-  void visitWhile(tree.While stmt) {
-    Expression condition = new Literal(new dart2js.BoolConstant(true));
+  void visitWhileTrue(tree.WhileTrue stmt) {
+    List<Expression> updates = stmt.updates.reversed
+                                           .map(visitExpression)
+                                           .toList(growable:false);
+
     List<Statement> savedBuffer = statementBuffer;
-    statementBuffer = <Statement>[];
     tree.Statement savedFallthrough = fallthrough;
-    fallthrough = stmt.body;
+    statementBuffer = <Statement>[];
+    fallthrough = stmt;
+
     visitStatement(stmt.body);
-    savedBuffer.add(
-        new LabeledStatement(
-            stmt.label.name,
-            new While(condition, new Block(statementBuffer))));
+    Statement body = new Block(statementBuffer);
+    Statement statement = new For(null, null, updates, body);
+    if (usedLabels.remove(stmt.label.name)) {
+      statement = new LabeledStatement(stmt.label.name, statement);
+    }
+    savedBuffer.add(statement);
+
     statementBuffer = savedBuffer;
     fallthrough = savedFallthrough;
+  }
+
+  void visitWhileCondition(tree.WhileCondition stmt) {
+    Expression condition = visitExpression(stmt.condition);
+    List<Expression> updates = stmt.updates.reversed
+                                           .map(visitExpression)
+                                           .toList(growable:false);
+
+    List<Statement> savedBuffer = statementBuffer;
+    tree.Statement savedFallthrough = fallthrough;
+    statementBuffer = <Statement>[];
+    fallthrough = stmt;
+
+    visitStatement(stmt.body);
+    Statement body = new Block(statementBuffer);
+    Statement statement;
+    if (updates.isEmpty) {
+      // while(E) is the same as for(;E;), but the former is nicer
+      statement = new While(condition, body);
+    } else {
+      statement = new For(null, condition, updates, body);
+    }
+    if (usedLabels.remove(stmt.label.name)) {
+      statement = new LabeledStatement(stmt.label.name, statement);
+    }
+    savedBuffer.add(statement);
+
+    statementBuffer = savedBuffer;
+    fallthrough = savedFallthrough;
+
+    visitStatement(stmt.next);
   }
 
   Expression visitConstant(tree.Constant exp) {
@@ -437,3 +483,4 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 }
+
