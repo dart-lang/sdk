@@ -18,14 +18,9 @@ Future<Compiler> applyPatch(String script, String patch,
   MockCompiler compiler = new MockCompiler.internal(coreSource: core,
                                                     analyzeAll: analyzeAll,
                                                     analyzeOnly: analyzeOnly);
-  var uri = Uri.parse("core.dartp");
-  compiler.sourceFiles[uri.toString()] = new MockFile(patch);
-  var handler = new LibraryDependencyHandler(compiler);
-  return compiler.patchParser.patchLibrary(handler, uri, compiler.coreLibrary)
-      .then((_) {
-    handler.computeExports();
-    return compiler;
-  });
+  var uri = Uri.parse("patch:core");
+  compiler.registerSource(uri, "$PATCH_CORE_SOURCE\n$patch");
+  return compiler.init().then((_) => compiler);
 }
 
 void expectHasBody(compiler, Element element) {

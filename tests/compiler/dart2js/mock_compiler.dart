@@ -59,12 +59,6 @@ const String DEFAULT_HELPERLIB = r'''
     var receiver;
   }
   class Closure implements Function {}
-  class Null {}
-  class Dynamic_ {}
-  class LinkedHashMap {
-    factory LinkedHashMap._empty() => null;
-    factory LinkedHashMap._literal(elements) => null;
-  }
   class ConstantMap {}
   class ConstantStringMap {}
   class TypeImpl {}
@@ -218,6 +212,7 @@ const String DEFAULT_CORELIB = r'''
     String toString() { return null; }
     noSuchMethod(im) { throw im; }
   }
+  class Null {}
   abstract class StackTrace {}
   class Type {}
   class Function {}
@@ -234,6 +229,10 @@ const String DEFAULT_CORELIB = r'''
     E singleWhere(f) => null;
   }
   abstract class Map<K,V> {}
+  class LinkedHashMap {
+    factory LinkedHashMap._empty() => null;
+    factory LinkedHashMap._literal(elements) => null;
+  }
   class DateTime {
     DateTime(year);
     DateTime.utc(year);
@@ -241,6 +240,14 @@ const String DEFAULT_CORELIB = r'''
   abstract class Pattern {}
   bool identical(Object a, Object b) { return true; }
   const proxy = 0;''';
+
+final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
+
+const String PATCH_CORE_SOURCE = r'''
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_isolate_helper';
+''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
   var startRootIsolate;
@@ -265,9 +272,7 @@ class MockCompiler extends Compiler {
 
   MockCompiler.internal(
       {String coreSource: DEFAULT_CORELIB,
-       String helperSource: DEFAULT_HELPERLIB,
        String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
-       String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
        bool enableTypeAssertions: false,
        bool enableMinification: false,
        bool enableConcreteTypeInference: false,
@@ -293,47 +298,50 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               showPackageWarnings: true) {
-    clearMessages();
-    coreLibrary = createLibrary("core", coreSource);
-
-    // We need to set the assert method to avoid calls with a 'null'
-    // target being interpreted as a call to assert.
-    jsHelperLibrary = createLibrary("helper", helperSource);
-    foreignLibrary = createLibrary("foreign", FOREIGN_LIBRARY);
-    interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
-    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
-
-    // Set up the library imports.
-    importHelperLibrary(coreLibrary);
-    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(foreignLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
-
-    assertMethod = jsHelperLibrary.find('assertHelper');
-    identicalFunction = coreLibrary.find('identical');
-
-    mainApp = mockLibrary(this, "");
-    initializeSpecialClasses();
-    // We need to make sure the Object class is resolved. When registering a
-    // dynamic invocation the ArgumentTypesRegistry eventually iterates over
-    // the interfaces of the Object class which would be 'null' if the class
-    // wasn't resolved.
-    objectClass.ensureResolved(this);
-
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
+
+    clearMessages();
+
+    registerSource(Compiler.DART_CORE, coreSource);
+    registerSource(PATCH_CORE, PATCH_CORE_SOURCE);
+
+    registerSource(Compiler.DART_JS_HELPER, DEFAULT_HELPERLIB);
+    registerSource(Compiler.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
+    registerSource(Compiler.DART_INTERCEPTORS, interceptorsSource);
+    registerSource(Compiler.DART_ISOLATE_HELPER, DEFAULT_ISOLATE_HELPERLIB);
   }
 
   /// Initialize the mock compiler with an empty main library.
-  Future init() {
-    // Stub for initialization.
-    return new Future.value();
+  Future init([String mainSource = ""]) {
+    Uri uri = new Uri(scheme: "mock");
+    registerSource(uri, mainSource);
+    return libraryLoader.loadLibrary(uri, null, uri)
+        .then((LibraryElement library) {
+      coreLibrary = libraries['${Compiler.DART_CORE}'];
+      jsHelperLibrary = libraries['${Compiler.DART_JS_HELPER}'];
+      foreignLibrary = libraries['${Compiler.DART_FOREIGN_HELPER}'];
+      interceptorsLibrary = libraries['${Compiler.DART_INTERCEPTORS}'];
+      isolateHelperLibrary = libraries['${Compiler.DART_ISOLATE_HELPER}'];
+
+      assertMethod = jsHelperLibrary.find('assertHelper');
+      identicalFunction = coreLibrary.find('identical');
+
+      mainApp = library;
+      initializeSpecialClasses();
+      // We need to make sure the Object class is resolved. When registering a
+      // dynamic invocation the ArgumentTypesRegistry eventually iterates over
+      // the interfaces of the Object class which would be 'null' if the class
+      // wasn't resolved.
+      objectClass.ensureResolved(this);
+    });
   }
 
   Future runCompiler(Uri uri) {
-    return super.runCompiler(uri).then((result) {
+    return init().then((_) {
+      return super.runCompiler(uri);
+    }).then((result) {
       if (expectedErrors != null &&
           expectedErrors != errors.length) {
         throw "unexpected error during compilation ${errors}";
@@ -352,22 +360,6 @@ class MockCompiler extends Compiler {
    */
   void registerSource(Uri uri, String source) {
     sourceFiles[uri.toString()] = new MockFile(source);
-  }
-
-  /**
-   * Used internally to create a library from a source text. The created library
-   * is fixed to export its top-level declarations.
-   */
-  LibraryElement createLibrary(String name, String source) {
-    Uri uri = new Uri(scheme: "dart", path: name);
-    var script = new Script(uri, uri, new MockFile(source));
-    var library = new LibraryElementX(script);
-    library.libraryTag = new LibraryName(null, null, null);
-    parseScript(source, library);
-    library.setExports(library.localScope.values.toList());
-    registerSource(uri, source);
-    libraries.putIfAbsent(uri.toString(), () => library);
-    return library;
   }
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
@@ -467,7 +459,12 @@ class MockCompiler extends Compiler {
                            Uri resolvedUri, Node node) => resolvedUri;
 
   // The mock library doesn't need any patches.
-  Uri resolvePatchUri(String dartLibraryName) => null;
+  Uri resolvePatchUri(String dartLibraryName) {
+    if (dartLibraryName == 'core') {
+      return PATCH_CORE;
+    }
+    return null;
+  }
 
   Future<Script> readScript(Spannable node, Uri uri) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
@@ -554,23 +551,6 @@ void compareMessageKinds(String text,
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }
-}
-
-void importLibrary(LibraryElement target, LibraryElementX imported,
-                   Compiler compiler) {
-  for (var element in imported.localMembers) {
-    compiler.withCurrentElement(element, () {
-      target.addToScope(element, compiler);
-    });
-  }
-}
-
-LibraryElement mockLibrary(Compiler compiler, String source) {
-  Uri uri = new Uri(scheme: "source");
-  var library = new LibraryElementX(new Script(uri, uri, new MockFile(source)));
-  importLibrary(library, compiler.coreLibrary, compiler);
-  library.setExports(<Element>[]);
-  return library;
 }
 
 class CollectingTreeElements extends TreeElementMapping {

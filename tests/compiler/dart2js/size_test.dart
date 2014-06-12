@@ -19,6 +19,7 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
   class double {}
   class String {}
   class Function {}
+  class Null {}
   class Type {}
   class Map {}
   class StackTrace {}

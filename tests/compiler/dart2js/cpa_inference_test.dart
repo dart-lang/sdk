@@ -154,46 +154,12 @@ class AnalysisResult {
 
 const String DYNAMIC = '"__dynamic_for_test"';
 
-const String CORELIB = r'''
-  print(var obj) {}
-  abstract class num {
-    num operator +(num x);
-    num operator *(num x);
-    num operator -(num x);
-    operator ==(x);
-    num floor();
-  }
-  abstract class int extends num {
-    bool get isEven;
-  }
-  abstract class double extends num {
-    bool get isNaN;
-  }
-  class bool {}
-  class String {}
-  class Object {
-    Object();
-  }
-  class Function {}
-  abstract class List<E> {
-    factory List([int length]) {}
-  }
-  abstract class Map<K, V> {}
-  class Closure {}
-  class Type {}
-  class StackTrace {}
-  class Dynamic_ {}
-  bool identical(Object a, Object b) {}
-  const proxy = 0;''';
-
 Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
-  Uri uri = new Uri(scheme: 'source');
+  Uri uri = new Uri(scheme: 'dart', path: 'test');
   MockCompiler compiler = new MockCompiler.internal(
-      coreSource: CORELIB,
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
-  compiler.sourceFiles[uri.toString()] =
-      new StringSourceFile(uri.toString(), code);
+  compiler.registerSource(uri, code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
   return compiler.runCompiler(uri).then((_) {
     return new AnalysisResult(compiler);
@@ -1435,9 +1401,8 @@ testDynamicIsAbsorbing() {
 
 testJsCall() {
   final String source = r"""
-    import 'dart:foreign';
-    import 'dart:helper' show Null;
-    import 'dart:interceptors';
+    import 'dart:_foreign_helper';
+    import 'dart:_interceptors';
 
     abstract class AbstractA {}
     class A extends AbstractA {}
@@ -1517,7 +1482,7 @@ testJsCallAugmentsSeenClasses() {
   }).whenComplete(() {
 
     final String source2 = """
-      import 'dart:foreign';
+      import 'dart:_foreign_helper';
 
       main () {
         var x = $DYNAMIC.truncate();

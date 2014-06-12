@@ -69,25 +69,27 @@ testSimpleTypes(MockCompiler compiler) {
   checkType(compiler.stringClass.computeType(compiler), "'hestfisk'");
 }
 
-testReturn(MockCompiler compiler) {
-  check(String code, [expectedWarnings]) {
-    analyzeTopLevel(compiler, code, expectedWarnings);
+Future testReturn(MockCompiler compiler) {
+  Future check(String code, [expectedWarnings]) {
+    return analyzeTopLevel(code, expectedWarnings);
   }
 
-  check("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID);
-  check("int bar() { return 'hest'; }", NOT_ASSIGNABLE);
-  check("void baz() { var x; return x; }");
-  check(returnWithType("int", "'string'"), NOT_ASSIGNABLE);
-  check(returnWithType("", "'string'"));
-  check(returnWithType("Object", "'string'"));
-  check(returnWithType("String", "'string'"));
-  check(returnWithType("String", null));
-  check(returnWithType("int", null));
-  check(returnWithType("void", ""));
-  check(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID);
-  check(returnWithType("void", null));
-  check(returnWithType("String", ""), MessageKind.RETURN_NOTHING);
-  // check("String foo() {};"); // Should probably fail.
+  return Future.wait([
+    check("void foo() { return 3; }", MessageKind.RETURN_VALUE_IN_VOID),
+    check("int bar() { return 'hest'; }", NOT_ASSIGNABLE),
+    check("void baz() { var x; return x; }"),
+    check(returnWithType("int", "'string'"), NOT_ASSIGNABLE),
+    check(returnWithType("", "'string'")),
+    check(returnWithType("Object", "'string'")),
+    check(returnWithType("String", "'string'")),
+    check(returnWithType("String", null)),
+    check(returnWithType("int", null)),
+    check(returnWithType("void", "")),
+    check(returnWithType("void", 1), MessageKind.RETURN_VALUE_IN_VOID),
+    check(returnWithType("void", null)),
+    check(returnWithType("String", ""), MessageKind.RETURN_NOTHING),
+    // check("String foo() {};"), // Should probably fail.
+  ]);
 }
 
 testFor(MockCompiler compiler) {
@@ -496,8 +498,9 @@ void testMethodInvocations(MockCompiler compiler) {
 }
 
 Future testMethodInvocationsInClass(MockCompiler compiler) {
-  return MockCompiler.create((MockCompiler compiler) {
-    LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
+  MockCompiler compiler = new MockCompiler.internal();
+  return compiler.init(CLASS_WITH_METHODS).then((_) {
+    LibraryElement library = compiler.mainApp;
     compiler.parseScript(CLASS_WITH_METHODS, library);
     ClassElement ClassWithMethods = library.find("ClassWithMethods");
     ClassWithMethods.ensureResolved(compiler);
@@ -655,47 +658,44 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
 }
 
 /** Tests analysis of returns (not required by the specification). */
-void testControlFlow(MockCompiler compiler) {
-  check(String code, [expectedWarnings]) {
-    analyzeTopLevel(compiler, code, expectedWarnings);
+Future testControlFlow(MockCompiler compiler) {
+  Future check(String code, [expectedWarnings]) {
+    return analyzeTopLevel(code, expectedWarnings);
   }
 
-  check("void foo() { if (true) { return; } }");
-  check("foo() { if (true) { return; } }");
-  check("int foo() { if (true) { return 1; } }",
-        MessageKind.MAYBE_MISSING_RETURN);
-  final bar =
-      """void bar() {
-        if (true) {
-          if (true) { return; } else { return; }
-        } else { return; }
-      }""";
-  check(bar);
-  check("void baz() { return; int i = 1; }",
-        MessageKind.UNREACHABLE_CODE);
-  final qux =
-      """void qux() {
-        if (true) {
-          return;
-        } else if (true) {
-          if (true) {
-            return;
-          }
-          throw 'hest';
-        }
-        throw 'fisk';
-      }""";
-  check(qux);
-  check("int hest() {}", MessageKind.MISSING_RETURN);
-  final fisk = """int fisk() {
-                    if (true) {
-                      if (true) { return 1; } else {}
-                    } else { return 1; }
-                  }""";
-  check(fisk, MessageKind.MAYBE_MISSING_RETURN);
-  check("int foo() { while(true) { return 1; } }");
-  check("int foo() { while(true) { return 1; } return 2; }",
-        MessageKind.UNREACHABLE_CODE);
+  return Future.wait([
+    check("void foo() { if (true) { return; } }"),
+    check("foo() { if (true) { return; } }"),
+    check("int foo() { if (true) { return 1; } }",
+          MessageKind.MAYBE_MISSING_RETURN),
+    check("""void bar() {
+               if (true) {
+                 if (true) { return; } else { return; }
+               } else { return; }
+             }"""),
+    check("void baz() { return; int i = 1; }",
+          MessageKind.UNREACHABLE_CODE),
+    check("""void qux() {
+               if (true) {
+                 return;
+               } else if (true) {
+                 if (true) {
+                   return;
+                 }
+                 throw 'hest';
+               }
+               throw 'fisk';
+             }"""),
+    check("int hest() {}", MessageKind.MISSING_RETURN),
+    check("""int fisk() {
+               if (true) {
+                 if (true) { return 1; } else {}
+               } else { return 1; }
+             }""", MessageKind.MAYBE_MISSING_RETURN),
+    check("int foo() { while(true) { return 1; } }"),
+    check("int foo() { while(true) { return 1; } return 2; }",
+          MessageKind.UNREACHABLE_CODE),
+  ]);
 }
 
 
@@ -1137,21 +1137,22 @@ testOperatorsAssignability(MockCompiler compiler) {
       [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
-void testFieldInitializers(MockCompiler compiler) {
-  check(String code, [expectedWarnings]) {
-    analyzeTopLevel(compiler, code, expectedWarnings);
+Future testFieldInitializers(MockCompiler compiler) {
+  Future check(String code, [expectedWarnings]) {
+    return analyzeTopLevel(code, expectedWarnings);
   }
 
+  return Future.wait([
+    check("""int i = 0;"""),
+    check("""int i = '';""", NOT_ASSIGNABLE),
 
-  check("""int i = 0;""");
-  check("""int i = '';""", NOT_ASSIGNABLE);
-
-  check("""class Class {
-             int i = 0;
-           }""");
-  check("""class Class {
-             int i = '';
-           }""", NOT_ASSIGNABLE);
+    check("""class Class {
+               int i = 0;
+             }"""),
+    check("""class Class {
+               int i = '';
+             }""", NOT_ASSIGNABLE),
+  ]);
 }
 
 void testTypeVariableExpressions(MockCompiler compiler) {
@@ -1327,188 +1328,190 @@ void testTypeLiteral(MockCompiler compiler) {
   check('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
-void testInitializers(MockCompiler compiler) {
-  check(String text, [expectedWarnings]) {
-    analyzeTopLevel(compiler, text, expectedWarnings);
+Future testInitializers(MockCompiler compiler) {
+  Future check(String text, [expectedWarnings]) {
+    return analyzeTopLevel(text, expectedWarnings);
   }
 
-  // Check initializers.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-            }
-            ''');
-  check(r'''class Class {
-              int a;
-              Class(this.a);
-            }
-            ''');
-  check(r'''class Class {
-              var a;
-              Class(int this.a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(int this.a);
-            }
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Class {
-              var a;
-              Class(int a) : this.a = a;
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(int a) : this.a = a;
-            }
-            ''', NOT_ASSIGNABLE);
+  return Future.wait([
+    // Check initializers.
+    check(r'''class Class {
+                var a;
+                Class(this.a);
+              }
+              '''),
+    check(r'''class Class {
+                int a;
+                Class(this.a);
+              }
+              '''),
+    check(r'''class Class {
+                var a;
+                Class(int this.a);
+              }
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(int this.a);
+              }
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Class {
+                var a;
+                Class(int a) : this.a = a;
+              }
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(int a) : this.a = a;
+              }
+              ''', NOT_ASSIGNABLE),
 
-  // Check this-calls.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-              Class.named(int a) : this(a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(this.a);
-              Class.named(int a) : this(a);
-            }
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Class {
-              String a;
-              Class(var a) : this.a = a;
-              Class.named(int a) : this(a);
-            }
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(String a) : this.a = a;
-              Class.named(int a) : this(a);
-            }
-            ''', NOT_ASSIGNABLE);
+    // Check this-calls.
+    check(r'''class Class {
+                var a;
+                Class(this.a);
+                Class.named(int a) : this(a);
+              }
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(this.a);
+                Class.named(int a) : this(a);
+              }
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Class {
+                String a;
+                Class(var a) : this.a = a;
+                Class.named(int a) : this(a);
+              }
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(String a) : this.a = a;
+                Class.named(int a) : this(a);
+              }
+              ''', NOT_ASSIGNABLE),
 
-  // Check super-calls.
-  check(r'''class Super {
-              var a;
-              Super(this.a);
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super {
-              String a;
-              Super(this.a);
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Super {
-              String a;
-              Super(var a) : this.a = a;
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super {
-              String a;
-              Super(String a) : this.a = a;
-            }
-            class Class extends Super {
-              Class.named(int a) : super(a);
-            }
-            ''', NOT_ASSIGNABLE);
+    // Check super-calls.
+    check(r'''class Super {
+                var a;
+                Super(this.a);
+              }
+              class Class extends Super {
+                Class.named(int a) : super(a);
+              }
+              '''),
+    check(r'''class Super {
+                String a;
+                Super(this.a);
+              }
+              class Class extends Super {
+                Class.named(int a) : super(a);
+              }
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Super {
+                String a;
+                Super(var a) : this.a = a;
+              }
+              class Class extends Super {
+                Class.named(int a) : super(a);
+              }
+              '''),
+    check(r'''class Super {
+                String a;
+                Super(String a) : this.a = a;
+              }
+              class Class extends Super {
+                Class.named(int a) : super(a);
+              }
+              ''', NOT_ASSIGNABLE),
 
-  // Check super-calls involving generics.
-  check(r'''class Super<T> {
-              var a;
-              Super(this.a);
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super<T> {
-              T a;
-              Super(this.a);
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Super<T> {
-              T a;
-              Super(var a) : this.a = a;
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''');
-  check(r'''class Super<T> {
-              T a;
-              Super(T a) : this.a = a;
-            }
-            class Class extends Super<String> {
-              Class.named(int a) : super(a);
-            }
-            ''', NOT_ASSIGNABLE);
+    // Check super-calls involving generics.
+    check(r'''class Super<T> {
+                var a;
+                Super(this.a);
+              }
+              class Class extends Super<String> {
+                Class.named(int a) : super(a);
+              }
+              '''),
+    check(r'''class Super<T> {
+                T a;
+                Super(this.a);
+              }
+              class Class extends Super<String> {
+                Class.named(int a) : super(a);
+              }
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Super<T> {
+                T a;
+                Super(var a) : this.a = a;
+              }
+              class Class extends Super<String> {
+                Class.named(int a) : super(a);
+              }
+              '''),
+    check(r'''class Super<T> {
+                T a;
+                Super(T a) : this.a = a;
+              }
+              class Class extends Super<String> {
+                Class.named(int a) : super(a);
+              }
+              ''', NOT_ASSIGNABLE),
 
-  // Check instance creations.
-  check(r'''class Class {
-              var a;
-              Class(this.a);
-            }
-            method(int a) => new Class(a);
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(this.a);
-            }
-            method(int a) => new Class(a);
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Class {
-              String a;
-              Class(var a) : this.a = a;
-            }
-            method(int a) => new Class(a);
-            ''');
-  check(r'''class Class {
-              String a;
-              Class(String a) : this.a = a;
-            }
-            method(int a) => new Class(a);
-            ''', NOT_ASSIGNABLE);
+    // Check instance creations.
+    check(r'''class Class {
+                var a;
+                Class(this.a);
+              }
+              method(int a) => new Class(a);
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(this.a);
+              }
+              method(int a) => new Class(a);
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Class {
+                String a;
+                Class(var a) : this.a = a;
+              }
+              method(int a) => new Class(a);
+              '''),
+    check(r'''class Class {
+                String a;
+                Class(String a) : this.a = a;
+              }
+              method(int a) => new Class(a);
+              ''', NOT_ASSIGNABLE),
 
-  // Check instance creations involving generics.
-  check(r'''class Class<T> {
-              var a;
-              Class(this.a);
-            }
-            method(int a) => new Class<String>(a);
-            ''');
-  check(r'''class Class<T> {
-              T a;
-              Class(this.a);
-            }
-            method(int a) => new Class<String>(a);
-            ''', NOT_ASSIGNABLE);
-  check(r'''class Class<T> {
-              T a;
-              Class(var a) : this.a = a;
-            }
-            method(int a) => new Class<String>(a);
-            ''');
-  check(r'''class Class<T> {
-              T a;
-              Class(String a) : this.a = a;
-            }
-            method(int a) => new Class<String>(a);
-            ''', NOT_ASSIGNABLE);
+    // Check instance creations involving generics.
+    check(r'''class Class<T> {
+                var a;
+                Class(this.a);
+              }
+              method(int a) => new Class<String>(a);
+              '''),
+    check(r'''class Class<T> {
+                T a;
+                Class(this.a);
+              }
+              method(int a) => new Class<String>(a);
+              ''', NOT_ASSIGNABLE),
+    check(r'''class Class<T> {
+                T a;
+                Class(var a) : this.a = a;
+              }
+              method(int a) => new Class<String>(a);
+              '''),
+    check(r'''class Class<T> {
+                T a;
+                Class(String a) : this.a = a;
+              }
+              method(int a) => new Class<String>(a);
+              ''', NOT_ASSIGNABLE),
+  ]);
 }
 
 void testGetterSetterInvocation(MockCompiler compiler) {
@@ -2052,47 +2055,51 @@ DartType analyzeType(MockCompiler compiler, String text) {
   return visitor.analyze(node);
 }
 
-analyzeTopLevel(MockCompiler compiler, String text, [expectedWarnings]) {
+analyzeTopLevel(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
+  MockCompiler compiler = new MockCompiler.internal();
   compiler.diagnosticHandler = createHandler(compiler, text);
 
-  LibraryElement library = mockLibrary(compiler, text);
+  return compiler.init().then((_) {
+    LibraryElement library = compiler.mainApp;
 
-  Link<Element> topLevelElements = parseUnit(text, compiler, library).reverse();
+    Link<Element> topLevelElements =
+        parseUnit(text, compiler, library).reverse();
 
-  Element element = null;
-  Node node;
-  TreeElements mapping;
-  // Resolve all declarations and members.
-  for (Link<Element> elements = topLevelElements;
-       !elements.isEmpty;
-       elements = elements.tail) {
-    element = elements.head;
-    if (element.isClass) {
-      ClassElement classElement = element;
-      classElement.ensureResolved(compiler);
-      classElement.forEachLocalMember((Element e) {
-        if (!e.isSynthesized) {
-          element = e;
-          node = element.parseNode(compiler);
-          mapping = compiler.resolver.resolve(element);
-        }
-      });
-    } else {
-      node = element.parseNode(compiler);
-      mapping = compiler.resolver.resolve(element);
+    Element element = null;
+    Node node;
+    TreeElements mapping;
+    // Resolve all declarations and members.
+    for (Link<Element> elements = topLevelElements;
+         !elements.isEmpty;
+         elements = elements.tail) {
+      element = elements.head;
+      if (element.isClass) {
+        ClassElement classElement = element;
+        classElement.ensureResolved(compiler);
+        classElement.forEachLocalMember((Element e) {
+          if (!e.isSynthesized) {
+            element = e;
+            node = element.parseNode(compiler);
+            mapping = compiler.resolver.resolve(element);
+          }
+        });
+      } else {
+        node = element.parseNode(compiler);
+        mapping = compiler.resolver.resolve(element);
+      }
     }
-  }
-  // Type check last class declaration or member.
-  TypeCheckerVisitor checker =
-      new TypeCheckerVisitor(compiler, mapping, compiler.types);
-  compiler.clearMessages();
-  checker.analyze(node);
-  compareWarningKinds(text, expectedWarnings, compiler.warnings);
+    // Type check last class declaration or member.
+    TypeCheckerVisitor checker =
+        new TypeCheckerVisitor(compiler, mapping, compiler.types);
+    compiler.clearMessages();
+    checker.analyze(node);
+    compareWarningKinds(text, expectedWarnings, compiler.warnings);
 
-  compiler.diagnosticHandler = null;
+    compiler.diagnosticHandler = null;
+  });
 }
 
 /**

@@ -472,6 +472,14 @@ class TokenMap {
 }
 
 abstract class Compiler implements DiagnosticListener {
+  static final Uri DART_CORE = new Uri(scheme: 'dart', path: 'core');
+  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
+  static final Uri DART_INTERCEPTORS =
+      new Uri(scheme: 'dart', path: '_interceptors');
+  static final Uri DART_FOREIGN_HELPER =
+      new Uri(scheme: 'dart', path: '_foreign_helper');
+  static final Uri DART_ISOLATE_HELPER =
+      new Uri(scheme: 'dart', path: '_isolate_helper');
   final Map<String, LibraryElement> libraries =
     new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();

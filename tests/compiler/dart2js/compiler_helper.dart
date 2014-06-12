@@ -106,8 +106,7 @@ MockCompiler compilerFor(String code, Uri uri,
       enableMinification: minify,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings);
-  compiler.sourceFiles[uri.toString()] =
-      new StringSourceFile(uri.toString(), code);
+  compiler.registerSource(uri, code);
   return compiler;
 }
 
@@ -124,7 +123,7 @@ Future<String> compileAll(String code,
       expectedWarnings: expectedWarnings);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
-                   'Unexpected compilation error');
+                   'Unexpected compilation error(s): ${compiler.errors}');
     return compiler.assembledCode;
   });
 }
