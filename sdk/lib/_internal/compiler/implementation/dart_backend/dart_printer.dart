@@ -459,7 +459,7 @@ class CallStatic extends Expression {
   final String methodName;
   final List<Argument> arguments;
 
-  elements.FunctionElement element;
+  elements.Element element;
 
   CallStatic(this.className, this.methodName, this.arguments);
 }

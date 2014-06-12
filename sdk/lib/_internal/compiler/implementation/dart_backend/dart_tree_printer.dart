@@ -373,12 +373,19 @@ class TreePrinter {
       if (beginStmt && exp.name != null) {
         needParen = true; // Do not mistake for function declaration.
       }
+      // exp.element can only be null in tests.
+      tree.Node body = exp.element != null &&
+          exp.element.node.body is tree.EmptyStatement
+        ? exp.element.node.body
+        : makeBlock(exp.body);
       result = new tree.FunctionExpression(
-          exp.name != null ? makeIdentifier(exp.name) : null,
+          functionName(exp),
           makeParameters(exp.parameters),
-          makeFunctionBody(exp.body),
-          exp.returnType != null ? makeType(exp.returnType) : null,
-          makeEmptyModifiers(), // TODO(asgerf): Function modifiers?
+          body,
+          exp.returnType == null || exp.element.isConstructor
+            ? null
+            : makeType(exp.returnType),
+          makeFunctionModifiers(exp),
           null,  // initializers
           null); // get/set
       setElement(result, exp.element, exp);
@@ -877,6 +884,30 @@ class TreePrinter {
       nodes.add(makeIdentifier('var'));
     }
     return new tree.Modifiers(makeList('', nodes));
+  }
+
+  tree.Modifiers makeFunctionModifiers(FunctionExpression exp) {
+    if (exp.element == null) return makeEmptyModifiers();
+    List<tree.Node> modifiers = new List<tree.Node>();
+    if (exp.element is elements.ConstructorElement &&
+        exp.element.isFactoryConstructor) {
+      modifiers.add(makeIdentifier("factory"));
+    }
+    if (exp.element.isStatic) {
+      modifiers.add(makeIdentifier("static"));
+    }
+    return new tree.Modifiers(makeList('', modifiers));
+  }
+
+  tree.Identifier functionName(FunctionExpression exp) {
+    String name = exp.name;
+    if (name == null) return null;
+    if (isUserDefinableOperator(name)) {
+      name = "operator$name";
+    } else if (name == "unary-") {
+      name = "operator-";
+    }
+    return makeIdentifier(name);
   }
 
   tree.Node parenthesize(tree.Node node) {

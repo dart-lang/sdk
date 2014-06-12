@@ -145,6 +145,17 @@ class DartBackend extends Backend {
     return INTERNAL_HELPERS.indexOf(lib) == -1 && !lib.isPlatformLibrary;
   }
 
+  /**
+   * Tells whether we should output given element. Corelib classes like
+   * Object should not be in the resulting code.
+   */
+  bool shouldOutput(Element element) {
+    return (isUserLibrary(element.library)
+        && !element.isSynthesized
+        && element is !AbstractFieldElement)
+        || element.library == mirrorHelperLibrary;
+  }
+
   void assembleProgram() {
     // Conservatively traverse all platform libraries and collect member names.
     // TODO(antonm): ideally we should only collect names of used members,
@@ -208,17 +219,6 @@ class DartBackend extends Backend {
         mirrorRenamer = new MirrorRenamer(compiler, this);
     } else {
       useMirrorHelperLibrary = false;
-    }
-
-    /**
-     * Tells whether we should output given element. Corelib classes like
-     * Object should not be in the resulting code.
-     */
-    bool shouldOutput(Element element) {
-      return (isUserLibrary(element.library)
-          && !element.isSynthesized
-          && element is !AbstractFieldElement)
-          || element.library == mirrorHelperLibrary;
     }
 
     final elementAsts = new Map<Element, ElementAst>();

@@ -427,6 +427,9 @@ abstract class Backend {
   // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
   // node. [elements] is currently unused by the implementation.
   void onElementResolved(Element element, TreeElements elements) {}
+
+  // Does this element belong in the output
+  bool shouldOutput(Element element) => true;
 }
 
 /**

@@ -96,6 +96,8 @@ class IrBuilderTask extends CompilerTask {
     FunctionElement function = element.asFunctionElement();
     if (function == null) return false;
 
+    if (!compiler.backend.shouldOutput(function)) return false;
+
     // TODO(kmillikin): support functions with optional parameters.
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount > 0) return false;
@@ -113,7 +115,6 @@ class IrBuilderTask extends CompilerTask {
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
     if (element.isGetter || element.isSetter) return false;
-    if (element.enclosingElement.isClass) return false;
 
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative) return false;
@@ -915,6 +916,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (Elements.isLocal(element)) {
       return lookupLocal(element);
     } else if (element == null || Elements.isInstanceField(element)) {
+      // TODO: Support implicit this.
+      if (node.receiver == null) return giveup();
+
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
