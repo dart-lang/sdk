@@ -13,6 +13,7 @@ pkg/analyzer: PubGetError
 pkg/browser: PubGetError
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
+pkg/collection: Fail # Issue 19391
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
