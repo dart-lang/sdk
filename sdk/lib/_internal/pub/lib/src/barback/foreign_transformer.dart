@@ -162,10 +162,9 @@ deserializeTransformerLike(Map map, TransformerId id) {
   }
 
   if (transformer is Transformer) {
-    return ExcludingTransformer.wrap(transformer, id.includes, id.excludes);
+    return ExcludingTransformer.wrap(transformer, id);
   } else {
     assert(transformer is AggregateTransformer);
-    return ExcludingAggregateTransformer.wrap(
-        transformer, id.includes, id.excludes);
+    return ExcludingAggregateTransformer.wrap(transformer, id);
   }
 }

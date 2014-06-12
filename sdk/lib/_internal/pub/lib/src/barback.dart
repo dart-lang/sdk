@@ -89,6 +89,9 @@ class TransformerId {
   /// Whether this ID points to a built-in transformer exposed by pub.
   bool get isBuiltInTransformer => package.startsWith('\$');
 
+  /// Returns whether this id excludes certain asset ids from being processed.
+  bool get hasExclusions => includes != null || excludes != null;
+
   /// Parses a transformer identifier.
   ///
   /// A transformer identifier is a string of the form "package_name" or
@@ -192,6 +195,22 @@ class TransformerId {
     return barback.getAssetById(transformerAsset).then((_) => transformerAsset)
         .catchError((e) => new AssetId(package, 'lib/$package.dart'),
             test: (e) => e is AssetNotFoundException);
+  }
+
+  /// Returns whether the include/exclude rules allow the transformer to run on
+  /// [pathWithinPackage].
+  ///
+  /// [pathWithinPackage] must be a path relative to the containing package's
+  /// root directory.
+  bool canTransform(String pathWithinPackage) {
+    // TODO(rnystrom): Support globs in addition to paths. See #17093.
+    if (excludes != null) {
+      // If there are any excludes, it must not match any of them.
+      if (excludes.contains(pathWithinPackage)) return false;
+    }
+
+    // If there are any includes, it must match one of them.
+    return includes == null || includes.contains(pathWithinPackage);
   }
 }
 

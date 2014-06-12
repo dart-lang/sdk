@@ -309,8 +309,7 @@ class _TransformerLoader {
           new BarbackSettings(id.configuration, _environment.mode));
 
       // Handle any exclusions.
-      transformer = ExcludingTransformer.wrap(transformer,
-          id.includes, id.excludes);
+      transformer = ExcludingTransformer.wrap(transformer, id);
     } on FormatException catch (error, stackTrace) {
       fail(error.message, error, stackTrace);
     }
