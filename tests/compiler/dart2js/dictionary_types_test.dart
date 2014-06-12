@@ -8,7 +8,7 @@ import 'memory_compiler.dart';
 import 'compiler_helper.dart' show findElement;
 
 var SOURCES = const {
-'testAddAll.dart': """
+'AddAll.dart': """
   var dictionaryA = {'string': "aString", 'int': 42, 'double': 21.5,
                      'list': []};
   var dictionaryB = {'string': "aString", 'int': 42, 'double': 21.5,
@@ -28,7 +28,7 @@ var SOURCES = const {
     nullOrInt = dictionaryB['intTwo'];
   }
 """,
-'testUnion.dart': """
+'Union.dart': """
   var dictionaryA = {'string': "aString", 'int': 42, 'double': 21.5,
                      'list': []};
   var dictionaryB = {'string': "aString", 'intTwo': 42, 'list': []};
@@ -44,7 +44,7 @@ var SOURCES = const {
     doubleOrNull = union['double'];
   }
 """,
-'testValueType.dart': """
+'ValueType.dart': """
   var dictionary = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
   var keyD = 'double';
   var keyI = 'int';
@@ -58,7 +58,7 @@ var SOURCES = const {
     var x = [intOrNull, justNull];
   }
 """,
-'testPropagation.dart': """
+'Propagation.dart': """
   class A {
     A();
     foo(value) {
@@ -83,28 +83,52 @@ var SOURCES = const {
     }
     print(it.foo(dictionary) + 2);
   }
+""",
+'Bailout.dart': """
+  var dict = makeMap([1,2]);
+  var notInt = 0;
+  var alsoNotInt = 0;
+
+  makeMap(values) {
+    return {'moo': values[0], 'boo': values[1]};
+  }
+
+  main () {
+    dict['goo'] = 42;
+    var closure = dictfun() => dict;
+    notInt = closure()['boo'];
+    alsoNotInt = dict['goo'];
+    print("\$notInt and \$alsoNotInt.");
+  }
 """};
 
 void main() {
   asyncTest(() =>
-    compileAndTest("testAddAll.dart", (types, getType, compiler) {
+    compileAndTest("AddAll.dart", (types, getType, compiler) {
       Expect.equals(getType('int'), types.uint31Type);
       Expect.equals(getType('anotherInt'), types.uint31Type);
       Expect.equals(getType('dynamic'), types.dynamicType);
       Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
-    }).then((_) => compileAndTest("testUnion.dart", (types, getType, compiler) {
-      Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
-      Expect.isTrue(getType('aString').containsOnlyString(compiler));
-      Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
-    })).then((_) => compileAndTest("testValueType.dart",
-        (types, getType, compiler) {
+    }));
+  asyncTest(() => compileAndTest("Union.dart", (types, getType, compiler) {
+    Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
+    Expect.isTrue(getType('aString').containsOnlyString(compiler));
+    Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
+  }));
+  asyncTest(() => 
+    compileAndTest("ValueType.dart", (types, getType, compiler) {
       Expect.equals(getType('knownDouble'), types.doubleType);
       Expect.equals(getType('intOrNull'), types.uint31Type.nullable());
       Expect.equals(getType('justNull'), types.nullType);
-    })).then((_) => compileAndTest("testPropagation.dart", (code) {
-      Expect.isFalse(code.contains("J.\$add\$ns"));
-    }, createCode: true))
-  );
+    }));
+  asyncTest(() => compileAndTest("Propagation.dart", (code) {
+    Expect.isFalse(code.contains("J.\$add\$ns"));
+  }, createCode: true));
+  asyncTest(() => compileAndTest("Bailout.dart", (types, getType, compiler) {
+    Expect.equals(getType('notInt'), types.dynamicType);
+    Expect.equals(getType('alsoNotInt'), types.dynamicType);
+    Expect.isFalse(getType('dict').isDictionary);
+  }));
 }
 
 compileAndTest(source, checker, {createCode: false}) {
