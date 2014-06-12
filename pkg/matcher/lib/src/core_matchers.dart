@@ -85,7 +85,7 @@ class _IsSameAs extends Matcher {
 ///
 /// For [Iterable]s and [Map]s, this will recursively match the elements. To
 /// handle cyclic structures a recursion depth [limit] can be provided. The
-/// default limit is 100.
+/// default limit is 100. [Set]s will be compared order-independently.
 Matcher equals(expected, [int limit=100]) =>
     expected is String
         ? new _StringEqualsMatcher(expected)
@@ -124,6 +124,26 @@ class _DeepMatcher extends Matcher {
     }
   }
 
+  List _compareSets(Set expected, actual, matcher, depth, location) {
+    if (actual is! Iterable) return ['is not Iterable', location];
+    actual = actual.toSet();
+
+    for (var expectedElement in expected) {
+      if (actual.every((actualElement) =>
+          matcher(expectedElement, actualElement, location, depth) != null)) {
+        return ['does not contain $expectedElement', location];
+      }
+    }
+
+    if (actual.length > expected.length) {
+      return ['larger than expected', location];
+    } else if (actual.length < expected.length) {
+      return ['smaller than expected', location];
+    } else {
+      return null;
+    }
+  }
+
   List _recursiveMatch(expected, actual, String location, int depth) {
     // If the expected value is a matcher, try to match it.
     if (expected is Matcher) {
@@ -146,37 +166,38 @@ class _DeepMatcher extends Matcher {
     if (depth > _limit) return ['recursion depth limit exceeded', location];
 
     // If _limit is 1 we can only recurse one level into object.
-    bool canRecurse = depth == 0 || _limit > 1;
+    if (depth == 0 || _limit > 1) {
+      if (expected is Set) {
+        return _compareSets(expected, actual, _recursiveMatch, depth + 1,
+            location);
+      } else if (expected is Iterable) {
+        return _compareIterables(expected, actual, _recursiveMatch, depth + 1,
+            location);
+      } else if (expected is Map) {
+        if (actual is! Map) return ['expected a map', location];
 
-    if (expected is Iterable && canRecurse) {
-      return _compareIterables(expected, actual, _recursiveMatch, depth + 1,
-          location);
-    }
-
-    if (expected is Map && canRecurse) {
-      if (actual is! Map) return ['expected a map', location];
-
-      var err = (expected.length == actual.length) ? '' :
-                'has different length and ';
-      for (var key in expected.keys) {
-        if (!actual.containsKey(key)) {
-          return ["${err}is missing map key '$key'", location];
+        var err = (expected.length == actual.length) ? '' :
+                  'has different length and ';
+        for (var key in expected.keys) {
+          if (!actual.containsKey(key)) {
+            return ["${err}is missing map key '$key'", location];
+          }
         }
-      }
 
-      for (var key in actual.keys) {
-        if (!expected.containsKey(key)) {
-          return ["${err}has extra map key '$key'", location];
+        for (var key in actual.keys) {
+          if (!expected.containsKey(key)) {
+            return ["${err}has extra map key '$key'", location];
+          }
         }
-      }
 
-      for (var key in expected.keys) {
-        var rp = _recursiveMatch(expected[key], actual[key],
-            "${location}['${key}']", depth + 1);
-        if (rp != null) return rp;
-      }
+        for (var key in expected.keys) {
+          var rp = _recursiveMatch(expected[key], actual[key],
+              "${location}['${key}']", depth + 1);
+          if (rp != null) return rp;
+        }
 
-      return null;
+        return null;
+      }
     }
 
     var description = new StringDescription();

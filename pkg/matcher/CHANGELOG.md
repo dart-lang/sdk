@@ -1,3 +1,7 @@
+## 0.10.1
+
+* Compare sets order-independently when using `equals()`.
+
 ## 0.10.0+3
 
 * Removed `@deprecated` annotation on matchers due to 

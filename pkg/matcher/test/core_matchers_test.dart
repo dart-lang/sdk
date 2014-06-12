@@ -47,6 +47,24 @@ void main() {
     shouldPass(a, equals(b));
   });
 
+  test('equals with a set', () {
+    var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    var set1 = numbers.toSet();
+    numbers.shuffle();
+    var set2 = numbers.toSet();
+
+    shouldPass(set2, equals(set1));
+    shouldPass(numbers, equals(set1));
+    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9], equals(set1),
+        "Expected: ?:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n"
+        "  Actual: [1, 2, 3, 4, 5, 6, 7, 8, 9]\n"
+        "   Which: does not contain 10");
+    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], equals(set1),
+        "Expected: ?:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n"
+        "  Actual: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]\n"
+        "   Which: larger than expected");
+  });
+
   test('anything', () {
     var a = new Map();
     shouldPass(0, anything);
