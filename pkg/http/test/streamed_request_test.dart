@@ -4,8 +4,6 @@
 
 library streamed_request_test;
 
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:unittest/unittest.dart';
 
