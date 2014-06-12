@@ -79,6 +79,7 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
             // the map.
             TypeInformation map = info.arguments.positional[0];
             if (map is MapTypeInformation) {
+              inferrer.analyzeMapAndEnqueue(map);
               mapAssignments.add(map);
             } else {
               // If we could select a component from a [TypeInformation],

@@ -239,6 +239,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
     var descriptor = data[4];
     var isRoot = !!data[5];
     var fields = descriptor && descriptor["${namer.classDescriptorProperty}"];
+    if (fields instanceof Array) fields = fields[0];
     var classes = [];
     var functions = [];
     processStatics(descriptor);

@@ -1065,7 +1065,9 @@ class MapTypeInformation extends TypeInformation {
   bool analyzed = false;
 
   // Set to false if a statically unknown key flows into this map.
-  bool isDictionary = true;
+  bool _allKeysAreStrings = true;
+
+  bool get inDictionaryMode => !bailedOut && _allKeysAreStrings;
 
   MapTypeInformation(this.initialType, this.keyType, this.valueType) {
     keyType.addUser(this);
@@ -1077,13 +1079,13 @@ class MapTypeInformation extends TypeInformation {
                                      TypeInformation value,
                                      [bool nonNull = false]) {
     TypeInformation newInfo = null;
-    if (isDictionary && key is StringLiteralTypeInformation) {
+    if (_allKeysAreStrings && key is StringLiteralTypeInformation) {
       String keyString = key.asString();
       typeInfoMap.putIfAbsent(keyString,
           () => newInfo = new ValueInMapTypeInformation(null, nonNull));
       typeInfoMap[keyString].addAssignment(value);
     } else {
-      isDictionary = false;
+      _allKeysAreStrings = false;
       typeInfoMap.clear();
     }
     keyType.addAssignment(key);
@@ -1093,10 +1095,10 @@ class MapTypeInformation extends TypeInformation {
     return newInfo;
   }
 
-  List<TypeInformation> addMapAssignment(MapTypeInformation map) {
+  List<TypeInformation> addMapAssignment(MapTypeInformation other) {
     List<TypeInformation> newInfos = <TypeInformation>[];
-    if (map.isDictionary) {
-      map.typeInfoMap.forEach((keyString, value) {
+    if (_allKeysAreStrings && other.inDictionaryMode) {
+      other.typeInfoMap.forEach((keyString, value) {
         typeInfoMap.putIfAbsent(keyString, () {
           TypeInformation newInfo = new ValueInMapTypeInformation(null, false);
           newInfos.add(newInfo);
@@ -1104,9 +1106,12 @@ class MapTypeInformation extends TypeInformation {
         });
         typeInfoMap[keyString].addAssignment(value);
       });
+    } else {
+      _allKeysAreStrings = false;
+      typeInfoMap.clear();
     }
-    keyType.addAssignment(map.keyType);
-    valueType.addAssignment(map.valueType);
+    keyType.addAssignment(other.keyType);
+    valueType.addAssignment(other.valueType);
 
     return newInfos;
   }
@@ -1125,7 +1130,7 @@ class MapTypeInformation extends TypeInformation {
   }
 
   TypeMask toTypeMask(TypeGraphInferrerEngine inferrer) {
-    if (isDictionary) {
+    if (inDictionaryMode) {
       Map<String, TypeMask> mappings = new Map<String, TypeMask>();
       for (var key in typeInfoMap.keys) {
         mappings[key] = typeInfoMap[key].type;
@@ -1146,9 +1151,10 @@ class MapTypeInformation extends TypeInformation {
   }
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    if (!bailedOut && type.isDictionary != isDictionary) {
+    if (type.isDictionary != inDictionaryMode) {
       return toTypeMask(inferrer);
-    } else if (!bailedOut && type.isDictionary) {
+    } else if (type.isDictionary) {
+      assert(inDictionaryMode);
       DictionaryTypeMask mask = type;
       for (var key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
