@@ -674,9 +674,9 @@ class JavaScriptBackend extends Backend {
       InterceptorConstant interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, registry);
     } else if (constant.isType) {
-      TypeConstant typeConstant = constant;
-      registerTypeLiteral(typeConstant.representedType,
-          compiler.enqueuer.codegen, registry);
+      enqueueInResolution(getCreateRuntimeType(), registry);
+      compiler.enqueuer.codegen.registerInstantiatedClass(
+          typeImplementation, registry);
     }
   }
 
@@ -866,49 +866,48 @@ class JavaScriptBackend extends Backend {
 
   onResolutionComplete() => rti.computeClassesNeedingRti();
 
-  void registerStringInterpolation(Registry registry) {
-    enqueueInResolution(getStringInterpolationHelper(), registry);
+  void onStringInterpolation(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getStringInterpolationHelper(), registry);
   }
 
-  void registerCatchStatement(Enqueuer enqueuer, Registry registry) {
-    void ensure(ClassElement classElement) {
-      if (classElement != null) {
-        enqueueClass(enqueuer, classElement, registry);
-      }
-    }
-    enqueueInResolution(getExceptionUnwrapper(), registry);
-    ensure(jsPlainJavaScriptObjectClass);
-    ensure(jsUnknownJavaScriptObjectClass);
+  void onCatchStatement(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getExceptionUnwrapper(), registry);
+    registerBackendInstantiation(jsPlainJavaScriptObjectClass, registry);
+    registerBackendInstantiation(jsUnknownJavaScriptObjectClass, registry);
   }
 
-  void registerThrowExpression(Registry registry) {
+  void onThrowExpression(Registry registry) {
+    assert(registry.isForResolution);
     // We don't know ahead of time whether we will need the throw in a
     // statement context or an expression context, so we register both
     // here, even though we may not need the throwExpression helper.
-    enqueueInResolution(getWrapExceptionHelper(), registry);
-    enqueueInResolution(getThrowExpressionHelper(), registry);
+    registerBackendStaticInvocation(getWrapExceptionHelper(), registry);
+    registerBackendStaticInvocation(getThrowExpressionHelper(), registry);
   }
 
-  void registerLazyField(Registry registry) {
-    enqueueInResolution(getCyclicThrowHelper(), registry);
+  void onLazyField(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getCyclicThrowHelper(), registry);
   }
 
-  void registerTypeLiteral(DartType type,
-                           Enqueuer enqueuer,
-                           Registry registry) {
-    enqueuer.registerInstantiatedClass(typeImplementation, registry);
-    enqueueInResolution(getCreateRuntimeType(), registry);
+  void onTypeLiteral(DartType type, Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendInstantiation(typeImplementation, registry);
+    registerBackendStaticInvocation(getCreateRuntimeType(), registry);
     // TODO(ahe): Might want to register [element] as an instantiated class
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
     if (type.isTypedef) {
       typedefTypeLiterals.add(type.element);
     }
-    customElementsAnalysis.registerTypeLiteral(type, enqueuer);
+    customElementsAnalysis.registerTypeLiteral(type, registry);
   }
 
-  void registerStackTraceInCatch(Registry registry) {
-    enqueueInResolution(getTraceFromException(), registry);
+  void onStackTraceInCatch(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getTraceFromException(), registry);
   }
 
   void registerGetRuntimeTypeArgument(Registry registry) {
@@ -950,62 +949,87 @@ class JavaScriptBackend extends Backend {
     enqueueClass(enqueuer, compiler.listClass, registry);
   }
 
-  void registerTypeVariableExpression(Registry registry) {
-    enqueueInResolution(getSetRuntimeTypeInfo(), registry);
-    enqueueInResolution(getGetRuntimeTypeInfo(), registry);
+  void onTypeVariableExpression(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getSetRuntimeTypeInfo(), registry);
+    registerBackendStaticInvocation(getGetRuntimeTypeInfo(), registry);
     registerGetRuntimeTypeArgument(registry);
-    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, registry);
-    enqueueInResolution(getRuntimeTypeToString(), registry);
-    enqueueInResolution(getCreateRuntimeType(), registry);
+    registerBackendInstantiation(compiler.listClass, registry);
+    registerBackendStaticInvocation(getRuntimeTypeToString(), registry);
+    registerBackendStaticInvocation(getCreateRuntimeType(), registry);
   }
 
-  void registerIsCheck(DartType type, Enqueuer world, Registry registry) {
-    enqueueInResolution(getThrowRuntimeError(), registry);
+  // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
+  void onIsCheck(DartType type, Registry registry) {
+    assert(registry.isForResolution);
+    type = type.unalias(compiler);
+    registerBackendInstantiation(compiler.boolClass, registry);
+    bool inCheckedMode = compiler.enableTypeAssertions;
+    if (inCheckedMode) {
+      registerBackendStaticInvocation(getThrowRuntimeError(), registry);
+    }
+    if (type.isMalformed) {
+      registerBackendStaticInvocation(getThrowTypeError(), registry);
+    }
+    if (!type.treatAsRaw || type.containsTypeVariables) {
+      // TODO(johnniwinther): Investigate why this is needed.
+      registerBackendStaticInvocation(getSetRuntimeTypeInfo(), registry);
+      registerBackendStaticInvocation(getGetRuntimeTypeInfo(), registry);
+      registerGetRuntimeTypeArgument(registry);
+      if (inCheckedMode) {
+        registerBackendStaticInvocation(getAssertSubtype(), registry);
+      }
+      registerBackendStaticInvocation(getCheckSubtype(), registry);
+      if (type.isTypeVariable) {
+        registerBackendStaticInvocation(
+            getCheckSubtypeOfRuntimeType(), registry);
+        if (inCheckedMode) {
+          registerBackendStaticInvocation(
+              getAssertSubtypeOfRuntimeType(), registry);
+        }
+      }
+      registerBackendInstantiation(compiler.listClass, registry);
+    }
+    if (type is FunctionType) {
+      registerBackendStaticInvocation(
+          compiler.findHelper('functionTypeTestMetaHelper'), registry);
+    }
+    if (type.element != null && type.element.isNative) {
+      // We will neeed to add the "$is" and "$as" properties on the
+      // JavaScript object prototype, so we make sure
+      // [:defineProperty:] is compiled.
+      registerBackendStaticInvocation(
+              compiler.findHelper('defineProperty'),
+              registry);
+    }
+  }
+
+  void registerIsCheckForCodegen(DartType type,
+                                 Enqueuer world,
+                                 Registry registry) {
+    assert(!registry.isForResolution);
     type = type.unalias(compiler);
     enqueueClass(world, compiler.boolClass, registry);
     bool inCheckedMode = compiler.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
     if (inCheckedMode) {
-      if (!world.isResolutionQueue) {
-        // All helpers are added to resolution queue in enqueueHelpers. These
-        // calls to enqueueInResolution serve as assertions that the helper was
-        // in fact added.
-        // TODO(13155): Find a way to enqueue helpers lazily.
-        CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-        if (helper != null) {
-          enqueue(world, helper.getElement(compiler), registry);
-        }
-        // We also need the native variant of the check (for DOM types).
-        helper = getNativeCheckedModeHelper(type, typeCast: false);
-        if (helper != null) {
-          enqueue(world, helper.getElement(compiler), registry);
-        }
+      // All helpers are added to resolution queue in enqueueHelpers. These
+      // calls to enqueueInResolution serve as assertions that the helper was
+      // in fact added.
+      // TODO(13155): Find a way to enqueue helpers lazily.
+      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
+      if (helper != null) {
+        enqueue(world, helper.getElement(compiler), registry);
       }
-    }
-    bool isTypeVariable = type.isTypeVariable;
-    if (type.isMalformed) {
-      enqueueInResolution(getThrowTypeError(), registry);
+      // We also need the native variant of the check (for DOM types).
+      helper = getNativeCheckedModeHelper(type, typeCast: false);
+      if (helper != null) {
+        enqueue(world, helper.getElement(compiler), registry);
+      }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
-      enqueueInResolution(getSetRuntimeTypeInfo(), registry);
-      enqueueInResolution(getGetRuntimeTypeInfo(), registry);
-      registerGetRuntimeTypeArgument(registry);
-      if (inCheckedMode) {
-        enqueueInResolution(getAssertSubtype(), registry);
-      }
-      enqueueInResolution(getCheckSubtype(), registry);
-      if (isTypeVariable) {
-        enqueueInResolution(getCheckSubtypeOfRuntimeType(), registry);
-        if (inCheckedMode) {
-          enqueueInResolution(getAssertSubtypeOfRuntimeType(), registry);
-        }
-      }
       enqueueClass(world, compiler.listClass, registry);
-    }
-    if (type is FunctionType) {
-      enqueueInResolution(
-          compiler.findHelper('functionTypeTestMetaHelper'), registry);
     }
     if (type.element != null && type.element.isNative) {
       // We will neeed to add the "$is" and "$as" properties on the
@@ -1017,35 +1041,24 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerAsCheck(DartType type, Enqueuer world, Registry registry) {
-    enqueueInResolution(getThrowRuntimeError(), registry);
-    type = type.unalias(compiler);
-    if (!world.isResolutionQueue) {
-      // All helpers are added to resolution queue in enqueueHelpers. These
-      // calls to enqueueInResolution serve as assertions that the helper was in
-      // fact added.
-      // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: true);
-      enqueueInResolution(helper.getElement(compiler), registry);
-      // We also need the native variant of the check (for DOM types).
-      helper = getNativeCheckedModeHelper(type, typeCast: true);
-      if (helper != null) {
-        enqueueInResolution(helper.getElement(compiler), registry);
-      }
-    }
+  void onAsCheck(DartType type, Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getThrowRuntimeError(), registry);
   }
 
-  void registerThrowNoSuchMethod(Registry registry) {
-    enqueueInResolution(getThrowNoSuchMethod(), registry);
+  void onThrowNoSuchMethod(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getThrowNoSuchMethod(), registry);
     // Also register the types of the arguments passed to this method.
-    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, registry);
-    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
+    registerBackendInstantiation(compiler.listClass, registry);
+    registerBackendInstantiation(compiler.stringClass, registry);
   }
 
-  void registerThrowRuntimeError(Registry registry) {
-    enqueueInResolution(getThrowRuntimeError(), registry);
+  void onThrowRuntimeError(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getThrowRuntimeError(), registry);
     // Also register the types of the arguments passed to this method.
-    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
+    registerBackendInstantiation(compiler.stringClass, registry);
   }
 
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
@@ -1053,19 +1066,23 @@ class JavaScriptBackend extends Backend {
     rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
   }
 
-  void registerTypeVariableBoundCheck(Registry registry) {
-    enqueueInResolution(getThrowTypeError(), registry);
-    enqueueInResolution(getAssertIsSubtype(), registry);
+  void onTypeVariableBoundCheck(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getThrowTypeError(), registry);
+    registerBackendStaticInvocation(getAssertIsSubtype(), registry);
   }
 
-  void registerAbstractClassInstantiation(Registry registry) {
-    enqueueInResolution(getThrowAbstractClassInstantiationError(), registry);
+  void onAbstractClassInstantiation(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getThrowAbstractClassInstantiationError(),
+                                    registry);
     // Also register the types of the arguments passed to this method.
-    enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
+    registerBackendInstantiation(compiler.stringClass, registry);
   }
 
-  void registerFallThroughError(Registry registry) {
-    enqueueInResolution(getFallThroughError(), registry);
+  void onFallThroughError(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getFallThroughError(), registry);
   }
 
   void registerCheckDeferredIsLoaded(Registry registry) {
@@ -1079,12 +1096,13 @@ class JavaScriptBackend extends Backend {
     world.registerInvocation(compiler.noSuchMethodSelector);
   }
 
-  void registerSuperNoSuchMethod(Registry registry) {
-    enqueueInResolution(getCreateInvocationMirror(), registry);
-    enqueueInResolution(
+  void onSuperNoSuchMethod(Registry registry) {
+    assert(registry.isForResolution);
+    registerBackendStaticInvocation(getCreateInvocationMirror(), registry);
+    registerBackendStaticInvocation(
         compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD),
         registry);
-    enqueueClass(compiler.enqueuer.resolution, compiler.listClass, registry);
+    registerBackendInstantiation(compiler.listClass, registry);
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
@@ -1130,43 +1148,68 @@ class JavaScriptBackend extends Backend {
            compiler.enabledRuntimeType;
   }
 
-  // Enqueue [e] in [enqueuer].
-  //
-  // The backend must *always* call this method when enqueuing an
-  // element. Calls done by the backend are not seen by global
-  // optimizations, so they would make these optimizations unsound.
-  // Therefore we need to collect the list of helpers the backend may
-  // use.
+  /// The backend must *always* call this method when enqueuing an
+  /// element. Calls done by the backend are not seen by global
+  /// optimizations, so they would make these optimizations unsound.
+  /// Therefore we need to collect the list of helpers the backend may
+  /// use.
+  Element registerBackendUse(Element element) {
+    if (element != null) {
+      helpersUsed.add(element.declaration);
+      if (element.isClass && element.isPatched) {
+        // Both declaration and implementation may declare fields, so we
+        // add both to the list of helpers.
+        helpersUsed.add(element.implementation);
+      }
+    }
+    return element;
+  }
+
+  void registerBackendStaticInvocation(Element element, Registry registry) {
+    registry.registerStaticInvocation(registerBackendUse(element));
+  }
+
+  void registerBackendInstantiation(ClassElement element, Registry registry) {
+    registry.registerInstantiation(registerBackendUse(element));
+  }
+
+  /// Enqueue [e] in [enqueuer].
+  ///
+  /// This method calls [registerBackendUse].
   void enqueue(Enqueuer enqueuer, Element e, Registry registry) {
     if (e == null) return;
-    helpersUsed.add(e.declaration);
+    registerBackendUse(e);
     enqueuer.addToWorkList(e);
     registry.registerDependency(e);
   }
 
+  /// Enqueue [e] in the resolution enqueuer.
+  ///
+  /// This method calls [registerBackendUse].
   void enqueueInResolution(Element e, Registry registry) {
     if (e == null) return;
     ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;
     enqueue(enqueuer, e, registry);
   }
 
+  /// Register instantiation of [cls] in [enqueuer].
+  ///
+  /// This method calls [registerBackendUse].
   void enqueueClass(Enqueuer enqueuer, Element cls, Registry registry) {
     if (cls == null) return;
+    registerBackendUse(cls);
     helpersUsed.add(cls.declaration);
-    // Both declaration and implementation may declare fields, so we
-    // add both to the list of helpers.
     if (cls.declaration != cls.implementation) {
       helpersUsed.add(cls.implementation);
     }
     enqueuer.registerInstantiatedClass(cls, registry);
   }
 
-  void registerConstantMap(Registry registry) {
+  void onConstantMap(Registry registry) {
+    assert(registry.isForResolution);
     void enqueue(String name) {
       Element e = compiler.findHelper(name);
-      if (e != null) {
-        enqueueClass(compiler.enqueuer.resolution, e, registry);
-      }
+      registerBackendInstantiation(e, registry);
     }
 
     enqueue(MapConstant.DART_CLASS);
@@ -1612,10 +1655,12 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when resolving the `Symbol` constructor.
-  void registerSymbolConstructor(Registry registry) {
+  void onSymbolConstructor(Registry registry) {
+    assert(registry.isForResolution);
     // Make sure that _internals.Symbol.validated is registered.
     assert(compiler.symbolValidatedConstructor != null);
-    enqueueInResolution(compiler.symbolValidatedConstructor, registry);
+    registerBackendStaticInvocation(compiler.symbolValidatedConstructor,
+                                    registry);
   }
 
   /// Should [element] (a getter) be retained for reflection?

@@ -130,11 +130,6 @@ abstract class Enqueuer {
     registerInstantiatedType(cls.rawType, registry);
   }
 
-  void registerTypeLiteral(DartType type, Registry registry) {
-    registerInstantiatedClass(compiler.typeClass, registry);
-    compiler.backend.registerTypeLiteral(type, this, registry);
-  }
-
   bool checkNoEnqueuedInvokedInstanceMethods() {
     task.measure(() {
       // Run through the classes and see if we need to compile methods.
@@ -312,11 +307,6 @@ abstract class Enqueuer {
     });
   }
 
-  /// Called when [:const Symbol(name):] is seen.
-  void registerConstSymbol(String name, Registry registry) {
-    compiler.backend.registerConstSymbol(name, registry);
-  }
-
   void pretendElementWasUsed(Element element, Registry registry) {
     if (!compiler.backend.isNeededForReflection(element)) return;
     if (Elements.isUnresolved(element)) {
@@ -346,11 +336,6 @@ abstract class Enqueuer {
         registerInvokedSetter(selector);
       }
     }
-  }
-
-  /// Called when [:new Symbol(...):] is seen.
-  void registerNewSymbol(Registry registry) {
-    compiler.backend.registerNewSymbol(registry);
   }
 
   void enqueueEverything() {
@@ -502,7 +487,6 @@ abstract class Enqueuer {
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef);
-    compiler.backend.registerIsCheck(type, this, registry);
   }
 
   /**
@@ -512,11 +496,6 @@ abstract class Enqueuer {
    */
   void registerFactoryWithTypeArguments(Registry registry) {
     universe.usingFactoryWithTypeArguments = true;
-  }
-
-  void registerAsCheck(DartType type, Registry registry) {
-    registerIsCheck(type, registry);
-    compiler.backend.registerAsCheck(type, this, registry);
   }
 
   void registerGenericCallMethod(Element element, Registry registry) {
