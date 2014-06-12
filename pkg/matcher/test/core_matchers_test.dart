@@ -55,14 +55,14 @@ void main() {
 
     shouldPass(set2, equals(set1));
     shouldPass(numbers, equals(set1));
-    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9], equals(set1),
-        "Expected: ?:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n"
-        "  Actual: [1, 2, 3, 4, 5, 6, 7, 8, 9]\n"
-        "   Which: does not contain 10");
-    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], equals(set1),
-        "Expected: ?:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n"
-        "  Actual: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]\n"
-        "   Which: larger than expected");
+    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9], equals(set1), matches(
+        r"Expected: .*:\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10\]"
+        r"  Actual: \[1, 2, 3, 4, 5, 6, 7, 8, 9\]"
+        r"   Which: does not contain 10"));
+    shouldFail([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], equals(set1), matches(
+        r"Expected: .*:\[1, 2, 3, 4, 5, 6, 7, 8, 9, 10\]"
+        r"  Actual: \[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11\]"
+        r"   Which: larger than expected"));
   });
 
   test('anything', () {

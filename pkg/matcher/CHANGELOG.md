@@ -1,3 +1,7 @@
+## 0.10.1+1
+
+* Get the tests passing when run on dart2js in minified mode.
+
 ## 0.10.1
 
 * Compare sets order-independently when using `equals()`.
