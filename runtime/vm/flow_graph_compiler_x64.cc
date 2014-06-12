@@ -1219,6 +1219,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
+  __ movq(R10, Immediate(0));
   __ LoadObject(RBX, ic_data, PP);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1226,6 +1227,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    PcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ movq(R10, Immediate(kInvalidObjectPointer));
+#endif
 }
 
 
@@ -1276,6 +1280,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  __ movq(R10, Immediate(0));
   __ LoadObject(RBX, ic_data, PP);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1283,6 +1288,9 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    PcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ movq(R10, Immediate(kInvalidObjectPointer));
+#endif
 }
 
 
@@ -1411,6 +1419,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     if (is_optimizing()) {
       __ CallPatchable(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
+      __ movq(R10, Immediate(0));
+      __ movq(RBX, Immediate(0));
       __ CallPatchable(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
@@ -1418,6 +1428,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+#if defined(DEBUG)
+    // Do this *after* adding the pc descriptor!
+    if (!is_optimizing()) {
+      __ movq(R10, Immediate(kInvalidObjectPointer));
+      __ movq(RBX, Immediate(kInvalidObjectPointer));
+    }
+#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popq(right);
     __ popq(left);

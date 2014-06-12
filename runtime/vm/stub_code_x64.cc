@@ -83,6 +83,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  __ SmiUntag(R10);
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.

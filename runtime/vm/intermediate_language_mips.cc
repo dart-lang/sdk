@@ -4685,6 +4685,19 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
+
+void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  const ExternalLabel label(StubCode::DebugStepCheckEntryPoint());
+  __ LoadImmediate(S4, 0);
+  __ LoadImmediate(S5, 0);
+  compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
+#if defined(DEBUG)
+  __ LoadImmediate(S4, kInvalidObjectPointer);
+  __ LoadImmediate(S5, kInvalidObjectPointer);
+#endif
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

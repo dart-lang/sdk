@@ -1209,6 +1209,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  __ LoadImmediate(R4, 0);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1216,6 +1217,9 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    PcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ LoadImmediate(R4, kInvalidObjectPointer);
+#endif
 }
 
 
@@ -1295,6 +1299,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
+  __ LoadImmediate(R4, 0);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1302,6 +1307,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    PcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ LoadImmediate(R4, kInvalidObjectPointer);
+#endif
 }
 
 
@@ -1365,6 +1373,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
+      __ LoadImmediate(R4, 0);
+      __ LoadImmediate(R5, 0);
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
@@ -1373,6 +1383,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+#if defined(DEBUG)
+    if (!is_optimizing()) {
+      // Do this *after* adding the pc descriptor!
+      __ LoadImmediate(R4, kInvalidObjectPointer);
+      __ LoadImmediate(R5, kInvalidObjectPointer);
+    }
+#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ Pop(right);
     __ Pop(left);

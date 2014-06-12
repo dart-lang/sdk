@@ -974,6 +974,94 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 }
 
 
+void TestBreakpointHandlerWithVerify(Dart_IsolateId isolate_id,
+                                     Dart_Breakpoint bpt,
+                                     Dart_StackTrace trace) {
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+
+  Dart_ActivationFrame frame;
+  Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_VALID(res);
+  Dart_Handle func_name;
+  intptr_t line_number = -1;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, &line_number, NULL);
+  EXPECT_NE(-1, line_number);
+  if (verbose) OS::Print("Hit line %" Pd "\n", line_number);
+
+  VerifyPointersVisitor::VerifyPointers();
+}
+
+
+static void NoopNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_True());
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction NoopNativeResolver(Dart_Handle name,
+                                              int arg_count,
+                                              bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
+  return &NoopNativeFunction;
+}
+
+
+TEST_CASE(Debug_BreakpointStubPatching) {
+  // Note changes to this script may require changes to the breakpoint line
+  // numbers below.
+  const char* kScriptChars =
+      "bar(i) {}                       \n"
+      "nat() native 'a';               \n"
+      "foo(n) {                        \n"
+      "  for(var i = 0; i < n; i++) {  \n"
+      "    bar(i);                     \n"  // Static call.
+      "    i++;                        \n"  // Instance call.
+      "    i == null;                  \n"  // Equality.
+      "    var x = i;                  \n"  // Debug step check.
+      "    i is int;                   \n"  // Subtype test.
+      "    y(z) => () => z + i;        \n"  // Allocate context.
+      "    y(i)();                     \n"  // Closure call.
+      "    nat();                      \n"  // Runtime call.
+      "    return y;                   \n"  // Return.
+      "  }                             \n"
+      "}                               \n"
+      "                                \n"
+      "main() {                        \n"
+      "  var i = 3;                    \n"
+      "  foo(i);                       \n"
+      "}                               \n";
+
+  LoadScript(kScriptChars);
+  Dart_Handle result = Dart_SetNativeResolver(script_lib,
+                                              &NoopNativeResolver,
+                                              NULL);
+  EXPECT_VALID(result);
+  Dart_SetBreakpointHandler(&TestBreakpointHandlerWithVerify);
+
+  Dart_Handle script_url = NewString(TestCase::url());
+
+  const intptr_t num_breakpoints = 9;
+  intptr_t breakpoint_lines[num_breakpoints] =
+      {5, 6, 7, 8, 9, 10, 11, 12, 13};
+
+  for (intptr_t i = 0; i < num_breakpoints; i++) {
+    result = Dart_SetBreakpoint(script_url, breakpoint_lines[i]);
+    EXPECT_VALID(result);
+    EXPECT(Dart_IsInteger(result));
+  }
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke("main");
+  EXPECT_VALID(retval);
+  EXPECT(breakpoint_hit == true);
+  EXPECT_EQ(num_breakpoints, breakpoint_hit_counter);
+}
+
+
 static intptr_t bp_id_to_be_deleted;
 
 static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,

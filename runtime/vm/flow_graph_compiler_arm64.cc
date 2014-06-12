@@ -1215,6 +1215,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  __ LoadImmediate(R4, 0, kNoPP);
   __ LoadObject(R5, ic_data, PP);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1222,6 +1223,9 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    PcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ LoadImmediate(R4, kInvalidObjectPointer, kNoPP);
+#endif
 }
 
 
@@ -1301,12 +1305,16 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
+  __ LoadImmediate(R4, 0, kNoPP);
   __ LoadObject(R5, ic_data, PP);
   GenerateDartCall(deopt_id,
                    token_pos,
                    &target_label,
                    PcDescriptors::kUnoptStaticCall,
                    locs);
+#if defined(DEBUG)
+  __ LoadImmediate(R5, kInvalidObjectPointer, kNoPP);
+#endif
   __ Drop(argument_count);
 }
 
@@ -1371,6 +1379,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
+      __ LoadImmediate(R4, 0, kNoPP);
+      __ LoadImmediate(R5, 0, kNoPP);
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
@@ -1379,6 +1389,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+#if defined(DEBUG)
+    if (!is_optimizing()) {
+      // Do this *after* adding the pc descriptor!
+      __ LoadImmediate(R4, kInvalidObjectPointer, kNoPP);
+      __ LoadImmediate(R5, kInvalidObjectPointer, kNoPP);
+    }
+#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ Pop(right);
     __ Pop(left);

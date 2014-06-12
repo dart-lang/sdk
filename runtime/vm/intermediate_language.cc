@@ -1626,13 +1626,6 @@ LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(!compiler->is_optimizing());
-  const ExternalLabel label(StubCode::DebugStepCheckEntryPoint());
-  compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
-}
-
-
 Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
 }

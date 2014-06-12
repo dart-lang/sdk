@@ -1182,6 +1182,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
+  __ movl(EDX, Immediate(0));
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1189,6 +1190,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    PcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ movl(EDX, Immediate(kInvalidObjectPointer));
+#endif
 }
 
 
@@ -1239,6 +1243,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  __ movl(EDX, Immediate(0));
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1246,6 +1251,9 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    PcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ movl(EDX, Immediate(kInvalidObjectPointer));
+#endif
 }
 
 
@@ -1375,6 +1383,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     if (is_optimizing()) {
       __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
+      __ movl(EDX, Immediate(0));
+      __ movl(ECX, Immediate(0));
       __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
@@ -1382,6 +1392,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+#if defined(DEBUG)
+    if (!is_optimizing()) {
+      // Do this *after* adding the pc descriptor!
+      __ movl(EDX, Immediate(kInvalidObjectPointer));
+      __ movl(ECX, Immediate(kInvalidObjectPointer));
+    }
+#endif
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(right);
     __ popl(left);

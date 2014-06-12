@@ -1248,6 +1248,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ TraceSimMsg("InstanceCall");
+  __ LoadImmediate(S4, 0);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1256,6 +1257,9 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    locs);
   __ TraceSimMsg("InstanceCall return");
   __ Drop(argument_count);
+#if defined(DEBUG)
+  __ LoadImmediate(S4, kInvalidObjectPointer);
+#endif
 }
 
 
@@ -1337,12 +1341,16 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
+  __ LoadImmediate(S4, 0);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    &target_label,
                    PcDescriptors::kUnoptStaticCall,
                    locs);
+#if defined(DEBUG)
+  __ LoadImmediate(S4, kInvalidObjectPointer);
+#endif
   __ Drop(argument_count);
 }
 
@@ -1414,6 +1422,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
+      __ LoadImmediate(S4, 0);
+      __ LoadImmediate(S5, 0);
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
@@ -1422,6 +1432,13 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
+#if defined(DEBUG)
+    if (!is_optimizing()) {
+      // Do this *after* adding the pc descriptor!
+      __ LoadImmediate(S4, kInvalidObjectPointer);
+      __ LoadImmediate(S5, kInvalidObjectPointer);
+    }
+#endif
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1. If it is 0, then left and right are
     // equal.

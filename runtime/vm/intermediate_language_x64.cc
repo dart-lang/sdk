@@ -5825,6 +5825,19 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
+
+void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  const ExternalLabel label(StubCode::DebugStepCheckEntryPoint());
+  __ movq(R10, Immediate(0));
+  __ movq(RBX, Immediate(0));
+  compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
+#if defined(DEBUG)
+  __ movq(R10, Immediate(kInvalidObjectPointer));
+  __ movq(RBX, Immediate(kInvalidObjectPointer));
+#endif
+}
+
 }  // namespace dart
 
 #undef __

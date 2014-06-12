@@ -181,6 +181,10 @@ enum {
   kSmiTagShift = 1,
 };
 
+enum {
+  kInvalidObjectPointer = kHeapObjectTag,
+};
+
 enum TypedDataElementType {
 #define V(name) k##name##Element,
 CLASS_LIST_TYPED_DATA(V)
