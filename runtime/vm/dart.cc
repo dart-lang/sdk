@@ -30,7 +30,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
+DEFINE_FLAG(int, new_gen_heap_size, 8 << kWordSizeLog2,
+            "new gen heap size in MB,"
             "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
             "old gen heap size in MB,"
