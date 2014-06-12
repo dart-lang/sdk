@@ -33,8 +33,8 @@ abstract class BarbackCommand extends PubCommand {
   /// build environment.
   final sourceDirectories = new Set<String>();
 
-  /// Override this to specify the default build mode.
-  BarbackMode get defaultMode;
+  /// The default build mode.
+  BarbackMode get defaultMode => BarbackMode.RELEASE;
 
   /// Override this to specify the default source directories if none are
   /// provided on the command line.

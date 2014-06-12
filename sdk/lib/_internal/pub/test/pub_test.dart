@@ -34,6 +34,7 @@ final USAGE_STRING = """
       get        Get the current package's dependencies.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
+      run        Run an executable from a package.
       serve      Run a local web development server.
       upgrade    Upgrade the current package's dependencies to latest versions.
       uploader   Manage uploaders for a package on pub.dartlang.org.
@@ -115,6 +116,7 @@ main() {
           get        Get the current package's dependencies.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
+          run        Run an executable from a package.
           serve      Run a local web development server.
           upgrade    Upgrade the current package's dependencies to latest versions.
           uploader   Manage uploaders for a package on pub.dartlang.org.
@@ -263,6 +265,7 @@ main() {
               get        Get the current package's dependencies.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.
+              run        Run an executable from a package.
               serve      Run a local web development server.
               upgrade    Upgrade the current package's dependencies to latest versions.
               uploader   Manage uploaders for a package on pub.dartlang.org.

@@ -27,7 +27,7 @@ main() {
   initConfig();
 
   // Uncomment this to debug failing tests.
-  // log.showSolver();
+  // log.verbosity = log.Verbosity.SOLVER;
 
   // Since this test isn't run from the SDK, it can't find the "version" file
   // to load. Instead, just manually inject a version.
@@ -1067,7 +1067,7 @@ testResolve(String description, Map packages, {
 solo_testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
     int maxTries}) {
-  log.showSolver();
+  log.verbosity = log.Verbosity.SOLVER;
   _testResolve(solo_test, description, packages, lockfile: lockfile,
       overrides: overrides, result: result, error: error, maxTries: maxTries);
 }

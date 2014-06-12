@@ -35,7 +35,7 @@ class Progress {
     // Only animate if we're writing to a TTY in human format and we're not
     // emitting FINE logging information. If we are, we'll just print the start
     // and end messages anyway.
-    bool animate = !log.isLevelVisible(log.Level.FINE) &&
+    bool animate = !log.verbosity.isLevelVisible(log.Level.FINE) &&
         stdioType(stdout) == StdioType.TERMINAL;
     (animate || fine ? log.fine : log.message)("$_message...");
 

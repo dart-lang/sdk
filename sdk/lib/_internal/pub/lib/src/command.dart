@@ -17,6 +17,7 @@ import 'command/get.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
 import 'command/list_package_dirs.dart';
+import 'command/run.dart';
 import 'command/serve.dart';
 import 'command/upgrade.dart';
 import 'command/uploader.dart';
@@ -253,6 +254,7 @@ _initCommands() {
     'deps': new DepsCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
+    'run': new RunCommand(),
     'serve': new ServeCommand(),
     'upgrade': new UpgradeCommand(),
     'uploader': new UploaderCommand(),

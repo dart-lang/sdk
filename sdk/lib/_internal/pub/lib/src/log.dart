@@ -22,8 +22,8 @@ import 'utils.dart';
 ///     log.json.error(...);
 final json = new _JsonLogger();
 
-typedef LogFn(Entry entry);
-final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
+/// The current logging verbosity.
+Verbosity verbosity = Verbosity.NORMAL;
 
 /// In cases where there's a ton of log spew, make sure we don't eat infinite
 /// memory.
@@ -54,9 +54,11 @@ final _gray = getSpecial('\u001b[1;30m');
 final _none = getSpecial('\u001b[0m');
 final _bold = getSpecial('\u001b[1m');
 
-/// An enum type for defining the different logging levels. By default, [ERROR]
-/// and [WARNING] messages are printed to sterr. [MESSAGE] messages are printed
-/// to stdout, and others are ignored.
+/// An enum type for defining the different logging levels a given message can
+/// be associated with.
+///
+/// By default, [ERROR] and [WARNING] messages are printed to sterr. [MESSAGE]
+/// messages are printed to stdout, and others are ignored.
 class Level {
   /// An error occurred and an operation could not be completed. Usually shown
   /// to the user on stderr.
@@ -85,7 +87,81 @@ class Level {
   final String name;
 
   String toString() => name;
-  int get hashCode => name.hashCode;
+}
+
+typedef _LogFn(Entry entry);
+
+/// An enum type to control which log levels are displayed and how they are
+/// displayed.
+class Verbosity {
+  /// Silence all logging.
+  static const NONE = const Verbosity._("none", const {
+    Level.ERROR:   null,
+    Level.WARNING: null,
+    Level.MESSAGE: null,
+    Level.IO:      null,
+    Level.SOLVER:  null,
+    Level.FINE:    null
+  });
+
+  /// Shows only errors and warnings.
+  static const WARNING = const Verbosity._("warning", const {
+    Level.ERROR:   _logToStderr,
+    Level.WARNING: _logToStderr,
+    Level.MESSAGE: null,
+    Level.IO:      null,
+    Level.SOLVER:  null,
+    Level.FINE:    null
+  });
+
+  /// The default verbosity which shows errors, warnings, and messages.
+  static const NORMAL = const Verbosity._("normal", const {
+    Level.ERROR:   _logToStderr,
+    Level.WARNING: _logToStderr,
+    Level.MESSAGE: _logToStdout,
+    Level.IO:      null,
+    Level.SOLVER:  null,
+    Level.FINE:    null
+  });
+
+  /// Shows errors, warnings, messages, and IO event logs.
+  static const IO = const Verbosity._("io", const {
+    Level.ERROR:   _logToStderrWithLabel,
+    Level.WARNING: _logToStderrWithLabel,
+    Level.MESSAGE: _logToStdoutWithLabel,
+    Level.IO:      _logToStderrWithLabel,
+    Level.SOLVER:  null,
+    Level.FINE:    null
+  });
+
+  /// Shows errors, warnings, messages, and version solver logs.
+  static const SOLVER = const Verbosity._("solver", const {
+    Level.ERROR:   _logToStderr,
+    Level.WARNING: _logToStderr,
+    Level.MESSAGE: _logToStdout,
+    Level.IO:      null,
+    Level.SOLVER:  _logToStdout,
+    Level.FINE:    null
+  });
+
+  /// Shows all logs.
+  static const ALL = const Verbosity._("all", const {
+    Level.ERROR:   _logToStderrWithLabel,
+    Level.WARNING: _logToStderrWithLabel,
+    Level.MESSAGE: _logToStdoutWithLabel,
+    Level.IO:      _logToStderrWithLabel,
+    Level.SOLVER:  _logToStderrWithLabel,
+    Level.FINE:    _logToStderrWithLabel
+  });
+
+  const Verbosity._(this.name, this._loggers);
+  final String name;
+  final Map<Level, _LogFn> _loggers;
+
+  /// Returns whether or not logs at [level] will be printed.
+  bool isLevelVisible(Level level) => _loggers[level] != null;
+
+  String toString() => name;
 }
 
 /// A single log entry.
@@ -126,8 +202,6 @@ void fine(message) => write(Level.FINE, message);
 
 /// Logs [message] at [level].
 void write(Level level, message) {
-  if (_loggers.isEmpty) showNormal();
-
   var lines = splitLines(message.toString());
 
   // Discard a trailing newline. This is useful since StringBuffers often end
@@ -138,7 +212,7 @@ void write(Level level, message) {
 
   var entry = new Entry(level, lines);
 
-  var logFn = _loggers[level];
+  var logFn = verbosity._loggers[level];
   if (logFn != null) logFn(entry);
 
   if (_transcript != null) _transcript.add(entry);
@@ -293,51 +367,6 @@ String red(text) => "$_red$text$_none";
 /// Use this to highlight warnings, cautions or other things that are bad but
 /// do not prevent the user's goal from being reached.
 String yellow(text) => "$_yellow$text$_none";
-
-/// Sets the verbosity to "normal", which shows errors, warnings, and messages.
-void showNormal() {
-  _loggers[Level.ERROR]   = _logToStderr;
-  _loggers[Level.WARNING] = _logToStderr;
-  _loggers[Level.MESSAGE] = _logToStdout;
-  _loggers[Level.IO]      = null;
-  _loggers[Level.SOLVER]  = null;
-  _loggers[Level.FINE]    = null;
-}
-
-/// Sets the verbosity to "io", which shows errors, warnings, messages, and IO
-/// event logs.
-void showIO() {
-  _loggers[Level.ERROR]   = _logToStderrWithLabel;
-  _loggers[Level.WARNING] = _logToStderrWithLabel;
-  _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
-  _loggers[Level.IO]      = _logToStderrWithLabel;
-  _loggers[Level.SOLVER]  = null;
-  _loggers[Level.FINE]    = null;
-}
-
-/// Sets the verbosity to "solver", which shows errors, warnings, messages, and
-/// solver logs.
-void showSolver() {
-  _loggers[Level.ERROR]   = _logToStderr;
-  _loggers[Level.WARNING] = _logToStderr;
-  _loggers[Level.MESSAGE] = _logToStdout;
-  _loggers[Level.IO]      = null;
-  _loggers[Level.SOLVER]  = _logToStdout;
-  _loggers[Level.FINE]    = null;
-}
-
-/// Sets the verbosity to "all", which logs ALL the things.
-void showAll() {
-  _loggers[Level.ERROR]   = _logToStderrWithLabel;
-  _loggers[Level.WARNING] = _logToStderrWithLabel;
-  _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
-  _loggers[Level.IO]      = _logToStderrWithLabel;
-  _loggers[Level.SOLVER]  = _logToStderrWithLabel;
-  _loggers[Level.FINE]    = _logToStderrWithLabel;
-}
-
-/// Returns whether or not logs at [level] will be printed.
-bool isLevelVisible(Level level) => _loggers[level] != null;
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {

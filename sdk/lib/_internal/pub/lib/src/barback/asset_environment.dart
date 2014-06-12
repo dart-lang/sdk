@@ -39,17 +39,15 @@ class AssetEnvironment {
   /// Creates a new build environment for working with the assets used by
   /// [entrypoint] and its dependencies.
   ///
-  /// Spawns an HTTP server for each directory in [rootDirectories]. These
-  /// servers will be on [hostname] and have ports based on [basePort].
-  /// [basePort] itself is reserved for "web/" and `basePort + 1` is reserved
-  /// for "test/"; further ports will be allocated for other root directories as
-  /// necessary. If [basePort] is zero, each server will have an ephemeral port.
+  /// HTTP servers that serve directories from this environment will be bound
+  /// to [hostname] and have ports based on [basePort]. If omitted, they
+  /// default to "localhost" and "0" (use ephemeral ports), respectively.
   ///
   /// Loads all used transformers using [mode] (including dart2js if
   /// [useDart2JS] is true).
   ///
-  /// Includes [rootDirectories] in the root package, as well as "lib" and
-  /// "asset".
+  /// This will only add the root package's "lib" directory to the environment.
+  /// Other directories can be added to the environment using [serveDirectory].
   ///
   /// If [watcherType] is not [WatcherType.NONE], watches source assets for
   /// modification.
@@ -57,8 +55,11 @@ class AssetEnvironment {
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
-      String hostname, int basePort, BarbackMode mode, WatcherType watcherType,
-      {bool useDart2JS: true}) {
+      BarbackMode mode, WatcherType watcherType,
+      {String hostname, int basePort, bool useDart2JS: true}) {
+    if (hostname == null) hostname = "localhost";
+    if (basePort == null) basePort = 0;
+
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
       var barback = new Barback(new PubPackageProvider(graph));

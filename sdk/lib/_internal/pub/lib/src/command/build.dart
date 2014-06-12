@@ -27,8 +27,6 @@ class BuildCommand extends BarbackCommand {
   /// The path to the application's build output directory.
   String get outputDirectory => commandOptions["output"];
 
-  BarbackMode get defaultMode => BarbackMode.RELEASE;
-
   List<String> get defaultSourceDirectories => ["web"];
 
   /// The number of files that have been built and written to disc so far.
@@ -53,9 +51,8 @@ class BuildCommand extends BarbackCommand {
     // Since this server will only be hit by the transformer loader and isn't
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
-    return AssetEnvironment.create(entrypoint, "localhost", 0, mode,
-        WatcherType.NONE, useDart2JS: true)
-          .then((environment) {
+    return AssetEnvironment.create(entrypoint, mode, WatcherType.NONE,
+        useDart2JS: true).then((environment) {
       // Show in-progress errors, but not results. Those get handled
       // implicitly by getAllAssets().
       environment.barback.errors.listen((error) {

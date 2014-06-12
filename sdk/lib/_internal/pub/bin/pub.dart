@@ -45,16 +45,14 @@ void main(List<String> arguments) {
   }
 
   switch (options['verbosity']) {
-    case 'normal': log.showNormal(); break;
-    case 'io':     log.showIO(); break;
-    case 'solver': log.showSolver(); break;
-    case 'all':    log.showAll(); break;
+    case 'normal': log.verbosity = log.Verbosity.NORMAL; break;
+    case 'io':     log.verbosity = log.Verbosity.IO; break;
+    case 'solver': log.verbosity = log.Verbosity.SOLVER; break;
+    case 'all':    log.verbosity = log.Verbosity.ALL; break;
     default:
       // No specific verbosity given, so check for the shortcut.
       if (options['verbose']) {
-        log.showAll();
-      } else {
-        log.showNormal();
+        log.verbosity = log.Verbosity.ALL;
       }
       break;
   }
