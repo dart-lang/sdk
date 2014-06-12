@@ -7,9 +7,8 @@ library index.page_node_manager;
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/index/b_plus_tree.dart';
 import 'package:analysis_server/src/index/lru_cache.dart';
-
-import 'b_plus_tree.dart';
 
 
 /**
@@ -59,19 +58,21 @@ class CachingNodeManager<K, V, N> implements NodeManager<K, V, N> {
   @override
   IndexNodeData<K, N> readIndex(N id) {
     IndexNodeData<K, N> data = _indexCache.get(id);
-    if (data != null) {
-      return data;
+    if (data == null) {
+      data = _delegate.readIndex(id);
+      _indexCache.put(id, data);
     }
-    return _delegate.readIndex(id);
+    return data;
   }
 
   @override
   LeafNodeData<K, V> readLeaf(N id) {
     LeafNodeData<K, V> data = _leafCache.get(id);
-    if (data != null) {
-      return data;
+    if (data == null) {
+      data = _delegate.readLeaf(id);
+      _leafCache.put(id, data);
     }
-    return _delegate.readLeaf(id);
+    return data;
   }
 
   @override

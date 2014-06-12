@@ -670,7 +670,7 @@ class _LeafNode<K, V, N> extends _Node<K, V, N> {
   }
 
   void _insertNotFull(K key, V value, int index) {
-    if (index < keys.length && keys[index] == key) {
+    if (index < keys.length && comparator(keys[index], key) == 0) {
       values[index] = value;
     } else {
       keys.insert(index, key);

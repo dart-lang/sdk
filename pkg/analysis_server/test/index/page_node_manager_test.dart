@@ -98,16 +98,6 @@ class _CachingNodeManagerTest {
     resetInteractions(delegate);
   }
 
-  void test_maxIndexKeys() {
-    when(delegate.maxIndexKeys).thenReturn(42);
-    expect(manager.maxIndexKeys, 42);
-  }
-
-  void test_maxLeafKeys() {
-    when(delegate.maxLeafKeys).thenReturn(42);
-    expect(manager.maxLeafKeys, 42);
-  }
-
   void test_createIndex() {
     when(delegate.createIndex()).thenReturn(77);
     expect(manager.createIndex(), 77);
@@ -130,10 +120,32 @@ class _CachingNodeManagerTest {
     expect(manager.isIndex(2), isFalse);
   }
 
-  void test_readIndex_cached() {
+  void test_maxIndexKeys() {
+    when(delegate.maxIndexKeys).thenReturn(42);
+    expect(manager.maxIndexKeys, 42);
+  }
+
+  void test_maxLeafKeys() {
+    when(delegate.maxLeafKeys).thenReturn(42);
+    expect(manager.maxLeafKeys, 42);
+  }
+
+  void test_readIndex_cache_whenRead() {
+    var data = new IndexNodeData<int, int>([1, 2], [10, 20, 30]);
+    when(delegate.readIndex(2)).thenReturn(data);
+    expect(manager.readIndex(2), data);
+    verify(delegate.readIndex(2)).once();
+    resetInteractions(delegate);
+    // we just read "2", so it should be cached
+    manager.readIndex(2);
+    verify(delegate.readIndex(2)).never();
+  }
+
+  void test_readIndex_cache_whenWrite() {
     var data = new IndexNodeData<int, int>([1, 2], [10, 20, 30]);
     manager.writeIndex(2, data);
     expect(manager.readIndex(2), data);
+    verify(delegate.readLeaf(2)).never();
     // delete, forces request to the delegate
     manager.delete(2);
     manager.readIndex(2);
@@ -146,10 +158,22 @@ class _CachingNodeManagerTest {
     expect(manager.readIndex(2), data);
   }
 
-  void test_readLeaf_cached() {
+  void test_readLeaf_cache_whenRead() {
+    var data = new LeafNodeData<int, String>([1, 2, 3], ['A', 'B', 'C']);
+    when(delegate.readLeaf(2)).thenReturn(data);
+    expect(manager.readLeaf(2), data);
+    verify(delegate.readLeaf(2)).once();
+    resetInteractions(delegate);
+    // we just read "2", so it should be cached
+    manager.readLeaf(2);
+    verify(delegate.readLeaf(2)).never();
+  }
+
+  void test_readLeaf_cache_whenWrite() {
     var data = new LeafNodeData<int, String>([1, 2, 3], ['A', 'B', 'C']);
     manager.writeLeaf(2, data);
     expect(manager.readLeaf(2), data);
+    verify(delegate.readLeaf(2)).never();
     // delete, forces request to the delegate
     manager.delete(2);
     manager.readLeaf(2);
@@ -216,6 +240,14 @@ class _FixedStringCodecTest {
     expect(codec.decode(buffer), 'ABCD');
   }
 
+  test_russian() {
+    // encode
+    codec.encode(buffer, 'ЩУКА');
+    expect(bytes, [0, 4, 4, 41, 4, 35, 4, 26, 4, 16]);
+    // decode
+    expect(codec.decode(buffer), 'ЩУКА');
+  }
+
   test_tooManyChars() {
     expect(() {
       codec.encode(buffer, 'ABCDE');
@@ -228,14 +260,6 @@ class _FixedStringCodecTest {
     expect(bytes, [0, 2, 0, 65, 0, 66, 0, 0, 0, 0]);
     // decode
     expect(codec.decode(buffer), 'AB');
-  }
-
-  test_russian() {
-    // encode
-    codec.encode(buffer, 'ЩУКА');
-    expect(bytes, [0, 4, 4, 41, 4, 35, 4, 26, 4, 16]);
-    // decode
-    expect(codec.decode(buffer), 'ЩУКА');
   }
 }
 
