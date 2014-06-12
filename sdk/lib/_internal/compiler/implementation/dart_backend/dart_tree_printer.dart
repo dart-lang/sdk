@@ -100,6 +100,11 @@ class TreePrinter {
         new StringToken.fromString(IDENTIFIER_INFO, name, -1));
   }
 
+  static tree.Operator makeOperator(String name) {
+    return new tree.Operator(
+        new StringToken.fromString(IDENTIFIER_INFO, name, -1));
+  }
+
   // Utilities for creating NodeLists
   Link<tree.Node> makeLink(Iterable<tree.Node> nodes) {
     LinkBuilder builder = new LinkBuilder();
@@ -899,13 +904,13 @@ class TreePrinter {
     return new tree.Modifiers(makeList('', modifiers));
   }
 
-  tree.Identifier functionName(FunctionExpression exp) {
+  tree.Node functionName(FunctionExpression exp) {
     String name = exp.name;
     if (name == null) return null;
     if (isUserDefinableOperator(name)) {
-      name = "operator$name";
+      return makeOperator("operator$name");
     } else if (name == "unary-") {
-      name = "operator-";
+      return makeOperator("operator-");
     }
     return makeIdentifier(name);
   }
