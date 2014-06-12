@@ -40,7 +40,7 @@ from time import strptime
 # Repositories to auto-update
 ########################################################################
 
-BRANCH_CURRENT="dart/1916"
+BRANCH_CURRENT="dart/1985"
 BRANCH_NEXT="dart/1985"
 BRANCH_MULTIVM="dart/multivm"
 
