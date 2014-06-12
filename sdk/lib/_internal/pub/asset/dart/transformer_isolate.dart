@@ -16,7 +16,9 @@ import 'serialize.dart';
 void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
   replyTo.send(port.sendPort);
-  port.first.then((wrappedMessage) {
+  port.listen((wrappedMessage) {
+    // TODO(nweiz): When issue 19228 is fixed, spin up a separate isolate for
+    // libraries loaded beyond the first so they can run in parallel.
     respond(wrappedMessage, (message) {
       var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);

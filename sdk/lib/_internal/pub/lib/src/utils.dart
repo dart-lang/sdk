@@ -308,6 +308,25 @@ Map mapMap(Map map, keyFn(key, value), valueFn(key, value)) =>
 /// The return values of [valueFn] are used as the values for the new map.
 Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
 
+/// Like [listToMap], but [keyFn] and [valueFn] may return [Future]s.
+Future<Map> listToMapAsync(Iterable iter, keyFn(element), valueFn(element)) {
+  var map = new Map();
+  return Future.wait(iter.map((element) {
+    return Future.wait([
+      syncFuture(() => keyFn(element)),
+      syncFuture(() => valueFn(element))
+    ]).then((results) {
+      map[results[0]] = results[1];
+    });
+  })).then((_) => map);
+}
+
+/// Like [mapMap], but [keyFn] and [valueFn] may return [Future]s.
+Future<Map> mapMapAsync(Map map, keyFn(key, value), valueFn(key, value)) =>
+  listToMapAsync(map.keys,
+      (key) => keyFn(key, map[key]),
+      (key) => valueFn(key, map[key]));
+
 /// Returns the shortest path from [start] to [end] in [graph].
 ///
 /// The graph is represented by a map where each key is a vertex and the value

@@ -98,8 +98,8 @@ Future loadAllTransformers(AssetEnvironment environment,
 
       var phases = environment.graph.packages[package].pubspec.transformers;
       return Future.forEach(phases, (phase) {
-        return Future.wait(phase.where((id) => id.package == package)
-            .map(loader.load)).then((_) {
+        return loader.load(phase.where((id) => id.package == package))
+            .then((_) {
           // If we've already loaded all the transformers in this package and no
           // other package imports it, there's no need to keep applying
           // transformers, so we can short-circuit.
@@ -118,7 +118,7 @@ Future loadAllTransformers(AssetEnvironment environment,
         // Now that we've applied all the transformers used by [package] via
         // [Barback.updateTransformers], we load any transformers defined in
         // [package] but used elsewhere.
-        return Future.wait(packageTransformers[package].map(loader.load));
+        return loader.load(packageTransformers[package]);
       });
     });
     loadingPackages[package] = future;
@@ -257,41 +257,47 @@ class _TransformerLoader {
     }
   }
 
-  /// Loads the transformer(s) defined in [id].
+  /// Loads the transformer(s) defined in [ids].
   ///
   /// Once the returned future completes, these transformers can be retrieved
-  /// using [transformersFor]. If [id] doesn't define any transformers, this
+  /// using [transformersFor]. If any id doesn't define any transformers, this
   /// will complete to an error.
-  Future load(TransformerId id) {
-    if (_transformers.containsKey(id)) return new Future.value();
+  ///
+  /// This will skip and ids that have already been loaded.
+  Future load(Iterable<TransformerId> ids) {
+    ids = ids.where((id) => !_transformers.containsKey(id)).toList();
+    if (ids.isEmpty) return new Future.value();
 
     // TODO(nweiz): load multiple instances of the same transformer from the
     // same isolate rather than spinning up a separate isolate for each one.
-    return log.progress("Loading $id transformers",
-        () => loadTransformers(_environment, _transformerServer, id))
-        .then((transformers) {
-      if (!transformers.isEmpty) {
-        _transformers[id] = transformers;
-        return;
-      }
+    return log.progress("Loading ${toSentence(ids)} transformers",
+        () => loadTransformers(_environment, _transformerServer, ids))
+        .then((allTransformers) {
+      for (var id in ids) {
+        var transformers = allTransformers[id];
+        if (transformers != null && transformers.isNotEmpty) {
+          _transformers[id] = transformers;
+          continue;
+        }
 
-      var message = "No transformers";
-      if (id.configuration.isNotEmpty) {
-        message += " that accept configuration";
-      }
+        var message = "No transformers";
+        if (id.configuration.isNotEmpty) {
+          message += " that accept configuration";
+        }
 
-      var location;
-      if (id.path == null) {
-        location = 'package:${id.package}/transformer.dart or '
-          'package:${id.package}/${id.package}.dart';
-      } else {
-        location = 'package:$id.dart';
-      }
-      var pair = new Pair(id.package, id.path);
+        var location;
+        if (id.path == null) {
+          location = 'package:${id.package}/transformer.dart or '
+            'package:${id.package}/${id.package}.dart';
+        } else {
+          location = 'package:$id.dart';
+        }
+        var pair = new Pair(id.package, id.path);
 
-      throw new ApplicationException(
-          "$message were defined in $location,\n"
-          "required by ${ordered(_transformerUsers[pair]).join(', ')}.");
+        throw new ApplicationException(
+            "$message were defined in $location,\n"
+            "required by ${ordered(_transformerUsers[pair]).join(', ')}.");
+      }
     });
   }
 
