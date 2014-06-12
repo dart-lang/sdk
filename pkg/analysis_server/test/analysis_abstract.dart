@@ -44,6 +44,7 @@ class AbstractAnalysisTest {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(serverChannel, resourceProvider);
+    server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;

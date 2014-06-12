@@ -66,7 +66,6 @@ template_binding/test/template_binding_test: Pass, Timeout
 third_party/html5lib/test/tokenizer_test: Pass, Timeout
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
-analysis_server/test/*: Skip # Too slow
 barback/test/too_many_open_files_test: Skip # 14220
 code_transformers/test/resolver_test: Skip # Issue 17908
 docgen/test/*: Skip # Too slow
