@@ -351,8 +351,11 @@ void createSymlink(String target, String symlink,
     if (Platform.operatingSystem == 'windows') {
       target = path.normalize(path.absolute(target));
     } else {
-      target = path.normalize(
-          path.relative(target, from: path.dirname(symlink)));
+      // If the directory where we're creating the symlink was itself reached
+      // by traversing a symlink, we want the relative path to be relative to
+      // it's actual location, not the one we went through to get to it.
+      var symlinkDir = canonicalize(path.dirname(symlink));
+      target = path.normalize(path.relative(target, from: symlinkDir));
     }
   }
 
