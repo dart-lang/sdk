@@ -157,7 +157,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
   with bot.BuildStep(step_name, swallow_error=True):
     sys.stdout.flush()
     if NeedsXterm(compiler, runtime) and system == 'linux':
-      cmd = ['xvfb-run', '-a', '--server-args="-screen 0 1024x768x24"']
+      cmd = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
     else:
       cmd = []
 
