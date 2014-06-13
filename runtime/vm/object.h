@@ -2593,9 +2593,13 @@ class Library : public Object {
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == RawLibrary::kAllocated;
   }
+  bool LoadRequested() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadRequested;
+  }
   bool LoadInProgress() const {
     return raw_ptr()->load_state_ == RawLibrary::kLoadInProgress;
   }
+  void SetLoadRequested() const;
   void SetLoadInProgress() const;
   bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
   void SetLoaded() const;
@@ -4294,6 +4298,7 @@ class LibraryPrefix : public Instance {
 
   RawArray* imports() const { return raw_ptr()->imports_; }
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+  RawLibrary* importer() const { return raw_ptr()->importer_; }
 
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
@@ -4303,7 +4308,7 @@ class LibraryPrefix : public Instance {
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
   bool is_loaded() const { return raw_ptr()->is_loaded_; }
-  void LoadLibrary() const;
+  bool LoadLibrary() const;
 
   // Return the list of code objects that were compiled when this
   // prefix was not yet loaded. These code objects will be invalidated
@@ -4321,7 +4326,8 @@ class LibraryPrefix : public Instance {
 
   static RawLibraryPrefix* New(const String& name,
                                const Namespace& import,
-                               bool deferred_load);
+                               bool deferred_load,
+                               const Library& importer);
 
  private:
   static const int kInitialSize = 2;
@@ -4330,6 +4336,7 @@ class LibraryPrefix : public Instance {
   void set_name(const String& value) const;
   void set_imports(const Array& value) const;
   void set_num_imports(intptr_t value) const;
+  void set_importer(const Library& value) const;
   void set_is_loaded() const;
 
   static RawLibraryPrefix* New();

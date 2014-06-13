@@ -193,7 +193,7 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
     return Api::NewError("uri is not a string");
   }
   if (tag == Dart_kCanonicalizeUrl) {
-    // In the boot strap loader we do not try and do any canonicalization.
+    // In the bootstrap loader we do not try and do any canonicalization.
     return uri;
   }
   const String& uri_str = Api::UnwrapStringHandle(isolate, uri);
@@ -271,6 +271,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
+      lib.SetLoadRequested();
       lib.Register();
     }
     isolate->object_store()->set_bootstrap_library(

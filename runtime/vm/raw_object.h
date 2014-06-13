@@ -762,6 +762,7 @@ class RawScript : public RawObject {
 class RawLibrary : public RawObject {
   enum LibraryState {
     kAllocated,       // Initial state.
+    kLoadRequested,   // Compiler or script requested load of library.
     kLoadInProgress,  // Library is in the process of being loaded.
     kLoaded,          // Library is loaded.
     kLoadError,       // Error occurred during load of the Library.
@@ -1154,6 +1155,7 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
   RawArray* imports_;             // Libraries imported with this prefix.
+  RawLibrary* importer_;          // Library which declares this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {

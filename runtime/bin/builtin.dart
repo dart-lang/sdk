@@ -308,9 +308,34 @@ String _filePathFromPackageUri(Uri uri) {
 }
 
 
-void _loadScript(String uri, List<int> data) native "Builtin_LoadScript";
+int _numOutstandingLoadRequests = 0;
 
-void _asyncLoadError(uri, error) native "Builtin_AsyncLoadError";
+void _signalDoneLoading() native "Builtin_DoneLoading";
+
+void _loadScriptCallback(String uri, List<int> data) native "Builtin_LoadScript";
+
+void _loadScript(String uri, List<int> data) {
+  // TODO: Currently a compilation error while loading the script is
+  // fatal for the isolate. _loadScriptCallback() does not return and
+  // the _numOutstandingLoadRequests counter remains out of sync.
+  _loadScriptCallback(uri, data);
+  assert(_numOutstandingLoadRequests > 0);
+  _numOutstandingLoadRequests--;
+  _logResolution("native Builtin_LoadScript($uri) completed, "
+                 "${_numOutstandingLoadRequests} requests remaining");
+  if (_numOutstandingLoadRequests == 0) {
+    _signalDoneLoading();
+  }
+}
+
+
+void _asyncLoadErrorCallback(uri, error) native "Builtin_AsyncLoadError";
+
+void _asyncLoadError(uri, error) {
+  assert(_numOutstandingLoadRequests > 0);
+  _numOutstandingLoadRequests--;
+  _asyncLoadErrorCallback(uri, error);
+}
 
 
 // Asynchronously loads script data (source or snapshot) through
@@ -318,32 +343,50 @@ void _asyncLoadError(uri, error) native "Builtin_AsyncLoadError";
 _loadDataAsync(String uri) {
   uri = _resolveScriptUri(uri);
   Uri sourceUri = Uri.parse(uri);
+  _numOutstandingLoadRequests++;
+  _logResolution("_loadDataAsync($uri), "
+                 "${_numOutstandingLoadRequests} requests outstanding");
   if (sourceUri.scheme == 'http') {
     _httpGet(sourceUri, (data) {
       _loadScript(uri, data);
     });
   } else {
-    _loadDataFromFileAsync(uri);
+    var sourceFile = new File(_filePathFromUri(uri));
+    sourceFile.readAsBytes().then((data) {
+      _loadScript(uri, data);
+    },
+    onError: (e) {
+      _asyncLoadError(uri, e);
+    });
   }
 }
 
-_loadDataFromFileAsync(String uri) {
-  var sourceFile = new File(_filePathFromUri(uri));
-  sourceFile.readAsBytes().then((data) {
-    _loadScript(uri, data);
-  },
-  onError: (e) {
-    _asyncLoadError(uri, e);
-  });
+
+void _loadLibrarySourceCallback(tag, uri, libraryUri, text)
+    native "Builtin_LoadLibrarySource";
+
+void _loadLibrarySource(tag, uri, libraryUri, text) {
+  // TODO: Currently a compilation error while loading the library is
+  // fatal for the isolate. _loadLibraryCallback() does not return and
+  // the _numOutstandingLoadRequests counter remains out of sync.
+  _loadLibrarySourceCallback(tag, uri, libraryUri, text);
+  assert(_numOutstandingLoadRequests > 0);
+  _numOutstandingLoadRequests--;
+  _logResolution("native Builtin_LoadLibrarySource($uri) completed, "
+                 "${_numOutstandingLoadRequests} requests remaining");
+  if (_numOutstandingLoadRequests == 0) {
+    _signalDoneLoading();
+  }
 }
 
 
-void _loadLibrarySource(tag, uri, libraryUri, text)
-    native "Builtin_LoadLibrarySource";
-
+// Asynchronously loads source code through an http or file uri.
 _loadSourceAsync(int tag, String uri, String libraryUri) {
   var filePath = _filePathFromUri(uri);
   Uri sourceUri = Uri.parse(filePath);
+  _numOutstandingLoadRequests++;
+  _logResolution("_loadLibrarySource($uri), "
+                 "${_numOutstandingLoadRequests} requests outstanding");
   if (sourceUri.scheme == 'http') {
     _httpGet(sourceUri, (data) {
       var text = UTF8.decode(data);

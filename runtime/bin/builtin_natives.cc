@@ -67,6 +67,7 @@ namespace bin {
   V(Builtin_LoadScript, 2)                                                     \
   V(Builtin_LoadLibrarySource, 4)                                              \
   V(Builtin_AsyncLoadError, 2)                                                 \
+  V(Builtin_DoneLoading, 0)                                                    \
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);

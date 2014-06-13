@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all dart sources for the dart:builtin library.
+# This file contains all dart sources for the dart:_builtin library.
 {
   'sources': [
     'builtin.dart',

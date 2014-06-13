@@ -4977,7 +4977,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   if (library.IsNull()) {
     library = Library::New(url_str);
     library.Register();
-  } else if (!library.LoadNotStarted()) {
+  } else if (library.LoadInProgress() ||
+      library.Loaded() ||
+      library.LoadError()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.
     return Api::NewError("%s: library '%s' has already been loaded.",
@@ -4992,8 +4994,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     return result;
   }
 
-  // If this is the dart:builtin library, register it with the VM.
-  if (url_str.Equals("dart:builtin")) {
+  // If this is the dart:_builtin library, register it with the VM.
+  if (url_str.Equals("dart:_builtin")) {
     isolate->object_store()->set_builtin_library(library);
     Dart_Handle state = Api::CheckIsolateState(isolate);
     if (::Dart_IsError(state)) {
@@ -5039,7 +5041,8 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     if (!library_prefix.IsNull()) {
       library_prefix.AddImport(import_ns);
     } else {
-      library_prefix = LibraryPrefix::New(prefix_symbol, import_ns, false);
+      library_prefix =
+          LibraryPrefix::New(prefix_symbol, import_ns, false, library_vm);
       library_vm.AddObject(library_prefix, prefix_symbol);
     }
   }

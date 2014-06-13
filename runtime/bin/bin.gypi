@@ -41,7 +41,7 @@
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
             '--var_name', 'dart::bin::Builtin::builtin_source_paths_',
-            '--library_name', 'dart:builtin',
+            '--library_name', 'dart:_builtin',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'

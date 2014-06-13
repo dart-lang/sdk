@@ -1029,6 +1029,7 @@ RawError* Object::Init(Isolate* isolate) {
       Library::Handle(isolate, Library::LookupLibrary(Symbols::DartIsolate()));
   if (isolate_lib.IsNull()) {
     isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
+    isolate_lib.SetLoadRequested();
     isolate_lib.Register();
     isolate->object_store()->set_bootstrap_library(ObjectStore::kIsolate,
                                                    isolate_lib);
@@ -1157,6 +1158,7 @@ RawError* Object::Init(Isolate* isolate) {
   lib = Library::LookupLibrary(Symbols::DartMirrors());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
+    lib.SetLoadRequested();
     lib.Register();
     isolate->object_store()->set_bootstrap_library(ObjectStore::kMirrors,
                                                    lib);
@@ -1172,6 +1174,7 @@ RawError* Object::Init(Isolate* isolate) {
   lib = Library::LookupLibrary(Symbols::DartProfiler());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartProfiler(), true);
+    lib.SetLoadRequested();
     lib.Register();
     isolate->object_store()->set_bootstrap_library(ObjectStore::kProfiler,
                                                    lib);
@@ -1195,6 +1198,7 @@ RawError* Object::Init(Isolate* isolate) {
   lib = Library::LookupLibrary(Symbols::DartTypedData());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
+    lib.SetLoadRequested();
     lib.Register();
     isolate->object_store()->set_bootstrap_library(ObjectStore::kTypedData,
                                                    lib);
@@ -8315,22 +8319,29 @@ void Library::SetName(const String& name) const {
 
 
 void Library::SetLoadInProgress() const {
-  // Should not be already loaded.
-  ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
+  // Must not already be in the process of being loaded.
+  ASSERT(raw_ptr()->load_state_ <= RawLibrary::kLoadRequested);
   raw_ptr()->load_state_ = RawLibrary::kLoadInProgress;
+}
+
+
+void Library::SetLoadRequested() const {
+  // Must not be already loaded.
+  ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
+  raw_ptr()->load_state_ = RawLibrary::kLoadRequested;
 }
 
 
 void Library::SetLoaded() const {
   // Should not be already loaded or just allocated.
-  ASSERT(LoadInProgress());
+  ASSERT(LoadInProgress() || LoadRequested());
   raw_ptr()->load_state_ = RawLibrary::kLoaded;
 }
 
 
 void Library::SetLoadError() const {
   // Should not be already loaded or just allocated.
-  ASSERT(LoadInProgress());
+  ASSERT(LoadInProgress() || LoadRequested());
   raw_ptr()->load_state_ = RawLibrary::kLoadError;
 }
 
@@ -9197,6 +9208,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
+  core_lib.SetLoadRequested();
   core_lib.Register();
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
@@ -9234,7 +9246,9 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
       Library::NewLibraryHelper(native_flds_lib_url, false));
   const String& native_flds_lib_name = Symbols::DartNativeWrappersLibName();
   native_flds_lib.SetName(native_flds_lib_name);
+  native_flds_lib.SetLoadRequested();
   native_flds_lib.Register();
+  native_flds_lib.SetLoadInProgress();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
   static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
   static const int kNameLength = 25;
@@ -9250,6 +9264,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
     cls_name = Symbols::New(name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
+  native_flds_lib.SetLoaded();
 }
 
 
@@ -9618,14 +9633,38 @@ void LibraryPrefix::set_is_loaded() const {
 }
 
 
-void LibraryPrefix::LoadLibrary() const {
+bool LibraryPrefix::LoadLibrary() const {
   // Non-deferred prefixes are loaded.
   ASSERT(is_deferred_load() || is_loaded());
   if (is_loaded()) {
-    return;
+    return true;  // Load request has already completed.
   }
-  InvalidateDependentCode();
-  set_is_loaded();
+  ASSERT(is_deferred_load());
+  ASSERT(num_imports() == 1);
+  // This is a prefix for a deferred library. If the library is not loaded
+  // yet and isn't being loaded, call the library tag handler to schedule
+  // loading. Once all outstanding load requests have completed, the embedder
+  // will call the core library to:
+  // - invalidate dependent code of this prefix;
+  // - mark this prefixes as loaded;
+  // - complete the future associated with this prefix.
+  const Library& deferred_lib = Library::Handle(GetLibrary(0));
+  if (deferred_lib.Loaded()) {
+    this->set_is_loaded();
+    return true;
+  } else if (deferred_lib.LoadNotStarted()) {
+    deferred_lib.SetLoadRequested();
+    Isolate* isolate = Isolate::Current();
+    const String& lib_url = String::Handle(isolate, deferred_lib.url());
+    Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+    handler(Dart_kImportTag,
+            Api::NewHandle(isolate, importer()),
+            Api::NewHandle(isolate, lib_url.raw()));
+  } else {
+    // Another load request is in flight.
+    ASSERT(deferred_lib.LoadRequested());
+  }
+  return false;  // Load request not yet completed.
 }
 
 
@@ -9684,6 +9723,7 @@ void LibraryPrefix::RegisterDependentCode(const Code& code) const {
 void LibraryPrefix::InvalidateDependentCode() const {
   PrefixDependentArray a(*this);
   a.DisableCode();
+  set_is_loaded();
 }
 
 
@@ -9699,10 +9739,12 @@ RawLibraryPrefix* LibraryPrefix::New() {
 
 RawLibraryPrefix* LibraryPrefix::New(const String& name,
                                      const Namespace& import,
-                                     bool deferred_load) {
+                                     bool deferred_load,
+                                     const Library& importer) {
   const LibraryPrefix& result = LibraryPrefix::Handle(LibraryPrefix::New());
   result.set_name(name);
   result.set_num_imports(0);
+  result.set_importer(importer);
   result.raw_ptr()->is_deferred_load_ = deferred_load;
   result.raw_ptr()->is_loaded_ = !deferred_load;
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
@@ -9725,6 +9767,11 @@ void LibraryPrefix::set_imports(const Array& value) const {
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
   raw_ptr()->num_imports_ = value;
+}
+
+
+void LibraryPrefix::set_importer(const Library& value) const {
+  StorePointer(&raw_ptr()->importer_, value.raw());
 }
 
 

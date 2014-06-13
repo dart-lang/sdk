@@ -5163,16 +5163,20 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   // Canonicalize library URL.
   const String& canon_url = String::CheckedHandle(
       CallLibraryTagHandler(Dart_kCanonicalizeUrl, import_pos, url));
-  // Lookup the library URL.
-  Library& library = Library::Handle(isolate(),
-                                     Library::LookupLibrary(canon_url));
+
+  // Create a new library if it does not exist yet.
+  Library& library =
+      Library::Handle(isolate(), Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
-    // Create an empty library to mark that we have initiated loading of this
-    // library.
     library = Library::New(canon_url);
     library.Register();
-    // Call the library tag handler to load the library.
-    // TODO(hausner): do not load eagerly if import is deferred.
+  }
+
+  // If loading hasn't been requested yet, and if this is not a deferred
+  // library import, call the library tag handler to request loading
+  // the library.
+  if (library.LoadNotStarted() && !is_deferred_import) {
+    library.SetLoadRequested();
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
   }
 
@@ -5209,7 +5213,8 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
         }
         library_prefix.AddImport(ns);
       } else {
-        library_prefix = LibraryPrefix::New(prefix, ns, is_deferred_import);
+        library_prefix =
+            LibraryPrefix::New(prefix, ns, is_deferred_import, library_);
         library_.AddObject(library_prefix, prefix);
       }
     }

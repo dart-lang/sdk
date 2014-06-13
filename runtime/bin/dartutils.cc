@@ -25,7 +25,7 @@ const char* DartUtils::original_working_directory = NULL;
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kAsyncLibURL = "dart:async";
-const char* DartUtils::kBuiltinLibURL = "dart:builtin";
+const char* DartUtils::kBuiltinLibURL = "dart:_builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kInternalLibURL = "dart:_internal";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
@@ -679,7 +679,9 @@ void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
 
   intptr_t num_bytes = 0;
   Dart_Handle result = Dart_ListLength(data, &num_bytes);
-  DART_CHECK_VALID(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
 
   uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(num_bytes));
   Dart_ListGetAsBytes(data, 0, buffer, num_bytes);
@@ -736,6 +738,27 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
     result = Dart_LoadSource(library, resolved_script_uri, sourceText);
   }
   if (Dart_IsError(result)) Dart_PropagateError(result);
+}
+
+
+// Callback function that gets called from dartutils when there are
+// no more outstanding load requests. Invoke Dart core library function
+// that completes futures of loadLibrary calls (deferred library loading).
+// Invoking this function finalizes newly loaded classes as a side
+// effect.
+void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
+  Dart_Handle corelib_url = DartUtils::NewString(DartUtils::kCoreLibURL);
+  DART_CHECK_VALID(corelib_url);
+  Dart_Handle corelib = Dart_LookupLibrary(corelib_url);
+  DART_CHECK_VALID(corelib);
+  Dart_Handle res =
+      Dart_Invoke(corelib,
+                  DartUtils::NewString("_completeDeferredLoads"),
+                  0,
+                  NULL);
+  if (Dart_IsError(res)) {
+    Dart_PropagateError(res);
+  }
 }
 
 

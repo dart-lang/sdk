@@ -6,19 +6,47 @@ import "dart:async";
 import "dart:isolate";
 
 // This type corresponds to the VM-internal class LibraryPrefix.
-
 class _LibraryPrefix {
-  _load() native "LibraryPrefix_load";
+
+  bool _load() native "LibraryPrefix_load";
+
+  void _invalidateDependentCode()
+      native "LibraryPrefix_invalidateDependentCode";
 
   loadLibrary() {
-    var completer = new Completer<bool>();
-    var port = new RawReceivePort();
-    port.handler = (_) {
-      this._load();
-      completer.complete(true);
-      port.close();
-    };
-    port.sendPort.send(1);
+    var completer = _outstandingLoadRequests[this];
+    if (completer != null) {
+      return completer.future;
+    }
+    completer = new Completer<bool>();
+    _outstandingLoadRequests[this] = completer;
+    Timer.run(() {
+      var hasCompleted = this._load();
+      // Loading can complete immediately, for example when the same
+      // library has been loaded eagerly or through another deferred
+      // prefix. If that is the case, we must invalidate the dependent
+      // code and complete the future now since there will be no callback
+      // from the VM.
+      if (hasCompleted) {
+        _invalidateDependentCode();
+        completer.complete(true);
+        _outstandingLoadRequests.remove(this);
+      }
+    });
     return completer.future;
   }
+}
+
+var _outstandingLoadRequests = new Map<_LibraryPrefix, Completer>();
+
+
+// Called from the VM when all outstanding load requests have
+// finished.
+_completeDeferredLoads() {
+  var lenghth = _outstandingLoadRequests;
+  _outstandingLoadRequests.forEach((prefix, completer) {
+    prefix._invalidateDependentCode();
+    completer.complete(true);
+  });
+  _outstandingLoadRequests.clear();
 }

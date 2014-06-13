@@ -296,11 +296,19 @@ DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  prefix.InvalidateDependentCode();
+  return Bool::Get(true).raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
-  prefix.LoadLibrary();
-  return Bool::Get(true).raw();
+  bool hasCompleted = prefix.LoadLibrary();
+  return Bool::Get(hasCompleted).raw();
 }
 
 }  // namespace dart

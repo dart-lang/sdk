@@ -384,7 +384,7 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
-  if (str.Equals("dart:builtin") || str.Equals("dart:_blink")) {
+  if (str.Equals("dart:_builtin") || str.Equals("dart:_blink")) {
     // Censored library (grumble).
     return Instance::null();
   }

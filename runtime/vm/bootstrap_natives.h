@@ -352,6 +352,7 @@ namespace dart {
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(LibraryPrefix_load, 1)                                                     \
+  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
   V(UserTag_defaultTag, 0)                                                     \
