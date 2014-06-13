@@ -106,6 +106,28 @@ main() {
       expect(filePaths, contains(filePath));
     });
 
+    test('remove folder with pubspec', () {
+      String projPath = '/my/proj';
+      String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+      provider.newFolder(projPath);
+      provider.newFile(pubspecPath, 'pubspec');
+      manager.setRoots(<String>[projPath], <String>[]);
+      manager.setRoots(<String>[], <String>[]);
+      expect(manager.currentContextPaths, hasLength(0));
+      expect(manager.currentContextPubspecPaths, hasLength(0));
+      expect(manager.currentContextFilePaths, hasLength(0));
+    });
+
+    test('remove folder without pubspec', () {
+      String projPath = '/my/proj';
+      provider.newFolder(projPath);
+      manager.setRoots(<String>[projPath], <String>[]);
+      manager.setRoots(<String>[], <String>[]);
+      expect(manager.currentContextPaths, hasLength(0));
+      expect(manager.currentContextPubspecPaths, hasLength(0));
+      expect(manager.currentContextFilePaths, hasLength(0));
+    });
+
     test('ignore files in packages dir', () {
       String projPath = '/my/proj';
       provider.newFolder(projPath);
