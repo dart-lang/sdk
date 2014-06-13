@@ -11,3 +11,6 @@ test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
+
+[ $runtime == vm && $system == windows ]
+test/run/app_can_read_from_stdin_test: Fail # Issue 19448
