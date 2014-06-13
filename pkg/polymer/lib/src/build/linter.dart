@@ -37,7 +37,7 @@ class Linter extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       return _collectElements(document, id, transform, seen).then((elements) {
         bool isEntrypoint = options.isHtmlEntryPoint(id);
-        new _LinterVisitor(transform.logger, elements, isEntrypoint)
+        new _LinterVisitor(id, transform.logger, elements, isEntrypoint)
             .run(document);
       });
     });
@@ -55,7 +55,15 @@ class Linter extends Transformer with PolymerTransformer {
         // Note: the import order is relevant, so we visit in that order.
         .then((ids) => Future.forEach(ids,
               (id) => _readAndCollectElements(id, transform, seen, elements)))
-        .then((_) => _addElements(document, transform.logger, elements))
+        .then((_) {
+          if (sourceId.package == 'polymer' &&
+              sourceId.path == 'lib/src/js/polymer/polymer.html' &&
+              elements['polymer-element'] == null) {
+            elements['polymer-element'] =
+                new _ElementSummary('polymer-element', null, null);
+          }
+          return _addElements(document, transform.logger, elements);
+        })
         .then((_) => elements);
   }
 
@@ -137,6 +145,7 @@ class _ElementSummary {
 
 class _LinterVisitor extends TreeVisitor {
   TransformLogger _logger;
+  AssetId _sourceId;
   bool _inPolymerElement = false;
   bool _dartTagSeen = false;
   bool _polymerHtmlSeen = false;
@@ -144,7 +153,8 @@ class _LinterVisitor extends TreeVisitor {
   bool _isEntrypoint;
   Map<String, _ElementSummary> _elements;
 
-  _LinterVisitor(this._logger, this._elements, this._isEntrypoint) {
+  _LinterVisitor(
+      this._sourceId, this._logger, this._elements, this._isEntrypoint) {
     // We normalize the map, so each element has a direct reference to any
     // element it extends from.
     for (var tag in _elements.values) {
@@ -170,10 +180,6 @@ class _LinterVisitor extends TreeVisitor {
   void run(Document doc) {
     visit(doc);
 
-    if (_isEntrypoint && !_polymerHtmlSeen && !_polymerExperimentalHtmlSeen) {
-      _logger.warning(USE_POLYMER_HTML, span: doc.body.sourceSpan);
-    }
-
     if (_isEntrypoint && !_dartTagSeen && !_polymerExperimentalHtmlSeen) {
       _logger.warning(USE_INIT_DART, span: doc.body.sourceSpan);
     }
@@ -195,9 +201,14 @@ class _LinterVisitor extends TreeVisitor {
       return;
     }
 
-    if (href == 'packages/polymer/polymer.html') {
-      _polymerHtmlSeen = true;
-    } else if (href == POLYMER_EXPERIMENTAL_HTML) {
+    if (rel != 'import') return;
+
+    if (_inPolymerElement) {
+      _logger.error(NO_IMPORT_WITHIN_ELEMENT, span: node.sourceSpan);
+      return;
+    }
+
+    if (href == POLYMER_EXPERIMENTAL_HTML) {
       _polymerExperimentalHtmlSeen = true;
     }
     // TODO(sigmund): warn also if href can't be resolved.
@@ -212,6 +223,11 @@ class _LinterVisitor extends TreeVisitor {
   /// Produce warnings if using `<polymer-element>` in the wrong place or if the
   /// definition is not complete.
   void _validatePolymerElement(Element node) {
+    if (!_elements.containsKey('polymer-element')) {
+      _logger.warning(usePolymerHtmlMessageFrom(_sourceId),
+          span: node.sourceSpan);
+    }
+
     if (_inPolymerElement) {
       _logger.error('Nested polymer element definitions are not allowed.',
           span: node.sourceSpan);
@@ -401,11 +417,29 @@ class _LinterVisitor extends TreeVisitor {
 const String ONLY_ONE_TAG =
     'Only one "application/dart" script tag per document is allowed.';
 
-const String USE_POLYMER_HTML =
-    'Besides the initPolymer invocation, to run a polymer application you need '
-    'to include the following HTML import: '
-    '<link rel="import" href="packages/polymer/polymer.html">. This will '
-    'include the common polymer logic needed to boostrap your application.';
+String usePolymerHtmlMessageFrom(AssetId id) {
+  var segments = id.path.split('/');
+  var upDirCount = 0;
+  if (segments[0] == 'lib') {
+    // lib/foo.html => ../../packages/
+    upDirCount = segments.length;
+  } else if (segments.length > 2) {
+    // web/a/foo.html => ../packages/
+    upDirCount = segments.length - 2;
+  }
+  return usePolymerHtmlMessage(upDirCount);
+}
+
+String usePolymerHtmlMessage(int upDirCount) {
+  var reachOutPrefix = '../' * upDirCount;
+  return 'Missing definition for <polymer-element>, please add the following '
+    'HTML import at the top of this file: <link rel="import" '
+    'href="${reachOutPrefix}packages/polymer/polymer.html">.';
+}
+
+const String NO_IMPORT_WITHIN_ELEMENT = 'Polymer.dart\'s implementation of '
+    'HTML imports are not supported within polymer element definitions, yet. '
+    'Please move the import out of this <polymer-element>.';
 
 const String USE_INIT_DART =
     'To run a polymer application, you need to call "initPolymer". You can '

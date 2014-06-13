@@ -16,7 +16,15 @@ void main() {
     }, []);
 
   group('must have proper initialization imports', () {
-    _testLinter('nothing to report', {
+    _testLinter('nothing to report (no polymer use)', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, []);
+
+    _testLinter('nothing to report (no polymer use with import)', {
         'a|web/test.html': '<!DOCTYPE html><html>'
             '<link rel="import" href="packages/polymer/polymer.html">'
             '<script type="application/dart" src="foo.dart">'
@@ -25,14 +33,81 @@ void main() {
             '</html>',
       }, []);
 
-    _testLinter('missing polymer.html', {
+    _testLinter('nothing to report (polymer used)', {
         'a|web/test.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="packages/polymer/polymer.html">'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, []);
+
+    _testLinter('nothing to report (polymer imported transitively)', {
+        'a|lib/lib.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="../../packages/polymer/polymer.html">',
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<link rel="import" href="packages/a/lib.html">'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, []);
+
+    test('usePolymerHtmlMessage looks right', () {
+      _check(int i, String url) {
+        expect(usePolymerHtmlMessage(i),
+            contains('<link rel="import" href="$url">'));
+      }
+      _check(0, 'packages/polymer/polymer.html');
+      _check(1, '../packages/polymer/polymer.html');
+      _check(2, '../../packages/polymer/polymer.html');
+      _check(3, '../../../packages/polymer/polymer.html');
+    });
+
+    _testLinter('missing polymer.html in web', {
+        'a|web/test.html': '<!DOCTYPE html><html>\n'
+            '<polymer-element name="x-a"></polymer-element>'
             '<script type="application/dart" src="foo.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: $USE_POLYMER_HTML',
+        'warning: ${usePolymerHtmlMessage(0)} (web/test.html 1 0)',
+      ]);
+
+    _testLinter('missing polymer.html in web/foo', {
+        'a|web/foo/test.html': '<!DOCTYPE html><html>\n'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, [
+        'warning: ${usePolymerHtmlMessage(1)} (web/foo/test.html 1 0)',
+      ]);
+
+    _testLinter('missing polymer.html in lib', {
+        'a|lib/test.html': '<!DOCTYPE html><html>\n'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, [
+        'warning: ${usePolymerHtmlMessage(2)} (lib/test.html 1 0)',
+      ]);
+
+    _testLinter('missing polymer.html in lib/foo/bar', {
+        'a|lib/foo/bar/test.html': '<!DOCTYPE html><html>\n'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, [
+        'warning: ${usePolymerHtmlMessage(4)} (lib/foo/bar/test.html 1 0)',
       ]);
 
     _testLinter('missing Dart code', {
@@ -67,7 +142,6 @@ void main() {
     _testLinter('missing Dart code and polymer.html', {
         'a|web/test.html': '<!DOCTYPE html><html></html>',
       }, [
-        'warning: $USE_POLYMER_HTML',
         'warning: $USE_INIT_DART',
       ]);
   });
@@ -120,7 +194,6 @@ void main() {
       }, [
         'warning: Unexpected start tag (html). Expected DOCTYPE. '
         '(web/test.html 0 0)',
-        'warning: $USE_POLYMER_HTML',
         'warning: $USE_INIT_DART',
       ]);
 
@@ -132,18 +205,20 @@ void main() {
   group('duplicate polymer-elements,', () {
     _testLinter('same file', {
         'a|lib/test.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"></polymer-element>
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
         'warning: duplicate definition for custom tag "x-a". '
-        '(lib/test.html 1 0)',
+        '(lib/test.html 2 0)',
         'warning: duplicate definition for custom tag "x-a"  '
-        '(second definition). (lib/test.html 2 0)'
+        '(second definition). (lib/test.html 3 0)'
       ]);
 
     _testLinter('other file', {
         'a|lib/b.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
         'a|lib/test.html': '''<html>
@@ -152,23 +227,25 @@ void main() {
             </html>'''.replaceAll('            ', ''),
       }, [
         'warning: duplicate definition for custom tag "x-a". '
-        '(lib/b.html 1 0)',
+        '(lib/b.html 2 0)',
         'warning: duplicate definition for custom tag "x-a"  '
         '(second definition). (lib/test.html 2 0)'
       ]);
 
     _testLinter('non existing file', {
         'a|lib/test.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <link rel="import" href="b.html">
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
         'error: couldn\'t find imported asset "lib/b.html" in package '
-        '"a". (lib/test.html 1 0)'
+        '"a". (lib/test.html 2 0)'
       ]);
 
     _testLinter('other package', {
         'b|lib/b.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
         'a|lib/test.html': '''<html>
@@ -177,7 +254,7 @@ void main() {
             </html>'''.replaceAll('            ', ''),
       }, [
         'warning: duplicate definition for custom tag "x-a". '
-        '(package:b/b.html 1 0)',
+        '(package:b/b.html 2 0)',
         'warning: duplicate definition for custom tag "x-a"  '
         '(second definition). (lib/test.html 2 0)'
       ]);
@@ -207,6 +284,7 @@ void main() {
 
   _testLinter('do not nest <polymer-element>', {
       'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
           <polymer-element name="x-a">
             <template><div>
               <polymer-element name="b"></polymer-element>
@@ -215,41 +293,59 @@ void main() {
           </html>'''.replaceAll('          ', ''),
     }, [
       'error: Nested polymer element definitions are not allowed.'
-      ' (lib/test.html 3 4)'
+      ' (lib/test.html 4 4)'
+    ]);
+
+  _testLinter('do put import inside <polymer-element>', {
+      'a|lib/b.html': '<html></html>',
+      'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
+          <polymer-element name="x-a">
+            <link rel="import" href="b.html">
+            <template><div>
+            </div></template>
+          </polymer-element>
+          </html>'''.replaceAll('          ', ''),
+    }, [
+      'error: $NO_IMPORT_WITHIN_ELEMENT (lib/test.html 3 2)'
     ]);
 
   _testLinter('need a name for <polymer-element>', {
       'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
           <polymer-element></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
       'error: Missing tag name of the custom element. Please include an '
-      'attribute like \'name="your-tag-name"\'. (lib/test.html 1 0)'
+      'attribute like \'name="your-tag-name"\'. (lib/test.html 2 0)'
     ]);
 
   _testLinter('name for <polymer-element> should have dashes', {
       'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
           <polymer-element name="a"></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
       'error: Invalid name "a". Custom element names must have at least one'
       ' dash and can\'t be any of the following names: annotation-xml, '
       'color-profile, font-face, font-face-src, font-face-uri, '
-      'font-face-format, font-face-name, missing-glyph. (lib/test.html 1 0)'
+      'font-face-format, font-face-name, missing-glyph. (lib/test.html 2 0)'
     ]);
 
   _testLinter('extend is a valid element or existing tag', {
       'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
           <polymer-element name="x-a" extends="li"></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, []);
 
   _testLinter('extend is a valid element or existing tag', {
       'a|lib/test.html': '''<html>
+          <link rel="import" href="../../packages/polymer/polymer.html">
           <polymer-element name="x-a" extends="x-b"></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: custom element with name "x-b" not found. (lib/test.html 1 0)'
+      'warning: custom element with name "x-b" not found. (lib/test.html 2 0)'
     ]);
 
 
@@ -265,17 +361,19 @@ void main() {
 
     _testLinter('in polymer-element, .dart url', {
         'a|lib/test.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a">
             <script src="foo.dart"></script>
             </polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
         'warning: Wrong script type, expected type="application/dart".'
-        ' (lib/test.html 2 0)'
+        ' (lib/test.html 3 0)'
       ]);
 
     _testLinter('in polymer-element, .js url', {
         'a|lib/test.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a">
             <script src="foo.js"></script>
             </polymer-element>
@@ -284,6 +382,7 @@ void main() {
 
     _testLinter('in polymer-element, inlined', {
         'a|lib/test.html': '''<html>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a">
             <script>foo...</script>
             </polymer-element>
@@ -340,6 +439,7 @@ void main() {
 
     _testLinter('on-foo is not an expression', {
         'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"><div on-foo="{{bar()}}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -347,11 +447,12 @@ void main() {
         'warning: Invalid event handler body "{{bar()}}". Declare a method '
         'in your custom element "void handlerName(event, detail, target)" '
         'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 1 33)'
+        '(lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo can\'t be empty', {
         'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"><div on-foo="{{}}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -359,11 +460,12 @@ void main() {
         'warning: Invalid event handler body "{{}}". Declare a method '
         'in your custom element "void handlerName(event, detail, target)" '
         'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 1 33)'
+        '(lib/test.html 2 33)'
       ]);
 
-    _testLinter('on-foo can\'t be empty', {
+    _testLinter('on-foo can\'t be just space', {
         'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"><div on-foo="{{ }}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -371,11 +473,12 @@ void main() {
         'warning: Invalid event handler body "{{ }}". Declare a method '
         'in your custom element "void handlerName(event, detail, target)" '
         'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 1 33)'
+        '(lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo-bar is supported as a custom event name', {
         'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"><div on-foo-bar="{{quux}}"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -399,6 +502,7 @@ void main() {
 
     _testLinter('used correctly (no base tag)', {
         'a|lib/test.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"></polymer-element>
             <x-a></x-a>
             '''.replaceAll('            ', ''),
@@ -406,6 +510,7 @@ void main() {
 
     _testLinter('used incorrectly (no base tag)', {
         'a|lib/test.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a"></polymer-element>
             <div is="x-a"></div>
             '''.replaceAll('            ', ''),
@@ -413,11 +518,13 @@ void main() {
         'warning: custom element "x-a" doesn\'t declare any type '
         'extensions. To fix this, either rewrite this tag as '
         '<x-a> or add \'extends="div"\' to '
-        'the custom element declaration. (lib/test.html 1 0)'
+        'the custom element declaration. (lib/test.html 2 0)'
       ]);
 
     _testLinter('used incorrectly, imported def (no base tag)', {
-        'a|lib/b.html': '<polymer-element name="x-a"></polymer-element>',
+        'a|lib/b.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
+            <polymer-element name="x-a"></polymer-element>''',
         'a|lib/test.html': '''
             <link rel="import" href="b.html">
             <div is="x-a"></div>
@@ -431,6 +538,7 @@ void main() {
 
     _testLinter('used correctly (base tag)', {
         'a|lib/b.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a" extends="div">
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -442,6 +550,7 @@ void main() {
 
     _testLinter('used incorrectly (missing base tag)', {
         'a|lib/b.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a" extends="div">
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -458,6 +567,7 @@ void main() {
 
     _testLinter('used incorrectly (wrong base tag)', {
         'a|lib/b.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a" extends="div">
             </polymer-element>
             '''.replaceAll('            ', ''),
@@ -472,36 +582,40 @@ void main() {
 
     _testLinter('used incorrectly (wrong base tag, transitive)', {
         'a|lib/c.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-c" extends="li">
             </polymer-element>
             <polymer-element name="x-b" extends="x-c">
             </polymer-element>
             '''.replaceAll('            ', ''),
         'a|lib/b.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <link rel="import" href="c.html">
             <polymer-element name="x-a" extends="x-b">
             </polymer-element>
             '''.replaceAll('            ', ''),
         'a|lib/test.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <link rel="import" href="b.html">
             <span is="x-a"></span>
             '''.replaceAll('            ', ''),
       }, [
         'warning: custom element "x-a" extends from "li". Did you mean '
-        'to write <li is="x-a">? (lib/test.html 1 0)'
+        'to write <li is="x-a">? (lib/test.html 2 0)'
       ]);
   });
 
   group('custom attributes', () {
     _testLinter('foo-bar is no longer supported in attributes', {
         'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
             <polymer-element name="x-a" attributes="foo-bar">
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
         'warning: PolymerElement no longer recognizes attribute names with '
         'dashes such as "foo-bar". Use "fooBar" or "foobar" instead (both '
-        'forms are equivalent in HTML). (lib/test.html 1 28)'
+        'forms are equivalent in HTML). (lib/test.html 2 28)'
       ]);
   });
 
