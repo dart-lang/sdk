@@ -7547,6 +7547,9 @@ void Parser::Warning(intptr_t token_pos, const char* format, ...) {
     UNREACHABLE();
   } else {
     OS::Print("%s", error.ToErrorCString());
+    va_start(args, format);
+    Exceptions::TraceJSWarningV(script_, token_pos, format, args);
+    va_end(args);
   }
 }
 
@@ -7565,6 +7568,9 @@ void Parser::Warning(const char* format, ...) {
     UNREACHABLE();
   } else {
     OS::Print("%s", error.ToErrorCString());
+    va_start(args, format);
+    Exceptions::TraceJSWarningV(script_, TokenPos(), format, args);
+    va_end(args);
   }
 }
 

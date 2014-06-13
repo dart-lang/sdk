@@ -750,16 +750,18 @@ void Exceptions::JSWarning(StackFrame* caller_frame, const char* format, ...) {
   ASSERT(caller_frame != NULL);
   ASSERT(FLAG_warn_on_javascript_compatibility);
   if (FLAG_silent_warnings) return;
-  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
+  Isolate* isolate = Isolate::Current();
+  const Code& caller_code = Code::Handle(isolate,
+                                         caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const uword caller_pc = caller_frame->pc();
   const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
-  const Function& caller = Function::Handle(caller_code.function());
-  const Script& script = Script::Handle(caller.script());
+  const Function& caller = Function::Handle(isolate, caller_code.function());
+  const Script& script = Script::Handle(isolate, caller.script());
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(
-      LanguageError::NewFormattedV(Error::Handle(),  // No previous error.
+  const Error& error = Error::Handle(isolate,
+      LanguageError::NewFormattedV(Error::Handle(isolate),  // No prev error.
                                    script, token_pos, LanguageError::kWarning,
                                    Heap::kNew, format, args));
   va_end(args);
@@ -767,13 +769,54 @@ void Exceptions::JSWarning(StackFrame* caller_frame, const char* format, ...) {
     ThrowJavascriptCompatibilityError(error.ToErrorCString());
   } else {
     OS::Print("javascript compatibility warning: %s", error.ToErrorCString());
+    va_start(args, format);
+    TraceJSWarningV(script, token_pos, format, args);
+    va_end(args);
   }
   const Stacktrace& stacktrace =
-     Stacktrace::Handle(Exceptions::CurrentStacktrace());
+     Stacktrace::Handle(isolate, Exceptions::CurrentStacktrace());
   intptr_t idx = 0;
   OS::Print("%s",
             stacktrace.ToCStringInternal(&idx,
                                          FLAG_stacktrace_depth_on_warning));
+}
+
+
+void Exceptions::TraceJSWarningF(const Script& script, intptr_t token_pos,
+                                 const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  TraceJSWarningV(script, token_pos, format, args);
+  va_end(args);
+}
+
+
+void Exceptions::TraceJSWarningV(const Script& script, intptr_t token_pos,
+                                 const char* format, va_list args) {
+  const int64_t micros = OS::GetCurrentTimeMicros();
+  Isolate* isolate = Isolate::Current();
+  TraceBuffer* trace_buffer = isolate->trace_buffer();
+  if (trace_buffer == NULL) {
+    TraceBuffer::Init(isolate);
+    trace_buffer = isolate->trace_buffer();
+  }
+  JSONStream js;
+  {
+    JSONObject trace_warning(&js);
+    trace_warning.AddProperty("type", "JSCompatibilityWarning");
+    trace_warning.AddProperty("script", script);
+    trace_warning.AddProperty("tokenPos", token_pos);
+    va_list args_copy;
+    va_copy(args_copy, args);
+    const intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+    va_end(args_copy);
+    char* msg = reinterpret_cast<char*>(malloc(len + 1));
+    va_copy(args_copy, args);
+    OS::VSNPrint(msg, len + 1, format, args_copy);
+    va_end(args_copy);
+    trace_warning.AddProperty("message", msg);
+  }
+  trace_buffer->Trace(micros, js.ToCString(), true);  // Already escaped.
 }
 
 }  // namespace dart

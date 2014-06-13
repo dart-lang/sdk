@@ -12,10 +12,12 @@
 namespace dart {
 
 class JSONStream;
+class Script;
 
 struct TraceBufferEntry {
   int64_t micros;
   char* message;
+  bool message_is_escaped;
   bool empty() const {
     return message == NULL;
   }
@@ -32,18 +34,23 @@ class TraceBuffer {
   void Clear();
 
   // Internally message is copied.
-  void Trace(int64_t micros, const char* message);
+  void Trace(int64_t micros, const char* msg, bool msg_is_escaped = false);
   // Internally message is copied.
-  void Trace(const char* message);
+  void Trace(const char* msg, bool msg_is_escaped = false);
   void TraceF(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   void PrintToJSONStream(JSONStream* stream) const;
 
+  // Accessors for testing.
+  TraceBufferEntry* At(intptr_t i) const { return &ring_[RingIndex(i)]; }
+  intptr_t Length() const { return ring_cursor_; }
+
  private:
   TraceBuffer(Isolate* isolate, intptr_t capacity);
   void Cleanup();
-  void Fill(TraceBufferEntry* entry, int64_t micros, char* msg);
-  void AppendTrace(int64_t micros, char* message);
+  void Fill(TraceBufferEntry* entry, int64_t micros,
+            char* msg, bool msg_is_escaped = false);
+  void AppendTrace(int64_t micros, char* msg, bool msg_is_escaped = false);
 
   Isolate* isolate_;
   TraceBufferEntry* ring_;

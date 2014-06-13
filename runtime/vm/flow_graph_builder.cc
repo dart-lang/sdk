@@ -3970,12 +3970,12 @@ void FlowGraphBuilder::Warning(intptr_t token_pos,
   const Function& function = parsed_function_->function();
   va_list args;
   va_start(args, format);
+  const Script& script = Script::Handle(I, function.script());
   const Error& error = Error::Handle(
       I,
       LanguageError::NewFormattedV(
           Error::Handle(I, Error::null()),  // No previous error.
-          Script::Handle(I, function.script()),
-          token_pos, LanguageError::kWarning,
+          script, token_pos, LanguageError::kWarning,
           Heap::kNew, format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
@@ -3983,6 +3983,9 @@ void FlowGraphBuilder::Warning(intptr_t token_pos,
     UNREACHABLE();
   } else {
     OS::Print("%s", error.ToErrorCString());
+    va_start(args, format);
+    Exceptions::TraceJSWarningV(script, token_pos, format, args);
+    va_end(args);
   }
 }
 

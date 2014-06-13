@@ -83,6 +83,7 @@ class JSONStream : ValueObject {
   void PrintValue64(int64_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
+  void PrintValueNoEscape(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(SourceBreakpoint* bpt);
@@ -94,6 +95,7 @@ class JSONStream : ValueObject {
   void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
+  void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
   PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
@@ -152,6 +154,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, const char* s) const {
     stream_->PrintProperty(name, s);
+  }
+  void AddPropertyNoEscape(const char* name, const char* s) const {
+    stream_->PrintPropertyNoEscape(name, s);
   }
   void AddProperty(const char* name, const Object& obj, bool ref = true) const {
     stream_->PrintProperty(name, obj, ref);

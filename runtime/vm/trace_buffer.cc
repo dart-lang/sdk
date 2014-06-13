@@ -4,6 +4,7 @@
 
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/object.h"
 #include "vm/os.h"
 #include "vm/trace_buffer.h"
 
@@ -40,50 +41,53 @@ void TraceBuffer::Clear() {
     entry.micros = 0;
     free(entry.message);
     entry.message = NULL;
+    entry.message_is_escaped = false;
   }
   ring_cursor_ = 0;
 }
 
 
-void TraceBuffer::Fill(TraceBufferEntry* entry, int64_t micros, char* msg) {
+void TraceBuffer::Fill(TraceBufferEntry* entry, int64_t micros,
+                       char* msg, bool msg_is_escaped) {
   if (entry->message != NULL) {
     // Recycle TraceBufferEntry.
     free(entry->message);
   }
   entry->message = msg;
+  entry->message_is_escaped = msg_is_escaped;
   entry->micros = micros;
 }
 
 
-void TraceBuffer::AppendTrace(int64_t micros, char* message) {
+void TraceBuffer::AppendTrace(int64_t micros, char* msg, bool msg_is_escaped) {
   const intptr_t index = ring_cursor_;
   TraceBufferEntry* trace_entry = &ring_[index];
-  Fill(trace_entry, micros, message);
+  Fill(trace_entry, micros, msg, msg_is_escaped);
   ring_cursor_ = RingIndex(ring_cursor_ + 1);
 }
 
 
-void TraceBuffer::Trace(int64_t micros, const char* message) {
-  ASSERT(message != NULL);
-  char* message_copy = strdup(message);
-  AppendTrace(micros, message_copy);
+void TraceBuffer::Trace(int64_t micros, const char* msg, bool msg_is_escaped) {
+  ASSERT(msg != NULL);
+  char* message_copy = strdup(msg);
+  AppendTrace(micros, message_copy, msg_is_escaped);
 }
 
 
-void TraceBuffer::Trace(const char* message) {
-  Trace(OS::GetCurrentTimeMicros(), message);
+void TraceBuffer::Trace(const char* msg, bool msg_is_escaped) {
+  Trace(OS::GetCurrentTimeMicros(), msg, msg_is_escaped);
 }
 
 
 void TraceBuffer::TraceF(const char* format, ...) {
-  int64_t micros = OS::GetCurrentTimeMicros();
+  const int64_t micros = OS::GetCurrentTimeMicros();
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  const intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
   char* p = reinterpret_cast<char*>(malloc(len+1));
   va_start(args, format);
-  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  const intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
   va_end(args);
   ASSERT(len == len2);
   AppendTrace(micros, p);
@@ -121,7 +125,11 @@ void TraceBuffer::PrintToJSONStream(JSONStream* stream) const {
     double seconds = static_cast<double>(entry.micros) /
                      static_cast<double>(kMicrosecondsPerSecond);
     trace_entry.AddProperty("time", seconds);
-    trace_entry.AddProperty("message", entry.message);
+    if (entry.message_is_escaped) {
+      trace_entry.AddPropertyNoEscape("message", entry.message);
+    } else {
+      trace_entry.AddProperty("message", entry.message);
+    }
   }
 }
 

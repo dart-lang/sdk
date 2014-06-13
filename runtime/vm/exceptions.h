@@ -35,8 +35,15 @@ class Exceptions : AllStatic {
   // Report a Javascript compatibility warning at the call site given by
   // caller_frame. Note that a JavascriptCompatibilityError is thrown
   // if --warning_as_error is specified.
+  // Also calls TraceJSWarningV below.
   static void JSWarning(StackFrame* caller_frame, const char* format, ...)
       PRINTF_ATTRIBUTE(2, 3);
+
+  // Emit a Javascript compatibility warning to the current trace buffer.
+  static void TraceJSWarningF(const Script& script, intptr_t token_pos,
+                              const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
+  static void TraceJSWarningV(const Script& script, intptr_t token_pos,
+                              const char* format, va_list args);
 
   static RawStacktrace* CurrentStacktrace();
 

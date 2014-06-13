@@ -103,5 +103,4 @@ TEST_CASE(TraceBufferTraceF) {
   delete trace_buffer;
 }
 
-
 }  // namespace dart
