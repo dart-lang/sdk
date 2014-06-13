@@ -8,6 +8,10 @@
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Breaks the test infrastructure. Issue 18558
 LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Breaks the test infrastructure. Issue 18558.
+# Only one of the next two causes the problem - not sure which.
+LayoutTests/fast/dom/Range/create-contextual-fragment-script-not-ran_t01: Skip # Breaks the test infrastructure. Issue 18558.
+LayoutTests/fast/dom/Range/bug-19527_t01: Skip # Breaks the test infrastructure. Issue 18558.
+
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Skip # Issue 13719: Please triage this failure.
@@ -373,6 +377,7 @@ LayoutTests/fast/dom/Window/window-resize-contents_t01: Pass, RuntimeError # co1
 LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/anchor-without-content_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/blur-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -380,6 +385,7 @@ LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # co19-
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dataset_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/focus-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/importNode-null_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -395,6 +401,7 @@ LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-option_t01: RuntimeError
 LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-optgroup_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-option_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/shadow/shadow-content-crash_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadow-removechild-and-blur-event_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 WebPlatformTest/DOMEvents/approved/EventObject.after.dispatchEvenr_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/DOMEvents/approved/EventObject.multiple.dispatchEvent_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/DOMEvents/approved/addEventListener.optional.useCapture_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -419,7 +426,7 @@ WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formActi
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.  Pass on macos.
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: RuntimeError # co19-roll r738: Please triage this failure.
 
