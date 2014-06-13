@@ -2458,6 +2458,14 @@ class ResolverVisitor extends MappingVisitor<Element> {
         return warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             {'libraryName': prefix.name, 'memberName': name});
+      } else if (target.isAmbiguous) {
+        registry.registerThrowNoSuchMethod();
+        AmbiguousElement ambiguous = target;
+        target = warnAndCreateErroneousElement(node, name,
+                                               ambiguous.messageKind,
+                                               ambiguous.messageArguments);
+        ambiguous.diagnose(enclosingElement, compiler);
+        return target;
       } else if (target.kind == ElementKind.CLASS) {
         ClassElement classElement = target;
         classElement.ensureResolved(compiler);
