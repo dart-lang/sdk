@@ -14,6 +14,7 @@
 # Tests that fail everywhere, including the analyzer.
 
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
+LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
 # These tests are obsolete and need updating.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
@@ -21,6 +22,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
+# Tests that fail on every runtime, but not on the analyzer.
 LibTest/typed_data/Float32List/last_A01_t02: Fail # co19 issue 691
 LibTest/typed_data/Float32x4List/last_A01_t02: Fail # co19 issue 691
 LibTest/typed_data/Float64List/last_A01_t02: Fail # co19 issue 691
@@ -34,7 +36,6 @@ LibTest/typed_data/Uint64List/last_A01_t02: Fail # co19 issue 691
 LibTest/typed_data/Uint8ClampedList/last_A01_t02: Fail # co19 issue 691
 LibTest/typed_data/Uint8List/last_A01_t02: Fail # co19 issue 691
 
-# Tests that fail on every runtime, but not on the analyzer.
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
@@ -54,9 +55,6 @@ LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
 
 LibTest/math/cos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/tan_A01_t01: PASS, FAIL, OK  # co19 issue 44
-
-LibTest/math/MutableRectangle/MutableRectangle_A01_t01: RuntimeError # co19 issue 674
-LibTest/math/Rectangle/Rectangle_A01_t01: RuntimeError # co19 issue 674
 
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
@@ -101,9 +99,3 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 [ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError # co19 issue 675
-LibTest/math/MutableRectangle/boundingBox_A01_t02: RuntimeError # co19 issue 675
-LibTest/math/MutableRectangle/intersection_A01_t01: RuntimeError # co19 issue 675
-
-[ $compiler == dart2js ]
-LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # co19 issue 688

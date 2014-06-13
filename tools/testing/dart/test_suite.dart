@@ -2117,10 +2117,33 @@ class TestUtils {
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {
-      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
-          "co19_shadow-trees_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
-          "co19_shadowdom_",
+      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
+      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
+      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
+      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
+      "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
+          "co19_fn_invoke_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+          "caretRangeFromPoint-": "co19_caretrangefrompoint_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+          "hittest-relative-to-viewport_": "co19_caretrange_hittest_",
+      "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
+          "stylesheet-with-": "co19_dom_link-",
+      "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
+      "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
+          "AbstractClassInstantiationError_": "co19_abstract_class_",
+      "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
+          "IntegerDivisionByZeroException_": "co19_division_by_zero",
+      "tests_co19_src_WebPlatformTest_html_dom_documents_dom-tree-accessors_":
+          "co19_dom_accessors_",
+      "tests_co19_src_WebPlatformTest_html_semantics_embedded-content_"
+          "media-elements_": "co19_media_elements",
+      "tests_co19_src_WebPlatformTest_html_semantics_": "co19_semantics_",
+
+      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
+          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
+      "tests_co19_src_WebPlatformTest_html-templates_definitions_"
+          "template-contents-owner": "co19_htmltemplates_contents",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_additions-to-": "co19_htmltemplates_add_",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
@@ -2131,14 +2154,17 @@ class TestUtils {
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_creating-an-element-for-the-token_":
           "co19_htmltemplates_create_",
-      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
-          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
-      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-      "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
-      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
-      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
-      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
+      "tests_co19_src_WebPlatformTest_html-templates_template-element"
+          "_template-": "co19_htmltemplates_element-",
+      "tests_co19_src_WebPlatformTest_html-templates_": "co19_htmltemplate_",
+
+      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
+          "co19_shadow-trees_",
+      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
+          "co19_shadowdom_",
+      "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
+          "shadow-trees_": "co19_shadow_html_",
+      "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
     };
 
     // Some tests are already in [build_dir]/generated_tests.

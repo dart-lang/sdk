@@ -58,11 +58,6 @@ Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
 # These flaky tests also fail with dart2dart.
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
 
-[ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
-
-#end [ $compiler == none && $runtime == vm && $checked ]
-
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/core/List/List_class_A01_t01: Pass, Slow
 

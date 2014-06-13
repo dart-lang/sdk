@@ -6,8 +6,8 @@
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-# Something is breaking browser_test.dart in the test infrastructure in these tests. Issue 18558.
-LayoutTests/fast/dom/HTMLB*: Skip # Issue 18558
+LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Breaks the test infrastructure. Issue 18558
+LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Breaks the test infrastructure. Issue 18558.
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Skip # Issue 13719: Please triage this failure.
@@ -285,7 +285,6 @@ WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: Run
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/lower-boundary-encapsulation/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-006_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-007_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-008_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-009_t01: RuntimeError # Issue 19055.
@@ -296,7 +295,6 @@ WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-013_t0
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-014_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-015_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-016_t01: RuntimeError # Issue 19055.
-WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-017_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-018_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-019_t01: RuntimeError # Issue 19055.
 WebPlatformTest/shadow-dom/shadow-trees/satisfying-matching-criteria/test-020_t01: RuntimeError # Issue 19055.
@@ -308,7 +306,7 @@ LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/async-inline-script_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/async-onbeforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLScriptElement/defer-inline-script_t01: RuntimeError # co19-roll r722: Please triage this failure.
+LayoutTests/fast/dom/HTMLScriptElement/defer-inline-script_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/defer-onbeforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLSelectElement/selected-index-preserved-when-option-text-changes_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -319,11 +317,8 @@ LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Iss
 LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Issue 19055.
-LayoutTests/fast/dom/Range/range-comparePoint_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/dom/Range/range-created-during-remove-children_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Issue 19055.
-LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Issue 19055.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
@@ -369,8 +364,66 @@ WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: Runtim
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: RuntimeError # Issue 18931
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Issue 18931
 
+# co19-roll r738.
+WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Skip # Times out. co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out and fails. # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out and fails. # co19-roll r738: Please triage this failure.LayoutTests/fast/dom/Window/window-resize-contents_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/window-resize_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/window-resize-contents_t01: Pass, RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/anchor-without-content_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/dataset_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/importNode-null_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/location-hash_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/option-properties_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/no-renderers-for-light-children_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/pseudoclass-update-checked-option_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-optgroup_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-option_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-optgroup_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-option_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadow-content-crash_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/DOMEvents/approved/EventObject.after.dispatchEvenr_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/DOMEvents/approved/EventObject.multiple.dispatchEvent_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/DOMEvents/approved/addEventListener.optional.useCapture_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t05: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t07: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLMediaElement/addTextTrack_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: RuntimeError # co19-roll r738: Please triage this failure.
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
-LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
 LayoutTests/fast/html/article-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LayoutTests/fast/html/aside-element_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -388,6 +441,13 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
+
+# co19-roll r738
+WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
+
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.

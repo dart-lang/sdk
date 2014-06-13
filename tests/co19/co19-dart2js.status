@@ -907,9 +907,7 @@ LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # TODO(dart2js-team
 LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: RuntimeError # TODO(dart2js-team): Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # TODO(dart2js-team): Please triage this failure.
-LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
 # These tests are marked failing on all platforms, but they timeout here instead
 LibTest/isolate/Isolate/spawnUri_A01_t01: Skip # TODO(dart2js-team): Please triage this failure.

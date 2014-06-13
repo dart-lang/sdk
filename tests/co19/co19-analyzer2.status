@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash # co19 issue 692
+LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # co19 issue 692
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 
@@ -39,14 +41,8 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
 
-# co19 issue #685: Non-bool operand of && and || produces a static type warning
-Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: Fail, OK
-
 # co19 issue #686: Abstract methods are allowed in concrete classes if they override a concrete method
 Language/07_Classes/07_Classes_A03_t06: Fail, OK
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail, OK
-Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail, OK
-Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail, OK
 
 Language/07_Classes/4_Abstract_Instance_Members_A07_t02: Fail # Issue 18914
 
@@ -226,5 +222,56 @@ WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # co19-roll r722: 
 WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-replaceChild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 
-LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash
-LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash
+# co19-roll r738.
+LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/StyleSheet/removed-media-rule-deleted-parent-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/StyleSheet/removed-stylesheet-rule-deleted-parent-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/atob-btoa_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/replaceable_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/Window/window-scroll-arguments_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/characterdata-api-arguments_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-cached-import-rule_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-insert-import-rule-twice_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-insert-import-rule_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-mediarule-deleteRule-update_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-mediarule-functions_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-mediarule-insertRule-update_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/css-rule-functions_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/destroy-selected-radio-button-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/icon-url-change_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/icon-url-list_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/implementation-api-args_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/javascript-backslash_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/location-missing-arguments_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/option-properties_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/remove-named-attribute-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/content-pseudo-element-css-text_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/content-pseudo-element-relative-selector-css-text_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/host-context-pseudo-class-css-text_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: StaticWarning # co19-roll r738: Please triage this failure.
+LibTest/typed_data/ByteData/buffer_A01_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/DOMEvents/approved/Event.bubbles.false_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.head_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/documents/dom-tree-accessors/document.title_t07: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-datalist-element/datalistelement_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: StaticWarning # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: StaticWarning # co19-roll r738: Please triage this failure.

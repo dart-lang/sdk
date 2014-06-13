@@ -1016,6 +1016,7 @@ class BrowserTestRunner {
           status.browser.testBrowserOutput,
           didTimeout: true);
       status.currentTest.doneCallback(browserTestOutput);
+      status.lastTest = status.currentTest;
       status.currentTest = null;
 
       // We don't want to start a new browser if we are terminating.
@@ -1088,9 +1089,10 @@ class BrowserTestRunner {
       status.currentTest.lastKnownMessage = '';
     } else {
       // TODO(ricow): Handle this better.
-      print("This is bad, should never happen, getNextTest all full");
+      print("Browser requested next test before reporting previous result");
       print("This happened for browser $browserId");
       print("Old test was: ${status.currentTest.url}");
+      print("The test before that was: ${status.lastTest.url}");
       print("Timed out tests:");
       for (var v in timedOut) {
         print("  $v");
