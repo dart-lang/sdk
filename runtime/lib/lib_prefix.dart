@@ -10,7 +10,7 @@ class _LibraryPrefix {
 
   bool _load() native "LibraryPrefix_load";
 
-  void _invalidateDependentCode()
+  bool _invalidateDependentCode()
       native "LibraryPrefix_invalidateDependentCode";
 
   loadLibrary() {
