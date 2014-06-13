@@ -1237,12 +1237,14 @@ bool ParallelMoveResolver::IsScratchLocation(Location loc) {
 }
 
 
-intptr_t ParallelMoveResolver::AllocateScratchRegister(Location::Kind kind,
-                                                       intptr_t blocked,
-                                                       intptr_t register_count,
-                                                       bool* spilled) {
+intptr_t ParallelMoveResolver::AllocateScratchRegister(
+    Location::Kind kind,
+    intptr_t blocked,
+    intptr_t first_free_register,
+    intptr_t last_free_register,
+    bool* spilled) {
   intptr_t scratch = -1;
-  for (intptr_t reg = 0; reg < register_count; reg++) {
+  for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
     if ((blocked != reg) &&
         IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
       scratch = reg;
@@ -1252,9 +1254,10 @@ intptr_t ParallelMoveResolver::AllocateScratchRegister(Location::Kind kind,
 
   if (scratch == -1) {
     *spilled = true;
-    for (intptr_t reg = 0; reg < register_count; reg++) {
+    for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
       if (blocked != reg) {
         scratch = reg;
+        break;
       }
     }
   } else {
@@ -1273,7 +1276,8 @@ ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
   reg_ = static_cast<FpuRegister>(
       resolver_->AllocateScratchRegister(Location::kFpuRegister,
                                          blocked,
-                                         kNumberOfFpuRegisters,
+                                         0,
+                                         kNumberOfFpuRegisters - 1,
                                          &spilled_));
 
   if (spilled_) {
@@ -1297,7 +1301,8 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked,
-                                         kNumberOfCpuRegisters,
+                                         kFirstFreeCpuRegister,
+                                         kLastFreeCpuRegister,
                                          &spilled_));
 
   if (spilled_) {

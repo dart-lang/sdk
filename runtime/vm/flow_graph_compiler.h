@@ -62,7 +62,8 @@ class ParallelMoveResolver : public ValueObject {
   bool IsScratchLocation(Location loc);
   intptr_t AllocateScratchRegister(Location::Kind kind,
                                    intptr_t blocked,
-                                   intptr_t register_count,
+                                   intptr_t first_free_register,
+                                   intptr_t last_free_register,
                                    bool* spilled);
 
   void SpillScratch(Register reg);
