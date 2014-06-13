@@ -20,22 +20,8 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
 
-
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
-LibTest/typed_data/Float32List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Float32x4List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Float64List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Int16List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Int32List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Int64List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Int8List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Uint16List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Uint32List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Uint64List/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Uint8ClampedList/last_A01_t02: Fail # co19 issue 691
-LibTest/typed_data/Uint8List/last_A01_t02: Fail # co19 issue 691
-
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 

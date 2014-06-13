@@ -197,7 +197,6 @@ void main() {
     expect.indexOf(val, 4).equals.indexOf(val, 4);
     expect.insert(4, val).equals.insert(4, val);
     expect.insertAll(4, [val]).equals.insertAll(4, [val]);
-    (expect..last = 5).equals.last = 5;
     expect.lastIndexOf(val, null).equals.lastIndexOf(val);
     expect.lastIndexOf(val, 4).equals.lastIndexOf(val, 4);
     (expect..length = 4).equals.length = 4;
