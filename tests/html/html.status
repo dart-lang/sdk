@@ -106,6 +106,12 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 native_gc_test: Pass, Slow
 
+[ $compiler == dart2js && $runtime == drt ]
+shadow_dom_test/ShadowDOM_tests: Fail # Issue 19426
+shadow_dom_test/supported: Fail # Issue 19426
+audiocontext_test/functional: Fail # Issue 19426
+shadowroot_test: Fail # Issue 19426
+
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail
 
