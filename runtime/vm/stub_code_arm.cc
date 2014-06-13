@@ -46,6 +46,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(IP, Operand(0));
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));

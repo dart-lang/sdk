@@ -7,15 +7,28 @@
 library test.mirrors.reader;
 
 import 'dart:mirrors';
+import 'package:expect/expect.dart';
 import 'mirrors_reader.dart';
 
 class RuntimeMirrorsReader extends MirrorsReader {
+  final MirrorSystem mirrorSystem;
   final String mirrorSystemType;
 
   RuntimeMirrorsReader(MirrorSystem mirrorSystem,
                       {bool verbose: false, bool includeStackTrace: false})
-      : this.mirrorSystemType = '${mirrorSystem.runtimeType}',
+      : this.mirrorSystem = mirrorSystem,
+        this.mirrorSystemType = '${mirrorSystem.runtimeType}',
         super(verbose: verbose, includeStackTrace: includeStackTrace);
+
+  visitLibraryMirror(LibraryMirror mirror) {
+    super.visitLibraryMirror(mirror);
+    Expect.equals(mirror, mirrorSystem.libraries[mirror.uri]);
+  }
+
+  visitClassMirror(ClassMirror mirror) {
+    super.visitClassMirror(mirror);
+    Expect.isNotNull(mirror.owner);
+  }
 
   bool allowUnsupported(var receiver, String tag, UnsupportedError exception) {
     if (mirrorSystemType == '_LocalMirrorSystem') {

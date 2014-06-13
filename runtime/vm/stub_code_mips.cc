@@ -34,7 +34,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   SP + 4*S4 - 4 : address of first argument in argument array.
 //   SP + 4*S4 : address of return value.
 //   S5 : address of the runtime function to call.
-//   S4 : number of arguments to the call.
+//   S4 : number of arguments to the call as Smi.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
@@ -49,6 +49,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(RA, Address(SP, 1 * kWordSize));
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
+  __ SmiUntag(S4);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));

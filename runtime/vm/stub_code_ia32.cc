@@ -37,7 +37,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   ESP + 4*EDX : address of first argument in argument array.
 //   ESP + 4*EDX + 4 : address of return value.
 //   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call.
+//   EDX : number of arguments to the call as Smi.
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
@@ -46,6 +46,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ EnterFrame(0);
+  __ SmiUntag(EDX);
 
   // Load current Isolate pointer from Context structure into EAX.
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));

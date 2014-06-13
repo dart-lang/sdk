@@ -45,6 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
   __ EnterFrame(0);
+  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
