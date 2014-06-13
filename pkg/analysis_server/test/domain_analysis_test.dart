@@ -351,6 +351,17 @@ class AnalysisTestHelper {
     server.done();
   }
 
+  /**
+   * Send an `updateContent` request for [testFile].
+   */
+  void sendContentChange(Map contentChange) {
+    Request request = new Request('0', METHOD_UPDATE_CONTENT);
+    request.setParameter('files', {
+      testFile: contentChange
+    });
+    handleSuccessfulRequest(request);
+  }
+
   static String _getCodeString(code) {
     if (code is List<String>) {
       code = code.join('\n');
@@ -1560,16 +1571,9 @@ testUpdateContent() {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
       // update code
-      {
-        Request request = new Request('0', METHOD_UPDATE_CONTENT);
-        request.setParameter('files',
-            {
-              helper.testFile : {
-                CONTENT : 'library lib'
-              }
-            });
-        helper.handleSuccessfulRequest(request);
-      }
+      helper.sendContentChange({
+        CONTENT: 'library lib'
+      });
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
@@ -1586,19 +1590,12 @@ testUpdateContent() {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
       // update code
-      {
-        Request request = new Request('0', METHOD_UPDATE_CONTENT);
-        request.setParameter('files',
-            {
-              helper.testFile : {
-                CONTENT : 'library lib',
-                OFFSET : 'library '.length,
-                OLD_LENGTH : 'A;'.length,
-                NEW_LENGTH : 'lib'.length,
-              }
-            });
-        helper.handleSuccessfulRequest(request);
-      }
+      helper.sendContentChange({
+        CONTENT: 'library lib',
+        OFFSET: 'library '.length,
+        OLD_LENGTH: 'A;'.length,
+        NEW_LENGTH: 'lib'.length,
+      });
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
@@ -1606,8 +1603,37 @@ testUpdateContent() {
       });
     });
   });
-}
 
+  test('change on disk', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('library A;');
+    return helper.waitForOperationsFinished().then((_) {
+      // update code
+      helper.sendContentChange({
+        CONTENT: 'library B;'
+      });
+      // There should be no errors
+      return helper.waitForOperationsFinished().then((_) {
+        expect(helper.getTestErrors(), hasLength(0));
+        // Change file on disk, adding a syntax error.
+        helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
+        // There should still be no errors (file should not have been reread).
+        return helper.waitForOperationsFinished().then((_) {
+          expect(helper.getTestErrors(), hasLength(0));
+          // Send a content change with a null content param--file should be
+          // reread from disk.
+          helper.sendContentChange({
+            CONTENT: null
+          });
+          // There should be errors now.
+          return helper.waitForOperationsFinished().then((_) {
+            expect(helper.getTestErrors(), hasLength(1));
+          });
+        });
+      });
+    });
+  });
+}
 
 void test_setSubscriptions() {
   test('before analysis', () {

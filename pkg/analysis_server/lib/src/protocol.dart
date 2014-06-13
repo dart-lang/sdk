@@ -401,6 +401,8 @@ class RequestDatum {
     }
     return datum;
   }
+
+  bool get isNull => datum == null;
 }
 
 /**

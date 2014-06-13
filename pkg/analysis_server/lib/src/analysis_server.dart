@@ -303,6 +303,10 @@ class AnalysisServer {
   void updateContent(Map<String, ContentChange> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = _getAnalysisContext(file);
+      // TODO(paulberry): handle the case where a file is referred to by more
+      // than one context (e.g package A depends on package B using a local
+      // path, user has both packages open for editing in separate contexts,
+      // and user modifies a file in package B).
       if (analysisContext != null) {
         Source source = _getSource(file);
         if (change.offset == null) {

@@ -104,7 +104,8 @@ class AnalysisDomainHandler implements RequestHandler {
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
     filesDatum.forEachMap((file, changeDatum) {
       var change = new ContentChange();
-      change.content = changeDatum[CONTENT].asString();
+      change.content = changeDatum[CONTENT].isNull ? null :
+          changeDatum[CONTENT].asString();
       if (changeDatum.hasKey(OFFSET)) {
         change.offset = changeDatum[OFFSET].asInt();
         change.oldLength = changeDatum[OLD_LENGTH].asInt();
