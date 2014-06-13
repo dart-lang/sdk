@@ -154,14 +154,14 @@ class BPlusTree<K, V, N> {
    * Writes [node] into the manager.
    */
   void _writeIndexNode(_IndexNode<K, V, N> node) {
-    _manager.writeIndex(node.id, new IndexNodeData(node.keys, node.children));
+    _manager.writeIndex(node.id, new IndexNodeData<K, N>(node.keys, node.children));
   }
 
   /**
    * Writes [node] into the manager.
    */
   void _writeLeafNode(_LeafNode<K, V, N> node) {
-    _manager.writeLeaf(node.id, new LeafNodeData(node.keys, node.values));
+    _manager.writeLeaf(node.id, new LeafNodeData<K, V>(node.keys, node.values));
   }
 }
 
@@ -440,7 +440,7 @@ class _IndexNode<K, V, N> extends _Node<K, V, N> {
       // Try right sibling.
       if (right is _IndexNode<K, V, N>) {
         // Try to redistribute.
-        var rightLength = right.keys.length;
+        int rightLength = right.keys.length;
         if (rightLength > minKeys) {
           int halfExcess = (rightLength - minKeys + 1) ~/ 2;
           keys.add(anchor);
@@ -611,7 +611,7 @@ class _LeafNode<K, V, N> extends _Node<K, V, N> {
       // Try right sibling.
       if (right is _LeafNode<K, V, N>) {
         // Try to redistribute.
-        var rightLength = right.keys.length;
+        int rightLength = right.keys.length;
         if (rightLength > minKeys) {
           int halfExcess = (rightLength - minKeys + 1) ~/ 2;
           keys.addAll(right.keys.getRange(0, halfExcess));
