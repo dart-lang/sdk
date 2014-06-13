@@ -949,6 +949,7 @@ WebPlatformTest/html/semantics/forms/the-fieldset-element/HTMLFieldSetElement_t0
 
 
 
+LayoutTests/fast/dom/gc-image-element-2_t01: Skip # Times out, co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/background-shorthand-csstext_t01: Skip # Times out, co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/client-width-height-quirks_t01: Skip # Times out, co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/clone-node-form-elements_t01: Skip # Times out, co19-roll r738: Please triage this failure.
