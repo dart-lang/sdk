@@ -108,13 +108,14 @@ class Entrypoint {
   /// previously locked packages.
   ///
   /// If [useLatest] is non-empty or [upgradeAll] is true, displays a detailed
-  /// report of the changes made relative to the previous lockfile.
+  /// report of the changes made relative to the previous lockfile. If [dryRun]
+  /// is `true`, no physical changes are made.
   ///
   /// Returns a [Future] that completes to the number of changed dependencies.
   /// It completes when an up-to-date lockfile has been generated and all
   /// dependencies are available.
   Future<int> acquireDependencies({List<String> useLatest,
-      bool upgradeAll: false}) {
+      bool upgradeAll: false, bool dryRun: false}) {
     var numChanged = 0;
 
     return syncFuture(() {
@@ -128,18 +129,20 @@ class Entrypoint {
       // https://code.google.com/p/dart/issues/detail?id=15587
       numChanged = result.showReport(showAll: useLatest != null || upgradeAll);
 
+      if (dryRun) return numChanged;
+
       // Install the packages.
       cleanDir(packagesDir);
       return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
         return get(id);
-      }).toList());
-    }).then((ids) {
-      _saveLockFile(ids);
-      _linkSelf();
-      _linkSecondaryPackageDirs();
+      }).toList()).then((ids) {
+        _saveLockFile(ids);
+        _linkSelf();
+        _linkSecondaryPackageDirs();
 
-      return numChanged;
+        return numChanged;
+      });
     });
   }
 

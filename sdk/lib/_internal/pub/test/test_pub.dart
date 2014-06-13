@@ -327,10 +327,11 @@ void forBothPubGetAndUpgrade(void callback(RunCommand command)) {
 /// understands the normal output of a successful pub command. If [warning] is
 /// given, it expects the command to complete successfully *and* print
 /// [warning] to stderr. If [error] is given, it expects the command to *only*
-/// print [error] to stderr.
+/// print [error] to stderr. [output], [error], and [warning] may be strings,
+/// [RegExp]s, or [Matcher]s.
 // TODO(rnystrom): Clean up other tests to call this when possible.
 void pubCommand(RunCommand command,
-    {Iterable<String> args, Pattern output, Pattern error, Pattern warning}) {
+    {Iterable<String> args, output, error, warning}) {
   if (error != null && warning != null) {
     throw new ArgumentError("Cannot pass both 'error' and 'warning'.");
   }
@@ -350,13 +351,11 @@ void pubCommand(RunCommand command,
   schedulePub(args: allArgs, output: output, error: error, exitCode: exitCode);
 }
 
-void pubGet({Iterable<String> args, Pattern error,
-    Pattern warning}) {
+void pubGet({Iterable<String> args, error, warning}) {
   pubCommand(RunCommand.get, args: args, error: error, warning: warning);
 }
 
-void pubUpgrade({Iterable<String> args, Pattern output, Pattern error,
-    Pattern warning}) {
+void pubUpgrade({Iterable<String> args, output, error, warning}) {
   pubCommand(RunCommand.upgrade, args: args, output: output, error: error,
       warning: warning);
 }

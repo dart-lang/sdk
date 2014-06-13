@@ -22,20 +22,32 @@ class UpgradeCommand extends PubCommand {
   UpgradeCommand() {
     commandParser.addFlag('offline',
         help: 'Use cached packages instead of accessing the network.');
+
+    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+        help: 'Report what dependencies would change but do not change any.');
   }
 
   Future onRun() {
     var upgradeAll = commandOptions.rest.isEmpty;
+    var dryRun = commandOptions['dry-run'];
     return entrypoint.acquireDependencies(useLatest: commandOptions.rest,
-        upgradeAll: upgradeAll).then((numChanged) {
-      // TODO(rnystrom): Show a more detailed message about what was added,
-      // removed, modified, and/or upgraded?
-      if (numChanged == 0) {
-        log.message("No dependencies changed.");
-      } else if (numChanged == 1) {
-        log.message("Changed $numChanged dependency!");
+        upgradeAll: upgradeAll, dryRun: dryRun).then((numChanged) {
+      if (dryRun) {
+        if (numChanged == 0) {
+          log.message("No dependencies would change.");
+        } else if (numChanged == 1) {
+          log.message("Would change $numChanged dependency.");
+        } else {
+          log.message("Would change $numChanged dependencies.");
+        }
       } else {
-        log.message("Changed $numChanged dependencies!");
+        if (numChanged == 0) {
+          log.message("No dependencies changed.");
+        } else if (numChanged == 1) {
+          log.message("Changed $numChanged dependency!");
+        } else {
+          log.message("Changed $numChanged dependencies!");
+        }
       }
 
       if (isOffline) {
