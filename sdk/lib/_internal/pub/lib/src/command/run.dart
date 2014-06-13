@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
+import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../barback/asset_environment.dart';
@@ -38,6 +39,8 @@ class RunCommand extends PubCommand {
     }
 
     var environment;
+    var scriptPath;
+    var args;
     return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
         WatcherType.NONE, useDart2JS: false)
           .then((_environment) {
@@ -49,14 +52,27 @@ class RunCommand extends PubCommand {
         log.error(log.red("Build error:\n$error"));
       });
 
-      return environment.serveDirectory("bin");
-    }).then((server) {
       var script = commandOptions.rest[0];
-      var args = commandOptions.rest.skip(1).toList();
+      args = commandOptions.rest.skip(1).toList();
 
-      // TODO(rnystrom): Support scripts in other directories.
-      var scriptPath = "bin/$script.dart";
+      // If the command has a path separator, then it's a path relative to the
+      // root of the package. Otherwise, it's implicitly understood to be in
+      // "bin".
+      var rootDir;
+      var parts = path.split(script);
+      if (parts.length > 1) {
+        scriptPath = "$script.dart";
+        rootDir = parts.first;
+      } else {
+        scriptPath = "bin/$script.dart";
+        rootDir = "bin";
+      }
 
+      // Serve the entire root-most directory containing the entrypoint. That
+      // ensures that, for example, things like `import '../../utils.dart';`
+      // will work from within some deeply nested script.
+      return environment.serveDirectory(rootDir);
+    }).then((server) {
       // Try to make sure the entrypoint script exists (or is generated) before
       // we spawn the process to run it.
       return environment.barback.getAssetById(

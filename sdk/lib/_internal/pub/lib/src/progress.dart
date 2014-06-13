@@ -32,14 +32,20 @@ class Progress {
   Progress(this._message, {bool fine: false}) {
     _stopwatch.start();
 
-    // Only animate if we're writing to a TTY in human format and we're not
-    // emitting FINE logging information. If we are, we'll just print the start
-    // and end messages anyway.
-    bool animate = !log.verbosity.isLevelVisible(log.Level.FINE) &&
-        stdioType(stdout) == StdioType.TERMINAL;
-    (animate || fine ? log.fine : log.message)("$_message...");
+    var level = fine ? log.Level.FINE : log.Level.MESSAGE;
 
-    if (!animate || log.json.enabled) return;
+    // The animation is only shown when it would be meaningful to a human.
+    // That means we're writing a visible message to a TTY at normal log levels
+    // with non-JSON output.
+    if (stdioType(stdout) != StdioType.TERMINAL ||
+        !log.verbosity.isLevelVisible(level) ||
+        log.json.enabled || fine ||
+        log.verbosity.isLevelVisible(log.Level.FINE)) {
+      // Not animating, so just log the start and wait until the task is
+      // completed.
+      log.write(level, "$_message...");
+      return;
+    }
 
     _update();
     _timer = new Timer.periodic(new Duration(milliseconds: 100), (_) {
