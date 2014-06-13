@@ -3105,6 +3105,10 @@ void BinarySmiOpInstr::InferRange() {
       }
       return;
     }
+    case Token::kSHL: {
+      Range::Shl(left_range, right_range, &min, &max);
+      break;
+    }
     case Token::kBIT_AND:
       if (Range::ConstantMin(right_range).value() >= 0) {
         min = RangeBoundary::FromConstant(0);
@@ -3226,6 +3230,35 @@ bool Range::IsUnsatisfiable() const {
     return true;
   }
   return false;
+}
+
+
+void Range::Shl(Range* left,
+                Range* right,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  RangeBoundary left_max = Range::ConstantMax(left);
+  RangeBoundary left_min = Range::ConstantMin(left);
+  // A negative shift count always deoptimizes (and throws), so the minimum
+  // shift count is zero.
+  intptr_t right_max = Utils::Maximum(Range::ConstantMax(right).value(),
+                                      static_cast<intptr_t>(0));
+  intptr_t right_min = Utils::Maximum(Range::ConstantMin(right).value(),
+                                      static_cast<intptr_t>(0));
+
+  *result_min = RangeBoundary::Shl(
+      left_min,
+      left_min.value() > 0 ? right_min : right_max,
+      left_min.value() > 0
+          ? RangeBoundary::PositiveInfinity()
+          : RangeBoundary::NegativeInfinity());
+
+  *result_max = RangeBoundary::Shl(
+      left_max,
+      left_max.value() > 0 ? right_max : right_min,
+      left_max.value() > 0
+          ? RangeBoundary::PositiveInfinity()
+          : RangeBoundary::NegativeInfinity());
 }
 
 

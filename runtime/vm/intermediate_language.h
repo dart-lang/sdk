@@ -2504,6 +2504,9 @@ class RangeBoundary : public ValueObject {
         value_(other.value_),
         offset_(other.offset_) { }
 
+  explicit RangeBoundary(intptr_t val)
+      : kind_(kConstant), value_(val), offset_(0) { }
+
   RangeBoundary& operator=(const RangeBoundary& other) {
     kind_ = other.kind_;
     value_ = other.value_;
@@ -2512,7 +2515,7 @@ class RangeBoundary : public ValueObject {
   }
 
   static RangeBoundary FromConstant(intptr_t val) {
-    return RangeBoundary(kConstant, val, 0);
+    return RangeBoundary(val);
   }
 
   static RangeBoundary NegativeInfinity() {
@@ -2552,6 +2555,12 @@ class RangeBoundary : public ValueObject {
       if (value() > Smi::kMaxValue) return MaxSmi();
     }
     return *this;
+  }
+
+  bool Equals(const RangeBoundary& other) {
+    return kind_ == other.kind_
+        && value_ == other.value_
+        && offset_ == other.offset_;
   }
 
   bool IsUnknown() const { return kind_ == kUnknown; }
@@ -2605,6 +2614,23 @@ class RangeBoundary : public ValueObject {
       return overflow;
     }
     return RangeBoundary::FromConstant(result);
+  }
+
+  static RangeBoundary Shl(const RangeBoundary& value_boundary,
+                           intptr_t shift_count,
+                           const RangeBoundary& overflow) {
+    ASSERT(value_boundary.IsConstant());
+    ASSERT(shift_count >= 0);
+    intptr_t limit = 64 - shift_count;
+    int64_t value = static_cast<int64_t>(value_boundary.value());
+    if ((value == 0) ||
+        (shift_count == 0) ||
+        ((limit > 0) && (Utils::IsInt(limit, value)))) {
+      // Result stays in 64 bit range.
+      int64_t result = value << shift_count;
+      return Smi::IsValid64(result) ? RangeBoundary(result) : overflow;
+    }
+    return overflow;
   }
 
  private:
@@ -2661,6 +2687,11 @@ class Range : public ZoneAllocated {
   bool Overlaps(intptr_t min_int, intptr_t max_int) const;
 
   bool IsUnsatisfiable() const;
+
+  static void Shl(Range* left_range,
+                  Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
 
  private:
   RangeBoundary min_;

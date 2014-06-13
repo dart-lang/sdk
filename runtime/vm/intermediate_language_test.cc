@@ -62,6 +62,58 @@ TEST_CASE(RangeTests) {
   EXPECT(range_x->IsWithin(-15, 100));
   EXPECT(!range_x->IsWithin(-15, 99));
   EXPECT(!range_x->IsWithin(-14, 100));
+
+#define TEST_RANGE_OP(Op, l_min, l_max, r_min, r_max, result_min, result_max)  \
+  {                                                                            \
+    RangeBoundary min, max;                                                    \
+    Range* left_range = new Range(                                             \
+      RangeBoundary::FromConstant(l_min),                                      \
+      RangeBoundary::FromConstant(l_max));                                     \
+    Range* shift_range = new Range(                                            \
+      RangeBoundary::FromConstant(r_min),                                      \
+      RangeBoundary::FromConstant(r_max));                                     \
+    Op(left_range, shift_range, &min, &max);                                   \
+    EXPECT(min.Equals(result_min));                                            \
+    if (!min.Equals(result_min)) OS::Print("%s\n", min.ToCString());           \
+    EXPECT(max.Equals(result_max));                                            \
+    if (!max.Equals(result_max)) OS::Print("%s\n", max.ToCString());           \
+  }
+
+  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 2,
+                RangeBoundary(-60), RangeBoundary(400));
+  TEST_RANGE_OP(Range::Shl, -15, 100, -2, 2,
+                RangeBoundary(-60), RangeBoundary(400));
+  TEST_RANGE_OP(Range::Shl, -15, -10, 1, 2,
+                RangeBoundary(-60), RangeBoundary(-20));
+  TEST_RANGE_OP(Range::Shl, 5, 10, -2, 2,
+                RangeBoundary(5), RangeBoundary(40));
+  TEST_RANGE_OP(Range::Shl, -15, 100, 0, 64,
+                RangeBoundary::NegativeInfinity(),
+                RangeBoundary::PositiveInfinity());
+  TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63,
+                RangeBoundary::NegativeInfinity(),
+                RangeBoundary::PositiveInfinity());
+  if (kBitsPerWord == 64) {
+    TEST_RANGE_OP(Range::Shl, -1, 1, 62, 62,
+                  RangeBoundary(kSmiMin),
+                  RangeBoundary::PositiveInfinity());
+    TEST_RANGE_OP(Range::Shl, -1, 1, 30, 30,
+                  RangeBoundary(-1 << 30),
+                  RangeBoundary(1 << 30));
+  } else {
+    TEST_RANGE_OP(Range::Shl, -1, 1, 30, 30,
+                  RangeBoundary(kSmiMin),
+                  RangeBoundary::PositiveInfinity());
+    TEST_RANGE_OP(Range::Shl, -1, 1, 62, 62,
+                  RangeBoundary::NegativeInfinity(),
+                  RangeBoundary::PositiveInfinity());
+  }
+  TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64,
+                RangeBoundary(0), RangeBoundary::PositiveInfinity());
+  TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64,
+                RangeBoundary::NegativeInfinity(), RangeBoundary(0));
+
+#undef TEST_RANGE_OP
 }
 
 
