@@ -44,6 +44,16 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     names = null;
   }
 
+  int countUses(ir.Definition definition) {
+    int count = 0;
+    ir.Reference ref = definition.firstRef;
+    while (ref != null) {
+      ++count;
+      ref = ref.nextRef;
+    }
+    return count;
+  }
+
   printNode(Block block) {
     tag("block", () {
       printProperty("name", block.name);
@@ -57,11 +67,13 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         tag("locals", () {
           printProperty("size", 0);
           printProperty("method", "None");
-          // We could print parameters here,
-          // but does the hydra tool actually use this info??
         });
       });
       tag("HIR", () {
+        for (ir.Parameter param in block.parameters) {
+          String name = names.name(param);
+          printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
+        }
         visit(block.body);
       });
     });
@@ -191,7 +203,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   }
 
   visitIsTrue(ir.IsTrue node) {
-    return "IsTrue(${names.name(node)})";
+    return "IsTrue(${names.name(node.value.definition)})";
   }
 
   visitCondition(ir.Condition c) {}

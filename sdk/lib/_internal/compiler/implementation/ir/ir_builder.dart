@@ -192,6 +192,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   // used to determine if a join-point continuation needs to be passed
   // arguments, and what the arguments are.
   final Map<Element, int> variableIndex;
+  final List<Element> index2variable;
   final List<ir.Parameter> freeVars;
   final List<ir.Primitive> assignedVars;
 
@@ -202,6 +203,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         variableIndex = <Element, int>{},
         freeVars = null,
         assignedVars = <ir.Primitive>[],
+        index2variable = <Element>[],
         super(elements, compiler);
 
   /// Construct a delimited visitor.
@@ -215,6 +217,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
             growable: false),
         assignedVars = new List<ir.Primitive>.generate(
             parent.assignedVars.length, (_) => null),
+        index2variable = new List<Element>.from(parent.index2variable),
         super(parent.elements, parent.compiler);
 
   /**
@@ -241,6 +244,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       parameters.add(parameter);
       variableIndex[parameterElement] = assignedVars.length;
       assignedVars.add(parameter);
+      index2variable.add(parameterElement);
     });
 
     visit(function.body);
@@ -346,7 +350,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         // left and right subterms we will still have a join continuation with
         // possibly arguments passed to it.  Such singly-used continuations
         // are eliminated by the shrinking conversions.
-        parameters.add(new ir.Parameter(null));
+        parameters.add(new ir.Parameter(index2variable[i]));
         ir.Primitive reachingDefinition =
             assignedVars[i] == null ? freeVars[i] : assignedVars[i];
         leftArguments.add(
@@ -396,7 +400,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       // If not, no value needs to be passed to the join point.
       if (reachingAssignment == null) continue;
 
-      parameters.add(new ir.Parameter(null));
+      parameters.add(new ir.Parameter(index2variable[i]));
       ir.Definition entryAssignment = assignedVars[i];
       entryArguments.add(
           entryAssignment == null ? freeVars[i] : entryAssignment);
@@ -629,16 +633,22 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         ir.Primitive initialValue = visit(definition.arguments.head);
+        // In case a primitive was introduced for the initializer expression,
+        // use this variable element to help derive a good name for it.
+        initialValue.useElementAsHint(element);
         variableIndex[element] = assignedVars.length;
         assignedVars.add(initialValue);
+        index2variable.add(element);
       } else {
         assert(definition is ast.Identifier);
         // The initial value is null.
         // TODO(kmillikin): Consider pooling constants.
         ir.Constant constant = new ir.Constant(constantSystem.createNull());
+        constant.useElementAsHint(element);
         add(new ir.LetPrim(constant));
         variableIndex[element] = assignedVars.length;
         assignedVars.add(constant);
+        index2variable.add(element);
       }
     }
     return null;
@@ -1094,6 +1104,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         assert(!node.arguments.isEmpty);
         assert(node.arguments.tail.isEmpty);
         result = visit(node.arguments.head);
+        result.useElementAsHint(element);
         assignedVars[variableIndex[element]] = result;
         return result;
       } else if (Elements.isStaticOrTopLevel(element)) {
@@ -1150,6 +1161,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         assert(node.arguments.tail.isEmpty);
         arg = visit(node.arguments.head);
       }
+      arg.useElementAsHint(element);
       result = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([result]);
       ir.Expression invoke = new ir.InvokeMethod(getter, selector, k, [arg]);

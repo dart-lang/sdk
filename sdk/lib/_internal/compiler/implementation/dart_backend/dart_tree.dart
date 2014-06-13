@@ -83,18 +83,11 @@ class Label {
  * Variables are [Expression]s.
  */
 class Variable extends Expression {
-  // A counter used to generate names.  The counter is reset to 0 for each
-  // function emitted.
-  static int counter = 0;
-  static String _newName() => 'v${counter++}';
-
+  /// Element used for synthesizing a name for the variable.
+  /// Different variables may have the same element. May be null.
   Element element;
-  String cachedName;
 
-  String get name {
-    if (cachedName != null) return cachedName;
-    return cachedName = ((element == null) ? _newName() : element.name);
-  }
+  int readCount = 0;
 
   Variable(this.element);
 
@@ -319,7 +312,6 @@ class WhileCondition extends Loop {
   accept(StatementVisitor visitor) => visitor.visitWhileCondition(this);
 }
 
-
 /// A [Break] or [Continue] statement.
 abstract class Jump extends Statement {
   Label get target;
@@ -343,8 +335,8 @@ class Break extends Jump {
 }
 
 /**
- * A continue to an enclosing [WhileTrue] loop.  The continue targets the
- * loop's body.
+ * A continue to an enclosing [WhileTrue] or [WhileCondition] loop.
+ * The continue targets the loop's body.
  */
 class Continue extends Jump {
   final Label target;
@@ -369,13 +361,13 @@ class Assign extends Statement {
   Statement next;
   final Variable variable;
   Expression definition;
-  final bool hasExactlyOneUse;
 
-  Assign(this.variable, this.definition, this.next, this.hasExactlyOneUse);
+  Assign(this.variable, this.definition, this.next);
+
+  bool get hasExactlyOneUse => variable.readCount == 1;
 
   accept(StatementVisitor visitor) => visitor.visitAssign(this);
 }
-
 
 /**
  * A return exit from the function.
@@ -395,9 +387,6 @@ class Return extends Statement {
   accept(StatementVisitor visitor) => visitor.visitReturn(this);
 }
 
-
-
-
 /**
  * A conditional branch based on the true value of an [Expression].
  */
@@ -413,7 +402,6 @@ class If extends Statement {
 
   accept(StatementVisitor visitor) => visitor.visitIf(this);
 }
-
 
 class ExpressionStatement extends Statement {
   Statement next;
@@ -501,9 +489,9 @@ abstract class Visitor<S,E> implements ExpressionVisitor<E>,
 class Builder extends ir.Visitor<Node> {
   final dart2js.Compiler compiler;
 
-  // Uses of IR primitives are replaced with Tree variables.  This is the
-  // mapping from primitives to variables.
-  final Map<ir.Primitive, Variable> variables = <ir.Primitive, Variable>{};
+  /// Maps variable/parameter elements to the Tree variables that represent it.
+  final Map<Element, List<Variable>> element2variables =
+      <Element,List<Variable>>{};
 
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
@@ -512,38 +500,148 @@ class Builder extends ir.Visitor<Node> {
   FunctionDefinition function;
   ir.Continuation returnContinuation;
 
+  /// Variable used in [buildPhiAssignments] as a temporary when swapping
+  /// variables.
+  final Variable tempVar = new Variable(null);
+
   Builder(this.compiler);
 
+  /// Obtains the variable representing the given primitive. Returns null for
+  /// primitives that have no reference and do not need a variable.
+  Variable getVariable(ir.Primitive primitive) {
+    if (primitive.registerIndex == null) {
+      return null; // variable is unused
+    }
+    List<Variable> variables = element2variables[primitive.element];
+    if (variables == null) {
+      variables = <Variable>[];
+      element2variables[primitive.element] = variables;
+    }
+    while (variables.length <= primitive.registerIndex) {
+      variables.add(new Variable(primitive.element));
+    }
+    return variables[primitive.registerIndex];
+  }
+
+  /// Obtains a reference to the tree Variable corresponding to the IR primitive
+  /// referred to by [reference].
+  /// This increments the reference count for the given variable, so the
+  /// returned expression must be used in the tree.
+  Expression getVariableReference(ir.Reference reference) {
+    Variable variable = getVariable(reference.definition);
+    if (variable == null) {
+      compiler.internalError(
+          compiler.currentElement,
+          "Reference to ${reference.definition} has no register");
+    }
+    ++variable.readCount;
+    return variable;
+  }
+
   FunctionDefinition build(ir.FunctionDefinition node) {
+    new ir.RegisterAllocator().visit(node);
     visit(node);
     return function;
   }
 
   List<Expression> translateArguments(List<ir.Reference> args) {
     return new List<Expression>.generate(args.length,
-         (int index) => variables[args[index].definition]);
+         (int index) => getVariableReference(args[index]));
   }
 
-  Statement buildParameterAssignments(
+  List<Variable> translatePhiArguments(List<ir.Reference> args) {
+    return new List<Variable>.generate(args.length,
+         (int index) => getVariableReference(args[index]));
+  }
+
+  Statement buildContinuationAssignment(
+      ir.Parameter parameter,
+      Expression argument,
+      Statement buildRest()) {
+    Variable variable = getVariable(parameter);
+    Statement assignment;
+    if (variable == null) {
+      assignment = new ExpressionStatement(argument, null);
+    } else {
+      assignment = new Assign(variable, argument, null);
+    }
+    assignment.next = buildRest();
+    return assignment;
+  }
+
+  /// Simultaneously assigns each argument to the corresponding parameter,
+  /// then continues at the statement created by [buildRest].
+  Statement buildPhiAssignments(
       List<ir.Parameter> parameters,
-      List<Expression> arguments,
+      List<Variable> arguments,
       Statement buildRest()) {
     assert(parameters.length == arguments.length);
-    Statement first, current;
-    for (int i = 0; i < parameters.length; ++i) {
-      ir.Parameter parameter = parameters[i];
-      Statement assignment;
-      if (parameter.hasAtLeastOneUse) {
-        assignment = new Assign(variables[parameter], arguments[i], null,
-            parameter.hasExactlyOneUse);
-      } else {
-        assignment = new ExpressionStatement(arguments[i], null);
-      }
+    // We want a parallel assignment to all parameters simultaneously.
+    // Since we do not have parallel assignments in dart_tree, we must linearize
+    // the assignments without attempting to read a previously-overwritten
+    // value. For example {x,y = y,x} cannot be linearized to {x = y; y = x},
+    // for this we must introduce a temporary variable: {t = x; x = y; y = t}.
 
+    // [rightHand] is the inverse of [arguments], that is, it maps variables
+    // to the assignments on which is occurs as the right-hand side.
+    Map<Variable, List<int>> rightHand = <Variable, List<int>>{};
+    for (int i = 0; i < parameters.length; i++) {
+      Variable param = getVariable(parameters[i]);
+      Variable arg = arguments[i];
+      if (param == null || param == arg) {
+        continue; // No assignment necessary.
+      }
+      List<int> list = rightHand[arg];
+      if (list == null) {
+        rightHand[arg] = list = <int>[];
+      }
+      list.add(i);
+    }
+
+    Statement first, current;
+    void addAssignment(Variable dst, Variable src) {
       if (first == null) {
-        current = first = assignment;
+        first = current = new Assign(dst, src, null);
       } else {
-        current = current.next = assignment;
+        current = current.next = new Assign(dst, src, null);
+      }
+    }
+
+    List<Variable> assignmentSrc = new List<Variable>(parameters.length);
+    List<bool> done = new List<bool>(parameters.length);
+    void visitAssignment(int i) {
+      if (done[i] == true) {
+        return;
+      }
+      Variable param = getVariable(parameters[i]);
+      Variable arg = arguments[i];
+      if (param == null || param == arg) {
+        return; // No assignment necessary.
+      }
+      if (assignmentSrc[i] != null) {
+        // Cycle found; store argument in a temporary variable.
+        // The temporary will then be used as right-hand side when the
+        // assignment gets added.
+        if (assignmentSrc[i] != tempVar) { // Only move to temporary once.
+          assignmentSrc[i] = tempVar;
+          addAssignment(tempVar, arg);
+        }
+        return;
+      }
+      assignmentSrc[i] = arg;
+      List<int> paramUses = rightHand[param];
+      if (paramUses != null) {
+        for (int useIndex in paramUses) {
+          visitAssignment(useIndex);
+        }
+      }
+      addAssignment(param, assignmentSrc[i]);
+      done[i] = true;
+    }
+
+    for (int i = 0; i < parameters.length; i++) {
+      if (done[i] == null) {
+        visitAssignment(i);
       }
     }
 
@@ -559,22 +657,20 @@ class Builder extends ir.Visitor<Node> {
     returnContinuation = node.returnContinuation;
     List<Variable> parameters = <Variable>[];
     for (ir.Parameter p in node.parameters) {
-      Variable parameter = new Variable(p.element);
+      Variable parameter = getVariable(p);
+      assert(parameter != null);
       parameters.add(parameter);
-      variables[p] = parameter;
     }
     function = new FunctionDefinition(parameters, visit(node.body));
     return null;
   }
 
   Statement visitLetPrim(ir.LetPrim node) {
-    // LetPrim is translated to LetVal.
+    // LetPrim is translated to Assign.
     Expression definition = visit(node.primitive);
-    if (node.primitive.hasAtLeastOneUse) {
-      Variable variable = new Variable(null);
-      variables[node.primitive] = variable;
-      return new Assign(variable, definition, visit(node.body),
-          node.primitive.hasExactlyOneUse);
+    Variable variable = getVariable(node.primitive);
+    if (variable != null) { // Variable is null if primitive is unused.
+      return new Assign(variable, definition, visit(node.body));
     } else if (node.primitive is ir.Constant) {
       // TODO(kmillikin): Implement more systematic treatment of pure CPS
       // values (e.g., as part of a shrinking reductions pass).
@@ -590,9 +686,6 @@ class Builder extends ir.Visitor<Node> {
       label = new Label();
       labels[node.continuation] = label;
     }
-    node.continuation.parameters.forEach((p) {
-        if (p.hasAtLeastOneUse) variables[p] = new Variable(null);
-    });
     Statement body = visit(node.body);
     // The continuation's body is not always translated directly here because
     // it may have been already translated:
@@ -616,13 +709,13 @@ class Builder extends ir.Visitor<Node> {
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      return buildParameterAssignments(cont.parameters, [invoke],
+      return buildContinuationAssignment(cont.parameters.single, invoke,
           () => visit(cont.body));
     }
   }
 
   Statement visitInvokeMethod(ir.InvokeMethod node) {
-    Variable receiver = variables[node.receiver.definition];
+    Expression receiver = getVariableReference(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
     ir.Continuation cont = node.continuation.definition;
@@ -631,7 +724,7 @@ class Builder extends ir.Visitor<Node> {
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      return buildParameterAssignments(cont.parameters, [invoke],
+      return buildContinuationAssignment(cont.parameters.single, invoke,
           () => visit(cont.body));
     }
   }
@@ -645,7 +738,7 @@ class Builder extends ir.Visitor<Node> {
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      return buildParameterAssignments(cont.parameters, [concat],
+      return buildContinuationAssignment(cont.parameters.single, concat,
           () => visit(cont.body));
     }
   }
@@ -660,7 +753,7 @@ class Builder extends ir.Visitor<Node> {
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      return buildParameterAssignments(cont.parameters, [invoke],
+      return buildContinuationAssignment(cont.parameters.single, invoke,
           () => visit(cont.body));
     }
   }
@@ -674,10 +767,10 @@ class Builder extends ir.Visitor<Node> {
     ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       assert(node.arguments.length == 1);
-      return new Return(variables[node.arguments[0].definition]);
+      return new Return(getVariableReference(node.arguments.single));
     } else {
-      List<Expression> arguments = translateArguments(node.arguments);
-      return buildParameterAssignments(cont.parameters, arguments,
+      List<Expression> arguments = translatePhiArguments(node.arguments);
+      return buildPhiAssignments(cont.parameters, arguments,
           () {
             // Translate invocations of recursive and non-recursive
             // continuations differently.
@@ -751,7 +844,7 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Expression visitIsTrue(ir.IsTrue node) {
-    return variables[node.value.definition];
+    return getVariableReference(node.value);
   }
 }
 
@@ -1012,7 +1105,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
       return node.body;
     }
 
+    // Do not propagate assignments into the successor statements, since they
+    // may be overwritten by assignments in the body.
+    List<Assign> savedEnvironment = environment;
+    environment = <Assign>[];
     node.next = visitStatement(node.next);
+    environment = savedEnvironment;
+
     return node;
   }
 
@@ -1130,8 +1229,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
       if (next != null) {
         return new Assign(s.variable,
                           combine(s.definition, t.definition),
-                          next,
-                          s.hasExactlyOneUse);
+                          next);
       }
     }
     if (s is ExpressionStatement && t is ExpressionStatement) {
@@ -1158,24 +1256,27 @@ class StatementRewriter extends Visitor<Statement, Expression> {
       --t.target.useCount; // Two continues become one.
       return s;
     }
-    if (s is Return && t is Return && equivalentExpressions(s.value, t.value)) {
-      return s;
+    if (s is Return && t is Return) {
+      Expression e = combineExpressions(s.value, t.value);
+      if (e != null) {
+        return new Return(e);
+      }
     }
     return null;
   }
 
-  /// True if the two expressions both syntactically and semantically
-  /// equivalent.
-  static bool equivalentExpressions(Expression e1, Expression e2) {
-    if (e1 == e2) { // Detect same variable reference
-      // TODO(asgerf): This might turn the variable into a single-use,
-      // but we currently don't discover this.
-      return true;
+  /// Returns an expression equivalent to both [e1] and [e2].
+  /// If non-null is returned, the caller must discard [e1] and [e2] and use
+  /// the resulting expression in the tree.
+  static Expression combineExpressions(Expression e1, Expression e2) {
+    if (e1 is Variable && e1 == e2) {
+      --e1.readCount; // Two references become one.
+      return e1;
     }
-    if (e1 is Constant && e2 is Constant) {
-      return e1.value == e2.value;
+    if (e1 is Constant && e2 is Constant && e1.value == e2.value) {
+      return e1;
     }
-    return false;
+    return null;
   }
 
   /// Try to collapse nested ifs using && and || expressions.

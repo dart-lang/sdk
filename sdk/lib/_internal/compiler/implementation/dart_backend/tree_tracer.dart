@@ -9,8 +9,8 @@ import '../tracer.dart';
 import 'dart_tree.dart';
 
 class Block {
+  Label label;
   int index;
-  final Label label;
   /// Mixed list of [Statement] and [Block].
   /// A [Block] represents a synthetic goto statement.
   final List statements = [];
@@ -223,7 +223,8 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   visitAssign(Assign node) {
     String name = names.varName(node.variable);
     String rhs = expr(node.definition);
-    printStatement(name, "let $name = $rhs");
+    String extra = node.hasExactlyOneUse ? "[single-use]" : "";
+    printStatement(null, "assign $name = $rhs $extra");
   }
 
   visitReturn(Return node) {
@@ -236,7 +237,7 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   visitContinue(Continue node) {
     printStatement(null,
-        "continue ${collector.breakTargets[node.target].name}");
+        "continue ${collector.continueTargets[node.target].name}");
   }
 
   visitIf(If node) {
@@ -397,12 +398,9 @@ class Names {
   String varName(Variable v) {
     String name = _names[v];
     if (name == null) {
-      name = v.name;
-      if (v.cachedName != null) {
-        name = v.cachedName;
-      }
+      String prefix = v.element == null ? 'v' : '${v.element.name}_';
       while (name == null || _usedNames.contains(name)) {
-        name = "v${_counter++}";
+        name = "$prefix${_counter++}";
       }
       _names[v] = name;
       _usedNames.add(name);

@@ -28,8 +28,12 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Variables to be hoisted at the top of the current function.
   List<VariableDeclaration> variables;
 
-  /// Set of variables that have had their declaration inserted in [variables].
-  Set<tree.Variable> seenVariables;
+  /// Maps variables to their name.
+  /// These variables have had their declaration inserted in [variables].
+  Map<tree.Variable, String> variableNames;
+
+  /// Variable names that have already been used. Used to avoid name clashes.
+  Set<String> usedVariableNames;
 
   /// Statements emitted by the most recent call to [visitStatement].
   List<Statement> statementBuffer;
@@ -53,8 +57,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     functionElement = element;
     variables = <VariableDeclaration>[];
     statementBuffer = <Statement>[];
-    seenVariables = new Set<tree.Variable>();
-    tree.Variable.counter = 0;
+    variableNames = <tree.Variable, String>{};
+    usedVariableNames = new Set<String>();
     variableList = new modelx.VariableList(tree.Modifiers.EMPTY);
     fallthrough = null;
     usedLabels = new Set<tree.Label>();
@@ -74,7 +78,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     statementBuffer = null;
     functionElement = null;
     variableList = null;
-    seenVariables = null;
+    variableNames = null;
+    usedVariableNames = null;
     usedLabels = null;
 
     return new FunctionExpression(
@@ -97,10 +102,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Parameter emitParameter(tree.Variable param) {
-    seenVariables.add(param);
+    String name = getVariableName(param);
     ParameterElement element = param.element;
     TypeAnnotation type = emitOptionalType(element.type);
-    return new Parameter(element.name, type:type)
+    return new Parameter(name, type:type)
                ..element = element;
   }
 
@@ -174,20 +179,40 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(stmt.next);
   }
 
-  void visitAssign(tree.Assign stmt) {
-    // Synthesize an element for the variable, if necessary.
-    if (stmt.variable.element == null) {
-      stmt.variable.element = new modelx.VariableElementX(
-          stmt.variable.name,
+  /// Generates a name for the given variable and synthesizes an element for it,
+  /// if necessary.
+  String getVariableName(tree.Variable variable) {
+    String name = variableNames[variable];
+    if (name != null) {
+      return name;
+    }
+    String prefix = variable.element == null ? 'v' : variable.element.name;
+    int counter = 0;
+    name = variable.element == null ? '$prefix$counter' : variable.element.name;
+    while (!usedVariableNames.add(name)) {
+      ++counter;
+      name = '$prefix$counter';
+    }
+    variableNames[variable] = name;
+
+    // Synthesize an element for the variable
+    if (variable.element == null || name != variable.element.name) {
+      variable.element = new modelx.VariableElementX(
+          name,
           ElementKind.VARIABLE,
           functionElement,
           variableList,
           null);
     }
-    if (seenVariables.add(stmt.variable)) {
-      variables.add(new VariableDeclaration(stmt.variable.name)
-                            ..element = stmt.variable.element);
+    if (variable.element is! ParameterElement) {
+      variables.add(new VariableDeclaration(name)
+                        ..element = variable.element);
     }
+    return name;
+  }
+
+  void visitAssign(tree.Assign stmt) {
+    String name = getVariableName(stmt.variable);
     statementBuffer.add(new ExpressionStatement(makeAssignment(
         visitVariable(stmt.variable),
         visitExpression(stmt.definition))));
@@ -419,7 +444,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitVariable(tree.Variable exp) {
-    return new Identifier(exp.name)
+    return new Identifier(getVariableName(exp))
                ..element = exp.element;
   }
 

@@ -9,9 +9,10 @@ library dart2js.ir_nodes;
 import '../dart2jslib.dart' as dart2js show Constant;
 import '../elements/elements.dart'
     show FunctionElement, LibraryElement, ParameterElement, ClassElement,
-         Element;
+    Element, VariableElement;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
+import '../helpers/helpers.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -48,7 +49,26 @@ abstract class Definition extends Node {
   }
 }
 
+/// A pure expression that cannot throw or diverge.
+/// All primitives are named using the identity of the [Primitive] object.
 abstract class Primitive extends Definition {
+  /// The [VariableElement] or [ParameterElement] from which the primitive
+  /// binding originated.
+  Element element;
+
+  /// Register in which the variable binding this primitive can be allocated.
+  /// Separate register spaces are used for primitives with different [element].
+  /// Assigned by [RegisterAllocator], is null before that phase.
+  int registerIndex;
+
+  /// Use the given element as a hint for naming this primitive.
+  ///
+  /// Has no effect if this primitive already has a non-null [element].
+  void useElementAsHint(Element hint) {
+    if (element == null) {
+      element = hint;
+    }
+  }
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -299,9 +319,9 @@ class LiteralMap extends Primitive {
 }
 
 class Parameter extends Primitive {
-  final ParameterElement element;
-
-  Parameter(this.element);
+  Parameter(Element element) {
+    super.element = element;
+  }
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -501,4 +521,142 @@ class SExpressionStringifier extends Visitor<String> {
     String value = names[node.value.definition];
     return '(IsTrue $value)';
   }
+}
+
+/// Keeps track of currently unused register indices.
+class RegisterArray {
+  int nextIndex = 0;
+  final List<int> freeStack = <int>[];
+
+  int makeIndex() {
+    if (freeStack.isEmpty) {
+      return nextIndex++;
+    } else {
+      return freeStack.removeLast();
+    }
+  }
+
+  void releaseIndex(int index) {
+    freeStack.add(index);
+  }
+}
+
+/// Assigns indices to each primitive in the IR such that primitives that are
+/// live simultaneously never get assigned the same index.
+/// This information is used by the dart tree builder to generate fewer
+/// redundant variables.
+/// Currently, the liveness analysis is very simple and is often inadequate
+/// for removing all of the redundant variables.
+class RegisterAllocator extends Visitor {
+  /// Separate register spaces for each source-level variable/parameter.
+  /// Note that null is used as key for primitives without elements.
+  final Map<Element, RegisterArray> elementRegisters =
+      <Element, RegisterArray>{};
+
+  RegisterArray getRegisterArray(Element element) {
+    RegisterArray registers = elementRegisters[element];
+    if (registers == null) {
+      registers = new RegisterArray();
+      elementRegisters[element] = registers;
+    }
+    return registers;
+  }
+
+  void allocate(Primitive primitive) {
+    if (primitive.registerIndex == null) {
+      primitive.registerIndex = getRegisterArray(primitive.element).makeIndex();
+    }
+  }
+
+  void release(Primitive primitive) {
+    // Do not share indices for temporaries as this may obstruct inlining.
+    if (primitive.element == null) return;
+    if (primitive.registerIndex != null) {
+      getRegisterArray(primitive.element).releaseIndex(primitive.registerIndex);
+    }
+  }
+
+  void visitReference(Reference reference) {
+    allocate(reference.definition);
+  }
+
+  void visitFunctionDefinition(FunctionDefinition node) {
+    visit(node.body);
+    node.parameters.forEach(allocate); // Assign indices to unused parameters.
+    elementRegisters.clear();
+  }
+
+  void visitLetPrim(LetPrim node) {
+    visit(node.body);
+    release(node.primitive);
+    visit(node.primitive);
+  }
+
+  void visitLetCont(LetCont node) {
+    visit(node.continuation);
+    visit(node.body);
+  }
+
+  void visitInvokeStatic(InvokeStatic node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeContinuation(InvokeContinuation node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeMethod(InvokeMethod node) {
+    visitReference(node.receiver);
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeConstructor(InvokeConstructor node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitConcatenateStrings(ConcatenateStrings node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitBranch(Branch node) {
+    visit(node.condition);
+  }
+
+  void visitInvokeConstConstructor(InvokeConstConstructor node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitLiteralList(LiteralList node) {
+    node.values.forEach(visitReference);
+  }
+
+  void visitLiteralMap(LiteralMap node) {
+    for (int i = 0; i < node.keys.length; ++i) {
+      visitReference(node.keys[i]);
+      visitReference(node.values[i]);
+    }
+  }
+
+  void visitConstant(Constant node) {
+  }
+
+  void visitParameter(Parameter node) {
+    throw "Parameters should not be visited by RegisterAllocator";
+  }
+
+  void visitContinuation(Continuation node) {
+    visit(node.body);
+
+    // Arguments get allocated left-to-right, so we release parameters
+    // right-to-left. This increases the likelihood that arguments can be
+    // transferred without intermediate assignments.
+    for (int i = node.parameters.length - 1; i >= 0; --i) {
+      release(node.parameters[i]);
+    }
+  }
+
+  void visitIsTrue(IsTrue node) {
+    visitReference(node.value);
+  }
+
 }
