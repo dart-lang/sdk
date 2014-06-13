@@ -78,6 +78,8 @@ LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # dartbug.com/17440
 
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips || $arch == simarm64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 
