@@ -1756,8 +1756,8 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
           ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
-          !field().IsNull() &&
-          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
+          ((IsUnboxedStore() && opt && is_initialization_) ||
+           IsPotentialUnboxedStore())
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
 

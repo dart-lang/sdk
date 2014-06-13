@@ -1641,10 +1641,10 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
           ((IsPotentialUnboxedStore()) ? 2 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
-      !field().IsNull() &&
-          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
-              ? LocationSummary::kCallOnSlowPath
-              : LocationSummary::kNoCall);
+          ((IsUnboxedStore() && opt && is_initialization_) ||
+           IsPotentialUnboxedStore())
+          ? LocationSummary::kCallOnSlowPath
+          : LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {

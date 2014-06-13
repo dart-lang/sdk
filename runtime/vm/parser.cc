@@ -3545,7 +3545,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       // value is not assignable (assuming checked mode and disregarding actual
       // mode), the field value is reset and a kImplicitStaticFinalGetter is
       // created at finalization time.
-      if (field->has_static && (LookaheadToken(1) == Token::kSEMICOLON)) {
+      if (LookaheadToken(1) == Token::kSEMICOLON) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
       SkipExpr();
@@ -3573,6 +3573,13 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     field->field_ = &class_field;
     if (field->metadata_pos >= 0) {
       library_.AddFieldMetadata(class_field, field->metadata_pos);
+    }
+
+    // Start tracking types for fields with simple initializers in their
+    // definition. This avoids some of the overhead to track this at runtime
+    // and rules out many fields from being unnecessary unboxing candidates.
+    if (!field->has_static && has_initializer && has_simple_literal) {
+      class_field.RecordStore(init_value);
     }
 
     // For static final fields (this includes static const fields), set value to
