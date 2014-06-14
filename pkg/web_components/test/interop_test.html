@@ -27,8 +27,14 @@
     B.prototype.createdCallback = function() { this.x = counter++; };
     B.extends = 'div';
 
+    var D = function() {};
+    D.prototype = Object.create(HTMLElement.prototype);
+    D.prototype.inc = function() { this.x = counter++; };
+    D.prototype.createdCallback = function() { this.inc(); };
+
     document.registerElement('x-a', A);
     document.registerElement('x-b', B);
+    document.registerElement('x-d', D);
 
     function registerC() {
       var proto = Object.create(HTMLElement.prototype, {
@@ -48,10 +54,14 @@
     function addC() {
       document.body.appendChild(document.createElement('x-c'));
     }
+    function addD() {
+      document.body.appendChild(document.createElement('x-d'));
+    }
   </script>
   <x-a id="i1"></x-a>
   <div is="x-b" id="i2"></div>
-  <x-c id="i3"></x-b>
+  <x-c id="i3"></x-c>
+  <x-d id="i4"></x-d>
   <script type="text/javascript"
       src="/root_dart/tools/testing/dart/test_controller.js"></script>
   %TEST_SCRIPTS%

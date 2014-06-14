@@ -31,3 +31,13 @@ void registerDartType(String tagName, Type dartType, {String extendsTag}) {
       dartType, extendsTag: extendsTag);
   _doc.callMethod('_registerDartTypeUpgrader', [tagName, upgrader.upgrade]);
 }
+
+/// This function is mainly used to save resources. By default, we save a log of
+/// elements that are created but have no Dart type associated with them. This
+/// is so we can upgrade them as soon as [registerDartType] is invoked. This
+/// function can be called to indicate that we no longer are interested in
+/// logging element creations and that it is sufficient to only upgrade new
+/// elements as they are being created. Typically this is called after the last
+/// call to [registerDartType] or as soon as you know that no element will be
+/// created until the call to [registerDartType] is made.
+void onlyUpgradeNewElements() => _doc.callMethod('_onlyUpgradeNewElements');

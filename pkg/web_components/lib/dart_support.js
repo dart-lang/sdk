@@ -70,6 +70,9 @@
 (function (doc) {
   var upgraders = {};       // upgrader associated with a custom-tag.
   var unpatchableTags = {}; // set of custom-tags that can't be patched.
+  var pendingElements = {}; // will upgrade when/if an upgrader is installed.
+  var upgradeOldElements = true;
+
   var originalRegisterElement = doc.registerElement;
   if (!originalRegisterElement) {
     throw new Error('document.registerElement is not present.');
@@ -93,9 +96,19 @@
     var original = proto.createdCallback;
     var newCallback = function() {
       original.call(this);
-      var name = this.getAttribute('is') || this.localName;
-      var upgrader = upgraders[name.toLowerCase()];
-      if (upgrader) upgrader(this);
+      var name = (this.getAttribute('is') || this.localName).toLowerCase();
+      var upgrader = upgraders[name];
+      if (upgrader) {
+        upgrader(this);
+      } else if (upgradeOldElements) {
+        // Save this element in case we can upgrade it later when an upgrader is
+        // registered.
+        var list = pendingElements[name];
+        if (!list) {
+          list = pendingElements[name] = [];
+        }
+        list.push(this);
+      }
     };
 
     var descriptor = Object.getOwnPropertyDescriptor(proto, 'createdCallback');
@@ -121,8 +134,25 @@
     }
     upgraders[name] = upgrader;
     if (unpatchableTags[name]) reportError(name);
+    if (upgradeOldElements) {
+      // Upgrade elements that were created before the upgrader was registered.
+      var list = pendingElements[name];
+      if (list) {
+        for (var i = 0; i < list.length; i++) {
+          upgrader(list[i]);
+        }
+      }
+      delete pendingElements[name];
+    } else {
+      console.warn("Didn't expect more Dart types to be registered. '" + name
+          + "' elements that already exist in the page might not be wrapped.");
+    }
   }
 
+  function onlyUpgradeNewElements() {
+    upgradeOldElements = false;
+    pendingElements = null;
+  }
 
   // Native custom elements outside the app in Chrome have constructor
   // names like "x-tag", which need to be translated to the DOM
@@ -151,5 +181,6 @@
   }
 
   doc._registerDartTypeUpgrader = registerDartTypeUpgrader;
+  doc._onlyUpgradeNewElements = onlyUpgradeNewElements;
   doc.registerElement = registerElement;
 })(document);
