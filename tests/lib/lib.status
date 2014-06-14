@@ -275,7 +275,7 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
-lib/deferred*: Skip # Lazy deferred loading not yet implemented.
+mirrors/deferred*: Skip # Lazy deferred loading not yet implemented. Issue 19449
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
