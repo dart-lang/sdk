@@ -88,6 +88,7 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 third_party/angular_tests/browser_test/core_dom/compiler: Fail # Issue 19329
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 third_party/angular_tests/browser_test/core/templateurl: Fail # Issue 19329
+web_components/test/interop_test: Pass, Fail # Issue 19329
 web_components/test/interop2_test: Fail # Issue 19329
 
 [ $compiler == dart2js && $checked ]
