@@ -1,5 +1,5 @@
 name: http_base
-version: 0.0.1
+version: 0.0.2-dev
 author: Dart Team <misc@dartlang.org>
 homepage: http://www.dartlang.org
 description: >
@@ -7,4 +7,3 @@ description: >
   objects, HTTP clients and HTTP request handlers.
 environment:
   sdk: '>=1.0.0 <2.0.0'
-
