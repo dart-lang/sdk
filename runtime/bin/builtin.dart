@@ -215,7 +215,12 @@ void _setWorkingDirectory(cwd) {
   _workingWindowsDrivePrefix = _extractDriveLetterPrefix(cwd);
   cwd = _sanitizeWindowsPath(cwd);
   cwd = _enforceTrailingSlash(cwd);
-  _workingDirectoryUri = new Uri(scheme: 'file', path: cwd);
+  _workingDirectoryUri = new Uri.file(cwd);
+  if (!_workingDirectoryUri.path.endsWith("/")) {
+    var directoryPath = _workingDirectoryUri.path + "/";
+    _workingDirectoryUri = _workingDirectoryUri.resolve(directoryPath);
+  }
+
   _logResolution('# Working Directory: $cwd');
 }
 
@@ -238,8 +243,15 @@ String _resolveScriptUri(String scriptName) {
     throw 'No current working directory set.';
   }
   scriptName = _sanitizeWindowsPath(scriptName);
-
-  var scriptUri = Uri.parse(scriptName);
+  var scriptUri;
+  if (scriptName.startsWith("file:") ||
+      scriptName.startsWith("http:") ||
+      scriptName.startsWith("https:")) {
+    scriptUri = Uri.parse(scriptName);
+  } else {
+    // Assume it's a file name.
+    scriptUri = new Uri.file(scriptName);
+  }
   if (scriptUri.scheme != '') {
     // Script has a scheme, assume that it is fully formed.
     _entryPointScript = scriptUri;

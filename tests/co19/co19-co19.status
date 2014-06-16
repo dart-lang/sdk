@@ -21,6 +21,8 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
+LibTest/core/Uri/fragment_A01_t01: Fail # co19 issue 693.
+
 # Tests that fail on every runtime, but not on the analyzer.
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687

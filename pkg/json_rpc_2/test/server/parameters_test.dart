@@ -262,7 +262,9 @@ void main() {
       expect(() => parameters['invalid-uri'].asUri,
           throwsInvalidParams('Parameter "invalid-uri" for method "foo" must '
               'be a valid URI, but was "http://[::1".\n'
-              'Bad end of IPv6 host'));
+              'Unmatched [ in host name at position 7.\n'
+              'http://[::1\n'
+              '       ^'));
     });
 
     group("with a nested parameter map", () {
