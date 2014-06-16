@@ -197,16 +197,19 @@ void _setWorkingDirectory(cwd) {
   _logResolution('# Working Directory: $cwd');
 }
 
+Uri _uriFromPathOrUri(String location) {
+  if (location.startsWith('file:') ||
+      location.startsWith('http:') ||
+      location.startsWith('https:')) {
+    return Uri.parse(location);
+  }
+  return new Uri.file(location);
+}
 
 _setPackageRoot(String packageRoot) {
   packageRoot = _enforceTrailingSlash(packageRoot);
-  if (packageRoot.startsWith('file:') ||
-      packageRoot.startsWith('http:') ||
-      packageRoot.startsWith('https:')) {
-    _packageRoot = _workingDirectoryUri.resolve(packageRoot);
-  } else {
-    _packageRoot = _workingDirectoryUri.resolveUri(new Uri.file(packageRoot));
-  }
+  _packageRoot =
+      _workingDirectoryUri.resolveUri(_uriFromPathOrUri(packageRoot));
   _logResolution('# Package root: $packageRoot -> $_packageRoot');
 }
 
@@ -215,15 +218,7 @@ String _resolveScriptUri(String scriptName) {
   if (_workingDirectoryUri == null) {
     throw 'No current working directory set.';
   }
-  var scriptUri;
-  if (scriptName.startsWith("file:") ||
-      scriptName.startsWith("http:") ||
-      scriptName.startsWith("https:")) {
-    scriptUri = Uri.parse(scriptName);
-  } else {
-    // Assume it's a file name.
-    scriptUri = new Uri.file(scriptName);
-  }
+  var scriptUri = _uriFromPathOrUri(scriptName);
   if (scriptUri.scheme != '') {
     // Script has a scheme, assume that it is fully formed.
     _entryPointScript = scriptUri;
@@ -326,7 +321,7 @@ void _asyncLoadError(uri, error) {
 // an http or file uri.
 _loadDataAsync(String uri) {
   uri = _resolveScriptUri(uri);
-  Uri sourceUri = Uri.parse(uri);
+  Uri sourceUri = _uriFromPathOrUri(uri);
   _numOutstandingLoadRequests++;
   _logResolution("_loadDataAsync($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
