@@ -30,7 +30,8 @@ class TestController {
             new String.fromCharCodes(testCase.lastCommandOutput.stderr);
         print("stdout = [$stdout]");
         print("stderr = [$stderr]");
-        throw "Expected fail-unexpected: ${testCase.result}";
+        throw "Test case ${testCase.displayName} passed unexpectedly, "
+              "result == ${testCase.result}";
       }
     } else {
       if (testCase.unexpectedOutput) {
@@ -40,7 +41,8 @@ class TestController {
             new String.fromCharCodes(testCase.lastCommandOutput.stderr);
         print("stdout = [$stdout]");
         print("stderr = [$stderr]");
-        throw "Unexpected fail";
+        throw "Test case ${testCase.displayName} failed, "
+              "result == ${testCase.result}";
       }
     }
   }
