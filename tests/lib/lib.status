@@ -8,6 +8,10 @@ mirrors/regress_16321_test/01: CompileTimeError # Issue 16351
 [ $checked && $compiler == none && ($runtime == dartium || $runtime == drt) ]
 mirrors/regress_16321_test/01: RunTimeError # Issue 16351
 
+[ $runtime == ContentShellOnAndroid ]
+mirrors/deferred_mirrors_metadata_test: Skip # Times out. Issue 19127
+mirrors/deferred_mirrors_metatarget_test: Skip # Times out. Issue 19127
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 convert/ascii_test: Skip # http://dartbug.com/15498
 convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498

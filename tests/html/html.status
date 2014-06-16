@@ -44,20 +44,13 @@ websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip #Issue 17666
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
-blob_constructor_test: Skip # Times out. Issue 19127
+audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
+audiocontext_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: RuntimeError # Issue 19127
 css_test/supportsPointConversions: Skip # Times out. Issue 19127
-css_test/functional: Skip # Times out. Issue 19127
-element_offset_test/offset: Skip # Issue 19127, 17550
-history_test/supported_state: Skip # Times out. Issue 19127
-indexeddb_5_test: Skip # Times out. Issue 19127
+element_offset_test/offset: Skip # Issue 17550
 mouse_event_test: Skip # Times out. Issue 19127
-typed_arrays_arraybuffer_test: Skip # Times out. Issue 19127
-typed_arrays_range_checks_test: Skip # Times out. Issue 19127
-websocket_test/supported: Skip # Times out. Issue 19127
-websocket_test/websocket: Skip # Times out. Issue 19127
-worker_api_test: Skip # Times out. Issue 19127
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
