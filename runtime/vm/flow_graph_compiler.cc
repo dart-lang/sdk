@@ -108,6 +108,23 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       entry_patch_pc_offset_(Code::kInvalidPc),
       patch_code_pc_offset_(Code::kInvalidPc),
       lazy_deopt_pc_offset_(Code::kInvalidPc) {
+  if (!is_optimizing) {
+    const intptr_t len = isolate()->deopt_id();
+    deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
+    deopt_id_to_ic_data_->SetLength(len);
+    for (intptr_t i = 0; i < len; i++) {
+      (*deopt_id_to_ic_data_)[i] = NULL;
+    }
+    const Array& old_saved_icdata = Array::Handle(isolate(),
+        flow_graph->parsed_function().function().ic_data_array());
+    const intptr_t saved_len =
+        old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
+    for (intptr_t i = 0; i < saved_len; i++) {
+      ICData& icd = ICData::ZoneHandle(isolate());
+      icd ^= old_saved_icdata.At(i);
+      (*deopt_id_to_ic_data_)[icd.deopt_id()] = &icd;
+    }
+  }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 }
@@ -906,12 +923,11 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   } else {
     ICData& call_ic_data = ICData::ZoneHandle(ic_data.raw());
     if (call_ic_data.IsNull()) {
-      call_ic_data = ICData::New(parsed_function().function(),  // Caller fun.
-                                 String::Handle(function.name()),
-                                 arguments_descriptor,
-                                 deopt_id,
-                                 0);  // No arguments checked.
-      call_ic_data.AddTarget(function);
+      const intptr_t kNumArgsChecked = 0;
+      call_ic_data = GetOrAddStaticCallICData(deopt_id,
+                                              function,
+                                              arguments_descriptor,
+                                              kNumArgsChecked)->raw();
     }
     EmitUnoptimizedStaticCall(argument_count, deopt_id, token_pos, locs,
                               call_ic_data);
@@ -1338,6 +1354,49 @@ void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
                           ic_data.GetCountAt(i)));
   }
   sorted->Sort(HighestCountFirst);
+}
+
+
+const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
+    intptr_t deopt_id,
+    const String& target_name,
+    const Array& arguments_descriptor,
+    intptr_t num_args_tested) {
+  if ((deopt_id_to_ic_data_ != NULL) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+    const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
+    ASSERT(res->deopt_id() == deopt_id);
+    ASSERT(res->target_name() == target_name.raw());
+    ASSERT(res->NumArgsTested() == num_args_tested);
+    return res;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
+      parsed_function().function(), target_name,
+      arguments_descriptor, deopt_id, num_args_tested));
+  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  return &ic_data;
+}
+
+
+const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
+    intptr_t deopt_id,
+    const Function& target,
+    const Array& arguments_descriptor,
+    intptr_t num_args_tested) {
+  if ((deopt_id_to_ic_data_ != NULL) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+    const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
+    ASSERT(res->deopt_id() == deopt_id);
+    ASSERT(res->target_name() == target.name());
+    ASSERT(res->NumArgsTested() == num_args_tested);
+    return res;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
+      parsed_function().function(), String::Handle(isolate(), target.name()),
+      arguments_descriptor, deopt_id, num_args_tested));
+  ic_data.AddTarget(target);
+  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  return &ic_data;
 }
 
 }  // namespace dart

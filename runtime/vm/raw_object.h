@@ -616,16 +616,18 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawObject* data_;  // Additional data specific to the function kind.
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
+  // Fields below are not part of the snapshot.
+  RawArray* ic_data_array_;  // ICData of unoptimized code.
+  RawObject** to_no_code() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
+  }
   RawInstructions* instructions_;  // Instructions of currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
-  }
-  RawObject** to_no_code() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
-  }
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
 
   int32_t token_pos_;

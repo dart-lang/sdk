@@ -1342,7 +1342,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const ICData& ic_data,
                                                    TargetEntryInstr** entry,
                                                    Definition** last) {
-  ICData& value_check = ICData::ZoneHandle(isolate(), ICData::null());
+  ICData& value_check = ICData::ZoneHandle(isolate());
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {
     // Recognized [] operators.
@@ -3664,7 +3664,7 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     i_call = call->AsInstanceCall();
   }
   ASSERT(i_call != NULL);
-  ICData& value_check = ICData::ZoneHandle(isolate(), ICData::null());
+  ICData& value_check = ICData::ZoneHandle(isolate());
   switch (view_cid) {
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:

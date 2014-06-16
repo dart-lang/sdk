@@ -2255,16 +2255,16 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
                                                argument_names()));
-    call_ic_data = ICData::New(compiler->parsed_function().function(),
-                               function_name(),
-                               arguments_descriptor,
-                               deopt_id(),
-                               checked_argument_count());
+    call_ic_data = compiler->GetOrAddInstanceCallICData(
+        deopt_id(), function_name(), arguments_descriptor,
+        checked_argument_count());
+  } else {
+    call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
   if (compiler->is_optimizing()) {
     ASSERT(HasICData());
@@ -2284,7 +2284,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      ArgumentCount(),
                                      argument_names(),
                                      locs(),
-                                     call_ic_data);
+                                     *call_ic_data);
     }
   } else {
     // Unoptimized code.
@@ -2297,7 +2297,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    ArgumentCount(),
                                    argument_names(),
                                    locs(),
-                                   call_ic_data);
+                                   *call_ic_data);
   }
 }
 
@@ -2329,7 +2329,7 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
+  const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
@@ -2342,12 +2342,12 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         (recognized_kind == MethodRecognizer::kMathMax)) {
       num_args_checked = 2;
     }
-    call_ic_data = ICData::New(compiler->parsed_function().function(),
-                               String::Handle(function().name()),
-                               arguments_descriptor,
-                               deopt_id(),
-                               num_args_checked);  // No arguments checked.
-    call_ic_data.AddTarget(function());
+    call_ic_data = compiler->GetOrAddStaticCallICData(deopt_id(),
+                                                      function(),
+                                                      arguments_descriptor,
+                                                      num_args_checked);
+  } else {
+    call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
   if (!compiler->is_optimizing()) {
     // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
@@ -2362,7 +2362,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                ArgumentCount(),
                                argument_names(),
                                locs(),
-                               call_ic_data);
+                               *call_ic_data);
 }
 
 

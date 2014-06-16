@@ -241,6 +241,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
+
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized,
@@ -283,9 +284,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
                  FLAG_deoptimization_counter_threshold);
-          const Code& unoptimized_code =
-              Code::Handle(function.unoptimized_code());
-          ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
+          ic_data_array = function.RestoreICDataMap();
         }
 
         // Build the flow graph.
@@ -576,7 +575,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
             const Field* field = (*flow_graph->guarded_fields())[i];
             field->RegisterDependentCode(code);
           }
-        } else {
+        } else {  // not optimized.
+          if (function.ic_data_array() == Array::null()) {
+            function.SaveICDataMap(graph_compiler.deopt_id_to_ic_data());
+          }
           function.set_unoptimized_code(code);
           function.AttachCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
@@ -767,7 +769,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new ParsedFunction(
+    ParsedFunction* parsed_function = new(isolate) ParsedFunction(
         isolate, Function::ZoneHandle(isolate, function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",

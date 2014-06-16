@@ -2523,6 +2523,7 @@ class WeakCodeReferences : public ValueObject {
         function.SwitchToUnoptimizedCode();
       } else if (function.unoptimized_code() == code.raw()) {
         ReportSwitchingCode(code);
+        function.ClearICData();
         // Remove the code object from the function. The next time the
         // function is invoked, it will be compiled again.
         function.ClearCode();
@@ -6017,6 +6018,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
+  clone.set_ic_data_array(Array::Handle());
   return clone.raw();
 }
 
@@ -6413,6 +6415,57 @@ int32_t Function::SourceFingerprint() const {
   result = result & ((static_cast<uint32_t>(1) << 31) - 1);
   ASSERT(result <= static_cast<uint32_t>(kMaxInt32));
   return result;
+}
+
+
+void Function::SaveICDataMap(
+    const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const {
+  // Compute number of ICData objectsto save.
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+    if (deopt_id_to_ic_data[i] != NULL) {
+      count++;
+    }
+  }
+
+  const Array& a = Array::Handle(Array::New(count, Heap::kOld));
+  count = 0;
+  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+    if (deopt_id_to_ic_data[i] != NULL) {
+      a.SetAt(count++, *deopt_id_to_ic_data[i]);
+    }
+  }
+  set_ic_data_array(a);
+}
+
+
+RawArray* Function::RestoreICDataMap() const {
+  const Array& saved_icd = Array::Handle(ic_data_array());
+  if (saved_icd.Length() == 0) {
+    return Array::empty_array().raw();
+  }
+  ICData& icd = ICData::Handle();
+  icd ^= saved_icd.At(saved_icd.Length() - 1);
+  const Array& result = Array::Handle(Array::New(icd.deopt_id() + 1));
+  for (intptr_t i = 0; i < saved_icd.Length(); i++) {
+    icd ^= saved_icd.At(i);
+    result.SetAt(icd.deopt_id(), icd);
+  }
+  return result.raw();
+}
+
+
+void Function::set_ic_data_array(const Array& value) const {
+  StorePointer(&raw_ptr()->ic_data_array_, value.raw());
+}
+
+
+RawArray* Function::ic_data_array() const {
+  return raw_ptr()->ic_data_array_;
+}
+
+void Function::ClearICData() const {
+  set_ic_data_array(Array::Handle());
 }
 
 

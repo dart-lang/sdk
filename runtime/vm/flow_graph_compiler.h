@@ -457,6 +457,21 @@ class FlowGraphCompiler : public ValueObject {
   static void SortICDataByCount(const ICData& ic_data,
                                 GrowableArray<CidTarget>* sorted);
 
+  // Use in unoptimized compilation to preserve/reuse ICData.
+  const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
+                                           const String& target_name,
+                                           const Array& arguments_descriptor,
+                                           intptr_t num_args_tested);
+
+  const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
+                                         const Function& target,
+                                         const Array& arguments_descriptor,
+                                         intptr_t num_args_tested);
+
+  const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data() const {
+    return *deopt_id_to_ic_data_;
+  }
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -602,6 +617,8 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t entry_patch_pc_offset_;
   intptr_t patch_code_pc_offset_;
   intptr_t lazy_deopt_pc_offset_;
+
+  ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

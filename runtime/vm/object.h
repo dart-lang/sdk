@@ -1994,11 +1994,21 @@ class Function : public Object {
   // Return false and report an error if the fingerprint does not match.
   bool CheckSourceFingerprint(int32_t fp) const;
 
+  // Works with map [deopt-id] -> ICData.
+  void SaveICDataMap(
+      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
+  RawArray*  RestoreICDataMap() const;
+
+  RawArray* ic_data_array() const;
+  void ClearICData() const;
+
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
  private:
+  void set_ic_data_array(const Array& value) const;
+
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 4,
