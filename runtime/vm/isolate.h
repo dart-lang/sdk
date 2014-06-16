@@ -10,6 +10,7 @@
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/random.h"
@@ -542,6 +543,8 @@ class Isolate : public BaseIsolate {
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
+  Counters* counters() { return &counters_; }
+
  private:
   Isolate();
 
@@ -616,6 +619,8 @@ class Isolate : public BaseIsolate {
   uword user_tag_;
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
+
+  Counters counters_;
 
   // Isolate list next pointer.
   Isolate* next_;
