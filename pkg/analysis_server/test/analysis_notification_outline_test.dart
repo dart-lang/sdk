@@ -28,7 +28,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   _Outline outline;
 
   void processNotification(Notification notification) {
-    if (notification.event == NOTIFICATION_OUTLINE) {
+    if (notification.event == ANALYSIS_OUTLINE) {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         Map<String, Object> json = notification.getParameter(OUTLINE);

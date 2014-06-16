@@ -389,6 +389,24 @@ class RequestDatumTest {
   }
 
   @runTest
+  static void asList_nonList() {
+    setUp();
+    expect(() => makeDatum(3).asList((datum) => null), _throwsInvalidParameter);
+  }
+
+  @runTest
+  static void asList_emptyList() {
+    setUp();
+    expect(makeDatum([]).asList((datum) => datum.asString()), equals([]));
+  }
+
+  @runTest
+  static void asList_nonEmptyList() {
+    setUp();
+    expect(makeDatum(['foo', 'bar']).asList((datum) => datum.asString()), equals(['foo', 'bar']));
+  }
+
+  @runTest
   static void asString() {
     setUp();
     expect(makeDatum('foo').asString(), equals('foo'));

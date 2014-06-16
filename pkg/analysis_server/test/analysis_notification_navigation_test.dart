@@ -29,7 +29,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   List<_NavigationTarget> testTargets;
 
   void processNotification(Notification notification) {
-    if (notification.event == NOTIFICATION_NAVIGATION) {
+    if (notification.event == ANALYSIS_NAVIGATION) {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         regions = [];

@@ -7,6 +7,9 @@ library socket.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_edit.dart';
+import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
@@ -51,6 +54,9 @@ class SocketServer {
     server.handlers = [
         new ServerDomainHandler(server),
         new AnalysisDomainHandler(server),
+        new EditDomainHandler(server),
+        new SearchDomainHandler(server),
+        new CompletionDomainHandler(server),
     ];
   }
 

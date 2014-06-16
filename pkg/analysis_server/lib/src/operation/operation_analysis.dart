@@ -91,7 +91,7 @@ class PerformAnalysisOperation extends ServerOperation {
 
 void sendAnalysisNotificationErrors(AnalysisServer server,
                                     String file, List<AnalysisError> errors) {
-  Notification notification = new Notification(NOTIFICATION_ERRORS);
+  Notification notification = new Notification(ANALYSIS_ERRORS);
   notification.setParameter(FILE, file);
   notification.setParameter(ERRORS, errors.map(errorToJson).toList());
   server.sendNotification(notification);
@@ -100,7 +100,7 @@ void sendAnalysisNotificationErrors(AnalysisServer server,
 
 void sendAnalysisNotificationHighlights(AnalysisServer server,
                                         String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(NOTIFICATION_HIGHLIGHTS);
+  Notification notification = new Notification(ANALYSIS_HIGHLIGHTS);
   notification.setParameter(FILE, file);
   notification.setParameter(
       REGIONS,
@@ -111,7 +111,7 @@ void sendAnalysisNotificationHighlights(AnalysisServer server,
 
 void sendAnalysisNotificationNavigation(AnalysisServer server,
                                         String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(NOTIFICATION_NAVIGATION);
+  Notification notification = new Notification(ANALYSIS_NAVIGATION);
   notification.setParameter(FILE, file);
   notification.setParameter(
       REGIONS,
@@ -122,7 +122,7 @@ void sendAnalysisNotificationNavigation(AnalysisServer server,
 
 void sendAnalysisNotificationOutline(AnalysisServer server,
                                         String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(NOTIFICATION_OUTLINE);
+  Notification notification = new Notification(ANALYSIS_OUTLINE);
   notification.setParameter(FILE, file);
   notification.setParameter(
       OUTLINE,

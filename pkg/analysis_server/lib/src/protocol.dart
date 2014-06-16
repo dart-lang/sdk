@@ -286,6 +286,23 @@ class RequestDatum {
   }
 
   /**
+   * Validate that the datum is a list, and return a list where each element in
+   * the datum has been converted using the provided function.
+   */
+  List asList(elementConverter(RequestDatum datum)) {
+    if (datum is! List) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a list"));
+    }
+    List list = datum as List;
+    List result = [];
+    for (int i = 0; i < list.length; i++) {
+      result.add(elementConverter(new RequestDatum(request, "$path.$i", list[i])));
+    }
+    return result;
+  }
+
+  /**
    * Validate that the datum is a string, and return it.
    */
   String asString() {

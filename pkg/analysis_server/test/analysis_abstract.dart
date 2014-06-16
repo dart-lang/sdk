@@ -64,7 +64,7 @@ class AbstractAnalysisTest {
     }
     files.add(file);
     // set subscriptions
-    Request request = new Request('0', METHOD_SET_ANALYSIS_SUBSCRIPTIONS);
+    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
   }
@@ -188,7 +188,7 @@ class AbstractAnalysisTest {
    */
   void _createEmptyProject() {
     resourceProvider.newFolder(projectPath);
-    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, [projectPath]);
     request.setParameter(EXCLUDED, []);
     handleSuccessfulRequest(request);

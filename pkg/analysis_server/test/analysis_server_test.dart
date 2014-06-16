@@ -70,7 +70,7 @@ main() {
     test('shutdown', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new ServerDomainHandler(helper.server)];
-      var request = new Request('my28', METHOD_SHUTDOWN);
+      var request = new Request('my28', SERVER_SHUTDOWN);
       return helper.channel.sendRequest(request)
           .then((Response response) {
             expect(response.id, equals('my28'));

@@ -39,29 +39,11 @@ main() {
   group('setSubscriptions', test_setSubscriptions);
 
   group('AnalysisDomainHandler', () {
-    test('getFixes', () {
-      var request = new Request('0', METHOD_GET_FIXES);
-      request.setParameter(ERRORS, []);
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
-    });
-
-    test('getMinorRefactorings', () {
-      var request = new Request('0', METHOD_GET_MINOR_REFACTORINGS);
-      request.setParameter(FILE, 'test.dart');
-      request.setParameter(OFFSET, 10);
-      request.setParameter(LENGTH, 20);
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
-    });
-
     group('setAnalysisRoots', () {
       Request request;
 
       setUp(() {
-        request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+        request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
         request.setParameter(INCLUDED, []);
         request.setParameter(EXCLUDED, []);
       });
@@ -94,7 +76,7 @@ main() {
     });
 
     test('setPriorityFiles', () {
-      var request = new Request('0', METHOD_SET_PRIORITY_FILES);
+      var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
       request.setParameter(
           FILES,
           ['projectA/aa.dart', 'projectB/ba.dart']);
@@ -104,7 +86,7 @@ main() {
     });
 
     test('updateOptions', () {
-      var request = new Request('0', METHOD_UPDATE_OPTIONS);
+      var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
       request.setParameter(
           OPTIONS,
           {
@@ -118,7 +100,7 @@ main() {
     });
 
     test('updateSdks', () {
-      var request = new Request('0', METHOD_UPDATE_SDKS);
+      var request = new Request('0', ANALYSIS_UPDATE_SDKS);
       request.setParameter(
           ADDED,
           ['/dart/sdk-1.3', '/dart/sdk-1.4']);
@@ -190,16 +172,16 @@ class AnalysisTestHelper {
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
-      if (notification.event == NOTIFICATION_ERRORS) {
+      if (notification.event == ANALYSIS_ERRORS) {
         String file = notification.getParameter(FILE);
         List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
         filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
       }
-      if (notification.event == NOTIFICATION_HIGHLIGHTS) {
+      if (notification.event == ANALYSIS_HIGHLIGHTS) {
         String file = notification.getParameter(FILE);
         filesHighlights[file] = notification.getParameter(REGIONS);
       }
-      if (notification.event == NOTIFICATION_NAVIGATION) {
+      if (notification.event == ANALYSIS_NAVIGATION) {
         String file = notification.getParameter(FILE);
         filesNavigation[file] = notification.getParameter(REGIONS);
       }
@@ -223,7 +205,7 @@ class AnalysisTestHelper {
     }
     files.add(file);
     // set subscriptions
-    Request request = new Request('0', METHOD_SET_ANALYSIS_SUBSCRIPTIONS);
+    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
   }
@@ -311,7 +293,7 @@ class AnalysisTestHelper {
    */
   void createEmptyProject() {
     resourceProvider.newFolder('/project');
-    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, ['/project']);
     request.setParameter(EXCLUDED, []);
     handleSuccessfulRequest(request);
@@ -325,7 +307,7 @@ class AnalysisTestHelper {
     this.testCode = _getCodeString(code);
     resourceProvider.newFolder('/project');
     resourceProvider.newFile(testFile, testCode);
-    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, ['/project']);
     request.setParameter(EXCLUDED, []);
     handleSuccessfulRequest(request);
@@ -355,7 +337,7 @@ class AnalysisTestHelper {
    * Send an `updateContent` request for [testFile].
    */
   void sendContentChange(Map contentChange) {
-    Request request = new Request('0', METHOD_UPDATE_CONTENT);
+    Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
     request.setParameter('files', {
       testFile: contentChange
     });

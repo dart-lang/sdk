@@ -29,36 +29,22 @@ class AnalysisDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == METHOD_GET_FIXES) {
-        return getFixes(request);
-      } else if (requestName == METHOD_GET_MINOR_REFACTORINGS) {
-          return getMinorRefactorings(request);
-      } else if (requestName == METHOD_SET_ANALYSIS_ROOTS) {
+      if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
-      } else if (requestName == METHOD_SET_PRIORITY_FILES) {
+      } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == METHOD_SET_ANALYSIS_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == METHOD_UPDATE_CONTENT) {
+      } else if (requestName == ANALYSIS_UPDATE_CONTENT) {
         return updateContent(request);
-      } else if (requestName == METHOD_UPDATE_OPTIONS) {
+      } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
         return updateOptions(request);
-      } else if (requestName == METHOD_UPDATE_SDKS) {
+      } else if (requestName == ANALYSIS_UPDATE_SDKS) {
         return updateSdks(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
-    return null;
-  }
-
-  Response getFixes(Request request) {
-    // TODO(scheglov) implement
-    return null;
-  }
-
-  Response getMinorRefactorings(Request request) {
-    // TODO(scheglov) implement
     return null;
   }
 
@@ -87,10 +73,11 @@ class AnalysisDomainHandler implements RequestHandler {
       Map<String, List<String>> subStringMap = subDatum.asStringListMap();
       subMap = new HashMap<AnalysisService, Set<String>>();
       subStringMap.forEach((String serviceName, List<String> paths) {
-        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES, serviceName);
+        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES,
+            serviceName);
         if (service == null) {
-          throw new RequestFailure(
-              new Response.unknownAnalysisService(request, serviceName));
+          throw new RequestFailure(new Response.unknownAnalysisService(request,
+              serviceName));
         }
         subMap[service] = new HashSet.from(paths);
       });

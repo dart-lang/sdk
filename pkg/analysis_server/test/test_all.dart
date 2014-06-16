@@ -9,6 +9,9 @@ import 'analysis_notification_outline_test.dart' as analysis_notification_outlin
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel_test.dart' as channel_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
+import 'domain_completion_test.dart' as domain_completion_test;
+import 'domain_edit_test.dart' as domain_edit_test;
+import 'domain_search_test.dart' as domain_search_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'index/test_all.dart' as index_test_all;
 import 'operation/test_all.dart' as operation_test;
@@ -27,6 +30,9 @@ main() {
     analysis_server_test.main();
     channel_test.main();
     domain_analysis_test.main();
+    domain_completion_test.main();
+    domain_edit_test.main();
+    domain_search_test.main();
     domain_server_test.main();
     index_test_all.main();
     operation_test.main();

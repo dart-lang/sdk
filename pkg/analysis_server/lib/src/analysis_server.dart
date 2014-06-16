@@ -141,7 +141,7 @@ class AnalysisServer {
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(NOTIFICATION_CONNECTED);
+    Notification notification = new Notification(SERVER_CONNECTED);
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
@@ -260,7 +260,7 @@ class AnalysisServer {
    * the current context being analyzed or `null` if analysis is complete.
    */
   void sendStatusNotification(String contextId) {
-    Notification notification = new Notification(NOTIFICATION_STATUS);
+    Notification notification = new Notification(SERVER_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {
       analysis['analyzing'] = true;
