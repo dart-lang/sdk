@@ -172,14 +172,17 @@ class Uri {
     // query         = *( pchar / "/" / "?" )
     //
     // fragment      = *( pchar / "/" / "?" )
+    bool isRegName(int ch) {
+      return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+    }
 
     int ipV6Address(int index) {
       // IPv6. Skip to ']'.
-      int endIndex = uri.indexOf(']', index);
-      if (endIndex < 0) {
-        _fail(uri, index - 1, "Unmatched [ in host name");
+      index = uri.indexOf(']', index);
+      if (index == -1) {
+        throw new FormatException("Bad end of IPv6 host");
       }
-      return endIndex + 1;
+      return index + 1;
     }
 
     int length = uri.length;
@@ -190,22 +193,18 @@ class Uri {
     if (length == 0) {
       return new Uri();
     }
-    // Whether to allow a colon in the first path segment.
-    bool allowColon = false;
 
-    if (_isAlphabeticCharacter(uri.codeUnitAt(0))) {
+    if (uri.codeUnitAt(0) != _SLASH) {
       // Can be scheme.
       while (index < length) {
-        // Look for ':' to end the scheme.
-        // If found continue from after ':'.
-        // If not (end reached or invalid scheme char found) back up one char,
-        // and continue as a path.
+        // Look for ':'. If found, continue from the post of ':'. If not (end
+        // reached or invalid scheme char found) back up one char, and continue
+        // to path.
         // Note that scheme-chars is contained in path-chars.
         int codeUnit = uri.codeUnitAt(index++);
         if (!_isSchemeCharacter(codeUnit)) {
           if (codeUnit == _COLON) {
             schemeEndIndex = index;
-            allowColon = true;  // Scheme detected, allow colon in path.
           } else {
             // Back up one char, since we met an invalid scheme char.
             index--;
@@ -224,12 +223,11 @@ class Uri {
         uri.codeUnitAt(authorityEndIndex) == _SLASH &&
         uri.codeUnitAt(authorityEndIndex + 1) == _SLASH) {
       // Skip '//'.
-      allowColon = true;  // First slash seen, allow colon in path.
       authorityEndIndex += 2;
       // It can both be host and userInfo.
       while (authorityEndIndex < length) {
         int codeUnit = uri.codeUnitAt(authorityEndIndex++);
-        if (!_isRegNameChar(codeUnit)) {
+        if (!isRegName(codeUnit)) {
           if (codeUnit == _LEFT_BRACKET) {
             authorityEndIndex = ipV6Address(authorityEndIndex);
           } else if (portIndex == -1 && codeUnit == _COLON) {
@@ -237,21 +235,18 @@ class Uri {
             portIndex = authorityEndIndex;
           } else if (codeUnit == _AT_SIGN || codeUnit == _COLON) {
             // Second time ':' or first '@'. Must be userInfo.
-            if (codeUnit == _AT_SIGN) {
-              userInfoEndIndex = authorityEndIndex - 1;
-            } else {
-              userInfoEndIndex = uri.indexOf('@', authorityEndIndex);
-              // @ Not found after something that can only be userinfo.
-              if (userInfoEndIndex < 0) {
-                _fail(uri, uri.length, "No '@' after userinfo");
-              }
+            userInfoEndIndex = uri.indexOf('@', authorityEndIndex - 1);
+            // Not found. Must be path then.
+            if (userInfoEndIndex == -1) {
+              authorityEndIndex = index;
+              break;
             }
             portIndex = -1;
             authorityEndIndex = userInfoEndIndex + 1;
             // Now it can only be host:port.
             while (authorityEndIndex < length) {
               int codeUnit = uri.codeUnitAt(authorityEndIndex++);
-              if (!_isRegNameChar(codeUnit)) {
+              if (!isRegName(codeUnit)) {
                 if (codeUnit == _LEFT_BRACKET) {
                   authorityEndIndex = ipV6Address(authorityEndIndex);
                 } else if (codeUnit == _COLON) {
@@ -272,35 +267,12 @@ class Uri {
           }
         }
       }
-      if (authorityEndIndex < length) {
-        // path-abempty - either absolute or empty, so we need a slash if
-        // there is a path.
-        int codeUnit = uri.codeUnitAt(authorityEndIndex);
-        if (codeUnit != _SLASH &&
-            codeUnit != _QUESTION &&
-            codeUnit != _NUMBER_SIGN) {
-          _fail(uri, authorityEndIndex, "Invalid character in authority");
-        }
-      }
     } else {
       authorityEndIndex = schemeEndIndex;
     }
 
     // At path now.
     int pathEndIndex = authorityEndIndex;
-    if (!allowColon) {
-      while (pathEndIndex < length) {
-        int codeUnit = uri.codeUnitAt(pathEndIndex++);
-        if (codeUnit == _QUESTION || codeUnit == _NUMBER_SIGN) {
-          pathEndIndex--;
-          break;
-        }
-        if (codeUnit == _SLASH) break;
-        if (codeUnit == _COLON) {
-          _fail(uri, pathEndIndex - 1, "Colon in initial path segment");
-        }
-      }
-    }
     while (pathEndIndex < length) {
       int codeUnit = uri.codeUnitAt(pathEndIndex++);
       if (codeUnit == _QUESTION || codeUnit == _NUMBER_SIGN) {
@@ -368,38 +340,6 @@ class Uri {
                    fragment: fragment);
   }
 
-  // Report a parse failure.
-  static void _fail(String uri, int index, String message) {
-    // TODO(lrn): Consider adding this to FormatException.
-    if (index == uri.length) {
-      message += " at end of input.";
-    } else {
-      message += " at position $index.\n";
-      // Pick a slice of uri containing index and, if
-      // necessary, truncate the ends to ensure the entire
-      // slice fits on one line.
-      int min = 0;
-      int max = uri.length;
-      String pre = "";
-      String post = "";
-      if (uri.length > 78) {
-        min = index - 10;
-        if (min < 0) min = 0;
-        int max = min + 72;
-        if (max > uri.length) {
-          max = uri.length;
-          min = max - 72;
-        }
-        if (min != 0) pre = "...";
-        if (max != uri.length) post = "...";
-      }
-      // Combine message, slice and a caret pointing to the error index.
-      message = "$message$pre${uri.substring(min, max)}$post\n"
-                "${' ' * (pre.length + index - min)}^";
-    }
-    throw new FormatException(message);
-  }
-
   /**
    * Creates a new URI from its components.
    *
@@ -447,7 +387,7 @@ class Uri {
    * The fragment component is set through [fragment].
    */
   Uri({String scheme,
-       String userInfo: "",
+       this.userInfo: "",
        String host: "",
        port: 0,
        String path,
@@ -456,7 +396,6 @@ class Uri {
        Map<String, String> queryParameters,
        fragment: ""}) :
       scheme = _makeScheme(scheme),
-      userInfo = _makeUserInfo(userInfo),
       _host = _makeHost(host),
       query = _makeQuery(query, queryParameters),
       fragment = _makeFragment(fragment) {
@@ -828,7 +767,6 @@ class Uri {
 
   static String _makeHost(String host) {
     if (host == null || host.isEmpty) return host;
-    // Host is an IPv6 address if it starts with '[' or contains a colon.
     if (host.codeUnitAt(0) == _LEFT_BRACKET) {
       if (host.codeUnitAt(host.length - 1) != _RIGHT_BRACKET) {
         throw new FormatException('Missing end `]` to match `[` in host');
@@ -836,108 +774,40 @@ class Uri {
       parseIPv6Address(host.substring(1, host.length - 1));
       return host;
     }
-    // TODO(lrn): skip if too short to be a valid IPv6 address.
     for (int i = 0; i < host.length; i++) {
       if (host.codeUnitAt(i) == _COLON) {
         parseIPv6Address(host);
         return '[$host]';
       }
     }
-    return _normalizeRegName(host);
+    return host;
   }
 
-  static bool _isRegNameChar(int char) {
-    return char < 127 && (_regNameTable[char >> 4] & (1 << (char & 0xf))) != 0;
-  }
-
-  /**
-   * Validates and does case- and percent-encoding normalization.
-   *
-   * The [host] must be an RFC3986 "reg-name". It is converted
-   * to lower case, and percent escapes are converted to either
-   * lower case unreserved characters or upper case escapes.
-   */
-  static String _normalizeRegName(String host) {
-    StringBuffer buffer;
-    int sectionStart = 0;
-    int index = 0;
-    // Whether all characters between sectionStart and index are normalized,
-    bool isNormalized = true;
-
-    while (index < host.length) {
-      int char = host.codeUnitAt(index);
-      if (char == _PERCENT) {
-        // The _regNameTable contains "%", so we check that first.
-        String replacement = _normalizeEscape(host, index, true);
-        if (replacement == null && isNormalized) {
-          index += 3;
-          continue;
-        }
-        if (buffer == null) buffer = new StringBuffer();
-        String slice = host.substring(sectionStart, index);
-        if (!isNormalized) slice = slice.toLowerCase();
-        buffer.write(slice);
-        if (replacement == null) replacement = host.substring(index, index + 3);
-        buffer.write(replacement);
-        index += 3;
-        sectionStart = index;
-        isNormalized = true;
-      } else if (_isRegNameChar(char)) {
-        if (isNormalized && _UPPER_CASE_A <= char && _UPPER_CASE_Z >= char) {
-          // Put initial slice in buffer and continue in non-normalized mode
-          if (buffer == null) buffer = new StringBuffer();
-          if (sectionStart < index) {
-            buffer.write(host.substring(sectionStart, index));
-            sectionStart = index;
-          }
-          isNormalized = false;
-        }
-        index++;
-      } else {
-        _fail(host, index, "Invalid character");
-      }
-    }
-    if (buffer == null) return host;
-    if (sectionStart < host.length) {
-      String slice = host.substring(sectionStart);
-      if (!isNormalized) slice = slice.toLowerCase();
-      buffer.write(slice);
-    }
-    return buffer.toString();
-  }
-
-  /**
-   * Validates scheme characters and does case-normalization.
-   *
-   * Schemes are converted to lower case. They cannot contain escapes.
-   */
   static String _makeScheme(String scheme) {
-    if (scheme == null || scheme.isEmpty) return "";
-    int char = scheme.codeUnitAt(0);
-    if (!_isAlphabeticCharacter(char)) {
-      _fail(scheme, 0, "Non-alphabetic character starting scheme");
+    bool isSchemeLowerCharacter(int ch) {
+      return ch < 128 &&
+             ((_schemeLowerTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
     }
-    bool allLowercase = char > _LOWER_CASE_A;
-    for (int i = 0; i < scheme.length; i++) {
+
+    if (scheme == null) return "";
+    bool allLowercase = true;
+    int length = scheme.length;
+    for (int i = 0; i < length; i++) {
       int codeUnit = scheme.codeUnitAt(i);
-      if (!_isSchemeCharacter(codeUnit)) {
-        _fail(scheme, i, "Illegal scheme character");
+      if (i == 0 && !_isAlphabeticCharacter(codeUnit)) {
+        // First code unit must be an alphabetic character.
+        throw new ArgumentError('Illegal scheme: $scheme');
       }
-      if (_LOWER_CASE_A <= codeUnit && _LOWER_CASE_Z >= codeUnit) {
-        allLowercase = false;
+      if (!isSchemeLowerCharacter(codeUnit)) {
+        if (_isSchemeCharacter(codeUnit)) {
+          allLowercase = false;
+        } else {
+          throw new ArgumentError('Illegal scheme: $scheme');
+        }
       }
     }
+
     return allLowercase ? scheme : scheme.toLowerCase();
-  }
-
-  static String _makeUserInfo(String userInfo) {
-    if (userInfo == null) return "null";
-    return _normalize(userInfo, _userinfoTable);
-  }
-
-  static bool _isPathCharacter(int ch) {
-    return ch < 128 && ((_pathCharTable[ch >> 4] & (1 << (ch & 0x0f))) != 0) ||
-           ch == _SLASH;
   }
 
   String _makePath(String path, Iterable<String> pathSegments) {
@@ -945,10 +815,9 @@ class Uri {
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
     }
-    // TODO(lrn): Do path normalization to remove /./ and /../ segments.
     var result;
     if (path != null) {
-      result = _normalize(path, _pathCharOrSlashTable);
+      result = _normalize(path);
     } else {
       result = pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
     }
@@ -964,7 +833,7 @@ class Uri {
     if (query != null && queryParameters != null) {
       throw new ArgumentError('Both query and queryParameters specified');
     }
-    if (query != null) return _normalize(query, _queryCharTable);
+    if (query != null) return _normalize(query);
 
     var result = new StringBuffer();
     var first = true;
@@ -984,111 +853,121 @@ class Uri {
 
   static String _makeFragment(String fragment) {
     if (fragment == null) return "";
-    return _normalize(fragment, _queryCharTable);
+    return _normalize(fragment);
   }
 
-  static bool _isLowerCaseHexDigit(int digit) {
-    return _LOWER_CASE_A <= digit && digit <= _LOWER_CASE_F;
-  }
+  static String _normalize(String component) {
+    int index = component.indexOf('%');
+    if (index < 0) return component;
 
-  /** Returns whether char is a hex digit. */
-  static bool _isHexDigit(int char) {
-    if (_NINE >= char) return _ZERO <= char;
-    char |= 0x20;
-    return _LOWER_CASE_A <= char && _LOWER_CASE_F >= char;
-  }
-
-  /** Returns value of char as hex digit. */
-  static int _hexValue(int digit) {
-    assert(_isHexDigit(digit));
-    if (_NINE >= digit) return digit - _ZERO;
-    return (digit | 0x20) - (_LOWER_CASE_A - 10);
-  }
-
-  /**
-   * Performs RFC 3986 Percent-Encoding Normalization.
-   *
-   * Returns a replacement string that should be replace the original escape.
-   * Returns null if no replacement is necessary because the escape is
-   * not for an unreserved character and is already non-lower-case.
-   *
-   * If [lowerCase] is true, a single character returned is always lower case,
-   */
-  static String _normalizeEscape(String source, int index, bool lowerCase) {
-    assert(source.codeUnitAt(index) == _PERCENT);
-    if (index + 2 >= source.length) {
-      _fail(source, index, "Unterminated percent escape");
+    bool isNormalizedHexDigit(int digit) {
+      return (_ZERO <= digit && digit <= _NINE) ||
+          (_UPPER_CASE_A <= digit && digit <= _UPPER_CASE_F);
     }
-    int firstDigit = source.codeUnitAt(index + 1);
-    int secondDigit = source.codeUnitAt(index + 2);
-    if (!_isHexDigit(firstDigit) || !_isHexDigit(secondDigit)) {
-      _fail(source, index, "Invalid escape");
-    }
-    int value = _hexValue(firstDigit) * 16 + _hexValue(secondDigit);
-    if (_isUnreservedChar(value)) {
-      if (lowerCase && _UPPER_CASE_A <= value && _UPPER_CASE_Z >= value) {
-        value |= 0x20;
-      }
-      return new String.fromCharCode(value);
-    }
-    if (firstDigit >= _LOWER_CASE_A || secondDigit >= _LOWER_CASE_A) {
-      // Either digit is lower case.
-      return source.substring(index, index + 3).toUpperCase();
-    }
-    return null;
-  }
 
-  static bool _isUnreservedChar(int ch) {
-    return ch < 127 &&
-           ((_unreservedTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
-  }
+    bool isLowerCaseHexDigit(int digit) {
+      return _LOWER_CASE_A <= digit && digit <= _LOWER_CASE_F;
+    }
 
+    bool isUnreserved(int ch) {
+      return ch < 128 &&
+             ((_unreservedTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+    }
 
-  /**
-   * Runs through component checking that each character is valid and
-   * normalize percent escapes.
-   *
-   * Uses [charTable] to check if a non-`%` character is allowed.
-   * Each `%` character must be followed by two hex digits.
-   * If the hex-digits are lower case letters, they are converted to
-   * upper case.
-   */
-  static String _normalize(String component, List<int> charTable) {
-    StringBuffer buffer;
-    int sectionStart = 0;
-    int index = 0;
-    // Loop while characters are valid and escapes correct and upper-case.
-    while (index < component.length) {
-      int char = component.codeUnitAt(index);
-      if (char < 127 && (charTable[char >> 4] & (1 << (char & 0x0f))) != 0) {
-        index++;
-      } else if (char == _PERCENT) {
-        String replacement = _normalizeEscape(component, index, false);
-        if (replacement == null) {
-          // _normalizeEscape returns null if no replacement necessary.
-          index += 3;
-          continue;
-        } else {
-          if (buffer == null) buffer = new StringBuffer();
-          buffer.write(component.substring(sectionStart, index));
-          buffer.write(replacement);
-          index += 3;
-          sectionStart = index;
-        }
+    int normalizeHexDigit(int index) {
+      var codeUnit = component.codeUnitAt(index);
+      if (isLowerCaseHexDigit(codeUnit)) {
+        return codeUnit - 0x20;
+      } else if (!isNormalizedHexDigit(codeUnit)) {
+        throw new ArgumentError("Invalid URI component: $component");
       } else {
-        _fail(component, index, "Invalid character");
+        return codeUnit;
       }
     }
-    if (buffer == null) return component;
-    if (sectionStart < component.length) {
-      buffer.write(component.substring(sectionStart));
+
+    int decodeHexDigitPair(int index) {
+      int byte = 0;
+      for (int i = 0; i < 2; i++) {
+        var codeUnit = component.codeUnitAt(index + i);
+        if (_ZERO <= codeUnit && codeUnit <= _NINE) {
+          byte = byte * 16 + codeUnit - _ZERO;
+        } else {
+          // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
+          codeUnit |= 0x20;
+          if (_LOWER_CASE_A <= codeUnit &&
+              codeUnit <= _LOWER_CASE_F) {
+            byte = byte * 16 + codeUnit - _LOWER_CASE_A + 10;
+          } else {
+            throw new ArgumentError(
+                "Invalid percent-encoding in URI component: $component");
+          }
+        }
+      }
+      return byte;
     }
-    return buffer.toString();
+
+    // Start building the normalized component string.
+    StringBuffer result;
+    int length = component.length;
+    int prevIndex = 0;
+
+    // Copy a part of the component string to the result.
+    void fillResult() {
+      if (result == null) {
+        assert(prevIndex == 0);
+        result = new StringBuffer(component.substring(prevIndex, index));
+      } else {
+        result.write(component.substring(prevIndex, index));
+      }
+    }
+
+    while (index < length) {
+      // Normalize percent-encoding to uppercase and don't encode
+      // unreserved characters.
+      assert(component.codeUnitAt(index) == _PERCENT);
+      if (length < index + 2) {
+          throw new ArgumentError(
+              "Invalid percent-encoding in URI component: $component");
+      }
+
+      var codeUnit1 = component.codeUnitAt(index + 1);
+      var codeUnit2 = component.codeUnitAt(index + 2);
+      var decodedCodeUnit = decodeHexDigitPair(index + 1);
+      if (isNormalizedHexDigit(codeUnit1) &&
+          isNormalizedHexDigit(codeUnit2) &&
+          !isUnreserved(decodedCodeUnit)) {
+        index += 3;
+      } else {
+        fillResult();
+        if (isUnreserved(decodedCodeUnit)) {
+          result.writeCharCode(decodedCodeUnit);
+        } else {
+          result.write("%");
+          result.writeCharCode(normalizeHexDigit(index + 1));
+          result.writeCharCode(normalizeHexDigit(index + 2));
+        }
+        index += 3;
+        prevIndex = index;
+      }
+      int next = component.indexOf('%', index);
+      if (next >= index) {
+        index = next;
+      } else {
+        index = length;
+      }
+    }
+    if (result == null) return component;
+
+    if (result != null && prevIndex != index) fillResult();
+    assert(index == length);
+
+    return result.toString();
   }
 
   static bool _isSchemeCharacter(int ch) {
     return ch < 128 && ((_schemeTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
   }
+
 
   /**
    * Returns whether the URI is absolute.
@@ -1716,7 +1595,7 @@ class Uri {
                            String text,
                            {Encoding encoding: UTF8,
                             bool spaceToPlus: false}) {
-    void byteToHex(byte, buffer) {
+    byteToHex(byte, buffer) {
       const String hex = '0123456789ABCDEF';
       buffer.writeCharCode(hex.codeUnitAt(byte >> 4));
       buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));
@@ -1728,18 +1607,15 @@ class Uri {
     var bytes = encoding.encode(text);
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
-      if (byte < 128) {
-        if ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0) {
-          result.writeCharCode(byte);
-          continue;
-        }
-        if (spaceToPlus && byte == _SPACE) {
-          result.writeCharCode(_PLUS);
-          continue;
-        }
+      if (byte < 128 &&
+          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+        result.writeCharCode(byte);
+      } else if (spaceToPlus && byte == _SPACE) {
+        result.writeCharCode(_PLUS);
+      } else {
+        result.writeCharCode(_PERCENT);
+        byteToHex(byte, result);
       }
-      result.writeCharCode(_PERCENT);
-      byteToHex(byte, result);
     }
     return result.toString();
   }
@@ -1965,27 +1841,6 @@ class Uri {
                 //              pqrstuvwxyz   ~
       0x47ff];  // 0x70 - 0x7f  1111111111100010
 
-  // Characters allowed in the userinfo as of RFC 3986.
-  // RFC 3986 Apendix A
-  // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
-  static const _userinfoTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-.
-      0x7fd2,   // 0x20 - 0x2f  0100101111111110
-                //              0123456789:; =
-      0x2fff,   // 0x30 - 0x3f  1111111111110100
-                //               ABCDEFGHIJKLMNO
-      0xfffe,   // 0x40 - 0x4f  0111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
-
   // Characters allowed in the path as of RFC 3986.
   // RFC 3986 section 3.3.
   // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
@@ -1996,26 +1851,6 @@ class Uri {
       0x0000,   // 0x10 - 0x1f  0000000000000000
                 //               !  $ &'()*+,-.
       0x7fd2,   // 0x20 - 0x2f  0100101111111110
-                //              0123456789:; =
-      0x2fff,   // 0x30 - 0x3f  1111111111110100
-                //              @ABCDEFGHIJKLMNO
-      0xffff,   // 0x40 - 0x4f  1111111111111111
-                //              PQRSTUVWXYZ    _
-      0x87ff,   // 0x50 - 0x5f  1111111111100001
-                //               abcdefghijklmno
-      0xfffe,   // 0x60 - 0x6f  0111111111111111
-                //              pqrstuvwxyz   ~
-      0x47ff];  // 0x70 - 0x7f  1111111111100010
-
-  // Characters allowed in the path as of RFC 3986.
-  // RFC 3986 section 3.3 *and* slash.
-  static const _pathCharOrSlashTable = const [
-                //             LSB            MSB
-                //              |              |
-      0x0000,   // 0x00 - 0x0f  0000000000000000
-      0x0000,   // 0x10 - 0x1f  0000000000000000
-                //               !  $ &'()*+,-./
-      0xffd2,   // 0x20 - 0x2f  0100101111111111
                 //              0123456789:; =
       0x2fff,   // 0x30 - 0x3f  1111111111110100
                 //              @ABCDEFGHIJKLMNO

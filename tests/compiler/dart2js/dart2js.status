@@ -23,8 +23,6 @@ mirrors/library_imports_prefixed_test: Fail
 mirrors/library_imports_prefixed_show_hide_test: Fail
 mirrors/library_imports_shown_test: Fail
 
-space_test: Crash, Fail OK # URIs must not contain spaces.
-
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 

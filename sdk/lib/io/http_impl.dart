@@ -1674,34 +1674,10 @@ class _HttpClient implements HttpClient {
                                  String host,
                                  int port,
                                  String path) {
-    const int _NUMBER_SIGN = 0x23;
-    const int _QUESTION = 0x3F;
-    String pathOnly = path;
-    String query;
-    String fragment;
-    // TODO(lrn): Consider dropping the fragment from the Uri.
-    for (int i = 0; i < path.length; i++) {
-      int char = path.codeUnitAt(i);
-      if (char == _NUMBER_SIGN) {
-        pathOnly = path.substring(0, i);
-        fragment = path.substring(i + 1);
-        break;
-      }
-      if (char == _QUESTION) {
-        pathOnly = path.substring(0, i);
-        int queryEnd = path.length;
-        int fragmentStart = path.indexOf("#", i + 1);
-        if (fragmentStart >= 0) {
-          queryEnd = fragmentStart;
-          fragment = path.substring(fragmentStart + 1);
-        }
-        query = path.substring(i + 1, queryEnd);
-        break;
-      }
-    }
+    // TODO(sgjesse): The path set here can contain both query and
+    // fragment. They should be cracked and set correctly.
     return _openUrl(method, new Uri(
-        scheme: "http", host: host, port: port, path: pathOnly,
-        query: query, fragment: fragment));
+        scheme: "http", host: host, port: port, path: path));
   }
 
   Future<HttpClientRequest> openUrl(String method, Uri url) {

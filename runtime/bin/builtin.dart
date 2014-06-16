@@ -166,6 +166,31 @@ void _setWindows() {
 }
 
 
+_sanitizeWindowsPath(path) {
+  // For Windows we need to massage the paths a bit according to
+  // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+  //
+  // Convert
+  // C:\one\two\three
+  // to
+  // /C:/one/two/three
+
+  if (_isWindows == false) {
+    // Do nothing when not running Windows.
+    return path;
+  }
+
+  var fixedPath = "${path.replaceAll('\\', '/')}";
+
+  if ((path.length > 2) && (path[1] == ':')) {
+    // Path begins with a drive letter.
+    return '/$fixedPath';
+  }
+
+  return fixedPath;
+}
+
+
 _enforceTrailingSlash(uri) {
   // Ensure we have a trailing slash character.
   if (!uri.endsWith('/')) {
@@ -188,28 +213,22 @@ _extractDriveLetterPrefix(cwd) {
 
 void _setWorkingDirectory(cwd) {
   _workingWindowsDrivePrefix = _extractDriveLetterPrefix(cwd);
-  _workingDirectoryUri = new Uri.file(cwd);
-  if (!_workingDirectoryUri.path.endsWith("/")) {
-    var directoryPath = _workingDirectoryUri.path + "/";
-    _workingDirectoryUri = _workingDirectoryUri.resolve(directoryPath);
-  }
-
+  cwd = _sanitizeWindowsPath(cwd);
+  cwd = _enforceTrailingSlash(cwd);
+  _workingDirectoryUri = new Uri(scheme: 'file', path: cwd);
   _logResolution('# Working Directory: $cwd');
 }
 
-Uri _uriFromPathOrUri(String location) {
-  if (location.startsWith('file:') ||
-      location.startsWith('http:') ||
-      location.startsWith('https:')) {
-    return Uri.parse(location);
-  }
-  return new Uri.file(location);
-}
 
 _setPackageRoot(String packageRoot) {
   packageRoot = _enforceTrailingSlash(packageRoot);
-  _packageRoot =
-      _workingDirectoryUri.resolveUri(_uriFromPathOrUri(packageRoot));
+  if (packageRoot.startsWith('file:') ||
+      packageRoot.startsWith('http:') ||
+      packageRoot.startsWith('https:')) {
+    _packageRoot = _workingDirectoryUri.resolve(packageRoot);
+  } else {
+    _packageRoot = _workingDirectoryUri.resolveUri(new Uri.file(packageRoot));
+  }
   _logResolution('# Package root: $packageRoot -> $_packageRoot');
 }
 
@@ -218,7 +237,9 @@ String _resolveScriptUri(String scriptName) {
   if (_workingDirectoryUri == null) {
     throw 'No current working directory set.';
   }
-  var scriptUri = _uriFromPathOrUri(scriptName);
+  scriptName = _sanitizeWindowsPath(scriptName);
+
+  var scriptUri = Uri.parse(scriptName);
   if (scriptUri.scheme != '') {
     // Script has a scheme, assume that it is fully formed.
     _entryPointScript = scriptUri;
@@ -321,7 +342,7 @@ void _asyncLoadError(uri, error) {
 // an http or file uri.
 _loadDataAsync(String uri) {
   uri = _resolveScriptUri(uri);
-  Uri sourceUri = _uriFromPathOrUri(uri);
+  Uri sourceUri = Uri.parse(uri);
   _numOutstandingLoadRequests++;
   _logResolution("_loadDataAsync($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
@@ -362,7 +383,7 @@ void _loadLibrarySource(tag, uri, libraryUri, text) {
 // Asynchronously loads source code through an http or file uri.
 _loadSourceAsync(int tag, String uri, String libraryUri) {
   var filePath = _filePathFromUri(uri);
-  Uri sourceUri = _uriFromPathOrUri(filePath);
+  Uri sourceUri = Uri.parse(filePath);
   _numOutstandingLoadRequests++;
   _logResolution("_loadLibrarySource($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
