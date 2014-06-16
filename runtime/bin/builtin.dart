@@ -213,8 +213,6 @@ _extractDriveLetterPrefix(cwd) {
 
 void _setWorkingDirectory(cwd) {
   _workingWindowsDrivePrefix = _extractDriveLetterPrefix(cwd);
-  cwd = _sanitizeWindowsPath(cwd);
-  cwd = _enforceTrailingSlash(cwd);
   _workingDirectoryUri = new Uri.file(cwd);
   if (!_workingDirectoryUri.path.endsWith("/")) {
     var directoryPath = _workingDirectoryUri.path + "/";
