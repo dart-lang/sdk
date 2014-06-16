@@ -362,7 +362,7 @@ void _loadLibrarySource(tag, uri, libraryUri, text) {
 // Asynchronously loads source code through an http or file uri.
 _loadSourceAsync(int tag, String uri, String libraryUri) {
   var filePath = _filePathFromUri(uri);
-  Uri sourceUri = new Uri.file(filePath);
+  Uri sourceUri = _uriFromPathOrUri(filePath);
   _numOutstandingLoadRequests++;
   _logResolution("_loadLibrarySource($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
