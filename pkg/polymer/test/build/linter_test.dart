@@ -239,7 +239,7 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'error: couldn\'t find imported asset "lib/b.html" in package '
+        'warning: couldn\'t find imported asset "lib/b.html" in package '
         '"a". (lib/test.html 2 0)'
       ]);
 
@@ -415,17 +415,11 @@ void main() {
     ]);
 
   group('event handlers', () {
-    _testLinter('onfoo is not polymer', {
+    _testLinter('no longer warn about inline onfoo (Javascript)', {
         'a|lib/test.html': '''<html><body>
             <div onfoo="something"></div>
             '''.replaceAll('            ', ''),
-      }, [
-        'warning: Event handler "onfoo" will be interpreted as an inline '
-        'JavaScript event handler. Use the form '
-        'on-event-name="{{handlerName}}" if you want a Dart handler '
-        'that will automatically update the UI based on model changes. '
-        '(lib/test.html 1 5)'
-      ]);
+      }, []);
 
     _testLinter('on-foo is only supported in polymer elements', {
         'a|lib/test.html': '''<html><body>

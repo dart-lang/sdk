@@ -18,20 +18,28 @@ import 'package:path/path.dart' as path;
 import 'package:observe/transformer.dart' show ObservableTransformer;
 import 'package:source_maps/span.dart' show Span;
 
+const _ignoredErrors = const [
+  'unexpected-dash-after-double-dash-in-comment',
+  'unexpected-char-in-comment',
+];
+
 /// Parses an HTML file [contents] and returns a DOM-like tree. Adds emitted
 /// error/warning to [logger].
 Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
-    {bool checkDocType: true}) {
+    {bool checkDocType: true, bool showWarnings: true}) {
   // TODO(jmesserly): make HTTP encoding configurable
-  var parser = new HtmlParser(contents, encoding: 'utf8', generateSpans: true,
-      sourceUrl: sourcePath);
+  var parser = new HtmlParser(contents, encoding: 'utf8',
+      generateSpans: true, sourceUrl: sourcePath);
   var document = parser.parse();
 
   // Note: errors aren't fatal in HTML (unless strict mode is on).
   // So just print them as warnings.
-  for (var e in parser.errors) {
-    if (checkDocType || e.errorCode != 'expected-doctype-but-got-start-tag') {
-      logger.warning(e.message, span: e.span);
+  if (showWarnings) {
+    for (var e in parser.errors) {
+      if (_ignoredErrors.contains(e.errorCode)) continue;
+      if (checkDocType || e.errorCode != 'expected-doctype-but-got-start-tag') {
+        logger.warning(e.message, span: e.span);
+      }
     }
   }
   return document;
@@ -99,13 +107,15 @@ abstract class PolymerTransformer {
     });
   }
 
-  Future<Document> readAsHtml(AssetId id, Transform transform) {
+  Future<Document> readAsHtml(AssetId id, Transform transform,
+      {bool showWarnings: true}) {
     var primaryId = transform.primaryInput.id;
     bool samePackage = id.package == primaryId.package;
     var url = spanUrlFor(id, transform);
     return transform.readInputAsString(id).then((content) {
       return _parseHtml(content, url, transform.logger,
-        checkDocType: samePackage && options.isHtmlEntryPoint(id));
+        checkDocType: samePackage && options.isHtmlEntryPoint(id),
+        showWarnings: showWarnings);
     });
   }
 

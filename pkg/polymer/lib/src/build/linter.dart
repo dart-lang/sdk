@@ -71,7 +71,7 @@ class Linter extends Transformer with PolymerTransformer {
       Set<AssetId> seen, Map<String, _ElementSummary> elements) {
     if (id == null || seen.contains(id)) return new Future.value(null);
     seen.add(id);
-    return readAsHtml(id, transform).then(
+    return readAsHtml(id, transform, showWarnings: false).then(
         (doc) => _collectElements(doc, id, transform, seen, elements));
   }
 
@@ -88,8 +88,8 @@ class Linter extends Transformer with PolymerTransformer {
       importIds.add(assetExists(id, transform).then((exists) {
         if (exists) return id;
         if (sourceId == transform.primaryInput.id) {
-          logger.error('couldn\'t find imported asset "${id.path}" in package '
-              '"${id.package}".', span: span);
+          logger.warning('couldn\'t find imported asset "${id.path}" in package'
+              ' "${id.package}".', span: span);
         }
       }));
     }
@@ -110,9 +110,9 @@ class Linter extends Transformer with PolymerTransformer {
         if (existing.hasConflict) continue;
         existing.hasConflict = true;
         logger.warning('duplicate definition for custom tag "$name".',
-          span: existing.span);
+            span: existing.span);
         logger.warning('duplicate definition for custom tag "$name" '
-          ' (second definition).', span: span);
+            ' (second definition).', span: span);
         continue;
       }
 
@@ -135,8 +135,11 @@ class _ElementSummary {
   _ElementSummary extendsType;
   bool hasConflict = false;
 
-  String get baseExtendsTag => extendsType == null
-      ? extendsTag : extendsType.baseExtendsTag;
+  String get baseExtendsTag {
+    if (extendsType != null) return extendsType.baseExtendsTag;
+    if (extendsTag != null && !extendsTag.contains('-')) return extendsTag;
+    return null;
+  }
 
   _ElementSummary(this.tagName, this.extendsTag, this.span);
 
@@ -382,17 +385,7 @@ class _LinterVisitor extends TreeVisitor {
 
   /// Validate event handlers are used correctly.
   void _validateEventHandler(Element node, String name, String value) {
-    if (!name.startsWith('on-')) {
-      // TODO(sigmund): technically these are valid attribtues in HTML, so we
-      // might want to remove this warning, or only produce it if the value
-      // looks like a binding.
-      _logger.warning('Event handler "$name" will be interpreted as an inline'
-          ' JavaScript event handler. Use the form '
-          'on-event-name="{{handlerName}}" if you want a Dart handler '
-          'that will automatically update the UI based on model changes.',
-          span: node.attributeSpans[name]);
-      return;
-    }
+    if (!name.startsWith('on-')) return;
 
     if (!_inPolymerElement) {
       _logger.warning('Inline event handlers are only supported inside '
