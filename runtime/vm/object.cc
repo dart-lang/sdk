@@ -16923,14 +16923,15 @@ static FinalizablePersistentHandle* AddFinalizer(
     Dart_WeakPersistentHandleFinalizer callback) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  ApiState* state = Isolate::Current()->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      state->weak_persistent_handles().AllocateHandle();
-  weak_ref->set_raw(referent);
-  weak_ref->set_peer(peer);
-  weak_ref->set_callback(callback);
-  return weak_ref;
+  const bool is_prologue = false;
+  // TODO(19482): Make API consistent for external size of strings/typed data.
+  const intptr_t external_size = 0;
+  return FinalizablePersistentHandle::New(Isolate::Current(),
+                                          is_prologue,
+                                          referent,
+                                          peer,
+                                          callback,
+                                          external_size);
 }
 
 

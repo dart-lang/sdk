@@ -190,21 +190,22 @@ class PersistentHandle {
 // dart API.
 class FinalizablePersistentHandle {
  public:
+  static FinalizablePersistentHandle* New(
+      Isolate* isolate,
+      bool is_prologue,
+      const Object& object,
+      void* peer,
+      Dart_WeakPersistentHandleFinalizer callback,
+      intptr_t external_size);
+
   // Accessors.
   RawObject* raw() const { return raw_; }
-  void set_raw(RawObject* raw) { raw_ = raw; }
-  void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
-  void set_raw(const Object& object) { raw_ = object.raw(); }
   RawObject** raw_addr() { return &raw_; }
   static intptr_t raw_offset() {
     return OFFSET_OF(FinalizablePersistentHandle, raw_);
   }
   void* peer() const { return peer_; }
-  void set_peer(void* peer) { peer_ = peer; }
   Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
-  void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
-    callback_ = callback;
-  }
   Dart_WeakPersistentHandle apiHandle() {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
@@ -298,6 +299,16 @@ class FinalizablePersistentHandle {
     peer_ = NULL;
     external_data_ = 0;
     callback_ = NULL;
+  }
+
+  void set_raw(RawObject* raw) { raw_ = raw; }
+  void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
+  void set_raw(const Object& object) { raw_ = object.raw(); }
+
+  void set_peer(void* peer) { peer_ = peer; }
+
+  void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
+    callback_ = callback;
   }
 
   intptr_t external_size() const {
@@ -941,6 +952,26 @@ class WeakReferenceSetBuilder {
   DISALLOW_IMPLICIT_CONSTRUCTORS(WeakReferenceSetBuilder);
 };
 
+
+inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
+    Isolate* isolate,
+    bool is_prologue,
+    const Object& object,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback,
+    intptr_t external_size) {
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  FinalizablePersistentHandle* ref = is_prologue ?
+      state->prologue_weak_persistent_handles().AllocateHandle() :
+      state->weak_persistent_handles().AllocateHandle();
+  ref->SetPrologueWeakPersistent(is_prologue);
+  ref->set_raw(object);
+  ref->set_peer(peer);
+  ref->set_callback(callback);
+  ref->SetExternalSize(external_size, isolate);
+  return ref;
+}
 
 }  // namespace dart
 

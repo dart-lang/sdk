@@ -947,20 +947,16 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& ref = isolate->ObjectHandle();
   ref = Api::UnwrapHandle(object);
-  FinalizablePersistentHandle* finalizable_ref = is_prologue ?
-      state->prologue_weak_persistent_handles().AllocateHandle() :
-      state->weak_persistent_handles().AllocateHandle();
-
-  finalizable_ref->set_raw(ref);
-  finalizable_ref->set_peer(peer);
-  finalizable_ref->set_callback(callback);
-  finalizable_ref->SetExternalSize(external_allocation_size, isolate);
-  finalizable_ref->SetPrologueWeakPersistent(is_prologue);
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(isolate,
+                                       is_prologue,
+                                       ref,
+                                       peer,
+                                       callback,
+                                       external_allocation_size);
   return finalizable_ref->apiHandle();
 }
 
