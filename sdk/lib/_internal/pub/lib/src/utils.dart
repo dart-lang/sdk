@@ -284,48 +284,50 @@ Iterable<Pair> pairs(Iterable iter) {
   });
 }
 
-/// Creates a map from [iter], using the return values of [keyFn] as the keys
-/// and the return values of [valueFn] as the values.
-Map listToMap(Iterable iter, keyFn(element), valueFn(element)) {
-  var map = new Map();
-  for (var element in iter) {
-    map[keyFn(element)] = valueFn(element);
-  }
-  return map;
-}
-
 /// Creates a new map from [map] with new keys and values.
 ///
-/// The return values of [keyFn] are used as the keys and the return values of
-/// [valueFn] are used as the values for the new map.
-Map mapMap(Map map, keyFn(key, value), valueFn(key, value)) =>
-  listToMap(map.keys,
-      (key) => keyFn(key, map[key]),
-      (key) => valueFn(key, map[key]));
-
-/// Creates a new map from [map] with the same keys.
+/// The return values of [key] are used as the keys and the return values of
+/// [value] are used as the values for the new map.
 ///
-/// The return values of [valueFn] are used as the values for the new map.
-Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
+/// [key] defaults to returning the original key and [value] defaults to
+/// returning the original value.
+Map mapMap(Map map, {key(key, value), value(key, value)}) {
+  if (key == null) key = (key, _) => key;
+  if (value == null) value = (_, value) => value;
 
-/// Like [listToMap], but [keyFn] and [valueFn] may return [Future]s.
-Future<Map> listToMapAsync(Iterable iter, keyFn(element), valueFn(element)) {
+  var result = {};
+  map.forEach((mapKey, mapValue) {
+    result[key(mapKey, mapValue)] = value(mapKey, mapValue);
+  });
+  return result;
+}
+
+/// Like [Map.fromIterable], but [key] and [value] may return [Future]s.
+Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
+    value(element)}) {
+  if (key == null) key = (element) => element;
+  if (value == null) value = (element) => element;
+
   var map = new Map();
   return Future.wait(iter.map((element) {
     return Future.wait([
-      syncFuture(() => keyFn(element)),
-      syncFuture(() => valueFn(element))
+      syncFuture(() => key(element)),
+      syncFuture(() => value(element))
     ]).then((results) {
       map[results[0]] = results[1];
     });
   })).then((_) => map);
 }
 
-/// Like [mapMap], but [keyFn] and [valueFn] may return [Future]s.
-Future<Map> mapMapAsync(Map map, keyFn(key, value), valueFn(key, value)) =>
-  listToMapAsync(map.keys,
-      (key) => keyFn(key, map[key]),
-      (key) => valueFn(key, map[key]));
+/// Like [mapMap], but [key] and [value] may return [Future]s.
+Future<Map> mapMapAsync(Map map, {key(key, value), value(key, value)}) {
+  if (key == null) key = (key, _) => key;
+  if (value == null) value = (_, value) => value;
+
+  return mapFromIterableAsync(map.keys,
+      key: (mapKey) => key(mapKey, map[mapKey]),
+      value: (mapKey) => value(mapKey, map[mapKey]));
+}
 
 /// Returns the shortest path from [start] to [end] in [graph].
 ///
@@ -338,7 +340,7 @@ List shortestPath(Map<dynamic, Iterable> graph, start, end) {
 
   // Dijkstra's algorithm.
   var infinity = graph.length;
-  var distance = mapMapValues(graph, (_1, _2) => infinity);
+  var distance = mapMap(graph, value: (_1, _2) => infinity);
 
   // A map from each node to the node that came before it on the shortest path
   // from it back to [start].

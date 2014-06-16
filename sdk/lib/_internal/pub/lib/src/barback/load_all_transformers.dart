@@ -194,8 +194,8 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
     String depender) {
   assert(_transformerDeps(graph, depender).contains(dependee));
 
-  var simpleGraph = mapMapValues(graph.packages,
-      (_, package) => package.dependencies.map((dep) => dep.name).toList());
+  var simpleGraph = mapMap(graph.packages, value: (_, package) =>
+      package.dependencies.map((dep) => dep.name).toList());
   var path = shortestPath(simpleGraph, dependee, depender);
   path.add(dependee);
   return new ApplicationException("Transformer cycle detected:\n" +
@@ -215,8 +215,9 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
 /// all transformers exposed by that package and used by other packages.
 Map<String, Set<TransformerId>> _computePackageTransformers(
     PackageGraph graph) {
-  var packageTransformers = listToMap(graph.packages.values,
-      (package) => package.name, (_) => new Set<TransformerId>());
+  var packageTransformers = new Map.fromIterable(graph.packages.values,
+      key: (package) => package.name,
+      value: (_) => new Set<TransformerId>());
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
       for (var id in phase) {

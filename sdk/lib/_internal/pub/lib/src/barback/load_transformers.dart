@@ -25,11 +25,11 @@ import 'barback_server.dart';
 /// [AggregateTransformer]s, and/or [TransformerGroup]s).
 Future<Map<TransformerId, Set>> loadTransformers(AssetEnvironment environment,
     BarbackServer transformerServer, List<TransformerId> ids) {
-  return listToMapAsync(ids, (id) => id, (id) {
+  return mapFromIterableAsync(ids, value: (id) {
     return id.getAssetId(environment.barback);
   }).then((idsToAssetIds) {
     var baseUrl = transformerServer.url;
-    var idsToUrls = mapMap(idsToAssetIds, (id, _) => id, (id, assetId) {
+    var idsToUrls = mapMap(idsToAssetIds, value: (id, assetId) {
       var path = assetId.path.replaceFirst('lib/', '');
       // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
       return baseUrl.resolve('packages/${id.package}/$path');
@@ -52,7 +52,7 @@ Future<Map<TransformerId, Set>> loadTransformers(AssetEnvironment environment,
     return dart.runInIsolate(code.toString(), port.sendPort)
         .then((_) => port.first)
         .then((sendPort) {
-      return mapMapAsync(idsToAssetIds, (id, _) => id, (id, assetId) {
+      return mapMapAsync(idsToAssetIds, value: (id, assetId) {
         return call(sendPort, {
           'library': idsToUrls[id].toString(),
           'mode': environment.mode.name,
