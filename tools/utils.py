@@ -366,7 +366,18 @@ def GetSVNRevision():
   if revision:
     return revision
 
-  # maybe the builder is using git-svn, try that
+  # Check for revision using git (Note: we can't use git-svn because in a
+  # pure-git checkout, "git-svn anyCommand" just hangs!). We look an arbitrary
+  # number of commits backwards (100) to get past any local commits.
+  p = subprocess.Popen(['git', 'log', '-100'], stdout = subprocess.PIPE,
+      stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
+  output, _ = p.communicate()
+  revision = ParseGitInfoOutput(output)
+  if revision:
+    return revision
+
+  # In the rare off-chance that git log -100 doesn't have a svn repo number,
+  # attempt to use "git svn info."
   p = subprocess.Popen(['git', 'svn', 'info'], stdout = subprocess.PIPE,
       stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
   output, _ = p.communicate()
@@ -379,6 +390,14 @@ def GetSVNRevision():
   if user != 'chrome-bot':
     return '0'
 
+  return None
+
+def ParseGitInfoOutput(output):
+  """Given a git log, determine the latest corresponding svn revision."""
+  for line in output.split('\n'):
+    tokens = line.split()
+    if len(tokens) > 0 and tokens[0] == 'git-svn-id:':
+      return tokens[1].split('@')[1]
   return None
 
 def ParseSvnInfoOutput(output):
