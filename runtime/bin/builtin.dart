@@ -166,31 +166,6 @@ void _setWindows() {
 }
 
 
-_sanitizeWindowsPath(path) {
-  // For Windows we need to massage the paths a bit according to
-  // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-  //
-  // Convert
-  // C:\one\two\three
-  // to
-  // /C:/one/two/three
-
-  if (_isWindows == false) {
-    // Do nothing when not running Windows.
-    return path;
-  }
-
-  var fixedPath = "${path.replaceAll('\\', '/')}";
-
-  if ((path.length > 2) && (path[1] == ':')) {
-    // Path begins with a drive letter.
-    return '/$fixedPath';
-  }
-
-  return fixedPath;
-}
-
-
 _enforceTrailingSlash(uri) {
   // Ensure we have a trailing slash character.
   if (!uri.endsWith('/')) {
@@ -240,7 +215,6 @@ String _resolveScriptUri(String scriptName) {
   if (_workingDirectoryUri == null) {
     throw 'No current working directory set.';
   }
-  scriptName = _sanitizeWindowsPath(scriptName);
   var scriptUri;
   if (scriptName.startsWith("file:") ||
       scriptName.startsWith("http:") ||
