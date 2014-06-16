@@ -3087,7 +3087,9 @@ void BinarySmiOpInstr::InferRange() {
     case Token::kMUL: {
       const int64_t left_max = ConstantAbsMax(left_range);
       const int64_t right_max = ConstantAbsMax(right_range);
-      if ((left_max < 0x7FFFFFFF) && (right_max < 0x7FFFFFFF)) {
+      ASSERT(left_max <= -kSmiMin);
+      ASSERT(right_max <= -kSmiMin);
+      if ((left_max == 0) || (right_max <= kMaxInt64 / left_max)) {
         // Product of left and right max values stays in 64 bit range.
         const int64_t result_max = left_max * right_max;
         if (Smi::IsValid64(result_max) && Smi::IsValid64(-result_max)) {
