@@ -52,19 +52,19 @@ web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
 [ $runtime == vm && $mode == debug]
-analysis_server/test/analysis_server_test: Pass, Timeout
-analysis_server/test/domain_context_test: Pass, Timeout
-analysis_server/test/domain_server_test: Pass, Timeout
-analyzer/test/generated/element_test: Pass, Timeout
-analyzer/test/generated/parser_test: Pass, Timeout
-code_transformers/test/resolver_test: Pass, Timeout
+analysis_server/test/analysis_server_test: Skip  # Times out
+analysis_server/test/domain_context_test: Skip  # Times out
+analysis_server/test/domain_server_test: Skip  # Times out
+analyzer/test/generated/element_test: Skip  # Times out
+analyzer/test/generated/parser_test: Skip  # Times out
+code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
-smoke/test/codegen/end_to_end_test: Pass, Timeout
-smoke/test/codegen/recorder_test: Pass, Timeout
-template_binding/test/template_binding_test: Pass, Timeout
-third_party/html5lib/test/tokenizer_test: Pass, Timeout
-barback/test/package_graph/repetition_test: Pass, Timeout
+smoke/test/codegen/end_to_end_test: Skip  # Times out
+smoke/test/codegen/recorder_test: Skip  # Times out
+template_binding/test/template_binding_test: Skip  # Times out
+third_party/html5lib/test/tokenizer_test: Skip  # Times out
+barback/test/package_graph/repetition_test: Skip  # Times out
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
