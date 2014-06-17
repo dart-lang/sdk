@@ -190,6 +190,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable double uptime = 0.0;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
+  @observable String pid = '';
 
   VM() : super._empty(null) {
     name = 'vm';
@@ -374,6 +375,7 @@ abstract class VM extends ServiceObjectOwner {
     architecture = map['architecture'];
     uptime = map['uptime'];
     assertsEnabled = map['assertsEnabled'];
+    pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
     _updateIsolates(map['isolates']);
   }

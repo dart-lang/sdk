@@ -1939,6 +1939,10 @@ static bool HandleVM(JSONStream* js) {
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
+  // Send pid as a string because it allows us to avoid any issues with
+  // pids > 53-bits (when consumed by JavaScript).
+  // TODO(johnmccutchan): Codify how integers are sent across the service.
+  jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
   jsobj.AddProperty("assertsEnabled", FLAG_enable_asserts);
   jsobj.AddProperty("typeChecksEnabled", FLAG_enable_type_checks);
   int64_t start_time_micros = Dart::vm_isolate()->start_time();
