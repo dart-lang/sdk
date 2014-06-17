@@ -34,7 +34,7 @@ class TestGraphVisitor;
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, kArrayCid, 1595327584)                                       \
   V(_GrowableListWithData, kGrowableObjectArrayCid, 732923072)                 \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 1842713619)                 \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 1956565810)                 \
   V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1499010120)                     \
   V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 354210806)                    \
   V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 231626935)      \
