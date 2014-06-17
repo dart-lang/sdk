@@ -5,6 +5,7 @@
 // Patch file for the dart:async library.
 
 import 'dart:_js_helper' show
+    patch,
     Primitives,
     convertDartClosureToJS,
     loadDeferredLibrary;
@@ -18,21 +19,25 @@ import 'dart:_isolate_helper' show
 
 import 'dart:_foreign_helper' show JS;
 
-patch Timer _createTimer(Duration duration, void callback()) {
+@patch
+Timer _createTimer(Duration duration, void callback()) {
   int milliseconds = duration.inMilliseconds;
   if (milliseconds < 0) milliseconds = 0;
   return new TimerImpl(milliseconds, callback);
 }
 
-patch Timer _createPeriodicTimer(Duration duration,
-                                 void callback(Timer timer)) {
+@patch
+Timer _createPeriodicTimer(Duration duration,
+                           void callback(Timer timer)) {
   int milliseconds = duration.inMilliseconds;
   if (milliseconds < 0) milliseconds = 0;
   return new TimerImpl.periodic(milliseconds, callback);
 }
 
-patch class _AsyncRun {
-  patch static void _scheduleImmediate(void callback()) {
+@patch
+class _AsyncRun {
+  @patch
+  static void _scheduleImmediate(void callback()) {
     scheduleImmediateClosure(callback);
   }
 
@@ -65,8 +70,10 @@ patch class _AsyncRun {
   }
 }
 
-patch class DeferredLibrary {
-  patch Future<Null> load() {
+@patch
+class DeferredLibrary {
+  @patch
+  Future<Null> load() {
     return loadDeferredLibrary(libraryName, uri);
   }
 }

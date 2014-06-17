@@ -58,6 +58,12 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
+class _Patch {
+  const _Patch();
+}
+
+const _Patch patch = const _Patch();
+
 bool isJsIndexable(var object, var record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);

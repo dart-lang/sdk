@@ -4,39 +4,50 @@
 
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show checkNum;
+import 'dart:_js_helper' show patch, checkNum;
 
-patch double sqrt(num x)
+@patch
+double sqrt(num x)
   => JS('double', r'Math.sqrt(#)', checkNum(x));
 
-patch double sin(num x)
+@patch
+double sin(num x)
   => JS('double', r'Math.sin(#)', checkNum(x));
 
-patch double cos(num x)
+@patch
+double cos(num x)
   => JS('double', r'Math.cos(#)', checkNum(x));
 
-patch double tan(num x)
+@patch
+double tan(num x)
   => JS('double', r'Math.tan(#)', checkNum(x));
 
-patch double acos(num x)
+@patch
+double acos(num x)
   => JS('double', r'Math.acos(#)', checkNum(x));
 
-patch double asin(num x)
+@patch
+double asin(num x)
   => JS('double', r'Math.asin(#)', checkNum(x));
 
-patch double atan(num x)
+@patch
+double atan(num x)
   => JS('double', r'Math.atan(#)', checkNum(x));
 
-patch double atan2(num a, num b)
+@patch
+double atan2(num a, num b)
   => JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
-patch double exp(num x)
+@patch
+double exp(num x)
   => JS('double', r'Math.exp(#)', checkNum(x));
 
-patch double log(num x)
+@patch
+double log(num x)
   => JS('double', r'Math.log(#)', checkNum(x));
 
-patch num pow(num x, num exponent) {
+@patch
+num pow(num x, num exponent) {
   checkNum(x);
   checkNum(exponent);
   return JS('num', r'Math.pow(#, #)', x, exponent);
@@ -44,8 +55,10 @@ patch num pow(num x, num exponent) {
 
 const int _POW2_32 = 0x100000000;
 
-patch class Random {
-  patch factory Random([int seed]) =>
+@patch
+class Random {
+  @patch
+  factory Random([int seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
 }
 

@@ -76,6 +76,7 @@ class JSInvocationMirror {}
 assertHelper(a) {}
 class Closure {}
 class BoundClosure {}
+const patch = 0;
 ''';
 
 const foreignLib = r'''

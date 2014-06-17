@@ -653,6 +653,9 @@ abstract class Compiler implements DiagnosticListener {
   /// The constant for the [proxy] variable defined in dart:core.
   Constant proxyConstant;
 
+  /// The constant for the [patch] variable defined in dart:_js_helper.
+  Constant patchConstant;
+
   // Initialized after symbolClass has been resolved.
   FunctionElement symbolConstructor;
 
@@ -1079,6 +1082,9 @@ abstract class Compiler implements DiagnosticListener {
 
       proxyConstant =
           resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+
+      patchConstant = resolver.constantCompiler.compileConstant(
+          jsHelperLibrary.find('patch'));
 
       if (jsInvocationMirrorClass != null) {
         jsInvocationMirrorClass.ensureResolved(this);

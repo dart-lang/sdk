@@ -4,6 +4,7 @@
 
 // Patch file for dart:convert library.
 
+import 'dart:_js_helper' show patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 
@@ -23,7 +24,8 @@ import 'dart:_interceptors' show JSExtendableArray;
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-patch _parseJson(String source, reviver(key, value)) {
+@patch
+_parseJson(String source, reviver(key, value)) {
   if (source is! String) throw new ArgumentError(source);
 
   var parsed;
@@ -93,7 +95,9 @@ _convertJsonToDart(json, reviver(key, value)) {
   return revive(null, walk(json));
 }
 
-patch class _Utf8Encoder {
+@patch
+class _Utf8Encoder {
   // Use Uint8List when supported on all platforms.
-  patch static List<int> _createBuffer(int size) => new List<int>(size);
+  @patch
+  static List<int> _createBuffer(int size) => new List<int>(size);
 }

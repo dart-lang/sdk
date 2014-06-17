@@ -100,6 +100,7 @@ class ConstantMap {} class TypeImpl {}
 createRuntimeType(String name) => null;
 class Closure {}
 class BoundClosure extends Closure {}
+const patch = 0;
 """;
   } else if (uri.path.endsWith('isolate_helper.dart')) {
     return 'library isolatehelper; class _WorkerStub {}';

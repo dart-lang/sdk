@@ -4,21 +4,28 @@
 
 // Patch library for dart:mirrors.
 
+import 'dart:_js_helper' show patch;
 import 'dart:_js_mirrors' as js;
 
-patch class MirrorSystem {
-  patch static String getName(Symbol symbol) => js.getName(symbol);
+@patch
+class MirrorSystem {
+  @patch
+  static String getName(Symbol symbol) => js.getName(symbol);
 
-  patch static Symbol getSymbol(String name, [LibraryMirror library]) {
+  @patch
+  static Symbol getSymbol(String name, [LibraryMirror library]) {
     return js.getSymbol(name, library);
   }
 }
 
-patch MirrorSystem currentMirrorSystem() => js.currentJsMirrorSystem;
+@patch
+MirrorSystem currentMirrorSystem() => js.currentJsMirrorSystem;
 
-patch InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
+@patch
+InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
 
-patch ClassMirror reflectClass(Type key) {
+@patch
+ClassMirror reflectClass(Type key) {
   if (key is! Type || key == dynamic) {
     throw new ArgumentError('$key does not denote a class');
   }
@@ -29,7 +36,8 @@ patch ClassMirror reflectClass(Type key) {
   return (tm as ClassMirror).originalDeclaration;
 }
 
-patch TypeMirror reflectType(Type key) {
+@patch
+TypeMirror reflectType(Type key) {
   if (key == dynamic) {
     return currentMirrorSystem().dynamicType;
   }

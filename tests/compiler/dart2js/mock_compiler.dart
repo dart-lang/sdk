@@ -38,6 +38,7 @@ class WarningMessage {
 }
 
 const String DEFAULT_HELPERLIB = r'''
+  const patch = 0;
   wrapException(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }

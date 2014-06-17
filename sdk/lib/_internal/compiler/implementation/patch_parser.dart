@@ -61,9 +61,9 @@
  *     class _InjectedClass { // An injected class.
  *       void _injectedMethod() {} // An injected method.
  *     }
- *     patch class PatchedClass { // A patch class.
+ *     @patch class PatchedClass { // A patch class.
  *       int _injectedField; { // An injected field.
- *       patch void patchedMethod() {} // A patch method.
+ *       @patch void patchedMethod() {} // A patch method.
  *     }
  *
  *
@@ -118,6 +118,7 @@ import 'dart:async';
 
 import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
+import "helpers/helpers.dart";
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
 import "elements/modelx.dart"
@@ -169,12 +170,11 @@ class PatchParserTask extends leg.CompilerTask {
       leg.Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;
-      PatchListener patchListener =
-          new PatchElementListener(compiler,
-                                   compilationUnit,
-                                   idGenerator,
-                                   imports);
-      new PatchParser(patchListener).parseUnit(tokens);
+      Listener patchListener = new PatchElementListener(compiler,
+                                                        compilationUnit,
+                                                        idGenerator,
+                                                        imports);
+      new PartialParser(patchListener).parseUnit(tokens);
     });
   }
 
@@ -184,7 +184,7 @@ class PatchParserTask extends leg.CompilerTask {
     if (element.cachedNode != null) return;
 
     measure(() => compiler.withCurrentElement(element, () {
-      PatchMemberListener listener = new PatchMemberListener(compiler, element);
+      MemberListener listener = new MemberListener(compiler, element);
       Parser parser = new PatchClassElementParser(listener);
       Token token = parser.parseTopLevelDeclaration(element.beginToken);
       assert(identical(token, element.endToken.next));
@@ -199,7 +199,7 @@ class PatchParserTask extends leg.CompilerTask {
   void applyContainerPatch(ClassElement originClass,
                            Link<Element> patches) {
     for (Element patch in patches) {
-      if (!isPatchElement(patch)) continue;
+      if (!isPatchElement(compiler, patch)) continue;
 
       Element origin = originClass.localLookup(patch.name);
       patchElement(compiler, origin, patch);
@@ -208,76 +208,11 @@ class PatchParserTask extends leg.CompilerTask {
 }
 
 /**
- * Extension of the [Listener] interface to handle the extra "patch" pseudo-
- * keyword in patch files.
- * Patch files shouldn't have a type named "patch".
- */
-abstract class PatchListener extends Listener {
-  void beginPatch(Token patch);
-  void endPatch(Token patch);
-}
-
-/**
- * Partial parser that extends the top-level and class grammars to allow the
- * word "patch" in front of some declarations.
- */
-class PatchParser extends PartialParser {
-  PatchParser(PatchListener listener) : super(listener);
-
-  PatchListener get patchListener => listener;
-
-  bool isPatch(Token token) => token.value == 'patch';
-
-  /**
-   * Parse top-level declarations, and allow "patch" in front of functions
-   * and classes.
-   */
-  Token parseTopLevelDeclaration(Token token) {
-    if (!isPatch(token)) {
-      return super.parseTopLevelDeclaration(token);
-    }
-    Token patch = token;
-    token = token.next;
-    String value = token.stringValue;
-    if (identical(value, 'interface')
-        || identical(value, 'typedef')
-        || identical(value, '#')
-        || identical(value, 'abstract')) {
-      // At the top level, you can only patch functions and classes.
-      // Patch classes and functions can't be marked abstract.
-      return listener.unexpected(patch);
-    }
-    patchListener.beginPatch(patch);
-    token = super.parseTopLevelDeclaration(token);
-    patchListener.endPatch(patch);
-    return token;
-  }
-
-  /**
-   * Parse a class member.
-   * If the member starts with "patch", it's a member override.
-   * Only methods can be overridden, including constructors, getters and
-   * setters, but not fields. If "patch" occurs in front of a field, the error
-   * is caught elsewhere.
-   */
-  Token parseMember(Token token) {
-    if (!isPatch(token)) {
-      return super.parseMember(token);
-    }
-    Token patch = token;
-    patchListener.beginPatch(patch);
-    token = super.parseMember(token.next);
-    patchListener.endPatch(patch);
-    return token;
-  }
-}
-
-/**
  * Partial parser for patch files that also handles the members of class
  * declarations.
  */
-class PatchClassElementParser extends PatchParser {
-  PatchClassElementParser(PatchListener listener) : super(listener);
+class PatchClassElementParser extends PartialParser {
+  PatchClassElementParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
@@ -285,39 +220,16 @@ class PatchClassElementParser extends PatchParser {
 /**
  * Extension of [ElementListener] for parsing patch files.
  */
-class PatchElementListener extends ElementListener implements PatchListener {
+class PatchElementListener extends ElementListener implements Listener {
+  final leg.Compiler compiler;
   final LinkBuilder<tree.LibraryTag> imports;
-  bool isMemberPatch = false;
-  bool isClassPatch = false;
 
-  PatchElementListener(leg.DiagnosticListener listener,
+  PatchElementListener(leg.Compiler compiler,
                        CompilationUnitElement patchElement,
                        int idGenerator(),
                        this.imports)
-    : super(listener, patchElement, idGenerator);
-
-  MetadataAnnotation popMetadataHack() {
-    // TODO(ahe): Remove this method.
-    popNode(); // Discard null.
-    return new PatchMetadataAnnotation();
-  }
-
-  void beginPatch(Token token) {
-    if (identical(token.next.stringValue, "class")) {
-      isClassPatch = true;
-    } else {
-      isMemberPatch = true;
-    }
-    handleIdentifier(token);
-  }
-
-  void endPatch(Token token) {
-    if (identical(token.next.stringValue, "class")) {
-      isClassPatch = false;
-    } else {
-      isMemberPatch = false;
-    }
-  }
+    : this.compiler = compiler,
+      super(compiler, patchElement, idGenerator);
 
   /**
     * Allow script tags (import only, the parser rejects the rest for now) in
@@ -331,74 +243,19 @@ class PatchElementListener extends ElementListener implements PatchListener {
   }
 
   void pushElement(Element patch) {
-    if (isMemberPatch || (isClassPatch && patch is ClassElement)) {
-      // Apply patch.
-      patch.addMetadata(popMetadataHack());
+    super.pushElement(patch);
+    if (isPatchElement(compiler, patch)) {
       LibraryElement originLibrary = compilationUnitElement.library;
       assert(originLibrary.isPatched);
       Element origin = originLibrary.localLookup(patch.name);
       patchElement(listener, origin, patch);
     }
-    super.pushElement(patch);
   }
-}
-
-/**
- * Extension of [MemberListener] for parsing patch class bodies.
- */
-class PatchMemberListener extends MemberListener implements PatchListener {
-  bool isMemberPatch = false;
-  bool isClassPatch = false;
-  PatchMemberListener(leg.DiagnosticListener listener,
-                      Element enclosingElement)
-    : super(listener, enclosingElement);
-
-  MetadataAnnotation popMetadataHack() {
-    // TODO(ahe): Remove this method.
-    popNode(); // Discard null.
-    return new PatchMetadataAnnotation();
-  }
-
-  void beginPatch(Token token) {
-    if (identical(token.next.stringValue, "class")) {
-      isClassPatch = true;
-    } else {
-      isMemberPatch = true;
-    }
-    handleIdentifier(token);
-  }
-
-  void endPatch(Token token) {
-    if (identical(token.next.stringValue, "class")) {
-      isClassPatch = false;
-    } else {
-      isMemberPatch = false;
-    }
-  }
-
-  void addMember(Element element) {
-    if (isMemberPatch || (isClassPatch && element is ClassElement)) {
-      element.addMetadata(popMetadataHack());
-    }
-    super.addMember(element);
-  }
-}
-
-// TODO(ahe): Get rid of this class.
-class PatchMetadataAnnotation extends MetadataAnnotationX {
-  final leg.Constant value = null;
-
-  PatchMetadataAnnotation() : super(STATE_DONE);
-
-  tree.Node parseNode(leg.DiagnosticListener listener) => null;
-
-  Token get beginToken => null;
-  Token get endToken => null;
 }
 
 void patchElement(leg.DiagnosticListener listener,
-                   Element origin,
-                   Element patch) {
+                  Element origin,
+                  Element patch) {
   if (origin == null) {
     listener.reportError(
         patch, leg.MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
@@ -546,11 +403,25 @@ void patchFunction(leg.DiagnosticListener listener,
 }
 
 // TODO(johnniwinther): Add unittest when patch is (real) metadata.
-bool isPatchElement(Element element) {
+bool isPatchElement(leg.Compiler compiler, Element element) {
   // TODO(lrn): More checks needed if we introduce metadata for real.
   // In that case, it must have the identifier "native" as metadata.
-  for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
-    if (link.head is PatchMetadataAnnotation) return true;
+  for (Link<MetadataAnnotation> link = element.metadata;
+       !link.isEmpty;
+       link = link.tail) {
+    MetadataAnnotation annotation = link.head;
+    if (annotation.beginToken != null &&
+        annotation.beginToken.next.value == 'patch') {
+      // TODO(johnniwinther): Perform this check in
+      // [Compiler.onLibrariesLoaded].
+      compiler.enqueuer.resolution.addDeferredAction(element, () {
+        annotation.ensureResolved(compiler);
+        if (annotation.value != compiler.patchConstant) {
+          compiler.internalError(annotation, 'Invalid patch annotation.');
+        }
+      });
+      return true;
+    }
   }
   return false;
 }
