@@ -458,6 +458,8 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: Run
 LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
+WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.

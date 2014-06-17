@@ -48,6 +48,9 @@ polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
 web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 
+[ $compiler == none && ($runtime == dartium) && $mode == debug ]
+polymer/test/instance_attrs_test: Skip # Issue 19496
+
 [ $compiler == none && $runtime == dartium && $system == windows ]
 polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
