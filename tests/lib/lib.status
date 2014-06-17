@@ -8,10 +8,6 @@ mirrors/regress_16321_test/01: CompileTimeError # Issue 16351
 [ $checked && $compiler == none && ($runtime == dartium || $runtime == drt) ]
 mirrors/regress_16321_test/01: RunTimeError # Issue 16351
 
-[ $runtime == ContentShellOnAndroid ]
-mirrors/deferred_mirrors_metadata_test: Skip # Times out. Issue 19127
-mirrors/deferred_mirrors_metatarget_test: Skip # Times out. Issue 19127
-
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 convert/ascii_test: Skip # http://dartbug.com/15498
 convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498
@@ -253,37 +249,27 @@ async/timer_not_available_test: SkipByDesign # only meant to test when there is 
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
+async/timer_test: Fail, Pass # Issue 15487
+async/multiple_timer_test: Fail, Pass # Issue 15487
+async/stream_periodic3_test: Fail, Pass # Issue 15487
+async/timer_isolate_test: Fail, Pass # Issue 15487. Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 mirrors/immutable_collections_test: Pass, Slow # Dartium debug uses -O0
 mirrors/mirrors_reader_test: Pass, Slow # Dartium debug uses -O0
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 mirrors/local_isolate_test: Skip # http://dartbug.com/12188
-
-[ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-async/timer_test: Fail, Pass # Issue 15487
-async/multiple_timer_test: Fail, Pass # Issue 15487
-async/stream_periodic3_test: Fail, Pass # Issue 15487
-async/timer_isolate_test: Fail, Pass # Issue 15487
+mirrors/deferred*: Skip # Lazy deferred loading not yet implemented. Issue 19449. Crashes drt in checked mode.
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ $arch == simmips || $arch == mips ]
-convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12025.
-convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
-
-[ $arch == simarm ]
-convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
-convert/utf85_test: Skip  # Pass, Slow Issue 12644.
-
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
-mirrors/deferred*: Skip # Lazy deferred loading not yet implemented. Issue 19449
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-# Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
-async/timer_isolate_test: Fail
+[$compiler == none && $runtime == ContentShellOnAndroid ]
+mirrors/lazy_static_test: Skip # Times out. Issue 19127
+mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
 
 [ $compiler == dart2dart || ($compiler == none && ($runtime == drt || $runtime == dartium || $runtime == vm || $runtime == ContentShellOnAndroid)) ]
 # Deferred loading is not implemented in the VM so the error-handling will never be triggered.
@@ -291,10 +277,6 @@ async/deferred/deferred_fail_to_load_test: Fail
 # Deferred loading is not implemented in the VM so the error-handling will never be triggered.
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/deferred/deferred_in_isolate_test: Fail
-
-[$compiler == none && $runtime == ContentShellOnAndroid ]
-mirrors/lazy_static_test: Skip # Times out. Issue 19127
-mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
 
 [ $compiler == dart2js && $runtime != d8 ]
 async/schedule_microtask_test: Fail # Issue 9002
@@ -320,3 +302,11 @@ mirrors/*deferred*: Skip # Issue 17458
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
+
+[ $arch == simmips || $arch == mips ]
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12025.
+convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
+
+[ $arch == simarm ]
+convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
+convert/utf85_test: Skip  # Pass, Slow Issue 12644.
