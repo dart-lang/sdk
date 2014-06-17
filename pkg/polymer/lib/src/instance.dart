@@ -212,8 +212,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Note: this is observable to support $['someId'] being used in templates.
   // The template is stamped before $ is populated, so we need observation if
   // we want it to be usable in bindings.
-  @reflectable final Map<String, Element> $ =
-      new ObservableMap<String, Element>();
+  final Map<String, dynamic> $ = new ObservableMap<String, dynamic>();
 
   /// Use to override the default syntax for polymer-elements.
   /// By default this will be null, which causes [instanceTemplate] to use
