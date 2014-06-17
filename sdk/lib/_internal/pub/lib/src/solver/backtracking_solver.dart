@@ -487,6 +487,12 @@ class Traverser {
       }
 
       return _traverseDeps(id, new DependencyQueue(_solver, deps));
+    }).catchError((error) {
+      if (error is! PackageNotFoundException) throw error;
+
+      // We can only get here if the lockfile refers to a specific package
+      // version that doesn't exist (probably because it was yanked).
+      throw new NoVersionException(id.name, null, id.version, []);
     });
   }
 

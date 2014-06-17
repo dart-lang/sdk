@@ -218,9 +218,10 @@ Map<String, List<Map>> _servedPackages;
 /// [pubspecs] is a list of unserialized pubspecs representing the packages to
 /// serve.
 ///
-/// Subsequent calls to [servePackages] will add to the set of packages that
-/// are being served. Previous packages will continue to be served.
-void servePackages(List<Map> pubspecs) {
+/// If [replace] is false, subsequent calls to [servePackages] will add to the
+/// set of packages that are being served. Previous packages will continue to be
+/// served. Otherwise, the previous packages will no longer be served.
+void servePackages(List<Map> pubspecs, {bool replace: false}) {
   if (_servedPackages == null || _servedPackageDir == null) {
     _servedPackages = <String, List<Map>>{};
     _servedApiPackageDir = d.dir('packages', []);
@@ -239,6 +240,8 @@ void servePackages(List<Map> pubspecs) {
 
   schedule(() {
     return awaitObject(pubspecs).then((resolvedPubspecs) {
+      if (replace) _servedPackages.clear();
+
       for (var spec in resolvedPubspecs) {
         var name = spec['name'];
         var version = spec['version'];
