@@ -31,6 +31,7 @@ class CodeIndexTable;
 class Debugger;
 class DeoptContext;
 class Error;
+class ExceptionHandlers;
 class Field;
 class Function;
 class GrowableObjectArray;
@@ -50,6 +51,7 @@ class Object;
 class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
+class PcDescriptors;
 class RawInstance;
 class RawArray;
 class RawContext;
@@ -89,12 +91,14 @@ class IsolateVisitor {
   V(Class)                                                                     \
   V(Code)                                                                      \
   V(Error)                                                                     \
+  V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
   V(Function)                                                                  \
   V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
   V(Library)                                                                   \
   V(Object)                                                                    \
+  V(PcDescriptors)                                                             \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \

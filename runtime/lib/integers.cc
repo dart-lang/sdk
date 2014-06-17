@@ -322,7 +322,7 @@ DEFINE_NATIVE_ENTRY(Integer_leftShiftWithMask32, 3) {
     // Shift count is too large..
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(exception);
+    Exceptions::Throw(isolate, exception);
   }
   const Smi& smi_shift_count = Smi::Cast(shift_count);
   const Integer& shift_result = Integer::Handle(
@@ -414,7 +414,7 @@ DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
   // into dart code or allocating any code.
   const Instance& exception =
       Instance::Handle(isolate->object_store()->out_of_memory());
-  Exceptions::Throw(exception);
+  Exceptions::Throw(isolate, exception);
   UNREACHABLE();
   return 0;
 }
@@ -442,7 +442,7 @@ DEFINE_NATIVE_ENTRY(Bigint_shlFromInt, 2) {
   // into dart code or allocating any code.
   const Instance& exception =
       Instance::Handle(isolate->object_store()->out_of_memory());
-  Exceptions::Throw(exception);
+  Exceptions::Throw(isolate, exception);
   UNREACHABLE();
   return 0;
 }

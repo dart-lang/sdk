@@ -358,7 +358,7 @@ const char* BigintOperations::ToDecimalCString(
     // into dart code or allocating any code.
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(exception);
+    Exceptions::Throw(isolate, exception);
     UNREACHABLE();
   }
 

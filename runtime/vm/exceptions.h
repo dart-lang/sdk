@@ -28,8 +28,10 @@ class Exceptions : AllStatic {
  public:
   static const char* kCastErrorDstName;
 
-  static void Throw(const Instance& exception);
-  static void ReThrow(const Instance& exception, const Instance& stacktrace);
+  static void Throw(Isolate* isolate, const Instance& exception);
+  static void ReThrow(Isolate* isolate,
+                      const Instance& exception,
+                      const Instance& stacktrace);
   static void PropagateError(const Error& error);
 
   // Report a Javascript compatibility warning at the call site given by

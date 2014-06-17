@@ -1572,7 +1572,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     // into dart code or allocating any code.
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(exception);
+    Exceptions::Throw(isolate, exception);
     UNREACHABLE();
   }
   if (space == Heap::kNew) {
@@ -16671,7 +16671,7 @@ RawString* String::ConcatAllRange(const Array& strings,
       Isolate* isolate = Isolate::Current();
       const Instance& exception =
           Instance::Handle(isolate->object_store()->out_of_memory());
-      Exceptions::Throw(exception);
+      Exceptions::Throw(isolate, exception);
       UNREACHABLE();
     }
     result_len += str_len;
@@ -17891,7 +17891,7 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
       Isolate* isolate = Isolate::Current();
       const Instance& exception =
           Instance::Handle(isolate->object_store()->out_of_memory());
-      Exceptions::Throw(exception);
+      Exceptions::Throw(isolate, exception);
       UNREACHABLE();
     }
     Grow(new_capacity, space);

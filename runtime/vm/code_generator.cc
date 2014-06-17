@@ -589,15 +589,18 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
 
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
-  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
-  Exceptions::Throw(exception);
+  const Instance& exception =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+  Exceptions::Throw(isolate, exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
-  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& stacktrace = Instance::CheckedHandle(arguments.ArgAt(1));
-  Exceptions::ReThrow(exception, stacktrace);
+  const Instance& exception =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+  const Instance& stacktrace =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(1));
+  Exceptions::ReThrow(isolate, exception, stacktrace);
 }
 
 
@@ -1064,7 +1067,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // into dart code.
     const Instance& exception =
         Instance::Handle(isolate->object_store()->stack_overflow());
-    Exceptions::Throw(exception);
+    Exceptions::Throw(isolate, exception);
     UNREACHABLE();
   }
 

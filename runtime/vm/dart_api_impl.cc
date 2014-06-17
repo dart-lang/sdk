@@ -2698,7 +2698,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(*saved_exception);
+  Exceptions::Throw(isolate, *saved_exception);
   const String& message = String::Handle(
           String::New("Exception was not thrown, internal error"));
   return ApiError::New(message);
@@ -4212,7 +4212,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(*saved_exception);
+  Exceptions::Throw(isolate, *saved_exception);
   return Api::NewError("Exception was not thrown, internal error");
 }
 
@@ -4254,7 +4254,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     saved_exception = &Instance::Handle(raw_exception);
     saved_stacktrace = &Instance::Handle(raw_stacktrace);
   }
-  Exceptions::ReThrow(*saved_exception, *saved_stacktrace);
+  Exceptions::ReThrow(isolate, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
 }
 
