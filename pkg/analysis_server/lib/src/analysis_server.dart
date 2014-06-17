@@ -49,7 +49,9 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    analysisServer.folderMap[contextFolder].context.applyChanges(changeSet);
+    AnalysisContext context = analysisServer.folderMap[contextFolder].context;
+    context.applyChanges(changeSet);
+    analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   @override

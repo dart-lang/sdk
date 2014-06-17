@@ -1586,7 +1586,24 @@ testUpdateContent() {
     });
   });
 
-  test('change on disk', () {
+  test('change on disk, normal', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('library A;');
+    return helper.waitForOperationsFinished().then((_) {
+      // There should be no errors
+      expect(helper.getTestErrors(), hasLength(0));
+      // Change file on disk, adding a syntax error.
+      helper.resourceProvider.modifyFile(helper.testFile, 'library lib');
+      // There should be errors now.
+      return pumpEventQueue().then((_) {
+        return helper.waitForOperationsFinished().then((_) {
+          expect(helper.getTestErrors(), hasLength(1));
+        });
+      });
+    });
+  });
+
+  test('change on disk, during override', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     return helper.waitForOperationsFinished().then((_) {
