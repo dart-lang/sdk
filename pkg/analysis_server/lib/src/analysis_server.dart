@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analysis_server/src/package_uri_resolver.dart';
 
 
 /**
@@ -42,7 +43,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   @override
   void addContext(Folder folder, File pubspecFile) {
     ContextDirectory contextDirectory = new ContextDirectory(
-        analysisServer.defaultSdk, folder, pubspecFile);
+        analysisServer.defaultSdk, resourceProvider, folder, pubspecFile);
     analysisServer.folderMap[folder] = contextDirectory;
     analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
   }
@@ -508,6 +509,11 @@ class AnalysisService extends Enum2<AnalysisService> {
  */
 class ContextDirectory {
   /**
+   * The root [ResourceProvider] of this [ContextDirectory].
+   */
+  final ResourceProvider _resourceProvider;
+
+  /**
    * The root [Folder] of this [ContextDirectory].
    */
   final Folder _folder;
@@ -522,22 +528,50 @@ class ContextDirectory {
    */
   AnalysisContext _context;
 
-  ContextDirectory(DartSdk sdk, this._folder, this._pubspecFile) {
+  ContextDirectory(DartSdk sdk, this._resourceProvider, this._folder,
+      this._pubspecFile) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
-    // TODO(scheglov) create packages resolver
-    _context.sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new FileUriResolver(),
-      // new PackageUriResolver(),
-    ]);
+    List<UriResolver> resolvers = <UriResolver>[new DartUriResolver(sdk),
+        new FileUriResolver(),
+    ];
+    {
+      UriResolver packageResolver = _createPackageUriResolver();
+      if (packageResolver != null) {
+        resolvers.add(packageResolver);
+      }
+    }
+    _context.sourceFactory = new SourceFactory(resolvers);
   }
 
   /**
    * Return the [AnalysisContext] of this folder.
    */
   AnalysisContext get context => _context;
+
+  /**
+   * Returns an [UriResolver] for `package` URIs, or `null` if not a Pub
+   * application.
+   */
+  UriResolver _createPackageUriResolver() {
+    // prepare 'packages' folder
+    Resource packagesResource = _folder.getChild('packages');
+    if (packagesResource is! Folder) {
+      return null;
+    }
+    Folder packagesFolder = packagesResource;
+    // list packages
+    Map<String, Folder> packageMap = <String, Folder>{};
+    List<Resource> children = packagesFolder.getChildren();
+    for (Resource child in children) {
+      if (child is Folder) {
+        packageMap[child.shortName] = child;
+      }
+    }
+    // done
+    return new PackageMapUriResolver(_resourceProvider, packageMap);
+  }
 }
 
 

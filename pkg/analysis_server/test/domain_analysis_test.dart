@@ -15,10 +15,14 @@ import 'package:analysis_server/src/resource.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'analysis_abstract.dart';
+import 'reflective_tests.dart';
 
 
 main() {
   groupSep = ' | ';
+
+  runReflectiveTests(AnalysisDomainTest);
 
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
@@ -1693,4 +1697,40 @@ void test_setSubscriptions() {
       });
     });
   });
+}
+
+
+@ReflectiveTestCase()
+class AnalysisDomainTest extends AbstractAnalysisTest {
+  Map<String, List<AnalysisError>> filesErrors = {};
+
+  void processNotification(Notification notification) {
+    if (notification.event == ANALYSIS_ERRORS) {
+      String file = notification.getParameter(FILE);
+      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
+      filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+    }
+  }
+
+  test_setRoots_packages() {
+    // prepare project with 'packages' folder
+    String pkgFile = '/project/packages/pkgA/libA.dart';
+    resourceProvider.newFile(pkgFile, '''
+library lib_a;
+class A {}
+''');
+    addTestFile('''
+import 'package:pkgA/libA.dart';
+main(A a) {
+}
+''');
+    // create project and wait for analysis
+    createProject();
+    return waitForTasksFinished().then((_) {
+      // if 'package:pkgA/libA.dart' was resolved, then there are no errors
+      expect(filesErrors[testFile], isEmpty);
+      // packages file also was resolved
+      expect(filesErrors[pkgFile], isEmpty);
+    });
+  }
 }

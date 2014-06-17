@@ -28,6 +28,12 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   _NavigationRegion testRegion;
   List<_NavigationTarget> testTargets;
 
+  @override
+  void setUp() {
+    super.setUp();
+    createProject();
+  }
+
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NAVIGATION) {
       String file = notification.getParameter(FILE);

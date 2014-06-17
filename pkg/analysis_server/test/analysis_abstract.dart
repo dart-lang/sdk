@@ -51,8 +51,6 @@ class AbstractAnalysisTest {
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });
-    // create an empty project
-    _createEmptyProject();
   }
 
   void addAnalysisSubscription(AnalysisService service, String file) {
@@ -184,9 +182,9 @@ class AbstractAnalysisTest {
 //  }
 
   /**
-   * Creates an empty project `/project/`.
+   * Creates a project `/project`.
    */
-  void _createEmptyProject() {
+  void createProject() {
     resourceProvider.newFolder(projectPath);
     Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, [projectPath]);

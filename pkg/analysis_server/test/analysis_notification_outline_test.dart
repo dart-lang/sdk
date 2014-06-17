@@ -27,6 +27,12 @@ main() {
 class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   _Outline outline;
 
+  @override
+  void setUp() {
+    super.setUp();
+    createProject();
+  }
+
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_OUTLINE) {
       String file = notification.getParameter(FILE);
