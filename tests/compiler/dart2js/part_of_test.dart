@@ -22,13 +22,11 @@ part of bar;
 ''';
 
 void main() {
-  var compiler = new MockCompiler.internal();
+  MockCompiler compiler = new MockCompiler.internal();
   compiler.registerSource(libraryUri, LIBRARY_SOURCE);
   compiler.registerSource(partUri, PART_SOURCE);
 
-  asyncTest(() =>
-      compiler.libraryLoader.loadLibrary(libraryUri, null, libraryUri).
-      then((_) {
+  asyncTest(() => compiler.libraryLoader.loadLibrary(libraryUri).then((_) {
     print('errors: ${compiler.errors}');
     print('warnings: ${compiler.warnings}');
     Expect.isTrue(compiler.errors.isEmpty);

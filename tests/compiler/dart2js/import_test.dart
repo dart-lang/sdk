@@ -33,7 +33,9 @@ testMissingImports() {
   var compiler = compilerFor(MEMORY_SOURCE_FILES, diagnosticHandler: collector);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.equals(4, collector.errors.length);
-    Expect.equals(1, collector.warnings.length);
+    // TODO(johnniwinther): Expect 1 warning when analysis of programs with load
+    // failures is reenabled.
+    Expect.equals(0, collector.warnings.length);
   }));
 }
 

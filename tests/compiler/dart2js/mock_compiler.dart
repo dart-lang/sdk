@@ -255,6 +255,12 @@ const String DEFAULT_ISOLATE_HELPERLIB = r'''
   var _callInIsolate;
   class _WorkerBase {}''';
 
+const String DEFAULT_MIRRORS = r'''
+class Comment {}
+class MirrorSystem {}
+class MirrorsUsed {}
+''';
+
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
   List<WarningMessage> warnings;
@@ -311,25 +317,16 @@ class MockCompiler extends Compiler {
     registerSource(Compiler.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
     registerSource(Compiler.DART_INTERCEPTORS, interceptorsSource);
     registerSource(Compiler.DART_ISOLATE_HELPER, DEFAULT_ISOLATE_HELPERLIB);
+    registerSource(Compiler.DART_MIRRORS, DEFAULT_MIRRORS);
   }
 
   /// Initialize the mock compiler with an empty main library.
   Future init([String mainSource = ""]) {
     Uri uri = new Uri(scheme: "mock");
     registerSource(uri, mainSource);
-    return libraryLoader.loadLibrary(uri, null, uri)
+    return libraryLoader.loadLibrary(uri)
         .then((LibraryElement library) {
-      coreLibrary = libraries['${Compiler.DART_CORE}'];
-      jsHelperLibrary = libraries['${Compiler.DART_JS_HELPER}'];
-      foreignLibrary = libraries['${Compiler.DART_FOREIGN_HELPER}'];
-      interceptorsLibrary = libraries['${Compiler.DART_INTERCEPTORS}'];
-      isolateHelperLibrary = libraries['${Compiler.DART_ISOLATE_HELPER}'];
-
-      assertMethod = jsHelperLibrary.find('assertHelper');
-      identicalFunction = coreLibrary.find('identical');
-
       mainApp = library;
-      initializeSpecialClasses();
       // We need to make sure the Object class is resolved. When registering a
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class

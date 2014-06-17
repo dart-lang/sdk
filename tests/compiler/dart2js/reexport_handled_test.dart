@@ -24,13 +24,12 @@ export 'exporting.dart';
 ''';
 
 void main() {
-  var compiler;
+  MockCompiler compiler;
   asyncTest(() => MockCompiler.create((MockCompiler c) {
     compiler = c;
     compiler.registerSource(exportingLibraryUri, EXPORTING_LIBRARY_SOURCE);
     compiler.registerSource(reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
-    return compiler.libraryLoader.loadLibrary(
-        exportingLibraryUri, null, exportingLibraryUri);
+    return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
   }).then((exportingLibrary) {
     Expect.isTrue(exportingLibrary.exportsHandled);
     var foo = findInExports(exportingLibrary, 'foo');
@@ -38,8 +37,7 @@ void main() {
     Expect.isTrue(foo.isField);
 
     // Load reexporting library when exports are handled on the exporting library.
-    return compiler.libraryLoader.loadLibrary(
-        reexportingLibraryUri, null, reexportingLibraryUri);
+    return compiler.libraryLoader.loadLibrary(reexportingLibraryUri);
   }).then((reexportingLibrary) {
     var foo = findInExports(reexportingLibrary, 'foo');
     Expect.isNotNull(foo);

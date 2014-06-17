@@ -53,6 +53,11 @@ class FunctionInlineCache {
 }
 
 class JavaScriptBackend extends Backend {
+  static final Uri DART_JS_MIRRORS =
+      new Uri(scheme: 'dart', path: '_js_mirrors');
+  static final Uri DART_JS_NAMES =
+      new Uri(scheme: 'dart', path: '_js_names');
+
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
@@ -469,113 +474,6 @@ class JavaScriptBackend extends Backend {
         operatorEqfunction.enclosingClass);
   }
 
-  void initializeHelperClasses() {
-    getInterceptorMethod = compiler.findInterceptor('getInterceptor');
-    interceptedNames = compiler.findInterceptor('interceptedNames');
-    mapTypeToInterceptor = compiler.findInterceptor('mapTypeToInterceptor');
-    getNativeInterceptorMethod =
-        compiler.findInterceptor('getNativeInterceptor');
-
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
-
-    List<ClassElement> classes = [
-      jsInterceptorClass =
-          compiler.findInterceptor('Interceptor'),
-      jsStringClass = compiler.findInterceptor('JSString'),
-      jsArrayClass = compiler.findInterceptor('JSArray'),
-      // The int class must be before the double class, because the
-      // emitter relies on this list for the order of type checks.
-      jsIntClass = compiler.findInterceptor('JSInt'),
-      jsPositiveIntClass = compiler.findInterceptor('JSPositiveInt'),
-      jsUInt32Class = compiler.findInterceptor('JSUInt32'),
-      jsUInt31Class = compiler.findInterceptor('JSUInt31'),
-      jsDoubleClass = compiler.findInterceptor('JSDouble'),
-      jsNumberClass = compiler.findInterceptor('JSNumber'),
-      jsNullClass = compiler.findInterceptor('JSNull'),
-      jsBoolClass = compiler.findInterceptor('JSBool'),
-      jsMutableArrayClass = compiler.findInterceptor('JSMutableArray'),
-      jsFixedArrayClass = compiler.findInterceptor('JSFixedArray'),
-      jsExtendableArrayClass = compiler.findInterceptor('JSExtendableArray'),
-      jsPlainJavaScriptObjectClass =
-          compiler.findInterceptor('PlainJavaScriptObject'),
-      jsUnknownJavaScriptObjectClass =
-          compiler.findInterceptor('UnknownJavaScriptObject'),
-    ];
-
-    implementationClasses = <ClassElement, ClassElement>{};
-    implementationClasses[compiler.intClass] = jsIntClass;
-    implementationClasses[compiler.boolClass] = jsBoolClass;
-    implementationClasses[compiler.numClass] = jsNumberClass;
-    implementationClasses[compiler.doubleClass] = jsDoubleClass;
-    implementationClasses[compiler.stringClass] = jsStringClass;
-    implementationClasses[compiler.listClass] = jsArrayClass;
-    implementationClasses[compiler.nullClass] = jsNullClass;
-
-    jsIndexableClass = compiler.findInterceptor('JSIndexable');
-    jsMutableIndexableClass = compiler.findInterceptor('JSMutableIndexable');
-
-    // TODO(kasperl): Some tests do not define the special JSArray
-    // subclasses, so we check to see if they are defined before
-    // trying to resolve them.
-    if (jsFixedArrayClass != null) {
-      jsFixedArrayClass.ensureResolved(compiler);
-    }
-    if (jsExtendableArrayClass != null) {
-      jsExtendableArrayClass.ensureResolved(compiler);
-    }
-
-    jsIndexableClass.ensureResolved(compiler);
-    jsIndexableLength = compiler.lookupElementIn(
-        jsIndexableClass, 'length');
-    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
-      AbstractFieldElement element = jsIndexableLength;
-      jsIndexableLength = element.getter;
-    }
-
-    jsArrayClass.ensureResolved(compiler);
-    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
-    jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
-    jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
-
-    jsStringClass.ensureResolved(compiler);
-    jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
-    jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
-    jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
-
-    typeLiteralClass = compiler.findHelper('TypeImpl');
-    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
-    constMapLiteralClass = compiler.findHelper('ConstantMap');
-
-    objectEquals = compiler.lookupElementIn(compiler.objectClass, '==');
-
-    jsIndexingBehaviorInterface =
-        compiler.findHelper('JavaScriptIndexingBehavior');
-
-    specialOperatorEqClasses
-        ..add(compiler.objectClass)
-        ..add(jsInterceptorClass)
-        ..add(jsNullClass);
-
-    validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
-    // The null-interceptor must also implement *all* methods.
-    validateInterceptorImplementsAllObjectMethods(jsNullClass);
-
-    typeVariableClass = compiler.findHelper('TypeVariable');
-
-    indexablePrimitiveType = new TypeMask.nonNullSubtype(jsIndexableClass);
-    readableArrayType = new TypeMask.nonNullSubclass(jsArrayClass);
-    mutableArrayType = new TypeMask.nonNullSubclass(jsMutableArrayClass);
-    fixedArrayType = new TypeMask.nonNullExact(jsFixedArrayClass);
-    extendableArrayType = new TypeMask.nonNullExact(jsExtendableArrayClass);
-    nonNullType = compiler.typesTask.dynamicType.nonNullable();
-
-    noSideEffectsClass = compiler.findHelper('NoSideEffects');
-    noThrowsClass = compiler.findHelper('NoThrows');
-    noInlineClass = compiler.findHelper('NoInline');
-    irRepresentationClass = compiler.findHelper('IrRepresentation');
-  }
-
   void validateInterceptorImplementsAllObjectMethods(
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
@@ -848,6 +746,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
+    assert(compiler.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
@@ -1691,19 +1590,141 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (uri == Uri.parse('dart:_js_mirrors')) {
-      disableTreeShakingMarker =
-          library.find('disableTreeShaking');
-      preserveMetadataMarker =
-          library.find('preserveMetadata');
-    } else if (uri == Uri.parse('dart:_js_names')) {
-      preserveNamesMarker =
-          library.find('preserveNames');
-    } else if (uri == Uri.parse('dart:_js_helper')) {
-      getIsolateAffinityTagMarker =
-          library.find('getIsolateAffinityTag');
+  void onLibraryScanned(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+
+    // TODO(johnniwinther): Assert that the elements are found.
+    VariableElement findVariable(String name) {
+      return library.find(name);
     }
+
+    FunctionElement findMethod(String name) {
+      return library.find(name);
+    }
+
+    ClassElement findClass(String name) {
+      return library.find(name);
+    }
+
+    if (uri == Compiler.DART_INTERCEPTORS) {
+      getInterceptorMethod = findMethod('getInterceptor');
+      interceptedNames = findVariable('interceptedNames');
+      mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
+      getNativeInterceptorMethod = findMethod('getNativeInterceptor');
+
+      List<ClassElement> classes = [
+        jsInterceptorClass = findClass('Interceptor'),
+        jsStringClass = findClass('JSString'),
+        jsArrayClass = findClass('JSArray'),
+        // The int class must be before the double class, because the
+        // emitter relies on this list for the order of type checks.
+        jsIntClass = findClass('JSInt'),
+        jsPositiveIntClass = findClass('JSPositiveInt'),
+        jsUInt32Class = findClass('JSUInt32'),
+        jsUInt31Class = findClass('JSUInt31'),
+        jsDoubleClass = findClass('JSDouble'),
+        jsNumberClass = findClass('JSNumber'),
+        jsNullClass = findClass('JSNull'),
+        jsBoolClass = findClass('JSBool'),
+        jsMutableArrayClass = findClass('JSMutableArray'),
+        jsFixedArrayClass = findClass('JSFixedArray'),
+        jsExtendableArrayClass = findClass('JSExtendableArray'),
+        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
+        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
+      ];
+
+      jsIndexableClass = findClass('JSIndexable');
+      jsMutableIndexableClass = findClass('JSMutableIndexable');
+    } else if (uri == Compiler.DART_JS_HELPER) {
+      typeLiteralClass = findClass('TypeImpl');
+      constMapLiteralClass = findClass('ConstantMap');
+      typeVariableClass = findClass('TypeVariable');
+
+      jsIndexingBehaviorInterface = findClass('JavaScriptIndexingBehavior');
+
+      noSideEffectsClass = findClass('NoSideEffects');
+      noThrowsClass = findClass('NoThrows');
+      noInlineClass = findClass('NoInline');
+      irRepresentationClass = findClass('IrRepresentation');
+    } else if (uri == DART_JS_MIRRORS) {
+      disableTreeShakingMarker = library.find('disableTreeShaking');
+      preserveMetadataMarker = library.find('preserveMetadata');
+    } else if (uri == DART_JS_NAMES) {
+      preserveNamesMarker = library.find('preserveNames');
+    } else if (uri == Compiler.DART_JS_HELPER) {
+      getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
+    }
+  }
+
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    if (!loadedLibraries.containsKey(Compiler.DART_CORE)) {
+      return new Future.value();
+    }
+    assert(loadedLibraries.containsKey(Compiler.DART_CORE));
+    assert(loadedLibraries.containsKey(Compiler.DART_INTERCEPTORS));
+    assert(loadedLibraries.containsKey(Compiler.DART_JS_HELPER));
+
+    // [LinkedHashMap] is reexported from dart:collection and can therefore not
+    // be loaded from dart:core in [onLibraryScanned].
+    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
+
+    implementationClasses = <ClassElement, ClassElement>{};
+    implementationClasses[compiler.intClass] = jsIntClass;
+    implementationClasses[compiler.boolClass] = jsBoolClass;
+    implementationClasses[compiler.numClass] = jsNumberClass;
+    implementationClasses[compiler.doubleClass] = jsDoubleClass;
+    implementationClasses[compiler.stringClass] = jsStringClass;
+    implementationClasses[compiler.listClass] = jsArrayClass;
+    implementationClasses[compiler.nullClass] = jsNullClass;
+
+    // These methods are overwritten with generated versions.
+    inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
+
+    // TODO(kasperl): Some tests do not define the special JSArray
+    // subclasses, so we check to see if they are defined before
+    // trying to resolve them.
+    if (jsFixedArrayClass != null) {
+      jsFixedArrayClass.ensureResolved(compiler);
+    }
+    if (jsExtendableArrayClass != null) {
+      jsExtendableArrayClass.ensureResolved(compiler);
+    }
+
+    jsIndexableClass.ensureResolved(compiler);
+    jsIndexableLength = compiler.lookupElementIn(
+        jsIndexableClass, 'length');
+    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
+      AbstractFieldElement element = jsIndexableLength;
+      jsIndexableLength = element.getter;
+    }
+
+    jsArrayClass.ensureResolved(compiler);
+    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
+    jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
+    jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
+
+    jsStringClass.ensureResolved(compiler);
+    jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
+    jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
+    jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
+
+    objectEquals = compiler.lookupElementIn(compiler.objectClass, '==');
+
+    specialOperatorEqClasses
+        ..add(compiler.objectClass)
+        ..add(jsInterceptorClass)
+        ..add(jsNullClass);
+
+    indexablePrimitiveType = new TypeMask.nonNullSubtype(jsIndexableClass);
+    readableArrayType = new TypeMask.nonNullSubclass(jsArrayClass);
+    mutableArrayType = new TypeMask.nonNullSubclass(jsMutableArrayClass);
+    fixedArrayType = new TypeMask.nonNullExact(jsFixedArrayClass);
+    extendableArrayType = new TypeMask.nonNullExact(jsExtendableArrayClass);
+    nonNullType = compiler.typesTask.dynamicType.nonNullable();
+
+    validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+    // The null-interceptor must also implement *all* methods.
+    validateInterceptorImplementsAllObjectMethods(jsNullClass);
     return new Future.value();
   }
 

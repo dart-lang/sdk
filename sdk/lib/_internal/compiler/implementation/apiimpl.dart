@@ -140,12 +140,6 @@ class Compiler extends leg.Compiler {
     return "lib/$path";
   }
 
-  Future<elements.LibraryElement> scanBuiltinLibrary(String path) {
-    Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
-    Uri canonicalUri = new Uri(scheme: "dart", path: path);
-    return libraryLoader.loadLibrary(uri, null, canonicalUri);
-  }
-
   void log(message) {
     handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }

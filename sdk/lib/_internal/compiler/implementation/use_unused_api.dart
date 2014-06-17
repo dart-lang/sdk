@@ -197,7 +197,6 @@ usedByTests() {
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   world.hasAnyUserDefinedGetter(null);
-  compiler.importHelperLibrary(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);

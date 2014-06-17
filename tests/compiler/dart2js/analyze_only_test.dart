@@ -44,7 +44,7 @@ runCompiler(String main, List<String> options,
   result.then((String code) {
     onValue(code, errors, warnings);
   }, onError: (e) {
-      throw 'Compilation failed';
+    throw 'Compilation failed: ${Error.safeToString(e)}';
   }).then(asyncSuccess);
 }
 

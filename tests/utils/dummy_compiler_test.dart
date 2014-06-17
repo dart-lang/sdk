@@ -12,13 +12,9 @@ import "package:async_helper/async_helper.dart";
 
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
-Future<String> provider(Uri uri) {
-  String source;
-  if (uri.scheme == "main") {
-    source = "main() {}";
-  } else if (uri.scheme == "lib") {
-    if (uri.path.endsWith("/core.dart")) {
-      source = """
+String libProvider(Uri uri) {
+  if (uri.path.endsWith("/core.dart")) {
+    return """
 library core;
 class Object {
   Object();
@@ -50,10 +46,13 @@ setRuntimeTypeInfo(o, i) {}
 eqNull(a) {}
 eqNullB(a) {}
 const proxy = 0;""";
-    } else if (uri.path.endsWith('_patch.dart')) {
-      source = '';
-    } else if (uri.path.endsWith('interceptors.dart')) {
-      source = """
+  } else if (uri.path.endsWith('_patch.dart')) {
+    return """
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_isolate_helper';""";
+  } else if (uri.path.endsWith('interceptors.dart')) {
+    return """
 class Interceptor {
   operator==(other) {}
   get hashCode => throw 'Interceptor.hashCode not implemented.';
@@ -94,15 +93,27 @@ getInterceptor(o){}
 getDispatchProperty(o) {}
 setDispatchProperty(o, v) {}
 var mapTypeToInterceptor;""";
-    } else if (uri.path.endsWith('js_helper.dart')) {
-      source = 'library jshelper; class JSInvocationMirror {} '
-               'class ConstantMap {} class TypeImpl {} '
-               'createRuntimeType(String name) => null;';
-    } else if (uri.path.endsWith('isolate_helper.dart')) {
-      source = 'library isolatehelper; class _WorkerStub {}';
-    } else {
-      source = "library lib${uri.path.replaceAll('/', '.')};";
-    }
+  } else if (uri.path.endsWith('js_helper.dart')) {
+    return """
+library jshelper; class JSInvocationMirror {}
+class ConstantMap {} class TypeImpl {}
+createRuntimeType(String name) => null;
+class Closure {}
+class BoundClosure extends Closure {}
+""";
+  } else if (uri.path.endsWith('isolate_helper.dart')) {
+    return 'library isolatehelper; class _WorkerStub {}';
+  } else {
+    return "library lib${uri.path.replaceAll('/', '.')};";
+  }
+}
+
+Future<String> provider(Uri uri) {
+  String source;
+  if (uri.scheme == "main") {
+    source = "main() {}";
+  } else if (uri.scheme == "lib") {
+    source = libProvider(uri);
   } else {
    throw "unexpected URI $uri";
   }

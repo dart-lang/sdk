@@ -7,66 +7,8 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'dart:async';
+import 'dummy_compiler_test.dart';
 import '../../sdk/lib/_internal/compiler/compiler.dart';
-
-const CORE_LIB = """
-library core;
-class Object {
-  const Object();
-  operator==(other) {}
-}
-class bool {}
-class num {}
-class int {}
-class double{}
-class String{}
-class Function{}
-class List {}
-class Map {}
-class BoundClosure {}
-class Closure {}
-class Dynamic_ {}
-class Type {}
-class Null {}
-class StackTrace {}
-class LinkedHashMap {}
-getRuntimeTypeInfo(o) {}
-setRuntimeTypeInfo(o, i) {}
-eqNull(a) {}
-eqNullB(a) {}
-class JSInvocationMirror {}  // Should be in helper.
-class _Proxy { const _Proxy(); }
-const proxy = const _Proxy();
-""";
-
-const INTERCEPTORS_LIB = """
-library interceptors;
-class JSIndexable {
-  get length {}
-}
-class JSMutableIndexable {}
-class JSArray {
-  JSArray() {}
-  factory JSArray.typed(a) => a;
-  removeLast() => null;
-  add(x) { }
-}
-class JSMutableArray extends JSArray {}
-class JSExtendableArray extends JSMutableArray {}
-class JSFixedArray extends JSMutableArray {}
-class JSString {
-  split(x) => null;
-  concat(x) => null;
-  toString() => null;
-  operator+(other) => null;
-}
-class JSNull {
-  bool operator ==(other) => identical(null, other);
-  int get hashCode => 0;
-}
-class JSBool {
-}
-""";
 
 const String RECURSIVE_MAIN = """
 library fisk;
@@ -86,17 +28,7 @@ main() {
       count++;
       source = RECURSIVE_MAIN;
     } else if (uri.scheme == "lib") {
-      if (uri.path.endsWith("/core.dart")) {
-        source = CORE_LIB;
-      } else if (uri.path.endsWith('_patch.dart')) {
-        source = '';
-      } else if (uri.path.endsWith('isolate_helper.dart')) {
-        source = 'class _WorkerStub {}';
-      } else if (uri.path.endsWith('interceptors.dart')) {
-        source = INTERCEPTORS_LIB;
-      } else {
-        source = "library lib${uri.path.replaceAll('/', '.')};";
-      }
+      source = libProvider(uri);
     } else {
      return new Future.error("unexpected URI $uri");
     }

@@ -397,7 +397,18 @@ abstract class Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
+  /// This method is called immediately after the [LibraryElement] [library] has
+  /// been created.
+  void onLibraryCreated(LibraryElement library) {}
+
+  /// This method is called immediately after the [library] and its parts have
+  /// been scanned.
+  void onLibraryScanned(LibraryElement library) {}
+
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
     return new Future.value();
   }
 
@@ -480,6 +491,13 @@ abstract class Compiler implements DiagnosticListener {
       new Uri(scheme: 'dart', path: '_foreign_helper');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri DART_MIRRORS = new Uri(scheme: 'dart', path: 'mirrors');
+  static final Uri DART_NATIVE_TYPED_DATA =
+      new Uri(scheme: 'dart', path: '_native_typed_data');
+  static final Uri DART_INTERNAL = new Uri(scheme: 'dart', path: '_internal');
+  static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
+
+  // TODO(johnniwinther): Change to map from [Uri] to [LibraryElement].
   final Map<String, LibraryElement> libraries =
     new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();
@@ -600,6 +618,8 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement coreLibrary;
   LibraryElement isolateLibrary;
   LibraryElement isolateHelperLibrary;
+  // TODO(johnniwinther): Move JavaScript specific libraries to the JavaScript
+  // backend.
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
@@ -797,7 +817,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
-            this.disableTypeInferenceFlag: false,
+            bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
@@ -820,7 +840,9 @@ abstract class Compiler implements DiagnosticListener {
             this.suppressWarnings: false,
             outputProvider,
             List<String> strips: const []})
-      : this.analyzeOnly =
+      : this.disableTypeInferenceFlag =
+          disableTypeInferenceFlag || !emitJavaScript,
+        this.analyzeOnly =
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.analyzeAllFlag = analyzeAllFlag,
@@ -828,6 +850,7 @@ abstract class Compiler implements DiagnosticListener {
             ? NullSink.outputProvider
             : outputProvider {
     world = new World(this);
+    types = new Types(this);
     tracer = new Tracer(this.outputProvider);
 
     closureMapping.ClosureNamer closureNamer;
@@ -986,35 +1009,89 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasIsolateSupport() => isolateLibrary != null;
 
-  /**
-   * This method is called before [library] import and export scopes have been
-   * set up.
-   */
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
-      mirrorsLibrary = library;
-      mirrorSystemClass =
-          findRequiredElement(library, 'MirrorSystem');
-      mirrorsUsedClass =
-          findRequiredElement(library, 'MirrorsUsed');
-    } else if (uri == new Uri(scheme: 'dart', path: '_native_typed_data')) {
-      typedDataLibrary = library;
-      typedDataClass =
-          findRequiredElement(library, 'NativeTypedData');
-    } else if (uri == new Uri(scheme: 'dart', path: '_internal')) {
-      symbolImplementationClass =
-          findRequiredElement(library, 'Symbol');
-    } else if (uri == new Uri(scheme: 'dart', path: 'async')) {
-      deferredLibraryClass =
-          findRequiredElement(library, 'DeferredLibrary');
-    } else if (isolateHelperLibrary == null
-	       && (uri == new Uri(scheme: 'dart', path: '_isolate_helper'))) {
-      isolateHelperLibrary = library;
-    } else if (foreignLibrary == null
-	       && (uri == new Uri(scheme: 'dart', path: '_foreign_helper'))) {
+  /// This method is called immediately after the [LibraryElement] [library] has
+  /// been created.
+  ///
+  /// Use this callback method to store references to specific libraries.
+  /// Note that [library] has not been scanned yet, nor has its imports/exports
+  /// been resolved.
+  void onLibraryCreated(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+    if (uri == DART_CORE) {
+      coreLibrary = library;
+    } else if (uri == DART_JS_HELPER) {
+      jsHelperLibrary = library;
+    } else if (uri == DART_INTERCEPTORS) {
+      interceptorsLibrary = library;
+    } else if (uri == DART_FOREIGN_HELPER) {
       foreignLibrary = library;
+    } else if (uri == DART_ISOLATE_HELPER) {
+      isolateHelperLibrary = library;
+    } else if (uri == DART_NATIVE_TYPED_DATA) {
+      typedDataLibrary = library;
+    } else if (uri == DART_MIRRORS) {
+      mirrorsLibrary = library;
     }
-    return backend.onLibraryLoaded(library, uri);
+    backend.onLibraryCreated(library);
+  }
+
+  /// This method is called immediately after the [library] and its parts have
+  /// been scanned.
+  ///
+  /// Use this callback method to store references to specific member declared
+  /// in certain libraries. Note that [library] has not been patched yet, nor
+  /// has its imports/exports been resolved.
+  void onLibraryScanned(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+    if (uri == DART_CORE) {
+      initializeCoreClasses();
+      identicalFunction = coreLibrary.find('identical');
+    } else if (uri == DART_JS_HELPER) {
+      initializeHelperClasses();
+      assertMethod = jsHelperLibrary.find('assertHelper');
+    } else if (uri == DART_INTERNAL) {
+      symbolImplementationClass = findRequiredElement(library, 'Symbol');
+    } else if (uri == DART_MIRRORS) {
+      mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
+      mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
+    } else if (uri == DART_ASYNC) {
+      deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
+    } else if (uri == DART_NATIVE_TYPED_DATA) {
+      typedDataClass = findRequiredElement(library, 'NativeTypedData');
+    }
+    backend.onLibraryScanned(library);
+  }
+
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
+  ///
+  /// [loadedLibraries] contains the newly loaded libraries.
+  ///
+  /// The method returns a [Future] allowing for the loading of additional
+  /// libraries.
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    return new Future.sync(() {
+      if (!loadedLibraries.containsKey(DART_CORE)) return new Future.value();
+
+      functionClass.ensureResolved(this);
+      functionApplyMethod = functionClass.lookupLocalMember('apply');
+
+      proxyConstant =
+          resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+
+      if (jsInvocationMirrorClass != null) {
+        jsInvocationMirrorClass.ensureResolved(this);
+        invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+      }
+
+      if (preserveComments) {
+        return libraryLoader.loadLibrary(DART_MIRRORS)
+            .then((LibraryElement libraryElement) {
+          documentClass = libraryElement.find('Comment');
+        });
+      }
+    }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -1048,9 +1125,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  Future<LibraryElement> scanBuiltinLibrary(String filename);
-
-  void initializeSpecialClasses() {
+  void initializeCoreClasses() {
     final List missingCoreClasses = [];
     ClassElement lookupCoreClass(String name) {
       ClassElement result = coreLibrary.find(name);
@@ -1081,7 +1156,9 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): It is possible that we have to require the presence
     // of Symbol as we change how we implement noSuchMethod.
     symbolClass = lookupCoreClass('Symbol');
+  }
 
+  void initializeHelperClasses() {
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
       ClassElement result = jsHelperLibrary.find(name);
@@ -1098,14 +1175,6 @@ abstract class Compiler implements DiagnosticListener {
           'dart:_js_helper library does not contain required classes: '
           '$missingHelperClasses');
     }
-
-    if (types == null) {
-      types = new Types(this);
-    }
-    backend.initializeHelperClasses();
-
-    proxyConstant =
-        resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
   }
 
   Element _unnamedListConstructor;
@@ -1126,40 +1195,6 @@ abstract class Compiler implements DiagnosticListener {
         listClass.lookupConstructor(callConstructor);
   }
 
-  Future scanBuiltinLibraries() {
-    return scanBuiltinLibrary('_js_helper').then((LibraryElement library) {
-      jsHelperLibrary = library;
-      return scanBuiltinLibrary('_interceptors');
-    }).then((LibraryElement library) {
-      interceptorsLibrary = library;
-
-      assertMethod = jsHelperLibrary.find('assertHelper');
-      identicalFunction = coreLibrary.find('identical');
-
-      initializeSpecialClasses();
-
-      functionClass.ensureResolved(this);
-      functionApplyMethod =
-          functionClass.lookupLocalMember('apply');
-      jsInvocationMirrorClass.ensureResolved(this);
-      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
-
-      if (preserveComments) {
-        var uri = new Uri(scheme: 'dart', path: 'mirrors');
-        return libraryLoader.loadLibrary(uri, null, uri).then(
-            (LibraryElement libraryElement) {
-          documentClass = libraryElement.find('Comment');
-        });
-      }
-    });
-  }
-
-  void importHelperLibrary(LibraryElement library) {
-    if (jsHelperLibrary != null) {
-      libraryLoader.importLibrary(library, jsHelperLibrary, null);
-    }
-  }
-
   /**
    * Get an [Uri] pointing to a patch for the dart: library with
    * the given path. Returns null if there is no patch.
@@ -1176,11 +1211,11 @@ abstract class Compiler implements DiagnosticListener {
     TypedSelector.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly);
-    return scanBuiltinLibraries().then((_) {
+    return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
           log('Analyzing $libraryUri ($buildId)');
-          return libraryLoader.loadLibrary(libraryUri, null, libraryUri);
+          return libraryLoader.loadLibrary(libraryUri);
         });
       }
     }).then((_) {
@@ -1190,13 +1225,16 @@ abstract class Compiler implements DiagnosticListener {
         } else {
           log('Compiling $uri ($buildId)');
         }
-        return libraryLoader.loadLibrary(uri, null, uri)
-            .then((LibraryElement library) {
+        return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
           mainApp = library;
         });
       }
     }).then((_) {
-      compileLoadedLibraries();
+      if (!compilationFailed) {
+        // TODO(johnniwinther): Reenable analysis of programs with load failures
+        // when these are handled as erroneous libraries/compilation units.
+        compileLoadedLibraries();
+      }
     });
   }
 

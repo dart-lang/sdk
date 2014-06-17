@@ -440,8 +440,11 @@ abstract class Enqueuer {
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
-    registerInstantiatedClass(compiler.closureClass,
-                              compiler.globalDependencies);
+    if (compiler.closureClass != null) {
+      // TODO(johnniwinther): Move this to the JavaScript backend.
+      registerInstantiatedClass(compiler.closureClass,
+                                compiler.globalDependencies);
+    }
     universe.staticFunctionsNeedingGetter.add(element);
   }
 

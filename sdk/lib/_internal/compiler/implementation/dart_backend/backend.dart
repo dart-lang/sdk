@@ -461,10 +461,13 @@ class DartBackend extends Backend {
 
   log(String message) => compiler.log('[DartBackend] $message');
 
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (useMirrorHelperLibrary && library == compiler.mirrorsLibrary) {
-      return compiler.scanBuiltinLibrary(
-          MirrorRenamer.MIRROR_HELPER_LIBRARY_NAME).
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    if (useMirrorHelperLibrary &&
+        loadedLibraries.containsKey(Compiler.DART_MIRRORS)) {
+      return compiler.libraryLoader.loadLibrary(
+          compiler.translateResolvedUri(
+              loadedLibraries[Compiler.DART_MIRRORS],
+              MirrorRenamer.DART_MIRROR_HELPER, null)).
           then((LibraryElement element) {
         mirrorHelperLibrary = element;
         mirrorHelperGetNameFunction = mirrorHelperLibrary.find(

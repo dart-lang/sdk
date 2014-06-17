@@ -48,14 +48,14 @@ class TestCompiler extends apiimpl.Compiler {
     return super.run(uri);
   }
 
-  Future scanBuiltinLibraries() {
-    test('Compiler.scanBuiltinLibraries');
-    return super.scanBuiltinLibraries();
+  void onLibraryScanned(LibraryElement element) {
+    test('Compiler.onLibraryScanned');
+    super.onLibraryScanned(element);
   }
 
-  void initializeSpecialClasses() {
-    test('Compiler.initializeSpecialClasses');
-    super.initializeSpecialClasses();
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    test('Compiler.onLibrariesLoaded');
+    return super.onLibrariesLoaded(loadedLibraries);
   }
 
   TreeElements analyzeElement(Element element) {
@@ -248,8 +248,8 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.scanBuiltinLibraries': beforeRun,
-    'Compiler.initializeSpecialClasses': beforeRun,
+    'Compiler.onLibraryScanned': beforeRun,
+    'Compiler.onLibrariesLoaded': beforeRun,
     'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.analyzeElement': duringRun,

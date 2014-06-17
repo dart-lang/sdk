@@ -7,12 +7,12 @@ import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import 'mirror_system_helper.dart';
 
-void validateDeclarationComment(String code,
+Future validateDeclarationComment(String code,
                                 String text,
                                 String trimmedText,
                                 bool isDocComment,
                                 List<Symbol> declarationNames) {
-  asyncTest(() => createMirrorSystem(code).then((mirrors) {
+  return createMirrorSystem(code).then((mirrors) {
     LibraryMirror library = mirrors.libraries[SOURCE_URI];
     Expect.isNotNull(library);
     for (Symbol declarationName in declarationNames) {
@@ -27,42 +27,60 @@ void validateDeclarationComment(String code,
       Expect.equals(trimmedText, commentMetadata.trimmedText);
       Expect.equals(isDocComment, commentMetadata.isDocComment);
     }
-  }));
+  });
 }
 
-void testDeclarationComment(String declaration, List<Symbol> declarationNames) {
-  String text = 'Single line comment';
-  String comment = '// $text';
-  String code = '$comment\n$declaration';
-  validateDeclarationComment(code, comment, text, false, declarationNames);
-
-  comment = '/// $text';
-  code = '$comment\n$declaration';
-  validateDeclarationComment(code, comment, text, true, declarationNames);
-
-  text = 'Multiline comment';
-  comment = '/* $text*/';
-  code = '$comment$declaration';
-  validateDeclarationComment(code, comment, text, false, declarationNames);
-
-  comment = '/** $text*/';
-  code = '$comment$declaration';
-  validateDeclarationComment(code, comment, text, true, declarationNames);
+Future testDeclarationComment(String declaration,
+                              List<Symbol> declarationNames) {
+  return Future.forEach([
+    () {
+      String text = 'Single line comment';
+      String comment = '// $text';
+      String code = '$comment\n$declaration';
+      return validateDeclarationComment(
+          code, comment, text, false, declarationNames);
+    },
+    () {
+      String text = 'Single line comment';
+      String comment = '/// $text';
+      String code = '$comment\n$declaration';
+      return validateDeclarationComment(
+          code, comment, text, true, declarationNames);
+    },
+    () {
+      String text = 'Multiline comment';
+      String comment = '/* $text*/';
+      String code = '$comment$declaration';
+      return validateDeclarationComment(
+          code, comment, text, false, declarationNames);
+    },
+    () {
+      String text = 'Multiline comment';
+      String comment = '/** $text*/';
+      String code = '$comment$declaration';
+      return validateDeclarationComment(
+          code, comment, text, true, declarationNames);
+    },
+  ], (f) => f());
 }
 
 void main() {
-  testDeclarationComment('var field;', [#field]);
-  testDeclarationComment('int field;', [#field]);
-  testDeclarationComment('int field = 0;', [#field]);
-  testDeclarationComment('int field1, field2;', [#field1, #field2]);
-  testDeclarationComment('final field = 0;', [#field]);
-  testDeclarationComment('final int field = 0;', [#field]);
-  testDeclarationComment('final field1 = 0, field2 = 0;', [#field1, #field2]);
-  testDeclarationComment('final int field1 = 0, field2 = 0;',
-                         [#field1, #field2]);
-  testDeclarationComment('const field = 0;', [#field]);
-  testDeclarationComment('const int field = 0;', [#field]);
-  testDeclarationComment('const field1 = 0, field2 = 0;', [#field1, #field2]);
-  testDeclarationComment('const int field1 = 0, field2 = 0;',
-                         [#field1, #field2]);
+  asyncTest(() => Future.forEach([
+    () => testDeclarationComment('var field;', [#field]),
+    () => testDeclarationComment('int field;', [#field]),
+    () => testDeclarationComment('int field = 0;', [#field]),
+    () => testDeclarationComment('int field1, field2;', [#field1, #field2]),
+    () => testDeclarationComment('final field = 0;', [#field]),
+    () => testDeclarationComment('final int field = 0;', [#field]),
+    () => testDeclarationComment('final field1 = 0, field2 = 0;',
+                                 [#field1, #field2]),
+    () => testDeclarationComment('final int field1 = 0, field2 = 0;',
+                                 [#field1, #field2]),
+    () => testDeclarationComment('const field = 0;', [#field]),
+    () => testDeclarationComment('const int field = 0;', [#field]),
+    () => testDeclarationComment('const field1 = 0, field2 = 0;',
+                                 [#field1, #field2]),
+    () => testDeclarationComment('const int field1 = 0, field2 = 0;',
+                                 [#field1, #field2]),
+  ], (f) => f()));
 }

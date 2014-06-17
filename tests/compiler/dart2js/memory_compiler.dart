@@ -127,7 +127,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri script = Uri.base.resolveUri(Platform.script);
   if (packageRoot == null) {
-    packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
+    packageRoot = Uri.base.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   }
 
   MemorySourceFileProvider provider;
@@ -166,12 +166,18 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   if (cachedCompiler != null) {
     compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
     compiler.types = cachedCompiler.types.copy(compiler);
+    Map copiedLibraries = {};
     cachedCompiler.libraries.forEach((String uri, library) {
       if (library.isPlatformLibrary) {
+        compiler.onLibraryCreated(library);
         compiler.libraries[uri] = library;
-        compiler.onLibraryLoaded(library, library.canonicalUri);
+        compiler.onLibraryScanned(library);
+        copiedLibraries[library.canonicalUri] = library;
       }
     });
+    // TODO(johnniwinther): Assert that no libraries are loaded lazily from
+    // this call.
+    compiler.onLibrariesLoaded(copiedLibraries);
 
     compiler.symbolConstructor = cachedCompiler.symbolConstructor;
     compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
@@ -224,7 +230,8 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                       List<String> options: const [],
                                       bool showDiagnostics: true}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
+  Uri packageRoot = Uri.base.resolveUri(
+      new Uri.file('${Platform.packageRoot}/'));
   Uri script = Uri.base.resolveUri(Platform.script);
 
   var provider = new MemorySourceFileProvider(memorySourceFiles);

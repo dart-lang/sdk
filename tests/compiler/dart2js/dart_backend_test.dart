@@ -44,6 +44,13 @@ identical(a, b) => true;
 const proxy = 0;
 ''';
 
+const corePatch = r'''
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_isolate_helper';
+import 'dart:_foreign_helper';
+''';
+
 const ioLib = r'''
 library io;
 class Platform {
@@ -67,6 +74,8 @@ const helperLib = r'''
 library js_helper;
 class JSInvocationMirror {}
 assertHelper(a) {}
+class Closure {}
+class BoundClosure {}
 ''';
 
 const foreignLib = r'''
@@ -107,7 +116,9 @@ testDart2DartWithLibrary(
     }
     if (uri.path.endsWith('/core.dart')) {
       return new Future.value(coreLib);
-    } else  if (uri.path.endsWith('/io.dart')) {
+    } else if (uri.path.endsWith('/core_patch.dart')) {
+      return new Future.value(corePatch);
+    } else if (uri.path.endsWith('/io.dart')) {
       return new Future.value(ioLib);
     } else if (uri.path.endsWith('/js_helper.dart')) {
       return new Future.value(helperLib);
