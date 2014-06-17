@@ -92,7 +92,7 @@ abstract class PolymerEventBindings {
 
 
 class _EventBindable extends Bindable {
-  final StreamSubscription _sub;
+  StreamSubscription _sub;
   final String _path;
 
   _EventBindable(this._sub, this._path);
