@@ -263,12 +263,12 @@ class Heap {
     Heap::GCReason reason_;
 
     class Data : public ValueObject {
-    public:
+     public:
       Data() {}
       int64_t micros_;
       SpaceUsage new_;
       SpaceUsage old_;
-    private:
+     private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
@@ -288,7 +288,7 @@ class Heap {
   static const intptr_t kNewAllocatableSize = 256 * KB;
 
   Heap(Isolate* isolate,
-       intptr_t max_new_gen_words,
+       intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
   uword AllocateNew(intptr_t size);

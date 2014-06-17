@@ -30,12 +30,11 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, new_gen_heap_size, 8 << kWordSizeLog2,
-            "new gen heap size in MB,"
-            "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
+DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
+            "Max size of new gen semi space in MB");
 DEFINE_FLAG(int, old_gen_heap_size, Heap::kHeapSizeInMB,
-            "old gen heap size in MB,"
-            "e.g: --old_gen_heap_size=1024 allocates a 1024MB old gen heap");
+            "Max size of old gen heap size in MB,"
+            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
@@ -214,7 +213,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
   Heap::Init(isolate,
-             FLAG_new_gen_heap_size * MBInWords,
+             FLAG_new_gen_semi_max_size * MBInWords,
              FLAG_old_gen_heap_size * MBInWords);
   ObjectIdRing::Init(isolate);
   ObjectStore::Init(isolate);

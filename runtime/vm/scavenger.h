@@ -34,7 +34,7 @@ class SemiSpace {
 
   // Get a space of the given size. Returns NULL on out of memory. If size is 0,
   // returns an empty space: pointer(), start() and end() all return NULL.
-  static SemiSpace* New(intptr_t size);
+  static SemiSpace* New(intptr_t size_in_words);
 
   // Hand back an unused space.
   void Delete();
@@ -42,7 +42,9 @@ class SemiSpace {
   void* pointer() const { return region_.pointer(); }
   uword start() const { return region_.start(); }
   uword end() const { return region_.end(); }
-  intptr_t size() const { return static_cast<intptr_t>(region_.size()); }
+  intptr_t size_in_words() const {
+    return static_cast<intptr_t>(region_.size()) >> kWordSizeLog2;
+  }
   bool Contains(uword address) const { return region_.Contains(address); }
 
   // Set write protection mode for this space. The space must not be protected
@@ -109,7 +111,9 @@ class ScavengeStats {
 
 class Scavenger {
  public:
-  Scavenger(Heap* heap, intptr_t max_capacity_in_words, uword object_alignment);
+  Scavenger(Heap* heap,
+            intptr_t max_semi_capacity_in_words,
+            uword object_alignment);
   ~Scavenger();
 
   // Check whether this Scavenger contains this address.
@@ -161,7 +165,7 @@ class Scavenger {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
   intptr_t CapacityInWords() const {
-    return to_->size() >> kWordSizeLog2;
+    return to_->size_in_words();
   }
   intptr_t ExternalInWords() const {
     return external_size_ >> kWordSizeLog2;
@@ -265,6 +269,8 @@ class Scavenger {
 
   void ProcessWeakTables();
 
+  intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
+
   SemiSpace* from_;
   SemiSpace* to_;
 
@@ -281,6 +287,8 @@ class Scavenger {
 
   // Objects below this address have survived a scavenge.
   uword survivor_end_;
+
+  intptr_t max_semi_capacity_in_words_;
 
   // All object are aligned to this value.
   uword object_alignment_;

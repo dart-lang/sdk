@@ -25,6 +25,9 @@ namespace dart {
 DEFINE_FLAG(int, early_tenuring_threshold, 66,
             "When more than this percentage of promotion candidates survive, "
             "promote all survivors of next scavenge.");
+DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
+            "Grow new gen when less than this percentage is garbage.");
+DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -318,7 +321,7 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), 0xf3, size());
+    memset(reserved_->address(), 0xf3, size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
@@ -336,26 +339,28 @@ void SemiSpace::InitOnce() {
 }
 
 
-SemiSpace* SemiSpace::New(intptr_t size) {
+SemiSpace* SemiSpace::New(intptr_t size_in_words) {
   {
     MutexLocker locker(mutex_);
-    if (cache_ != NULL && cache_->size() == size) {
+    // TODO(koda): Cache one entry per size.
+    if (cache_ != NULL && cache_->size_in_words() == size_in_words) {
       SemiSpace* result = cache_;
       cache_ = NULL;
       return result;
     }
   }
-  if (size == 0) {
+  if (size_in_words == 0) {
     return new SemiSpace(NULL);
   } else {
-    VirtualMemory* reserved = VirtualMemory::Reserve(size);
+    intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
+    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
     if ((reserved == NULL) || !reserved->Commit(VirtualMemory::kReadWrite)) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
       delete reserved;
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), 0xf3, size);
+    memset(reserved->address(), 0xf3, size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
   }
@@ -383,9 +388,10 @@ void SemiSpace::WriteProtect(bool read_only) {
 
 
 Scavenger::Scavenger(Heap* heap,
-                     intptr_t max_capacity_in_words,
+                     intptr_t max_semi_capacity_in_words,
                      uword object_alignment)
     : heap_(heap),
+      max_semi_capacity_in_words_(max_semi_capacity_in_words),
       object_alignment_(object_alignment),
       scavenging_(false),
       gc_time_micros_(0),
@@ -395,8 +401,10 @@ Scavenger::Scavenger(Heap* heap,
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
 
-  const intptr_t semi_space_size = (max_capacity_in_words / 2) * kWordSize;
-  to_ = SemiSpace::New(semi_space_size);
+  // Set initial size resulting in a total of three different levels.
+  const intptr_t initial_semi_capacity_in_words = max_semi_capacity_in_words /
+      (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
+  to_ = SemiSpace::New(initial_semi_capacity_in_words);
   if (to_ == NULL) {
     FATAL("Out of memory.\n");
   }
@@ -418,6 +426,20 @@ Scavenger::~Scavenger() {
 }
 
 
+intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
+  if (stats_history_.Size() == 0) {
+    return old_size_in_words;
+  }
+  double garbage = stats_history_.Get(0).GarbageFraction();
+  if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+    return Utils::Minimum(max_semi_capacity_in_words_,
+                          old_size_in_words * FLAG_new_gen_growth_factor);
+  } else {
+    return old_size_in_words;
+  }
+}
+
+
 void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
@@ -425,8 +447,7 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   from_ = to_;
-  // TODO(koda): Use stats_history_ to decide new to-space size.
-  to_ = SemiSpace::New(from_->size());
+  to_ = SemiSpace::New(NewSizeInWords(from_->size_in_words()));
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
