@@ -11,6 +11,8 @@
   -->
   <head>
     <title>event handlers</title>
+    <script src="packages/web_components/platform.js"></script>
+    <script src="packages/web_components/dart_support.js"></script>
     <link rel="import" href="packages/polymer/polymer.html">
     <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
   </head>
@@ -23,10 +25,8 @@
   <polymer-element name="x-test" on-tap="{{hostTapAction}}">
     <template>
       <style>
-        @host {
-          * {
-            display: block;
-          }
+        :host {
+          display: block;
         }
         .gradient {
           background: -webkit-gradient(linear, left top, left bottom,
@@ -45,11 +45,10 @@
            on-scroll="{{scrollAction}}">
         <div class="gradient">
           <template repeat="{{list1}}">
-            <div class="list1" on-tap="{{itemTapAction}}">a {{index}}</div>
+            <div class="list1" on-tap="{{itemTapAction}}">{{index}}</div>
           </template>
           <template repeat="{{item in list2}}">
-            <div class="list2"
-                on-tap="{{@item.itemTapAction}}">b {{item.index}}</div>
+            <div class="list2" on-tap="{{itemTapAction}}">{{item.index}}</div>
           </template>
         </div>
       </div>

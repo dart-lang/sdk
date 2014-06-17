@@ -178,17 +178,19 @@ void _processBindings(Node node, _InstanceBindingMap map, model,
     [List<Bindable> instanceBindings]) {
 
   final bindings = map.bindings;
+  final nodeExt = nodeBind(node);
   for (var i = 0; i < bindings.length; i += 2) {
     var name = bindings[i];
     var tokens = bindings[i + 1];
 
     var value = _processBinding(name, tokens, node, model);
-    var binding = nodeBind(node).bind(name, value, oneTime: tokens.onlyOneTime);
+    var binding = nodeExt.bind(name, value, oneTime: tokens.onlyOneTime);
     if (binding != null && instanceBindings != null) {
       instanceBindings.add(binding);
     }
   }
 
+  nodeExt.bindFinished();
   if (map is! _TemplateBindingMap) return;
 
   final templateExt = nodeBindFallback(node);
@@ -206,11 +208,7 @@ void _processBindings(Node node, _InstanceBindingMap map, model,
 class _TemplateIterator extends Bindable {
   final TemplateBindExtension _templateExt;
 
-  /**
-   * Flattened array of tuples:
-   * <instanceTerminatorNode, [bindingsSetupByInstance]>
-   */
-  final List _terminators = [];
+  final List<DocumentFragment> _instances = [];
 
   /** A copy of the last rendered [_presentValue] list state. */
   final List _iteratedValue = [];
@@ -332,62 +330,49 @@ class _TemplateIterator extends Bindable {
         _presentValue != null ? _presentValue : []));
   }
 
-  Node _getTerminatorAt(int index) {
+  Node _getLastInstanceNode(int index) {
     if (index == -1) return _templateElement;
-    var terminator = _terminators[index * 2];
+    // TODO(jmesserly): we could avoid this expando lookup by caching the
+    // instance extension instead of the instance.
+    var instance = _instanceExtension[_instances[index]];
+    var terminator = instance._terminator;
+    if (terminator == null) return _getLastInstanceNode(index - 1);
+
     if (!isSemanticTemplate(terminator) ||
         identical(terminator, _templateElement)) {
       return terminator;
     }
 
-    var subIter = templateBindFallback(terminator)._iterator;
-    if (subIter == null) return terminator;
+    var subtemplateIterator = templateBindFallback(terminator)._iterator;
+    if (subtemplateIterator == null) return terminator;
 
-    return subIter._getTerminatorAt(subIter._terminators.length ~/ 2 - 1);
+    return subtemplateIterator._getLastTemplateNode();
   }
 
-  // TODO(rafaelw): If we inserting sequences of instances we can probably
-  // avoid lots of calls to _getTerminatorAt(), or cache its result.
-  void _insertInstanceAt(int index, DocumentFragment fragment,
-        List<Node> instanceNodes, List<Bindable> instanceBindings) {
+  Node _getLastTemplateNode() => _getLastInstanceNode(_instances.length - 1);
 
-    var previousTerminator = _getTerminatorAt(index - 1);
-    var terminator = null;
-    if (fragment != null) {
-      terminator = fragment.lastChild;
-    } else if (instanceNodes != null && instanceNodes.isNotEmpty) {
-      terminator = instanceNodes.last;
-    }
-    if (terminator == null) terminator = previousTerminator;
-
-    _terminators.insertAll(index * 2, [terminator, instanceBindings]);
+  void _insertInstanceAt(int index, DocumentFragment fragment) {
+    var previousInstanceLast = _getLastInstanceNode(index - 1);
     var parent = _templateElement.parentNode;
-    var insertBeforeNode = previousTerminator.nextNode;
 
-    if (fragment != null) {
-      parent.insertBefore(fragment, insertBeforeNode);
-    } else if (instanceNodes != null) {
-      for (var node in instanceNodes) {
-        parent.insertBefore(node, insertBeforeNode);
-      }
-    }
+    _instances.insert(index, fragment);
+    parent.insertBefore(fragment, previousInstanceLast.nextNode);
   }
 
-  _BoundNodes _extractInstanceAt(int index) {
-    var instanceNodes = <Node>[];
-    var previousTerminator = _getTerminatorAt(index - 1);
-    var terminator = _getTerminatorAt(index);
-    var instanceBindings = _terminators[index * 2 + 1];
-    _terminators.removeRange(index * 2, index * 2 + 2);
-
+  DocumentFragment _extractInstanceAt(int index) {
+    var previousInstanceLast = _getLastInstanceNode(index - 1);
+    var lastNode = _getLastInstanceNode(index);
     var parent = _templateElement.parentNode;
-    while (terminator != previousTerminator) {
-      var node = previousTerminator.nextNode;
-      if (node == terminator) terminator = previousTerminator;
-      node.remove();
-      instanceNodes.add(node);
+    var instance = _instances.removeAt(index);
+
+    while (lastNode != previousInstanceLast) {
+      var node = previousInstanceLast.nextNode;
+      if (node == lastNode) lastNode = previousInstanceLast;
+
+      instance.append(node..remove());
     }
-    return new _BoundNodes(instanceNodes, instanceBindings);
+
+    return instance;
   }
 
   void _handleSplices(List<ListChangeRecord> splices) {
@@ -416,11 +401,15 @@ class _TemplateIterator extends Bindable {
       }
     }
 
-    var instanceCache = new HashMap<Object, _BoundNodes>(equals: identical);
+    // Instance Removals.
+    var instanceCache = new HashMap(equals: identical);
     var removeDelta = 0;
     for (var splice in splices) {
       for (var model in splice.removed) {
-        instanceCache[model] = _extractInstanceAt(splice.index + removeDelta);
+        var instance = _extractInstanceAt(splice.index + removeDelta);
+        if (instance != _emptyInstance) {
+          instanceCache[model] = instance;
+        }
       }
 
       removeDelta -= splice.addedCount;
@@ -432,22 +421,16 @@ class _TemplateIterator extends Bindable {
           addIndex++) {
 
         var model = _iteratedValue[addIndex];
-        var fragment = null;
-        var instance = instanceCache.remove(model);
-        List instanceBindings;
-        List instanceNodes = null;
-        if (instance != null && instance.nodes.isNotEmpty) {
-          instanceBindings = instance.instanceBindings;
-          instanceNodes = instance.nodes;
-        } else {
+        DocumentFragment instance = instanceCache.remove(model);
+        if (instance == null) {
           try {
-            instanceBindings = [];
             if (_instanceModelFn != null) {
               model = _instanceModelFn(model);
             }
-            if (model != null) {
-              fragment = _templateExt.createInstance(model, delegate,
-                  instanceBindings);
+            if (model == null) {
+              instance = _emptyInstance;
+            } else {
+              instance = _templateExt.createInstance(model, delegate);
             }
           } catch (e, s) {
             // Dart note: we propagate errors asynchronously here to avoid
@@ -460,33 +443,26 @@ class _TemplateIterator extends Bindable {
             // called from createInstance, but that requires enough refactoring
             // that it should be done upstream first. See dartbug.com/17789.
             new Completer().completeError(e, s);
+            instance = _emptyInstance;
           }
         }
 
-        _insertInstanceAt(addIndex, fragment, instanceNodes, instanceBindings);
+        _insertInstanceAt(addIndex, instance);
       }
     }
 
     for (var instance in instanceCache.values) {
-      _closeInstanceBindings(instance.instanceBindings);
+      _closeInstanceBindings(instance);
     }
 
     if (_instancePositionChangedFn != null) _reportInstancesMoved(splices);
   }
 
   void _reportInstanceMoved(int index) {
-    var previousTerminator = _getTerminatorAt(index - 1);
-    var terminator = _getTerminatorAt(index);
-    if (identical(previousTerminator, terminator)) {
-      return; // instance has zero nodes.
-    }
+    var instance = _instances[index];
+    if (instance == _emptyInstance) return;
 
-    // We must use the first node of the instance, because any subsequent
-    // nodes may have been generated by sub-templates.
-    // TODO(rafaelw): This is brittle WRT instance mutation -- e.g. if the
-    // first node was removed by script.
-    var instance = nodeBind(previousTerminator.nextNode).templateInstance;
-    _instancePositionChangedFn(instance, index);
+    _instancePositionChangedFn(nodeBind(instance).templateInstance, index);
   }
 
   void _reportInstancesMoved(List<ListChangeRecord> splices) {
@@ -512,15 +488,16 @@ class _TemplateIterator extends Bindable {
 
     if (offset == 0) return;
 
-    var length = _terminators.length ~/ 2;
+    var length = _instances.length;
     while (index < length) {
       _reportInstanceMoved(index);
       index++;
     }
   }
 
-  void _closeInstanceBindings(List<Bindable> instanceBindings) {
-    for (var binding in instanceBindings) binding.close();
+  void _closeInstanceBindings(DocumentFragment instance) {
+    var bindings = _instanceExtension[instance]._bindings;
+    for (var binding in bindings) binding.close();
   }
 
   void _unobserve() {
@@ -533,11 +510,8 @@ class _TemplateIterator extends Bindable {
     if (_closed) return;
 
     _unobserve();
-    for (var i = 1; i < _terminators.length; i += 2) {
-      _closeInstanceBindings(_terminators[i]);
-    }
-
-    _terminators.clear();
+    _instances.forEach(_closeInstanceBindings);
+    _instances.clear();
     _closeDependencies();
     _templateExt._iterator = null;
     _closed = true;

@@ -7,7 +7,8 @@ library polymer.test.web.custom_event_test;
 import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
-import 'package:template_binding/template_binding.dart' show nodeBind;
+import 'package:template_binding/template_binding.dart'
+    show nodeBind, enableBindingsReflection;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
@@ -35,35 +36,40 @@ class FooBar extends PolymerElement {
 class TestCustomEvent extends PolymerElement {
   TestCustomEvent.created() : super.created();
 
-  get fooBar => getShadowRoot('test-custom-event').querySelector('foo-bar');
+  get fooBar => shadowRoots['test-custom-event'].querySelector('foo-bar');
 
   final events = [];
   fooHandler(e) => events.add(['foo', e]);
   barBazHandler(e) => events.add(['barbaz', e]);
 }
 
-main() => initPolymer().run(() {
-  useHtmlConfiguration();
+main() {
+  enableBindingsReflection = true;
 
-  setUp(() => Polymer.onReady);
+  initPolymer().run(() {
+    useHtmlConfiguration();
 
-  test('custom event', () {
-    final testComp = querySelector('test-custom-event');
-    final fooBar = testComp.fooBar;
+    setUp(() => Polymer.onReady);
 
-    final binding = nodeBind(fooBar).bindings['on-barbaz'];
-    expect(binding is Bindable, true,
-        reason: 'on-barbaz event should be bound');
+    test('custom event', () {
+      final testComp = querySelector('test-custom-event');
+      final fooBar = testComp.fooBar;
 
-    expect(binding.value, null, reason: 'event bindings do not have value');
+      final binding = nodeBind(fooBar).bindings['on-barbaz'];
+      expect(binding is Bindable, true,
+          reason: 'on-barbaz event should be bound');
 
-    fooBar.fireFoo(123);
-    fooBar.fireBarBaz(42);
-    fooBar.fireFoo(777);
+      expect(binding.value, '{{ barBazHandler }}',
+          reason: 'event bindings use the string as value');
 
-    final events = testComp.events;
-    expect(events.length, 3);
-    expect(events.map((e) => e[0]), ['foo', 'barbaz', 'foo']);
-    expect(events.map((e) => e[1].detail), [123, 42, 777]);
+      fooBar.fireFoo(123);
+      fooBar.fireBarBaz(42);
+      fooBar.fireFoo(777);
+
+      final events = testComp.events;
+      expect(events.length, 3);
+      expect(events.map((e) => e[0]), ['foo', 'barbaz', 'foo']);
+      expect(events.map((e) => e[1].detail), [123, 42, 777]);
+    });
   });
-});
+}

@@ -55,6 +55,15 @@ void startPolymer(List<Function> initializers, [bool deployMode = true]) {
   _hookJsPolymer();
   _deployMode = deployMode;
 
+  if (initializers == null) {
+    throw 'Missing initialization of polymer elements. '
+        'Please check that the list of entry points in your pubspec.yaml '
+        'is correct. If you are using pub-serve, you may need to restart it.';
+  }
+
+  Polymer.registerSync('d-auto-binding', AutoBindingElement,
+      extendsTag: 'template');
+
   for (var initializer in initializers) {
     initializer();
   }
@@ -77,14 +86,26 @@ void configureForDeployment(List<Function> initializers) {
 /// * if it has a Dart class, run PolymerDeclaration's register.
 /// * otherwise it is a JS prototype, run polymer-element's normal register.
 void _hookJsPolymer() {
+  // Note: platform.js is not used directly here, but we check that it is loaded
+  // to provide a good error message in Dartium if people forgot to include it.
+  // Otherwise, polymer.js below will fail with a hard to understand error
+  // message.
+  var platform = js.context['Platform'];
+  if (platform == null) {
+    throw new StateError('platform.js, dart_support.js must be loaded at'
+        ' the top of your application, before any other scripts or HTML'
+        ' imports that use polymer. Putting these two script tags at the top of'
+        ' your <head> element should address this issue:'
+        ' <script src="packages/web_components/platform.js"></script> and '
+        ' <script src="packages/web_components/dart_support.js"></script>.');
+  }
   var polymerJs = js.context['Polymer'];
   if (polymerJs == null) {
     throw new StateError('polymer.js must be loaded before polymer.dart, please'
         ' add <link rel="import" href="packages/polymer/polymer.html"> to your'
         ' <head> before any Dart scripts. Alternatively you can get a different'
         ' version of polymer.js by following the instructions at'
-        ' http://www.polymer-project.org; if you do that be sure to include'
-        ' the platform polyfills.');
+        ' http://www.polymer-project.org.');
   }
 
   // TODO(jmesserly): dart:js appears to not callback in the correct zone:
@@ -92,13 +113,9 @@ void _hookJsPolymer() {
   var zone = Zone.current;
 
   polymerJs.callMethod('whenPolymerReady',
-      [zone.bindCallback(() => Polymer._ready.complete())]);
+      [zone.bindCallback(() => Polymer._onReady.complete())]);
 
-  var polyElem = document.createElement('polymer-element');
-  var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];
-  if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
-
-  JsFunction originalRegister = proto['register'];
+  JsFunction originalRegister = _polymerElementProto['register'];
   if (originalRegister == null) {
     throw new StateError('polymer.js must expose "register" function on '
         'polymer-element to enable polymer.dart to interoperate.');
@@ -118,5 +135,14 @@ void _hookJsPolymer() {
     return originalRegister.apply([name, extendee], thisArg: jsElem);
   }
 
-  proto['register'] = new JsFunction.withThis(registerDart);
+  _polymerElementProto['register'] = new JsFunction.withThis(registerDart);
 }
+
+// Note: we cache this so we can use it later to look up 'init'.
+// See registerSync.
+JsObject _polymerElementProto = () {
+  var polyElem = document.createElement('polymer-element');
+  var proto = new JsObject.fromBrowserObject(polyElem)['__proto__'];
+  if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
+  return proto;
+}();

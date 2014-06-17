@@ -45,7 +45,47 @@ class ScriptCompactor extends Transformer {
   final TransformOptions options;
 
   ScriptCompactor(this.options, {String sdkDir})
-      : resolvers = new Resolvers(sdkDir != null ? sdkDir : dartSdkDirectory);
+      // TODO(sigmund): consider restoring here a resolver that uses the real
+      // SDK once the analyzer is lazy and only an resolves what it needs:
+      //: resolvers = new Resolvers(sdkDir != null ? sdkDir : dartSdkDirectory);
+      : resolvers = new Resolvers.fromMock({
+        // The list of types below is derived from:
+        //   * types we use via our smoke queries, including HtmlElement and
+        //     types from `_typeHandlers` (deserialize.dart)
+        //   * types that are used internally by the resolver (see
+        //   _initializeFrom in resolver.dart).
+        'dart:core': '''
+            library dart.core;
+            class Object {}
+            class Function {}
+            class StackTrace {}
+            class Symbol {}
+            class Type {}
+
+            class String extends Object {}
+            class bool extends Object {}
+            class num extends Object {}
+            class int extends num {}
+            class double extends num {}
+            class DateTime extends Object {}
+            class Null extends Object {}
+
+            class Deprecated extends Object {
+              final String expires;
+              const Deprecated(this.expires);
+            }
+            const Object deprecated = const Deprecated("next release");
+
+            class List<V> extends Object {}
+            class Map<K, V> extends Object {}
+            ''',
+        'dart:html': '''
+            library dart.html;
+            class HtmlElement {}
+            ''',
+      });
+
+
 
   /// Only run on entry point .html files.
   // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
@@ -184,7 +224,7 @@ class _ScriptCompactor extends PolymerTransformer {
   void _extractUsesOfMirrors(_) {
     // Generate getters and setters needed to evaluate polymer expressions, and
     // extract information about published attributes.
-    new _HtmlExtractor(generator, publishedAttributes).visit(document);
+    new _HtmlExtractor(logger, generator, publishedAttributes).visit(document);
 
     // Create a recorder that uses analyzer data to feed data to [generator].
     var recorder = new Recorder(generator,
@@ -443,9 +483,11 @@ class _HtmlExtractor extends TreeVisitor {
   final Map<String, List<String>> publishedAttributes;
   final SmokeCodeGenerator generator;
   final _SubExpressionVisitor visitor;
+  final TransformLogger logger;
   bool _inTemplate = false;
 
-  _HtmlExtractor(SmokeCodeGenerator generator, this.publishedAttributes)
+  _HtmlExtractor(this.logger, SmokeCodeGenerator generator,
+      this.publishedAttributes)
       : generator = generator,
         visitor = new _SubExpressionVisitor(generator);
 
@@ -471,7 +513,7 @@ class _HtmlExtractor extends TreeVisitor {
     var bindings = _Mustaches.parse(node.data);
     if (bindings == null) return;
     for (var e in bindings.expressions) {
-      _addExpression(e, false, false);
+      _addExpression(e, false, false, node.sourceSpan);
     }
   }
 
@@ -506,20 +548,24 @@ class _HtmlExtractor extends TreeVisitor {
             tag == 'textarea' && name == 'value');
       }
       for (var exp in bindings.expressions) {
-        _addExpression(exp, isEvent, isTwoWay);
+        _addExpression(exp, isEvent, isTwoWay, node.sourceSpan);
       }
     });
   }
 
-  void _addExpression(String stringExpression, bool inEvent, bool isTwoWay) {
+  void _addExpression(String stringExpression, bool inEvent, bool isTwoWay,
+      span) {
+
     if (inEvent) {
-      if (!stringExpression.startsWith("@")) {
-        if (stringExpression == '') return;
-        generator.addGetter(stringExpression);
-        generator.addSymbol(stringExpression);
+      if (stringExpression.startsWith('@')) {
+        logger.warning('event bindings with @ are no longer supported',
+            span: span);
         return;
       }
-      stringExpression = stringExpression.substring(1);
+
+      if (stringExpression == '') return;
+      generator.addGetter(stringExpression);
+      generator.addSymbol(stringExpression);
     }
     visitor.run(pe.parse(stringExpression), isTwoWay);
   }
@@ -701,7 +747,7 @@ List<ClassElement> _visibleClassesOf(LibraryElement lib) {
 
 /// Retrieves all top-level methods that are visible if you were to import
 /// [lib]. This includes exported methods from other libraries too.
-List<ClassElement> _visibleTopLevelMethodsOf(LibraryElement lib) {
+List<FunctionElement> _visibleTopLevelMethodsOf(LibraryElement lib) {
   var result = [];
   result.addAll(lib.units.expand((u) => u.functions));
   for (var e in lib.exports) {

@@ -9,25 +9,30 @@ import 'dart:html';
 
 import 'package:observe/observe.dart'
     show toObservable, PathObserver, PropertyPath;
-import 'package:template_binding/template_binding.dart' show nodeBind;
+import 'package:template_binding/template_binding.dart'
+    show nodeBind, enableBindingsReflection;
 
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
-// Note: this file ported from
-// https://github.com/toolkitchen/mdv/blob/master/tests/node_bindings.js
+// Ported from: https://github.com/Polymer/NodeBind/blob/master/tests/tests.js
+
+var bindings;
 
 main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
 
   setUp(() {
     document.body.append(testDiv = new DivElement());
+    bindings = [];
   });
 
   tearDown(() {
     testDiv.remove();
     testDiv = null;
+    for (var b in bindings) if (b != null) b.close();
+    bindings = null;
   });
 
   group('Text bindings', testBindings);
@@ -39,31 +44,25 @@ testBindings() {
   test('Basic', () {
     var text = new Text('hi');
     var model = toObservable({'a': 1});
-    nodeBind(text).bind('text', new PathObserver(model, 'a'));
+    bindings.add(nodeBind(text).bind('text', new PathObserver(model, 'a')));
     expect(text.text, '1');
 
     model['a'] = 2;
     return new Future(() {
-      expect(text.text, '2');
-
-      nodeBind(text).unbind('text');
-      model['a'] = 3;
-    }).then(endOfMicrotask).then((_) {
-      // TODO(rafaelw): Throw on binding to unavailable property?
       expect(text.text, '2');
     });
   });
 
   test('oneTime', () {
     var text = new Text('hi');
-    nodeBind(text).bind('text', 1, oneTime: true);
+    bindings.add(nodeBind(text).bind('text', 1, oneTime: true));
     expect(text.text, '1');
   });
 
   test('No Path', () {
     var text = new Text('hi');
     var model = 1;
-    nodeBind(text).bind('text', new PathObserver(model));
+    bindings.add(nodeBind(text).bind('text', new PathObserver(model)));
     expect(text.text, '1');
   });
 
@@ -76,28 +75,37 @@ testBindings() {
   });
 
   test('Observer is Model', () {
-    var text = new Text('');
-    var model = toObservable({'a': {'b': {'c': 1}}});
-    var observer = new PathObserver(model, 'a.b.c');
-    nodeBind(text).bind('text', observer);
-    expect(text.text, '1');
+    // Dart note: we don't have _allObserversCount so we use binding reflection
+    // instead.
+    enableBindingsReflection = true;
 
-    var binding = nodeBind(text).bindings['text'];
-    expect(binding, observer, reason: 'should reuse observer');
-
-    model['a']['b']['c'] = 2;
+    // This future is here so we can turn off bindings reflection reliably.
+    Text text;
     return new Future(() {
+      text = new Text('');
+      var model = toObservable({'a': {'b': {'c': 1}}});
+      var observer = new PathObserver(model, 'a.b.c');
+      bindings.add(nodeBind(text).bind('text', observer));
+      expect(text.text, '1');
+
+      var binding = nodeBind(text).bindings['text'];
+      expect(binding, observer, reason: 'should reuse observer');
+
+      model['a']['b']['c'] = 2;
+    }).then(endOfMicrotask).then((_) {
       expect(text.text, '2');
-      nodeBind(text).unbind('text');
+    }).whenComplete(() {
+      enableBindingsReflection = false;
     });
   });
 }
 
 elementBindings() {
+
   test('Basic', () {
     var el = new DivElement();
     var model = toObservable({'a': '1'});
-    nodeBind(el).bind('foo', new PathObserver(model, 'a'));
+    bindings.add(nodeBind(el).bind('foo', new PathObserver(model, 'a')));
 
     return new Future(() {
       expect(el.attributes['foo'], '1');
@@ -116,17 +124,45 @@ elementBindings() {
     });
   });
 
+  // Dart specific test
+  test('enableBindingsReflection defaults to off', () {
+    expect(enableBindingsReflection, false);
+
+    var el = new DivElement();
+    var model = toObservable({'a': '1'});
+    bindings.add(nodeBind(el).bind('foo', new PathObserver(model, 'a')));
+
+    expect(nodeBind(el).bindings, null);
+  });
+
+  test('enableBindingsReflection', () {
+    enableBindingsReflection = true;
+    try {
+      var el = testDiv.append(new DivElement());
+      var model = toObservable({'a': '1'});
+      bindings.add(nodeBind(el).bind('foo', new PathObserver(model, 'a')));
+      bindings.add(nodeBind(el).bind('bar', new PathObserver(model, 'a')));
+      bindings.add(nodeBind(el).bind('baz', new PathObserver(model, 'a')));
+
+      expect(nodeBind(el).bindings.keys,
+          unorderedEquals(['foo', 'bar', 'baz']));
+
+    } finally {
+      enableBindingsReflection = false;
+    }
+  });
+
   test('oneTime', () {
     var el = testDiv.append(new DivElement());
     var model = toObservable({'a': '1'});
-    nodeBind(el).bind('foo', 1, oneTime: true);
+    bindings.add(nodeBind(el).bind('foo', 1, oneTime: true));
     expect('1', el.attributes['foo']);
   });
 
   test('No Path', () {
     var el = testDiv.append(new DivElement());
     var model = 1;
-    nodeBind(el).bind('foo', new PathObserver(model));
+    bindings.add(nodeBind(el).bind('foo', new PathObserver(model)));
     return new Future(() {
       expect(el.attributes['foo'], '1');
     });
@@ -135,7 +171,7 @@ elementBindings() {
   test('Path unreachable', () {
     var el = testDiv.append(new DivElement());
     var model = toObservable({});
-    nodeBind(el).bind('foo', new PathObserver(model, 'bar'));
+    bindings.add(nodeBind(el).bind('foo', new PathObserver(model, 'bar')));
     return new Future(() {
       expect(el.attributes['foo'], '');
     });
@@ -144,7 +180,7 @@ elementBindings() {
   test('Dashes', () {
     var el = testDiv.append(new DivElement());
     var model = toObservable({'a': '1'});
-    nodeBind(el).bind('foo-bar', new PathObserver(model, 'a'));
+    bindings.add(nodeBind(el).bind('foo-bar', new PathObserver(model, 'a')));
     return new Future(() {
       expect(el.attributes['foo-bar'], '1');
       model['a'] = '2';
@@ -157,8 +193,9 @@ elementBindings() {
   test('Element.id, Element.hidden?', () {
     var element = new DivElement();
     var model = toObservable({'a': 1, 'b': 2});
-    nodeBind(element).bind('hidden?', new PathObserver(model, 'a'));
-    nodeBind(element).bind('id', new PathObserver(model, 'b'));
+    bindings.add(
+        nodeBind(element).bind('hidden?', new PathObserver(model, 'a')));
+    bindings.add(nodeBind(element).bind('id', new PathObserver(model, 'b')));
 
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -185,7 +222,7 @@ elementBindings() {
   test('Element.id - path unreachable', () {
     var element = testDiv.append(new DivElement());
     var model = toObservable({});
-    nodeBind(element).bind('id', new PathObserver(model, 'a'));
+    bindings.add(nodeBind(element).bind('id', new PathObserver(model, 'a')));
     return new Future(() => expect(element.id, ''));
   });
 }
@@ -195,7 +232,7 @@ formBindings() {
     var el = new Element.tag(tagName);
     testDiv.nodes.add(el);
     var model = toObservable({'x': 42});
-    nodeBind(el).bind('value', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(el).bind('value', new PathObserver(model, 'x')));
     expect(el.value, '42');
 
     model['x'] = 'Hi';
@@ -206,37 +243,26 @@ formBindings() {
       el.value = 'changed';
       dispatchEvent('input', el);
       expect(model['x'], 'changed');
-
-      nodeBind(el).unbind('value');
-
-      el.value = 'changed again';
-      dispatchEvent('input', el);
-      expect(model['x'], 'changed');
-
-      nodeBind(el).bind('value', new PathObserver(model, 'x'));
-      model['x'] = null;
-    }).then(endOfMicrotask).then((_) {
-      expect(el.value, '');
     });
   }
 
   inputTextAreaValueOnetime(String tagName) {
     var el = testDiv.append(new Element.tag(tagName));
-    nodeBind(el).bind('value', 42, oneTime: true);
+    bindings.add(nodeBind(el).bind('value', 42, oneTime: true));
     expect(el.value, '42');
   }
 
   inputTextAreaNoPath(String tagName) {
     var el = testDiv.append(new Element.tag(tagName));
     var model = 42;
-    nodeBind(el).bind('value', new PathObserver(model));
+    bindings.add(nodeBind(el).bind('value', new PathObserver(model)));
     expect(el.value, '42');
   }
 
   inputTextAreaPathUnreachable(String tagName) {
     var el = testDiv.append(new Element.tag(tagName));
     var model = toObservable({});
-    nodeBind(el).bind('value', new PathObserver(model, 'a'));
+    bindings.add(nodeBind(el).bind('value', new PathObserver(model, 'a')));
     expect(el.value, '');
   }
 
@@ -268,7 +294,7 @@ formBindings() {
     var input = new InputElement();
     input.type = 'radio';
     var model = toObservable({'x': true});
-    nodeBind(input).bind('checked', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(input).bind('checked', new PathObserver(model, 'x')));
     expect(input.checked, true);
 
     model['x'] = false;
@@ -280,7 +306,7 @@ formBindings() {
       dispatchEvent('change', input);
       expect(model['x'], true, reason: 'input.checked should set model');
 
-      nodeBind(input).unbind('checked');
+      bindings[0].close();
 
       input.checked = false;
       dispatchEvent('change', input);
@@ -292,44 +318,25 @@ formBindings() {
   test('Input.value - user value rejected', () {
     var model = toObservable({'val': 'ping'});
 
+    var rejector = new PathObserver(model, 'val');
+    rejector.open(() {
+      model['val'] = 'ping';
+    });
+
     var el = new InputElement();
-    nodeBind(el).bind('value', new PathObserver(model, 'val'));
+    bindings.add(nodeBind(el).bind('value', new PathObserver(model, 'val')));
+
     return new Future(() {
       expect(el.value, 'ping');
 
       el.value = 'pong';
       dispatchEvent('input', el);
-      expect(model['val'], 'pong');
 
-      // Try a deep path.
-      model = toObservable({'a': {'b': {'c': 'ping'}}});
-
-      nodeBind(el).bind('value', new PathObserver(model, 'a.b.c'));
     }).then(endOfMicrotask).then((_) {
+      // rejector will have set the bound value back to 'ping'.
       expect(el.value, 'ping');
 
-      el.value = 'pong';
-      dispatchEvent('input', el);
-      expect(new PropertyPath('a.b.c').getValueFrom(model), 'pong');
-
-      // Start with the model property being absent.
-      model['a']['b'].remove('c');
-    }).then(endOfMicrotask).then((_) {
-      expect(el.value, '');
-
-      el.value = 'pong';
-      dispatchEvent('input', el);
-      expect(new PropertyPath('a.b.c').getValueFrom(model), 'pong');
-    }).then(endOfMicrotask).then((_) {
-
-      // Model property unreachable (and unsettable).
-      model['a'].remove('b');
-    }).then(endOfMicrotask).then((_) {
-      expect(el.value, '');
-
-      el.value = 'pong';
-      dispatchEvent('input', el);
-      expect(new PropertyPath('a.b.c').getValueFrom(model), null);
+      rejector.close();
     });
   });
 
@@ -338,7 +345,7 @@ formBindings() {
     el.type = 'checkbox';
 
     var model = toObservable({'x': true});
-    nodeBind(el).bind('checked', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(el).bind('checked', new PathObserver(model, 'x')));
     expect(el.checked, true);
 
     model['x'] = false;
@@ -358,7 +365,7 @@ formBindings() {
   test('Checkbox Input.checked - oneTime', () {
     var input = testDiv.append(new InputElement());
     input.type = 'checkbox';
-    nodeBind(input).bind('checked', true, oneTime: true);
+    bindings.add(nodeBind(input).bind('checked', true, oneTime: true));
     expect(input.checked, true, reason: 'checked was set');
   });
 
@@ -366,7 +373,7 @@ formBindings() {
     var input = testDiv.append(new InputElement());
     input.type = 'checkbox';
     var model = toObservable({});
-    nodeBind(input).bind('checked', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(input).bind('checked', new PathObserver(model, 'x')));
     expect(input.checked, false);
   });
 
@@ -375,7 +382,7 @@ formBindings() {
 
     var el = testDiv.append(new InputElement());
     el.type = 'checkbox';
-    nodeBind(el).bind('checked', new PathObserver(model, 'val'));
+    bindings.add(nodeBind(el).bind('checked', new PathObserver(model, 'val')));
     return new Future(() {
       expect(el.checked, true);
 
@@ -406,7 +413,7 @@ formBindings() {
     var el = new InputElement();
     testDiv.append(el);
     el.type = 'checkbox';
-    nodeBind(el).bind('checked', new PathObserver(model, 'val'));
+    bindings.add(nodeBind(el).bind('checked', new PathObserver(model, 'val')));
     return new Future(() {
       expect(el.checked, true);
 
@@ -428,7 +435,7 @@ formBindings() {
     var el = new InputElement();
     testDiv.append(el);
     el.type = 'checkbox';
-    nodeBind(el).bind('checked', new PathObserver(model, 'val'));
+    bindings.add(nodeBind(el).bind('checked', new PathObserver(model, 'val')));
     return new Future(() {
       expect(el.checked, true);
 
@@ -448,7 +455,7 @@ formBindings() {
     var input = testDiv.append(new InputElement());
     input.type = 'radio';
     var model = toObservable({'x': true});
-    nodeBind(input).bind('checked', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(input).bind('checked', new PathObserver(model, 'x')));
     expect(input.checked, true);
 
     model['x'] = false;
@@ -459,19 +466,13 @@ formBindings() {
       input.checked = true;
       dispatchEvent('change', input);
       expect(model['x'], true);
-
-      nodeBind(input).unbind('checked');
-
-      input.checked = false;
-      dispatchEvent('change', input);
-      expect(model['x'], true);
     });
   });
 
   test('Radio Input.checked - oneTime', () {
     var input = testDiv.append(new InputElement());
     input.type = 'radio';
-    nodeBind(input).bind('checked', true, oneTime: true);
+    bindings.add(nodeBind(input).bind('checked', true, oneTime: true));
     expect(input.checked, true, reason: 'checked was set');
   });
 
@@ -485,22 +486,26 @@ formBindings() {
     var el1 = container.append(new InputElement());
     el1.type = 'radio';
     el1.name = RADIO_GROUP_NAME;
-    nodeBind(el1).bind('checked', new PathObserver(model, 'val1'));
+    bindings.add(
+        nodeBind(el1).bind('checked', new PathObserver(model, 'val1')));
 
     var el2 = container.append(new InputElement());
     el2.type = 'radio';
     el2.name = RADIO_GROUP_NAME;
-    nodeBind(el2).bind('checked', new PathObserver(model, 'val2'));
+    bindings.add(
+        nodeBind(el2).bind('checked', new PathObserver(model, 'val2')));
 
     var el3 = container.append(new InputElement());
     el3.type = 'radio';
     el3.name = RADIO_GROUP_NAME;
-    nodeBind(el3).bind('checked', new PathObserver(model, 'val3'));
+    bindings.add(
+        nodeBind(el3).bind('checked', new PathObserver(model, 'val3')));
 
     var el4 = container.append(new InputElement());
     el4.type = 'radio';
     el4.name = 'othergroup';
-    nodeBind(el4).bind('checked', new PathObserver(model, 'val4'));
+    bindings.add(
+        nodeBind(el4).bind('checked', new PathObserver(model, 'val4')));
 
     return new Future(() {
       expect(el1.checked, true);
@@ -538,8 +543,7 @@ formBindings() {
     if (!ShadowRoot.supported) return null;
 
     var shadowRoot = new DivElement().createShadowRoot();
-    return radioInputChecked2(shadowRoot)
-        .whenComplete(() => unbindAll(shadowRoot));
+    return radioInputChecked2(shadowRoot);
   });
 
   radioInputCheckedMultipleForms(host) {
@@ -557,25 +561,29 @@ formBindings() {
     form1.append(el1);
     el1.type = 'radio';
     el1.name = RADIO_GROUP_NAME;
-    nodeBind(el1).bind('checked', new PathObserver(model, 'val1'));
+    bindings.add(
+        nodeBind(el1).bind('checked', new PathObserver(model, 'val1')));
 
     var el2 = new InputElement();
     form1.append(el2);
     el2.type = 'radio';
     el2.name = RADIO_GROUP_NAME;
-    nodeBind(el2).bind('checked', new PathObserver(model, 'val2'));
+    bindings.add(
+        nodeBind(el2).bind('checked', new PathObserver(model, 'val2')));
 
     var el3 = new InputElement();
     form2.append(el3);
     el3.type = 'radio';
     el3.name = RADIO_GROUP_NAME;
-    nodeBind(el3).bind('checked', new PathObserver(model, 'val3'));
+    bindings.add(
+        nodeBind(el3).bind('checked', new PathObserver(model, 'val3')));
 
     var el4 = new InputElement();
     form2.append(el4);
     el4.type = 'radio';
     el4.name = RADIO_GROUP_NAME;
-    nodeBind(el4).bind('checked', new PathObserver(model, 'val4'));
+    bindings.add(
+        nodeBind(el4).bind('checked', new PathObserver(model, 'val4')));
 
     return new Future(() {
       expect(el1.checked, true);
@@ -611,8 +619,7 @@ formBindings() {
     if (!ShadowRoot.supported) return null;
 
     var shadowRoot = new DivElement().createShadowRoot();
-    return radioInputCheckedMultipleForms(shadowRoot)
-        .whenComplete(() => unbindAll(shadowRoot));
+    return radioInputCheckedMultipleForms(shadowRoot);
   });
 
   test('Select.selectedIndex', () {
@@ -624,7 +631,8 @@ formBindings() {
 
     var model = toObservable({'val': 2});
 
-    nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val'));
+    bindings.add(
+        nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val')));
     return new Future(() {
       expect(select.selectedIndex, 2);
 
@@ -641,7 +649,7 @@ formBindings() {
     var option1 = select.append(new OptionElement());
     var option2 = select.append(new OptionElement());
 
-    nodeBind(select).bind('selectedIndex', 2, oneTime: true);
+    bindings.add(nodeBind(select).bind('selectedIndex', 2, oneTime: true));
     return new Future(() => expect(select.selectedIndex, 2));
   });
 
@@ -655,7 +663,8 @@ formBindings() {
 
     var model = toObservable({'val': 'foo'});
 
-    nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val'));
+    bindings.add(
+        nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val')));
     return new Future(() => expect(select.selectedIndex, 0));
   });
 
@@ -669,14 +678,15 @@ formBindings() {
 
     var model = toObservable({});
 
-    nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val'));
+    bindings.add(
+        nodeBind(select).bind('selectedIndex', new PathObserver(model, 'val')));
     return new Future(() => expect(select.selectedIndex, 0));
   });
 
   test('Option.value', () {
     var option = testDiv.append(new OptionElement());
     var model = toObservable({'x': 42});
-    nodeBind(option).bind('value', new PathObserver(model, 'x'));
+    bindings.add(nodeBind(option).bind('value', new PathObserver(model, 'x')));
     expect(option.value, '42');
 
     model['x'] = 'Hi';
@@ -686,7 +696,7 @@ formBindings() {
 
   test('Option.value - oneTime', () {
     var option = testDiv.append(new OptionElement());
-    nodeBind(option).bind('value', 42, oneTime: true);
+    bindings.add(nodeBind(option).bind('value', 42, oneTime: true));
     expect(option.value, '42');
   });
 
@@ -704,11 +714,14 @@ formBindings() {
       'selected': 'b'
     });
 
-    nodeBind(option0).bind('value', new PathObserver(model, 'opt0'));
-    nodeBind(option1).bind('value', new PathObserver(model, 'opt1'));
-    nodeBind(option2).bind('value', new PathObserver(model, 'opt2'));
-
-    nodeBind(select).bind('value', new PathObserver(model, 'selected'));
+    bindings.add(
+        nodeBind(option0).bind('value', new PathObserver(model, 'opt0')));
+    bindings.add(
+        nodeBind(option1).bind('value', new PathObserver(model, 'opt1')));
+    bindings.add(
+        nodeBind(option2).bind('value', new PathObserver(model, 'opt2')));
+    bindings.add(
+        nodeBind(select).bind('value', new PathObserver(model, 'selected')));
     return new Future(() {
       expect(select.value, 'b');
 

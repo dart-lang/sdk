@@ -9,8 +9,8 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('my-child-element')
 class MyChildElement extends PolymerElement {
-  @published int camelCase;
-  @published int lowercase;
+  @PublishedProperty(reflect: true) int camelCase;
+  @PublishedProperty(reflect: true) int lowercase;
 
   // TODO(sigmund): remove once codegen in polymer is turned on.
   @reflectable get attributes => super.attributes;
@@ -19,7 +19,8 @@ class MyChildElement extends PolymerElement {
 
   // Make this a no-op, so we can verify the initial
   // reflectPropertyToAttribute works.
-  observeAttributeProperty(name) { }
+  @override
+  openPropertyObserver() { }
 }
 
 @CustomTag('my-element')
@@ -40,7 +41,7 @@ main() => initPolymer().run(() {
     expect(child.lowercase, 11);
     expect(child.camelCase, 11);
 
-    expect('11', child.attributes['lowercase']);
-    expect('11', child.attributes['camelcase']);
+    expect(child.attributes['lowercase'], '11');
+    expect(child.attributes['camelcase'], '11');
   });
 });

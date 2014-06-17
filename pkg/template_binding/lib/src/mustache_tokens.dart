@@ -116,6 +116,7 @@ class MustacheTokens {
       tokens.add(oneTime); // ONETIME?
       onlyOneTime = onlyOneTime && oneTime;
       var delegateFn = fnFactory == null ? null : fnFactory(pathString);
+      // Don't try to parse the expression if there's a prepareBinding function
       if (delegateFn == null) {
         tokens.add(new PropertyPath(pathString)); // PATH
       } else {

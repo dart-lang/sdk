@@ -20,8 +20,9 @@ main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
 
   _registered = customElementsReady.then((_) {
-    document.register('my-custom-element', MyCustomElement);
-    document.register('with-attrs-custom-element', WithAttrsCustomElement);
+    document.registerElement('my-custom-element', MyCustomElement);
+    document.registerElement('with-attrs-custom-element',
+        WithAttrsCustomElement);
   });
 
   group('Custom Element Bindings', customElementBindingsTest);
@@ -38,13 +39,15 @@ customElementBindingsTest() {
     testDiv = null;
   });
 
-  test('override bind/unbind/unbindAll', () {
+  test('override bind/bindFinished', () {
     var element = new MyCustomElement();
     var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
 
-    nodeBind(element)
-        ..bind('my-point', new PathObserver(model, 'a'))
-        ..bind('scary-monster', new PathObserver(model, 'b'));
+    var pointBinding = nodeBind(element)
+        .bind('my-point', new PathObserver(model, 'a'));
+
+    var scaryBinding = nodeBind(element)
+        .bind('scary-monster', new PathObserver(model, 'b'));
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
@@ -55,7 +58,8 @@ customElementBindingsTest() {
     model['a'] = null;
     return new Future(() {
       expect(element.myPoint, null);
-      nodeBind(element).unbind('my-point');
+      expect(element.bindFinishedCalled, 0);
+      pointBinding.close();
 
       model['a'] = new Point(1, 2);
       model['b'] = new Monster(200);
@@ -63,10 +67,11 @@ customElementBindingsTest() {
       expect(element.scaryMonster, model['b']);
       expect(element.myPoint, null, reason: 'a was unbound');
 
-      nodeBind(element).unbindAll();
+      scaryBinding.close();
       model['b'] = null;
     }).then(endOfMicrotask).then((_) {
       expect(element.scaryMonster.health, 200);
+      expect(element.bindFinishedCalled, 0);
     });
   });
 
@@ -124,7 +129,6 @@ customElementBindingsTest() {
     templateBind(div.query('template')).model = model;
     var element;
     return new Future(() {
-      print('!!! running future');
       element = div.nodes[1];
 
       expect(element is MyCustomElement, true,
@@ -136,21 +140,29 @@ customElementBindingsTest() {
       expect(element.attributes, isNot(contains('my-point')));
       expect(element.attributes, isNot(contains('scary-monster')));
 
+      expect(element.bindFinishedCalled, 1);
+
       model['a'] = null;
     }).then(endOfMicrotask).then((_) {
       expect(element.myPoint, null);
+      expect(element.bindFinishedCalled, 1);
+
 
       templateBind(div.query('template')).model = null;
     }).then(endOfMicrotask).then((_) {
-
-      expect(element.parentNode, null, reason: 'element was detached');
+      // Note: the detached element
+      expect(element.parentNode is DocumentFragment, true,
+          reason: 'removed element is added back to its document fragment');
+      expect(element.parentNode.parentNode, null,
+          reason: 'document fragment is detached');
+      expect(element.bindFinishedCalled, 1);
 
       model['a'] = new Point(1, 2);
       model['b'] = new Monster(200);
     }).then(endOfMicrotask).then((_) {
-
       expect(element.myPoint, null, reason: 'model was unbound');
       expect(element.scaryMonster.health, 100, reason: 'model was unbound');
+      expect(element.bindFinishedCalled, 1);
     });
   });
 
@@ -161,10 +173,11 @@ class Monster {
   Monster(this.health);
 }
 
-/** Demonstrates a custom element overriding bind/unbind/unbindAll. */
+/** Demonstrates a custom element overriding bind/bindFinished. */
 class MyCustomElement extends HtmlElement implements NodeBindExtension {
   Point myPoint;
   Monster scaryMonster;
+  int bindFinishedCalled = 0;
 
   factory MyCustomElement() => new Element.tag('my-custom-element');
 
@@ -179,16 +192,23 @@ class MyCustomElement extends HtmlElement implements NodeBindExtension {
           _setProperty(name, value);
           return null;
         }
-        unbind(name);
         _setProperty(name, value.open((x) => _setProperty(name, x)));
+
+        if (!enableBindingsReflection) return value;
+        if (bindings == null) bindings = {};
+        var old = bindings[name];
+        if (old != null) old.close();
         return bindings[name] = value;
     }
     return nodeBindFallback(this).bind(name, value, oneTime: oneTime);
   }
 
-  unbind(name) => nodeBindFallback(this).unbind(name);
-  unbindAll() => nodeBindFallback(this).unbindAll();
+  void bindFinished() {
+    bindFinishedCalled++;
+  }
+
   get bindings => nodeBindFallback(this).bindings;
+  set bindings(x) => nodeBindFallback(this).bindings = x;
   get templateInstance => nodeBindFallback(this).templateInstance;
 
   void _setProperty(String property, newValue) {
@@ -228,6 +248,6 @@ class AttributeMapWrapper<K, V> extends MapView<K, V> {
 
   V remove(Object key) {
     log.add(['remove', key]);
-    super.remove(key);
+    return super.remove(key);
   }
 }

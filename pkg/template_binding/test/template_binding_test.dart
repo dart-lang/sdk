@@ -6,6 +6,7 @@ library template_binding.test.template_binding_test;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js' show JsObject;
 import 'dart:math' as math;
 import 'package:observe/observe.dart';
 import 'package:template_binding/template_binding.dart';
@@ -16,8 +17,7 @@ import 'package:unittest/unittest.dart';
 import 'binding_syntax.dart' show syntaxTests;
 import 'utils.dart';
 
-// Note: this file ported from
-// https://github.com/Polymer/TemplateBinding/blob/fcb7a502794f19544f2d4b77c96eebb70830591d/tests/tests.js
+// Note: this file ported from TemplateBinding's tests/tests.js
 
 // TODO(jmesserly): submit a small cleanup patch to original. I fixed some
 // cases where "div" and "t" were unintentionally using the JS global scope;
@@ -38,6 +38,7 @@ main() => dirtyCheckZone().run(() {
 
   tearDown(() {
     testDiv.remove();
+    clearAllTemplates(testDiv);
     testDiv = null;
   });
 
@@ -79,7 +80,13 @@ void checkExpandos(node) {
 templateInstantiationTests() {
   // Dart note: renamed some of these tests to have unique names
 
-  test('Bind (simple)', () {
+  test('accessing bindingDelegate getter without Bind', () {
+    var div = createTestHtml('<template>');
+    var template = div.firstChild;
+    expect(templateBind(template).bindingDelegate, null);
+  });
+
+  test('Bind - simple', () {
     var div = createTestHtml('<template bind={{}}>text</template>');
     templateBind(div.firstChild).model = {};
     return new Future(() {
@@ -132,8 +139,8 @@ templateInstantiationTests() {
     var template = div.firstChild;
     var doc = document.implementation.createHtmlDocument('');
     doc.adoptNode(div);
-    recursivelySetTemplateModel(template, {});
-    return new Future(() => expect(div.nodes.length, 1));
+    templateBind(template).model = {};
+    return new Future(() => expect(div.nodes.length, 2));
   });
 
   test('Empty Bind', () {
@@ -356,8 +363,9 @@ templateInstantiationTests() {
   test('Bind If, 2', () {
     var div = createTestHtml(
         '<template bind="{{ foo }}" if="{{ bar }}">{{ bat }}</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'bar': null, 'foo': { 'bat': 'baz' } });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 1);
 
@@ -391,12 +399,13 @@ templateInstantiationTests() {
 
   test('Empty-If', () {
     var div = createTestHtml('<template if>{{ value }}</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'value': 'foo' });
-    recursivelySetTemplateModel(div, null);
+    templateBind(template).model = null;
     return new Future(() {
       expect(div.nodes.length, 1);
 
-      recursivelySetTemplateModel(div, m);
+      templateBind(template).model = m;
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.length, 2);
       expect(div.lastChild.text, 'foo');
@@ -405,8 +414,9 @@ templateInstantiationTests() {
 
   test('OneTime - simple text', () {
     var div = createTestHtml('<template bind>[[ value ]]</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'value': 'foo' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.text, 'foo');
@@ -422,8 +432,9 @@ templateInstantiationTests() {
   test('OneTime - compound text', () {
     var div = createTestHtml(
         '<template bind>[[ foo ]] bar [[ baz ]]</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'foo': 'FOO', 'baz': 'BAZ' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.text, 'FOO bar BAZ');
@@ -441,8 +452,9 @@ templateInstantiationTests() {
   test('OneTime/Dynamic Mixed - compound text', () {
     var div = createTestHtml(
         '<template bind>[[ foo ]] bar {{ baz }}</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'foo': 'FOO', 'baz': 'BAZ' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.text, 'FOO bar BAZ');
@@ -460,8 +472,9 @@ templateInstantiationTests() {
   test('OneTime - simple attribute', () {
     var div = createTestHtml(
         '<template bind><div foo="[[ value ]]"></div></template>');
+    var template = div.firstChild;
     var m = toObservable({ 'value': 'foo' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.attributes['foo'], 'foo');
@@ -480,8 +493,9 @@ templateInstantiationTests() {
         '<template bind>'
           '<div foo="[[ value ]]:[[ otherValue ]]"></div>'
         '</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'value': 'foo', 'otherValue': 'bar' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.attributes['foo'], 'foo:bar');
@@ -500,8 +514,9 @@ templateInstantiationTests() {
         '<template bind>'
           '<div foo="{{ value }}:[[ otherValue ]]"></div>'
         '</template>');
+    var template = div.firstChild;
     var m = toObservable({ 'value': 'foo', 'otherValue': 'bar' });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.lastChild.attributes['foo'], 'foo:bar');
@@ -692,8 +707,9 @@ templateInstantiationTests() {
 
   test('TextTemplateWithNullStringBinding', () {
     var div = createTestHtml('<template bind={{}}>a{{b}}c</template>');
+    var template = div.firstChild;
     var model = toObservable({'b': 'B'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -747,8 +763,9 @@ templateInstantiationTests() {
   test('TextTemplateWithBindingAndConditional', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{ d }}">a{{b}}c</template>');
+    var template = div.firstChild;
     var model = toObservable({'b': 'B', 'd': 1});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -778,8 +795,9 @@ templateInstantiationTests() {
     var div = createTestHtml(
         '<template bind="{{ b }}">a{{value}}c</template>');
     expect(div.nodes.length, 1);
+    var template = div.firstChild;
     var model = toObservable({'b': {'value': 'B'}});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -796,8 +814,9 @@ templateInstantiationTests() {
         '<template bind="{{}}">'
         '<div foo="a{{b}}c"></div>'
         '</template>');
+    var template = div.firstChild;
     var model = toObservable({'b': 'B'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -818,8 +837,9 @@ templateInstantiationTests() {
         '<template bind="{{}}">'
         '<div foo?="{{b}}"></div>'
         '</template>');
+    var template = div.firstChild;
     var model = toObservable({'b': 'b'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -915,8 +935,8 @@ templateInstantiationTests() {
       {'val': 8},
       {'val': 1}
     ]);
-    recursivelySetTemplateModel(div, model);
     var template = div.firstChild;
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 6);
@@ -929,7 +949,7 @@ templateInstantiationTests() {
       checkExpandos(template.nextNode);
 
       model = toObservable(model.reversed);
-      recursivelySetTemplateModel(div, model);
+      templateBind(template).model = model;
     }).then(endOfMicrotask).then((_) {
       checkExpandos(template.nextNode);
 
@@ -950,9 +970,9 @@ templateInstantiationTests() {
     var div = createTestHtml(
         '<template bind="{{ foo }}">{{ bar }}</template>');
 
-    var model = toObservable({ 'foo': { 'bar': 5 }});
-    recursivelySetTemplateModel(div, model);
     var template = div.firstChild;
+    var model = toObservable({ 'foo': { 'bar': 5 }});
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -961,7 +981,7 @@ templateInstantiationTests() {
       checkExpandos(template.nextNode);
 
       model = toObservable({'foo': model['foo']});
-      recursivelySetTemplateModel(div, model);
+      templateBind(template).model = model;
     }).then(endOfMicrotask).then((_) {
       checkExpandos(template.nextNode);
     });
@@ -971,8 +991,9 @@ templateInstantiationTests() {
     var div = createTestHtml(
         '<template repeat>text</template>');
 
+    var template = div.firstChild;
     var model = toObservable([0, 1, 2]);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 4);
@@ -994,9 +1015,10 @@ templateInstantiationTests() {
   test('Removal from iteration needs to unbind', () {
     var div = createTestHtml(
         '<template repeat="{{}}"><a>{{v}}</a></template>');
+    var template = div.firstChild;
     var model = toObservable([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3},
         {'v': 4}]);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     var nodes, vs;
     return new Future(() {
@@ -1023,11 +1045,39 @@ templateInstantiationTests() {
     });
   });
 
+  test('Template.clear', () {
+    var div = createTestHtml(
+        '<template repeat>{{}}</template>');
+    var template = div.firstChild;
+    templateBind(template).model = [0, 1, 2];
+
+    return new Future(() {
+      expect(div.nodes.length, 4);
+      expect(div.nodes[1].text, '0');
+      expect(div.nodes[2].text, '1');
+      expect(div.nodes[3].text, '2');
+
+      // clear() synchronously removes instances and clears the model.
+      templateBind(div.firstChild).clear();
+      expect(div.nodes.length, 1);
+      expect(templateBind(template).model, null);
+
+      // test that template still works if new model assigned
+      templateBind(template).model = [3, 4];
+
+    }).then(endOfMicrotask).then((_) {
+      expect(div.nodes.length, 3);
+      expect(div.nodes[1].text, '3');
+      expect(div.nodes[2].text, '4');
+    });
+  });
+
   test('DOM Stability on Iteration', () {
     var div = createTestHtml(
         '<template repeat="{{}}">{{}}</template>');
+    var template = div.firstChild;
     var model = toObservable([1, 2, 3, 4, 5]);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     var nodes;
     return new Future(() {
@@ -1078,12 +1128,13 @@ templateInstantiationTests() {
         '<template repeat="{{}}">{{value}}</template>');
     expect(div.nodes.length, 1);
 
+    var template = div.firstChild;
     var model = toObservable([
       {'value': 0},
       {'value': 1},
       {'value': 2}
     ]);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 4);
@@ -1112,8 +1163,9 @@ templateInstantiationTests() {
         '<template bind="{{}}">'
         '<input value="{{x}}">'
         '</template>');
+    var template = div.firstChild;
     var model = toObservable({'x': 'hi'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 2);
@@ -1141,19 +1193,20 @@ templateInstantiationTests() {
         '</template>'
         '<template bind="{{ XY }}" id="t2" ref="t1"></template>');
 
+    var t1 = document.getElementById('t1');
+    var t2 = document.getElementById('t2');
     var model = toObservable({
       'XX': {'name': 'Leela', 'title': 'Captain'},
       'XY': {'name': 'Fry', 'title': 'Delivery boy'},
       'XZ': {'name': 'Zoidberg', 'title': 'Doctor'}
     });
-    recursivelySetTemplateModel(div, model);
+    templateBind(t1).model = model;
+    templateBind(t2).model = model;
 
     return new Future(() {
-      var t1 = document.getElementById('t1');
       var instance = t1.nextElementSibling;
       expect(instance.text, 'Crew member: Leela, Job title: Captain');
 
-      var t2 = document.getElementById('t2');
       instance = t2.nextElementSibling;
       expect(instance.text, 'Crew member: Fry, Job title: Delivery boy');
 
@@ -1178,8 +1231,9 @@ templateInstantiationTests() {
 
   test('Bind', () {
     var div = createTestHtml('<template bind="{{}}">Hi {{ name }}</template>');
+    var template = div.firstChild;
     var model = toObservable({'name': 'Leela'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() => expect(div.nodes[1].text, 'Hi Leela'));
   });
@@ -1187,8 +1241,9 @@ templateInstantiationTests() {
   test('BindPlaceHolderHasNewLine', () {
     var div = createTestHtml(
         '<template bind="{{}}">Hi {{\nname\n}}</template>');
+    var template = div.firstChild;
     var model = toObservable({'name': 'Leela'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() => expect(div.nodes[1].text, 'Hi Leela'));
   });
@@ -1204,23 +1259,58 @@ templateInstantiationTests() {
     var t1 = div.nodes.first;
     var t2 = div.nodes[1];
 
-    expect(templateBind(t2).ref, t1);
-
     var model = toObservable({'name': 'Fry'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(t1).model = model;
+    templateBind(t2).model = model;
 
     return new Future(() => expect(t2.nextNode.text, 'Hi Fry'));
   });
 
+  test('Ref at multiple', () {
+    // Note: this test is asserting that template "ref"erences can be located
+    // at various points. In particular:
+    // -in the document (at large) (e.g. ref=doc)
+    // -within template content referenced from sub-content
+    //   -both before and after the reference
+    // The following asserts ensure that all referenced templates content is
+    // found.
+    var div = createTestHtml(
+      '<template bind>'
+        '<template bind ref=doc></template>'
+        '<template id=elRoot>EL_ROOT</template>'
+        '<template bind>'
+          '<template bind ref=elRoot></template>'
+          '<template bind>'
+            '<template bind ref=subA></template>'
+            '<template id=subB>SUB_B</template>'
+            '<template bind>'
+              '<template bind ref=subB></template>'
+            '</template>'
+          '</template>'
+          '<template id=subA>SUB_A</template>'
+        '</template>'
+      '</template>'
+      '<template id=doc>DOC</template>');
+    var t = div.firstChild;
+    var fragment = templateBind(t).createInstance({});
+    expect(fragment.nodes.length, 14);
+    expect(fragment.nodes[1].text, 'DOC');
+    expect(fragment.nodes[5].text, 'EL_ROOT');
+    expect(fragment.nodes[8].text, 'SUB_A');
+    expect(fragment.nodes[12].text, 'SUB_B');
+    div.append(fragment);
+  });
 
   test('Update Ref', () {
+    // Updating ref by observing the attribute is dependent on MutationObserver
     var div = createTestHtml(
         '<template id=A>Hi, {{}}</template>'
         '<template id=B>Hola, {{}}</template>'
         '<template ref=A repeat></template>');
 
+    var template = div.nodes[2];
     var model = new ObservableList.from(['Fry']);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
 
     return new Future(() {
       expect(div.nodes.length, 4);
@@ -1229,10 +1319,35 @@ templateInstantiationTests() {
       div.nodes[2].attributes['ref'] = 'B';
       model.add('Leela');
 
+    }).then(nextMicrotask).then((x) {
+      expect(div.nodes.length, 5);
+
+      expect('Hola, Fry', div.nodes[3].text);
+      expect('Hola, Leela', div.nodes[4].text);
+    });
+  });
+
+  test('Bound Ref', () {
+    var div = createTestHtml(
+        '<template id=A>Hi, {{}}</template>'
+        '<template id=B>Hola, {{}}</template>'
+        '<template ref="{{ ref }}" repeat="{{ people }}"></template>');
+
+    var template = div.nodes[2];
+    var model = toObservable({'ref': 'A', 'people': ['Fry']});
+    templateBind(template).model = model;
+
+    return new Future(() {
+      expect(div.nodes.length, 4);
+      expect('Hi, Fry', div.nodes[3].text);
+
+      model['ref'] = 'B';
+      model['people'].add('Leela');
+
     }).then(endOfMicrotask).then((x) {
       expect(div.nodes.length, 5);
 
-      expect('Hi, Fry', div.nodes[3].text);
+      expect('Hola, Fry', div.nodes[3].text);
       expect('Hola, Leela', div.nodes[4].text);
     });
   });
@@ -1248,7 +1363,8 @@ templateInstantiationTests() {
     var t1 = div.firstChild;
     var t2 = div.nodes[1];
     var model = toObservable({'name': 'Fry', 'id': id });
-    recursivelySetTemplateModel(div, model);
+    templateBind(t1).model = model;
+    templateBind(t2).model = model;
 
     return new Future(() => expect(t2.nextNode.text, 'Hi Fry'));
   });
@@ -1276,7 +1392,7 @@ templateInstantiationTests() {
       ]
     });
 
-    recursivelySetTemplateModel(div, m);
+    templateBind(t).model = m;
     return new Future(() {
 
       assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
@@ -1320,6 +1436,7 @@ templateInstantiationTests() {
         '<template repeat="{{ contacts }}">'
           'Hi {{ name }}'
         '</template>');
+    var template = div.firstChild;
     var m = toObservable({
       'contacts': [
         {'name': 'Raf'},
@@ -1327,9 +1444,8 @@ templateInstantiationTests() {
         {'name': 'Neal'}
       ]
     });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
-      var t = div.nodes.first;
       assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
     });
   });
@@ -1344,7 +1460,7 @@ templateInstantiationTests() {
       {'name': 'Arv'},
       {'name': 'Neal'}
     ]);
-    recursivelySetTemplateModel(div, m);
+    templateBind(t).model = m;
     return new Future(() {
 
       assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
@@ -1383,13 +1499,13 @@ templateInstantiationTests() {
     var t = div.nodes.first;
 
     var m = null;
-    recursivelySetTemplateModel(div, m);
+    templateBind(t).model = m;
 
     expect(div.nodes.length, 1);
 
     t.attributes['iterate'] = '';
     m = toObservable({});
-    recursivelySetTemplateModel(div, m);
+    templateBind(t).model = m;
     return new Future(() => expect(div.nodes.length, 1));
   });
 
@@ -1403,7 +1519,7 @@ templateInstantiationTests() {
       {'name': 'Arv'},
       {'name': 'Neal'}
     ]);
-    recursivelySetTemplateModel(div, m);
+    templateBind(t).model = m;
 
     var node1, node2, node3;
     return new Future(() {
@@ -1432,9 +1548,9 @@ templateInstantiationTests() {
   test('TwoLevelsDeepBug', () {
     var div = createTestHtml(
       '<template bind="{{}}"><span><span>{{ foo }}</span></span></template>');
-
+    var template = div.firstChild;
     var model = toObservable({'foo': 'bar'});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.nodes[1].nodes[0].nodes[0].text, 'bar');
     });
@@ -1486,6 +1602,8 @@ templateInstantiationTests() {
       m['a']['c'] = toObservable({'d': 22});
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes[start + 2].text, '22');
+
+      //clearAllTemplates(div);
     });
   }
 
@@ -1626,6 +1744,8 @@ templateInstantiationTests() {
           '<template ref="t" repeat="{{items}}"></template>'
         '</template>');
 
+    var template = div.firstChild;
+
     var m = toObservable([
       {
         'name': 'Item 1',
@@ -1650,7 +1770,7 @@ templateInstantiationTests() {
       },
     ]);
 
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
 
     int i = 1;
     return new Future(() {
@@ -1686,6 +1806,7 @@ templateInstantiationTests() {
           '</select>'
         '</template>');
 
+    var template = div.firstChild;
     var m = toObservable({
       'selected': 1,
       'groups': [{
@@ -1693,7 +1814,7 @@ templateInstantiationTests() {
       }],
     });
 
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
 
     var completer = new Completer();
 
@@ -1709,9 +1830,6 @@ templateInstantiationTests() {
             'after template expands.');
 
         expect(select.nodes[0].tagName, 'TEMPLATE');
-        expect((templateBind(templateBind(select.nodes[0]).ref)
-            .content.nodes[0] as Element).tagName, 'OPTGROUP');
-
         var optgroup = select.nodes[1];
         expect(optgroup.nodes[0].tagName, 'TEMPLATE');
         expect(optgroup.nodes[1].tagName, 'OPTION');
@@ -1739,13 +1857,14 @@ templateInstantiationTests() {
             '</tr>'
           '</template>'
         '</tbody></table>');
+    var template = div.firstChild.firstChild.firstChild;
 
     var m = toObservable([
       [{ 'val': 0 }, { 'val': 1 }],
       [{ 'val': 2 }, { 'val': 3 }]
     ]);
 
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       var tbody = div.nodes[0].nodes[0];
 
@@ -1776,13 +1895,14 @@ templateInstantiationTests() {
             '<td template repeat="{{}}" class="{{ val }}">{{ val }}</td>'
           '</tr>'
         '</tbody></table>');
+    var template = div.firstChild.firstChild.firstChild;
 
     var m = toObservable([
       [{ 'val': 0 }, { 'val': 1 }],
       [{ 'val': 2 }, { 'val': 3 }]
     ]);
 
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
 
       var i = 1;
@@ -1813,7 +1933,7 @@ templateInstantiationTests() {
           '<template repeat="{{}}" id=t1>'
             '<li>{{name}}'
               '<ul>'
-                '<template ref=t1 repaet="{{items}}"></template>'
+                '<template ref=t1 repeat="{{items}}"></template>'
               '</ul>'
             '</li>'
           '</template>'
@@ -1829,9 +1949,21 @@ templateInstantiationTests() {
         ]
       }
     ]);
+    var ul = div.firstChild;
+    var t = ul.firstChild;
 
-    recursivelySetTemplateModel(div, m);
-    return new Future(() => m.removeAt(0));
+    templateBind(t).model = m;
+    return new Future(() {
+      expect(ul.nodes.length, 2);
+      var ul2 = ul.nodes[1].nodes[1];
+      expect(ul2.nodes.length, 2);
+      var ul3 = ul2.nodes[1].nodes[1];
+      expect(ul3.nodes.length, 1);
+
+      m.removeAt(0);
+    }).then(endOfMicrotask).then((_) {
+      expect(ul.nodes.length, 1);
+    });
   });
 
   test('DeepNested', () {
@@ -1843,7 +1975,7 @@ templateInstantiationTests() {
           '</template>'
         '</p>'
       '</template>');
-
+    var template = div.firstChild;
     var m = toObservable({
       'a': {
         'b': {
@@ -1851,7 +1983,7 @@ templateInstantiationTests() {
         }
       }
     });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes[1].tagName, 'P');
       expect(div.nodes[1].nodes.first.tagName, 'TEMPLATE');
@@ -1861,9 +1993,10 @@ templateInstantiationTests() {
 
   test('TemplateContentRemoved', () {
     var div = createTestHtml('<template bind="{{}}">{{ }}</template>');
+    var template = div.firstChild;
     var model = 42;
 
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.nodes[1].text, '42');
       expect(div.nodes[0].text, '');
@@ -1872,9 +2005,8 @@ templateInstantiationTests() {
 
   test('TemplateContentRemovedEmptyArray', () {
     var div = createTestHtml('<template iterate>Remove me</template>');
-    var model = toObservable([]);
-
-    recursivelySetTemplateModel(div, model);
+    var template = div.firstChild;
+    templateBind(template).model = [];
     return new Future(() {
       expect(div.nodes.length, 1);
       expect(div.nodes[0].text, '');
@@ -1889,12 +2021,12 @@ templateInstantiationTests() {
             '{{ b }}'
           '</template>'
         '</template>');
-
+    var template = div.firstChild;
     var model = toObservable({
       'a': 1,
       'b': 2
     });
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.nodes[0].text, '');
       expect(div.nodes[1].text, '1');
@@ -1906,19 +2038,20 @@ templateInstantiationTests() {
   test('BindWithUndefinedModel', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{}}">{{ a }}</template>');
+    var template = div.firstChild;
 
     var model = toObservable({'a': 42});
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.nodes[1].text, '42');
 
       model = null;
-      recursivelySetTemplateModel(div, model);
+      templateBind(template).model = model;
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.length, 1);
 
       model = toObservable({'a': 42});
-      recursivelySetTemplateModel(div, model);
+      templateBind(template).model = model;
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes[1].text, '42');
     });
@@ -1935,25 +2068,28 @@ templateInstantiationTests() {
             'Child: {{ name }}'
           '</template>'
         '</template>');
-
+    var template = div.firstChild;
     var m = toObservable({
       'name': 'Hermes',
       'wife': {
         'name': 'LaBarbara'
       }
     });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
+
     return new Future(() {
       expect(div.nodes.length, 5);
       expect(div.nodes[1].text, 'Name: Hermes');
       expect(div.nodes[3].text, 'Wife: LaBarbara');
 
       m['child'] = toObservable({'name': 'Dwight'});
+
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.length, 6);
       expect(div.nodes[5].text, 'Child: Dwight');
 
       m.remove('wife');
+
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.length, 5);
       expect(div.nodes[4].text, 'Child: Dwight');
@@ -1966,14 +2102,14 @@ templateInstantiationTests() {
           'Name: {{ name }}'
           '<template bind="{{friend}}" if="{{friend}}" ref="t"></template>'
         '</template>');
-
+    var template = div.firstChild;
     var m = toObservable({
       'name': 'Fry',
       'friend': {
         'name': 'Bender'
       }
     });
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
       expect(div.nodes.length, 5);
       expect(div.nodes[1].text, 'Name: Fry');
@@ -1996,13 +2132,14 @@ templateInstantiationTests() {
         '<template repeat>{{ foo }}'
           '<template bind></template>'
         '</template>');
+    var template = div.firstChild;
 
     var m = toObservable([{ 'foo': 'bar' }]);
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     return new Future(() {
 
       m.add(toObservable({ 'foo': 'baz' }));
-      recursivelySetTemplateModel(div, m);
+      templateBind(template).model = m;
     }).then(endOfMicrotask).then((_) {
 
       expect(div.nodes.length, 5);
@@ -2015,9 +2152,10 @@ templateInstantiationTests() {
     if (!MutationObserver.supported) return null;
 
     var div = createTestHtml('<template repeat>{{ foo }}</template>');
+    var template = div.firstChild;
 
     var m = toObservable([{ 'foo': 'bar' }, { 'foo': 'bat'}]);
-    recursivelySetTemplateModel(div, m);
+    templateBind(template).model = m;
     var observer = new MutationObserver((x, y) {});
     return new Future(() {
       observer.observe(div, childList: true);
@@ -2038,10 +2176,32 @@ templateInstantiationTests() {
         '</template>');
 
     var m = toObservable({'foo': 'bar'});
-    recursivelySetTemplateModel(div, m);
+    templateBind(div.firstChild).model = m;
     return new Future(() {
       expect(div.nodes.length, 4);
       expect(div.nodes[3].text, 'bar');
+    });
+  });
+
+  test('baseURI', () {
+    // TODO(jmesserly): Dart's setInnerHtml breaks this test -- the template
+    // URL is created as blank despite the NullTreeSanitizer.
+    // Use JS interop as a workaround.
+    //var div = createTestHtml('<template bind>'
+    //   '<div style="background: url(foo.jpg)"></div></template>');
+    var div = new DivElement();
+    new JsObject.fromBrowserObject(div)['innerHTML'] = '<template bind>'
+        '<div style="background: url(foo.jpg)"></div></template>';
+    testDiv.append(div);
+    TemplateBindExtension.decorate(div.firstChild);
+
+    var local = document.createElement('div');
+    local.attributes['style'] = 'background: url(foo.jpg)';
+    div.append(local);
+    var template = div.firstChild;
+    templateBind(template).model = {};
+    return new Future(() {
+      expect(div.nodes[1].style.backgroundImage, local.style.backgroundImage);
     });
   });
 
@@ -2052,8 +2212,9 @@ templateInstantiationTests() {
         '<template repeat="{{}}">'
           '<template ref="a" bind="{{}}"></template>'
         '</template>');
+    var template = div.nodes[2];
     var model = toObservable([]);
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.nodes.length, 3);
 
@@ -2118,7 +2279,7 @@ templateInstantiationTests() {
     var root = createShadowTestHtml(
         '<template bind="{{}}">Hi {{ name }}</template>');
     var model = toObservable({'name': 'Leela'});
-    recursivelySetTemplateModel(root, model);
+    templateBind(root.firstChild).model = model;
     return new Future(() => expect(root.nodes[1].text, 'Hi Leela'));
   });
 
@@ -2144,8 +2305,12 @@ templateInstantiationTests() {
     if (!ShadowRoot.supported) return null;
     var root = createShadowTestHtml(
         '<template id=foo>Hi</template><template bind ref=foo></template>');
-    recursivelySetTemplateModel(root, toObservable({}));
-    return new Future(() => expect(root.nodes.length, 3));
+    var template = root.nodes[1];
+    templateBind(template).model = toObservable({});
+    return new Future(() {
+      expect(root.nodes.length, 3);
+      clearAllTemplates(root);
+    });
   });
 
   // https://github.com/Polymer/TemplateBinding/issues/8
@@ -2156,11 +2321,11 @@ templateInstantiationTests() {
           '{{ age }}'
         '</template>'
       '</template>');
-
+    var template = div.firstChild;
     var syntax = new UnbindingInNestedBindSyntax();
     var model = toObservable({'outer': {'inner': {'age': 42}}});
 
-    recursivelySetTemplateModel(div, model, syntax);
+    templateBind(template)..model = model..bindingDelegate = syntax;
 
     return new Future(() {
       expect(syntax.count, 1);
@@ -2185,7 +2350,8 @@ templateInstantiationTests() {
       '<template bind="{{}} {{}}">'
         '<template bind="{{}}">Foo</template>'
       '</template>');
-    recursivelySetTemplateModel(div, null);
+    var template = div.firstChild;
+    templateBind(template).model = null;
     return nextMicrotask;
   });
 
@@ -2199,15 +2365,10 @@ templateInstantiationTests() {
     var outer = templateBind(div.nodes.first);
     var model = toObservable({'b': {'foo': 'bar'}});
 
-    var host = new DivElement();
     var instance = outer.createInstance(model, new TestBindingSyntax());
-    expect(outer.content.nodes.first,
-        templateBind(instance.nodes.first).ref);
+    expect(instance.firstChild.nextNode.text, 'bar:replaced');
 
-    host.append(instance);
-    return new Future(() {
-      expect(host.firstChild.nextNode.text, 'bar:replaced');
-    });
+    clearAllTemplates(instance);
   });
 
   test('CreateInstance - sync error', () {
@@ -2324,19 +2485,41 @@ templateInstantiationTests() {
     });
   });
 
+  test('Accessor value retrieval count', () {
+    var div = createTestHtml(
+        '<template bind>{{ prop }}</template>');
+
+    var model = new TestAccessorModel();
+
+    templateBind(div.firstChild).model = model;
+
+    return new Future(() {
+      expect(model.count, 1);
+
+      model.value++;
+      // Dart note: we don't handle getters in @observable, so we need to
+      // notify regardless.
+      model.notifyPropertyChange(#prop, 1, model.value);
+
+    }).then(endOfMicrotask).then((_) {
+      expect(model.count, 2);
+    });
+  });
+
   test('issue-141', () {
     var div = createTestHtml(
         '<template bind>'
           '<div foo="{{foo1}} {{foo2}}" bar="{{bar}}"></div>'
         '</template>');
 
+    var template = div.firstChild;
     var model = toObservable({
       'foo1': 'foo1Value',
       'foo2': 'foo2Value',
       'bar': 'barValue'
     });
 
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       expect(div.lastChild.attributes['bar'], 'barValue');
     });
@@ -2350,9 +2533,10 @@ templateInstantiationTests() {
           '<div class="foo: {{ bar }}"></div>'
         '</template>');
 
+    var template = div.firstChild;
     var model = toObservable({'bar': 2});
 
-    recursivelySetTemplateModel(div, model, delegate);
+    templateBind(template)..model = model..bindingDelegate = delegate;
 
     return new Future(() {
       expect(div.lastChild.attributes['class'], 'foo: 2');
@@ -2360,12 +2544,17 @@ templateInstantiationTests() {
   });
 
   test('issue-152', () {
-    var div = createTestHtml('<template ref=notThere></template>');
-    var template = div.firstChild;
+    var div = createTestHtml(
+        '<template ref=notThere bind>XXX</template>');
 
-    // if a ref cannot be located, a template will continue to use itself
-    // as the source of template instances.
-    expect(template, templateBind(template).ref);
+    var template = div.firstChild;
+    templateBind(template).model = {};
+
+    return new Future(() {
+      // if a ref cannot be located, a template will continue to use itself
+      // as the source of template instances.
+      expect(div.nodes[1].text, 'XXX');
+    });
   });
 }
 
@@ -2379,6 +2568,7 @@ compatTests() {
           '<input type="number" _value="{{ number }}">'
         '</template>');
 
+    var template = div.firstChild;
     var model = toObservable({
       'color': 'red',
       'url': 'pic.jpg',
@@ -2386,7 +2576,7 @@ compatTests() {
       'number': 4
     });
 
-    recursivelySetTemplateModel(div, model);
+    templateBind(template).model = model;
     return new Future(() {
       var subDiv = div.firstChild.nextNode;
       expect(subDiv.attributes['style'], 'color: red;');
@@ -2438,5 +2628,16 @@ class Issue18Syntax extends BindingDelegate {
     if (name != 'class') return null;
 
     return (model, _, oneTime) => new PathObserver(model, path);
+  }
+}
+
+class TestAccessorModel extends Observable {
+  @observable var value = 1;
+  var count = 0;
+
+  @reflectable
+  get prop {
+    count++;
+    return value;
   }
 }

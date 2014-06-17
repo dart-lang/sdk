@@ -24,7 +24,7 @@ class _SelectElementExtension extends _ElementExtension {
       return null;
     }
 
-    _self.unbind(name);
-    return bindings[name] = new _InputBinding(_node, value, name);
+    // Option update events may need to access select bindings.
+    return _updateBindings(name, new _InputBinding(_node, value, name));
   }
 }

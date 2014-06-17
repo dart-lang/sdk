@@ -55,7 +55,7 @@ main() => initPolymer().run(() {
 
   test('published properties', () {
     published(tag) => (new Element.tag(tag) as PolymerElement)
-        .declaration.publishedProperties;
+        .element.publishedProperties;
 
     expect(published('x-zot'), ['Foo', 'Bar', 'zot', 'm']);
     expect(published('x-squid'), ['Foo', 'Bar', 'zot', 'm', 'baz', 'squid']);

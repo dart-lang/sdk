@@ -9,6 +9,7 @@
 */*/packages/*/*: Skip
 */*/*/packages/*/*: Skip
 */*/*/*/packages/*/*: Skip
+*/*/*/*/*/packages/*/*: Skip
 
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
@@ -22,6 +23,8 @@ polymer/test/build/script_compactor_test: Pass, Slow
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
+
+[ $compiler == none && ($runtime == dartium) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
 polymer/test/bind_test: Pass, RuntimeError # Issue 18931
@@ -32,6 +35,7 @@ polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_declarative_test: Pass, RuntimeError # Issue 18931
 polymer/test/events_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
+polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
@@ -42,6 +46,10 @@ polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/register_test: Pass, RuntimeError # Issue 18931
 polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
+web_components/test/interop_test: Pass, RuntimeError # Issue 18931
+
+[ $compiler == none && $runtime == dartium && $system == windows ]
+polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Pass, Timeout
@@ -77,11 +85,15 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
+[ $compiler == dart2js && $runtime == drt ]
+web_components/test/interop_test: Pass, Fail # Issue 19329
+web_components/test/interop2_test: Fail # Issue 19329
+
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
-[ $compiler == dart2js && $checked && $runtime == drt ]
-polymer/test/event_handlers_test: RuntimeError # Issue 19190
+[ $checked && $runtime == drt ]
+polymer/test/event_handlers_test: Pass, RuntimeError # Issue 19190
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -107,6 +119,7 @@ async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
 polymer/example: Skip # Uses dart:html
 polymer/e2e_test: Skip # Uses dart:html
+polymer/test/auto_binding_test: Skip # uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
@@ -118,6 +131,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/js_custom_event_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html
 polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
@@ -133,7 +147,7 @@ polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html
 third_party/angular_tests/browser_test: Skip # uses dart:html
-web_components/test/location_wrapper_test: Skip # uses dart:html
+web_components/test/*: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -155,6 +169,9 @@ polymer/test/bind_mdv_test: Slow, Pass
 template_binding/test/custom_element_bindings_test: Fail, Timeout # Issue 16717
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
 matcher/test/matchers_test: RuntimeError # Issue 17762
+polymer_expressions/test/bindings_test: RuntimeError # Issue 19265
+polymer_expressions/test/globals_test: RuntimeError # Issue 19265
+template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 
 [ $ie ]
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
@@ -163,7 +180,13 @@ polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
 
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
-polymer/test/register_test: Fail # Issue 18870
+polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
+polymer_expressions/*: Pass, RuntimeError # Issue 19265
+template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
+polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
+
+[ $runtime == ie11 ]
+polymer/test/event_handlers_test: RuntimeError, Timeout # Issue 19265
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
@@ -195,6 +218,7 @@ polymer/e2e_test/experimental_boot: Skip
 
 [ $compiler == dart2js && $csp ]
 polymer/test/noscript_test: Fail # Issue 17326
+polymer/test/js_custom_event_test: Fail # Issue 17326
 polymer/test/js_interop_test: Fail # Issue 17326
 
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
@@ -331,10 +355,6 @@ polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy onl
 polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
 polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
 polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/test/custom_event_test: Pass, Crash # 14360
-
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
-polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
@@ -387,6 +407,7 @@ analyzer/test/*: PubGetError
 
 [ $runtime == ie9 ]
 polymer: Pass, Fail, Timeout # Issue 16717
+web_components/test/interop_test: Fail, Timeout # Issue 16717
 
 # No typed_data on IE9.
 http/test/html/client_test: Fail

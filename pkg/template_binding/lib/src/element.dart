@@ -9,8 +9,6 @@ class _ElementExtension extends NodeBindExtension {
   _ElementExtension(Element node) : super._(node);
 
   bind(String name, value, {bool oneTime: false}) {
-    _self.unbind(name);
-
     Element node = _node;
 
     if (node is OptionElement && name == 'value') {
@@ -31,7 +29,7 @@ class _ElementExtension extends NodeBindExtension {
 
       _open(value, (x) => _updateAttribute(_node, name, conditional, x));
     }
-    return bindings[name] = value;
+    return _maybeUpdateBindings(name, value);
   }
 
   void _updateOption(newValue) {
@@ -40,10 +38,13 @@ class _ElementExtension extends NodeBindExtension {
     var selectBinding = null;
     var select = node.parentNode;
     if (select is SelectElement) {
-      var valueBinding = nodeBind(select).bindings['value'];
-      if (valueBinding is _InputBinding) {
-        selectBinding = valueBinding;
-        oldValue = select.value;
+      var bindings = nodeBind(select).bindings;
+      if (bindings != null) {
+        var valueBinding = bindings['value'];
+        if (valueBinding is _InputBinding) {
+          selectBinding = valueBinding;
+          oldValue = select.value;
+        }
       }
     }
 

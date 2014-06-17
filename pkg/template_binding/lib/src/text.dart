@@ -18,9 +18,8 @@ class _TextExtension extends NodeBindExtension {
       return null;
     }
 
-    unbind(name);
     _open(value, _updateText);
-    return bindings[name] = value;
+    return _maybeUpdateBindings(name, value);
   }
 
   _updateText(value) {

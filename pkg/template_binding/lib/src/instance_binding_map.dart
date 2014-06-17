@@ -71,3 +71,17 @@ Node _cloneAndBindInstance(Node node, Node parent, Document stagingDocument,
   _processBindings(clone, bindings, model, instanceBindings);
   return clone;
 }
+
+// TODO(rafaelw): Setup a MutationObserver on content which clears the expando
+// so that bindingMaps regenerate when template.content changes.
+_getInstanceBindingMap(DocumentFragment content, BindingDelegate delegate) {
+  if (delegate == null) delegate = BindingDelegate._DEFAULT;
+
+  if (delegate._bindingMaps == null) delegate._bindingMaps = new Expando();
+  var map = delegate._bindingMaps[content];
+  if (map == null) {
+    map = _createInstanceBindingMap(content, delegate);
+    delegate._bindingMaps[content] = map;
+  }
+  return map;
+}

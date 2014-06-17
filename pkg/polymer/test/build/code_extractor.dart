@@ -87,9 +87,9 @@ void codeExtractorTests() {
           "web/test.html.1.dart", "web/test.html.2.dart",
           "web/test.html.3.dart"]),
       'a|web/test.html.0.dart': 'library a.web.test2_html_0;\nmain1() { }',
-      'a|web/test.html.1.dart': 'library a.web.bar.test_html_1;\nmain2() { }',
-      'a|web/test.html.2.dart': 'library a.foo.test_html_2;\nmain3() { }',
-      'a|web/test.html.3.dart': 'library b.test_html_3;\nmain4() { }'
+      'a|web/test.html.1.dart': 'library a.web.bar.test_html_0;\nmain2() { }',
+      'a|web/test.html.2.dart': 'library a.foo.test_html_0;\nmain3() { }',
+      'a|web/test.html.3.dart': 'library b.test_html_0;\nmain4() { }'
     });
 
   testPhases('experimental bootstrap', phases, {

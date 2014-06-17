@@ -16,20 +16,22 @@ import 'filter.dart';
 import 'visitor.dart';
 
 final _BINARY_OPERATORS = {
-  '+':  (a, b) => a + b,
-  '-':  (a, b) => a - b,
-  '*':  (a, b) => a * b,
-  '/':  (a, b) => a / b,
-  '%':  (a, b) => a % b,
-  '==': (a, b) => a == b,
-  '!=': (a, b) => a != b,
-  '>':  (a, b) => a > b,
-  '>=': (a, b) => a >= b,
-  '<':  (a, b) => a < b,
-  '<=': (a, b) => a <= b,
-  '||': (a, b) => a || b,
-  '&&': (a, b) => a && b,
-  '|':  (a, f) {
+  '+':   (a, b) => a + b,
+  '-':   (a, b) => a - b,
+  '*':   (a, b) => a * b,
+  '/':   (a, b) => a / b,
+  '%':   (a, b) => a % b,
+  '==':  (a, b) => a == b,
+  '!=':  (a, b) => a != b,
+  '===': (a, b) => identical(a, b),
+  '!==': (a, b) => !identical(a, b),
+  '>':   (a, b) => a > b,
+  '>=':  (a, b) => a >= b,
+  '<':   (a, b) => a < b,
+  '<=':  (a, b) => a <= b,
+  '||':  (a, b) => a || b,
+  '&&':  (a, b) => a && b,
+  '|':   (a, f) {
     if (f is Transformer) return f.forward(a);
     if (f is Filter) return f(a);
     throw new EvalException("Filters must be a one-argument function.");
@@ -47,11 +49,7 @@ final _BOOLEAN_OPERATORS = ['!', '||', '&&'];
 /**
  * Evaluation [expr] in the context of [scope].
  */
-Object eval(Expression expr, Scope scope) {
-  var observer = observe(expr, scope);
-  new Updater(scope).visit(observer);
-  return observer._value;
-}
+Object eval(Expression expr, Scope scope) => new EvalVisitor(scope).visit(expr);
 
 /**
  * Returns an [ExpressionObserver] that evaluates [expr] in the context of
@@ -152,9 +150,6 @@ Object assign(Expression expr, Object value, Scope scope,
  * and then finally looks up the name as a property in the model.
  */
 abstract class Scope implements Indexable<String, Object> {
-  static int __seq = 1;
-  final int _seq = __seq++;
-
   Scope._();
 
   /** Create a scope containing a [model] and all of [variables]. */
@@ -188,9 +183,6 @@ abstract class Scope implements Indexable<String, Object> {
   /** Create a new scope extending this scope with an additional variable. */
   Scope childScope(String name, Object value) =>
       new _LocalVariableScope(name, value, this);
-
-  String toString() => 'Scope(seq: $_seq model: $model)';
-
 }
 
 /**
@@ -307,12 +299,15 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
     }
   }
 
-  _observe(Scope scope) {
-    // unobserve last value
+  _unobserve() {
     if (_subscription != null) {
       _subscription.cancel();
       _subscription = null;
     }
+  }
+
+  _observe(Scope scope) {
+    _unobserve();
 
     var _oldValue = _value;
 
@@ -335,6 +330,110 @@ class Updater extends RecursiveVisitor {
   visitExpression(ExpressionObserver e) {
     e._observe(scope);
   }
+}
+
+class Closer extends RecursiveVisitor {
+  static final _instance = new Closer._();
+  factory Closer() => _instance;
+  Closer._();
+
+  visitExpression(ExpressionObserver e) {
+    e._unobserve();
+  }
+}
+
+class EvalVisitor extends Visitor {
+  final Scope scope;
+
+  EvalVisitor(this.scope);
+
+  visitEmptyExpression(EmptyExpression e) => scope.model;
+
+  visitParenthesizedExpression(ParenthesizedExpression e) => visit(e.child);
+
+  visitGetter(Getter g) {
+    var receiver = visit(g.receiver);
+    if (receiver == null) return null;
+    var symbol = smoke.nameToSymbol(g.name);
+    return smoke.read(receiver, symbol);
+  }
+
+  visitIndex(Index i) {
+    var receiver = visit(i.receiver);
+    if (receiver == null) return null;
+    var key = visit(i.argument);
+    return receiver[key];
+  }
+
+  visitInvoke(Invoke i) {
+    var receiver = visit(i.receiver);
+    if (receiver == null) return null;
+    var args = (i.arguments == null)
+        ? null
+        : i.arguments.map(visit).toList(growable: false);
+
+    if (i.method == null) {
+      assert(receiver is Function);
+      return Function.apply(receiver, args);
+    }
+
+    var symbol = smoke.nameToSymbol(i.method);
+    return smoke.invoke(receiver, symbol, args);
+  }
+
+  visitLiteral(Literal l) => l.value;
+
+  visitListLiteral(ListLiteral l) => l.items.map(visit).toList();
+
+  visitMapLiteral(MapLiteral l) {
+    var map = {};
+    for (var entry in l.entries) {
+      var key = visit(entry.key);
+      var value = visit(entry.entryValue);
+      map[key] = value;
+    }
+    return map;
+  }
+
+  visitMapLiteralEntry(MapLiteralEntry e) =>
+      throw new UnsupportedError("should never be called");
+
+  visitIdentifier(Identifier i) => scope[i.value];
+
+  visitBinaryOperator(BinaryOperator o) {
+    var operator = o.operator;
+    var left = visit(o.left);
+    var right = visit(o.right);
+
+    var f = _BINARY_OPERATORS[operator];
+    if (operator == '&&' || operator == '||') {
+      // TODO: short-circuit
+      return f(_toBool(left), _toBool(right));
+    } else if (operator == '==' || operator == '!=') {
+      return f(left, right);
+    } else if (left == null || right == null) {
+      return null;
+    }
+    return f(left, right);
+  }
+
+  visitUnaryOperator(UnaryOperator o) {
+    var expr = visit(o.child);
+    var f = _UNARY_OPERATORS[o.operator];
+    if (o.operator == '!') {
+      return f(_toBool(expr));
+    }
+    return (expr == null) ? null : f(expr);
+  }
+
+  visitTernaryOperator(TernaryOperator o) =>
+      visit(o.condition) == true ? visit(o.trueExpr) : visit(o.falseExpr);
+
+  visitInExpression(InExpression i) =>
+      throw new UnsupportedError("can't eval an 'in' expression");
+
+  visitAsExpression(AsExpression i) =>
+      throw new UnsupportedError("can't eval an 'as' expression");
 }
 
 class ObserverBuilder extends Visitor {
@@ -470,7 +569,7 @@ class ListLiteralObserver extends ExpressionObserver<ListLiteral>
   ListLiteralObserver(ListLiteral value, this.items) : super(value);
 
   _updateSelf(Scope scope) {
-    _value = items.map((i) => i._value).toList(growable: false);
+    _value = items.map((i) => i._value).toList();
   }
 
   accept(Visitor v) => v.visitListLiteral(this);

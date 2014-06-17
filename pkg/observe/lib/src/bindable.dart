@@ -9,8 +9,10 @@ library observe.src.bindable;
 // TODO(jmesserly): Node.bind polyfill calls this "observable"
 abstract class Bindable {
   // TODO(jmesserly): since we have "value", should open be a void method?
-  // TODO(jmesserly): not sure how I feel about open taking a variable number
-  // of arguments, but it's the easiest way to make CompoundObserver work.
+  // Dart note: changed setValue to be "set value" and discardChanges() to
+  // be "get value". Also "set value" implies discard changes.
+  // TOOD(jmesserly): is this change too subtle? Is there any other way to
+  // make Bindable friendly in a world with getters/setters?
 
   /// Initiates observation and returns the initial value.
   /// The callback will be called with the updated [value].

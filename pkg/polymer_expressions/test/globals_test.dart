@@ -31,7 +31,6 @@ main() {
     });
 
     tearDown(() {
-      nodeBind(testDiv).unbindAll();
       testDiv.remove();
       testDiv = null;
     });

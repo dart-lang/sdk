@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,11 +24,9 @@ import 'dart:html';
 import 'dart:svg' show SvgSvgElement;
 import 'package:observe/observe.dart';
 
-import 'src/binding_delegate.dart';
 import 'src/mustache_tokens.dart';
 
-export 'src/binding_delegate.dart';
-
+part 'src/binding_delegate.dart';
 part 'src/element.dart';
 part 'src/input_bindings.dart';
 part 'src/input_element.dart';
@@ -154,6 +152,17 @@ bool _isHtmlTemplate(Element el) => el.tagName == 'TEMPLATE' &&
  */
 bool isSemanticTemplate(Node n) => n is Element &&
     (_isHtmlTemplate(n) || _isAttributeTemplate(n) || _isSvgTemplate(n));
+
+/** Returns true if this is the staging document for a template. */
+bool isTemplateStagingDocument(Document d) => _isStagingDocument[d] == true;
+
+
+/**
+ * True to enable [NodeBindingExtension.bindings]. This can be used by tools
+ * such as UI builders to easily inspect live bindings. Defaults to false for
+ * performance reasons.
+ */
+bool enableBindingsReflection = false;
 
 // TODO(jmesserly): const set would be better
 const _SEMANTIC_TEMPLATE_TAGS = const {

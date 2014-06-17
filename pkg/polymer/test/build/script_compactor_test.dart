@@ -667,7 +667,6 @@ codegenTests(phases) {
           '<something-else my-attribute="{{here.too}}"></something-else>'
           '<div on-click="{{methodName}}"></div>'
           '<div on-click="{{ methodName2 }}"></div>' // extra space is OK
-          '<div on-click="{{@read.method}}"></div>'
           // empty handlers are invalid, but we still produce valid output.
           '<div on-click="{{}}"></div>'
           '<div on-click="{{ }}"></div>'
@@ -697,11 +696,9 @@ codegenTests(phases) {
                   #here: (o) => o.here,
                   #iS: (o) => o.iS,
                   #intToStringTransformer: (o) => o.intToStringTransformer,
-                  #method: (o) => o.method,
                   #methodName: (o) => o.methodName,
                   #methodName2: (o) => o.methodName2,
                   #node: (o) => o.node,
-                  #read: (o) => o.read,
                   #too: (o) => o.too,
                   #twoWay: (o) => o.twoWay,
                   #twoWayInt: (o) => o.twoWayInt,
@@ -723,11 +720,9 @@ codegenTests(phases) {
                   #here: r'here',
                   #iS: r'iS',
                   #intToStringTransformer: r'intToStringTransformer',
-                  #method: r'method',
                   #methodName: r'methodName',
                   #methodName2: r'methodName2',
                   #node: r'node',
-                  #read: r'read',
                   #too: r'too',
                   #twoWay: r'twoWay',
                   #twoWayInt: r'twoWayInt',

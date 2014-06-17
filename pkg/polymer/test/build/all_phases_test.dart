@@ -23,7 +23,6 @@ void main() {
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {}, [
-      'warning: $USE_POLYMER_HTML',
       'warning: $USE_INIT_DART'
     ]);
 
@@ -191,7 +190,9 @@ void main() {
           '<script type="application/dart" src="b.dart"></script>',
       'a|web/b.dart': _sampleInput('B', 'bar'),
       'a|lib/test2.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="../../packages/polymer/polymer.html">'
+          '</head><body>'
           '<polymer-element name="x-a">1'
           '<script type="application/dart">'
           '${_sampleInput("A", "foo")}</script>'
@@ -245,7 +246,9 @@ void main() {
           '<link rel="import" href="packages/a/load_b.html">',
       'a|lib/b.dart': _sampleInput('B', 'bar'),
       'a|lib/test2.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="../../packages/polymer/polymer.html">'
+          '</head><body>'
           '<polymer-element name="x-a">1'
           '<script type="application/dart">'
           '${_sampleInput("A", "foo")}</script>'

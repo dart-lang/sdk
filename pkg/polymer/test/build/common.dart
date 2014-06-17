@@ -75,9 +75,10 @@ class TestHelper implements PackageProvider {
       var span = entry.span;
       var spanInfo = span == null ? '' :
           ' (${span.sourceUrl} ${span.start.line} ${span.start.column})';
-      expect(messagesSeen, lessThan(messages.length),
+      var index = messagesSeen++;
+      expect(messagesSeen, lessThanOrEqualTo(messages.length),
           reason: 'more messages than expected.\nMessage seen: $msg$spanInfo');
-      expect('$msg$spanInfo', messages[messagesSeen++]);
+      expect('$msg$spanInfo', messages[index]);
     });
   }
 
@@ -118,7 +119,7 @@ class TestHelper implements PackageProvider {
     }).then((_) {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
-      expect(messages.length, messagesSeen,
+      expect(messagesSeen, messages.length,
           reason: 'less messages than expected');
     });
   }
@@ -160,8 +161,12 @@ const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';
 
 const POLYMER_MOCKS = const {
-  'polymer|lib/polymer.html': '<!DOCTYPE html><html>',
-  'polymer|lib/polymer_experimental.html': '<!DOCTYPE html><html>',
+  'polymer|lib/src/js/polymer/polymer.html': '<!DOCTYPE html><html>',
+  'polymer|lib/polymer.html': '<!DOCTYPE html><html>'
+      '<link rel="import" href="src/js/polymer/polymer.html">',
+  'polymer|lib/polymer_experimental.html':
+      '<!DOCTYPE html><html>'
+      '<link rel="import" href="polymer.html">',
   'polymer|lib/polymer.dart':
       'library polymer;\n'
       'import "dart:html";\n'

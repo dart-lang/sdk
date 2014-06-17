@@ -57,7 +57,15 @@ abstract class PolymerEventBindings {
     }
 
     if (controller is Polymer) {
-      var args = [e, e.detail, e.currentTarget];
+      var detail = null;
+      if (e is CustomEvent) {
+        detail = e.detail;
+        // TODO(sigmund): this shouldn't be necessary. See issue 19315.
+        if (detail == null) {
+          detail = new JsObject.fromBrowserObject(e)['detail'];
+        }
+      }
+      var args = [e, detail, e.currentTarget];
       controller.dispatchMethod(controller, method, args);
     } else {
       throw new StateError('controller $controller is not a '

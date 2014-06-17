@@ -10,6 +10,7 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
 import 'package:polymer/src/mirror_loader.dart';
+/// prevent unused import warnings: [m1.XA] [m2.XA] [m3.XB] [m4.XA].
 import 'mirror_loader_1.dart' as m1;
 import 'mirror_loader_2.dart' as m2;
 import 'mirror_loader_3.dart' as m3;

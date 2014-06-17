@@ -21,12 +21,30 @@ class TemplateBindExtension extends _ElementExtension {
 
   _InstanceBindingMap _bindingMap;
 
+  Node _refContent;
+
   TemplateBindExtension._(Element node) : super(node);
 
   Element get _node => super._node;
 
   TemplateBindExtension get _self => super._node is TemplateBindExtension
       ? _node : this;
+
+  Bindable bind(String name, value, {bool oneTime: false}) {
+    if (name != 'ref') return super.bind(name, value, oneTime: oneTime);
+
+
+    var ref = oneTime ? value : value.open((ref) {
+      _node.attributes['ref'] = ref;
+      _refChanged();
+    });
+
+    _node.attributes['ref'] = ref;
+    _refChanged();
+    if (oneTime) return null;
+
+    return _updateBindings('ref', value);
+  }
 
   _TemplateIterator _processBindingDirectives(_TemplateBindingMap directives) {
     if (_iterator != null) _iterator._closeDependencies();
@@ -38,16 +56,19 @@ class TemplateBindExtension extends _ElementExtension {
       if (_iterator != null) {
         _iterator.close();
         _iterator = null;
-        bindings.remove('iterator');
       }
       return null;
     }
 
     if (_iterator == null) {
-      bindings['iterator'] = _iterator = new _TemplateIterator(this);
+      _iterator = new _TemplateIterator(this);
     }
 
     _iterator._updateDependencies(directives, model);
+
+    _templateObserver.observe(_node,
+        attributes: true, attributeFilter: ['ref']);
+
     return _iterator;
   }
 
@@ -60,38 +81,47 @@ class TemplateBindExtension extends _ElementExtension {
    * bindings without walking the tree. This is not normally necesssary, but is
    * used internally by the system.
    */
-  DocumentFragment createInstance([model, BindingDelegate delegate,
-      List<Bindable> instanceBindings]) {
+  DocumentFragment createInstance([model, BindingDelegate delegate]) {
+    if (delegate == null) delegate = _bindingDelegate;
+    if (_refContent == null) _refContent = templateBind(_ref).content;
 
-    final content = templateBind(ref).content;
-    // Dart note: we store _bindingMap on the TemplateBindExtension instead of
-    // the "content" because we already have an expando for it.
-    var map = _bindingMap;
-    if (map == null || !identical(map.content, content)) {
-      // TODO(rafaelw): Setup a MutationObserver on content to detect
-      // when the instanceMap is invalid.
-      map = _createInstanceBindingMap(content, delegate);
-      map.content = content;
-      _bindingMap = map;
-    }
+    var content = _refContent;
+    if (content.firstChild == null) return _emptyInstance;
 
+    final map = _getInstanceBindingMap(content, delegate);
     final staging = _getTemplateStagingDocument();
     final instance = _stagingDocument.createDocumentFragment();
-    _templateCreator[instance] = _node;
+
+    final instanceExt = new _InstanceExtension();
+    _instanceExtension[instance] = instanceExt
+      .._templateCreator = _node
+      .._protoContent = content;
 
     final instanceRecord = new TemplateInstance(model);
+    nodeBindFallback(instance)._templateInstance = instanceRecord;
 
     var i = 0;
+    bool collectTerminator = false;
     for (var c = content.firstChild; c != null; c = c.nextNode, i++) {
+      // The terminator of the instance is the clone of the last child of the
+      // content. If the last child is an active template, it may produce
+      // instances as a result of production, so simply collecting the last
+      // child of the instance after it has finished producing may be wrong.
+      if (c.nextNode == null) collectTerminator = true;
+
       final childMap = map != null ? map.getChild(i) : null;
       var clone = _cloneAndBindInstance(c, instance, _stagingDocument,
-          childMap, model, delegate, instanceBindings);
+          childMap, model, delegate, instanceExt._bindings);
+
       nodeBindFallback(clone)._templateInstance = instanceRecord;
+      if (collectTerminator) instanceExt._terminator = clone;
     }
 
     instanceRecord._firstNode = instance.firstChild;
     instanceRecord._lastNode = instance.lastChild;
 
+    instanceExt._protoContent = null;
+    instanceExt._templateCreator = null;
     return instance;
   }
 
@@ -119,7 +149,12 @@ class TemplateBindExtension extends _ElementExtension {
    */
   BindingDelegate get bindingDelegate => _bindingDelegate;
 
+
   void set bindingDelegate(BindingDelegate value) {
+    if (_bindingDelegate != null) {
+      throw new StateError('Template must be cleared before a new '
+          'bindingDelegate can be assigned');
+    }
     _bindingDelegate = value;
 
     // Clear cached state based on the binding delegate.
@@ -144,35 +179,40 @@ class TemplateBindExtension extends _ElementExtension {
     _processBindings(_node, map, _model);
   }
 
+  _refChanged() {
+    if (_iterator == null || _refContent == templateBind(_ref).content) return;
+
+    _refContent = null;
+    _iterator._valueChanged(null);
+    _iterator._updateIteratedValue(null);
+  }
+
+  void clear() {
+    _model = null;
+    _bindingDelegate = null;
+    if (bindings != null) {
+      var ref = bindings.remove('ref');
+      if (ref != null) ref.close();
+    }
+    _refContent = null;
+    if (_iterator == null) return;
+    _iterator._valueChanged(null);
+    _iterator.close();
+    _iterator = null;
+  }
+
   /** Gets the template this node refers to. */
-  Element get ref {
+  Element get _ref {
     _decorate();
 
-    Element result = null;
-    var refId = _node.attributes['ref'];
-    if (refId != null) {
-      var treeScope = _getTreeScope(_node);
-      if (treeScope != null) {
-        result = treeScope.getElementById(refId);
-      }
-      if (result == null) {
-        var instanceRoot = _getInstanceRoot(_node);
-
-        // TODO(jmesserly): this won't work if refId is a number
-        // Similar to bug: https://github.com/Polymer/ShadowDOM/issues/340
-        if (instanceRoot != null) {
-          result = instanceRoot.querySelector('#$refId');
-        }
-      }
+    var ref = _searchRefId(_node, _node.attributes['ref']);
+    if (ref == null) {
+      ref = _templateInstanceRef;
+      if (ref == null) return _node;
     }
 
-    if (result == null) {
-      result = _templateInstanceRef;
-      if (result == null) return _node;
-    }
-
-    var nextRef = templateBind(result).ref;
-    return nextRef != null ? nextRef : result;
+    var nextRef = templateBindFallback(ref)._ref;
+    return nextRef != null ? nextRef : ref;
   }
 
   /**
@@ -201,6 +241,7 @@ class TemplateBindExtension extends _ElementExtension {
     if (_templateIsDecorated == true) return false;
 
     _injectStylesheet();
+    _globalBaseUriWorkaround();
 
     var templateElementExt = this;
     _templateIsDecorated = true;
@@ -274,6 +315,8 @@ class TemplateBindExtension extends _ElementExtension {
       var doc = _ownerStagingDocument[owner];
       if (doc == null) {
         doc = owner.implementation.createHtmlDocument('');
+        _isStagingDocument[doc] = true;
+        _baseUriWorkaround(doc);
         _ownerStagingDocument[owner] = doc;
       }
       _stagingDocument = doc;
@@ -382,34 +425,107 @@ class TemplateBindExtension extends _ElementExtension {
         ..text = '$_allTemplatesSelectors { display: none; }';
     document.head.append(style);
   }
-}
 
-final _templateCreator = new Expando();
+  static bool _initBaseUriWorkaround;
 
-_getTreeScope(Node node) {
-  while (true) {
-    var parent = node.parentNode;
-    if (parent != null) {
-      node = parent;
-    } else {
-      var creator = _templateCreator[node];
-      if (creator == null) break;
+  static void _globalBaseUriWorkaround() {
+    if (_initBaseUriWorkaround == true) return;
+    _initBaseUriWorkaround = true;
 
-      node = creator;
+    var t = document.createElement('template');
+    if (t is TemplateElement) {
+      var d = t.content.ownerDocument;
+      if (d.documentElement == null) {
+        d.append(d.createElement('html')).append(d.createElement('head'));
+      }
+      // don't patch this if TemplateBinding.js already has.
+      if (d.head.querySelector('base') == null) {
+        _baseUriWorkaround(d);
+      }
     }
   }
 
-  // Note: JS code tests that getElementById is present. We can't do that
-  // easily, so instead check for the types known to implement it.
-  if (node is Document || node is ShadowRoot || node is SvgSvgElement) {
-    return node;
+  // TODO(rafaelw): Remove when fix for
+  // https://codereview.chromium.org/164803002/
+  // makes it to Chrome release.
+  static void _baseUriWorkaround(HtmlDocument doc) {
+    BaseElement base = doc.createElement('base');
+    base.href = document.baseUri;
+    doc.head.append(base);
   }
-  return null;
+
+  static final _templateObserver = new MutationObserver((records, _) {
+    for (MutationRecord record in records) {
+      templateBindFallback(record.target)._refChanged();
+    }
+  });
+
+}
+
+final DocumentFragment _emptyInstance = () {
+  var empty = new DocumentFragment();
+  _instanceExtension[empty] = new _InstanceExtension();
+  return empty;
+}();
+
+// TODO(jmesserly): if we merged with wtih TemplateInstance, it seems like it
+// would speed up some operations (e.g. _getInstanceRoot wouldn't need to walk
+// the parent chain).
+class _InstanceExtension {
+  final List _bindings = [];
+  Node _terminator;
+  Element _templateCreator;
+  DocumentFragment _protoContent;
+}
+
+// TODO(jmesserly): this is private in JS but public for us because pkg:polymer
+// uses it.
+List getTemplateInstanceBindings(DocumentFragment fragment) {
+  var ext = _instanceExtension[fragment];
+  return ext != null ? ext._bindings : ext;
+}
+
+/// Gets the root of the current node's parent chain
+_getFragmentRoot(Node node) {
+  var p;
+  while ((p = node.parentNode) != null) {
+    node = p;
+  }
+  return node;
+}
+
+Node _searchRefId(Node node, String id) {
+  if (id == null || id == '') return null;
+
+  final selector = '#$id';
+  while (true) {
+    node = _getFragmentRoot(node);
+
+    Node ref = null;
+
+    _InstanceExtension instance = _instanceExtension[node];
+    if (instance != null && instance._protoContent != null) {
+      ref = instance._protoContent.querySelector(selector);
+    } else if (_hasGetElementById(node)) {
+      ref = (node as dynamic).getElementById(id);
+    }
+
+    if (ref != null) return ref;
+
+    if (instance == null) return null;
+    node = instance._templateCreator;
+    if (node == null) return null;
+  }
 }
 
 _getInstanceRoot(node) {
   while (node.parentNode != null) {
     node = node.parentNode;
   }
-  return _templateCreator[node] != null ? node : null;
+  _InstanceExtension instance = _instanceExtension[node];
+  return instance != null && instance._templateCreator != null ? node : null;
 }
+
+final Expando<_InstanceExtension> _instanceExtension = new Expando();
+
+final _isStagingDocument = new Expando();

@@ -22,7 +22,10 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
         '<template bind>{{ foo }}'
           '<template bind>{{ foo }}</template>'
         '</template>');
-    recursivelySetTemplateModel(div, model, testSyntax);
+    var template = templateBind(div.firstChild);
+    template
+      ..model = model
+      ..bindingDelegate = testSyntax;
     return new Future(() {
       expect(div.nodes.length, 4);
       expect(div.nodes.last.text, 'bar');
@@ -49,7 +52,9 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     var div = createTestHtml('<template repeat>{{ foo }}</template>');
 
     var template = div.nodes[0];
-    recursivelySetTemplateModel(div, model, testSyntax);
+    templateBind(template)
+      ..model = model
+      ..bindingDelegate = testSyntax;
     return new Future(() {
 
       expect(div.nodes.length, 4);
@@ -74,7 +79,9 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     var template = div.firstChild;
     var delegate = new TestInstanceModelSyntax();
 
-    recursivelySetTemplateModel(div, model, delegate);
+    templateBind(template)
+      ..model = model
+      ..bindingDelegate = delegate;
     return new Future(() {
       expect(delegate.prepareCount, 1);
       expect(delegate.callCount, 3);
@@ -94,7 +101,9 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     var delegate = new TestPositionChangedSyntax();
 
     var template = div.nodes[0];
-    recursivelySetTemplateModel(div, model, delegate);
+    templateBind(template)
+      ..model = model
+      ..bindingDelegate = delegate;
     return new Future(() {
 
       expect(div.nodes.length, 4);
@@ -136,12 +145,23 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
       expect(div.nodes[1].text, 'i:0 - a:1');
       expect(div.nodes[2].text, 'i:1 - a:2');
 
-      template.bindingDelegate = new UpdateBindingDelegateB();
+      expect(() {
+        template.bindingDelegate = new UpdateBindingDelegateB();
+      }, throws);
+
+      template.clear();
+      expect(div.nodes.length, 1);
+
+      template
+        ..bindingDelegate = new UpdateBindingDelegateB()
+        ..model = model;
+
       model.add(3);
     }).then(nextMicrotask).then((_) {
+      // All instances should reflect delegateB
       expect(4, div.nodes.length);
-      expect(div.nodes[1].text, 'i:0 - a:1');
-      expect(div.nodes[2].text, 'i:1 - a:2');
+      expect(div.nodes[1].text, 'I:0 - A:1-narg');
+      expect(div.nodes[2].text, 'I:2 - A:2-narg');
       expect(div.nodes[3].text, 'I:4 - A:3-narg');
     });
   });
@@ -151,7 +171,10 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     var div = createTestHtml(
         '<template bind>'
         '{{ foo }} + {{ 2x: bar }} + {{ 4x: bar }}</template>');
-    recursivelySetTemplateModel(div, model, new TimesTwoSyntax());
+    var template = templateBind(div.firstChild);
+    template
+      ..model = model
+      ..bindingDelegate = new TimesTwoSyntax();
     return new Future(() {
       expect(div.nodes.length, 2);
       expect(div.nodes.last.text, '2 + 8 + ');
@@ -160,6 +183,28 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
       model.bar = 8;
     }).then(endOfMicrotask).then((_) {
       expect(div.nodes.last.text, '4 + 16 + ');
+    });
+  });
+
+  test('CreateInstance', () {
+    var delegateFoo = new SimpleTextDelegate('foo');
+    var delegateBar = new SimpleTextDelegate('bar');
+
+    var div = createTestHtml('<template bind>[[ 2x: bar ]]</template>');
+    var template = templateBind(div.firstChild);
+    template..bindingDelegate = delegateFoo..model = {};
+
+    return new Future(() {
+      expect(div.nodes.length, 2);
+      expect(div.lastChild.text, 'foo');
+
+      var fragment = template.createInstance({});
+      expect(fragment.nodes.length, 1);
+      expect(fragment.lastChild.text, 'foo');
+
+      fragment = template.createInstance({}, delegateBar);
+      expect(fragment.nodes.length, 1);
+      expect(fragment.lastChild.text, 'bar');
     });
   });
 
@@ -184,6 +229,14 @@ class TestBindingSyntax extends BindingDelegate {
           new PathObserver(model, path);
     };
   }
+}
+
+class SimpleTextDelegate extends BindingDelegate {
+  final String text;
+  SimpleTextDelegate(this.text);
+
+  prepareBinding(path, name, node) =>
+      name != 'text' ? null : (_, __, ___) => text;
 }
 
 class TestModelSyntax extends BindingDelegate {

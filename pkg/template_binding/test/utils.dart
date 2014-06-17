@@ -105,9 +105,11 @@ class NullTreeSanitizer implements NodeTreeSanitizer {
   void sanitizeTree(Node node) {}
 }
 
-unbindAll(node) {
-  nodeBind(node).unbindAll();
+clearAllTemplates(node) {
+  if (isSemanticTemplate(node)) {
+    templateBind(node).clear();
+  }
   for (var child = node.firstChild; child != null; child = child.nextNode) {
-    unbindAll(child);
+    clearAllTemplates(child);
   }
 }

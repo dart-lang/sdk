@@ -1,5 +1,5 @@
 name: smoke
-version: 0.1.0
+version: 0.1.0+1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: "https://api.dartlang.org/apidocs/channels/be/#smoke"
 description: >
@@ -9,7 +9,7 @@ description: >
 dependencies:
   barback: ">=0.9.0 <0.15.0"
   logging: ">=0.9.0 <0.10.0"
-  analyzer: ">=0.13.0 <0.14.0"
+  analyzer: ">=0.13.0 <0.16.0"
 # TODO(sigmund): once we have some easier way to do global app-level
 # transformers, we might want to remove this transformer here and only apply it
 # in apps that need it.
