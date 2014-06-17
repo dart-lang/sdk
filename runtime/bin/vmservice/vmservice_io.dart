@@ -20,6 +20,8 @@ String _ip;
 // Should the HTTP server auto start?
 bool _autoStart;
 
+bool _isWindows = false;
+
 // HTTP servr.
 Server server;
 Future<Server> serverFuture;
@@ -45,6 +47,10 @@ void _onSignal(ProcessSignal signal) {
 }
 
 void registerSignalHandler() {
+  if (_isWindows) {
+    // Cannot register for signals on Windows.
+    return;
+  }
   bool useSIGQUIT = true;
   // Listen for SIGQUIT.
   if (useSIGQUIT) {
@@ -68,9 +74,5 @@ main() {
     server.startup();
   }
 
-  try {
-    registerSignalHandler();
-  } catch (_) {
-    // Listening for signals will fail on Windows.
-  }
+  registerSignalHandler();
 }

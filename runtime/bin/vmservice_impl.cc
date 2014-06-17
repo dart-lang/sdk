@@ -142,6 +142,16 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   Dart_SetField(library,
                 DartUtils::NewString("_autoStart"),
                 Dart_NewBoolean(auto_start));
+  // We cannot register for signals on windows.
+#if defined(TARGET_OS_WINDOWS)
+  const bool is_windows = true;
+#else
+  const bool is_windows = false;
+#endif
+  Dart_SetField(library,
+                DartUtils::NewString("_isWindows"),
+                Dart_NewBoolean(is_windows));
+
   // Invoke main.
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
