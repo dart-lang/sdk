@@ -1814,9 +1814,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ mov(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
     } else {
       __ lw(temp, FieldAddress(instance_reg, offset_in_bytes_));
     }
@@ -1877,9 +1875,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ mov(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
 
       __ Bind(&copy_double);
       __ LoadDFromOffset(fpu_temp,
@@ -1895,20 +1891,21 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
-    __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, offset_in_bytes_),
-                       value_reg,
-                       CanValueBeSmi());
+    __ StoreIntoObjectOffset(instance_reg,
+                             offset_in_bytes_,
+                             value_reg,
+                             CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectNoBarrier(
+      __ StoreIntoObjectNoBarrierOffset(
           instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_),
+          offset_in_bytes_,
           locs()->in(1).constant());
     } else {
       Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
+      __ StoreIntoObjectNoBarrierOffset(instance_reg,
+                                        offset_in_bytes_,
+                                        value_reg);
     }
   }
   __ Bind(&skip_store);
@@ -2249,7 +2246,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ Bind(&load_pointer);
   }
-  __ lw(result_reg, Address(instance_reg, offset_in_bytes() - kHeapObjectTag));
+  __ LoadFromOffset(
+      result_reg, instance_reg, offset_in_bytes() - kHeapObjectTag);
   __ Bind(&done);
 }
 

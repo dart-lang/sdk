@@ -588,6 +588,20 @@ void Assembler::StoreIntoObject(Register object,
 }
 
 
+void Assembler::StoreIntoObjectOffset(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      bool can_value_be_smi) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObject(
+        object, FieldAddress(object, offset), value, can_value_be_smi);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreIntoObject(object, Address(TMP), value, can_value_be_smi);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
@@ -603,6 +617,18 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               Register value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
@@ -612,6 +638,18 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
   LoadObject(TMP, value);
   sw(TMP, dest);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               const Object& value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
 }
 
 

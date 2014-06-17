@@ -972,7 +972,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Comment("Inlined Setter");
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
-  __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
+  __ StoreIntoObjectOffset(T0, offset, T1);
   __ LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
   __ Ret();
 }
