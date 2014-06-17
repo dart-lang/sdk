@@ -270,10 +270,61 @@ List<String> listDir(String dir, {bool recursive: false,
 /// a symlink only if that symlink is unbroken and points to a directory.
 bool dirExists(String dir) => new Directory(dir).existsSync();
 
+/// Try to resiliently perform [operation].
+///
+/// Some file system operations can intermittently fail on Windows because
+/// other processes are locking a file. We've seen this with virus scanners
+/// when we try to delete or move something while it's being scanned. To
+/// mitigate that, on Windows, this will retry the operation a few times if it
+/// fails.
+void _attempt(String description, void operation()) {
+  if (Platform.operatingSystem != 'windows') {
+    operation();
+    return;
+  }
+
+  getErrorReason(error) {
+    if (error.osError.errorCode == 5) {
+      return "access was denied";
+    }
+
+    if (error.osError.errorCode == 32) {
+      return "it was in use by another process";
+    }
+
+    return null;
+  }
+
+  for (var i = 0; i < 2; i++) {
+    try {
+      operation();
+      return;
+    } on FileSystemException catch (error) {
+      var reason = getErrorReason(error);
+      if (reason == null) rethrow;
+
+      log.io("Failed to $description because $reason. "
+          "Retrying in 50ms.");
+      sleep(new Duration(milliseconds: 50));
+    }
+  }
+
+  try {
+    operation();
+  } on FileSystemException catch (error) {
+    var reason = getErrorReason(error);
+    if (reason == null) rethrow;
+
+    fail("Failed to $description because $reason.\n"
+        "This may be caused by a virus scanner or having a file\n"
+        "in the directory open in another application.");
+  }
+}
+
 /// Deletes whatever's at [path], whether it's a file, directory, or symlink. If
 /// it's a directory, it will be deleted recursively.
 void deleteEntry(String path) {
-  tryDeleteEntry() {
+  _attempt("delete entry", () {
     if (linkExists(path)) {
       log.io("Deleting link $path.");
       new Link(path).deleteSync();
@@ -284,35 +335,7 @@ void deleteEntry(String path) {
       log.io("Deleting file $path.");
       new File(path).deleteSync();
     }
-  }
-
-  if (Platform.operatingSystem != 'windows') {
-    tryDeleteEntry();
-    return;
-  }
-
-  // On Windows, we can fail to delete an entry if it's in use by another
-  // process. The only case where we know this to cause a problem is when
-  // testing "pub serve", since it can poll a file at the same time we try to
-  // delete it in the test process (issue 16129).
-  //
-  // TODO(nweiz): Once issue 14428 is fixed for Windows, remove this special
-  // handling.
-  for (var i = 0; i < 2; i++) {
-    try {
-      tryDeleteEntry();
-    } on FileSystemException catch (error) {
-      // Errno 32 indicates that the deletion failed because the file was in
-      // use.
-      if (error.osError.errorCode != 32) rethrow;
-
-      log.io("Failed to delete entry because it was in use by another process. "
-          "Retrying in 50ms.");
-      sleep(new Duration(milliseconds: 50));
-    }
-  }
-
-  tryDeleteEntry();
+  });
 }
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
@@ -324,14 +347,16 @@ void cleanDir(String dir) {
 
 /// Renames (i.e. moves) the directory [from] to [to].
 void renameDir(String from, String to) {
-  log.io("Renaming directory $from to $to.");
-  try {
-    new Directory(from).renameSync(to);
-  } on IOException catch (error) {
-    // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
-    if (entryExists(to)) deleteEntry(to);
-    rethrow;
-  }
+  _attempt("rename directory", () {
+    log.io("Renaming directory $from to $to.");
+    try {
+      new Directory(from).renameSync(to);
+    } on IOException catch (error) {
+      // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
+      if (entryExists(to)) deleteEntry(to);
+      rethrow;
+    }
+  });
 }
 
 /// Creates a new symlink at path [symlink] that points to [target]. Returns a
