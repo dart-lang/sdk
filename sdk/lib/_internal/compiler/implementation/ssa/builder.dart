@@ -68,7 +68,7 @@ class SsaBuilderTask extends CompilerTask {
             registry.registerCompileTimeConstant(constant);
           });
         }
-        if (compiler.tracer.enabled) {
+        if (compiler.tracer.isEnabled) {
           String name;
           if (element.isMember) {
             String className = element.enclosingClass.name;

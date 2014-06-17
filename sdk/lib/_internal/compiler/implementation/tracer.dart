@@ -15,14 +15,13 @@ import 'dart_backend/tree_tracer.dart' show TreeTracer;
 import 'dart2jslib.dart';
 
 /**
- * Set to true to enable tracing.
+ * If non-null, we only trace methods whose name match the regexp defined by the
+ * given pattern.
  */
-const bool GENERATE_TRACE = false;
+const String TRACE_FILTER_PATTERN = const String.fromEnvironment("DUMP_IR");
 
-/**
- * If non-null, we only trace methods whose name contains the given substring.
- */
-const String TRACE_FILTER = null;
+final RegExp TRACE_FILTER =
+    TRACE_FILTER_PATTERN == null ? null : new RegExp(TRACE_FILTER_PATTERN);
 
 /**
  * Dumps the intermediate representation after each phase in a format
@@ -33,20 +32,18 @@ class Tracer extends TracerUtil {
   ItemCompilationContext context;
   bool traceActive = false;
   final EventSink<String> output;
-  final bool enabled = GENERATE_TRACE;
+  final bool isEnabled = TRACE_FILTER != null;
 
   Tracer(api.CompilerOutputProvider outputProvider) :
-    output = GENERATE_TRACE ? outputProvider('dart', 'cfg') : null;
+    output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
 
   void traceCompilation(String methodName,
                         ItemCompilationContext compilationContext,
                         Compiler compiler) {
-    if (!enabled) return;
+    if (!isEnabled) return;
+    if (!TRACE_FILTER.hasMatch(methodName)) return;
     this.context = compilationContext;
     this.compiler = compiler;
-    traceActive =
-        TRACE_FILTER == null || methodName.contains(TRACE_FILTER);
-    if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
