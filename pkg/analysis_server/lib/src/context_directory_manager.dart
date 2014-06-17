@@ -137,13 +137,6 @@ abstract class ContextDirectoryManager {
         Source source = info.sources[event.path];
         if (source != null) {
           ChangeSet changeSet = new ChangeSet();
-          // TODO(paulberry): technically we should skip calling changedSource()
-          // for files that currently have their contents overridden.  However,
-          // it's hard to figure out which files have their contents overridden
-          // (this info isn't exposed through the AnalysisContext interface),
-          // and besides, if we go ahead and call changedSource() we get the
-          // behavior we want (the context continues consulting the overridden
-          // file contents).
           changeSet.changedSource(source);
           applyChangesToContext(folder, changeSet);
         }
