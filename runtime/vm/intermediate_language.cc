@@ -59,14 +59,14 @@ Definition* Definition::OriginalDefinition() {
 }
 
 
-ICData* Instruction::GetICData(const Array& ic_data_array) const {
-  ICData& ic_data = ICData::ZoneHandle();
+const ICData* Instruction::GetICData(
+    const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  if (!ic_data_array.IsNull() && (deopt_id_ < ic_data_array.Length())) {
-    ic_data ^= ic_data_array.At(deopt_id_);
+  if (deopt_id_ < ic_data_array.length()) {
+    return ic_data_array[deopt_id_];
   }
-  return &ic_data;
+  return NULL;
 }
 
 

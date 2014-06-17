@@ -6439,19 +6439,26 @@ void Function::SaveICDataMap(
 }
 
 
-RawArray* Function::RestoreICDataMap() const {
-  const Array& saved_icd = Array::Handle(ic_data_array());
+void Function::RestoreICDataMap(
+    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
+  Isolate* isolate = Isolate::Current();
+  const Array& saved_icd = Array::Handle(isolate, ic_data_array());
   if (saved_icd.Length() == 0) {
-    return Array::empty_array().raw();
+    deopt_id_to_ic_data->Clear();
+    return;;
   }
   ICData& icd = ICData::Handle();
   icd ^= saved_icd.At(saved_icd.Length() - 1);
-  const Array& result = Array::Handle(Array::New(icd.deopt_id() + 1));
-  for (intptr_t i = 0; i < saved_icd.Length(); i++) {
-    icd ^= saved_icd.At(i);
-    result.SetAt(icd.deopt_id(), icd);
+  const intptr_t len = icd.deopt_id() + 1;
+  deopt_id_to_ic_data->SetLength(len);
+  for (intptr_t i = 0; i < len; i++) {
+    (*deopt_id_to_ic_data)[i] = NULL;
   }
-  return result.raw();
+  for (intptr_t i = 0; i < saved_icd.Length(); i++) {
+    ICData& icd = ICData::ZoneHandle(isolate);
+    icd ^= saved_icd.At(i);
+    (*deopt_id_to_ic_data)[icd.deopt_id()] = &icd;
+  }
 }
 
 
@@ -12043,54 +12050,6 @@ bool Code::ObjectExistsInArea(intptr_t start_offset,
     }
   }
   return true;
-}
-
-
-intptr_t Code::ExtractIcDataArraysAtCalls(
-    GrowableArray<intptr_t>* node_ids,
-    const GrowableObjectArray& ic_data_objs) const {
-  ASSERT(node_ids != NULL);
-  ASSERT(!ic_data_objs.IsNull());
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(this->pc_descriptors());
-  ICData& ic_data_obj = ICData::Handle();
-  intptr_t max_id = -1;
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kUnoptStaticCall)) {
-      intptr_t deopt_id = descriptors.DeoptId(i);
-      if (deopt_id > max_id) {
-        max_id = deopt_id;
-      }
-      node_ids->Add(deopt_id);
-      uword ret_addr = descriptors.PC(i);
-      if (kind == PcDescriptors::kIcCall) {
-        CodePatcher::GetInstanceCallAt(ret_addr, *this, &ic_data_obj);
-      } else {
-        CodePatcher::GetUnoptimizedStaticCallAt(ret_addr, *this, &ic_data_obj);
-      }
-      ic_data_objs.Add(ic_data_obj);
-    }
-  }
-  return max_id;
-}
-
-
-RawArray* Code::ExtractTypeFeedbackArray() const {
-  ASSERT(!IsNull() && !is_optimized());
-  GrowableArray<intptr_t> deopt_ids;
-  const GrowableObjectArray& ic_data_objs =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const intptr_t max_id =
-      ExtractIcDataArraysAtCalls(&deopt_ids, ic_data_objs);
-  const Array& result = Array::Handle(Array::New(max_id + 1));
-  for (intptr_t i = 0; i < deopt_ids.length(); i++) {
-    intptr_t result_index = deopt_ids[i];
-    ASSERT(result.At(result_index) == Object::null());
-    result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
-  }
-  return result.raw();
 }
 
 

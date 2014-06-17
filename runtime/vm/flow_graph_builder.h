@@ -143,7 +143,7 @@ class FlowGraphBuilder: public ValueObject {
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
   // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(ParsedFunction* parsed_function,
-                   const Array& ic_data_array,
+                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
                    intptr_t osr_id,
                    bool is_optimizing);
@@ -151,7 +151,9 @@ class FlowGraphBuilder: public ValueObject {
   FlowGraph* BuildGraph();
 
   ParsedFunction* parsed_function() const { return parsed_function_; }
-  const Array& ic_data_array() const { return ic_data_array_; }
+  const ZoneGrowableArray<const ICData*>& ic_data_array() const {
+    return ic_data_array_;
+  }
 
   void WarnOnJSIntegralNumTypeTest(AstNode* node,
                                    const AbstractType& type) const;
@@ -235,7 +237,7 @@ class FlowGraphBuilder: public ValueObject {
   }
 
   ParsedFunction* parsed_function_;
-  const Array& ic_data_array_;
+  const ZoneGrowableArray<const ICData*>& ic_data_array_;
 
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;

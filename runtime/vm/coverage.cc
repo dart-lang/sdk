@@ -70,11 +70,12 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   ASSERT(function.HasCode());
 
   // Print the hit counts for all IC datas.
+  ZoneGrowableArray<const ICData*>* ic_data_array =
+      new(isolate) ZoneGrowableArray<const ICData*>();
+  function.RestoreICDataMap(ic_data_array);
   const Code& code = Code::Handle(function.unoptimized_code());
-  const Array& ic_array = Array::Handle(code.ExtractTypeFeedbackArray());
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       code.pc_descriptors());
-  ICData& ic_data = ICData::Handle();
 
   for (int j = 0; j < descriptors.Length(); j++) {
     HANDLESCOPE(isolate);
@@ -83,8 +84,8 @@ void CodeCoverage::CompileAndAdd(const Function& function,
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kUnoptStaticCall)) {
       intptr_t deopt_id = descriptors.DeoptId(j);
-      ic_data ^= ic_array.At(deopt_id);
-      if (!ic_data.IsNull()) {
+      const ICData* ic_data= (*ic_data_array)[deopt_id];
+      if (!ic_data->IsNull()) {
         intptr_t token_pos = descriptors.TokenPos(j);
         intptr_t line = pos_to_line[token_pos];
 #if defined(DEBUG)
@@ -94,7 +95,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
         ASSERT(test_line == line);
 #endif
         hits_arr.AddValue(line);
-        hits_arr.AddValue(ic_data.AggregateCount());
+        hits_arr.AddValue(ic_data->AggregateCount());
       }
     }
   }

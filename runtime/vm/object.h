@@ -1997,7 +1997,8 @@ class Function : public Object {
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
-  RawArray*  RestoreICDataMap() const;
+  void RestoreICDataMap(
+      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
 
   RawArray* ic_data_array() const;
   void ClearICData() const;
@@ -3681,15 +3682,6 @@ class Code : public Object {
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
   bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
-
-  // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
-  // Returns the maximum id found.
-  intptr_t ExtractIcDataArraysAtCalls(
-      GrowableArray<intptr_t>* node_ids,
-      const GrowableObjectArray& ic_data_objs) const;
-
-  // Returns an array indexed by deopt id, containing the extracted ICData.
-  RawArray* ExtractTypeFeedbackArray() const;
 
   RawString* Name() const;
   RawString* PrettyName() const;

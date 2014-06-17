@@ -236,31 +236,32 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 }
 
 
-FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
-                                   const Array& ic_data_array,
-                                   InlineExitCollector* exit_collector,
-                                   intptr_t osr_id,
-                                   bool is_optimizing)
-  : parsed_function_(parsed_function),
-    ic_data_array_(ic_data_array),
-    num_copied_params_(parsed_function->num_copied_params()),
-    // All parameters are copied if any parameter is.
-    num_non_copied_params_((num_copied_params_ == 0)
-        ? parsed_function->function().num_fixed_parameters()
-        : 0),
-    num_stack_locals_(parsed_function->num_stack_locals()),
-    exit_collector_(exit_collector),
-    guarded_fields_(new ZoneGrowableArray<const Field*>()),
-    last_used_block_id_(0),  // 0 is used for the graph entry.
-    try_index_(CatchClauseNode::kInvalidTryIndex),
-    catch_try_index_(CatchClauseNode::kInvalidTryIndex),
-    loop_depth_(0),
-    graph_entry_(NULL),
-    temp_count_(0),
-    args_pushed_(0),
-    nesting_stack_(NULL),
-    osr_id_(osr_id),
-    is_optimizing_(is_optimizing) { }
+FlowGraphBuilder::FlowGraphBuilder(
+    ParsedFunction* parsed_function,
+    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    InlineExitCollector* exit_collector,
+    intptr_t osr_id,
+    bool is_optimizing) :
+        parsed_function_(parsed_function),
+        ic_data_array_(ic_data_array),
+        num_copied_params_(parsed_function->num_copied_params()),
+        // All parameters are copied if any parameter is.
+        num_non_copied_params_((num_copied_params_ == 0)
+            ? parsed_function->function().num_fixed_parameters()
+            : 0),
+        num_stack_locals_(parsed_function->num_stack_locals()),
+        exit_collector_(exit_collector),
+        guarded_fields_(new ZoneGrowableArray<const Field*>()),
+        last_used_block_id_(0),  // 0 is used for the graph entry.
+        try_index_(CatchClauseNode::kInvalidTryIndex),
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
+        loop_depth_(0),
+        graph_entry_(NULL),
+        temp_count_(0),
+        args_pushed_(0),
+        nesting_stack_(NULL),
+        osr_id_(osr_id),
+        is_optimizing_(is_optimizing) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {

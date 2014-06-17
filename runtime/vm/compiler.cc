@@ -277,19 +277,20 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphbuilder_timer,
                          isolate);
-        Array& ic_data_array = Array::Handle();
+        ZoneGrowableArray<const ICData*>* ic_data_array =
+            new(isolate) ZoneGrowableArray<const ICData*>();
         if (optimized) {
           ASSERT(function.HasCode());
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
                  FLAG_deoptimization_counter_threshold);
-          ic_data_array = function.RestoreICDataMap();
+          function.RestoreICDataMap(ic_data_array);
         }
 
         // Build the flow graph.
         FlowGraphBuilder builder(parsed_function,
-                                 ic_data_array,
+                                 *ic_data_array,
                                  NULL,  // NULL = not inlining.
                                  osr_id,
                                  optimized);

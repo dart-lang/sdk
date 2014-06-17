@@ -832,7 +832,8 @@ class Instruction : public ZoneAllocated {
     return deopt_id_;
   }
 
-  ICData* GetICData(const Array& ic_data_array) const;
+  const ICData* GetICData(
+      const ZoneGrowableArray<const ICData*>& ic_data_array) const;
 
   bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
   virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
@@ -2972,7 +2973,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
                     const Array& argument_names,
                     intptr_t checked_argument_count,
-                    const Array& ic_data_array)
+                    const ZoneGrowableArray<const ICData*>& ic_data_array)
       : ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         function_name_(function_name),
@@ -3452,7 +3453,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
                   const Function& function,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                  const Array& ic_data_array)
+                  const ZoneGrowableArray<const ICData*>& ic_data_array)
       : ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         function_(function),
