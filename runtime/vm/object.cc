@@ -16898,70 +16898,77 @@ RawString* String::MakeExternal(void* array,
                                 intptr_t length,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
-  NoGCScope no_gc;
-  ASSERT(array != NULL);
-  intptr_t str_length = this->Length();
-  ASSERT(length >= (str_length * this->CharSize()));
-  intptr_t class_id = raw()->GetClassId();
-  intptr_t used_size = 0;
-  intptr_t original_size = 0;
-  uword tags = raw_ptr()->tags_;
+  String& result = String::Handle();
+  void* external_data;
+  Dart_WeakPersistentHandleFinalizer finalizer;
+  {
+    NoGCScope no_gc;
+    ASSERT(array != NULL);
+    intptr_t str_length = this->Length();
+    ASSERT(length >= (str_length * this->CharSize()));
+    intptr_t class_id = raw()->GetClassId();
+    intptr_t used_size = 0;
+    intptr_t original_size = 0;
+    uword tags = raw_ptr()->tags_;
 
-  ASSERT(!InVMHeap());
-  if (class_id == kOneByteStringCid) {
-    used_size = ExternalOneByteString::InstanceSize();
-    original_size = OneByteString::InstanceSize(str_length);
-    ASSERT(original_size >= used_size);
+    ASSERT(!InVMHeap());
+    if (class_id == kOneByteStringCid) {
+      used_size = ExternalOneByteString::InstanceSize();
+      original_size = OneByteString::InstanceSize(str_length);
+      ASSERT(original_size >= used_size);
 
-    // Copy the data into the external array.
-    if (str_length > 0) {
-      memmove(array, OneByteString::CharAddr(*this, 0), str_length);
+      // Copy the data into the external array.
+      if (str_length > 0) {
+        memmove(array, OneByteString::CharAddr(*this, 0), str_length);
+      }
+
+      // Update the class information of the object.
+      const intptr_t class_id = kExternalOneByteStringCid;
+      tags = RawObject::SizeTag::update(used_size, tags);
+      tags = RawObject::ClassIdTag::update(class_id, tags);
+      raw_ptr()->tags_ = tags;
+      result = this->raw();
+      ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
+          reinterpret_cast<const uint8_t*>(array), peer, cback);
+      result.SetLength(str_length);
+      result.SetHash(0);
+      ExternalOneByteString::SetExternalData(result, ext_data);
+      external_data = ext_data;
+      finalizer = ExternalOneByteString::Finalize;
+    } else {
+      ASSERT(class_id == kTwoByteStringCid);
+      used_size = ExternalTwoByteString::InstanceSize();
+      original_size = TwoByteString::InstanceSize(str_length);
+      ASSERT(original_size >= used_size);
+
+      // Copy the data into the external array.
+      if (str_length > 0) {
+        memmove(array,
+                TwoByteString::CharAddr(*this, 0),
+                (str_length * kTwoByteChar));
+      }
+
+      // Update the class information of the object.
+      const intptr_t class_id = kExternalTwoByteStringCid;
+      tags = RawObject::SizeTag::update(used_size, tags);
+      tags = RawObject::ClassIdTag::update(class_id, tags);
+      raw_ptr()->tags_ = tags;
+      const String& result = String::Handle(this->raw());
+      ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
+          reinterpret_cast<const uint16_t*>(array), peer, cback);
+      result.SetLength(str_length);
+      result.SetHash(0);
+      ExternalTwoByteString::SetExternalData(result, ext_data);
+      external_data = ext_data;
+      finalizer = ExternalTwoByteString::Finalize;
     }
 
-    // Update the class information of the object.
-    const intptr_t class_id = kExternalOneByteStringCid;
-    tags = RawObject::SizeTag::update(used_size, tags);
-    tags = RawObject::ClassIdTag::update(class_id, tags);
-    raw_ptr()->tags_ = tags;
-    const String& result = String::Handle(this->raw());
-    ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
-        reinterpret_cast<const uint8_t*>(array), peer, cback);
-    result.SetLength(str_length);
-    result.SetHash(0);
-    ExternalOneByteString::SetExternalData(result, ext_data);
-    AddFinalizer(result, ext_data, ExternalOneByteString::Finalize);
-  } else {
-    ASSERT(class_id == kTwoByteStringCid);
-    used_size = ExternalTwoByteString::InstanceSize();
-    original_size = TwoByteString::InstanceSize(str_length);
-    ASSERT(original_size >= used_size);
-
-    // Copy the data into the external array.
-    if (str_length > 0) {
-      memmove(array,
-              TwoByteString::CharAddr(*this, 0),
-              (str_length * kTwoByteChar));
-    }
-
-    // Update the class information of the object.
-    const intptr_t class_id = kExternalTwoByteStringCid;
-    tags = RawObject::SizeTag::update(used_size, tags);
-    tags = RawObject::ClassIdTag::update(class_id, tags);
-    raw_ptr()->tags_ = tags;
-    const String& result = String::Handle(this->raw());
-    ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
-        reinterpret_cast<const uint16_t*>(array), peer, cback);
-    result.SetLength(str_length);
-    result.SetHash(0);
-    ExternalTwoByteString::SetExternalData(result, ext_data);
-    AddFinalizer(result, ext_data, ExternalTwoByteString::Finalize);
-  }
-
-  // If there is any left over space fill it with either an Array object or
-  // just a plain object (depending on the amount of left over space) so
-  // that it can be traversed over successfully during garbage collection.
-  Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
-
+    // If there is any left over space fill it with either an Array object or
+    // just a plain object (depending on the amount of left over space) so
+    // that it can be traversed over successfully during garbage collection.
+    Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+  }  // NoGCScope
+  AddFinalizer(result, external_data, finalizer);
   return this->raw();
 }
 

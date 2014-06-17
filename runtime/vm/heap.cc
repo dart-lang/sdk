@@ -92,6 +92,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 }
 
 void Heap::AllocateExternal(intptr_t size, Space space) {
+  ASSERT(isolate()->no_gc_scope_depth() == 0);
   if (space == kNew) {
     new_space_->AllocateExternal(size);
     if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {

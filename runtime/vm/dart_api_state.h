@@ -969,6 +969,7 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
+  // This may trigger GC, so it must be called last.
   ref->SetExternalSize(external_size, isolate);
   return ref;
 }
