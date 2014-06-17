@@ -492,17 +492,8 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   return _descriptorPool.withResource(() {
     return _doProcess(Process.run, executable, args, workingDir, environment)
         .then((result) {
-      // TODO(rnystrom): Remove this and change to returning one string.
-      List<String> toLines(String output) {
-        var lines = splitLines(output);
-        if (!lines.isEmpty && lines.last == "") lines.removeLast();
-        return lines;
-      }
-
-      var pubResult = new PubProcessResult(toLines(result.stdout),
-                                  toLines(result.stderr),
-                                  result.exitCode);
-
+      var pubResult = new PubProcessResult(
+          result.stdout, result.stderr, result.exitCode);
       log.processResult(executable, pubResult);
       return pubResult;
     });
@@ -525,6 +516,17 @@ Future<PubProcess> startProcess(String executable, List<String> args,
       return process;
     });
   });
+}
+
+/// Like [runProcess], but synchronous.
+PubProcessResult runProcessSync(String executable, List<String> args,
+        {String workingDir, Map<String, String> environment}) {
+  var result = _doProcess(
+      Process.runSync, executable, args, workingDir, environment);
+  var pubResult = new PubProcessResult(
+      result.stdout, result.stderr, result.exitCode);
+  log.processResult(executable, pubResult);
+  return pubResult;
 }
 
 /// A wrapper around [Process] that exposes `dart:async`-style APIs.
@@ -612,9 +614,9 @@ class PubProcess {
 }
 
 /// Calls [fn] with appropriately modified arguments. [fn] should have the same
-/// signature as [Process.start], except that the returned [Future] may have a
-/// type other than [Process].
-Future _doProcess(Function fn, String executable, List<String> args,
+/// signature as [Process.start], except that the returned value may have any
+/// return type.
+_doProcess(Function fn, String executable, List<String> args,
     String workingDir, Map<String, String> environment) {
   // TODO(rnystrom): Should dart:io just handle this?
   // Spawning a process on Windows will not look for the executable in the
@@ -628,10 +630,9 @@ Future _doProcess(Function fn, String executable, List<String> args,
 
   log.process(executable, args, workingDir == null ? '.' : workingDir);
 
-  return Chain.track(fn(executable,
-      args,
+  return fn(executable, args,
       workingDirectory: workingDir,
-      environment: environment));
+      environment: environment);
 }
 
 /// Wraps [input], an asynchronous network operation to provide a timeout.
@@ -847,7 +848,16 @@ class PubProcessResult {
   final List<String> stderr;
   final int exitCode;
 
-  const PubProcessResult(this.stdout, this.stderr, this.exitCode);
+  PubProcessResult(String stdout, String stderr, this.exitCode)
+      : this.stdout = _toLines(stdout),
+        this.stderr = _toLines(stderr);
+
+  // TODO(rnystrom): Remove this and change to returning one string.
+  static List<String> _toLines(String output) {
+    var lines = splitLines(output);
+    if (!lines.isEmpty && lines.last == "") lines.removeLast();
+    return lines;
+  }
 
   bool get success => exitCode == exit_codes.SUCCESS;
 }

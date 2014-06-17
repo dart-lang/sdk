@@ -51,16 +51,14 @@ class GitSource extends CachedSource {
 
     var revisionCachePath;
 
-    return git.isInstalled.then((installed) {
-      if (!installed) {
-        throw new ApplicationException(
-            "Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
-            "Please ensure Git is correctly installed.");
-      }
+    if (!git.isInstalled) {
+      throw new ApplicationException(
+          "Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
+          "Please ensure Git is correctly installed.");
+    }
 
-      ensureDir(path.join(systemCacheRoot, 'cache'));
-      return _ensureRevision(id);
-    }).then((_) => getDirectory(id)).then((path) {
+    ensureDir(path.join(systemCacheRoot, 'cache'));
+    return _ensureRevision(id).then((_) => getDirectory(id)).then((path) {
       revisionCachePath = path;
       if (entryExists(revisionCachePath)) return null;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);

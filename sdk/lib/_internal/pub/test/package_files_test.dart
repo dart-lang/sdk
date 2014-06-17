@@ -37,13 +37,13 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), completion(unorderedEquals([
+        expect(entrypoint.packageFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, 'file1.txt'),
           path.join(root, 'file2.txt'),
           path.join(root, 'subdir', 'subfile1.txt'),
           path.join(root, 'subdir', 'subfile2.txt')
-        ])));
+        ]));
       });
     });
 
@@ -68,13 +68,13 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), completion(unorderedEquals([
+        expect(entrypoint.packageFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, 'file1.txt'),
           path.join(root, 'file2.txt'),
           path.join(root, 'subdir', 'subfile1.txt'),
           path.join(root, 'subdir', 'subfile2.txt')
-        ])));
+        ]));
       });
     });
 
@@ -90,12 +90,12 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), completion(unorderedEquals([
+        expect(entrypoint.packageFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, '.gitignore'),
           path.join(root, 'file2.text'),
           path.join(root, 'subdir', 'subfile2.text')
-        ])));
+        ]));
       });
     });
 
@@ -123,7 +123,7 @@ void commonTests() {
 
     schedule(() {
       expect(entrypoint.packageFiles(),
-          completion(equals([path.join(root, 'pubspec.yaml')])));
+          equals([path.join(root, 'pubspec.yaml')]));
     });
   });
 
@@ -135,7 +135,7 @@ void commonTests() {
 
     schedule(() {
       expect(entrypoint.packageFiles(),
-          completion(equals([path.join(root, 'pubspec.yaml')])));
+          equals([path.join(root, 'pubspec.yaml')]));
     });
   });
 
@@ -149,7 +149,7 @@ void commonTests() {
 
     schedule(() {
       expect(entrypoint.packageFiles(),
-          completion(equals([path.join(root, 'pubspec.yaml')])));
+          equals([path.join(root, 'pubspec.yaml')]));
     });
   });
 
@@ -161,10 +161,10 @@ void commonTests() {
     ]).create();
 
     schedule(() {
-      expect(entrypoint.packageFiles(), completion(unorderedEquals([
+      expect(entrypoint.packageFiles(), unorderedEquals([
         path.join(root, 'pubspec.yaml'),
         path.join(root, 'pubspec.lock', 'file.txt')
-      ])));
+      ]));
     });
   });
 
@@ -185,12 +185,12 @@ void commonTests() {
 
       schedule(() {
         expect(entrypoint.packageFiles(beneath: path.join(root, 'subdir')),
-            completion(unorderedEquals([
+            unorderedEquals([
           path.join(root, 'subdir', 'subfile1.txt'),
           path.join(root, 'subdir', 'subfile2.txt'),
           path.join(root, 'subdir', 'subsubdir', 'subsubfile1.txt'),
           path.join(root, 'subdir', 'subsubdir', 'subsubfile2.txt')
-        ])));
+        ]));
       });
     });
 
@@ -210,12 +210,12 @@ void commonTests() {
 
       schedule(() {
         expect(entrypoint.packageFiles(beneath: path.join(root, 'packages')),
-            completion(unorderedEquals([
+            unorderedEquals([
           path.join(root, 'packages', 'subfile1.txt'),
           path.join(root, 'packages', 'subfile2.txt'),
           path.join(root, 'packages', 'subsubdir', 'subsubfile1.txt'),
           path.join(root, 'packages', 'subsubdir', 'subsubfile2.txt')
-        ])));
+        ]));
       });
     });
   });

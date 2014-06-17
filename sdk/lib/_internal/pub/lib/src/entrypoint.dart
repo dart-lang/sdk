@@ -334,45 +334,42 @@ class Entrypoint {
   /// archives.
   final _BLACKLISTED_DIRS = const ['packages'];
 
-  // TODO(nweiz): unit test this function.
   /// Returns a list of files that are considered to be part of this package.
   ///
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden, non-blacklisted files.
   ///
   /// If [beneath] is passed, this will only return files beneath that path.
-  Future<List<String>> packageFiles({String beneath}) {
+  List<String> packageFiles({String beneath}) {
     if (beneath == null) beneath = root.dir;
 
-    return git.isInstalled.then((gitInstalled) {
-      if (dirExists(path.join(root.dir, '.git')) && gitInstalled) {
-        // Later versions of git do not allow a path for ls-files that appears
-        // to be outside of the repo, so make sure we give it a relative path.
-        var relativeBeneath = path.relative(beneath, from: root.dir);
+    var files;
+    if (git.isInstalled && dirExists(path.join(root.dir, '.git'))) {
+      // Later versions of git do not allow a path for ls-files that appears to
+      // be outside of the repo, so make sure we give it a relative path.
+      var relativeBeneath = path.relative(beneath, from: root.dir);
 
-        // List all files that aren't gitignored, including those not checked
-        // in to Git.
-        return git.run(
-            ["ls-files", "--cached", "--others", "--exclude-standard",
-             relativeBeneath],
-            workingDir: root.dir).then((files) {
-          // Git always prints files relative to the project root, but we want
-          // them relative to the working directory. It also prints forward
-          // slashes on Windows which we normalize away for easier testing.
-          return files.map((file) => path.normalize(path.join(root.dir, file)));
-        });
-      }
+      // List all files that aren't gitignored, including those not checked in
+      // to Git.
+      files = git.runSync(
+          ["ls-files", "--cached", "--others", "--exclude-standard",
+           relativeBeneath],
+          workingDir: root.dir);
+      // Git always prints files relative to the project root, but we want them
+      // relative to the working directory. It also prints forward slashes on
+      // Windows which we normalize away for easier testing.
+      files = files.map((file) => path.normalize(path.join(root.dir, file)));
+    } else {
+      files = listDir(beneath, recursive: true);
+    }
 
-      return listDir(beneath, recursive: true);
-    }).then((files) {
-      return files.where((file) {
-        // Skip directories and broken symlinks.
-        if (!fileExists(file)) return false;
+    return files.where((file) {
+      // Skip directories and broken symlinks.
+      if (!fileExists(file)) return false;
 
-        var relative = path.relative(file, from: beneath);
-        if (_BLACKLISTED_FILES.contains(path.basename(relative))) return false;
-        return !path.split(relative).any(_BLACKLISTED_DIRS.contains);
-      }).toList();
-    });
+      var relative = path.relative(file, from: beneath);
+      if (_BLACKLISTED_FILES.contains(path.basename(relative))) return false;
+      return !path.split(relative).any(_BLACKLISTED_DIRS.contains);
+    }).toList();
   }
 }

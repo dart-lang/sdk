@@ -97,17 +97,17 @@ class LishCommand extends PubCommand {
       usageError('Cannot use both --force and --dry-run.');
     }
 
-    var packageBytesFuture = entrypoint.packageFiles().then((files) {
-      log.fine('Archiving and publishing ${entrypoint.root}.');
+    var files = entrypoint.packageFiles();
+    log.fine('Archiving and publishing ${entrypoint.root}.');
 
-      // Show the package contents so the user can verify they look OK.
-      var package = entrypoint.root;
-      log.message(
-          'Publishing ${package.name} ${package.version} to $server:\n'
-          '${tree.fromFiles(files, baseDir: entrypoint.root.dir)}');
+    // Show the package contents so the user can verify they look OK.
+    var package = entrypoint.root;
+    log.message(
+        'Publishing ${package.name} ${package.version} to $server:\n'
+        '${tree.fromFiles(files, baseDir: entrypoint.root.dir)}');
 
-      return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).then((stream) => stream.toBytes());
+    var packageBytesFuture = createTarGz(files, baseDir: entrypoint.root.dir)
+        .toBytes();
 
     // Validate the package.
     return _validate(packageBytesFuture.then((bytes) => bytes.length))

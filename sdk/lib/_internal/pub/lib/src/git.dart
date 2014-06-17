@@ -8,6 +8,8 @@ library pub.git;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
@@ -29,73 +31,76 @@ class GitException implements Exception {
 }
 
 /// Tests whether or not the git command-line app is available for use.
-Future<bool> get isInstalled {
-  if (_isGitInstalledCache != null) {
-    return new Future.value(_isGitInstalledCache);
-  }
-
-  return _gitCommand.then((git) => git != null);
+bool get isInstalled {
+  if (_isInstalledCache != null) return _isInstalledCache;
+  _isInstalledCache = _gitCommand != null;
+  return _isInstalledCache;
 }
+bool _isInstalledCache;
 
 /// Run a git process with [args] from [workingDir]. Returns the stdout as a
 /// list of strings if it succeeded. Completes to an exception if it failed.
 Future<List<String>> run(List<String> args,
     {String workingDir, Map<String, String> environment}) {
-  return _gitCommand.then((git) {
-    if (git == null) {
-      throw new ApplicationException(
-          "Cannot find a Git executable.\n"
-          "Please ensure Git is correctly installed.");
-    }
+  if (!isInstalled) {
+    throw new ApplicationException(
+        "Cannot find a Git executable.\n"
+        "Please ensure Git is correctly installed.");
+  }
 
-    return runProcess(git, args, workingDir: workingDir,
-        environment: environment);
-  }).then((result) {
+  return runProcess(_gitCommand, args, workingDir: workingDir,
+      environment: environment).then((result) {
     if (!result.success) throw new GitException(args, result.stderr.join("\n"));
     return result.stdout;
   });
 }
 
-bool _isGitInstalledCache;
+/// Like [run], but synchronous.
+List<String> runSync(List<String> args, {String workingDir,
+    Map<String, String> environment}) {
+  if (!isInstalled) {
+    throw new ApplicationException(
+        "Cannot find a Git executable.\n"
+        "Please ensure Git is correctly installed.");
+  }
 
-/// The cached Git command.
-String _gitCommandCache;
+  var result = runProcessSync(_gitCommand, args,
+      workingDir: workingDir,
+      environment: environment);
+  if (!result.success) throw new GitException(args, result.stderr.join("\n"));
+  return result.stdout;
+}
 
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
-Future<String> get _gitCommand {
-  if (_gitCommandCache != null) {
-    return new Future.value(_gitCommandCache);
+String get _gitCommand {
+  if (_commandCache != null) return _commandCache;
+
+  var command;
+  if (_tryGitCommand("git")) {
+    _commandCache = "git";
+  } else if (_tryGitCommand("git.cmd")){
+    _commandCache = "git.cmd";
+  } else {
+    return null;
   }
 
-  return _tryGitCommand("git").then((success) {
-    if (success) return "git";
-
-    // Git is sometimes installed on Windows as `git.cmd`
-    return _tryGitCommand("git.cmd").then((success) {
-      if (success) return "git.cmd";
-      return null;
-    });
-  }).then((command) {
-    log.fine('Determined git command $command.');
-    _gitCommandCache = command;
-    return command;
-  });
+  log.fine('Determined git command $command.');
+  return _commandCache;
 }
+String _commandCache;
 
 /// Checks whether [command] is the Git command for this computer.
-Future<bool> _tryGitCommand(String command) {
+bool _tryGitCommand(String command) {
   // If "git --version" prints something familiar, git is working.
-  return runProcess(command, ["--version"]).then((results) {
+  try {
+    var result = runProcessSync(command, ["--version"]);
     var regexp = new RegExp("^git version");
-    return results.stdout.length == 1 && regexp.hasMatch(results.stdout[0]);
-  }).catchError((err, stackTrace) {
+    return result.stdout.length == 1 && regexp.hasMatch(result.stdout.single);
+  } on ProcessException catch (error, stackTrace) {
+    var chain = new Chain.forTrace(stackTrace);
     // If the process failed, they probably don't have it.
-    if (err is ProcessException) {
-      log.io('Git command is not "$command": $err\n$stackTrace');
-      return false;
-    }
-
-    throw err;
-  });
+    log.message('Git command is not "$command": $error\n$chain');
+    return false;
+  }
 }

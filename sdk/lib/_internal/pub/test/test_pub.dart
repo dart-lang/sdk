@@ -648,13 +648,9 @@ void ensureGit() {
     currentSchedule.timeout = new Duration(seconds: 30);
   }
 
-  schedule(() {
-    return gitlib.isInstalled.then((installed) {
-      if (!installed) {
-        throw new Exception("Git must be installed to run this test.");
-      }
-    });
-  }, 'ensuring that Git is installed');
+  if (!gitlib.isInstalled) {
+    throw new Exception("Git must be installed to run this test.");
+  }
 }
 
 /// Create a lock file for [package] without running `pub get`.
