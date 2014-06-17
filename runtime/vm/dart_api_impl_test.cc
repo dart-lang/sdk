@@ -8236,7 +8236,7 @@ TEST_CASE(MakeExternalString) {
   EXPECT_EQ(40, peer8);
   EXPECT_EQ(41, peer16);
   EXPECT_EQ(42, canonical_str_peer);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  Isolate::Current()->heap()->CollectAllGarbage();
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
   EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.
