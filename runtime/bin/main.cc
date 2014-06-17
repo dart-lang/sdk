@@ -65,12 +65,14 @@ static bool has_compile_all = false;
 static bool has_print_script = false;
 
 
+static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
 static bool start_vm_service = false;
-static const char *vm_service_server_ip = NULL;
-static int vm_service_server_port = -1;
-static const char *DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
-static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
+// The 0 port is a magic value which results in the first available port
+// being allocated.
+static int vm_service_server_port = 0;
 
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
@@ -1014,8 +1016,7 @@ void main(int argc, char** argv) {
     if (!start_debugger) {
       DebuggerConnectionHandler::InitForVmService();
     }
-    ASSERT(vm_service_server_ip != NULL && vm_service_server_port >= 0);
-    bool r = VmService::Start(vm_service_server_ip , vm_service_server_port);
+    bool r = VmService::Start(vm_service_server_ip, vm_service_server_port);
     if (!r) {
       Log::PrintErr("Could not start VM Service isolate %s\n",
                     VmService::GetErrorMessage());

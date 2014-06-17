@@ -130,7 +130,19 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   library = Dart_RootLibrary();
   // Set requested TCP port.
   DartUtils::SetStringField(library, "_ip", server_ip);
+  // If we have a port specified, start the server immediately.
+  bool auto_start = server_port >= 0;
+  if (server_port < 0) {
+    // Adjust server_port to port 0 which will result in the first available
+    // port when the HTTP server is started.
+    server_port = 0;
+  }
+  // Set initial state.
   DartUtils::SetIntegerField(library, "_port", server_port);
+  Dart_SetField(library,
+                DartUtils::NewString("_autoStart"),
+                Dart_NewBoolean(auto_start));
+  // Invoke main.
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
   // Load resources.

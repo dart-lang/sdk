@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:mirrors';
 import 'dart:vmservice';
 
 part 'resources.dart';
@@ -16,14 +17,52 @@ part 'server.dart';
 // The TCP ip/port that the HTTP server listens on.
 int _port;
 String _ip;
+// Should the HTTP server auto start?
+bool _autoStart;
+
+// HTTP servr.
+Server server;
+Future<Server> serverFuture;
 
 // The VM service instance.
 VMService service;
+
+void _onSignal(ProcessSignal signal) {
+  if (serverFuture != null) {
+    // Still waiting.
+    return;
+  }
+  // Toggle HTTP server.
+  if (server.running) {
+    serverFuture = server.shutdown(true).then((_) {
+      serverFuture = null;
+    });
+  } else {
+    serverFuture = server.startup().then((_) {
+      serverFuture = null;
+    });
+  }
+}
 
 main() {
   // Get VMService.
   service = new VMService();
   // Start HTTP server.
-  var server = new Server(service, _ip, _port);
-  server.startServer();
+  server = new Server(service, _ip, _port);
+  if (_autoStart) {
+    server.startup();
+  }
+
+  bool useSIGQUIT = true;
+  // Listen for SIGQUIT.
+  if (useSIGQUIT) {
+    var io = currentMirrorSystem().findLibrary(const Symbol('dart.io'));
+    var c = MirrorSystem.getSymbol('_ProcessUtils', io);
+    var m = MirrorSystem.getSymbol('_watchSignalInternal', io);
+    var processUtils = io.declarations[c];
+    processUtils.invoke(m, [ProcessSignal.SIGQUIT]).reflectee.listen(_onSignal);
+  } else {
+    ProcessSignal.SIGUSR1.watch().listen(_onSignal);
+  }
 }
+
