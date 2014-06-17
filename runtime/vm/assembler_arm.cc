@@ -1621,6 +1621,21 @@ void Assembler::StoreIntoObject(Register object,
 }
 
 
+void Assembler::StoreIntoObjectOffset(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      bool can_value_be_smi) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObject(
+        object, FieldAddress(object, offset), value, can_value_be_smi);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObject(object, Address(IP), value, can_value_be_smi);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
@@ -1635,6 +1650,19 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               Register value) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(IP), value);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
@@ -1643,6 +1671,19 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
   LoadObject(IP, value);
   str(IP, dest);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               const Object& value) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(IP), value);
+  }
 }
 
 

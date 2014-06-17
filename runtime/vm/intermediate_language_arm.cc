@@ -1956,9 +1956,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
     } else {
       __ ldr(temp, FieldAddress(instance_reg, offset_in_bytes_));
     }
@@ -2043,9 +2041,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
       __ Bind(&copy_double);
       __ CopyDoubleField(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
@@ -2069,9 +2065,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
       __ Bind(&copy_float32x4);
       __ CopyFloat32x4Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
@@ -2095,9 +2089,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      temp2);
       __ Bind(slow_path->exit_label());
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
       __ Bind(&copy_float64x2);
       __ CopyFloat64x2Field(temp, value_reg, TMP, temp2, fpu_temp);
       __ b(&skip_store);
@@ -2108,20 +2100,21 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
-    __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, offset_in_bytes_),
-                       value_reg,
-                       CanValueBeSmi());
+    __ StoreIntoObjectOffset(instance_reg,
+                             offset_in_bytes_,
+                             value_reg,
+                             CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectNoBarrier(
+      __ StoreIntoObjectNoBarrierOffset(
           instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_),
+          offset_in_bytes_,
           locs()->in(1).constant());
     } else {
       const Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectNoBarrier(instance_reg,
-          FieldAddress(instance_reg, offset_in_bytes_), value_reg);
+      __ StoreIntoObjectNoBarrierOffset(instance_reg,
+                                        offset_in_bytes_,
+                                        value_reg);
     }
   }
   __ Bind(&skip_store);

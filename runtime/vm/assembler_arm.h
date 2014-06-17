@@ -628,13 +628,23 @@ class Assembler : public ValueObject {
                        const Address& dest,  // Where we are storing into.
                        Register value,  // Value we are storing.
                        bool can_value_be_smi = true);
+  void StoreIntoObjectOffset(Register object,
+                             int32_t offset,
+                             Register value,
+                             bool can_value_be_smi = true);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      const Object& value);
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
