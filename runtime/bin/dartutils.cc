@@ -742,20 +742,9 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
 
 
 // Callback function that gets called from dartutils when there are
-// no more outstanding load requests. Invoke Dart core library function
-// that completes futures of loadLibrary calls (deferred library loading).
-// Invoking this function finalizes newly loaded classes as a side
-// effect.
+// no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
-  Dart_Handle corelib_url = DartUtils::NewString(DartUtils::kCoreLibURL);
-  DART_CHECK_VALID(corelib_url);
-  Dart_Handle corelib = Dart_LookupLibrary(corelib_url);
-  DART_CHECK_VALID(corelib);
-  Dart_Handle res =
-      Dart_Invoke(corelib,
-                  DartUtils::NewString("_completeDeferredLoads"),
-                  0,
-                  NULL);
+  Dart_Handle res = Dart_FinalizeLoading();
   if (Dart_IsError(res)) {
     Dart_PropagateError(res);
   }

@@ -2645,6 +2645,18 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle patch_source);
 
 
+/**
+ * Indicates that all outstanding load requests have been satisfied,
+ * finalizing classes and completing deferred library futures.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return Success if all deferred library futures are completed.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_FinalizeLoading();
+
+
 /*
  * =====
  * Peers
