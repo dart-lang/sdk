@@ -82,22 +82,20 @@ abstract class PolymerEventBindings {
 
     return (model, node, oneTime) {
       var handler = getEventHandler(null, node, path);
-      node.addEventListener(eventType, handler);
+      var sub = node.on[eventType].listen(handler);
 
       if (oneTime) return null;
-      return new _EventBindable(node, eventType, handler, path);
+      return new _EventBindable(sub, path);
     };
   }
 }
 
 
 class _EventBindable extends Bindable {
-  final Node _node;
-  final String _eventType;
-  final Function _handler;
+  final StreamSubscription _sub;
   final String _path;
 
-  _EventBindable(this._node, this._eventType, this._handler, this._path);
+  _EventBindable(this._sub, this._path);
 
   // TODO(rafaelw): This is really pointless work. Aside from the cost
   // of these allocations, NodeBind is going to setAttribute back to its
@@ -107,7 +105,12 @@ class _EventBindable extends Bindable {
 
   open(callback) => value;
 
-  void close() => _node.removeEventListener(_eventType, _handler);
+  void close() {
+    if (_sub != null) {
+      _sub.cancel();
+      _sub = null;
+    }
+  }
 }
 
 
