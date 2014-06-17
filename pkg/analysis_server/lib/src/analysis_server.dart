@@ -149,13 +149,6 @@ class AnalysisServer {
   }
 
   /**
-   * Schedules analysis of the given context.
-   */
-  void schedulePerformAnalysisOperation(AnalysisContext context) {
-    scheduleOperation(new PerformAnalysisOperation(context, false));
-  }
-
-  /**
    * Schedules execution of the given [ServerOperation].
    */
   void scheduleOperation(ServerOperation operation) {
@@ -164,6 +157,56 @@ class AnalysisServer {
     if (wasEmpty) {
       _schedulePerformOperation();
     }
+  }
+
+  /**
+   * Schedules analysis of the given context.
+   */
+  void schedulePerformAnalysisOperation(AnalysisContext context) {
+    scheduleOperation(new PerformAnalysisOperation(context, false));
+  }
+
+  /**
+   * Send the given [notification] to the client.
+   */
+  void sendNotification(Notification notification) {
+    channel.sendNotification(notification);
+  }
+
+  /**
+   * Set the priority files to the given [files].
+   */
+  void setPriorityFiles(Request request, List<String> files) {
+    Map<AnalysisContext, List<Source>> sourceMap =
+        new HashMap<AnalysisContext, List<Source>>();
+    List<String> unanalyzed = new List<String>();
+    files.forEach((file) {
+      AnalysisContext analysisContext = _getAnalysisContext(file);
+      if (analysisContext == null) {
+        unanalyzed.add(file);
+      } else {
+        List<Source> sourceList = sourceMap[analysisContext];
+        if (sourceList == null) {
+          sourceList = <Source>[];
+          sourceMap[analysisContext] = sourceList;
+        }
+        sourceList.add(_getSource(file));
+      }
+    });
+    if (unanalyzed.isNotEmpty) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeAll(unanalyzed, ', ');
+      throw new RequestFailure(new Response.unanalyzedPriorityFiles(request,
+          buffer.toString()));
+    }
+    folderMap.forEach((Folder folder, ContextDirectory directory) {
+      AnalysisContext context = directory.context;
+      List<Source> sourceList = sourceMap[context];
+      if (sourceList == null) {
+        sourceList = Source.EMPTY_ARRAY;
+      }
+      context.analysisPriorityOrder = sourceList;
+    });
   }
 
   /**
@@ -188,6 +231,23 @@ class AnalysisServer {
   void error(argument) {
     running = false;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -410,13 +470,6 @@ class AnalysisServer {
    */
   bool test_areOperationsFinished() {
     return operationQueue.isEmpty;
-  }
-
-  /**
-   * Send the given [notification] to the client.
-   */
-  void sendNotification(Notification notification) {
-    channel.sendNotification(notification);
   }
 
   /**

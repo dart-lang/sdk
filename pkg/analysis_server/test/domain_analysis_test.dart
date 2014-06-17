@@ -21,12 +21,13 @@ main() {
   groupSep = ' | ';
 
   MockServerChannel serverChannel;
+  MemoryResourceProvider resourceProvider;
   AnalysisServer server;
   AnalysisDomainHandler handler;
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   setUp(() {
     serverChannel = new MockServerChannel();
+    resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(serverChannel, resourceProvider);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
@@ -75,14 +76,41 @@ main() {
       });
     });
 
-    test('setPriorityFiles', () {
-      var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
-      request.setParameter(
-          FILES,
-          ['projectA/aa.dart', 'projectB/ba.dart']);
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
+    group('setPriorityFiles', () {
+      test('invalid', () {
+        var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
+        request.setParameter(FILES, ['/project/lib.dart']);
+        var response = handler.handleRequest(request);
+        expect(response, isResponseFailure('0'));
+      });
+
+      test('valid', () {
+        resourceProvider.newFolder('/p1');
+        resourceProvider.newFile('/p1/a.dart', 'library a;');
+        resourceProvider.newFolder('/p2');
+        resourceProvider.newFile('/p2/b.dart', 'library b;');
+        resourceProvider.newFile('/p2/c.dart', 'library c;');
+
+        var setRootsRequest = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
+        setRootsRequest.setParameter(INCLUDED, ['/p1', '/p2']);
+        setRootsRequest.setParameter(EXCLUDED, []);
+        var setRootsResponse = handler.handleRequest(setRootsRequest);
+        expect(setRootsResponse, isResponseSuccess('0'));
+
+        void setPriorityFiles(List<String> fileList) {
+          var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
+          request.setParameter(FILES, fileList);
+          var response = handler.handleRequest(request);
+          expect(response, isResponseSuccess('0'));
+          // TODO(brianwilkerson) Enable the line below after getPriorityFiles
+          // has been implemented.
+          // expect(server.getPriorityFiles(), unorderedEquals(fileList));
+        }
+
+        setPriorityFiles(['/p1/a.dart', '/p2/b.dart']);
+        setPriorityFiles(['/p2/b.dart', '/p2/c.dart']);
+        setPriorityFiles([]);
+      });
     });
 
     test('updateOptions', () {

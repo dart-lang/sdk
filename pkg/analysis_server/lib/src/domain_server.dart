@@ -23,6 +23,15 @@ class ServerDomainHandler implements RequestHandler {
    */
   ServerDomainHandler(this.server);
 
+  /**
+   * Return the version number of the analysis server.
+   */
+  Response getVersion(Request request) {
+    Response response = new Response(request.id);
+    response.setResult(VERSION, '0.0.1');
+    return response;
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -110,15 +119,6 @@ class ServerDomainHandler implements RequestHandler {
   Response shutdown(Request request) {
     server.running = false;
     Response response = new Response(request.id);
-    return response;
-  }
-
-  /**
-   * Return the version number of the analysis server.
-   */
-  Response getVersion(Request request) {
-    Response response = new Response(request.id);
-    response.setResult(VERSION, '0.0.1');
     return response;
   }
 }

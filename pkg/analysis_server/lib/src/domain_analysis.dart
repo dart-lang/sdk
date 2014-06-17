@@ -48,6 +48,9 @@ class AnalysisDomainHandler implements RequestHandler {
     return null;
   }
 
+  /**
+   * Implement the 'analysis.setAnalysisRoots' request.
+   */
   Response setAnalysisRoots(Request request) {
     // included
     RequestDatum includedDatum = request.getRequiredParameter(INCLUDED);
@@ -60,11 +63,20 @@ class AnalysisDomainHandler implements RequestHandler {
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.setPriorityFiles' request.
+   */
   Response setPriorityFiles(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    // files
+    RequestDatum filesDatum = request.getRequiredParameter(FILES);
+    List<String> files = filesDatum.asStringList();
+    server.setPriorityFiles(request, files);
+    return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.setSubscriptions' request.
+   */
   Response setSubscriptions(Request request) {
     // parse subscriptions
     Map<AnalysisService, Set<String>> subMap;
@@ -86,6 +98,9 @@ class AnalysisDomainHandler implements RequestHandler {
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.updateContent' request.
+   */
   Response updateContent(Request request) {
     var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
@@ -104,12 +119,29 @@ class AnalysisDomainHandler implements RequestHandler {
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.updateOptions' request.
+   */
   Response updateOptions(Request request) {
+    // options
+    RequestDatum optionsDatum = request.getRequiredParameter(OPTIONS);
     // TODO(scheglov) implement
     return null;
   }
 
+  /**
+   * Implement the 'analysis.updateSdks' request.
+   */
   Response updateSdks(Request request) {
+    // added
+    RequestDatum addedDatum = request.getRequiredParameter(ADDED);
+    List<String> added = addedDatum.asStringList();
+    // removed
+    RequestDatum removedDatum = request.getRequiredParameter(REMOVED);
+    List<String> removed = removedDatum.asStringList();
+    // default
+    RequestDatum defaultDatum = request.getRequiredParameter(DEFAULT);
+    String defaultSdk = defaultDatum.asString();
     // TODO(scheglov) implement
     return null;
   }

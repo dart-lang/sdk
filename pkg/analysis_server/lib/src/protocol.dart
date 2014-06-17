@@ -529,6 +529,14 @@ class Response {
     : this(request.id, new RequestError(-10, 'Unknown analysis service: "$name"'));
 
   /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a `analysis.setPriorityFiles` [request] that includes one or more files
+   * that are not being analyzed.
+   */
+  Response.unanalyzedPriorityFiles(Request request, String fileNames)
+    : this(request.id, new RequestError(-11, "Unanalyzed files cannot be a priority: '$fileNames'"));
+
+  /**
    * Initialize a newly created instance based upon the given JSON data
    */
   factory Response.fromJson(Map<String, Object> json) {

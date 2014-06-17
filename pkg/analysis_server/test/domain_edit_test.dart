@@ -17,12 +17,13 @@ main() {
   groupSep = ' | ';
 
   MockServerChannel serverChannel;
+  MemoryResourceProvider resourceProvider;
   AnalysisServer server;
   EditDomainHandler handler;
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
   setUp(() {
     serverChannel = new MockServerChannel();
+    resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(serverChannel, resourceProvider);
     server.defaultSdk = new MockSdk();
     handler = new EditDomainHandler(server);

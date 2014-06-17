@@ -100,7 +100,7 @@ class EditDomainHandler implements RequestHandler {
     // errors
     RequestDatum errorsDatum = request.getRequiredParameter(ERRORS);
     List<AnalysisError> errors = errorsDatum.asList((RequestDatum datum) {
-      return _createAnalysisError(datum);
+      return _createAnalysisError(request, datum);
     });
     // TODO(brianwilkerson) implement
     return null;
@@ -128,7 +128,73 @@ class EditDomainHandler implements RequestHandler {
     return null;
   }
 
-  AnalysisError _createAnalysisError(RequestDatum datum) {
-    // TODO(brianwilkerson) implement
+  /**
+   * Convert the given data from a request into an analysis error.
+   */
+  AnalysisError _createAnalysisError(Request request, RequestDatum datum) {
+    String file = datum[FILE].asString();
+    String errorCodeName = datum[ERROR_CODE].asString();
+    int offset = datum[OFFSET].asInt();
+    int length = datum[LENGTH].asInt();
+    String message = datum[MESSAGE].asString();
+    String correction;
+    if (datum.hasKey(CORRECTION)) {
+      correction = datum[CORRECTION].asString();
+    }
+    ErrorCode errorCode = convertErrorCode(errorCodeName);
+    if (errorCode == null) {
+//      throw new RequestFailure(new Response.invalidErrorCode(request));
+    }
+    // TODO(brianwilkerson) Implement this.
+//    return new AnalysisError.con2(
+//        server.sourceFromFile(file),
+//        offset,
+//        length,
+//        errorCode,
+//        null);
+    return null;
+  }
+
+  /**
+   * Return the error code corresponding to the given [errorCodeName], or `null`
+   * if the given name is not a valid error code.
+   */
+  ErrorCode convertErrorCode(String errorCodeName) {
+    // TODO(brianwilkerson) Implement this.
+//    Enum2 errorCode = Enum2.valueOf(AngularCode.values, errorCodeName);
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(CompileTimeErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(HintCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(HtmlWarningCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(ParserErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(PolymerCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(PubSuggestionCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(ResolverErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(ScannerErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(StaticTypeErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(StaticWarningErrorCode.values, errorCodeName);
+//    }
+//    if (errorCode == null) {
+//      errorCode = Enum2.valueOf(TodoCode.values, errorCodeName);
+//    }
+    return null;
   }
 }

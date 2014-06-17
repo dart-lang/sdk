@@ -528,6 +528,17 @@ class ResponseTest {
   }
 
   @runTest
+  static void create_unanalyzedPriorityFiles() {
+    Response response = new Response.unanalyzedPriorityFiles(new Request('0', ''), 'file list');
+    expect(response.id, equals('0'));
+    expect(response.error, isNotNull);
+    expect(response.toJson(), equals({
+      Response.ID: '0',
+      Response.ERROR: {'code': -11, 'message': "Unanalyzed files cannot be a priority: 'file list'"}
+    }));
+  }
+
+  @runTest
   static void setResult() {
     String resultName = 'name';
     String resultValue = 'value';
