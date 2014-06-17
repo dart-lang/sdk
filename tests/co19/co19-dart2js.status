@@ -1270,7 +1270,7 @@ LibTest/typed_data/ByteBuffer/operator_equality_A01_t01: fail # co19-roll r569: 
 LibTest/typed_data/ByteBuffer/runtimeType_A01_t01: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteBuffer/runtimeType_A01_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteBuffer/toString_A01_t01: fail # co19-roll r569: Please triage this failure
-LibTest/typed_data/ByteData/buffer_A01_t01: fail # co19-roll r569: Please triage this failure
+LibTest/typed_data/ByteData/buffer_A01_t01: fail # co19 issue 694
 LibTest/typed_data/ByteData/buffer_A01_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/ByteData_A01_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/ByteData.view_A01_t01: fail # co19-roll r569: Please triage this failure

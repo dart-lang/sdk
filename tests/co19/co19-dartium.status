@@ -22,6 +22,7 @@ Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: Pass # Issue 14478: This sh
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int64List/buffer_A01_t01: Fail # Issue co19 694
+LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 LibTest/isolate/SendPort/send_A02_t01: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921

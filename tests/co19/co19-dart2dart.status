@@ -63,6 +63,7 @@ LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
