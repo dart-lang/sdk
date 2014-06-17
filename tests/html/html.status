@@ -10,6 +10,8 @@ dromaeo_smoke_test: Skip # Issue 14521, 8257
 form_data_test/functional: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 indexeddb_5_test: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
+blob_constructor_test: Fail # Issue 19500
+transferables_test: Fail # Issue 19500
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
