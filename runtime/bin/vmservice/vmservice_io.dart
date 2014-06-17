@@ -44,15 +44,7 @@ void _onSignal(ProcessSignal signal) {
   }
 }
 
-main() {
-  // Get VMService.
-  service = new VMService();
-  // Start HTTP server.
-  server = new Server(service, _ip, _port);
-  if (_autoStart) {
-    server.startup();
-  }
-
+void registerSignalHandler() {
   bool useSIGQUIT = true;
   // Listen for SIGQUIT.
   if (useSIGQUIT) {
@@ -66,3 +58,19 @@ main() {
   }
 }
 
+
+main() {
+  // Get VMService.
+  service = new VMService();
+  // Start HTTP server.
+  server = new Server(service, _ip, _port);
+  if (_autoStart) {
+    server.startup();
+  }
+
+  try {
+    registerSignalHandler();
+  } catch (_) {
+    // Listening for signals will fail on Windows.
+  }
+}
