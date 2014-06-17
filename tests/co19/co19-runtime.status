@@ -48,6 +48,7 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
+LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
 Language/14_Libraries_and_Scripts/1_Imports_A04_t02: Fail

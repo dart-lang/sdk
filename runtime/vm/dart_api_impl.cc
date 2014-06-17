@@ -3175,7 +3175,7 @@ static Dart_Handle NewExternalByteData(
     return ext_data;
   }
   Object& result = Object::Handle(isolate);
-  result = GetByteDataConstructor(isolate, Symbols::ByteDataDotview(), 3);
+  result = GetByteDataConstructor(isolate, Symbols::ByteDataDot_view(), 3);
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);

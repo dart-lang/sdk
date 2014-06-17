@@ -231,6 +231,7 @@ class ObjectPointerVisitor;
   V(_ExternalFloat64x2Array, "_ExternalFloat64x2Array")                        \
   V(ByteData, "ByteData")                                                      \
   V(ByteDataDot, "ByteData.")                                                  \
+  V(ByteDataDot_view, "ByteData._view")                                        \
   V(ByteDataDotview, "ByteData.view")                                          \
   V(_ByteDataView, "_ByteDataView")                                            \
   V(_WeakProperty, "_WeakProperty")                                            \

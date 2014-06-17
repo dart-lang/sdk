@@ -299,7 +299,7 @@ patch class Float64x2 {
 patch class ByteData {
   /* patch */ factory ByteData(int length) {
     var list = new _Uint8Array(length);
-    return new _ByteDataView(list.buffer, 0, length);
+    return new _ByteDataView(list, 0, length);
   }
 
   /* patch */ factory ByteData.view(ByteBuffer buffer,
@@ -307,7 +307,12 @@ patch class ByteData {
     if (length == null) {
       length = buffer.lengthInBytes - offsetInBytes;
     }
-    return new _ByteDataView(buffer, offsetInBytes, length);
+    return new _ByteDataView(buffer._data, offsetInBytes, length);
+  }
+
+  // Called directly from C code.
+  factory ByteData._view(TypedData typedData, int offsetInBytes, int length) {
+    return new _ByteDataView(typedData, offsetInBytes, length);
   }
 }
 
@@ -551,10 +556,10 @@ abstract class _TypedListBase {
         if ((count < 10) && (from.buffer != this.buffer)) {
           Lists.copy(from, skipCount, this, start, count);
           return;
-        } else if (this.buffer._setRange(
+        } else if (this.buffer._data._setRange(
               start * elementSizeInBytes + this.offsetInBytes,
               count * elementSizeInBytes,
-              from.buffer,
+              from.buffer._data,
               skipCount * elementSizeInBytes + from.offsetInBytes,
               this._cid, from._cid)) {
           return;
@@ -608,7 +613,20 @@ abstract class _TypedListBase {
 }
 
 
-abstract class _TypedList extends _TypedListBase implements ByteBuffer {
+class _ByteBuffer implements ByteBuffer {
+  final _TypedList _data;
+
+  _ByteBuffer(this._data);
+
+  // Forward calls to _data.
+  int get lengthInBytes => _data.lengthInBytes;
+  int get hashCode => _data.hashCode;
+  bool operator==(Object other) =>
+      (other is _ByteBuffer) && identical(_data, other._data);
+}
+
+
+abstract class _TypedList extends _TypedListBase {
   // Default method implementing parts of the TypedData interface.
   int get offsetInBytes {
     return 0;
@@ -618,9 +636,7 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
     return length * elementSizeInBytes;
   }
 
-  ByteBuffer get buffer {
-    return this;
-  }
+  ByteBuffer get buffer => new _ByteBuffer(this);
 
   // Methods implementing the collection interface.
 
@@ -2514,8 +2530,8 @@ class _TypedListIterator<E> implements Iterator<E> {
 
 
 class _TypedListView extends _TypedListBase implements TypedData {
-  _TypedListView(ByteBuffer _buffer, int _offset, int _length)
-    : _typedData = _buffer,  // This assignment is type safe.
+  _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
+    : _typedData = _buffer._data,
       offsetInBytes = _offset,
       length = _length {
   }
@@ -3263,11 +3279,11 @@ class _Float64x2ArrayView extends _TypedListView implements Float64x2List {
 
 
 class _ByteDataView implements ByteData {
-  _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
-    : _typedData = _buffer,  // _buffer is guaranteed to be a TypedData here.
+  _ByteDataView(TypedData typedData, int _offsetInBytes, int _lengthInBytes)
+    : _typedData = typedData,
       _offset = _offsetInBytes,
       length = _lengthInBytes {
-    _rangeCheck(_buffer.lengthInBytes, _offset, length);
+    _rangeCheck(_typedData.lengthInBytes, _offset, length);
   }
 
 
