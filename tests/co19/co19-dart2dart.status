@@ -111,9 +111,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: crash # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please triage this failure
 Language/15_Types/5_Function_Types_A06_t01: fail # co19-roll r546: Please triage this failure
