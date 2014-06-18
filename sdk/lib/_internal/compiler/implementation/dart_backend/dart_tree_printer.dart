@@ -382,7 +382,7 @@ class TreePrinter {
       tree.Node body = exp.element != null &&
           exp.element.node.body is tree.EmptyStatement
         ? exp.element.node.body
-        : makeBlock(exp.body);
+        : makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           functionName(exp),
           makeParameters(exp.parameters),
