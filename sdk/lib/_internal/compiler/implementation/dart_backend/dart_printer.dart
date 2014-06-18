@@ -1239,6 +1239,17 @@ class Unparser {
     }
   }
 
+  /// A list of string quotings that the printer may use to quote strings.
+  // Ignore multiline quotings for now. Would need to make sure that no
+  // newline (potentially prefixed by whitespace) follows the quoting.
+  // TODO(asgerf): Include multiline quotation schemes.
+  static const _QUOTINGS = const <tree.StringQuoting>[
+      const tree.StringQuoting(characters.$DQ, raw: false, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$DQ, raw: true, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$SQ, raw: false, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$SQ, raw: true, leftQuoteLength: 1),
+  ];
+
   static StringLiteralOutput analyzeStringLiteral(Expression node) {
     // TODO(asgerf): This might be a bit too expensive. Benchmark.
     // Flatten the StringConcat tree.
@@ -1281,11 +1292,7 @@ class Unparser {
     List<int> nonRaws = <int>[];
     List<int> sqs = <int>[];
     List<int> dqs = <int>[];
-    for (tree.StringQuoting q in tree.StringQuoting.mapping) {
-      // Ignore multiline quotings for now. Encoding of line breaks is unclear.
-      // TODO(asgerf): Include multiline quotation schemes.
-      if (q.leftQuoteCharCount >= 3)
-        continue;
+    for (tree.StringQuoting q in _QUOTINGS) {
       OpenStringChunk chunk = new OpenStringChunk(null, q, getQuoteCost(q));
       int index = best.length;
       best.add(chunk);

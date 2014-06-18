@@ -834,71 +834,54 @@ class LiteralBool extends Literal<bool> {
 
 
 class StringQuoting {
-  static const StringQuoting SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 5);
-  static const StringQuoting SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 5);
 
-
-  static const List<StringQuoting> mapping = const <StringQuoting>[
-    SINGLELINE_DQ,
-    RAW_SINGLELINE_DQ,
-    MULTILINE_DQ,
-    RAW_MULTILINE_DQ,
-    MULTILINE_NL_DQ,
-    RAW_MULTILINE_NL_DQ,
-    MULTILINE_NL2_DQ,
-    RAW_MULTILINE_NL2_DQ,
-    SINGLELINE_SQ,
-    RAW_SINGLELINE_SQ,
-    MULTILINE_SQ,
-    RAW_MULTILINE_SQ,
-    MULTILINE_NL_SQ,
-    RAW_MULTILINE_NL_SQ,
-    MULTILINE_NL2_SQ,
-    RAW_MULTILINE_NL2_SQ
+  /// Cache of common quotings.
+  static const List<StringQuoting> _mapping = const <StringQuoting>[
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 1),
+    // No string quotes with 2 characters.
+    null,
+    null,
+    null,
+    null,
+    // Multiline quotings.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 3),
+    // Leading single whitespace or espaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 4),
+    // Other combinations of leading whitespace and/or escaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 6)
   ];
+
   final bool raw;
   final int leftQuoteCharCount;
   final int quote;
-  const StringQuoting(this.quote, {bool raw, int leftQuoteLength})
-      : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
+  const StringQuoting(this.quote, { this.raw, int leftQuoteLength })
+      : this.leftQuoteCharCount = leftQuoteLength;
   String get quoteChar => identical(quote, $DQ) ? '"' : "'";
 
   int get leftQuoteLength => (raw ? 1 : 0) + leftQuoteCharCount;
   int get rightQuoteLength => (leftQuoteCharCount > 2) ? 3 : 1;
-  static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
-    int index = quoteLength - 1;
-    if (quoteLength > 2) index -= 1;
-    return mapping[(raw ? 1 : 0) + index * 2 + (identical(quote, $SQ) ? 8 : 0)];
+  static StringQuoting getQuoting(int quote, bool raw, int leftQuoteLength) {
+    int quoteKindOffset = (quote == $DQ) ? 2 : 0;
+    int rawOffset = raw ? 1 : 0;
+    int index = (leftQuoteLength - 1) * 4 + rawOffset + quoteKindOffset;
+    if (index < _mapping.length) return _mapping[index];
+    return new StringQuoting(quote, raw: raw, leftQuoteLength: leftQuoteLength);
   }
 }
 

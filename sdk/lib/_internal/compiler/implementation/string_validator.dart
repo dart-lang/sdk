@@ -36,7 +36,7 @@ class StringValidator {
   static StringQuoting quotingFromString(String sourceString) {
     Iterator<int> source = sourceString.codeUnits.iterator;
     bool raw = false;
-    int quoteLength = 1;
+    int leftQuoteLength = 1;
     source.moveNext();
     int quoteChar = source.current;
     if (quoteChar == $r) {
@@ -46,27 +46,47 @@ class StringValidator {
     }
     assert(quoteChar == $SQ || quoteChar == $DQ);
     // String has at least one quote. Check it if has three.
-    // If it only have two, the string must be an empty string literal,
+    // If it only has two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
     if (source.moveNext() && source.current == quoteChar && source.moveNext()) {
       int code = source.current;
       assert(code == quoteChar);  // If not, there is a bug in the parser.
-      quoteLength = 3;
-      // Check if a multiline string starts with a newline (CR, LF or CR+LF).
-      if (source.moveNext()) {
+      leftQuoteLength = 3;
+
+      // Check if a multiline string starts with optional whitespace followed by
+      // a newline (CR, LF or CR+LF).
+      // We also accept if the these characters are escaped by a backslash.
+      int newLineLength = 1;
+      while (true) {
+        // Due to string-interpolations we are not guaranteed to see the
+        // trailing quoting characters. The invocations to `moveNext()` may
+        // therefore return false and the `current`-getter return `null`. The
+        // code does not need to handle this specially (as it will not find the
+        // newline characters).
+        source.moveNext();
         code = source.current;
-        if (code == $CR) {
-          quoteLength += 1;
-          if (source.moveNext() && source.current == $LF) {
-            quoteLength += 1;
-          }
-        } else if (code == $LF) {
-          quoteLength += 1;
+        if (code == $BACKSLASH) {
+          newLineLength++;
+          source.moveNext();
+          code = source.current;
         }
+        if (code == $TAB || code == $SPACE) {
+          newLineLength++;
+          continue;
+        }
+        if (code == $CR) {
+          if (source.moveNext() && source.current == $LF) {
+            newLineLength++;
+          }
+          leftQuoteLength += newLineLength;
+        } else if (code == $LF) {
+          leftQuoteLength += newLineLength;
+        }
+        break;
       }
     }
-    return StringQuoting.getQuoting(quoteChar, raw, quoteLength);
+    return StringQuoting.getQuoting(quoteChar, raw, leftQuoteLength);
   }
 
   /**

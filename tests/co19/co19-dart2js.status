@@ -22,7 +22,6 @@ LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # Issue 18549
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
 Language/05_Variables/05_Variables_A11_t01: fail # Please triage this issue.
-Language/12_Expressions/05_Strings_A20_t01: fail # Issue 19386
 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
@@ -1371,9 +1370,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: crash # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triage this failure
