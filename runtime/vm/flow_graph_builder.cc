@@ -3942,12 +3942,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   ASSERT(!for_effect.is_open());
 
   // When compiling for OSR, use a depth first search to prune instructions
-  // unreachable from the OSR entry.  Catch entries are not (yet) properly
-  // recognized as reachable.
+  // unreachable from the OSR entry. Catch entries are always considered
+  // reachable, even if they become unreachable after OSR.
   if (osr_id_ != Isolate::kNoDeoptId) {
-    if (graph_entry_->SuccessorCount() > 1) {
-      Bailout("try/catch when compiling for OSR");
-    }
     PruneUnreachable();
   }
 
