@@ -208,12 +208,8 @@ TEST_CASE(Service_Isolate) {
   EXPECT_SUBSTRING("isolates/", buffer);
 
   // heap
-  EXPECT(reader.Seek("heap"));
+  EXPECT(reader.Seek("heaps"));
   EXPECT_EQ(reader.Type(), JSONReader::kObject);
-
-  // timers
-  EXPECT(reader.Seek("timers"));
-  EXPECT_EQ(reader.Type(), JSONReader::kArray);
 }
 
 
