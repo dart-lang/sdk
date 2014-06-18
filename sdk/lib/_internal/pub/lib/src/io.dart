@@ -255,9 +255,13 @@ String createSystemTempDir() {
 
 /// Lists the contents of [dir].
 ///
-/// If [recursive] is `true`, lists subdirectory contents (defaults to
-/// `false`). If [includeHidden] is `true`, includes files and directories
-/// beginning with `.` (defaults to `false`).
+/// If [recursive] is `true`, lists subdirectory contents (defaults to `false`).
+/// If [includeHidden] is `true`, includes files and directories beginning with
+/// `.` (defaults to `false`). If [includeDirs] is `true`, includes directories
+/// as well as files (defaults to `true`).
+///
+/// [whiteList] is a list of hidden filenames to include even when
+/// [includeHidden] is `false`.
 ///
 /// Note that dart:io handles recursive symlinks in an unfortunate way. You
 /// end up with two copies of every entity that is within the recursive loop.
@@ -265,21 +269,41 @@ String createSystemTempDir() {
 /// had a noticeable performance impact. In the interest of speed, we'll just
 /// live with that annoying behavior.
 ///
-/// The returned paths are guaranteed to begin with [dir].
+/// The returned paths are guaranteed to begin with [dir]. Broken symlinks won't
+/// be returned.
 List<String> listDir(String dir, {bool recursive: false,
-    bool includeHidden: false}) {
-  var entities = new Directory(dir).listSync(recursive: recursive);
+    bool includeHidden: false, bool includeDirs: true,
+    Iterable<String> whitelist}) {
+  if (whitelist == null) whitelist = [];
+  var whitelistFilter = createFileFilter(whitelist);
 
-  isHidden(part) => part.startsWith(".") && part != "." && part != "..";
+  // This is used in some performance-sensitive paths and can list many, many
+  // files. As such, it leans more havily towards optimization as opposed to
+  // readability than most code in pub. In particular, it avoids using the path
+  // package, since re-parsing a path is very expensive relative to string
+  // operations.
+  return new Directory(dir).listSync(
+      recursive: recursive, followLinks: true).where((entity) {
+    if (!includeDirs && entity is Directory) return false;
+    if (entity is Link) return false;
+    if (includeHidden) return true;
 
-  if (!includeHidden) {
-    entities = entities.where((entity) {
-      assert(entity.path.startsWith(dir));
-      return !path.split(entity.path.substring(dir.length + 1)).any(isHidden);
-    });
-  }
+    assert(entity.path.startsWith(dir));
+    var pathInDir = entity.path.substring(dir.length);
 
-  return entities.map((entity) => entity.path).toList();
+    // If the basename is whitelisted, don't count its "/." as making the file
+    // hidden.
+    var whitelistedBasename = whitelistFilter.firstWhere(pathInDir.contains,
+        orElse: () => null);
+    if (whitelistedBasename != null) {
+      pathInDir = pathInDir.substring(
+          0, pathInDir.length - whitelistedBasename.length);
+    }
+
+    if (pathInDir.contains("/.")) return false;
+    if (Platform.operatingSystem != "windows") return true;
+    return pathInDir.contains("\\.");
+  }).map((entity) => entity.path).toList();
 }
 
 /// Returns whether [dir] exists on the file system.

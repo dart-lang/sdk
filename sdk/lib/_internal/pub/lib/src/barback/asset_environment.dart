@@ -216,9 +216,10 @@ class AssetEnvironment {
 
     return directory.server.then((server) {
       var url = server.url;
-      return directory.close()
-          .then((_) => _removeDirectorySources(rootDirectory))
-          .then((_) => url);
+      return directory.close().then((_) {
+        _removeDirectorySources(rootDirectory);
+        return url;
+      });
     });
   }
 
@@ -469,36 +470,35 @@ class AssetEnvironment {
     // Then the sources of the subdirectory will be updated and watched twice.
     // See: #17454
     if (_watcherType == WatcherType.NONE) {
-      return _updateDirectorySources(package, dir);
+      _updateDirectorySources(package, dir);
+      return new Future.value();
     }
 
     // Watch the directory before listing is so we don't miss files that
     // are added between the initial list and registering the watcher.
     return _watchDirectorySources(package, dir).then((_) {
-      return _updateDirectorySources(package, dir);
+      _updateDirectorySources(package, dir);
     });
   }
 
   /// Updates barback with all of the files in [dir] inside [package].
-  Future _updateDirectorySources(Package package, String dir) {
-    return _listDirectorySources(package, dir).then((ids) {
-      if (_modifiedSources == null) {
-        barback.updateSources(ids);
-      } else {
-        _modifiedSources.addAll(ids);
-      }
-    });
+  void _updateDirectorySources(Package package, String dir) {
+    var ids = _listDirectorySources(package, dir);
+    if (_modifiedSources == null) {
+      barback.updateSources(ids);
+    } else {
+      _modifiedSources.addAll(ids);
+    }
   }
 
   /// Removes all of the files in [dir] in the root package from barback.
-  Future _removeDirectorySources(String dir) {
-    return _listDirectorySources(rootPackage, dir).then((ids) {
-      if (_modifiedSources == null) {
-        barback.removeSources(ids);
-      } else {
-        _modifiedSources.removeAll(ids);
-      }
-    });
+  void _removeDirectorySources(String dir) {
+    var ids = _listDirectorySources(rootPackage, dir);
+    if (_modifiedSources == null) {
+      barback.removeSources(ids);
+    } else {
+      _modifiedSources.removeAll(ids);
+    }
   }
 
   /// Lists all of the source assets in [dir] inside [package].
@@ -506,24 +506,17 @@ class AssetEnvironment {
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  Future<List<AssetId>> _listDirectorySources(Package package, String dir) {
+  List<AssetId> _listDirectorySources(Package package, String dir) {
     var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return new Future.value([]);
+    if (!dirExists(subdirectory)) return [];
 
-    return new Directory(subdirectory).list(recursive: true, followLinks: true)
-        .expand((entry) {
-      // Skip directories and (broken) symlinks.
-      if (entry is Directory) return [];
-      if (entry is Link) return [];
-
-      var relative = path.normalize(
-          path.relative(entry.path, from: package.dir));
-
-      // Ignore hidden files or files in "packages" and hidden directories.
-      if (path.split(relative).any((part) =>
-          part.startsWith(".") || part == "packages")) {
-        return [];
-      }
+    // This is used in some performance-sensitive paths and can list many, many
+    // files. As such, it leans more havily towards optimization as opposed to
+    // readability than most code in pub. In particular, it avoids using the
+    // path package, since re-parsing a path is very expensive relative to
+    // string operations.
+    return package.listFiles(beneath: subdirectory).expand((file) {
+      var relative = file.substring(package.dir.length + 1);
 
       // Skip files that were (most likely) compiled from nearby ".dart"
       // files. These are created by the Editor's "Run as JavaScript"
@@ -538,7 +531,12 @@ class AssetEnvironment {
       if (relative.endsWith(".dart.js.map")) return [];
       if (relative.endsWith(".dart.precompiled.js")) return [];
 
-      return [new AssetId(package.name, path.toUri(relative).toString())];
+      if (Platform.operatingSystem == 'windows') {
+        relative = relative.replaceAll("\\", "/");
+      }
+
+      var uri = new Uri(pathSegments: relative.split("/"));
+      return [new AssetId(package.name, uri.toString())];
     }).toList();
   }
 

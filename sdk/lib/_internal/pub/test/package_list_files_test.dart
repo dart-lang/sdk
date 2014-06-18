@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library packages_files_test;
+library packages_list_files_test;
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
@@ -37,7 +37,7 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), unorderedEquals([
+        expect(entrypoint.root.listFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, 'file1.txt'),
           path.join(root, 'file2.txt'),
@@ -68,7 +68,7 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), unorderedEquals([
+        expect(entrypoint.root.listFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, 'file1.txt'),
           path.join(root, 'file2.txt'),
@@ -90,7 +90,7 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(), unorderedEquals([
+        expect(entrypoint.root.listFiles(), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, '.gitignore'),
           path.join(root, 'file2.text'),
@@ -122,7 +122,7 @@ void commonTests() {
     schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'target')));
 
     schedule(() {
-      expect(entrypoint.packageFiles(),
+      expect(entrypoint.root.listFiles(),
           equals([path.join(root, 'pubspec.yaml')]));
     });
   });
@@ -134,7 +134,7 @@ void commonTests() {
     ]).create();
 
     schedule(() {
-      expect(entrypoint.packageFiles(),
+      expect(entrypoint.root.listFiles(),
           equals([path.join(root, 'pubspec.yaml')]));
     });
   });
@@ -148,7 +148,7 @@ void commonTests() {
     ]).create();
 
     schedule(() {
-      expect(entrypoint.packageFiles(),
+      expect(entrypoint.root.listFiles(),
           equals([path.join(root, 'pubspec.yaml')]));
     });
   });
@@ -161,7 +161,7 @@ void commonTests() {
     ]).create();
 
     schedule(() {
-      expect(entrypoint.packageFiles(), unorderedEquals([
+      expect(entrypoint.root.listFiles(), unorderedEquals([
         path.join(root, 'pubspec.yaml'),
         path.join(root, 'pubspec.lock', 'file.txt')
       ]));
@@ -184,7 +184,7 @@ void commonTests() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(beneath: path.join(root, 'subdir')),
+        expect(entrypoint.root.listFiles(beneath: path.join(root, 'subdir')),
             unorderedEquals([
           path.join(root, 'subdir', 'subfile1.txt'),
           path.join(root, 'subdir', 'subfile2.txt'),
@@ -209,7 +209,7 @@ void commonTests() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.packageFiles(beneath: path.join(root, 'packages')),
+        expect(entrypoint.root.listFiles(beneath: path.join(root, 'packages')),
             unorderedEquals([
           path.join(root, 'packages', 'subfile1.txt'),
           path.join(root, 'packages', 'subfile2.txt'),

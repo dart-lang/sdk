@@ -7,8 +7,10 @@ library pub.package;
 import 'package:path/path.dart' as path;
 
 import 'io.dart';
+import 'git.dart' as git;
 import 'pubspec.dart';
 import 'source_registry.dart';
+import 'utils.dart';
 import 'version.dart';
 
 final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
@@ -105,6 +107,59 @@ class Package {
   /// The package will have no directory associated with it.
   Package.inMemory(this.pubspec)
     : dir = null;
+
+  /// The basenames of files that are included in [list] despite being hidden.
+  static final _WHITELISTED_FILES = const ['.htaccess'];
+
+  /// A set of patterns that match paths to blacklisted files.
+  static final _blacklistedFiles = createFileFilter(['pubspec.lock']);
+
+  /// A set of patterns that match paths to blacklisted directories.
+  static final _blacklistedDirs = createDirectoryFilter(['packages']);
+
+  /// Returns a list of files that are considered to be part of this package.
+  ///
+  /// If this is a Git repository, this will respect .gitignore; otherwise, it
+  /// will return all non-hidden, non-blacklisted files.
+  ///
+  /// If [beneath] is passed, this will only return files beneath that path.
+  List<String> listFiles({String beneath}) {
+    if (beneath == null) beneath = dir;
+
+    // This is used in some performance-sensitive paths and can list many, many
+    // files. As such, it leans more havily towards optimization as opposed to
+    // readability than most code in pub. In particular, it avoids using the
+    // path package, since re-parsing a path is very expensive relative to
+    // string operations.
+    var files;
+    if (git.isInstalled && dirExists(path.join(dir, '.git'))) {
+      // Later versions of git do not allow a path for ls-files that appears to
+      // be outside of the repo, so make sure we give it a relative path.
+      var relativeBeneath = path.relative(beneath, from: dir);
+
+      // List all files that aren't gitignored, including those not checked in
+      // to Git.
+      files = git.runSync(
+          ["ls-files", "--cached", "--others", "--exclude-standard",
+           relativeBeneath],
+          workingDir: dir);
+      // Git always prints files relative to the repository root, but we want
+      // them relative to the working directory. It also prints forward slashes
+      // on Windows which we normalize away for easier testing.
+      files = files.map((file) => "$dir${path.separator}$file")
+          // Filter out broken symlinks, since git doesn't do so automatically.
+          .where((file) => !linkExists(file) || fileExists(file));
+    } else {
+      files = listDir(beneath, recursive: true, includeDirs: false,
+          whitelist: _WHITELISTED_FILES);
+    }
+
+    return files.where((file) {
+      file = file.substring(beneath.length);
+      return !_blacklistedFiles.any(file.endsWith) &&
+          !_blacklistedDirs.any(file.contains);
+    }).toList();
+  }
 
   /// Returns a debug string for the package.
   String toString() => '$name $version ($dir)';

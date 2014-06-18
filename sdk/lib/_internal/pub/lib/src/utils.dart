@@ -328,6 +328,34 @@ Future<Map> mapMapAsync(Map map, {key(key, value), value(key, value)}) {
       value: (mapKey) => value(mapKey, map[mapKey]));
 }
 
+/// Given a list of filenames, returns a set of patterns that can be used to
+/// filter for those filenames.
+///
+/// For a given path, that path ends with some string in the returned set if
+/// and only if that path's basename is in [files].
+Set<String> createFileFilter(Iterable<String> files) {
+  return files.expand((file) {
+    var result = ["/$file"];
+    if (Platform.operatingSystem == 'windows') result.add("\\$file");
+    return result;
+  }).toSet();
+}
+
+/// Given a blacklist of directory names, returns a set of patterns that can
+/// be used to filter for those directory names.
+///
+/// For a given path, that path contains some string in the returned set if
+/// and only if one of that path's components is in [dirs].
+Set<String> createDirectoryFilter(Iterable<String> dirs) {
+  return dirs.expand((dir) {
+    var result = ["/$dir/"];
+    if (Platform.operatingSystem == 'windows') {
+      result..add("/$dir\\")..add("\\$dir/")..add("\\$dir\\");
+    }
+    return result;
+  }).toSet();
+}
+
 /// Returns the maximum value in [iter].
 int maxAll(Iterable<int> iter) =>
     iter.reduce((max, element) => element > max ? element : max);

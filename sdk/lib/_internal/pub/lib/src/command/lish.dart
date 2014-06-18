@@ -97,7 +97,7 @@ class LishCommand extends PubCommand {
       usageError('Cannot use both --force and --dry-run.');
     }
 
-    var files = entrypoint.packageFiles();
+    var files = entrypoint.root.listFiles();
     log.fine('Archiving and publishing ${entrypoint.root}.');
 
     // Show the package contents so the user can verify they look OK.
