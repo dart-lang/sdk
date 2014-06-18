@@ -1173,12 +1173,6 @@ main() => A.A = 1;
           "Deferred loading is not supported by the dart backend yet. "
           "Will not split the output.");
 
-  static const MessageKind DEFERRED_LOADING_DISABLED =
-      const MessageKind(
-          "Deferred loading is disabled.",
-          howToFix: "If you want to enable this experimental feature, avoid "
-            "passing the --disable-deferred-loading flag to the compiler.");
-
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
           "This import is deferred but there is no prefix keyword.",
