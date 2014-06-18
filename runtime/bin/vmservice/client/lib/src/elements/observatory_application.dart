@@ -18,8 +18,9 @@ class ObservatoryApplicationElement extends ObservatoryElement {
 
   ObservatoryApplicationElement.created() : super.created();
 
-  enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     if (devtools) {
       app = new ObservatoryApplication.devtools(this);
     } else {

@@ -71,8 +71,9 @@ class HeapMapElement extends ObservatoryElement {
   HeapMapElement.created() : super.created() {
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     _fragmentationCanvas = shadowRoot.querySelector("#fragmentation");
     _fragmentationCanvas.onMouseMove.listen(_handleMouseMove);
     _fragmentationCanvas.onMouseDown.listen(_handleClick);
@@ -222,7 +223,7 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   void fragmentationChanged(oldValue) {
-    // Async, in case enteredView has not yet run (observed in JS version).
+    // Async, in case attached has not yet run (observed in JS version).
     new Future(() {
       _updateFragmentationData();
     });

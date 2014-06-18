@@ -7,63 +7,287 @@
   
   
   
+  
 </head>
-<body><script type="text/javascript" src="https://www.google.com/jsapi"></script>
-
-<!--
-These two files are from the Polymer project:
-https://github.com/Polymer/platform/ and https://github.com/Polymer/polymer/.
-
-You can replace platform.js and polymer.html with different versions if desired.
--->
-<!-- minified for deployment: -->
-
-
+<body><script src="packages/web_components/platform.js"></script>
 
 <!-- unminfied for debugging:
-<script src="../../packages/web_components/platform.concat.js"></script>
+<link rel="import" href="src/js/polymer/layout.html">
 <script src="src/js/polymer/polymer.concat.js"></script>
-<link rel="import" href="src/js/polymer/polymer-body.html">
 -->
 
-<!-- Teach dart2js about Shadow DOM polyfill objects. -->
 
-<script src="packages/polymer/src/js/use_native_dartium_shadowdom.js"></script><script src="packages/web_components/platform.js"></script>
-<!-- <link rel="import" href="../polymer-dev/polymer.html"> -->
 
-<script src="packages/polymer/src/js/polymer/polymer.js"></script><polymer-element name="polymer-body" extends="body">
+<style shim-shadowdom="">
+/*******************************
+          Flex Layout
+*******************************/
 
-  <script>
+html /deep/ [layout][horizontal], html /deep/ [layout][vertical] {
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
 
-  // upgrade polymer-body last so that it can contain other imported elements
-  document.addEventListener('polymer-ready', function() {
-    
-    Polymer('polymer-body', Platform.mixin({
+html /deep/ [layout][horizontal][inline], html /deep/ [layout][vertical][inline] {
+  display: -ms-inline-flexbox;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+}
 
-      created: function() {
-        this.template = document.createElement('template');
-        var body = wrap(document).body;
-        var c$ = body.childNodes.array();
-        for (var i=0, c; (c=c$[i]); i++) {
-          if (c.localName !== 'script') {
-            this.template.content.appendChild(c);
-          }
-        }
-        // snarf up user defined model
-        window.model = this;
-      },
+html /deep/ [layout][horizontal] {
+  -ms-flex-direction: row;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+}
 
-      parseDeclaration: function(elementElement) {
-        this.lightFromTemplate(this.template);
-      }
+html /deep/ [layout][horizontal][reverse] {
+  -ms-flex-direction: row-reverse;
+  -webkit-flex-direction: row-reverse;
+  flex-direction: row-reverse;
+}
 
-    }, window.model));
+html /deep/ [layout][vertical] {
+  -ms-flex-direction: column;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
 
-  });
+html /deep/ [layout][vertical][reverse] {
+  -ms-flex-direction: column-reverse;
+  -webkit-flex-direction: column-reverse;
+  flex-direction: column-reverse;
+}
 
-  </script>
+html /deep/ [layout][wrap] {
+  -ms-flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
 
-</polymer-element><script src="packages/web_components/dart_support.js"></script><style>
+html /deep/ [layout][wrap-reverse] {
+  -ms-flex-wrap: wrap-reverse;
+  -webkit-flex-wrap: wrap-reverse;
+  flex-wrap: wrap-reverse;
+}
+
+html /deep/ [flex] {
+  -ms-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+}
+
+html /deep/ [flex][auto] {
+  -ms-flex: 1 1 auto;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+
+html /deep/ [flex][none] {
+  -ms-flex: none;
+  -webkit-flex: none;
+  flex: none;
+}
+
+html /deep/ [flex][one] {
+  -ms-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+}
+
+html /deep/ [flex][two] {
+  -ms-flex: 2;
+  -webkit-flex: 2;
+  flex: 2;
+}
+
+html /deep/ [flex][three] {
+  -ms-flex: 3;
+  -webkit-flex: 3;
+  flex: 3;
+}
+
+html /deep/ [flex][four] {
+  -ms-flex: 4;
+  -webkit-flex: 4;
+  flex: 4;
+}
+
+html /deep/ [flex][five] {
+  -ms-flex: 5;
+  -webkit-flex: 5;
+  flex: 5;
+}
+
+html /deep/ [flex][six] {
+  -ms-flex: 6;
+  -webkit-flex: 6;
+  flex: 6;
+}
+
+html /deep/ [flex][seven] {
+  -ms-flex: 7;
+  -webkit-flex: 7;
+  flex: 7;
+}
+
+html /deep/ [flex][eight] {
+  -ms-flex: 8;
+  -webkit-flex: 8;
+  flex: 8;
+}
+
+html /deep/ [flex][nine] {
+  -ms-flex: 9;
+  -webkit-flex: 9;
+  flex: 9;
+}
+
+html /deep/ [flex][ten] {
+  -ms-flex: 10;
+  -webkit-flex: 10;
+  flex: 10;
+}
+
+html /deep/ [flex][eleven] {
+  -ms-flex: 11;
+  -webkit-flex: 11;
+  flex: 11;
+}
+
+html /deep/ [flex][twelve] {
+  -ms-flex: 12;
+  -webkit-flex: 12;
+  flex: 12;
+}
+
+/* alignment in cross axis */
+
+html /deep/ [layout][start] {
+  -ms-flex-align: start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
+}
+
+html /deep/ [layout][center] {
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+html /deep/ [layout][end] {
+  -ms-flex-align: end;
+  -webkit-align-items: flex-end;
+  align-items: flex-end;
+}
+
+/* alignment in main axis */
+
+html /deep/ [layout][start-justified] {
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+}
+
+html /deep/ [layout][center-justified] {
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+html /deep/ [layout][end-justified] {
+  -ms-flex-pack: end;
+  -webkit-justify-content: flex-end;
+  justify-content: flex-end;
+}
+
+html /deep/ [layout][around-justified] {
+  -ms-flex-pack: around;
+  -webkit-justify-content: space-around;
+  justify-content: space-around;
+}
+
+html /deep/ [layout][justified] {
+  -ms-flex-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+
+/* self alignment */
+
+html /deep/ [self-start] {
+  -ms-align-self: flex-start;
+  -webkit-align-self: flex-start;
+  align-self: flex-start;
+}
+
+html /deep/ [self-center] {
+  -ms-align-self: center;
+  -webkit-align-self: center;
+  align-self: center;
+}
+
+html /deep/ [self-end] {
+  -ms-align-self: flex-end;
+  -webkit-align-self: flex-end;
+  align-self: flex-end;
+}
+
+html /deep/ [self-stretch] {
+  -ms-align-self: stretch;
+  -webkit-align-self: stretch;
+  align-self: stretch;
+}
+
+/*******************************
+          Other Layout
+*******************************/
+
+html /deep/ [block] {
+  display: block;
+}
+
+/* ie support for hidden */
+html /deep/ [hidden] {
+  display: none;
+}
+
+html /deep/ [relative] {
+  position: relative;
+}
+
+html /deep/ [fit] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+body[fullbleed] {
+  margin: 0;
+  height: 100vh;
+}
+
+/*******************************
+            Other
+*******************************/
+
+html /deep/ [segment], html /deep/ segment {
+  display: block;
+  position: relative;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 1em 0.5em;
+  padding: 1em;
+  background-color: white;
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
+  border-radius: 5px 5px 5px 5px;
+}
+
+</style><script src="packages/polymer/src/js/polymer/polymer.js"></script><script type="text/javascript" src="https://www.google.com/jsapi"></script><style>
 /* Global styles */
 * {
   margin: 0;
@@ -81,6 +305,12 @@ You can replace platform.js and polymer.html with different versions if desired.
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -339,13 +569,16 @@ hr {
   
   
   
-  
 
-  
 
-  
-  
-  
+
+
+
+
+
+
+
+
 <polymer-element name="curly-block">
   <template>
     <style>
@@ -384,16 +617,21 @@ hr {
       </template>
     </template>
   </template>
-  
-</polymer-element>
-<polymer-element name="observatory-element">
-  
 </polymer-element>
 
-  
+
+
+
+<polymer-element name="observatory-element">
+</polymer-element>
+
+
+
+
 <polymer-element name="service-ref" extends="observatory-element">
-  
-</polymer-element><polymer-element name="instance-ref" extends="service-ref">
+</polymer-element>
+
+<polymer-element name="instance-ref" extends="service-ref">
   <template>
     <style>
 /* Global styles */
@@ -413,6 +651,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -710,8 +954,8 @@ hr {
       </template>
     </span>
   </template>
-  
 </polymer-element>
+
 <polymer-element name="action-link">
   <template>
     <style>
@@ -731,15 +975,17 @@ hr {
     <template if="{{ !busy }}">
       <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
     </template>
-
   </template>
-  
 </polymer-element>
 
-  
-  
 
-  
+
+
+
+
+
+
+
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
     <style>
@@ -760,6 +1006,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -1223,6 +1475,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -1460,13 +1718,14 @@ hr {
       </ul>
     </template>
   </template>
-  
 </polymer-element>
 
 
-<polymer-element name="class-ref" extends="service-ref">
 
-<template><style>
+
+
+<polymer-element name="class-ref" extends="service-ref">
+  <template><style>
 /* Global styles */
 * {
   margin: 0;
@@ -1484,6 +1743,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -1702,9 +1967,10 @@ hr {
   word-wrap: break-word;
 }
 </style><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
-
-
 </polymer-element>
+
+
+
 
 
 
@@ -1729,6 +1995,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -2058,19 +2330,21 @@ hr {
 
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="eval-box" extends="observatory-element">
   <template>
     <style>
@@ -2152,7 +2426,8 @@ hr {
 
 
 
-  
+
+
 <polymer-element name="eval-link">
   <template>
     <style>
@@ -2175,10 +2450,11 @@ hr {
     <template if="{{ result != null }}">
       = <instance-ref ref="{{ result }}"></instance-ref>
     </template>
-
   </template>
-  
 </polymer-element>
+
+
+
 
 
 
@@ -2203,6 +2479,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -2435,8 +2717,10 @@ hr {
       <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
     </div>
   </template>
-  
 </polymer-element>
+
+
+
 
 
 
@@ -2459,6 +2743,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -2685,12 +2975,13 @@ hr {
           </function-ref>.<!--
      --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
   --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
-
 </polymer-element>
 
 
+
+
 <polymer-element name="library-ref" extends="service-ref">
-<template><style>
+  <template><style>
 /* Global styles */
 * {
   margin: 0;
@@ -2708,6 +2999,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -2926,15 +3223,16 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <template if="{{ nameIsEmpty }}">
-    <a on-click="{{ goto }}" href="{{ url }}">unnamed</a>
+    <template if="{{ nameIsEmpty }}">
+      <a on-click="{{ goto }}" href="{{ url }}">unnamed</a>
+    </template>
+    <template if="{{ !nameIsEmpty }}">
+      <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+    </template>
   </template>
-  <template if="{{ !nameIsEmpty }}">
-    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
-  </template>
-</template>
-
 </polymer-element>
+
+
 
 
 
@@ -2958,6 +3256,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -3178,8 +3482,9 @@ hr {
 </style>
   <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
-
 </polymer-element>
+
+
 <polymer-element name="class-view" extends="observatory-element">
   <template>
     <style>
@@ -3200,6 +3505,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -3553,10 +3864,11 @@ hr {
     <br><br><br><br>
     <br><br><br><br>
   </template>
-  
 </polymer-element>
 
-  
+
+
+
 <polymer-element name="code-ref" extends="service-ref">
   <template>
     <style>
@@ -3577,6 +3889,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -3807,8 +4125,11 @@ hr {
       <span>{{ name }}</span>
     </template>
   </template>
-
 </polymer-element>
+
+
+
+
 
 
 
@@ -3833,6 +4154,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -4208,25 +4535,13 @@ hr {
       </template>
     </div>
   </template>
-  
 </polymer-element>
 
-  
-<polymer-element name="collapsible-content" extends="observatory-element">
-  <template>
-    <div class="well row">
-      <a on-click="toggleDisplay" class="btn muted unselectable">
-           Raw message... <i class="{{ iconClass }}"></i>
-      </a>
-      <div style="display: {{ displayValue }}" class="well">
-        <content></content>
-      </div>
-    </div>
-  </template>
-  
-</polymer-element>
-  
-  
+
+
+
+
+
 <polymer-element name="error-view" extends="observatory-element">
   <template>
     <style>
@@ -4247,6 +4562,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -4475,15 +4796,17 @@ hr {
       <div class="well">{{ error.message }}</div>
     </div>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
 <polymer-element name="field-view" extends="observatory-element">
   <template>
     <style>
@@ -4504,6 +4827,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -4803,18 +5132,20 @@ hr {
       </div>
     </div>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
 
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="stack-frame" extends="observatory-element">
   <template>
     <style>
@@ -4835,6 +5166,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -5081,8 +5418,8 @@ hr {
       </div>
     </div>
   </template>
-  
 </polymer-element>
+
 <polymer-element name="flag-list" extends="observatory-element">
   <template>
     <style>
@@ -5103,6 +5440,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -5378,6 +5721,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -5604,16 +5953,18 @@ hr {
 
 
 
-  
-  
-  
-  
-  
-  
-  
-  
 
-  
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="script-inset" extends="observatory-element">
   <template>
     <style>
@@ -5657,8 +6008,9 @@ hr {
       </div>
     </div>
   </template>
-  
 </polymer-element>
+
+
 <polymer-element name="function-view" extends="observatory-element">
   <template>
     <style>
@@ -5679,6 +6031,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -6001,12 +6359,14 @@ hr {
 
     <br>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
+
+
+
+
+
+
 <polymer-element name="heap-map" extends="observatory-element">
 <template>
   <style>
@@ -6027,6 +6387,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -6275,12 +6641,13 @@ hr {
     <canvas id="fragmentation" width="1px" height="1px"></canvas>
   </div>
 </template>
-
 </polymer-element>
 
-  
-  
-  
+
+
+
+
+
 <polymer-element name="io-view" extends="observatory-element">
   <template>
     <style>
@@ -6301,6 +6668,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -6598,6 +6971,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -6851,6 +7230,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -7116,6 +7501,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -7355,6 +7746,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -7647,6 +8044,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -7886,6 +8289,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -8158,6 +8567,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -8397,6 +8812,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -8659,6 +9080,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -8993,6 +9420,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -9232,6 +9665,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -9497,6 +9936,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -9758,6 +10203,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -9997,6 +10448,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -10259,6 +10716,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -10531,6 +10994,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -10793,6 +11262,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -11037,6 +11512,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -11332,6 +11813,7 @@ hr {
 
 
 
+
 <polymer-element name="isolate-ref" extends="service-ref">
 <template><style>
 /* Global styles */
@@ -11351,6 +11833,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -11574,12 +12062,12 @@ hr {
 </polymer-element>
 
 
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <style>
@@ -11600,6 +12088,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -11937,6 +12431,12 @@ hr {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
@@ -12169,17 +12669,17 @@ hr {
           <div class="memberItem">
             <div class="memberName">new heap</div>
             <div class="memberValue">
-              {{ isolate.newHeapUsed | formatSize }}
+              {{ isolate.newSpace.used | formatSize }}
               of
-              {{ isolate.newHeapCapacity | formatSize }}
+              {{ isolate.newSpace.capacity | formatSize }}
             </div>
           </div>
           <div class="memberItem">
             <div class="memberName">old heap</div>
             <div class="memberValue">
-              {{ isolate.oldHeapUsed | formatSize }}
+              {{ isolate.oldSpace.used | formatSize }}
               of
-              {{ isolate.oldHeapCapacity | formatSize }}
+              {{ isolate.oldSpace.capacity | formatSize }}
             </div>
           </div>
         </div>
@@ -12209,7 +12709,6 @@ hr {
             See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
-        <!-- Disable io link until UI is properly implemented.
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
@@ -12217,7 +12716,6 @@ hr {
             </div>
           </div>
         </template>
-        -->
       </div>
       <div class="flex-item-10-percent">
       </div>
@@ -12233,16 +12731,17 @@ hr {
 
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="isolate-view" extends="observatory-element">
   <template>
     <style>
@@ -12263,6 +12762,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -12605,18 +13110,20 @@ hr {
     <br><br><br><br>
     <br><br><br><br>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
     <style>
@@ -12637,6 +13144,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -13020,8 +13533,9 @@ hr {
 
     </template>
   </template>
-  
 </polymer-element>
+
+
 
 
 <polymer-element name="json-view" extends="observatory-element">
@@ -13031,19 +13545,21 @@ hr {
     </nav-bar>
       <pre>{{ mapAsString }}</pre>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="library-view" extends="observatory-element">
   <template>
     <style>
@@ -13064,6 +13580,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -13407,31 +13929,33 @@ hr {
     <br><br><br><br>
     <br><br><br><br>
   </template>
-  
 </polymer-element>
 
-  
-  
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
   <style>
@@ -13452,6 +13976,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -13673,7 +14203,6 @@ hr {
   <style>
     .table {
       border-collapse: collapse!important;
-      width: 100%;
       margin-bottom: 20px
       table-layout: fixed;
     }
@@ -13688,6 +14217,13 @@ hr {
       vertical-align: bottom;
       text-align: left;
       border-bottom:2px solid #ddd;
+    }
+    .spacer {
+      width: 16px;
+    }
+    .left-border-spacer {
+      width: 16px;
+      border-left: 1px solid;
     }
     .clickable {
       color: #0489c3;
@@ -13705,18 +14241,47 @@ hr {
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ profile.isolate }}"></isolate-nav-menu>
-    <nav-menu link="{{ profile.isolate.relativeLink('allocationprofile') }}" anchor="heap profile" last="{{ true }}"></nav-menu>
+    <nav-menu link="{{ profile.isolate.relativeLink('allocationprofile') }}" anchor="allocation profile" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ resetAccumulator }}" label="Reset Accumulator"></nav-refresh>
     <nav-refresh callback="{{ refreshGC }}" label="GC"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
     <nav-control></nav-control>
   </nav-bar>
-
-  <div class="flex-row">
-    <div id="newPieChart" class="flex-item-fixed-4-12" style="height: 400px">
+  <div class="content">
+    <h1>Allocation Profile</h1>
+    <br>
+    <div class="memberList">
+      <div class="memberItem">
+        <div class="memberName">last forced GC at</div>
+        <div class="memberValue">{{ lastServiceGC }}</div>
+      </div>
+      <div class="memberItem">
+        <div class="memberName">last accumulator reset at</div>
+        <div class="memberValue">{{ lastAccumulatorReset }}</div>
+      </div>
     </div>
-    <div id="newStatus" class="flex-item-fixed-2-12">
-      <div class="memberList">
+  </div>
+  <hr>
+  <div class="content-centered-big">
+    <div class="flex-row">
+      <div id="newSpace" class="flex-item-50-percent">
+        <h2>New Generation</h2>
+        <br>
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">used</div>
+            <div class="memberValue">
+              {{ isolate.newSpace.used | formatSize }}
+              of
+              {{ isolate.newSpace.capacity | formatSize }}
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">external</div>
+            <div class="memberValue">
+              {{ isolate.newSpace.external | formatSize }}
+            </div>
+          </div>
           <div class="memberItem">
             <div class="memberName">Collections</div>
             <div class="memberValue">{{ formattedCollections(true) }}</div>
@@ -13729,12 +14294,27 @@ hr {
             <div class="memberName">Cumulative Collection Time</div>
             <div class="memberValue">{{ formattedTotalCollectionTime(true) }}</div>
           </div>
+        </div>
+        <div id="newPieChart" style="height: 300px"></div>
       </div>
-    </div>
-    <div id="oldPieChart" class="flex-item-fixed-4-12" style="height: 400px">
-    </div>
-    <div id="oldStatus" class="flex-item-fixed-2-12">
-      <div class="memberList">
+      <div id="oldSpace" class="flex-item-50-percent">
+        <h2>Old Generation</h2>
+        <br>
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">used</div>
+            <div class="memberValue">
+              {{ isolate.oldSpace.used | formatSize }}
+              of
+              {{ isolate.oldSpace.capacity | formatSize }}
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">external</div>
+            <div class="memberValue">
+              {{ isolate.oldSpace.external | formatSize }}
+            </div>
+          </div>
           <div class="memberItem">
             <div class="memberName">Collections</div>
             <div class="memberValue">{{ formattedCollections(false) }}</div>
@@ -13747,48 +14327,48 @@ hr {
             <div class="memberName">Cumulative Collection Time</div>
             <div class="memberValue">{{ formattedTotalCollectionTime(false) }}</div>
           </div>
+        </div>
+        <div id="oldPieChart" style="height: 300px"></div>
       </div>
     </div>
   </div>
-  <div class="flex-row">
-    <table id="classtable" class="flex-item-fixed-12-12 table">
-      <thead>
+  <br>
+  <hr>
+  <div class="content-centered-big">
+    <table id="classtable" class="flex-item-100-percent table">
+      <thead id="classTableHead">
         <tr>
           <th on-click="{{changeSort}}" class="clickable" title="Class">{{ classTable.getColumnLabel(0) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Size">{{ classTable.getColumnLabel(1) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Instances">{{ classTable.getColumnLabel(2) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="New Current Size">{{ classTable.getColumnLabel(3) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="New Current Instances">{{ classTable.getColumnLabel(4) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Size">{{ classTable.getColumnLabel(5) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Instances">{{ classTable.getColumnLabel(6) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Current Size">{{ classTable.getColumnLabel(7) }}</th>
-          <th on-click="{{changeSort}}" class="clickable" title="Old Current Instances">{{ classTable.getColumnLabel(8) }}</th>
+          <th class="spacer"></th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Size">{{ classTable.getColumnLabel(2) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Accumulated Instances">{{ classTable.getColumnLabel(3) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Size">{{ classTable.getColumnLabel(4) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="New Current Instances">{{ classTable.getColumnLabel(5) }}</th>
+          <th class="spacer"></th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Size">{{ classTable.getColumnLabel(7) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Accumulated Instances">{{ classTable.getColumnLabel(8) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Size">{{ classTable.getColumnLabel(9) }}</th>
+          <th on-click="{{changeSort}}" class="clickable" title="Old Current Instances">{{ classTable.getColumnLabel(10) }}</th>
         </tr>
       </thead>
-      <tbody>
-        <tr template="" repeat="{{row in classTable.sortedRows }}">
-          <td><class-ref ref="{{ classTable.getValue(row, 0) }}"></class-ref></td>
-          <td title="{{ classTable.getValue(row, 1) }}">{{ classTable.getFormattedValue(row, 1) }}</td>
-          <td title="{{ classTable.getValue(row, 2) }}">{{ classTable.getFormattedValue(row, 2) }}</td>
-          <td title="{{ classTable.getValue(row, 3) }}">{{ classTable.getFormattedValue(row, 3) }}</td>
-          <td title="{{ classTable.getValue(row, 4) }}">{{ classTable.getFormattedValue(row, 4) }}</td>
-          <td title="{{ classTable.getValue(row, 5) }}">{{ classTable.getFormattedValue(row, 5) }}</td>
-          <td title="{{ classTable.getValue(row, 6) }}">{{ classTable.getFormattedValue(row, 6) }}</td>
-          <td title="{{ classTable.getValue(row, 7) }}">{{ classTable.getFormattedValue(row, 7) }}</td>
-          <td title="{{ classTable.getValue(row, 8) }}">{{ classTable.getFormattedValue(row, 8) }}</td>
-        </tr>
+      <tbody id="classTableBody">
       </tbody>
     </table>
+    <br><br><br>
+    <br><br><br>
   </div>
 </template>
-
 </polymer-element>
 
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
 <polymer-element name="sliding-checkbox">
   <template>
     <style>
@@ -13871,8 +14451,8 @@ hr {
       </label>
     </div>
   </template>
-  
 </polymer-element>
+
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
     <style>
@@ -13893,6 +14473,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -14288,12 +14874,14 @@ hr {
       </table>
     </div>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
+
+
+
+
+
+
 <polymer-element name="script-view" extends="observatory-element">
 <template>
   <style>
@@ -14314,6 +14902,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -14551,12 +15145,13 @@ hr {
   <h1>script {{ script.name }}</h1>
   </script-inset>
 </template>
-
 </polymer-element>
 
-  
-  
-  
+
+
+
+
+
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
     <style>
@@ -14577,6 +15172,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -14817,17 +15418,19 @@ hr {
       </ul>
     </template>
   </template>
-  
 </polymer-element>
 
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
 <polymer-element name="vm-view" extends="observatory-element">
   <template>
     <style>
@@ -14848,6 +15451,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -15092,6 +15701,14 @@ hr {
           <div class="memberName">asserts enabled</div>
           <div class="memberValue">{{ vm.assertsEnabled }}</div>
         </div>
+        <div class="memberItem">
+          <div class="memberName">pid</div>
+          <div class="memberValue">{{ vm.pid }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">refreshed at</div>
+          <div class="memberValue">{{ vm.lastUpdate }}</div>
+        </div>
         <br>
         <div class="memberItem">
           <div class="memberValue">
@@ -15113,20 +15730,21 @@ hr {
       </template>
     </ul>
   </template>
-  
 </polymer-element>
+
 <polymer-element name="service-view" extends="observatory-element">
   <!-- This element explicitly manages the child elements to avoid setting
        an observable property on the old element to an invalid type. -->
-  
-</polymer-element>
-<polymer-element name="observatory-application" extends="observatory-element">
-  <!-- This element explicitly manages its child elements -->
-  
 </polymer-element>
 
-  
-  
+<polymer-element name="observatory-application" extends="observatory-element">
+  <!-- This element explicitly manages its child elements -->
+</polymer-element>
+
+
+
+
+
 <polymer-element name="service-exception-view" extends="observatory-element">
   <template>
     <style>
@@ -15147,6 +15765,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -15378,11 +16002,13 @@ hr {
       </template>
     </div>
   </template>
-  
 </polymer-element>
 
-  
-  
+
+
+
+
+
 <polymer-element name="service-error-view" extends="observatory-element">
   <template>
     <style>
@@ -15403,6 +16029,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -15631,12 +16263,13 @@ hr {
       <div class="well">{{ error.message }}</div>
     </div>
   </template>
-  
 </polymer-element>
 
 
+
+
 <polymer-element name="vm-ref" extends="service-ref">
-<template><style>
+  <template><style>
 /* Global styles */
 * {
   margin: 0;
@@ -15654,6 +16287,12 @@ hr {
 .content-centered {
   padding-left: 10%;
   padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
   font: 400 14px 'Montserrat', sans-serif;
 }
 
@@ -15872,10 +16511,11 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
-</template>
-
+    <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
+  </template>
 </polymer-element>
+
+
 
 
   <observatory-application devtools="true"></observatory-application>

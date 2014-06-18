@@ -127,7 +127,9 @@ class IsolateProfileElement extends ObservatoryElement {
   }
 
 
-  void enteredView() {
+  @override
+  void attached() {
+    super.attached();
     tree = new TableTree();
     _update();
   }

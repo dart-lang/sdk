@@ -131,7 +131,7 @@ class SortedTableRow {
 class SortedTable extends Observable {
   final List<SortedTableColumn> columns;
   final List<SortedTableRow> rows = new List<SortedTableRow>();
-  final List<int> _sortedRows = [];
+  final List<int> sortedRows = [];
 
   SortedTable(this.columns);
 
@@ -144,42 +144,57 @@ class SortedTable extends Observable {
   }
   int get sortColumnIndex => _sortColumnIndex;
   bool _sortDescending = true;
-
-  void sort() {
-    assert(_sortColumnIndex >= 0);
-    assert(_sortColumnIndex < columns.length);
-    _sortedRows.sort((i, j) {
-      var a = rows[i].values[_sortColumnIndex];
-      var b = rows[j].values[_sortColumnIndex];
-      if (_sortDescending) {
-        return b.compareTo(a);
-      } else {
-        return a.compareTo(b);
-      }
-    });
-    notifyPropertyChange(#sortedRows, 0, 1);
+  bool get sortDescending => _sortDescending;
+  set sortDescending(var descending) {
+    _sortDescending = descending;
+    notifyPropertyChange(#getColumnLabel, 0, 1);
   }
 
-  @observable List<int> get sortedRows => _sortedRows;
+
+  dynamic getSortKeyFor(int row, int col) {
+    return rows[row].values[col];
+  }
+
+  int _sortFuncDescending(int i, int j) {
+    var a = getSortKeyFor(i, _sortColumnIndex);
+    var b = getSortKeyFor(j, _sortColumnIndex);
+    return b.compareTo(a);
+  }
+
+  int _sortFuncAscending(int i, int j) {
+    var a = getSortKeyFor(i, _sortColumnIndex);
+    var b = getSortKeyFor(j, _sortColumnIndex);
+    return a.compareTo(b);
+  }
+
+  void sort() {
+    Stopwatch sw = new Stopwatch()..start();
+    assert(_sortColumnIndex >= 0);
+    assert(_sortColumnIndex < columns.length);
+    if (_sortDescending) {
+      sortedRows.sort(_sortFuncDescending);
+    } else {
+      sortedRows.sort(_sortFuncAscending);
+    }
+  }
 
   void clearRows() {
     rows.clear();
-    _sortedRows.clear();
+    sortedRows.clear();
   }
 
   void addRow(SortedTableRow row) {
-    _sortedRows.add(rows.length);
+    sortedRows.add(rows.length);
     rows.add(row);
-    notifyPropertyChange(#sortedRows, 0, 1);
   }
 
-  @reflectable String getFormattedValue(int row, int column) {
+  String getFormattedValue(int row, int column) {
     var value = getValue(row, column);
     var formatter = columns[column].formatter;
     return formatter(value);
   }
 
-  @reflectable String getColumnLabel(int column) {
+  @observable String getColumnLabel(int column) {
     assert(column >= 0);
     assert(column < columns.length);
     // TODO(johnmccutchan): Move expander display decisions into html once
@@ -192,7 +207,7 @@ class SortedTable extends Observable {
     return columns[column].label + (_sortDescending ? arrowUp : arrowDown);
   }
 
-  @reflectable dynamic getValue(int row, int column) {
+  dynamic getValue(int row, int column) {
     return rows[row].values[column];
   }
 }

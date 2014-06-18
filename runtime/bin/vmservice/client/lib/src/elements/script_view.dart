@@ -17,8 +17,9 @@ class ScriptViewElement extends ObservatoryElement {
 
   ScriptViewElement.created() : super.created();
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     if (script == null) {
       return;
     }

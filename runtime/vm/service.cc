@@ -1667,9 +1667,11 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
     }
   }
   if (should_reset_accumulator) {
+    isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
     isolate->class_table()->ResetAllocationAccumulators();
   }
   if (should_collect) {
+    isolate->UpdateLastAllocationProfileGCTimestamp();
     isolate->heap()->CollectAllGarbage();
   }
   isolate->class_table()->AllocationProfilePrintJSON(js);
@@ -1938,6 +1940,7 @@ static bool HandleVM(JSONStream* js) {
   jsobj.AddProperty("id", "vm");
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
+  jsobj.AddPropertyF("date", "%" Pd64 "", OS::GetCurrentTimeMillis());
   jsobj.AddProperty("version", Version::String());
   // Send pid as a string because it allows us to avoid any issues with
   // pids > 53-bits (when consumed by JavaScript).

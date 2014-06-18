@@ -14,8 +14,9 @@ class CodeViewElement extends ObservatoryElement {
   @published Code code;
   CodeViewElement.created() : super.created();
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     if (code == null) {
       return;
     }

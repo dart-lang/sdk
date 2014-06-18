@@ -1,11 +1,10 @@
-<head>
-  <link rel="import" href="action_link.html">
-  <link rel="import" href="function_ref.html">
-  <link rel="import" href="isolate_ref.html">
-  <link rel="import" href="observatory_element.html">
-  <link rel="import" href="script_inset.html">
-  <link rel="import" href="script_ref.html">
-</head>
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="action_link.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="isolate_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_inset.html">
+<link rel="import" href="script_ref.html">
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -128,17 +127,17 @@
           <div class="memberItem">
             <div class="memberName">new heap</div>
             <div class="memberValue">
-              {{ isolate.newHeapUsed | formatSize }}
+              {{ isolate.newSpace.used | formatSize }}
               of
-              {{ isolate.newHeapCapacity | formatSize }}
+              {{ isolate.newSpace.capacity | formatSize }}
             </div>
           </div>
           <div class="memberItem">
             <div class="memberName">old heap</div>
             <div class="memberValue">
-              {{ isolate.oldHeapUsed | formatSize }}
+              {{ isolate.oldSpace.used | formatSize }}
               of
-              {{ isolate.oldHeapCapacity | formatSize }}
+              {{ isolate.oldSpace.capacity | formatSize }}
             </div>
           </div>
         </div>
@@ -168,7 +167,6 @@
             See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
-        <!-- Disable io link until UI is properly implemented.
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
@@ -176,7 +174,6 @@
             </div>
           </div>
         </template>
-        -->
       </div>
       <div class="flex-item-10-percent">
       </div>

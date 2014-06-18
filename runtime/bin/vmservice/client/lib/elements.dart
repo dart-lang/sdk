@@ -8,7 +8,6 @@ export 'package:observatory/src/elements/class_tree.dart';
 export 'package:observatory/src/elements/class_view.dart';
 export 'package:observatory/src/elements/code_ref.dart';
 export 'package:observatory/src/elements/code_view.dart';
-export 'package:observatory/src/elements/collapsible_content.dart';
 export 'package:observatory/src/elements/curly_block.dart';
 export 'package:observatory/src/elements/error_view.dart';
 export 'package:observatory/src/elements/eval_box.dart';

@@ -1,7 +1,7 @@
 name: observatory
-version: 0.2.1
+version: 1.6.0-dev.1
 dependencies:
-  polymer: '>= 0.10.0'
+  polymer: '>= 0.11.0-dev.6'
 transformers:
 - polymer:
     entry_points: 

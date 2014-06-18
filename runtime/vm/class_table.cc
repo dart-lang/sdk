@@ -333,6 +333,15 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   JSONObject obj(stream);
   obj.AddProperty("type", "AllocationProfile");
   obj.AddProperty("id", "allocationprofile");
+  obj.AddPropertyF(
+      "dateLastAccumulatorReset",
+      "%" Pd64 "",
+      isolate->last_allocationprofile_accumulator_reset_timestamp());
+  obj.AddPropertyF(
+      "dateLastServiceGC",
+      "%" Pd64 "",
+      isolate->last_allocationprofile_gc_timestamp());
+
   {
     JSONObject heaps(&obj, "heaps");
     {

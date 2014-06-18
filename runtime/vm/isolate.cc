@@ -351,6 +351,8 @@ Isolate::Isolate()
       deopt_context_(NULL),
       stacktrace_(NULL),
       stack_frame_index_(-1),
+      last_allocationprofile_accumulator_reset_timestamp_(0),
+      last_allocationprofile_gc_timestamp_(0),
       cha_used_(false),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
@@ -936,15 +938,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
   {
-    JSONObject jsheap(&jsobj, "heap");
-    jsheap.AddProperty("usedNew",
-                       heap()->UsedInWords(Heap::kNew) * kWordSize);
-    jsheap.AddProperty("capacityNew",
-                       heap()->CapacityInWords(Heap::kNew) * kWordSize);
-    jsheap.AddProperty("usedOld",
-                       heap()->UsedInWords(Heap::kOld) * kWordSize);
-    jsheap.AddProperty("capacityOld",
-                       heap()->CapacityInWords(Heap::kOld) * kWordSize);
+    JSONObject jsheap(&jsobj, "heaps");
+    heap()->PrintToJSONObject(Heap::kNew, &jsheap);
+    heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
 
   // TODO(turnidge): Don't compute a full stack trace every time we

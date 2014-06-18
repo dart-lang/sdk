@@ -13,12 +13,19 @@ import 'package:polymer/polymer.dart';
 class ObservatoryElement extends PolymerElement {
   ObservatoryElement.created() : super.created();
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void attributeChanged(String name, var oldValue, var newValue) {
+    super.attributeChanged(name, oldValue, newValue);
+  }
+
+  @override
+  void detached() {
+    super.detached();
   }
 
   void ready() {
@@ -33,9 +40,7 @@ class ObservatoryElement extends PolymerElement {
     return location.makeLink(url);
   }
 
-  void attributeChanged(String name, var oldValue, var newValue) {
-    super.attributeChanged(name, oldValue, newValue);
-  }
+
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
 

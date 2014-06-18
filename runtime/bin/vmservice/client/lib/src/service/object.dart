@@ -191,6 +191,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
   @observable String pid = '';
+  @observable DateTime lastUpdate;
 
   VM() : super._empty(null) {
     name = 'vm';
@@ -374,6 +375,8 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     architecture = map['architecture'];
     uptime = map['uptime'];
+    var dateInMillis = int.parse(map['date']);
+    lastUpdate = new DateTime.fromMillisecondsSinceEpoch(dateInMillis);
     assertsEnabled = map['assertsEnabled'];
     pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
@@ -483,6 +486,22 @@ class TagProfile {
     if (snapshots.length > _historySize) {
       snapshots.removeAt(0);
     }
+  }
+}
+
+class HeapSpace extends Observable {
+  @observable int used = 0;
+  @observable int capacity = 0;
+  @observable int external = 0;
+  @observable int collections = 0;
+  @observable double totalCollectionTimeInSeconds = 0.0;
+
+  void update(Map heapMap) {
+    used = heapMap['used'];
+    capacity = heapMap['capacity'];
+    external = heapMap['external'];
+    collections = heapMap['collections'];
+    totalCollectionTimeInSeconds = heapMap['time'];
   }
 }
 
@@ -661,14 +680,17 @@ class Isolate extends ServiceObjectOwner {
   @observable final Map<String, double> timers =
       toObservable(new Map<String, double>());
 
-  @observable int newHeapUsed = 0;
-  @observable int oldHeapUsed = 0;
-  @observable int newHeapCapacity = 0;
-  @observable int oldHeapCapacity = 0;
+  final HeapSpace newSpace = new HeapSpace();
+  final HeapSpace oldSpace = new HeapSpace();
 
   @observable String fileAndLine;
 
   @observable DartError error;
+
+  void updateHeapsFromMap(ObservableMap map) {
+    newSpace.update(map['new']);
+    oldSpace.update(map['old']);
+  }
 
   void _update(ObservableMap map, bool mapIsRef) {
     mainPort = map['mainPort'];
@@ -682,7 +704,7 @@ class Isolate extends ServiceObjectOwner {
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
-        map['heap'] == null) {
+        map['heaps'] == null) {
       Logger.root.severe("Malformed 'Isolate' response: $map");
       return;
     }
@@ -731,10 +753,7 @@ class Isolate extends ServiceObjectOwner {
                       timerMap['time_bootstrap']);
     timers['dart'] = timerMap['time_dart_execution'];
 
-    newHeapUsed = map['heap']['usedNew'];
-    oldHeapUsed = map['heap']['usedOld'];
-    newHeapCapacity = map['heap']['capacityNew'];
-    oldHeapCapacity = map['heap']['capacityOld'];
+    updateHeapsFromMap(map['heaps']);
 
     List features = map['features'];
     if (features != null) {
@@ -974,6 +993,42 @@ class Library extends ServiceObject {
   }
 }
 
+class AllocationCount extends Observable {
+  @observable int instances = 0;
+  @observable int bytes = 0;
+
+  void reset() {
+    instances = 0;
+    bytes = 0;
+  }
+
+  bool get empty => (instances == 0) && (bytes == 0);
+}
+
+class Allocations {
+  // Indexes into VM provided array. (see vm/class_table.h).
+  static const ALLOCATED_BEFORE_GC = 0;
+  static const ALLOCATED_BEFORE_GC_SIZE = 1;
+  static const LIVE_AFTER_GC = 2;
+  static const LIVE_AFTER_GC_SIZE = 3;
+  static const ALLOCATED_SINCE_GC = 4;
+  static const ALLOCATED_SINCE_GC_SIZE = 5;
+  static const ACCUMULATED = 6;
+  static const ACCUMULATED_SIZE = 7;
+
+  final AllocationCount accumulated = new AllocationCount();
+  final AllocationCount current = new AllocationCount();
+
+  void update(List stats) {
+    accumulated.instances = stats[ACCUMULATED];
+    accumulated.bytes = stats[ACCUMULATED_SIZE];
+    current.instances = stats[LIVE_AFTER_GC] + stats[ALLOCATED_SINCE_GC];
+    current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
+  }
+
+  bool get empty => accumulated.empty && current.empty;
+}
+
 class Class extends ServiceObject {
   @observable Library library;
   @observable Script script;
@@ -988,6 +1043,11 @@ class Class extends ServiceObject {
   @observable int tokenPos;
 
   @observable ServiceMap error;
+
+  final Allocations newSpace = new Allocations();
+  final Allocations oldSpace = new Allocations();
+
+  bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
   @reflectable final children = new ObservableList<Class>();
   @reflectable final subClasses = new ObservableList<Class>();

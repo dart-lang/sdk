@@ -19,6 +19,12 @@
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
 h1 {
   font: 400 18px 'Montserrat', sans-serif;
 }
