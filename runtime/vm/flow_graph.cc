@@ -1000,6 +1000,35 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
 
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
+  // Augment live_phis with those that have implicit real used at
+  // potentially throwing instructions if there is a try-catch in this graph.
+  if (graph_entry()->SuccessorCount() > 1) {
+    for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
+      JoinEntryInstr* join = it.Current()->AsJoinEntry();
+      if (join == NULL) continue;
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* phi = phi_it.Current();
+        if (phi == NULL ||
+            phi->is_alive() ||
+            (phi->input_use_list() != NULL) ||
+            (phi->env_use_list() == NULL)) {
+          continue;
+        }
+        for (Value::Iterator it(phi->env_use_list());
+             !it.Done();
+             it.Advance()) {
+          Value* use = it.Current();
+          if (use->instruction()->MayThrow() &&
+              use->instruction()->GetBlock()->InsideTryBlock()) {
+            live_phis->Add(phi);
+            phi->mark_alive();
+            break;
+          }
+        }
+      }
+    }
+  }
+
   while (!live_phis->is_empty()) {
     PhiInstr* phi = live_phis->RemoveLast();
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
@@ -1014,7 +1043,7 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
 
   for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
     JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) join->RemoveDeadPhis(constant_null());
+    if (join != NULL) join->RemoveDeadPhis(constant_dead());
   }
 }
 
