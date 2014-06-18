@@ -5,9 +5,10 @@
 library test.domain.analysis.notification.outline;
 
 import 'dart:async';
-import 'dart:mirrors';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
@@ -25,12 +26,13 @@ main() {
 
 @ReflectiveTestCase()
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
-  _Outline outline;
+  Outline outline;
 
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
+  Future prepareOutline(then()) {
+    addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
+    return waitForTasksFinished().then((_) {
+      then();
+    });
   }
 
   void processNotification(Notification notification) {
@@ -38,15 +40,31 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         Map<String, Object> json = notification.getParameter(OUTLINE);
-        outline = new _Outline.fromJson(json);
+        outline = new Outline.fromJson(json);
       }
     }
   }
 
-  Future prepareOutline(then()) {
-    addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
+  @override
+  void setUp() {
+    super.setUp();
+    createProject();
+  }
+
+  test_afterAnalysis() {
+    addTestFile('''
+class AAA {
+}
+class BBB {
+}
+''');
     return waitForTasksFinished().then((_) {
-      then();
+      expect(outline, isNull);
+      return prepareOutline(() {
+        Outline unitOutline = outline;
+        List<Outline> outlines = unitOutline.children;
+        expect(outlines, hasLength(2));
+      });
     });
   }
 
@@ -68,351 +86,149 @@ class B {
 }");
 ''');
     return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> topOutlines = unitOutline.children;
+      Outline unitOutline = outline;
+      List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(2));
       // A
       {
-        _Outline outline_A = topOutlines[0];
-        expect(outline_A.kind, _OutlineKind.CLASS);
-        expect(outline_A.name, "A");
-        expect(outline_A.nameOffset, testCode.indexOf("A {"));
-        expect(outline_A.nameLength, 1);
-        expect(outline_A.parameters, null);
-        expect(outline_A.returnType, null);
+        Outline outline_A = topOutlines[0];
+        Element element_A = outline_A.element;
+        expect(element_A.kind, ElementKind.CLASS);
+        expect(element_A.name, "A");
+        expect(element_A.offset, testCode.indexOf("A {"));
+        expect(element_A.length, 1);
+        expect(element_A.parameters, null);
+        expect(element_A.returnType, null);
         // A children
-        List<_Outline> outlines_A = outline_A.children;
+        List<Outline> outlines_A = outline_A.children;
         expect(outlines_A, hasLength(10));
         {
-          _Outline outline = outlines_A[0];
-          expect(outline.kind, _OutlineKind.FIELD);
-          expect(outline.name, "fa");
-          expect(outline.parameters, isNull);
-          expect(outline.returnType, "int");
+          Outline outline = outlines_A[0];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.FIELD);
+          expect(element.name, "fa");
+          expect(element.parameters, isNull);
+          expect(element.returnType, "int");
         }
         {
-          _Outline outline = outlines_A[1];
-          expect(outline.kind, _OutlineKind.FIELD);
-          expect(outline.name, "fb");
-          expect(outline.parameters, isNull);
-          expect(outline.returnType, "int");
+          Outline outline = outlines_A[1];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.FIELD);
+          expect(element.name, "fb");
+          expect(element.parameters, isNull);
+          expect(element.returnType, "int");
         }
         {
-          _Outline outline = outlines_A[2];
-          expect(outline.kind, _OutlineKind.FIELD);
-          expect(outline.name, "fc");
-          expect(outline.parameters, isNull);
-          expect(outline.returnType, "String");
+          Outline outline = outlines_A[2];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.FIELD);
+          expect(element.name, "fc");
+          expect(element.parameters, isNull);
+          expect(element.returnType, "String");
         }
         {
-          _Outline outline = outlines_A[3];
-          expect(outline.kind, _OutlineKind.CONSTRUCTOR);
-          expect(outline.name, "A");
-          expect(outline.nameOffset, testCode.indexOf("A(int i, String s);"));
-          expect(outline.nameLength, "A".length);
-          expect(outline.parameters, "(int i, String s)");
-          expect(outline.returnType, isNull);
-          expect(outline.isAbstract, isFalse);
-          expect(outline.isStatic, isFalse);
+          Outline outline = outlines_A[3];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.CONSTRUCTOR);
+          expect(element.name, "A");
+          expect(element.offset, testCode.indexOf("A(int i, String s);"));
+          expect(element.length, "A".length);
+          expect(element.parameters, "(int i, String s)");
+          expect(element.returnType, isNull);
+          expect(element.isAbstract, isFalse);
+          expect(element.isStatic, isFalse);
         }
         {
-          _Outline outline = outlines_A[4];
-          expect(outline.kind, _OutlineKind.CONSTRUCTOR);
-          expect(outline.name, "A.name");
-          expect(outline.nameOffset, testCode.indexOf("name(num p);"));
-          expect(outline.nameLength, "name".length);
-          expect(outline.parameters, "(num p)");
-          expect(outline.returnType, isNull);
-          expect(outline.isAbstract, isFalse);
-          expect(outline.isStatic, isFalse);
+          Outline outline = outlines_A[4];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.CONSTRUCTOR);
+          expect(element.name, "A.name");
+          expect(element.offset, testCode.indexOf("name(num p);"));
+          expect(element.length, "name".length);
+          expect(element.parameters, "(num p)");
+          expect(element.returnType, isNull);
+          expect(element.isAbstract, isFalse);
+          expect(element.isStatic, isFalse);
         }
         {
-          _Outline outline = outlines_A[5];
-          expect(outline.kind, _OutlineKind.CONSTRUCTOR);
-          expect(outline.name, "A._privateName");
-          expect(outline.nameOffset, testCode.indexOf("_privateName(num p);"));
-          expect(outline.nameLength, "_privateName".length);
-          expect(outline.parameters, "(num p)");
-          expect(outline.returnType, isNull);
-          expect(outline.isAbstract, isFalse);
-          expect(outline.isStatic, isFalse);
+          Outline outline = outlines_A[5];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.CONSTRUCTOR);
+          expect(element.name, "A._privateName");
+          expect(element.offset, testCode.indexOf("_privateName(num p);"));
+          expect(element.length, "_privateName".length);
+          expect(element.parameters, "(num p)");
+          expect(element.returnType, isNull);
+          expect(element.isAbstract, isFalse);
+          expect(element.isStatic, isFalse);
         }
         {
-          _Outline outline = outlines_A[6];
-          expect(outline.kind, _OutlineKind.METHOD);
-          expect(outline.name, "ma");
-          expect(outline.nameOffset, testCode.indexOf("ma(int pa) => null;"));
-          expect(outline.nameLength, "ma".length);
-          expect(outline.parameters, "(int pa)");
-          expect(outline.returnType, "String");
-          expect(outline.isAbstract, isFalse);
-          expect(outline.isStatic, isTrue);
+          Outline outline = outlines_A[6];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.METHOD);
+          expect(element.name, "ma");
+          expect(element.offset, testCode.indexOf("ma(int pa) => null;"));
+          expect(element.length, "ma".length);
+          expect(element.parameters, "(int pa)");
+          expect(element.returnType, "String");
+          expect(element.isAbstract, isFalse);
+          expect(element.isStatic, isTrue);
         }
         {
-          _Outline outline = outlines_A[7];
-          expect(outline.kind, _OutlineKind.METHOD);
-          expect(outline.name, "_mb");
-          expect(outline.nameOffset, testCode.indexOf("_mb(int pb);"));
-          expect(outline.nameLength, "_mb".length);
-          expect(outline.parameters, "(int pb)");
-          expect(outline.returnType, "");
-          expect(outline.isAbstract, isTrue);
-          expect(outline.isStatic, isFalse);
+          Outline outline = outlines_A[7];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.METHOD);
+          expect(element.name, "_mb");
+          expect(element.offset, testCode.indexOf("_mb(int pb);"));
+          expect(element.length, "_mb".length);
+          expect(element.parameters, "(int pb)");
+          expect(element.returnType, "");
+          expect(element.isAbstract, isTrue);
+          expect(element.isStatic, isFalse);
         }
         {
-          _Outline outline = outlines_A[8];
-          expect(outline.kind, _OutlineKind.GETTER);
-          expect(outline.name, "propA");
-          expect(outline.nameOffset, testCode.indexOf("propA => null;"));
-          expect(outline.nameLength, "propA".length);
-          expect(outline.parameters, "");
-          expect(outline.returnType, "String");
+          Outline outline = outlines_A[8];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.GETTER);
+          expect(element.name, "propA");
+          expect(element.offset, testCode.indexOf("propA => null;"));
+          expect(element.length, "propA".length);
+          expect(element.parameters, "");
+          expect(element.returnType, "String");
         }
         {
-          _Outline outline = outlines_A[9];
-          expect(outline.kind, _OutlineKind.SETTER);
-          expect(outline.name, "propB");
-          expect(outline.nameOffset, testCode.indexOf("propB(int v) {}"));
-          expect(outline.nameLength, "propB".length);
-          expect(outline.parameters, "(int v)");
-          expect(outline.returnType, "");
+          Outline outline = outlines_A[9];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.SETTER);
+          expect(element.name, "propB");
+          expect(element.offset, testCode.indexOf("propB(int v) {}"));
+          expect(element.length, "propB".length);
+          expect(element.parameters, "(int v)");
+          expect(element.returnType, "");
         }
       }
       // B
       {
-        _Outline outline_B = topOutlines[1];
-        expect(outline_B.kind, _OutlineKind.CLASS);
-        expect(outline_B.name, "B");
-        expect(outline_B.nameOffset, testCode.indexOf("B {"));
-        expect(outline_B.nameLength, 1);
-        expect(outline_B.parameters, null);
-        expect(outline_B.returnType, null);
+        Outline outline_B = topOutlines[1];
+        Element element_B = outline_B.element;
+        expect(element_B.kind, ElementKind.CLASS);
+        expect(element_B.name, "B");
+        expect(element_B.offset, testCode.indexOf("B {"));
+        expect(element_B.length, 1);
+        expect(element_B.parameters, null);
+        expect(element_B.returnType, null);
         // B children
-        List<_Outline> outlines_B = outline_B.children;
+        List<Outline> outlines_B = outline_B.children;
         expect(outlines_B, hasLength(1));
         {
-          _Outline outline = outlines_B[0];
-          expect(outline.kind, _OutlineKind.CONSTRUCTOR);
-          expect(outline.name, "B");
-          expect(outline.nameOffset, testCode.indexOf("B(int p);"));
-          expect(outline.nameLength, "B".length);
-          expect(outline.parameters, "(int p)");
-          expect(outline.returnType, isNull);
-        }
-      }
-    });
-  }
-
-  test_afterAnalysis() {
-    addTestFile('''
-class AAA {
-}
-class BBB {
-}
-''');
-    return waitForTasksFinished().then((_) {
-      expect(outline, isNull);
-      return prepareOutline(() {
-        _Outline unitOutline = outline;
-        List<_Outline> outlines = unitOutline.children;
-        expect(outlines, hasLength(2));
-      });
-    });
-  }
-
-  test_sourceRange_inClass() {
-    addTestFile('''
-class A { // leftA
-  int methodA() {} // endA
-  int methodB() {} // endB
-}
-''');
-    return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> outlines = unitOutline.children[0].children;
-      expect(outlines, hasLength(2));
-      // methodA
-      {
-        _Outline outline = outlines[0];
-        expect(outline.kind, _OutlineKind.METHOD);
-        expect(outline.name, "methodA");
-        {
-          int offset = testCode.indexOf(" // leftA");
-          int end = testCode.indexOf(" // endA");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // methodB
-      {
-        _Outline outline = outlines[1];
-        expect(outline.kind, _OutlineKind.METHOD);
-        expect(outline.name, "methodB");
-        {
-          int offset = testCode.indexOf(" // endA");
-          int end = testCode.indexOf(" // endB");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-    });
-  }
-
-  test_sourceRange_inClass_inVariableList() {
-    addTestFile('''
-class A { // leftA
-  int fieldA, fieldB, fieldC; // marker
-  int fieldD; // marker2
-}
-''');
-    return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> outlines = unitOutline.children[0].children;
-      expect(outlines, hasLength(4));
-      // fieldA
-      {
-        _Outline outline = outlines[0];
-        expect(outline.kind, _OutlineKind.FIELD);
-        expect(outline.name, "fieldA");
-        {
-          int offset = testCode.indexOf(" // leftA");
-          int end = testCode.indexOf(", fieldB");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldB
-      {
-        _Outline outline = outlines[1];
-        expect(outline.kind, _OutlineKind.FIELD);
-        expect(outline.name, "fieldB");
-        {
-          int offset = testCode.indexOf(", fieldB");
-          int end = testCode.indexOf(", fieldC");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldC
-      {
-        _Outline outline = outlines[2];
-        expect(outline.kind, _OutlineKind.FIELD);
-        expect(outline.name, "fieldC");
-        {
-          int offset = testCode.indexOf(", fieldC");
-          int end = testCode.indexOf(" // marker");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldD
-      {
-        _Outline outline = outlines[3];
-        expect(outline.kind, _OutlineKind.FIELD);
-        expect(outline.name, "fieldD");
-        {
-          int offset = testCode.indexOf(" // marker");
-          int end = testCode.indexOf(" // marker2");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-    });
-  }
-
-  test_sourceRange_inUnit() {
-    addTestFile('''
-class A {
-} // endA
-class B {
-} // endB
-''');
-    return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> topOutlines = unitOutline.children;
-      expect(topOutlines, hasLength(2));
-      // A
-      {
-        _Outline outline = topOutlines[0];
-        expect(outline.kind, _OutlineKind.CLASS);
-        expect(outline.name, "A");
-        {
-          int offset = 0;
-          int end = testCode.indexOf(" // endA");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // B
-      {
-        _Outline outline = topOutlines[1];
-        expect(outline.kind, _OutlineKind.CLASS);
-        expect(outline.name, "B");
-        {
-          int offset = testCode.indexOf(" // endA");
-          int end = testCode.indexOf(" // endB");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-    });
-  }
-
-  test_sourceRange_inUnit_inVariableList() {
-    addTestFile('''
-int fieldA, fieldB, fieldC; // marker
-int fieldD; // marker2
-''');
-    return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> outlines = unitOutline.children;
-      expect(outlines, hasLength(4));
-      // fieldA
-      {
-        _Outline outline = outlines[0];
-        expect(outline.kind, _OutlineKind.TOP_LEVEL_VARIABLE);
-        expect(outline.name, "fieldA");
-        {
-          int offset = 0;
-          int end = testCode.indexOf(", fieldB");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldB
-      {
-        _Outline outline = outlines[1];
-        expect(outline.kind, _OutlineKind.TOP_LEVEL_VARIABLE);
-        expect(outline.name, "fieldB");
-        {
-          int offset = testCode.indexOf(", fieldB");
-          int end = testCode.indexOf(", fieldC");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldC
-      {
-        _Outline outline = outlines[2];
-        expect(outline.kind, _OutlineKind.TOP_LEVEL_VARIABLE);
-        expect(outline.name, "fieldC");
-        {
-          int offset = testCode.indexOf(", fieldC");
-          int end = testCode.indexOf(" // marker");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
-        }
-      }
-      // fieldD
-      {
-        _Outline outline = outlines[3];
-        expect(outline.kind, _OutlineKind.TOP_LEVEL_VARIABLE);
-        expect(outline.name, "fieldD");
-        {
-          int offset = testCode.indexOf(" // marker");
-          int end = testCode.indexOf(" // marker2");
-          expect(outline.elementOffset, offset);
-          expect(outline.elementLength, end - offset);
+          Outline outline = outlines_B[0];
+          Element element = outline.element;
+          expect(element.kind, ElementKind.CONSTRUCTOR);
+          expect(element.name, "B");
+          expect(element.offset, testCode.indexOf("B(int p);"));
+          expect(element.length, "B".length);
+          expect(element.parameters, "(int p)");
+          expect(element.returnType, isNull);
         }
       }
     });
@@ -436,105 +252,324 @@ f() {
 }
 ''');
     return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> topOutlines = unitOutline.children;
+      Outline unitOutline = outline;
+      List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(2));
       // A
       {
-        _Outline outline_A = topOutlines[0];
-        expect(outline_A.kind, _OutlineKind.CLASS);
-        expect(outline_A.name, "A");
-        expect(outline_A.nameOffset, testCode.indexOf("A {"));
-        expect(outline_A.nameLength, "A".length);
-        expect(outline_A.parameters, null);
-        expect(outline_A.returnType, null);
+        Outline outline_A = topOutlines[0];
+        Element element_A = outline_A.element;
+        expect(element_A.kind, ElementKind.CLASS);
+        expect(element_A.name, "A");
+        expect(element_A.offset, testCode.indexOf("A {"));
+        expect(element_A.length, "A".length);
+        expect(element_A.parameters, null);
+        expect(element_A.returnType, null);
         // A children
-        List<_Outline> outlines_A = outline_A.children;
+        List<Outline> outlines_A = outline_A.children;
         expect(outlines_A, hasLength(2));
         {
-          _Outline constructorOutline = outlines_A[0];
-          expect(constructorOutline.kind, _OutlineKind.CONSTRUCTOR);
-          expect(constructorOutline.name, "A");
-          expect(constructorOutline.nameOffset, testCode.indexOf("A() {"));
-          expect(constructorOutline.nameLength, "A".length);
-          expect(constructorOutline.parameters, "()");
-          expect(constructorOutline.returnType, isNull);
+          Outline constructorOutline = outlines_A[0];
+          Element constructorElement = constructorOutline.element;
+          expect(constructorElement.kind, ElementKind.CONSTRUCTOR);
+          expect(constructorElement.name, "A");
+          expect(constructorElement.offset, testCode.indexOf("A() {"));
+          expect(constructorElement.length, "A".length);
+          expect(constructorElement.parameters, "()");
+          expect(constructorElement.returnType, isNull);
           // local function
-          List<_Outline> outlines_constructor = constructorOutline.children;
+          List<Outline> outlines_constructor = constructorOutline.children;
           expect(outlines_constructor, hasLength(1));
           {
-            _Outline outline = outlines_constructor[0];
-            expect(outline.kind, _OutlineKind.FUNCTION);
-            expect(outline.name, "local_A");
-            expect(outline.nameOffset, testCode.indexOf("local_A() {}"));
-            expect(outline.nameLength, "local_A".length);
-            expect(outline.parameters, "()");
-            expect(outline.returnType, "int");
+            Outline outline = outlines_constructor[0];
+            Element element = outline.element;
+            expect(element.kind, ElementKind.FUNCTION);
+            expect(element.name, "local_A");
+            expect(element.offset, testCode.indexOf("local_A() {}"));
+            expect(element.length, "local_A".length);
+            expect(element.parameters, "()");
+            expect(element.returnType, "int");
           }
         }
         {
-          _Outline outline_m = outlines_A[1];
-          expect(outline_m.kind, _OutlineKind.METHOD);
-          expect(outline_m.name, "m");
-          expect(outline_m.nameOffset, testCode.indexOf("m() {"));
-          expect(outline_m.nameLength, "m".length);
-          expect(outline_m.parameters, "()");
-          expect(outline_m.returnType, "");
+          Outline outline_m = outlines_A[1];
+          Element element_m = outline_m.element;
+          expect(element_m.kind, ElementKind.METHOD);
+          expect(element_m.name, "m");
+          expect(element_m.offset, testCode.indexOf("m() {"));
+          expect(element_m.length, "m".length);
+          expect(element_m.parameters, "()");
+          expect(element_m.returnType, "");
           // local function
-          List<_Outline> methodChildren = outline_m.children;
+          List<Outline> methodChildren = outline_m.children;
           expect(methodChildren, hasLength(1));
           {
-            _Outline outline = methodChildren[0];
-            expect(outline.kind, _OutlineKind.FUNCTION);
-            expect(outline.name, "local_m");
-            expect(outline.nameOffset, testCode.indexOf("local_m() {}"));
-            expect(outline.nameLength, "local_m".length);
-            expect(outline.parameters, "()");
-            expect(outline.returnType, "");
+            Outline outline = methodChildren[0];
+            Element element = outline.element;
+            expect(element.kind, ElementKind.FUNCTION);
+            expect(element.name, "local_m");
+            expect(element.offset, testCode.indexOf("local_m() {}"));
+            expect(element.length, "local_m".length);
+            expect(element.parameters, "()");
+            expect(element.returnType, "");
           }
         }
       }
       // f()
       {
-        _Outline outline_f = topOutlines[1];
-        expect(outline_f.kind, _OutlineKind.FUNCTION);
-        expect(outline_f.name, "f");
-        expect(outline_f.nameOffset, testCode.indexOf("f() {"));
-        expect(outline_f.nameLength, "f".length);
-        expect(outline_f.parameters, "()");
-        expect(outline_f.returnType, "");
+        Outline outline_f = topOutlines[1];
+        Element element_f = outline_f.element;
+        expect(element_f.kind, ElementKind.FUNCTION);
+        expect(element_f.name, "f");
+        expect(element_f.offset, testCode.indexOf("f() {"));
+        expect(element_f.length, "f".length);
+        expect(element_f.parameters, "()");
+        expect(element_f.returnType, "");
         // f() children
-        List<_Outline> outlines_f = outline_f.children;
+        List<Outline> outlines_f = outline_f.children;
         expect(outlines_f, hasLength(2));
         {
-          _Outline outline_f1 = outlines_f[0];
-          expect(outline_f1.kind, _OutlineKind.FUNCTION);
-          expect(outline_f1.name, "local_f1");
-          expect(outline_f1.nameOffset, testCode.indexOf("local_f1(int i) {}"));
-          expect(outline_f1.nameLength, "local_f1".length);
-          expect(outline_f1.parameters, "(int i)");
-          expect(outline_f1.returnType, "");
+          Outline outline_f1 = outlines_f[0];
+          Element element_f1 = outline_f1.element;
+          expect(element_f1.kind, ElementKind.FUNCTION);
+          expect(element_f1.name, "local_f1");
+          expect(element_f1.offset, testCode.indexOf("local_f1(int i) {}"));
+          expect(element_f1.length, "local_f1".length);
+          expect(element_f1.parameters, "(int i)");
+          expect(element_f1.returnType, "");
         }
         {
-          _Outline outline_f2 = outlines_f[1];
-          expect(outline_f2.kind, _OutlineKind.FUNCTION);
-          expect(outline_f2.name, "local_f2");
-          expect(outline_f2.nameOffset, testCode.indexOf("local_f2(String s) {"));
-          expect(outline_f2.nameLength, "local_f2".length);
-          expect(outline_f2.parameters, "(String s)");
-          expect(outline_f2.returnType, "");
+          Outline outline_f2 = outlines_f[1];
+          Element element_f2 = outline_f2.element;
+          expect(element_f2.kind, ElementKind.FUNCTION);
+          expect(element_f2.name, "local_f2");
+          expect(element_f2.offset, testCode.indexOf("local_f2(String s) {"));
+          expect(element_f2.length, "local_f2".length);
+          expect(element_f2.parameters, "(String s)");
+          expect(element_f2.returnType, "");
           // local_f2() local function
-          List<_Outline> outlines_f2 = outline_f2.children;
+          List<Outline> outlines_f2 = outline_f2.children;
           expect(outlines_f2, hasLength(1));
           {
-            _Outline outline_f21 = outlines_f2[0];
-            expect(outline_f21.kind, _OutlineKind.FUNCTION);
-            expect(outline_f21.name, "local_f21");
-            expect(outline_f21.nameOffset, testCode.indexOf("local_f21(int p) {"));
-            expect(outline_f21.nameLength, "local_f21".length);
-            expect(outline_f21.parameters, "(int p)");
-            expect(outline_f21.returnType, "");
+            Outline outline_f21 = outlines_f2[0];
+            Element element_f21 = outline_f21.element;
+            expect(element_f21.kind, ElementKind.FUNCTION);
+            expect(element_f21.name, "local_f21");
+            expect(element_f21.offset, testCode.indexOf("local_f21(int p) {"));
+            expect(element_f21.length, "local_f21".length);
+            expect(element_f21.parameters, "(int p)");
+            expect(element_f21.returnType, "");
           }
+        }
+      }
+    });
+  }
+
+  test_sourceRange_inClass() {
+    addTestFile('''
+class A { // leftA
+  int methodA() {} // endA
+  int methodB() {} // endB
+}
+''');
+    return prepareOutline(() {
+      Outline unitOutline = outline;
+      List<Outline> outlines = unitOutline.children[0].children;
+      expect(outlines, hasLength(2));
+      // methodA
+      {
+        Outline outline = outlines[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "methodA");
+        {
+          int offset = testCode.indexOf(" // leftA");
+          int end = testCode.indexOf(" // endA");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // methodB
+      {
+        Outline outline = outlines[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.METHOD);
+        expect(element.name, "methodB");
+        {
+          int offset = testCode.indexOf(" // endA");
+          int end = testCode.indexOf(" // endB");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+    });
+  }
+
+  test_sourceRange_inClass_inVariableList() {
+    addTestFile('''
+class A { // leftA
+  int fieldA, fieldB, fieldC; // marker
+  int fieldD; // marker2
+}
+''');
+    return prepareOutline(() {
+      Outline unitOutline = outline;
+      List<Outline> outlines = unitOutline.children[0].children;
+      expect(outlines, hasLength(4));
+      // fieldA
+      {
+        Outline outline = outlines[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FIELD);
+        expect(element.name, "fieldA");
+        {
+          int offset = testCode.indexOf(" // leftA");
+          int end = testCode.indexOf(", fieldB");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldB
+      {
+        Outline outline = outlines[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FIELD);
+        expect(element.name, "fieldB");
+        {
+          int offset = testCode.indexOf(", fieldB");
+          int end = testCode.indexOf(", fieldC");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldC
+      {
+        Outline outline = outlines[2];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FIELD);
+        expect(element.name, "fieldC");
+        {
+          int offset = testCode.indexOf(", fieldC");
+          int end = testCode.indexOf(" // marker");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldD
+      {
+        Outline outline = outlines[3];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FIELD);
+        expect(element.name, "fieldD");
+        {
+          int offset = testCode.indexOf(" // marker");
+          int end = testCode.indexOf(" // marker2");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+    });
+  }
+
+  test_sourceRange_inUnit() {
+    addTestFile('''
+class A {
+} // endA
+class B {
+} // endB
+''');
+    return prepareOutline(() {
+      Outline unitOutline = outline;
+      List<Outline> topOutlines = unitOutline.children;
+      expect(topOutlines, hasLength(2));
+      // A
+      {
+        Outline outline = topOutlines[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.CLASS);
+        expect(element.name, "A");
+        {
+          int offset = 0;
+          int end = testCode.indexOf(" // endA");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // B
+      {
+        Outline outline = topOutlines[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.CLASS);
+        expect(element.name, "B");
+        {
+          int offset = testCode.indexOf(" // endA");
+          int end = testCode.indexOf(" // endB");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+    });
+  }
+
+  test_sourceRange_inUnit_inVariableList() {
+    addTestFile('''
+int fieldA, fieldB, fieldC; // marker
+int fieldD; // marker2
+''');
+    return prepareOutline(() {
+      Outline unitOutline = outline;
+      List<Outline> outlines = unitOutline.children;
+      expect(outlines, hasLength(4));
+      // fieldA
+      {
+        Outline outline = outlines[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
+        expect(element.name, "fieldA");
+        {
+          int offset = 0;
+          int end = testCode.indexOf(", fieldB");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldB
+      {
+        Outline outline = outlines[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
+        expect(element.name, "fieldB");
+        {
+          int offset = testCode.indexOf(", fieldB");
+          int end = testCode.indexOf(", fieldC");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldC
+      {
+        Outline outline = outlines[2];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
+        expect(element.name, "fieldC");
+        {
+          int offset = testCode.indexOf(", fieldC");
+          int end = testCode.indexOf(" // marker");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
+        }
+      }
+      // fieldD
+      {
+        Outline outline = outlines[3];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.TOP_LEVEL_VARIABLE);
+        expect(element.name, "fieldD");
+        {
+          int offset = testCode.indexOf(" // marker");
+          int end = testCode.indexOf(" // marker2");
+          expect(outline.offset, offset);
+          expect(outline.length, end - offset);
         }
       }
     });
@@ -553,152 +588,86 @@ String get propA => null;
 set propB(int v) {}
 ''');
     return prepareOutline(() {
-      _Outline unitOutline = outline;
-      List<_Outline> topOutlines = unitOutline.children;
+      Outline unitOutline = outline;
+      List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(9));
       // FTA
       {
-        _Outline outline = topOutlines[0];
-        expect(outline.kind, _OutlineKind.FUNCTION_TYPE_ALIAS);
-        expect(outline.name, "FTA");
-        expect(outline.nameOffset, testCode.indexOf("FTA("));
-        expect(outline.nameLength, "FTA".length);
-        expect(outline.parameters, "(int i, String s)");
-        expect(outline.returnType, "String");
+        Outline outline = topOutlines[0];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+        expect(element.name, "FTA");
+        expect(element.offset, testCode.indexOf("FTA("));
+        expect(element.length, "FTA".length);
+        expect(element.parameters, "(int i, String s)");
+        expect(element.returnType, "String");
       }
       // FTB
       {
-        _Outline outline = topOutlines[1];
-        expect(outline.kind, _OutlineKind.FUNCTION_TYPE_ALIAS);
-        expect(outline.name, "FTB");
-        expect(outline.nameOffset, testCode.indexOf("FTB("));
-        expect(outline.nameLength, "FTB".length);
-        expect(outline.parameters, "(int p)");
-        expect(outline.returnType, "");
+        Outline outline = topOutlines[1];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+        expect(element.name, "FTB");
+        expect(element.offset, testCode.indexOf("FTB("));
+        expect(element.length, "FTB".length);
+        expect(element.parameters, "(int p)");
+        expect(element.returnType, "");
       }
       // CTA
       {
-        _Outline outline = topOutlines[4];
-        expect(outline.kind, _OutlineKind.CLASS_TYPE_ALIAS);
-        expect(outline.name, "CTA");
-        expect(outline.nameOffset, testCode.indexOf("CTA ="));
-        expect(outline.nameLength, "CTA".length);
-        expect(outline.parameters, isNull);
-        expect(outline.returnType, isNull);
+        Outline outline = topOutlines[4];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.CLASS_TYPE_ALIAS);
+        expect(element.name, "CTA");
+        expect(element.offset, testCode.indexOf("CTA ="));
+        expect(element.length, "CTA".length);
+        expect(element.parameters, isNull);
+        expect(element.returnType, isNull);
       }
       // fA
       {
-        _Outline outline = topOutlines[5];
-        expect(outline.kind, _OutlineKind.FUNCTION);
-        expect(outline.name, "fA");
-        expect(outline.nameOffset, testCode.indexOf("fA("));
-        expect(outline.nameLength, "fA".length);
-        expect(outline.parameters, "(int i, String s)");
-        expect(outline.returnType, "String");
+        Outline outline = topOutlines[5];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FUNCTION);
+        expect(element.name, "fA");
+        expect(element.offset, testCode.indexOf("fA("));
+        expect(element.length, "fA".length);
+        expect(element.parameters, "(int i, String s)");
+        expect(element.returnType, "String");
       }
       // fB
       {
-        _Outline outline = topOutlines[6];
-        expect(outline.kind, _OutlineKind.FUNCTION);
-        expect(outline.name, "fB");
-        expect(outline.nameOffset, testCode.indexOf("fB("));
-        expect(outline.nameLength, "fB".length);
-        expect(outline.parameters, "(int p)");
-        expect(outline.returnType, "");
+        Outline outline = topOutlines[6];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.FUNCTION);
+        expect(element.name, "fB");
+        expect(element.offset, testCode.indexOf("fB("));
+        expect(element.length, "fB".length);
+        expect(element.parameters, "(int p)");
+        expect(element.returnType, "");
       }
       // propA
       {
-        _Outline outline = topOutlines[7];
-        expect(outline.kind, _OutlineKind.GETTER);
-        expect(outline.name, "propA");
-        expect(outline.nameOffset, testCode.indexOf("propA => null;"));
-        expect(outline.nameLength, "propA".length);
-        expect(outline.parameters, "");
-        expect(outline.returnType, "String");
+        Outline outline = topOutlines[7];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.GETTER);
+        expect(element.name, "propA");
+        expect(element.offset, testCode.indexOf("propA => null;"));
+        expect(element.length, "propA".length);
+        expect(element.parameters, "");
+        expect(element.returnType, "String");
       }
       // propB
       {
-        _Outline outline = topOutlines[8];
-        expect(outline.kind, _OutlineKind.SETTER);
-        expect(outline.name, "propB");
-        expect(outline.nameOffset, testCode.indexOf("propB(int v) {}"));
-        expect(outline.nameLength, "propB".length);
-        expect(outline.parameters, "(int v)");
-        expect(outline.returnType, "");
+        Outline outline = topOutlines[8];
+        Element element = outline.element;
+        expect(element.kind, ElementKind.SETTER);
+        expect(element.name, "propB");
+        expect(element.offset, testCode.indexOf("propB(int v) {}"));
+        expect(element.length, "propB".length);
+        expect(element.parameters, "(int v)");
+        expect(element.returnType, "");
       }
     });
-  }
-}
-
-
-/**
- * Element outline kinds.
- */
-class _OutlineKind {
-  static const _OutlineKind CLASS = const _OutlineKind('CLASS');
-  static const _OutlineKind CLASS_TYPE_ALIAS = const _OutlineKind('CLASS_TYPE_ALIAS');
-  static const _OutlineKind COMPILATION_UNIT = const _OutlineKind('COMPILATION_UNIT');
-  static const _OutlineKind CONSTRUCTOR = const _OutlineKind('CONSTRUCTOR');
-  static const _OutlineKind GETTER = const _OutlineKind('GETTER');
-  static const _OutlineKind FIELD = const _OutlineKind('FIELD');
-  static const _OutlineKind FUNCTION = const _OutlineKind('FUNCTION');
-  static const _OutlineKind FUNCTION_TYPE_ALIAS = const _OutlineKind('FUNCTION_TYPE_ALIAS');
-  static const _OutlineKind LIBRARY = const _OutlineKind('LIBRARY');
-  static const _OutlineKind METHOD = const _OutlineKind('METHOD');
-  static const _OutlineKind SETTER = const _OutlineKind('SETTER');
-  static const _OutlineKind TOP_LEVEL_VARIABLE = const _OutlineKind('TOP_LEVEL_VARIABLE');
-  static const _OutlineKind UNKNOWN = const _OutlineKind('UNKNOWN');
-  static const _OutlineKind UNIT_TEST_CASE = const _OutlineKind('UNIT_TEST_CASE');
-  static const _OutlineKind UNIT_TEST_GROUP = const _OutlineKind('UNIT_TEST_GROUP');
-
-  final String name;
-
-  const _OutlineKind(this.name);
-
-  static _OutlineKind valueOf(String name) {
-    ClassMirror classMirror = reflectClass(_OutlineKind);
-    return classMirror.getField(new Symbol(name)).reflectee;
-  }
-}
-
-
-/**
- * An element outline.
- */
-class _Outline {
-  static const List<_Outline> EMPTY_ARRAY = const <_Outline>[];
-
-  final _OutlineKind kind;
-  final String name;
-  final int nameOffset;
-  final int nameLength;
-  final int elementOffset;
-  final int elementLength;
-  final bool isAbstract;
-  final bool isStatic;
-  final String parameters;
-  final String returnType;
-  final List<_Outline> children = <_Outline>[];
-
-  _Outline(this.kind, this.name,
-           this.nameOffset, this.nameLength,
-           this.elementOffset, this.elementLength,
-           this.isAbstract, this.isStatic,
-           this.parameters, this.returnType);
-
-  factory _Outline.fromJson(Map<String, Object> map) {
-    _Outline outline = new _Outline(
-        _OutlineKind.valueOf(map[KIND]), map[NAME],
-        map[NAME_OFFSET], map[NAME_LENGTH],
-        map[ELEMENT_OFFSET], map[ELEMENT_LENGTH],
-        map[IS_ABSTRACT], map[IS_STATIC],
-        map[PARAMETERS], map[RETURN_TYPE]);
-    List<Map<String, Object>> childrenMaps = map[CHILDREN];
-    if (childrenMaps != null) {
-      childrenMaps.forEach((childMap) {
-        outline.children.add(new _Outline.fromJson(childMap));
-      });
-    }
-    return outline;
   }
 }

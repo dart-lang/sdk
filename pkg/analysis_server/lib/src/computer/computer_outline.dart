@@ -4,8 +4,10 @@
 
 library computer.outline;
 
+import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart' as engine;
 
 
 /**
@@ -20,11 +22,11 @@ class DartUnitOutlineComputer {
    * Returns the computed outline, not `null`.
    */
   Map<String, Object> compute() {
-    _Outline unitOutline = _newUnitOutline();
+    Outline unitOutline = _newUnitOutline();
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
         ClassDeclaration classDeclaration = unitMember;
-        _Outline classOutline = _newClassOutline(unitOutline, classDeclaration);
+        Outline classOutline = _newClassOutline(unitOutline, classDeclaration);
         for (ClassMember classMember in classDeclaration.members) {
           if (classMember is ConstructorDeclaration) {
             ConstructorDeclaration constructorDeclaration = classMember;
@@ -35,9 +37,11 @@ class DartUnitOutlineComputer {
             VariableDeclarationList fields = fieldDeclaration.fields;
             if (fields != null) {
               TypeName fieldType = fields.type;
-              String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
+              String fieldTypeName = fieldType != null ? fieldType.toSource() :
+                  '';
               for (VariableDeclaration field in fields.variables) {
-                _newVariableOutline(classOutline, fieldTypeName, _OutlineKind.FIELD, field, fieldDeclaration.isStatic);
+                _newVariableOutline(classOutline, fieldTypeName,
+                    ElementKind.FIELD, field, fieldDeclaration.isStatic);
               }
             }
           }
@@ -52,15 +56,16 @@ class DartUnitOutlineComputer {
         VariableDeclarationList fields = fieldDeclaration.variables;
         if (fields != null) {
           TypeName fieldType = fields.type;
-          String fieldTypeName = fieldType != null ? fieldType.toSource() : "";
+          String fieldTypeName = fieldType != null ? fieldType.toSource() : '';
           for (VariableDeclaration field in fields.variables) {
-            _newVariableOutline(unitOutline, fieldTypeName, _OutlineKind.TOP_LEVEL_VARIABLE, field, false);
+            _newVariableOutline(unitOutline, fieldTypeName,
+                ElementKind.TOP_LEVEL_VARIABLE, field, false);
           }
         }
       }
       if (unitMember is FunctionDeclaration) {
         FunctionDeclaration functionDeclaration = unitMember;
-        _newFunctionOutline(unitOutline, functionDeclaration);
+        _newFunctionOutline(unitOutline, functionDeclaration, true);
       }
       if (unitMember is ClassTypeAlias) {
         ClassTypeAlias alias = unitMember;
@@ -74,7 +79,7 @@ class DartUnitOutlineComputer {
     return unitOutline.toJson();
   }
 
-  void _addLocalFunctionOutlines(_Outline parent, FunctionBody body) {
+  void _addLocalFunctionOutlines(Outline parent, FunctionBody body) {
     body.accept(new _LocalFunctionOutlinesVisitor(this, parent));
   }
 
@@ -125,148 +130,208 @@ class DartUnitOutlineComputer {
     return new _SourceRegion(prevSiblingEnd, endOffset - prevSiblingEnd);
   }
 
-  _Outline _newClassOutline(_Outline parent, ClassDeclaration classDeclaration) {
+  Outline _newClassOutline(Outline parent, ClassDeclaration classDeclaration) {
     SimpleIdentifier nameNode = classDeclaration.name;
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(classDeclaration);
-    _Outline outline = new _Outline(
-        _OutlineKind.CLASS, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        classDeclaration.isAbstract, false,
-        null, null);
+    Element element = new Element(ElementKind.CLASS, name, nameNode.offset,
+        nameNode.length, Identifier.isPrivateName(name), _isDeprecated(
+        classDeclaration), isAbstract: classDeclaration.isAbstract);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
     return outline;
   }
 
-  void _newClassTypeAlias(_Outline parent, ClassTypeAlias alias) {
+  void _newClassTypeAlias(Outline parent, ClassTypeAlias alias) {
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(alias);
-    _Outline outline = new _Outline(
-        _OutlineKind.CLASS_TYPE_ALIAS, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        alias.isAbstract, false,
-        null, null);
+    Element element = new Element(ElementKind.CLASS_TYPE_ALIAS, name,
+        nameNode.offset, nameNode.length, Identifier.isPrivateName(name), _isDeprecated(
+        alias), isAbstract: alias.isAbstract);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
   }
 
-  void _newConstructorOutline(_Outline parent, ConstructorDeclaration constructor) {
+  void _newConstructorOutline(Outline parent,
+      ConstructorDeclaration constructor) {
     Identifier returnType = constructor.returnType;
     String name = returnType.name;
     int offset = returnType.offset;
     int length = returnType.length;
     SimpleIdentifier constructorNameNode = constructor.name;
+    bool isPrivate = false;
     if (constructorNameNode != null) {
       String constructorName = constructorNameNode.name;
-      name += ".${constructorName}";
+      isPrivate = Identifier.isPrivateName(constructorName);
+      name += '.${constructorName}';
       offset = constructorNameNode.offset;
       length = constructorNameNode.length;
     }
     _SourceRegion sourceRegion = _getSourceRegion(constructor);
     FormalParameterList parameters = constructor.parameters;
-    String parametersStr = parameters != null ? parameters.toSource() : "";
-    _Outline outline = new _Outline(
-        _OutlineKind.CONSTRUCTOR, name,
-        offset, length,
-        sourceRegion.offset, sourceRegion.length,
-        false, false,
-        parametersStr, null);
+    String parametersStr = parameters != null ? parameters.toSource() : '';
+    Element element = new Element(ElementKind.CONSTRUCTOR, name, offset, length,
+        isPrivate, _isDeprecated(constructor), parameters: parametersStr);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
     _addLocalFunctionOutlines(outline, constructor.body);
   }
 
-  void _newFunctionOutline(_Outline parent, FunctionDeclaration function) {
+  void _newFunctionOutline(Outline parent, FunctionDeclaration function,
+      bool isStatic) {
     TypeName returnType = function.returnType;
     SimpleIdentifier nameNode = function.name;
     String name = nameNode.name;
     FunctionExpression functionExpression = function.functionExpression;
     FormalParameterList parameters = functionExpression.parameters;
-    _OutlineKind kind;
+    ElementKind kind;
     if (function.isGetter) {
-      kind = _OutlineKind.GETTER;
+      kind = ElementKind.GETTER;
     } else if (function.isSetter) {
-      kind = _OutlineKind.SETTER;
+      kind = ElementKind.SETTER;
     } else {
-      kind = _OutlineKind.FUNCTION;
+      kind = ElementKind.FUNCTION;
     }
     _SourceRegion sourceRegion = _getSourceRegion(function);
-    String parametersStr = parameters != null ? parameters.toSource() : "";
-    String returnTypeStr = returnType != null ? returnType.toSource() : "";
-    _Outline outline = new _Outline(
-        kind, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        false, false,
-        parametersStr, returnTypeStr);
+    String parametersStr = parameters != null ? parameters.toSource() : '';
+    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    Element element = new Element(kind, name, nameNode.offset, nameNode.length,
+        Identifier.isPrivateName(name), _isDeprecated(function), parameters:
+        parametersStr, returnType: returnTypeStr, isStatic: isStatic);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
     _addLocalFunctionOutlines(outline, functionExpression.body);
   }
 
-  void _newFunctionTypeAliasOutline(_Outline parent, FunctionTypeAlias alias) {
+  void _newFunctionTypeAliasOutline(Outline parent, FunctionTypeAlias alias) {
     TypeName returnType = alias.returnType;
     SimpleIdentifier nameNode = alias.name;
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(alias);
     FormalParameterList parameters = alias.parameters;
-    String parametersStr = parameters != null ? parameters.toSource() : "";
-    String returnTypeStr = returnType != null ? returnType.toSource() : "";
-    _Outline outline = new _Outline(
-        _OutlineKind.FUNCTION_TYPE_ALIAS, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        false, false,
-        parametersStr, returnTypeStr);
+    String parametersStr = parameters != null ? parameters.toSource() : '';
+    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    Element element = new Element(ElementKind.FUNCTION_TYPE_ALIAS, name,
+        nameNode.offset, nameNode.length, Identifier.isPrivateName(name), _isDeprecated(
+        alias), parameters: parametersStr, returnType: returnTypeStr);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
   }
 
-  void _newMethodOutline(_Outline parent, MethodDeclaration method) {
+  void _newMethodOutline(Outline parent, MethodDeclaration method) {
     TypeName returnType = method.returnType;
     SimpleIdentifier nameNode = method.name;
     String name = nameNode.name;
     FormalParameterList parameters = method.parameters;
-    _OutlineKind kind;
+    ElementKind kind;
     if (method.isGetter) {
-      kind = _OutlineKind.GETTER;
+      kind = ElementKind.GETTER;
     } else if (method.isSetter) {
-      kind = _OutlineKind.SETTER;
+      kind = ElementKind.SETTER;
     } else {
-      kind = _OutlineKind.METHOD;
+      kind = ElementKind.METHOD;
     }
     _SourceRegion sourceRegion = _getSourceRegion(method);
-    String parametersStr = parameters != null ? parameters.toSource() : "";
-    String returnTypeStr = returnType != null ? returnType.toSource() : "";
-    _Outline outline = new _Outline(
-        kind, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        method.isAbstract, method.isStatic,
-        parametersStr, returnTypeStr);
+    String parametersStr = parameters != null ? parameters.toSource() : '';
+    String returnTypeStr = returnType != null ? returnType.toSource() : '';
+    Element element = new Element(kind, name, nameNode.offset, nameNode.length,
+        Identifier.isPrivateName(name), _isDeprecated(method), parameters:
+        parametersStr, returnType: returnTypeStr, isAbstract: method.isAbstract,
+        isStatic: method.isStatic);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
     _addLocalFunctionOutlines(outline, method.body);
   }
 
-  _Outline _newUnitOutline() {
-    return new _Outline(
-        _OutlineKind.COMPILATION_UNIT, "<unit>",
-        _unit.offset, _unit.length,
-        _unit.offset, _unit.length,
-        false, false,
-        null, null);
+  Outline _newUnitOutline() {
+    Element element = new Element(ElementKind.COMPILATION_UNIT, '<unit>',
+        _unit.offset, _unit.length, false, false);
+    return new Outline(element, _unit.offset, _unit.length);
   }
 
-  void _newVariableOutline(_Outline parent, String typeName, _OutlineKind kind, VariableDeclaration variable, bool isStatic) {
+  void _newVariableOutline(Outline parent, String typeName, ElementKind kind,
+      VariableDeclaration variable, bool isStatic) {
     SimpleIdentifier nameNode = variable.name;
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(variable);
-    _Outline outline = new _Outline(
-        kind, name,
-        nameNode.offset, nameNode.length,
-        sourceRegion.offset, sourceRegion.length,
-        false, isStatic,
-        null, typeName);
+    Element element = new Element(kind, name, nameNode.offset, nameNode.length,
+        Identifier.isPrivateName(name), _isDeprecated(variable), returnType: typeName,
+        isStatic: isStatic, isConst: variable.isConst, isFinal: variable.isFinal);
+    Outline outline = new Outline(element, sourceRegion.offset,
+        sourceRegion.length);
     parent.children.add(outline);
+  }
+
+  /**
+   * Returns `true` if the given [element] is not `null` and deprecated.
+   */
+  static bool _isDeprecated(Declaration declaration) {
+    engine.Element element = declaration.element;
+    return element != null && element.isDeprecated;
+  }
+}
+
+
+/**
+ * An element outline.
+ */
+class Outline {
+  static const List<Outline> EMPTY_ARRAY = const <Outline>[];
+
+  /**
+   * The children of the node.
+   * The field will be omitted in JSON if the node has no children.
+   */
+  final List<Outline> children = <Outline>[];
+
+  /**
+   * A description of the element represented by this node.
+   */
+  final Element element;
+
+  /**
+   * The length of the element.
+   */
+  final int length;
+
+  /**
+   * The offset of the first character of the element.
+   */
+  final int offset;
+
+  Outline(this.element, this.offset, this.length);
+
+  factory Outline.fromJson(Map<String, Object> map) {
+    Element element = new Element.fromJson(map[ELEMENT]);
+    Outline outline = new Outline(element, map[OFFSET], map[LENGTH]);
+    // add children
+    List<Map<String, Object>> childrenMaps = map[CHILDREN];
+    if (childrenMaps != null) {
+      childrenMaps.forEach((childMap) {
+        outline.children.add(new Outline.fromJson(childMap));
+      });
+    }
+    // done
+    return outline;
+  }
+
+  Map<String, Object> toJson() {
+    Map<String, Object> json = {
+      ELEMENT: element.toJson(),
+      OFFSET: offset,
+      LENGTH: length
+    };
+    if (children.isNotEmpty) {
+      json[CHILDREN] = children.map((child) => child.toJson()).toList();
+    }
+    return json;
   }
 }
 
@@ -276,98 +341,22 @@ class DartUnitOutlineComputer {
  */
 class _LocalFunctionOutlinesVisitor extends RecursiveAstVisitor {
   final DartUnitOutlineComputer outlineComputer;
-  final _Outline parent;
+  final Outline parent;
 
   _LocalFunctionOutlinesVisitor(this.outlineComputer, this.parent);
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    outlineComputer._newFunctionOutline(parent, node);
+    outlineComputer._newFunctionOutline(parent, node, false);
   }
 }
-
 
 
 /**
  * A range of characters.
  */
 class _SourceRegion {
-  final int offset;
   final int length;
+  final int offset;
   _SourceRegion(this.offset, this.length);
-}
-
-
-/**
- * Element outline kinds.
- */
-class _OutlineKind {
-  static const _OutlineKind CLASS = const _OutlineKind('CLASS');
-  static const _OutlineKind CLASS_TYPE_ALIAS = const _OutlineKind('CLASS_TYPE_ALIAS');
-  static const _OutlineKind COMPILATION_UNIT = const _OutlineKind('COMPILATION_UNIT');
-  static const _OutlineKind CONSTRUCTOR = const _OutlineKind('CONSTRUCTOR');
-  static const _OutlineKind GETTER = const _OutlineKind('GETTER');
-  static const _OutlineKind FIELD = const _OutlineKind('FIELD');
-  static const _OutlineKind FUNCTION = const _OutlineKind('FUNCTION');
-  static const _OutlineKind FUNCTION_TYPE_ALIAS = const _OutlineKind('FUNCTION_TYPE_ALIAS');
-  static const _OutlineKind LIBRARY = const _OutlineKind('LIBRARY');
-  static const _OutlineKind METHOD = const _OutlineKind('METHOD');
-  static const _OutlineKind SETTER = const _OutlineKind('SETTER');
-  static const _OutlineKind TOP_LEVEL_VARIABLE = const _OutlineKind('TOP_LEVEL_VARIABLE');
-  static const _OutlineKind UNKNOWN = const _OutlineKind('UNKNOWN');
-  static const _OutlineKind UNIT_TEST_CASE = const _OutlineKind('UNIT_TEST_CASE');
-  static const _OutlineKind UNIT_TEST_GROUP = const _OutlineKind('UNIT_TEST_GROUP');
-
-  final String name;
-
-  const _OutlineKind(this.name);
-}
-
-
-/**
- * An element outline.
- */
-class _Outline {
-  static const List<_Outline> EMPTY_ARRAY = const <_Outline>[];
-
-  final _OutlineKind kind;
-  final String name;
-  final int nameOffset;
-  final int nameLength;
-  final int elementOffset;
-  final int elementLength;
-  final bool isAbstract;
-  final bool isStatic;
-  final String parameters;
-  final String returnType;
-  final List<_Outline> children = <_Outline>[];
-
-  _Outline(this.kind, this.name,
-           this.nameOffset, this.nameLength,
-           this.elementOffset, this.elementLength,
-           this.isAbstract, this.isStatic,
-           this.parameters, this.returnType);
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = {
-      KIND: kind.name,
-      NAME: name,
-      NAME_OFFSET: nameOffset,
-      NAME_LENGTH: nameLength,
-      ELEMENT_OFFSET: elementOffset,
-      ELEMENT_LENGTH: elementLength,
-      IS_ABSTRACT: isAbstract,
-      IS_STATIC: isStatic
-    };
-    if (parameters != null) {
-      json[PARAMETERS] = parameters;
-    }
-    if (returnType != null) {
-      json[RETURN_TYPE] = returnType;
-    }
-    if (children.isNotEmpty) {
-      json[CHILDREN] = children.map((child) => child.toJson()).toList();
-    }
-    return json;
-  }
 }
