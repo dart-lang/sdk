@@ -510,7 +510,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types_[i]);
+    writer->WriteObjectImpl(ptr()->types()[i]);
   }
 }
 
@@ -1977,7 +1977,7 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
                 writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->data_);
+                ptr()->data());
 }
 
 
@@ -1991,7 +1991,7 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
                 writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->data_);
+                ptr()->data());
 }
 
 
@@ -2391,7 +2391,7 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
 
 #define TYPED_DATA_WRITE(type)                                                 \
   {                                                                            \
-    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
+    type* data = reinterpret_cast<type*>(ptr()->data());                       \
     for (intptr_t i = 0; i < len; i++) {                                       \
       writer->Write(data[i]);                                                  \
     }                                                                          \
@@ -2421,7 +2421,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid: {
-      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
       writer->WriteBytes(data, len);
       break;
     }
@@ -2455,11 +2455,20 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 }
 
 
+#define TYPED_EXT_DATA_WRITE(type)                                             \
+  {                                                                            \
+    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
+    for (intptr_t i = 0; i < len; i++) {                                       \
+      writer->Write(data[i]);                                                  \
+    }                                                                          \
+  }                                                                            \
+
+
 #define EXT_TYPED_DATA_WRITE(cid, type)                                        \
   writer->WriteIndexedObject(cid);                                             \
   writer->WriteIntptrValue(RawObject::ClassIdTag::update(cid, tags));          \
   writer->Write<RawObject*>(ptr()->length_);                                   \
-  TYPED_DATA_WRITE(type)                                                       \
+  TYPED_EXT_DATA_WRITE(type)                                                   \
 
 
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,

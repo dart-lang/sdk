@@ -1299,7 +1299,8 @@ class TypeArguments : public Object {
   intptr_t Length() const;
   RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
+    return OFFSET_OF_RETURNED_VALUE(
+        RawTypeArguments, types) + index * kWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
@@ -1426,12 +1427,13 @@ class TypeArguments : public Object {
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypeArguments) == OFFSET_OF(RawTypeArguments, types_));
+    ASSERT(sizeof(RawTypeArguments) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    // Ensure that the types_ is not adding to the object size, which includes
+    // Ensure that the types() is not adding to the object size, which includes
     // 2 fields: instantiations_ and length_.
     ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
@@ -2888,7 +2890,8 @@ class Instructions : public Object {
                                          (2 * OS::kMaxPreferredCodeAlignment)));
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawInstructions) == OFFSET_OF(RawInstructions, data_));
+    ASSERT(sizeof(RawInstructions) ==
+           OFFSET_OF_RETURNED_VALUE(RawInstructions, data));
     return 0;
   }
 
@@ -2951,7 +2954,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
-        OFFSET_OF(RawLocalVarDescriptors, data_));
+        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3021,7 +3024,8 @@ class PcDescriptors : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawPcDescriptors) == OFFSET_OF(RawPcDescriptors, data_));
+    ASSERT(sizeof(RawPcDescriptors) ==
+           OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3057,7 +3061,7 @@ class PcDescriptors : public Object {
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));
     intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
+    return &raw_ptr()->data()[data_index];
   }
   RawSmi** SmiAddr(intptr_t index, intptr_t entry_offset) const {
     return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
@@ -3092,7 +3096,7 @@ class Stackmap : public Object {
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
+    ASSERT(sizeof(RawStackmap) == OFFSET_OF_RETURNED_VALUE(RawStackmap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
@@ -3142,8 +3146,8 @@ class ExceptionHandlers : public Object {
   bool HasCatchAll(intptr_t try_index) const;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
-                                                     data_));
+    ASSERT(sizeof(RawExceptionHandlers) ==
+           OFFSET_OF_RETURNED_VALUE(RawExceptionHandlers, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3212,7 +3216,8 @@ class DeoptInfo : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawDeoptInfo) == OFFSET_OF(RawDeoptInfo, data_));
+    ASSERT(sizeof(RawDeoptInfo) ==
+           OFFSET_OF_RETURNED_VALUE(RawDeoptInfo, data));
     return 0;
   }
 
@@ -3248,7 +3253,7 @@ class DeoptInfo : public Object {
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));
     intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
+    return &raw_ptr()->data()[data_index];
   }
 
   void SetLength(intptr_t value) const;
@@ -3639,11 +3644,11 @@ class Code : public Object {
   // embedded objects in the instructions using pointer_offsets.
 
   static const intptr_t kBytesPerElement =
-      sizeof(reinterpret_cast<RawCode*>(0)->data_[0]);
+      sizeof(reinterpret_cast<RawCode*>(0)->data()[0]);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawCode) == OFFSET_OF(RawCode, data_));
+    ASSERT(sizeof(RawCode) == OFFSET_OF_RETURNED_VALUE(RawCode, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3762,7 +3767,7 @@ class Code : public Object {
     ASSERT(index >= 0);
     ASSERT(index < pointer_offsets_length());
     // TODO(iposva): Unit test is missing for this functionality.
-    return &raw_ptr()->data_[index];
+    return &raw_ptr()->data()[index];
   }
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
@@ -3814,11 +3819,12 @@ class Context : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t variable_offset(intptr_t context_index) {
-    return OFFSET_OF(RawContext, data_[context_index]);
+    return OFFSET_OF_RETURNED_VALUE(RawContext, data) +
+           (kWordSize * context_index);
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawContext) == OFFSET_OF(RawContext, data_));
+    ASSERT(sizeof(RawContext) == OFFSET_OF_RETURNED_VALUE(RawContext, data));
     return 0;
   }
 
@@ -3833,7 +3839,7 @@ class Context : public Object {
  private:
   RawInstance** InstanceAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
-    return &raw_ptr()->data_[context_index];
+    return &raw_ptr()->data()[context_index];
   }
 
   void set_isolate(Isolate* isolate) const {
@@ -3891,7 +3897,8 @@ class ContextScope : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawContextScope) == OFFSET_OF(RawContextScope, data_));
+    ASSERT(sizeof(RawContextScope) ==
+           OFFSET_OF_RETURNED_VALUE(RawContextScope, data));
     return 0;
   }
 
@@ -5542,10 +5549,13 @@ class OneByteString : public AllStatic {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
 
-  static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawOneByteString, data);
+  }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawOneByteString) == OFFSET_OF(RawOneByteString, data_));
+    ASSERT(sizeof(RawOneByteString) ==
+           OFFSET_OF_RETURNED_VALUE(RawOneByteString, data));
     return 0;
   }
 
@@ -5638,7 +5648,7 @@ class OneByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
     NoGCScope no_gc;
-    return &raw_ptr(str)->data_[index];
+    return &raw_ptr(str)->data()[index];
   }
 
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
@@ -5669,10 +5679,13 @@ class TwoByteString : public AllStatic {
   static const intptr_t kBytesPerElement = 2;
   static const intptr_t kMaxElements = String::kMaxElements;
 
-  static intptr_t data_offset() { return OFFSET_OF(RawTwoByteString, data_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data);
+  }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
+    ASSERT(sizeof(RawTwoByteString) ==
+           OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data));
     return 0;
   }
 
@@ -5736,7 +5749,7 @@ class TwoByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
     NoGCScope no_gc;
-    return &raw_ptr(str)->data_[index];
+    return &raw_ptr(str)->data()[index];
   }
 
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
@@ -5942,9 +5955,11 @@ class Array : public Instance {
     return Smi::Value(raw_ptr()->length_);
   }
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
-  static intptr_t data_offset() { return length_offset() + kWordSize; }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawArray, data);
+  }
   static intptr_t element_offset(intptr_t index) {
-    return data_offset() + kWordSize * index;
+    return OFFSET_OF_RETURNED_VALUE(RawArray, data) + kWordSize * index;
   }
 
   RawObject* At(intptr_t index) const {
@@ -6316,7 +6331,7 @@ class TypedData : public Instance {
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+    return reinterpret_cast<void*>(raw_ptr()->data() + byte_offset);
   }
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
@@ -6347,11 +6362,12 @@ class TypedData : public Instance {
   }
 
   static intptr_t data_offset() {
-    return OFFSET_OF(RawTypedData, data_);
+    return OFFSET_OF_RETURNED_VALUE(RawTypedData, data);
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypedData) == OFFSET_OF(RawTypedData, data_));
+    ASSERT(sizeof(RawTypedData) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypedData, data));
     return 0;
   }
 
@@ -6847,7 +6863,7 @@ class JSRegExp : public Instance {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF(RawJSRegExp, data_));
+    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF_RETURNED_VALUE(RawJSRegExp, data));
     return 0;
   }
 
@@ -7049,7 +7065,7 @@ intptr_t Instance::GetNativeField(int index) const {
   if (native_fields == TypedData::null()) {
     return 0;
   }
-  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data())[index];
 }
 
 
@@ -7065,7 +7081,7 @@ void Instance::GetNativeFields(uint16_t num_fields,
       field_values[i] = 0;
     }
   }
-  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
   for (intptr_t i = 0; i < num_fields; i++) {
     field_values[i] = fields[i];
   }

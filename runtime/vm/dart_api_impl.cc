@@ -508,7 +508,7 @@ bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
       if (native_fields == TypedData::null()) {
         *value = 0;
       } else {
-        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
       }
       return true;
     }
@@ -593,7 +593,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
         memset(field_values, 0, (num_fields * sizeof(field_values[0])));
       } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
         intptr_t* native_values =
-            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
         memmove(field_values,
                 native_values,
                 (num_fields * sizeof(field_values[0])));

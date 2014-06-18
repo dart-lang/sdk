@@ -372,7 +372,7 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
   intptr_t len = Smi::Value(str->ptr()->length_);
   object = AllocateDartCObjectString(len);
   char* p = object->value.as_string;
-  memmove(p, str->ptr()->data_, len);
+  memmove(p, str->ptr()->data(), len);
   p[len] = '\0';
   ASSERT(vm_symbol_references_[symbol_id] == NULL);
   vm_symbol_references_[symbol_id] = object;

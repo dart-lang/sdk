@@ -461,7 +461,7 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
         Instructions::HeaderSize();
     for (intptr_t i = 0; i < length; i++) {
-      int32_t offset = obj->data_[i];
+      int32_t offset = obj->data()[i];
       visitor->VisitPointer(
           reinterpret_cast<RawObject**>(entry_point + offset));
     }

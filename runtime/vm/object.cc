@@ -4686,7 +4686,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
 RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
   // TODO(iposva): Determine if we should throw an exception here.
   ASSERT((index >= 0) && (index < Length()));
-  return &raw_ptr()->types_[index];
+  return &raw_ptr()->types()[index];
 }
 
 
@@ -10400,7 +10400,7 @@ bool Stackmap::GetBit(intptr_t bit_index) const {
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t byte = raw_ptr()->data_[byte_index];
+  uint8_t byte = raw_ptr()->data()[byte_index];
   return (byte & byte_mask);
 }
 
@@ -10410,7 +10410,7 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t* byte_addr = &(raw_ptr()->data_[byte_index]);
+  uint8_t* byte_addr = &(raw_ptr()->data()[byte_index]);
   if (value) {
     *byte_addr |= byte_mask;
   } else {
@@ -10506,14 +10506,14 @@ void LocalVarDescriptors::SetVar(intptr_t var_index,
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   names.SetAt(var_index, name);
-  raw_ptr()->data_[var_index] = *info;
+  raw_ptr()->data()[var_index] = *info;
 }
 
 
 void LocalVarDescriptors::GetInfo(intptr_t var_index,
                                   RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  *info = raw_ptr()->data_[var_index];
+  *info = raw_ptr()->data()[var_index];
 }
 
 
@@ -10659,7 +10659,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
-  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[try_index];
+  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data()[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
   info->needs_stacktrace = needs_stacktrace;
@@ -10671,31 +10671,31 @@ void ExceptionHandlers::GetHandlerInfo(
     RawExceptionHandlers::HandlerInfo* info) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
   ASSERT(info != NULL);
-  *info = raw_ptr()->data_[try_index];
+  *info = raw_ptr()->data()[try_index];
 }
 
 
 intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
-  return raw_ptr()->data_[try_index].handler_pc;
+  return raw_ptr()->data()[try_index].handler_pc;
 }
 
 
 intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
-  return raw_ptr()->data_[try_index].outer_try_index;
+  return raw_ptr()->data()[try_index].outer_try_index;
 }
 
 
 bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
-  return raw_ptr()->data_[try_index].needs_stacktrace;
+  return raw_ptr()->data()[try_index].needs_stacktrace;
 }
 
 
 bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < Length()));
-  return raw_ptr()->data_[try_index].has_catch_all;
+  return raw_ptr()->data()[try_index].has_catch_all;
 }
 
 
@@ -13132,7 +13132,7 @@ intptr_t* Instance::NativeFieldsDataAddr() const {
   if (native_fields == TypedData::null()) {
     return NULL;
   }
-  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
 }
 
 
@@ -17374,8 +17374,8 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   RawOneByteString* result = OneByteString::New(length, space);
   NoGCScope no_gc;
   if (length > 0) {
-    uint8_t* dest = &result->ptr()->data_[0];
-    uint8_t* src =  &raw_ptr(str)->data_[begin_index];
+    uint8_t* dest = &result->ptr()->data()[0];
+    uint8_t* src =  &raw_ptr(str)->data()[begin_index];
     memmove(dest, src, length);
   }
   return result;
