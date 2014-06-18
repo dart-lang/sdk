@@ -220,7 +220,7 @@ testGetSet() {
 }
 
 testAbstractClass() {
-  testDart2Dart('main(){A.foo;}abstract class A{final static num foo=0;}');
+  testDart2Dart('main(){A.foo;}abstract class A{static final num foo=0;}');
 }
 
 testConflictSendsRename() {

@@ -208,6 +208,8 @@ abstract class Node extends TreeElementMixin implements Spannable {
   bool isValidContinueTarget() => false;
   bool isThis() => false;
   bool isSuper() => false;
+
+  bool get isErroneous => false;
 }
 
 class ClassNode extends Node {
@@ -319,12 +321,14 @@ abstract class Statement extends Node {
   bool isValidBreakTarget() => true;
 }
 
-/// Errorneous expression that behaves as a literal null.
+/// Erroneous expression that behaves as a literal null.
 class ErrorExpression extends LiteralNull {
   ErrorExpression(token)
       : super(token);
 
   ErrorExpression asErrorExpression() => this;
+
+  bool get isErroneous => true;
 }
 
 /**
@@ -415,10 +419,11 @@ class Send extends Expression {
       return null;
     }
     if (!isPostfix && argumentsNode != null) {
-      return argumentsNode.getEndToken();
+      Token token = argumentsNode.getEndToken();
+      if (token != null) return token;
     }
     if (selector != null) return selector.getEndToken();
-    return receiver.getBeginToken();
+    return getBeginToken();
   }
 
   Send copyWithReceiver(Node newReceiver) {
@@ -558,8 +563,11 @@ class NodeList extends Node {
       Link<Node> link = nodes;
       if (link.isEmpty) return beginToken;
       while (!link.tail.isEmpty) link = link.tail;
-      if (link.head.getEndToken() != null) return link.head.getEndToken();
-      if (link.head.getBeginToken() != null) return link.head.getBeginToken();
+      Node lastNode = link.head;
+      if (lastNode != null) {
+        if (lastNode.getEndToken() != null) return lastNode.getEndToken();
+        if (lastNode.getBeginToken() != null) return lastNode.getBeginToken();
+      }
     }
     return beginToken;
   }
@@ -2114,3 +2122,56 @@ class IsInterpolationVisitor extends Visitor<bool> {
       => node.isInterpolation;
 }
 
+/// Erroneous node used to recover from parser errors.  Implements various
+/// interfaces and provides bare minimum of implementation to avoid unnecessary
+/// messages.
+class ErrorNode
+    extends Node
+    implements FunctionExpression, VariableDefinitions, Typedef {
+  final Token token;
+  final String reason;
+  final Identifier name;
+  final NodeList definitions;
+
+  ErrorNode.internal(this.token, this.reason, this.name, this.definitions);
+
+  factory ErrorNode(Token token, String reason) {
+    Identifier name = new Identifier(token);
+    NodeList definitions = new NodeList(
+        null, const Link<Node>().prepend(name), null, null);
+    return new ErrorNode.internal(token, reason, name, definitions);
+  }
+
+  Token get beginToken => token;
+  Token get endToken => token;
+
+  Token getBeginToken() => token;
+
+  Token getEndToken() => token;
+
+  accept(Visitor visitor) {}
+
+  visitChildren(Visitor visitor) {}
+
+  bool get isErroneous => true;
+
+  // FunctionExpression.
+  get parameters => null;
+  get body => null;
+  get returnType => null;
+  get modifiers => Modifiers.EMPTY;
+  get initializers => null;
+  get getOrSet => null;
+  get isRedirectingFactory => false;
+  bool hasBody() => false;
+  bool hasEmptyBody() => false;
+
+  // VariableDefinitions.
+  get metadata => null;
+  get type => null;
+
+  // Typedef.
+  get typeParameters => null;
+  get formals => null;
+  get typedefKeyword => null;
+}

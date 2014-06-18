@@ -1264,7 +1264,7 @@ abstract class Compiler implements DiagnosticListener {
                        "library."});
         }
       } else {
-        if (main.isErroneous) {
+        if (main.isErroneous && main.isSynthesized) {
           reportFatalError(main, MessageKind.GENERIC,
               {'text': "Cannot determine which '$MAIN' to use."});
         } else if (!main.isFunction) {
@@ -1652,10 +1652,11 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromElement(Element element) {
-    if (Elements.isErroneousElement(element)) {
+    while (element != null && element.isSynthesized) {
       element = element.enclosingElement;
     }
-    if (element.position == null &&
+    if (element != null &&
+        element.position == null &&
         !element.isLibrary &&
         !element.isCompilationUnit) {
       // Sometimes, the backend fakes up elements that have no

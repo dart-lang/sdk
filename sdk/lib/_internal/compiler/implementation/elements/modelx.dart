@@ -28,7 +28,10 @@ import '../dart2jslib.dart' show invariant,
 
 import '../dart_types.dart';
 
-import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
+import '../scanner/scannerlib.dart' show
+    EOF_TOKEN,
+    ErrorToken,
+    Token;
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
@@ -152,7 +155,7 @@ abstract class ElementX extends Element {
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
-      if (needle == t.value) return t;
+      if (t is !ErrorToken && needle == t.value) return t;
     }
     return token;
   }
@@ -296,6 +299,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
       : super(name, ElementKind.ERROR, enclosing);
 
   bool get isErroneous => true;
+
+  bool get isSynthesized => true;
 
   AbstractFieldElement abstractField;
 

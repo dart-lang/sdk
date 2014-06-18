@@ -11,6 +11,9 @@ const bool VERBOSE = false;
  * on parser errors.
  */
 class Listener {
+  set suppressParseErrors(bool value) {
+  }
+
   void beginArguments(Token token) {
   }
 
@@ -768,12 +771,27 @@ class ElementListener extends Listener {
 
   Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
 
+  /// Records a stack of booleans for each member parsed (a stack is used to
+  /// support nested members which isn't currently possible, but it also serves
+  /// as a simple way to tell we're currently parsing a member). In this case,
+  /// member refers to members of a library or a class (but currently, classes
+  /// themselves are not considered members).  If the top of the stack
+  /// (memberErrors.head) is true, the current member has already reported at
+  /// least one parse error.
+  Link<bool> memberErrors = const Link<bool>();
+
+  bool suppressParseErrors = false;
+
   ElementListener(DiagnosticListener listener,
                   this.compilationUnitElement,
                   this.idGenerator)
       : this.listener = listener,
         stringValidator = new StringValidator(listener),
         interpolationScope = const Link<StringQuoting>();
+
+  bool get currentMemberHasParseError {
+    return !memberErrors.isEmpty && memberErrors.head;
+  }
 
   void pushQuoting(StringQuoting quoting) {
     interpolationScope = interpolationScope.prepend(quoting);
@@ -954,6 +972,8 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
+    bool hasParseError = currentMemberHasParseError;
+    memberErrors = memberErrors.tail;
     Identifier name = popNode();
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
@@ -965,12 +985,16 @@ class ElementListener extends Listener {
     } else if (identical(getOrSet.stringValue, 'set')) {
       kind = ElementKind.SETTER;
     }
-    pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, kind, modifiers,
-                                           compilationUnitElement, false));
+    PartialFunctionElement element = new PartialFunctionElement(
+        name.source, beginToken, getOrSet, endToken, kind, modifiers,
+        compilationUnitElement, false);
+    element.hasParseError = hasParseError;
+    pushElement(element);
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
+    bool hasParseError = currentMemberHasParseError;
+    memberErrors = memberErrors.tail;
     void buildFieldElement(Identifier name, VariableList fields) {
       pushElement(
           new FieldElementX(name, compilationUnitElement, fields));
@@ -980,7 +1004,7 @@ class ElementListener extends Listener {
     Modifiers modifiers = popNode();
     buildFieldElements(modifiers, variables, compilationUnitElement,
                        buildFieldElement,
-                       beginToken, endToken);
+                       beginToken, endToken, hasParseError);
   }
 
   void buildFieldElements(Modifiers modifiers,
@@ -988,9 +1012,10 @@ class ElementListener extends Listener {
                           Element enclosingElement,
                           void buildFieldElement(Identifier name,
                                                  VariableList fields),
-                          Token beginToken, Token endToken) {
+                          Token beginToken, Token endToken,
+                          bool hasParseError) {
     VariableList fields =
-        new PartialFieldList(beginToken, endToken, modifiers);
+        new PartialFieldList(beginToken, endToken, modifiers, hasParseError);
     for (Link<Node> variableNodes = variables.nodes;
          !variableNodes.isEmpty;
          variableNodes = variableNodes.tail) {
@@ -1067,11 +1092,41 @@ class ElementListener extends Listener {
   Token expected(String string, Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
+    } else if (identical(';', string)) {
+      // When a semicolon is missing, it often leads to an error on the
+      // following line. So we try to find the token preceding the semicolon
+      // and report that something is missing *after* it.
+      Token preceding = findPrecedingToken(token);
+      if (preceding == token) {
+        reportError(
+            token, MessageKind.MISSING_TOKEN_BEFORE_THIS, {'token': string});
+      } else {
+        reportError(
+            preceding, MessageKind.MISSING_TOKEN_AFTER_THIS, {'token': string});
+      }
+      return token;
     } else {
       reportFatalError(
-          token, "Expected '$string', but got '${token.value}'.");
+          token,
+          MessageKind.MISSING_TOKEN_BEFORE_THIS.message(
+              {'token': string}, true).toString());
     }
     return skipToEof(token);
+  }
+
+  /// Finds the preceding token via the begin token of the last AST node pushed
+  /// on the [nodes] stack.
+  Token findPrecedingToken(Token token) {
+    if (!nodes.isEmpty && nodes.head != null) {
+      Token current = nodes.head.getBeginToken();
+      while (current.kind != EOF_TOKEN && current.next != token) {
+        current = current.next;
+      }
+      if (current.kind != EOF_TOKEN) {
+        return current;
+      }
+    }
+    return token;
   }
 
   Token expectedIdentifier(Token token) {
@@ -1313,6 +1368,30 @@ class ElementListener extends Listener {
     pushNode(accumulator);
   }
 
+  void beginMember(Token token) {
+    memberErrors = memberErrors.prepend(false);
+  }
+
+  void beginTopLevelMember(Token token) {
+    beginMember(token);
+  }
+
+  void endFields(fieldCount, start, token) {
+    memberErrors = memberErrors.tail;
+  }
+
+  void endMethod(getOrSet, start, token) {
+    memberErrors = memberErrors.tail;
+  }
+
+  void beginFactoryMethod(Token token) {
+    memberErrors = memberErrors.prepend(false);
+  }
+
+  void endFactoryMethod(Token beginToken, Token endToken) {
+    memberErrors = memberErrors.tail;
+  }
+
   void reportFatalError(Spannable spannable,
                         String message) {
     listener.reportFatalError(
@@ -1322,13 +1401,35 @@ class ElementListener extends Listener {
   void reportError(Spannable spannable,
                    MessageKind errorCode,
                    [Map arguments = const {}]) {
+    if (currentMemberHasParseError) return; // Error already reported.
+    if (suppressParseErrors) return;
+    if (!memberErrors.isEmpty) {
+      memberErrors = memberErrors.tail.prepend(true);
+    }
     listener.reportError(spannable, errorCode, arguments);
   }
 }
 
 class NodeListener extends ElementListener {
-  NodeListener(DiagnosticListener listener, CompilationUnitElement element)
+  final bool throwOnFatalError;
+
+  NodeListener(
+      DiagnosticListener listener,
+      CompilationUnitElement element,
+      {bool this.throwOnFatalError: false})
     : super(listener, element, null);
+
+  void reportFatalError(Spannable spannable,
+                        String message) {
+    if (throwOnFatalError) {
+      if (!currentMemberHasParseError && !suppressParseErrors) {
+        reportError(spannable, MessageKind.GENERIC, {'text': message});
+      }
+      throw new ParserError(message);
+    } else {
+      super.reportFatalError(spannable, message);
+    }
+  }
 
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);
@@ -1497,12 +1598,13 @@ class NodeListener extends ElementListener {
     if (identical(token.stringValue, 'native')) {
       return native.handleNativeFunctionBody(this, token);
     } else if (token is ErrorToken) {
+      pushNode(null);
       reportErrorToken(token);
     } else {
       reportFatalError(token,
                        "Expected a function body, but got '${token.value}'.");
-      return skipToEof(token);
     }
+    return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
@@ -1667,7 +1769,8 @@ class NodeListener extends ElementListener {
 
   void endInitializer(Token assignmentOperator) {
     Expression initializer = popNode();
-    NodeList arguments = new NodeList.singleton(initializer);
+    NodeList arguments =
+        initializer == null ? null : new NodeList.singleton(initializer);
     Expression name = popNode();
     Operator op = new Operator(assignmentOperator);
     pushNode(new SendSet(null, name, op, arguments));
@@ -1938,6 +2041,7 @@ class NodeListener extends ElementListener {
   }
 
   void endFactoryMethod(Token beginToken, Token endToken) {
+    super.endFactoryMethod(beginToken, endToken);
     Statement body = popNode();
     NodeList formals = popNode();
     Node name = popNode();
@@ -2072,6 +2176,12 @@ class NodeListener extends ElementListener {
   }
 }
 
+abstract class PartialElement implements Element {
+  bool hasParseError = false;
+
+  bool get isErroneous => hasParseError;
+}
+
 abstract class PartialFunctionMixin implements FunctionElement {
   FunctionExpression cachedNode;
   Modifiers get modifiers;
@@ -2111,7 +2221,7 @@ abstract class PartialFunctionMixin implements FunctionElement {
         p.parseFunction(beginToken, getOrSet);
       }
     }
-    cachedNode = parse(listener, compilationUnit, parseFunction);
+    cachedNode = parse(listener, this, parseFunction);
     return cachedNode;
   }
 
@@ -2119,7 +2229,7 @@ abstract class PartialFunctionMixin implements FunctionElement {
 }
 
 class PartialFunctionElement extends FunctionElementX
-    with PartialFunctionMixin {
+    with PartialElement, PartialFunctionMixin {
   PartialFunctionElement(String name,
                          Token beginToken,
                          Token getOrSet,
@@ -2134,7 +2244,7 @@ class PartialFunctionElement extends FunctionElementX
 }
 
 class PartialConstructorElement extends ConstructorElementX
-    with PartialFunctionMixin {
+    with PartialElement, PartialFunctionMixin {
   PartialConstructorElement(String name,
                             Token beginToken,
                             Token endToken,
@@ -2149,23 +2259,32 @@ class PartialConstructorElement extends ConstructorElementX
 class PartialFieldList extends VariableList {
   final Token beginToken;
   final Token endToken;
+  final bool hasParseError;
 
-  PartialFieldList(Token this.beginToken,
-                   Token this.endToken,
-                   Modifiers modifiers)
+  PartialFieldList(this.beginToken,
+                   this.endToken,
+                   Modifiers modifiers,
+                   this.hasParseError)
       : super(modifiers);
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
     if (definitions != null) return definitions;
     listener.withCurrentElement(element, () {
-      definitions = parse(listener,
-                          element.compilationUnit,
-                          (p) => p.parseVariablesDeclaration(beginToken));
+      definitions = parse(
+          listener, element,
+          (Parser parser) {
+            if (hasParseError) {
+              parser.listener.suppressParseErrors = true;
+            }
+            return parser.parseMember(beginToken);
+          });
 
-      if (!definitions.modifiers.isVar &&
+      if (!hasParseError &&
+          !definitions.modifiers.isVar &&
           !definitions.modifiers.isFinal &&
           !definitions.modifiers.isConst &&
-          definitions.type == null) {
+          definitions.type == null &&
+          !definitions.isErroneous) {
         listener.reportError(
             definitions,
             MessageKind.GENERIC,
@@ -2201,7 +2320,7 @@ class PartialTypedefElement extends TypedefElementX {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
-                       compilationUnit,
+                       this,
                        (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
@@ -2230,7 +2349,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     Metadata metadata = parse(listener,
-                              annotatedElement.compilationUnit,
+                              annotatedElement,
                               (p) => p.parseMetadata(beginToken));
     cachedNode = metadata.expression;
     return cachedNode;
@@ -2238,10 +2357,20 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
 }
 
 Node parse(DiagnosticListener diagnosticListener,
-           CompilationUnitElement element,
+           Element element,
            doParse(Parser parser)) {
-  NodeListener listener = new NodeListener(diagnosticListener, element);
-  doParse(new Parser(listener));
+  CompilationUnitElement unit = element.compilationUnit;
+  NodeListener listener =
+      new NodeListener(diagnosticListener, unit, throwOnFatalError: true);
+  listener.memberErrors = listener.memberErrors.prepend(false);
+  try {
+    doParse(new Parser(listener));
+  } on ParserError catch (e) {
+    if (element is PartialElement) {
+      element.hasParseError = true;
+    }
+    return new ErrorNode(element.position, e.reason);
+  }
   Node node = listener.popNode();
   assert(listener.nodes.isEmpty);
   return node;

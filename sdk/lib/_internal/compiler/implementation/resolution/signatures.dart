@@ -252,7 +252,15 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter) {
-        compiler.reportError(element, MessageKind.MISSING_FORMALS);
+        if (element.isErroneous) {
+          // If the element is erroneous, an error should already have been
+          // reported. In the case of parse errors, it is possible that there
+          // are formal parameters, but something else in the method failed to
+          // parse. So we suppress the message about missing formals.
+          assert(invariant(element, compiler.compilationFailed));
+        } else {
+          compiler.reportError(element, MessageKind.MISSING_FORMALS);
+        }
       }
     } else {
       if (element.isGetter) {

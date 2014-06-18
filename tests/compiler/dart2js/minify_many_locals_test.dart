@@ -9,7 +9,7 @@ import 'compiler_helper.dart';
 
 main() {
   var buffer = new StringBuffer();
-  buffer.write("var foo(");
+  buffer.write("foo(");
   for (int i = 0; i < 2000; i++) {
     buffer.write("x$i, ");
   }

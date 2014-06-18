@@ -1838,6 +1838,24 @@ main() {
 }
 /*"""]);
 
+  static const MessageKind MISSING_TOKEN_BEFORE_THIS = const MessageKind(
+      "Expected '#{token}' before this.",
+      // Consider the second example below: the parser expects a ')' before
+      // 'y', but a ',' would also have worked. We don't have enough
+      // information to give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+          "main() => true ? 1;",
+          "main() => foo(x: 1 y: 2);",
+        ]);
+
+  static const MessageKind MISSING_TOKEN_AFTER_THIS = const MessageKind(
+      "Expected '#{token}' after this.",
+      // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information to
+      // give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["main(x) {x}"]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 
@@ -2032,7 +2050,7 @@ class Message {
     if (message == null) {
       message = kind.template;
       arguments.forEach((key, value) {
-        message = message.replaceAll('#{${key}}', value.toString());
+        message = message.replaceAll('#{${key}}', convertToString(value));
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -2042,7 +2060,7 @@ class Message {
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
-          howToFix = howToFix.replaceAll('#{${key}}', value.toString());
+          howToFix = howToFix.replaceAll('#{${key}}', convertToString(value));
         });
         message = '$message\n$howToFix';
       }
@@ -2060,4 +2078,14 @@ class Message {
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');
+
+  static String convertToString(value) {
+    if (value is ErrorToken) {
+      // Shouldn't happen.
+      return value.assertionMessage;
+    } else if (value is Token) {
+      value = value.value;
+    }
+    return '$value';
+  }
 }
