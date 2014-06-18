@@ -23,6 +23,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/scanner.h"
 #include "vm/scopes.h"
@@ -37,8 +38,6 @@ namespace dart {
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
-DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
-DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -391,7 +390,7 @@ void Parser::ComputeCurrentToken() {
   ASSERT(token_kind_ == Token::kILLEGAL);
   token_kind_ = tokens_iterator_.CurrentTokenKind();
   if (token_kind_ == Token::kERROR) {
-    ErrorMsg(TokenPos(), "%s", CurrentLiteral()->ToCString());
+    ReportError(TokenPos(), "%s", CurrentLiteral()->ToCString());
   }
 }
 
@@ -424,9 +423,9 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
   if (FLAG_throw_on_javascript_int_overflow) {
     const Integer& i = Integer::Handle(I, ri);
     if (i.CheckJavascriptIntegerOverflow()) {
-      ErrorMsg(TokenPos(),
-          "Integer literal does not fit in a Javascript integer: %s.",
-          i.ToCString());
+      ReportError(TokenPos(),
+                  "Integer literal does not fit in a Javascript integer: %s.",
+                  i.ToCString());
     }
   }
   return ri;
@@ -927,7 +926,7 @@ RawArray* Parser::EvaluateMetadata() {
                                  library_.LookupLocalObject(*CurrentLiteral()));
     if (!obj.IsNull() && obj.IsLibraryPrefix()) {
       if (LibraryPrefix::Cast(obj).is_deferred_load()) {
-        ErrorMsg("Metadata must be compile-time constant");
+        ReportError("Metadata must be compile-time constant");
       }
     }
     AstNode* expr = NULL;
@@ -949,37 +948,39 @@ RawArray* Parser::EvaluateMetadata() {
           // qualified static field.
           cls ^= primary_node->primary().raw();
         } else {
-          ErrorMsg(expr_pos, "Metadata expressions must refer to a const field "
-                             "or constructor");
+          ReportError(expr_pos,
+                      "Metadata expressions must refer to a const field "
+                      "or constructor");
         }
       }
       if (CurrentToken() == Token::kPERIOD) {
         // C.x or L.C.X.
         if (cls.IsNull()) {
-          ErrorMsg(expr_pos, "Metadata expressions must refer to a const field "
-                             "or constructor");
+          ReportError(expr_pos,
+                      "Metadata expressions must refer to a const field "
+                      "or constructor");
         }
         ConsumeToken();
         const intptr_t ident_pos = TokenPos();
         String* ident = ExpectIdentifier("identifier expected");
         const Field& field = Field::Handle(I, cls.LookupStaticField(*ident));
         if (field.IsNull()) {
-          ErrorMsg(ident_pos,
-                   "Class '%s' has no field '%s'",
-                   cls.ToCString(),
-                   ident->ToCString());
+          ReportError(ident_pos,
+                      "Class '%s' has no field '%s'",
+                      cls.ToCString(),
+                      ident->ToCString());
         }
         if (!field.is_const()) {
-          ErrorMsg(ident_pos,
-                   "Field '%s' of class '%s' is not const",
-                   ident->ToCString(),
-                   cls.ToCString());
+          ReportError(ident_pos,
+                      "Field '%s' of class '%s' is not const",
+                      ident->ToCString(),
+                      cls.ToCString());
         }
         expr = GenerateStaticFieldLookup(field, ident_pos);
       }
     }
     if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "expression must be a compile-time constant");
+      ReportError(expr_pos, "expression must be a compile-time constant");
     }
     const Instance& val = EvaluateConstExpr(expr_pos, expr);
     meta_values.Add(val);
@@ -1018,7 +1019,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
     AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
-      ErrorMsg(expr_pos, "initializer is not a valid compile-time constant");
+      ReportError(expr_pos, "initializer is not a valid compile-time constant");
     }
     ReturnNode* return_node = new ReturnNode(ident_pos, expr);
     current_block_->statements->Add(return_node);
@@ -1513,9 +1514,9 @@ void Parser::SkipBlock() {
     }
   } while (!token_stack.is_empty() && is_match && !unexpected_token_found);
   if (!is_match) {
-    ErrorMsg(token_pos, "unbalanced '%s'", Token::Str(token));
+    ReportError(token_pos, "unbalanced '%s'", Token::Str(token));
   } else if (unexpected_token_found) {
-    ErrorMsg(block_start_pos, "unterminated block");
+    ReportError(block_start_pos, "unterminated block");
   }
 }
 
@@ -1562,7 +1563,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // At this point, we must see an identifier for the type or the
     // function parameter.
     if (!IsIdentifier()) {
-      ErrorMsg("parameter name or type expected");
+      ReportError("parameter name or type expected");
     }
     // We have not seen a parameter type yet, so we check if the next
     // identifier could represent a type before parsing it.
@@ -1602,7 +1603,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
   if (params->has_optional_named_parameters &&
       (parameter.name->CharAt(0) == '_')) {
-    ErrorMsg(parameter.name_pos, "named parameter must not be private");
+    ReportError(parameter.name_pos, "named parameter must not be private");
   }
 
   // Check for duplicate formal parameters.
@@ -1611,8 +1612,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   for (intptr_t i = 0; i < num_existing_parameters; i++) {
     ParamDesc& existing_parameter = (*params->parameters)[i];
     if (existing_parameter.name->Equals(*parameter.name)) {
-      ErrorMsg(parameter.name_pos, "duplicate formal parameter '%s'",
-               parameter.name->ToCString());
+      ReportError(parameter.name_pos, "duplicate formal parameter '%s'",
+                  parameter.name->ToCString());
     }
   }
 
@@ -1691,7 +1692,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     if ((!params->has_optional_positional_parameters &&
          !params->has_optional_named_parameters) ||
         !allow_explicit_default_value) {
-      ErrorMsg("parameter must not specify a default value");
+      ReportError("parameter must not specify a default value");
     }
     if (params->has_optional_positional_parameters) {
       ExpectToken(Token::kASSIGN);
@@ -1719,7 +1720,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     }
   }
   if (parameter.type->IsVoidType()) {
-    ErrorMsg("parameter '%s' may not be 'void'", parameter.name->ToCString());
+    ReportError("parameter '%s' may not be 'void'",
+                parameter.name->ToCString());
   }
   if (params->implicitly_final) {
     parameter.is_final = true;
@@ -1783,7 +1785,7 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
     if ((CurrentToken() != Token::kRPAREN) &&
         !params->has_optional_positional_parameters &&
         !params->has_optional_named_parameters) {
-      ErrorMsg("',' or ')' expected");
+      ReportError("',' or ')' expected");
     }
   } else {
     ConsumeToken();
@@ -1814,8 +1816,8 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
                                       bool* is_no_such_method) {
   const Class& super_class = Class::Handle(I, current_class().SuperClass());
   if (super_class.IsNull()) {
-    ErrorMsg(token_pos, "class '%s' does not have a superclass",
-             String::Handle(I, current_class().Name()).ToCString());
+    ReportError(token_pos, "class '%s' does not have a superclass",
+                String::Handle(I, current_class().Name()).ToCString());
   }
   Function& super_func = Function::Handle(I,
       Resolver::ResolveDynamicAnyArgs(super_class, name));
@@ -1986,7 +1988,7 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
     }
     super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
   } else {
-    ErrorMsg(super_pos, "illegal super operator call");
+    ReportError(super_pos, "illegal super operator call");
   }
   return super_op;
 }
@@ -2077,8 +2079,8 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
   TRACE_PARSER("ParseSuperFieldAccess");
   const Class& super_class = Class::ZoneHandle(I, current_class().SuperClass());
   if (super_class.IsNull()) {
-    ErrorMsg("class '%s' does not have a superclass",
-             String::Handle(I, current_class().Name()).ToCString());
+    ReportError("class '%s' does not have a superclass",
+                String::Handle(I, current_class().Name()).ToCString());
   }
   AstNode* implicit_argument = LoadReceiver(field_pos);
 
@@ -2161,22 +2163,22 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   const Function& super_ctor = Function::ZoneHandle(I,
       super_class.LookupConstructor(super_ctor_name));
   if (super_ctor.IsNull()) {
-      ErrorMsg(supercall_pos,
-               "unresolved implicit call to super constructor '%s()'",
-               String::Handle(I, super_class.Name()).ToCString());
+      ReportError(supercall_pos,
+                  "unresolved implicit call to super constructor '%s()'",
+                  String::Handle(I, super_class.Name()).ToCString());
   }
   if (current_function().is_const() && !super_ctor.is_const()) {
-    ErrorMsg(supercall_pos, "implicit call to non-const super constructor");
+    ReportError(supercall_pos, "implicit call to non-const super constructor");
   }
 
   String& error_message = String::Handle(I);
   if (!super_ctor.AreValidArguments(arguments->length(),
                                     arguments->names(),
                                     &error_message)) {
-    ErrorMsg(supercall_pos,
-             "invalid arguments passed to super constructor '%s()': %s",
-             String::Handle(I, super_class.Name()).ToCString(),
-             error_message.ToCString());
+    ReportError(supercall_pos,
+                "invalid arguments passed to super constructor '%s()': %s",
+                String::Handle(I, super_class.Name()).ToCString(),
+                error_message.ToCString());
   }
   current_block_->statements->Add(
       new StaticCallNode(supercall_pos, super_ctor, arguments));
@@ -2221,21 +2223,21 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   const Function& super_ctor = Function::ZoneHandle(I,
       super_class.LookupConstructor(ctor_name));
   if (super_ctor.IsNull()) {
-    ErrorMsg(supercall_pos,
-             "super class constructor '%s' not found",
-             ctor_name.ToCString());
+    ReportError(supercall_pos,
+                "super class constructor '%s' not found",
+                ctor_name.ToCString());
   }
   if (current_function().is_const() && !super_ctor.is_const()) {
-    ErrorMsg(supercall_pos, "super constructor must be const");
+    ReportError(supercall_pos, "super constructor must be const");
   }
   String& error_message = String::Handle(I);
   if (!super_ctor.AreValidArguments(arguments->length(),
                                     arguments->names(),
                                     &error_message)) {
-    ErrorMsg(supercall_pos,
-             "invalid arguments passed to super class constructor '%s': %s",
-             ctor_name.ToCString(),
-             error_message.ToCString());
+    ReportError(supercall_pos,
+                "invalid arguments passed to super class constructor '%s': %s",
+                ctor_name.ToCString(),
+                error_message.ToCString());
   }
   return new StaticCallNode(supercall_pos, super_ctor, arguments);
 }
@@ -2263,13 +2265,13 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
   if (current_function().is_const() && !init_expr->IsPotentiallyConst()) {
-    ErrorMsg(field_pos,
-             "initializer expression must be compile time constant.");
+    ReportError(field_pos,
+                "initializer expression must be compile time constant.");
   }
   Field& field = Field::ZoneHandle(I, cls.LookupInstanceField(field_name));
   if (field.IsNull()) {
-    ErrorMsg(field_pos, "unresolved reference to instance field '%s'",
-             field_name.ToCString());
+    ReportError(field_pos, "unresolved reference to instance field '%s'",
+                field_name.ToCString());
   }
   CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
   AstNode* instance = new LoadLocalNode(field_pos, receiver);
@@ -2404,9 +2406,9 @@ void Parser::CheckDuplicateFieldInit(intptr_t init_pos,
   for (int i = 0; i < initialized_fields->length(); i++) {
     Field* initialized_field = (*initialized_fields)[i];
     if (initialized_field->raw() == field->raw()) {
-      ErrorMsg(init_pos,
-               "duplicate initialization for field %s",
-               String::Handle(I, field->name()).ToCString());
+      ReportError(init_pos,
+                  "duplicate initialization for field %s",
+                  String::Handle(I, field->name()).ToCString());
     }
   }
   initialized_fields->Add(field);
@@ -2424,7 +2426,7 @@ void Parser::ParseInitializers(const Class& cls,
       AstNode* init_statement;
       if (CurrentToken() == Token::kSUPER) {
         if (super_init_seen) {
-          ErrorMsg("duplicate call to super constructor");
+          ReportError("duplicate call to super constructor");
         }
         init_statement = ParseSuperInitializer(cls, receiver);
         super_init_seen = true;
@@ -2476,16 +2478,16 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const Function& redirect_ctor = Function::ZoneHandle(I,
       cls.LookupConstructor(ctor_name));
   if (redirect_ctor.IsNull()) {
-    ErrorMsg(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+    ReportError(call_pos, "constructor '%s' not found", ctor_name.ToCString());
   }
   String& error_message = String::Handle(I);
   if (!redirect_ctor.AreValidArguments(arguments->length(),
                                        arguments->names(),
                                        &error_message)) {
-    ErrorMsg(call_pos,
-             "invalid arguments passed to constructor '%s': %s",
-             ctor_name.ToCString(),
-             error_message.ToCString());
+    ReportError(call_pos,
+                "invalid arguments passed to constructor '%s': %s",
+                ctor_name.ToCString(),
+                error_message.ToCString());
   }
   current_block_->statements->Add(
       new StaticCallNode(call_pos, redirect_ctor, arguments));
@@ -2536,14 +2538,14 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     // allows optional parameters.
     if (func.HasOptionalParameters()) {
       const Class& super_class = Class::Handle(I, current_class().SuperClass());
-      ErrorMsg(ctor_pos,
-               "cannot generate an implicit mixin application constructor "
-               "forwarding to a super class constructor with optional "
-               "parameters; add a constructor without optional parameters "
-               "to class '%s' that redirects to the constructor with optional "
-               "parameters and invoke it via super from a constructor of the "
-               "class extending the mixin application",
-               String::Handle(I, super_class.Name()).ToCString());
+      ReportError(ctor_pos,
+                  "cannot generate an implicit mixin application constructor "
+                  "forwarding to a super class constructor with optional "
+                  "parameters; add a constructor without optional parameters "
+                  "to class '%s' that redirects to the constructor with "
+                  "optional parameters and invoke it via super from a "
+                  "constructor of the class extending the mixin application",
+                  String::Handle(I, super_class.Name()).ToCString());
     }
 
     // Prepare user-defined arguments to be forwarded to super call.
@@ -2580,7 +2582,7 @@ void Parser::CheckRecursiveInvocation() {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
           String::Handle(I, current_function().UserVisibleName());
-      ErrorMsg("circular dependency for function %s", fname.ToCString());
+      ReportError("circular dependency for function %s", fname.ToCString());
     }
   }
   ASSERT(!unregister_pending_function_);
@@ -2677,14 +2679,14 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         Field& field =
             Field::ZoneHandle(I, cls.LookupInstanceField(field_name));
         if (field.IsNull()) {
-          ErrorMsg(param.name_pos,
-                   "unresolved reference to instance field '%s'",
-                   field_name.ToCString());
+          ReportError(param.name_pos,
+                      "unresolved reference to instance field '%s'",
+                      field_name.ToCString());
         }
         if (is_redirecting_constructor) {
-          ErrorMsg(param.name_pos,
-                   "redirecting constructors may not have "
-                   "initializing formal parameters");
+          ReportError(param.name_pos,
+                      "redirecting constructors may not have "
+                      "initializing formal parameters");
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
 
@@ -2842,9 +2844,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     ParseStatementSequence();
     ExpectToken(Token::kRBRACE);
   } else if (CurrentToken() == Token::kARROW) {
-    ErrorMsg("constructors may not return a value");
+    ReportError("constructors may not return a value");
   } else if (IsLiteral("native")) {
-    ErrorMsg("native constructors not supported");
+    ReportError("native constructors not supported");
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Some constructors have no function body.
     ConsumeToken();
@@ -2963,8 +2965,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
       for (int i = 0; i < params.parameters->length(); i++) {
         ParamDesc& param = (*params.parameters)[i];
         if (param.is_field_initializer) {
-          ErrorMsg(param.name_pos,
-                   "field initializer only allowed in constructors");
+          ReportError(param.name_pos,
+                      "field initializer only allowed in constructors");
         }
       }
     }
@@ -3177,21 +3179,21 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   ASSERT(current_member_ == method);
 
   if (method->has_var) {
-    ErrorMsg(method->name_pos, "keyword var not allowed for methods");
+    ReportError(method->name_pos, "keyword var not allowed for methods");
   }
   if (method->has_final) {
-    ErrorMsg(method->name_pos, "'final' not allowed for methods");
+    ReportError(method->name_pos, "'final' not allowed for methods");
   }
   if (method->has_abstract && method->has_static) {
-    ErrorMsg(method->name_pos,
-             "static method '%s' cannot be abstract",
-             method->name->ToCString());
-  }
+    ReportError(method->name_pos,
+                "static method '%s' cannot be abstract",
+                method->name->ToCString());
+     }
   if (method->has_const && !method->IsFactoryOrConstructor()) {
-    ErrorMsg(method->name_pos, "'const' not allowed for methods");
+    ReportError(method->name_pos, "'const' not allowed for methods");
   }
   if (method->has_abstract && method->IsFactoryOrConstructor()) {
-    ErrorMsg(method->name_pos, "constructor cannot be abstract");
+    ReportError(method->name_pos, "constructor cannot be abstract");
   }
   if (method->has_const && method->IsConstructor()) {
     current_class().set_is_const();
@@ -3259,8 +3261,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
     if ((method->params.num_fixed_parameters != expected_num_parameters) ||
         (method->params.num_optional_parameters != 0)) {
-      ErrorMsg(method->name_pos, "illegal %s parameters",
-               method->IsGetter() ? "getter" : "setter");
+      ReportError(method->name_pos, "illegal %s parameters",
+                  method->IsGetter() ? "getter" : "setter");
     }
   }
 
@@ -3271,14 +3273,14 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
     // Default parameter values are disallowed in redirecting factories.
     if (method->params.has_explicit_default_values) {
-      ErrorMsg("redirecting factory '%s' may not specify default values "
-               "for optional parameters",
-               method->name->ToCString());
+      ReportError("redirecting factory '%s' may not specify default values "
+                  "for optional parameters",
+                  method->name->ToCString());
     }
     if (method->has_external) {
-      ErrorMsg(TokenPos(),
-               "external factory constructor '%s' may not have redirection",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "external factory constructor '%s' may not have redirection",
+                  method->name->ToCString());
     }
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
@@ -3306,12 +3308,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else if (CurrentToken() == Token::kCOLON) {
     // Parse initializers.
     if (!method->IsConstructor()) {
-      ErrorMsg("initializers only allowed on constructors");
+      ReportError("initializers only allowed on constructors");
     }
     if (method->has_external) {
-      ErrorMsg(TokenPos(),
-               "external constructor '%s' may not have initializers",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "external constructor '%s' may not have initializers",
+                  method->name->ToCString());
     }
     if ((LookaheadToken(1) == Token::kTHIS) &&
         ((LookaheadToken(2) == Token::kLPAREN) ||
@@ -3321,8 +3323,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       if (method->params.has_field_initializer) {
         // Constructors that redirect to another constructor must not
         // initialize any fields using field initializer parameters.
-        ErrorMsg(formal_param_pos, "Redirecting constructor "
-                 "may not use field initializer parameters");
+        ReportError(formal_param_pos, "Redirecting constructor "
+                    "may not use field initializer parameters");
       }
       ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
@@ -3347,35 +3349,35 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (method->IsConstructor() &&
       method->has_external &&
       method->params.has_field_initializer) {
-    ErrorMsg(method->name_pos,
-             "external constructor '%s' may not have field initializers",
-             method->name->ToCString());
+    ReportError(method->name_pos,
+                "external constructor '%s' may not have field initializers",
+                method->name->ToCString());
   }
 
   intptr_t method_end_pos = TokenPos();
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
-      ErrorMsg(TokenPos(),
-               "abstract method '%s' may not have a function body",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "abstract method '%s' may not have a function body",
+                  method->name->ToCString());
     } else if (method->has_external) {
-      ErrorMsg(TokenPos(),
-               "external %s '%s' may not have a function body",
-               method->IsFactoryOrConstructor() ? "constructor" : "method",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "external %s '%s' may not have a function body",
+                  method->IsFactoryOrConstructor() ? "constructor" : "method",
+                  method->name->ToCString());
     } else if (method->IsConstructor() && method->has_const) {
-      ErrorMsg(TokenPos(),
-               "const constructor '%s' may not have a function body",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "const constructor '%s' may not have a function body",
+                  method->name->ToCString());
     } else if (method->IsFactory() && method->has_const) {
-      ErrorMsg(TokenPos(),
-               "const factory '%s' may not have a function body",
-               method->name->ToCString());
+      ReportError(TokenPos(),
+                  "const factory '%s' may not have a function body",
+                  method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
-      ErrorMsg(method->name_pos,
-               "Constructor with redirection may not have a function body");
+      ReportError(method->name_pos,
+                  "Constructor with redirection may not have a function body");
     }
     if (CurrentToken() == Token::kLBRACE) {
       SkipBlock();
@@ -3389,17 +3391,17 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
-      ErrorMsg(method->name_pos,
-               "abstract method '%s' may not have a function body",
-               method->name->ToCString());
+      ReportError(method->name_pos,
+                  "abstract method '%s' may not have a function body",
+                  method->name->ToCString());
     } else if (method->IsConstructor() && method->has_const) {
-      ErrorMsg(method->name_pos,
-               "const constructor '%s' may not be native",
-               method->name->ToCString());
+      ReportError(method->name_pos,
+                  "const constructor '%s' may not be native",
+                  method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
-      ErrorMsg(method->name_pos,
-               "Constructor with redirection may not have a function body");
+      ReportError(method->name_pos,
+                  "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
     method_end_pos = TokenPos();
@@ -3412,9 +3414,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
         !method->has_external &&
         redirection_type.IsNull();
     if (must_have_body) {
-      ErrorMsg(method->name_pos,
-               "function body expected for method '%s'",
-               method->name->ToCString());
+      ReportError(method->name_pos,
+                  "function body expected for method '%s'",
+                  method->name->ToCString());
     }
 
     if (CurrentToken() == Token::kSEMICOLON) {
@@ -3436,9 +3438,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       if (must_have_semicolon) {
         ExpectSemicolon();
       } else {
-        ErrorMsg(method->name_pos,
-                 "function body or semicolon expected for method '%s'",
-                 method->name->ToCString());
+        ReportError(method->name_pos,
+                    "function body or semicolon expected for method '%s'",
+                    method->name->ToCString());
       }
     }
   }
@@ -3508,16 +3510,16 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   ASSERT(!field->has_const || field->has_final);
 
   if (field->has_abstract) {
-    ErrorMsg("keyword 'abstract' not allowed in field declaration");
+    ReportError("keyword 'abstract' not allowed in field declaration");
   }
   if (field->has_external) {
-    ErrorMsg("keyword 'external' not allowed in field declaration");
+    ReportError("keyword 'external' not allowed in field declaration");
   }
   if (field->has_factory) {
-    ErrorMsg("keyword 'factory' not allowed in field declaration");
+    ReportError("keyword 'factory' not allowed in field declaration");
   }
   if (!field->has_static && field->has_const) {
-    ErrorMsg(field->name_pos, "instance field may not be 'const'");
+    ReportError(field->name_pos, "instance field may not be 'const'");
   }
   Function& getter = Function::Handle(I);
   Function& setter = Function::Handle(I);
@@ -3549,10 +3551,10 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       // Static const and static final fields must have an initializer.
       // Static const fields are implicitly final.
       if (field->has_static && field->has_final) {
-        ErrorMsg(field->name_pos,
-                 "static %s field '%s' must have an initializer expression",
-                 field->has_const ? "const" : "final",
-                 field->name->ToCString());
+        ReportError(field->name_pos,
+                    "static %s field '%s' must have an initializer expression",
+                    field->has_const ? "const" : "final",
+                    field->name->ToCString());
       }
     }
 
@@ -3674,8 +3676,8 @@ void Parser::CheckOperatorArity(const MemberDesc& member) {
       member.params.has_optional_named_parameters ||
       (member.params.num_fixed_parameters != expected_num_parameters)) {
     // Subtract receiver when reporting number of expected arguments.
-    ErrorMsg(member.name_pos, "operator %s expects %" Pd " argument(s)",
-        member.name->ToCString(), (expected_num_parameters - 1));
+    ReportError(member.name_pos, "operator %s expects %" Pd " argument(s)",
+                member.name->ToCString(), (expected_num_parameters - 1));
   }
 }
 
@@ -3684,25 +3686,25 @@ void Parser::CheckMemberNameConflict(ClassDesc* members,
                                      MemberDesc* member) {
   const String& name = *member->DictName();
   if (name.Equals(members->class_name())) {
-    ErrorMsg(member->name_pos,
-             "%s '%s' conflicts with class name",
-             member->ToCString(),
-             name.ToCString());
+    ReportError(member->name_pos,
+                "%s '%s' conflicts with class name",
+                member->ToCString(),
+                name.ToCString());
   }
   if (members->clazz().LookupTypeParameter(name) != TypeParameter::null()) {
-    ErrorMsg(member->name_pos,
-             "%s '%s' conflicts with type parameter",
-             member->ToCString(),
-             name.ToCString());
+    ReportError(member->name_pos,
+                "%s '%s' conflicts with type parameter",
+                member->ToCString(),
+                name.ToCString());
   }
   for (int i = 0; i < members->members().length(); i++) {
     MemberDesc* existing_member = &members->members()[i];
     if (name.Equals(*existing_member->DictName())) {
-      ErrorMsg(member->name_pos,
-               "%s '%s' conflicts with previously declared %s",
-               member->ToCString(),
-               name.ToCString(),
-               existing_member->ToCString());
+      ReportError(member->name_pos,
+                  "%s '%s' conflicts with previously declared %s",
+                  member->ToCString(),
+                  name.ToCString(),
+                  existing_member->ToCString());
     }
   }
 }
@@ -3734,10 +3736,10 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
   if (CurrentToken() == Token::kVAR) {
     if (member.has_const) {
-      ErrorMsg("identifier expected after 'const'");
+      ReportError("identifier expected after 'const'");
     }
     if (member.has_final) {
-      ErrorMsg("identifier expected after 'final'");
+      ReportError("identifier expected after 'final'");
     }
     ConsumeToken();
     member.has_var = true;
@@ -3746,7 +3748,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
     if (member.has_static) {
-      ErrorMsg("factory method cannot be explicitly marked static");
+      ReportError("factory method cannot be explicitly marked static");
     }
     member.has_factory = true;
     member.has_static = true;
@@ -3755,7 +3757,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   // Optionally parse a type.
   if (CurrentToken() == Token::kVOID) {
     if (member.has_var || member.has_factory) {
-      ErrorMsg("void not expected");
+      ReportError("void not expected");
     }
     ConsumeToken();
     ASSERT(member.type == NULL);
@@ -3795,14 +3797,14 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
       // The factory name may be qualified, but the first identifier must match
       // the name of the immediately enclosing class.
       if (!member.name->Equals(members->class_name())) {
-        ErrorMsg(member.name_pos, "factory name must be '%s'",
-                 members->class_name().ToCString());
+        ReportError(member.name_pos, "factory name must be '%s'",
+                    members->class_name().ToCString());
       }
     } else if (member.has_static) {
-      ErrorMsg(member.name_pos, "constructor cannot be static");
+      ReportError(member.name_pos, "constructor cannot be static");
     }
     if (member.type != NULL) {
-      ErrorMsg(member.name_pos, "constructor must not specify return type");
+      ReportError(member.name_pos, "constructor must not specify return type");
     }
     // Do not bypass class resolution by using current_class() directly, since
     // it may be a patch class.
@@ -3863,10 +3865,10 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
              (LookaheadToken(1) != Token::kSEMICOLON)) {
     ConsumeToken();
     if (!Token::CanBeOverloaded(CurrentToken())) {
-      ErrorMsg("invalid operator overloading");
+      ReportError("invalid operator overloading");
     }
     if (member.has_static) {
-      ErrorMsg("operator overloading functions cannot be static");
+      ReportError("operator overloading functions cannot be static");
     }
     member.operator_token = CurrentToken();
     member.has_operator = true;
@@ -3880,7 +3882,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     member.name_pos = TokenPos();
     ConsumeToken();
   } else {
-    ErrorMsg("identifier expected");
+    ReportError("identifier expected");
   }
 
   ASSERT(member.name != NULL);
@@ -3903,8 +3905,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
       if (member.has_final) {
         member.type = &Type::ZoneHandle(I, Type::DynamicType());
       } else {
-        ErrorMsg("missing 'var', 'final', 'const' or type"
-                 " in field declaration");
+        ReportError("missing 'var', 'final', 'const' or type"
+                    " in field declaration");
       }
     }
     ParseFieldDefinition(members, &member);
@@ -3944,15 +3946,15 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                                library_.LookupLocalObject(class_name));
   if (obj.IsNull()) {
     if (is_patch) {
-      ErrorMsg(classname_pos, "missing class '%s' cannot be patched",
-               class_name.ToCString());
+      ReportError(classname_pos, "missing class '%s' cannot be patched",
+                  class_name.ToCString());
     }
     cls = Class::New(class_name, script_, classname_pos);
     library_.AddClass(cls);
   } else {
     if (!obj.IsClass()) {
-      ErrorMsg(classname_pos, "'%s' is already defined",
-               class_name.ToCString());
+      ReportError(classname_pos, "'%s' is already defined",
+                  class_name.ToCString());
     }
     cls ^= obj.raw();
     if (is_patch) {
@@ -3970,8 +3972,8 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // pre-registered classes from object.cc or a duplicate definition.
       if (!(cls.is_prefinalized() ||
             RawObject::IsTypedDataViewClassId(cls.id()))) {
-        ErrorMsg(classname_pos, "class '%s' is already defined",
-                 class_name.ToCString());
+        ReportError(classname_pos, "class '%s' is already defined",
+                    class_name.ToCString());
       }
       // Pre-registered classes need their scripts connected at this time.
       cls.set_script(script_);
@@ -3991,9 +3993,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     const int orig_type_params_count =
         orig_type_parameters.IsNull() ? 0 : orig_type_parameters.Length();
     if (new_type_params_count != orig_type_params_count) {
-      ErrorMsg(classname_pos,
-               "class '%s' must be patched with identical type parameters",
-               class_name.ToCString());
+      ReportError(classname_pos,
+                  "class '%s' must be patched with identical type parameters",
+                  class_name.ToCString());
     }
     TypeParameter& new_type_param = TypeParameter::Handle(I);
     TypeParameter& orig_type_param = TypeParameter::Handle(I);
@@ -4007,23 +4009,23 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       new_name = new_type_param.name();
       orig_name = orig_type_param.name();
       if (!new_name.Equals(orig_name)) {
-        ErrorMsg(new_type_param.token_pos(),
-                 "type parameter '%s' of patch class '%s' does not match "
-                 "original type parameter '%s'",
-                 new_name.ToCString(),
-                 class_name.ToCString(),
-                 orig_name.ToCString());
+        ReportError(new_type_param.token_pos(),
+                    "type parameter '%s' of patch class '%s' does not match "
+                    "original type parameter '%s'",
+                    new_name.ToCString(),
+                    class_name.ToCString(),
+                    orig_name.ToCString());
       }
       new_bound = new_type_param.bound();
       orig_bound = orig_type_param.bound();
       if (!new_bound.Equals(orig_bound)) {
-        ErrorMsg(new_type_param.token_pos(),
-                 "bound '%s' of type parameter '%s' of patch class '%s' does "
-                 "not match original type parameter bound '%s'",
-                 String::Handle(new_bound.UserVisibleName()).ToCString(),
-                 new_name.ToCString(),
-                 class_name.ToCString(),
-                 String::Handle(orig_bound.UserVisibleName()).ToCString());
+        ReportError(new_type_param.token_pos(),
+                    "bound '%s' of type parameter '%s' of patch class '%s' "
+                    "does not match original type parameter bound '%s'",
+                    String::Handle(new_bound.UserVisibleName()).ToCString(),
+                    new_name.ToCString(),
+                    class_name.ToCString(),
+                    String::Handle(orig_bound.UserVisibleName()).ToCString());
       }
     }
     cls.set_type_parameters(orig_type_parameters);
@@ -4038,9 +4040,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
   const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
   if (is_mixin_declaration && is_patch) {
-    ErrorMsg(classname_pos,
-             "mixin application '%s' may not be a patch class",
-             class_name.ToCString());
+    ReportError(classname_pos,
+                "mixin application '%s' may not be a patch class",
+                class_name.ToCString());
   }
 
   AbstractType& super_type = Type::Handle(I);
@@ -4049,25 +4051,25 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (super_type.IsMalformedOrMalbounded()) {
-      ErrorMsg(Error::Handle(I, super_type.error()));
+      ReportError(Error::Handle(I, super_type.error()));
     }
     if (super_type.IsDynamicType()) {
       // Unlikely here, since super type is not resolved yet.
-      ErrorMsg(type_pos,
-               "class '%s' may not extend 'dynamic'",
-               class_name.ToCString());
+      ReportError(type_pos,
+                  "class '%s' may not extend 'dynamic'",
+                  class_name.ToCString());
     }
     if (super_type.IsTypeParameter()) {
-      ErrorMsg(type_pos,
-               "class '%s' may not extend type parameter '%s'",
-               class_name.ToCString(),
-               String::Handle(I,
-                              super_type.UserVisibleName()).ToCString());
+      ReportError(type_pos,
+                  "class '%s' may not extend type parameter '%s'",
+                  class_name.ToCString(),
+                  String::Handle(I,
+                                 super_type.UserVisibleName()).ToCString());
     }
     // The class finalizer will check whether the super type is malbounded.
     if (is_mixin_declaration) {
       if (CurrentToken() != Token::kWITH) {
-        ErrorMsg("mixin application clause 'with type' expected");
+        ReportError("mixin application clause 'with type' expected");
       }
       cls.set_is_mixin_app_alias();
       cls.set_is_synthesized_class();
@@ -4156,7 +4158,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
     ASSERT(!orig_class.is_finalized());
     Error& error = Error::Handle(I);
     if (!orig_class.ApplyPatch(cls, &error)) {
-      AppendErrorMsg(error, class_pos, "applying patch failed");
+      Report::LongJumpF(error, script_, class_pos, "applying patch failed");
     }
   }
 }
@@ -4218,8 +4220,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
       // Check whether we have already seen this member.
       for (int i = 0; i < ctors.length(); i++) {
         if (ctors[i] == member) {
-          ErrorMsg(member->name_pos,
-                   "cyclic reference in constructor redirection");
+          ReportError(member->name_pos,
+                      "cyclic reference in constructor redirection");
         }
       }
       // We haven't seen this member. Add it to the list and follow
@@ -4248,8 +4250,8 @@ void Parser::ParseMixinAppAlias(
   const Object& obj = Object::Handle(I,
                                      library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
-    ErrorMsg(classname_pos, "'%s' is already defined",
-             class_name.ToCString());
+    ReportError(classname_pos, "'%s' is already defined",
+                class_name.ToCString());
   }
   const Class& mixin_application =
       Class::Handle(I, Class::New(class_name, script_, classname_pos));
@@ -4270,10 +4272,10 @@ void Parser::ParseMixinAppAlias(
       AbstractType::Handle(I,
                            ParseType(ClassFinalizer::kResolveTypeParameters));
   if (type.IsTypeParameter()) {
-    ErrorMsg(type_pos,
-             "class '%s' may not extend type parameter '%s'",
-             class_name.ToCString(),
-             String::Handle(I, type.UserVisibleName()).ToCString());
+    ReportError(type_pos,
+                "class '%s' may not extend type parameter '%s'",
+                class_name.ToCString(),
+                String::Handle(I, type.UserVisibleName()).ToCString());
   }
 
   CheckToken(Token::kWITH, "mixin application 'with Type' expected");
@@ -4344,7 +4346,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
 
   if (IsMixinAppAlias()) {
     if (FLAG_warn_mixin_typedef) {
-      Warning("deprecated mixin application typedef");
+      ReportWarning(TokenPos(), "deprecated mixin application typedef");
     }
     ParseMixinAppAlias(pending_classes, toplevel_class, metadata_pos);
     return;
@@ -4370,8 +4372,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   const Object& obj = Object::Handle(I,
                                      library_.LookupLocalObject(*alias_name));
   if (!obj.IsNull()) {
-    ErrorMsg(alias_name_pos,
-             "'%s' is already defined", alias_name->ToCString());
+    ReportError(alias_name_pos,
+                "'%s' is already defined", alias_name->ToCString());
   }
 
   // Create the function type alias signature class. It will be linked to its
@@ -4511,7 +4513,7 @@ void Parser::SkipTypeArguments() {
     if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
-      ErrorMsg("right angle bracket expected");
+      ReportError("right angle bracket expected");
     }
   }
 }
@@ -4520,7 +4522,7 @@ void Parser::SkipTypeArguments() {
 void Parser::SkipType(bool allow_void) {
   if (CurrentToken() == Token::kVOID) {
     if (!allow_void) {
-      ErrorMsg("'void' not allowed here");
+      ReportError("'void' not allowed here");
     }
     ConsumeToken();
   } else {
@@ -4555,8 +4557,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
         existing_type_parameter ^= type_parameters_array.At(i);
         existing_type_parameter_name = existing_type_parameter.name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
-          ErrorMsg(type_parameter_pos, "duplicate type parameter '%s'",
-                   type_parameter_name.ToCString());
+          ReportError(type_parameter_pos, "duplicate type parameter '%s'",
+                      type_parameter_name.ToCString());
         }
       }
       if (CurrentToken() == Token::kEXTENDS) {
@@ -4584,7 +4586,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
     if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
-      ErrorMsg("right angle bracket expected");
+      ReportError("right angle bracket expected");
     }
     const TypeArguments& type_parameters =
         TypeArguments::Handle(I,
@@ -4625,7 +4627,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
     if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
-      ErrorMsg("right angle bracket expected");
+      ReportError("right angle bracket expected");
     }
     if (finalization != ClassFinalizer::kIgnore) {
       return NewTypeArguments(types);
@@ -4654,10 +4656,9 @@ void Parser::ParseInterfaceList(const Class& cls) {
     intptr_t interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (interface.IsTypeParameter()) {
-      ErrorMsg(interface_pos,
-               "type parameter '%s' may not be used in interface list",
-               String::Handle(I,
-                              interface.UserVisibleName()).ToCString());
+      ReportError(interface_pos,
+                  "type parameter '%s' may not be used in interface list",
+                  String::Handle(I, interface.UserVisibleName()).ToCString());
     }
     all_interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);
@@ -4678,13 +4679,12 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     if (mixin_type.IsDynamicType()) {
       // The string 'dynamic' is not resolved yet at this point, but a malformed
       // type mapped to dynamic can be encountered here.
-      ErrorMsg(mixin_type.token_pos(), "illegal mixin of a malformed type");
+      ReportError(mixin_type.token_pos(), "illegal mixin of a malformed type");
     }
     if (mixin_type.IsTypeParameter()) {
-      ErrorMsg(mixin_type.token_pos(),
-               "mixin type '%s' may not be a type parameter",
-               String::Handle(I,
-                              mixin_type.UserVisibleName()).ToCString());
+      ReportError(mixin_type.token_pos(),
+                  "mixin type '%s' may not be a type parameter",
+                  String::Handle(I, mixin_type.UserVisibleName()).ToCString());
     }
     mixin_types.Add(mixin_type);
   } while (CurrentToken() == Token::kCOMMA);
@@ -4709,7 +4709,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     String& var_name = *ExpectIdentifier("variable name expected");
 
     if (library_.LookupLocalObject(var_name) != Object::null()) {
-      ErrorMsg(name_pos, "'%s' is already defined", var_name.ToCString());
+      ReportError(name_pos, "'%s' is already defined", var_name.ToCString());
     }
 
     // Check whether a getter or setter for this name exists. A const
@@ -4719,13 +4719,13 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     String& accessor_name = String::Handle(I,
                                            Field::GetterName(var_name));
     if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-      ErrorMsg(name_pos, "getter for '%s' is already defined",
-               var_name.ToCString());
+      ReportError(name_pos, "getter for '%s' is already defined",
+                  var_name.ToCString());
     }
     accessor_name = Field::SetterName(var_name);
     if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-      ErrorMsg(name_pos, "setter for '%s' is already defined",
-               var_name.ToCString());
+      ReportError(name_pos, "setter for '%s' is already defined",
+                  var_name.ToCString());
     }
 
     field = Field::New(var_name, is_static, is_final, is_const,
@@ -4771,7 +4771,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         }
       }
     } else if (is_final) {
-      ErrorMsg(name_pos, "missing initializer for final or const variable");
+      ReportError(name_pos, "missing initializer for final or const variable");
     }
 
     if (CurrentToken() == Token::kCOMMA) {
@@ -4819,15 +4819,16 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
   bool found = library_.LookupLocalObject(func_name) != Object::null();
   if (found && !is_patch) {
-    ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
+    ReportError(name_pos, "'%s' is already defined", func_name.ToCString());
   } else if (!found && is_patch) {
-    ErrorMsg(name_pos, "missing '%s' cannot be patched", func_name.ToCString());
+    ReportError(name_pos, "missing '%s' cannot be patched",
+                func_name.ToCString());
   }
   String& accessor_name = String::Handle(I,
                                          Field::GetterName(func_name));
   if (library_.LookupLocalObject(accessor_name) != Object::null()) {
-    ErrorMsg(name_pos, "'%s' is already defined as getter",
-             func_name.ToCString());
+    ReportError(name_pos, "'%s' is already defined as getter",
+                func_name.ToCString());
   }
   // A setter named x= may co-exist with a function named x, thus we do
   // not need to check setters.
@@ -4858,7 +4859,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ExpectSemicolon();
     is_native = true;
   } else {
-    ErrorMsg("function block expected");
+    ReportError("function block expected");
   }
   Function& func = Function::Handle(I,
       Function::New(func_name,
@@ -4945,33 +4946,33 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   }
   if ((params.num_fixed_parameters != expected_num_parameters) ||
       (params.num_optional_parameters != 0)) {
-    ErrorMsg(name_pos, "illegal %s parameters",
-             is_getter ? "getter" : "setter");
+    ReportError(name_pos, "illegal %s parameters",
+                is_getter ? "getter" : "setter");
   }
 
   // Check whether this getter conflicts with a function or top-level variable
   // with the same name.
   if (is_getter &&
       (library_.LookupLocalObject(*field_name) != Object::null())) {
-    ErrorMsg(name_pos, "'%s' is already defined in this library",
-             field_name->ToCString());
+    ReportError(name_pos, "'%s' is already defined in this library",
+                field_name->ToCString());
   }
   // Check whether this setter conflicts with the implicit setter
   // of a top-level variable with the same name.
   if (!is_getter &&
       (library_.LookupLocalField(*field_name) != Object::null())) {
-    ErrorMsg(name_pos, "Variable '%s' is already defined in this library",
-             field_name->ToCString());
+    ReportError(name_pos, "Variable '%s' is already defined in this library",
+                field_name->ToCString());
   }
   bool found = library_.LookupLocalObject(accessor_name) != Object::null();
   if (found && !is_patch) {
-    ErrorMsg(name_pos, "%s for '%s' is already defined",
-             is_getter ? "getter" : "setter",
-             field_name->ToCString());
+    ReportError(name_pos, "%s for '%s' is already defined",
+                is_getter ? "getter" : "setter",
+                field_name->ToCString());
   } else if (!found && is_patch) {
-    ErrorMsg(name_pos, "missing %s for '%s' cannot be patched",
-             is_getter ? "getter" : "setter",
-             field_name->ToCString());
+    ReportError(name_pos, "missing %s for '%s' cannot be patched",
+                is_getter ? "getter" : "setter",
+                field_name->ToCString());
   }
 
   intptr_t accessor_end_pos = accessor_pos;
@@ -4994,7 +4995,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     ExpectSemicolon();
     is_native = true;
   } else {
-    ErrorMsg("function block expected");
+    ReportError("function block expected");
   }
   Function& func = Function::Handle(I,
       Function::New(accessor_name,
@@ -5037,7 +5038,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
       }
       return Object::null();
     }
-    ErrorMsg(token_pos, "no library handler registered");
+    ReportError(token_pos, "no library handler registered");
   }
   // Block class finalization attempts when calling into the library
   // tag handler.
@@ -5052,11 +5053,11 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     // error obtained from the library tag handler.
     Error& prev_error = Error::Handle(I);
     prev_error ^= Api::UnwrapHandle(result);
-    AppendErrorMsg(prev_error, token_pos, "library handler failed");
+    Report::LongJumpF(prev_error, script_, token_pos, "library handler failed");
   }
   if (tag == Dart_kCanonicalizeUrl) {
     if (!Dart_IsString(result)) {
-      ErrorMsg(token_pos, "library handler failed URI canonicalization");
+      ReportError(token_pos, "library handler failed URI canonicalization");
     }
   }
   return Api::UnwrapHandle(result);
@@ -5083,7 +5084,7 @@ void Parser::ParseLibraryName() {
 
 void Parser::ParseIdentList(GrowableObjectArray* names) {
   if (!IsIdentifier()) {
-    ErrorMsg("identifier expected");
+    ReportError("identifier expected");
   }
   while (IsIdentifier()) {
     names->Add(*CurrentLiteral());
@@ -5108,7 +5109,7 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
   const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
   if (url.Length() == 0) {
-    ErrorMsg("library url expected");
+    ReportError("library url expected");
   }
   bool is_deferred_import = false;
   if (is_import && (IsLiteral("deferred"))) {
@@ -5187,7 +5188,7 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
     const String& lib_url = String::Handle(I, library_.url());
     if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
         !lib_url.StartsWith(Symbols::DartScheme())) {
-      ErrorMsg(import_pos, "private library is not accessible");
+      ReportError(import_pos, "private library is not accessible");
     }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
       ASSERT(!is_deferred_import);
@@ -5199,12 +5200,12 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
         // Check that prefix names of deferred import clauses are
         // unique.
         if (!is_deferred_import && library_prefix.is_deferred_load()) {
-          ErrorMsg(prefix_pos,
-                   "prefix '%s' already used in a deferred import clause",
-                   prefix.ToCString());
+          ReportError(prefix_pos,
+                      "prefix '%s' already used in a deferred import clause",
+                      prefix.ToCString());
         }
         if (is_deferred_import) {
-          ErrorMsg(prefix_pos, "prefix of deferred import must be uniqe");
+          ReportError(prefix_pos, "prefix of deferred import must be uniqe");
         }
         library_prefix.AddImport(ns);
       } else {
@@ -5254,7 +5255,7 @@ void Parser::ParseLibraryDefinition() {
   intptr_t metadata_pos = SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
     if (is_patch_source()) {
-      ErrorMsg("patch cannot override library name");
+      ReportError("patch cannot override library name");
     }
     ParseLibraryName();
     if (metadata_pos >= 0) {
@@ -5292,7 +5293,7 @@ void Parser::ParsePartHeader() {
   CheckToken(Token::kPART, "'part of' expected");
   ConsumeToken();
   if (!IsLiteral("of")) {
-    ErrorMsg("'part of' expected");
+    ReportError("'part of' expected");
   }
   ConsumeToken();
   // The VM is not required to check that the library name matches the
@@ -5466,11 +5467,8 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   if (!Utils::IsInt(16, params->num_fixed_parameters) ||
       !Utils::IsInt(16, params->num_optional_parameters)) {
     const Script& script = Script::Handle(Class::Handle(func.Owner()).script());
-    const Error& error = Error::Handle(LanguageError::NewFormatted(
-        Error::Handle(), script, func.token_pos(),
-        LanguageError::kError, Heap::kNew,
-        "too many formal parameters"));
-    ErrorMsg(error);
+    Report::MessageF(Report::kError, script, func.token_pos(),
+                     "too many formal parameters");
   }
   func.set_num_fixed_parameters(params->num_fixed_parameters);
   func.SetNumOptionalParameters(params->num_optional_parameters,
@@ -5502,9 +5500,9 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     LocalVariable* parameter = new(I) LocalVariable(
         param_desc.name_pos, *name, *param_desc.type);
     if (!scope->InsertParameterAt(i, parameter)) {
-      ErrorMsg(param_desc.name_pos,
-               "name '%s' already exists in scope",
-               param_desc.name->ToCString());
+      ReportError(param_desc.name_pos,
+                  "name '%s' already exists in scope",
+                  param_desc.name->ToCString());
     }
     param_desc.var = parameter;
     if (param_desc.is_final) {
@@ -5536,9 +5534,9 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   NativeFunction native_function = NativeEntry::ResolveNative(
       library, native_name, num_params, &auto_setup_scope);
   if (native_function == NULL) {
-    ErrorMsg(native_pos,
-             "native function '%s' (%" Pd " arguments) cannot be found",
-             native_name.ToCString(), func.NumParameters());
+    ReportError(native_pos,
+                "native function '%s' (%" Pd " arguments) cannot be found",
+                native_name.ToCString(), func.NumParameters());
   }
   func.SetIsNativeAutoSetupScope(auto_setup_scope);
 
@@ -5596,7 +5594,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
   if (receiver == NULL) {
-    ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
+    ReportError(token_pos, "illegal implicit access to receiver 'this'");
   }
   return new(I) LoadLocalNode(TokenPos(), receiver);
 }
@@ -5645,8 +5643,8 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
       variable->SetConstValue(expr->AsLiteralNode()->literal());
     }
   } else if (is_final || is_const) {
-    ErrorMsg(ident_pos,
-    "missing initialization of 'final' or 'const' variable");
+    ReportError(ident_pos,
+                "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
     AstNode* null_expr = new(I) LiteralNode(
@@ -5661,17 +5659,17 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   if (previous_pos >= 0) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
-      ErrorMsg(ident_pos,
-               "initializer of '%s' may not refer to itself",
-               ident.ToCString());
+      ReportError(ident_pos,
+                  "initializer of '%s' may not refer to itself",
+                  ident.ToCString());
 
     } else {
       intptr_t line_number;
       script_.GetTokenLocation(previous_pos, &line_number, NULL);
-      ErrorMsg(ident_pos,
-               "identifier '%s' previously used in line %" Pd "",
-               ident.ToCString(),
-               line_number);
+      ReportError(ident_pos,
+                  "identifier '%s' previously used in line %" Pd "",
+                  ident.ToCString(),
+                  line_number);
     }
   }
 
@@ -5682,12 +5680,12 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
         current_block_->scope->LookupVariable(variable->name(), true);
     ASSERT(existing_var != NULL);
     if (existing_var->owner() == current_block_->scope) {
-      ErrorMsg(ident_pos, "identifier '%s' already defined",
-               variable->name().ToCString());
+      ReportError(ident_pos, "identifier '%s' already defined",
+                  variable->name().ToCString());
     } else {
-      ErrorMsg(ident_pos,
-               "'%s' from outer scope has already been used, cannot redefine",
-               variable->name().ToCString());
+      ReportError(ident_pos, "'%s' from outer scope has already been used, "
+                  "cannot redefine",
+                  variable->name().ToCString());
     }
   }
   if (is_final || is_const) {
@@ -5717,7 +5715,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
     if (type_is_optional) {
       return Type::DynamicType();
     } else {
-      ErrorMsg("type name expected");
+      ReportError("type name expected");
     }
   }
   if (type_is_optional) {
@@ -5747,7 +5745,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
       ParseConstFinalVarOrType(FLAG_enable_type_checks ?
           ClassFinalizer::kCanonicalize : ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
-    ErrorMsg("identifier expected");
+    ReportError("identifier expected");
   }
 
   AstNode* initializers = ParseVariableDeclaration(type, is_final, is_const);
@@ -5755,7 +5753,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   while (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
     if (!IsIdentifier()) {
-      ErrorMsg("identifier expected after comma");
+      ReportError("identifier expected after comma");
     }
     // We have a second initializer. Allocate a sequence node now.
     // The sequence does not own the current scope. Set its own scope to NULL.
@@ -5802,10 +5800,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       ASSERT(!script_.IsNull());
       intptr_t line_number;
       script_.GetTokenLocation(previous_pos, &line_number, NULL);
-      ErrorMsg(name_pos,
-               "identifier '%s' previously used in line %" Pd "",
-               function_name->ToCString(),
-               line_number);
+      ReportError(name_pos,
+                  "identifier '%s' previously used in line %" Pd "",
+                  function_name->ToCString(),
+                  line_number);
     }
   }
   CheckToken(Token::kLPAREN);
@@ -5865,12 +5863,13 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                                 true);
       ASSERT(existing_var != NULL);
       if (existing_var->owner() == current_block_->scope) {
-        ErrorMsg(function_pos, "identifier '%s' already defined",
-                 function_variable->name().ToCString());
+        ReportError(function_pos, "identifier '%s' already defined",
+                    function_variable->name().ToCString());
       } else {
-        ErrorMsg(function_pos,
-                 "'%s' from outer scope has already been used, cannot redefine",
-                 function_variable->name().ToCString());
+        ReportError(function_pos,
+                    "'%s' from outer scope has already been used, "
+                    "cannot redefine",
+                    function_variable->name().ToCString());
       }
     }
   }
@@ -6311,7 +6310,8 @@ void Parser::ParseStatementSequence() {
     }
     if (statement != NULL) {
       if (!dead_code_allowed && abrupt_completing_seen) {
-        ErrorMsg(statement_pos, "dead code after abrupt completing statement");
+        ReportError(statement_pos,
+                    "dead code after abrupt completing statement");
       }
       current_block_->statements->Add(statement);
       abrupt_completing_seen |= IsAbruptCompleting(statement);
@@ -6410,21 +6410,21 @@ RawClass* Parser::CheckCaseExpressions(
     const intptr_t val_pos = values[i]->token_pos();
     if (first_value.IsInteger()) {
       if (!val.IsInteger()) {
-        ErrorMsg(val_pos, "expected case expression of type int");
+        ReportError(val_pos, "expected case expression of type int");
       }
       continue;
     }
     if (first_value.IsString()) {
       if (!val.IsString()) {
-        ErrorMsg(val_pos, "expected case expression of type String");
+        ReportError(val_pos, "expected case expression of type String");
       }
       continue;
     }
     if (val.IsDouble()) {
-      ErrorMsg(val_pos, "case expression may not be of type double");
+      ReportError(val_pos, "case expression may not be of type double");
     }
     if (val.clazz() != first_value.clazz()) {
-      ErrorMsg(val_pos, "all case expressions must be of same type");
+      ReportError(val_pos, "all case expressions must be of same type");
     }
     if (i == 0) {
       // The value is of some type other than int, String or double.
@@ -6432,8 +6432,9 @@ RawClass* Parser::CheckCaseExpressions(
       // Check this only in the first loop iteration since all values
       // are of the same type, which we check above.
       if (ImplementsEqualOperator(val)) {
-        ErrorMsg(val_pos,
-            "type class of case expression must not implement operator ==");
+        ReportError(val_pos,
+                    "type class of case expression must not "
+                    "implement operator ==");
       }
     }
   }
@@ -6457,7 +6458,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
   while (CurrentToken() == Token::kCASE || CurrentToken() == Token::kDEFAULT) {
     if (CurrentToken() == Token::kCASE) {
       if (default_seen) {
-        ErrorMsg("default clause must be last case");
+        ReportError("default clause must be last case");
       }
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
@@ -6472,7 +6473,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       case_expressions->Add(case_comparison);
     } else {
       if (default_seen) {
-        ErrorMsg("only one default clause is allowed");
+        ReportError("only one default clause is allowed");
       }
       ConsumeToken();  // Keyword default.
       default_seen = true;
@@ -6579,24 +6580,24 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
         // the forward reference.
         case_label->ResolveForwardReference();
       } else {
-        ErrorMsg(label_pos, "label '%s' already exists in scope",
-                 label_name->ToCString());
+        ReportError(label_pos, "label '%s' already exists in scope",
+                    label_name->ToCString());
       }
       ASSERT(case_label->kind() == SourceLabel::kCase);
     }
     if (CurrentToken() == Token::kCASE ||
         CurrentToken() == Token::kDEFAULT) {
       if (default_seen) {
-        ErrorMsg("no case clauses allowed after default clause");
+        ReportError("no case clauses allowed after default clause");
       }
       CaseNode* case_clause =
           ParseCaseClause(temp_variable, &case_expr_values, case_label);
       default_seen = case_clause->contains_default();
       current_block_->statements->Add(case_clause);
     } else if (CurrentToken() != Token::kRBRACE) {
-      ErrorMsg("'case' or '}' expected");
+      ReportError("'case' or '}' expected");
     } else if (case_label != NULL) {
-      ErrorMsg("expecting at least one case clause after label");
+      ReportError("expecting at least one case clause after label");
     } else {
       break;
     }
@@ -6613,8 +6614,8 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   SourceLabel* unresolved_label =
       current_block_->scope->CheckUnresolvedLabels();
   if (unresolved_label != NULL) {
-    ErrorMsg("unresolved reference to label '%s'",
-             unresolved_label->name().ToCString());
+    ReportError("unresolved reference to label '%s'",
+                unresolved_label->name().ToCString());
   }
 
   SequenceNode* switch_body = CloseBlock();
@@ -6660,7 +6661,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   TRACE_PARSER("ParseForInStatement");
   bool is_final = (CurrentToken() == Token::kFINAL);
   if (CurrentToken() == Token::kCONST) {
-    ErrorMsg("Loop variable cannot be 'const'");
+    ReportError("Loop variable cannot be 'const'");
   }
   const String* loop_var_name = NULL;
   LocalVariable* loop_var = NULL;
@@ -6932,10 +6933,10 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
-      ErrorMsg(stack_trace_param->token_pos,
-               "name '%s' already exists in scope",
-               stack_trace_param->name->ToCString());
-    }
+      ReportError(stack_trace_param->token_pos,
+                  "name '%s' already exists in scope",
+                  stack_trace_param->name->ToCString());
+       }
     stack_trace_param->var = var;
   }
 }
@@ -7253,7 +7254,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   if ((CurrentToken() != Token::kCATCH) && !IsLiteral("on") &&
       (CurrentToken() != Token::kFINALLY)) {
-    ErrorMsg("catch or finally clause expected");
+    ReportError("catch or finally clause expected");
   }
 
   // Now parse the 'catch' blocks if any.
@@ -7337,8 +7338,8 @@ AstNode* Parser::ParseJump(String* label_name) {
     // Handle pathological cases first.
     if (label_name != NULL && target_name.Equals(*label_name)) {
       if (jump_kind == Token::kCONTINUE) {
-        ErrorMsg(jump_pos, "'continue' jump to label '%s' is illegal",
-                 target_name.ToCString());
+        ReportError(jump_pos, "'continue' jump to label '%s' is illegal",
+                    target_name.ToCString());
       }
       // L: break L; is a no-op.
       return NULL;
@@ -7358,29 +7359,29 @@ AstNode* Parser::ParseJump(String* label_name) {
       }
     }
     if (target == NULL) {
-      ErrorMsg(jump_pos, "label '%s' not found", target_name.ToCString());
+      ReportError(jump_pos, "label '%s' not found", target_name.ToCString());
     }
   } else {
     target = current_block_->scope->LookupInnermostLabel(jump_kind);
     if (target == NULL) {
-      ErrorMsg(jump_pos, "'%s' is illegal here", Token::Str(jump_kind));
+      ReportError(jump_pos, "'%s' is illegal here", Token::Str(jump_kind));
     }
   }
   ASSERT(target != NULL);
   if (jump_kind == Token::kCONTINUE) {
     if (target->kind() == SourceLabel::kSwitch) {
-      ErrorMsg(jump_pos, "'continue' jump to switch statement is illegal");
+      ReportError(jump_pos, "'continue' jump to switch statement is illegal");
     } else if (target->kind() == SourceLabel::kStatement) {
-      ErrorMsg(jump_pos, "'continue' jump to label '%s' is illegal",
-               target->name().ToCString());
+      ReportError(jump_pos, "'continue' jump to label '%s' is illegal",
+                  target->name().ToCString());
     }
   }
   if (jump_kind == Token::kBREAK && target->kind() == SourceLabel::kCase) {
-    ErrorMsg(jump_pos, "'break' to case clause label is illegal");
+    ReportError(jump_pos, "'break' to case clause label is illegal");
   }
   if (target->FunctionLevel() != current_block_->scope->function_level()) {
-    ErrorMsg(jump_pos, "'%s' target must be in same function context",
-             Token::Str(jump_kind));
+    ReportError(jump_pos, "'%s' target must be in same function context",
+                Token::Str(jump_kind));
   }
   return new(I) JumpNode(jump_pos, jump_kind, target);
 }
@@ -7420,7 +7421,8 @@ AstNode* Parser::ParseStatement() {
     if (CurrentToken() != Token::kSEMICOLON) {
       if (current_function().IsConstructor() &&
           (current_block_->scope->function_level() == 0)) {
-        ErrorMsg(return_pos, "return of a value not allowed in constructors");
+        ReportError(return_pos,
+                    "return of a value not allowed in constructors");
       }
       AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       statement = new(I) ReturnNode(statement_pos, expr);
@@ -7470,7 +7472,7 @@ AstNode* Parser::ParseStatement() {
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.
     if ((try_blocks_list_ == NULL) || !try_blocks_list_->inside_catch()) {
-      ErrorMsg(statement_pos, "rethrow of an exception is not valid here");
+      ReportError(statement_pos, "rethrow of an exception is not valid here");
     }
     // The exception and stack trace variables are bound in the block
     // containing the try.
@@ -7494,103 +7496,63 @@ AstNode* Parser::ParseStatement() {
 }
 
 
-void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) const {
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(I, LanguageError::NewFormattedV(
-      Error::Handle(I), script_, token_pos,
-      LanguageError::kError, Heap::kNew, format, args));
-  va_end(args);
-  I->long_jump_base()->Jump(1, error);
+void Parser::ReportError(const Error& error) {
+  Report::LongJump(error);
   UNREACHABLE();
 }
 
 
-void Parser::ErrorMsg(const char* format, ...) {
+void Parser::ReportErrors(const Error& prev_error,
+                          const Script& script, intptr_t token_pos,
+                          const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(I, LanguageError::NewFormattedV(
-      Error::Handle(I), script_, TokenPos(),
-      LanguageError::kError, Heap::kNew, format, args));
+  Report::LongJumpV(prev_error, script, token_pos, format, args);
   va_end(args);
-  I->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
-void Parser::ErrorMsg(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+void Parser::ReportError(intptr_t token_pos, const char* format, ...) const {
+  va_list args;
+  va_start(args, format);
+  Report::MessageV(Report::kError, script_, token_pos, format, args);
+  va_end(args);
   UNREACHABLE();
 }
 
 
-void Parser::AppendErrorMsg(
-      const Error& prev_error, intptr_t token_pos, const char* format, ...) {
+void Parser::ReportError(const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(I, LanguageError::NewFormattedV(
-      prev_error, script_, token_pos,
-      LanguageError::kError, Heap::kNew,
-      format, args));
+  Report::MessageV(Report::kError, script_, TokenPos(), format, args);
   va_end(args);
-  I->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
-void Parser::Warning(intptr_t token_pos, const char* format, ...) {
-  if (FLAG_silent_warnings) return;
+void Parser::ReportWarning(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(I, LanguageError::NewFormattedV(
-      Error::Handle(I), script_, token_pos,
-      LanguageError::kWarning, Heap::kNew,
-      format, args));
+  Report::MessageV(Report::kWarning, script_, token_pos, format, args);
   va_end(args);
-  if (FLAG_warning_as_error) {
-    I->long_jump_base()->Jump(1, error);
-    UNREACHABLE();
-  } else {
-    OS::Print("%s", error.ToErrorCString());
-    va_start(args, format);
-    Exceptions::TraceJSWarningV(script_, token_pos, format, args);
-    va_end(args);
-  }
 }
 
 
-void Parser::Warning(const char* format, ...) {
-  if (FLAG_silent_warnings) return;
+void Parser::ReportWarning(const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(I, LanguageError::NewFormattedV(
-      Error::Handle(I), script_, TokenPos(),
-      LanguageError::kWarning, Heap::kNew,
-      format, args));
+  Report::MessageV(Report::kWarning, script_, TokenPos(), format, args);
   va_end(args);
-  if (FLAG_warning_as_error) {
-    I->long_jump_base()->Jump(1, error);
-    UNREACHABLE();
-  } else {
-    OS::Print("%s", error.ToErrorCString());
-    va_start(args, format);
-    Exceptions::TraceJSWarningV(script_, TokenPos(), format, args);
-    va_end(args);
-  }
-}
-
-
-void Parser::Unimplemented(const char* msg) {
-  ErrorMsg(TokenPos(), "%s", msg);
 }
 
 
 void Parser::CheckToken(Token::Kind token_expected, const char* msg) {
   if (CurrentToken() != token_expected) {
     if (msg != NULL) {
-      ErrorMsg("%s", msg);
+      ReportError("%s", msg);
     } else {
-      ErrorMsg("'%s' expected", Token::Str(token_expected));
+      ReportError("'%s' expected", Token::Str(token_expected));
     }
   }
 }
@@ -7598,7 +7560,7 @@ void Parser::CheckToken(Token::Kind token_expected, const char* msg) {
 
 void Parser::ExpectToken(Token::Kind token_expected) {
   if (CurrentToken() != token_expected) {
-    ErrorMsg("'%s' expected", Token::Str(token_expected));
+    ReportError("'%s' expected", Token::Str(token_expected));
   }
   ConsumeToken();
 }
@@ -7606,26 +7568,26 @@ void Parser::ExpectToken(Token::Kind token_expected) {
 
 void Parser::ExpectSemicolon() {
   if (CurrentToken() != Token::kSEMICOLON) {
-    ErrorMsg("semicolon expected");
+    ReportError("semicolon expected");
   }
   ConsumeToken();
 }
 
 
 void Parser::UnexpectedToken() {
-  ErrorMsg("unexpected token '%s'",
-           CurrentToken() == Token::kIDENT ?
-               CurrentLiteral()->ToCString() : Token::Str(CurrentToken()));
+  ReportError("unexpected token '%s'",
+              CurrentToken() == Token::kIDENT ?
+                  CurrentLiteral()->ToCString() : Token::Str(CurrentToken()));
 }
 
 
 String* Parser::ExpectUserDefinedTypeIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
-    ErrorMsg("%s", msg);
+    ReportError("%s", msg);
   }
   String* ident = CurrentLiteral();
   if (ident->Equals("dynamic")) {
-    ErrorMsg("%s", msg);
+    ReportError("%s", msg);
   }
   ConsumeToken();
   return ident;
@@ -7635,7 +7597,7 @@ String* Parser::ExpectUserDefinedTypeIdentifier(const char* msg) {
 // Check whether current token is an identifier or a built-in identifier.
 String* Parser::ExpectIdentifier(const char* msg) {
   if (!IsIdentifier()) {
-    ErrorMsg("%s", msg);
+    ReportError("%s", msg);
   }
   String* ident = CurrentLiteral();
   ConsumeToken();
@@ -7788,7 +7750,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   AstNode* left_operand = ParseUnaryExpr();
   if (left_operand->IsPrimaryNode() &&
       (left_operand->AsPrimaryNode()->IsSuper())) {
-    ErrorMsg(left_operand->token_pos(), "illegal use of 'super'");
+    ReportError(left_operand->token_pos(), "illegal use of 'super'");
   }
   int current_preced = Token::Precedence(CurrentToken());
   while (current_preced >= min_preced) {
@@ -7985,8 +7947,9 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
     case Token::kASSIGN_XOR:
       return new(I) BinaryOpNode(op_pos, Token::kBIT_XOR, lhs, rhs);
     default:
-      ErrorMsg(op_pos, "internal error: ExpandAssignableOp '%s' unimplemented",
-          Token::Name(assignment_op));
+      ReportError(op_pos,
+                  "internal error: ExpandAssignableOp '%s' unimplemented",
+                  Token::Name(assignment_op));
       UNIMPLEMENTED();
       return NULL;
   }
@@ -8000,7 +7963,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
     return expr;
   }
   if (expr->EvalConstExpr() == NULL) {
-    ErrorMsg(expr_pos, "expression is not a valid compile-time constant");
+    ReportError(expr_pos, "expression is not a valid compile-time constant");
   }
   return new(I) LiteralNode(
       expr_pos, EvaluateConstExpr(expr_pos, expr));
@@ -8087,7 +8050,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
       name = left_ident->raw();
     }
     if (name.IsNull()) {
-      ErrorMsg(left_pos, "expression is not assignable");
+      ReportError(left_pos, "expression is not assignable");
     }
     result = ThrowNoSuchMethodError(
         original->token_pos(),
@@ -8124,7 +8087,7 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
     } else if (LookaheadToken(1) == Token::kLBRACK) {
       ConsumeToken();
     } else {
-      ErrorMsg("identifier or [ expected after ..");
+      ReportError("identifier or [ expected after ..");
     }
     String* expr_ident =
         Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
@@ -8192,7 +8155,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   if (CurrentToken() == Token::kTHROW) {
     ConsumeToken();
     if (CurrentToken() == Token::kSEMICOLON) {
-      ErrorMsg("expression expected after throw");
+      ReportError("expression expected after throw");
     }
     AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
     return new(I) ThrowNode(expr_pos, expr, NULL);
@@ -8211,14 +8174,15 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   }
   // Assignment expressions.
   if (!IsLegalAssignableSyntax(expr, TokenPos())) {
-    ErrorMsg(expr_pos, "expression is not assignable");
+    ReportError(expr_pos, "expression is not assignable");
   }
   const Token::Kind assignment_op = CurrentToken();
   const intptr_t assignment_pos = TokenPos();
   ConsumeToken();
   const intptr_t right_expr_pos = TokenPos();
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
-    ErrorMsg(right_expr_pos, "expression is not a valid compile-time constant");
+    ReportError(right_expr_pos,
+                "expression is not a valid compile-time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (assignment_op != Token::kASSIGN) {
@@ -8246,7 +8210,7 @@ LiteralNode* Parser::ParseConstExpr() {
   intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kRequireConst, kNoCascades);
   if (!expr->IsLiteralNode()) {
-    ErrorMsg(expr_pos, "expression must be a compile-time constant");
+    ReportError(expr_pos, "expression must be a compile-time constant");
   }
   return expr->AsLiteralNode();
 }
@@ -8292,7 +8256,7 @@ AstNode* Parser::ParseUnaryExpr() {
     const intptr_t expr_pos = TokenPos();
     expr = ParseUnaryExpr();
     if (!IsLegalAssignableSyntax(expr, TokenPos())) {
-      ErrorMsg(expr_pos, "expression is not assignable");
+      ReportError(expr_pos, "expression is not assignable");
     }
     // Is prefix.
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
@@ -8344,14 +8308,14 @@ ArgumentListNode* Parser::ParseActualParameters(
         for (int i = 0; i < names.Length(); i++) {
           arg_name ^= names.At(i);
           if (CurrentLiteral()->Equals(arg_name)) {
-            ErrorMsg("duplicate named argument");
+            ReportError("duplicate named argument");
           }
         }
         names.Add(*CurrentLiteral());
         ConsumeToken();  // ident.
         ConsumeToken();  // colon.
       } else if (named_argument_seen) {
-        ErrorMsg("named argument expected");
+        ReportError("named argument expected");
       }
       arguments->Add(ParseExpr(require_const, kConsumeCascades));
     } while (CurrentToken() == Token::kCOMMA);
@@ -8581,9 +8545,9 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
     // Instance function access.
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      ErrorMsg(primary->token_pos(),
-               "cannot access instance method '%s' from static method",
-               funcname.ToCString());
+      ReportError(primary->token_pos(),
+                  "cannot access instance method '%s' from static method",
+                  funcname.ToCString());
     }
     AstNode* receiver = LoadReceiver(primary->token_pos());
     return CallGetter(primary->token_pos(), receiver, funcname);
@@ -8608,9 +8572,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (current_function().is_static()) {
             const String& name = String::ZoneHandle(I,
                 TypeParameter::Cast(primary_node->primary()).name());
-            ErrorMsg(primary_pos,
-                     "cannot access type parameter '%s' from static function",
-                     name.ToCString());
+            ReportError(primary_pos,
+                        "cannot access type parameter '%s' "
+                        "from static function",
+                        name.ToCString());
           }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
@@ -8693,9 +8658,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (current_function().is_static()) {
             const String& name = String::ZoneHandle(I,
                 TypeParameter::Cast(primary_node->primary()).name());
-            ErrorMsg(primary_pos,
-                     "cannot access type parameter '%s' from static function",
-                     name.ToCString());
+            ReportError(primary_pos,
+                        "cannot access type parameter '%s' "
+                        "from static function",
+                        name.ToCString());
           }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
@@ -8728,17 +8694,17 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           } else {
             // Dynamic function call on implicit "this" parameter.
             if (current_function().is_static()) {
-              ErrorMsg(primary_pos,
-                       "cannot access instance method '%s' "
-                       "from static function",
-                       func_name.ToCString());
+              ReportError(primary_pos,
+                          "cannot access instance method '%s' "
+                          "from static function",
+                          func_name.ToCString());
             }
             selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
           }
         } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
           if (primary_node->IsSuper()) {
-            ErrorMsg(primary_pos, "illegal use of super");
+            ReportError(primary_pos, "illegal use of super");
           }
           String& name = String::CheckedZoneHandle(
               primary_node->primary().raw());
@@ -8759,9 +8725,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
               TypeParameter::Cast(primary_node->primary()).name());
           if (current_function().is_static()) {
             // Treat as this.T(), because T is in scope.
-            ErrorMsg(primary_pos,
-                     "cannot access type parameter '%s' from static function",
-                     name.ToCString());
+            ReportError(primary_pos,
+                        "cannot access type parameter '%s' "
+                        "from static function",
+                        name.ToCString());
           } else {
             // Treat as call to unresolved (instance) method.
             selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
@@ -8805,9 +8772,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (current_function().is_static()) {
             const String& name = String::ZoneHandle(I,
                 TypeParameter::Cast(primary_node->primary()).name());
-            ErrorMsg(primary_pos,
-                     "cannot access type parameter '%s' from static function",
-                     name.ToCString());
+            ReportError(primary_pos,
+                        "cannot access type parameter '%s' "
+                        "from static function",
+                        name.ToCString());
           }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
@@ -8847,7 +8815,7 @@ AstNode* Parser::ParsePostfixExpr() {
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
     if (!IsLegalAssignableSyntax(expr, TokenPos())) {
-      ErrorMsg(expr_pos, "expression is not assignable");
+      ReportError(expr_pos, "expression is not assignable");
     }
     Token::Kind incr_op = CurrentToken();
     ConsumeToken();
@@ -8988,9 +8956,9 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
   // Fields are not accessible from a static function, except from a
   // constructor, which is considered as non-static by the compiler.
   if (current_function().is_static()) {
-    ErrorMsg(field_pos,
-             "cannot access instance field '%s' from a static function",
-             field_name.ToCString());
+    ReportError(field_pos,
+                "cannot access instance field '%s' from a static function",
+                field_name.ToCString());
   }
 }
 
@@ -9042,7 +9010,7 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
   Instance& result =
       Instance::Handle(I, instance.CheckAndCanonicalize(&error_str));
   if (result.IsNull()) {
-    ErrorMsg(token_pos, "Invalid const object %s", error_str);
+    ReportError(token_pos, "Invalid const object %s", error_str);
   }
   return result.raw();
 }
@@ -9062,8 +9030,8 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
   const Instance& value = Instance::Handle(I, field.value());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
-      ErrorMsg("circular dependency while initializing static field '%s'",
-               field_name.ToCString());
+      ReportError("circular dependency while initializing static field '%s'",
+                  field_name.ToCString());
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new(I) StaticGetterNode(
@@ -9098,13 +9066,15 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
           field.set_value(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
-          AppendErrorMsg(error, field_ref_pos,
-                         "error initializing const field '%s'",
-                         String::Handle(I, field.name()).ToCString());
+          const String& field_name = String::Handle(I, field.name());
+          ReportErrors(error,
+                       script_, field_ref_pos,
+                       "error initializing const field '%s'",
+                       field_name.ToCString());
         } else {
-          I->long_jump_base()->Jump(1, error);
-          UNREACHABLE();
+          ReportError(error);
         }
+        UNREACHABLE();
       }
       ASSERT(const_value.IsNull() || const_value.IsInstance());
       Instance& instance = Instance::Handle(I);
@@ -9142,7 +9112,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
     instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
       if (!type_arguments.IsInstantiated()) {
-        ErrorMsg("type must be constant in const constructor");
+        ReportError("type must be constant in const constructor");
       }
       instance.SetTypeArguments(
           TypeArguments::Handle(I, type_arguments.Canonicalize()));
@@ -9501,8 +9471,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
       if (allow_closure_names) {
         resolved = LoadClosure(primary);
       } else {
-        ErrorMsg(ident_pos, "illegal reference to method '%s'",
-                 ident.ToCString());
+        ReportError(ident_pos, "illegal reference to method '%s'",
+                    ident.ToCString());
       }
     } else if (primary->primary().IsClass()) {
       const Class& type_class = Class::Cast(primary->primary());
@@ -9601,7 +9571,7 @@ void Parser::CheckConstructorCallTypeArguments(
     // Do not report the expected vs. actual number of type arguments, because
     // the type argument vector is flattened and raw types are allowed.
     if (type_arguments.Length() != constructor_class.NumTypeArguments()) {
-      ErrorMsg(pos, "wrong number of type arguments passed to constructor");
+      ReportError(pos, "wrong number of type arguments passed to constructor");
     }
   }
 }
@@ -9636,15 +9606,15 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       if (element_type.IsDynamicType()) {
         list_type_arguments = TypeArguments::null();
       } else if (is_const && !element_type.IsInstantiated()) {
-        ErrorMsg(type_pos,
-                 "the type argument of a constant list literal cannot include "
-                 "a type variable");
+        ReportError(type_pos,
+                    "the type argument of a constant list literal cannot "
+                    "include a type variable");
       }
     } else {
       if (FLAG_error_on_bad_type) {
-        ErrorMsg(type_pos,
-                 "a list literal takes one type argument specifying "
-                 "the element type");
+        ReportError(type_pos,
+                    "a list literal takes one type argument specifying "
+                    "the element type");
       }
       // Ignore type arguments.
       list_type_arguments = TypeArguments::null();
@@ -9676,7 +9646,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
       } else if (CurrentToken() != Token::kRBRACK) {
-        ErrorMsg("comma or ']' expected");
+        ReportError("comma or ']' expected");
       }
     }
     ExpectToken(Token::kRBRACK);
@@ -9704,14 +9674,14 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                &malformed_error))) {
         // If the failure is due to a malformed type error, display it instead.
         if (!malformed_error.IsNull()) {
-          ErrorMsg(malformed_error);
+          ReportError(malformed_error);
         } else {
-          ErrorMsg(elem->AsLiteralNode()->token_pos(),
-                   "list literal element at index %d must be "
-                   "a constant of type '%s'",
-                   i,
-                   String::Handle(I,
-                       element_type.UserVisibleName()).ToCString());
+          ReportError(elem->AsLiteralNode()->token_pos(),
+                      "list literal element at index %d must be "
+                      "a constant of type '%s'",
+                      i,
+                      String::Handle(I,
+                          element_type.UserVisibleName()).ToCString());
         }
       }
       const_list.SetAt(i, elem->AsLiteralNode()->literal());
@@ -9835,15 +9805,15 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       if (key_type.IsDynamicType() && value_type.IsDynamicType()) {
         map_type_arguments = TypeArguments::null();
       } else if (is_const && !type_arguments.IsInstantiated()) {
-        ErrorMsg(type_pos,
-                 "the type arguments of a constant map literal cannot include "
-                 "a type variable");
+        ReportError(type_pos,
+                    "the type arguments of a constant map literal cannot "
+                    "include a type variable");
       }
     } else {
       if (FLAG_error_on_bad_type) {
-        ErrorMsg(type_pos,
-                 "a map literal takes two type arguments specifying "
-                 "the key type and the value type");
+        ReportError(type_pos,
+                    "a map literal takes two type arguments specifying "
+                    "the key type and the value type");
       }
       // Ignore type arguments.
       map_type_arguments = TypeArguments::null();
@@ -9869,12 +9839,12 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       ASSERT(key->IsLiteralNode());
       const Instance& key_value = key->AsLiteralNode()->literal();
       if (key_value.IsDouble()) {
-        ErrorMsg(key_pos, "key value must not be of type double");
+        ReportError(key_pos, "key value must not be of type double");
       }
       if (!key_value.IsInteger() &&
           !key_value.IsString() &&
           ImplementsEqualOperator(key_value)) {
-        ErrorMsg(key_pos, "key value must not implement operator ==");
+        ReportError(key_pos, "key value must not implement operator ==");
       }
     }
     ExpectToken(Token::kCOLON);
@@ -9892,7 +9862,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
     } else if (CurrentToken() != Token::kRBRACE) {
-      ErrorMsg("comma or '}' expected");
+      ReportError("comma or '}' expected");
     }
   }
   ASSERT(kv_pairs_list.length() % 2 == 0);
@@ -9929,15 +9899,15 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                  &malformed_error))) {
           // If the failure is due to a malformed type error, display it.
           if (!malformed_error.IsNull()) {
-            ErrorMsg(malformed_error);
+            ReportError(malformed_error);
           } else {
-            ErrorMsg(arg->AsLiteralNode()->token_pos(),
-                     "map literal %s at index %d must be "
-                     "a constant of type '%s'",
-                     ((i % 2) == 0) ? "key" : "value",
-                     i >> 1,
-                     String::Handle(I,
-                                    arg_type.UserVisibleName()).ToCString());
+            ReportError(arg->AsLiteralNode()->token_pos(),
+                        "map literal %s at index %d must be "
+                        "a constant of type '%s'",
+                        ((i % 2) == 0) ? "key" : "value",
+                        i >> 1,
+                        String::Handle(I,
+                                       arg_type.UserVisibleName()).ToCString());
           }
         }
       }
@@ -9965,9 +9935,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      map_constr,
                                      constr_args));
     if (constructor_result.IsUnhandledException()) {
-      AppendErrorMsg(Error::Cast(constructor_result),
-                     literal_pos,
-                     "error executing const Map constructor");
+      ReportErrors(Error::Cast(constructor_result),
+                   script_, literal_pos,
+                   "error executing const Map constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
       return new(I) LiteralNode(
@@ -10041,7 +10011,7 @@ AstNode* Parser::ParseCompoundLiteral() {
   } else if (CurrentToken() == Token::kLBRACE) {
     primary = ParseMapLiteral(type_pos, is_const, type_arguments);
   } else {
-    ErrorMsg("unexpected token %s", Token::Str(CurrentToken()));
+    ReportError("unexpected token %s", Token::Str(CurrentToken()));
   }
   return primary;
 }
@@ -10065,7 +10035,7 @@ AstNode* Parser::ParseSymbolLiteral() {
     symbol = String::New(Token::Str(CurrentToken()));
     ConsumeToken();
   } else {
-    ErrorMsg("illegal symbol literal");
+    ReportError("illegal symbol literal");
   }
   // Lookup class Symbol from internal library and call the
   // constructor to create a symbol instance.
@@ -10085,9 +10055,9 @@ AstNode* Parser::ParseSymbolLiteral() {
                                    constr,
                                    constr_args));
   if (result.IsUnhandledException()) {
-    AppendErrorMsg(Error::Cast(result),
-                   symbol_pos,
-                   "error executing const Symbol constructor");
+    ReportErrors(Error::Cast(result),
+                 script_, symbol_pos,
+                 "error executing const Symbol constructor");
   }
   const Instance& instance = Instance::Cast(result);
   return new(I) LiteralNode(symbol_pos,
@@ -10116,7 +10086,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   ASSERT((op_kind == Token::kNEW) || (op_kind == Token::kCONST));
   bool is_const = (op_kind == Token::kCONST);
   if (!IsIdentifier()) {
-    ErrorMsg("type name expected");
+    ReportError("type name expected");
   }
   intptr_t type_pos = TokenPos();
   // Can't allocate const objects of a deferred type.
@@ -10158,7 +10128,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
       const Error& error = Error::Handle(I, type.error());
-      ErrorMsg(error);
+      ReportError(error);
     }
     return ThrowTypeError(type_pos, type);
   }
@@ -10198,7 +10168,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(I, type_class.Name()).ToCString(),
             external_constructor_name.ToCString());
-        ErrorMsg(Error::Handle(I, type.error()));
+        ReportError(Error::Handle(I, type.error()));
       }
       return ThrowNoSuchMethodError(call_pos,
                                     type_class,
@@ -10227,7 +10197,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       }
       if (redirect_type.IsMalformedOrMalbounded()) {
         if (is_const) {
-          ErrorMsg(Error::Handle(I, redirect_type.error()));
+          ReportError(Error::Handle(I, redirect_type.error()));
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
@@ -10276,12 +10246,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : type_class_name);
     if (is_const) {
-      ErrorMsg(call_pos,
-               "invalid arguments passed to constructor '%s' "
-               "for class '%s': %s",
-               external_constructor_name.ToCString(),
-               String::Handle(I, type_class.Name()).ToCString(),
-               error_message.ToCString());
+      ReportError(call_pos,
+                  "invalid arguments passed to constructor '%s' "
+                  "for class '%s': %s",
+                  external_constructor_name.ToCString(),
+                  String::Handle(I, type_class.Name()).ToCString(),
+                  error_message.ToCString());
     }
     return ThrowNoSuchMethodError(call_pos,
                                   type_class,
@@ -10296,7 +10266,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   // compile-time error if the constructor is const.
   if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
-      ErrorMsg(Error::Handle(I, type.error()));
+      ReportError(Error::Handle(I, type.error()));
     }
     return ThrowTypeError(type_pos, type);
   }
@@ -10307,9 +10277,9 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     if (!constructor.is_const()) {
       const String& external_constructor_name =
           (named_constructor ? constructor_name : type_class_name);
-      ErrorMsg("non-const constructor '%s' cannot be used in "
-               "const object creation",
-               external_constructor_name.ToCString());
+      ReportError("non-const constructor '%s' cannot be used in "
+                  "const object creation",
+                  external_constructor_name.ToCString());
     }
     const Object& constructor_result = Object::Handle(I,
         EvaluateConstConstructorCall(type_class,
@@ -10319,9 +10289,9 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     if (constructor_result.IsUnhandledException()) {
       // It's a compile-time error if invocation of a const constructor
       // call fails.
-      AppendErrorMsg(Error::Cast(constructor_result),
-                     new_pos,
-                     "error while evaluating const constructor");
+      ReportErrors(Error::Cast(constructor_result),
+                   script_, new_pos,
+                   "error while evaluating const constructor");
     } else {
       // Const constructors can return null in the case where a const native
       // factory returns a null value. Thus we cannot use a Instance::Cast here.
@@ -10394,7 +10364,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
     result = DartEntry::InvokeFunction(func, interpolate_arg);
   }
   if (result.IsUnhandledException()) {
-    ErrorMsg("%s", Error::Cast(result).ToErrorCString());
+    ReportError("%s", Error::Cast(result).ToErrorCString());
   }
   String& concatenated = String::ZoneHandle(I);
   concatenated ^= result.raw();
@@ -10437,7 +10407,7 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
       if (!allow_interpolation) {
-        ErrorMsg("string interpolation not allowed in this context");
+        ReportError("string interpolation not allowed in this context");
       }
       has_interpolation = true;
       AstNode* expr = NULL;
@@ -10586,7 +10556,7 @@ AstNode* Parser::ParsePrimary() {
   } else if (token == Token::kTHIS) {
     LocalVariable* local = LookupLocalScope(Symbols::This());
     if (local == NULL) {
-      ErrorMsg("receiver 'this' is not in scope");
+      ReportError("receiver 'this' is not in scope");
     }
     primary = new(I) LoadLocalNode(TokenPos(), local);
     ConsumeToken();
@@ -10612,7 +10582,7 @@ AstNode* Parser::ParsePrimary() {
   } else if (token == Token::kDOUBLE) {
     Double& double_value = Double::ZoneHandle(I, CurrentDoubleLiteral());
     if (double_value.IsNull()) {
-      ErrorMsg("invalid double literal");
+      ReportError("invalid double literal");
     }
     primary = new(I) LiteralNode(TokenPos(), double_value);
     ConsumeToken();
@@ -10640,18 +10610,18 @@ AstNode* Parser::ParsePrimary() {
     primary = ParseSymbolLiteral();
   } else if (token == Token::kSUPER) {
     if (current_function().is_static()) {
-      ErrorMsg("cannot access superclass from static method");
+      ReportError("cannot access superclass from static method");
     }
     if (current_class().SuperClass() == Class::null()) {
-      ErrorMsg("class '%s' does not have a superclass",
-               String::Handle(I, current_class().Name()).ToCString());
+      ReportError("class '%s' does not have a superclass",
+                  String::Handle(I, current_class().Name()).ToCString());
     }
     if (current_class().IsMixinApplication()) {
       const Type& mixin_type = Type::Handle(I, current_class().mixin());
       if (mixin_type.type_class() == current_function().origin()) {
-        ErrorMsg("method of mixin class '%s' may not refer to 'super'",
-                 String::Handle(I, Class::Handle(I,
-                     current_function().origin()).Name()).ToCString());
+        ReportError("method of mixin class '%s' may not refer to 'super'",
+                    String::Handle(I, Class::Handle(I,
+                        current_function().origin()).Name()).ToCString());
       }
     }
     const intptr_t super_pos = TokenPos();
@@ -10707,9 +10677,9 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
 
     Object& result = Object::Handle(I, Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
-      AppendErrorMsg(Error::Cast(result),
-                     expr_pos,
-                     "error evaluating constant expression");
+      ReportErrors(Error::Cast(result),
+                   script_, expr_pos,
+                   "error evaluating constant expression");
     }
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle(I);

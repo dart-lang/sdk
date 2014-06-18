@@ -17,6 +17,7 @@
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/report.h"
 #include "vm/scanner.h"
 #include "vm/tags.h"
 
@@ -4060,15 +4061,9 @@ class ApiError : public Error {
 
 class LanguageError : public Error {
  public:
-  enum Kind {
-    kWarning,
-    kError,
-    kMalformedType,
-    kMalboundedType,
-    kBailout,
-  };
-
-  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
+  Report::Kind kind() const {
+    return static_cast<Report::Kind>(raw_ptr()->kind_);
+  }
 
   // Build, cache, and return formatted message.
   RawString* FormatMessage() const;
@@ -4081,7 +4076,7 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
                                         intptr_t token_pos,
-                                        Kind kind,
+                                        Report::Kind kind,
                                         Heap::Space space,
                                         const char* format, ...)
     PRINTF_ATTRIBUTE(6, 7);
@@ -4089,12 +4084,12 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
                                          intptr_t token_pos,
-                                         Kind kind,
+                                         Report::Kind kind,
                                          Heap::Space space,
                                          const char* format, va_list args);
 
   static RawLanguageError* New(const String& formatted_message,
-                               Kind kind = kError,
+                               Report::Kind kind = Report::kError,
                                Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;

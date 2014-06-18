@@ -10,6 +10,7 @@
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
+#include "vm/report.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -278,9 +279,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   for (intptr_t i = 0; i < visited_factories.Length(); i++) {
     if (visited_factories.At(i) == factory.raw()) {
       // A redirection cycle is reported as a compile-time error.
-      const Script& script = Script::Handle(cls.script());
-      ReportError(Error::Handle(),  // No previous error.
-                  script, factory.token_pos(),
+      ReportError(cls, factory.token_pos(),
                   "factory '%s' illegally redirects to itself",
                   String::Handle(factory.name()).ToCString());
     }
@@ -372,11 +371,9 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
 
   // Verify that the target is const if the redirecting factory is const.
   if (factory.is_const() && !target.is_const()) {
-    const Script& script = Script::Handle(target_class.script());
-    ReportError(Error::Handle(),  // No previous error.
-                script, target.token_pos(),
-                "constructor '%s' must be const as required by redirecting "
-                "const factory '%s'",
+    ReportError(target_class, target.token_pos(),
+                "constructor '%s' must be const as required by "
+                "redirecting const factory '%s'",
                 String::Handle(target.name()).ToCString(),
                 String::Handle(factory.name()).ToCString());
   }
@@ -571,12 +568,9 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         // Reject the non-contractive recursive type.
-        const Script& script = Script::Handle(isolate, cls.script());
         const String& type_name = String::Handle(isolate, type.Name());
-        ReportError(Error::Handle(isolate),  // No previous error.
-                    script, type.token_pos(),
-                    "illegal recursive type '%s'",
-                    type_name.ToCString());
+        ReportError(cls, type.token_pos(),
+                    "illegal recursive type '%s'", type_name.ToCString());
       }
     }
   }
@@ -968,11 +962,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
     if (FLAG_error_on_bad_type) {
-      const Script& script = Script::Handle(isolate, cls.script());
       const String& type_class_name =
           String::Handle(isolate, type_class.Name());
-      ReportError(Error::Handle(isolate),  // No previous error.
-                  script, parameterized_type.token_pos(),
+      ReportError(cls, parameterized_type.token_pos(),
                   "wrong number of type arguments for class '%s'",
                   type_class_name.ToCString());
     }
@@ -1276,9 +1268,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, field.token_pos(),
+        ReportError(cls, field.token_pos(),
                     "static field '%s' of class '%s' conflicts with "
                     "instance member '%s' of super class '%s'",
                     name.ToCString(),
@@ -1294,9 +1284,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, field.token_pos(),
+        ReportError(cls, field.token_pos(),
                     "static field '%s' of class '%s' conflicts with "
                     "instance setter '%s=' of super class '%s'",
                     name.ToCString(),
@@ -1312,9 +1300,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, field.token_pos(),
+        ReportError(cls, field.token_pos(),
                     "field '%s' of class '%s' conflicts with method '%s' "
                     "of super class '%s'",
                     name.ToCString(),
@@ -1346,14 +1332,13 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           const String& const_value_type_name = String::Handle(
               const_value_type.UserVisibleName());
           const String& type_name = String::Handle(type.UserVisibleName());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(error, script, field.token_pos(),
-                      "error initializing static %s field '%s': "
-                      "type '%s' is not a subtype of type '%s'",
-                      field.is_const() ? "const" : "final",
-                      name.ToCString(),
-                      const_value_type_name.ToCString(),
-                      type_name.ToCString());
+          ReportErrors(error, cls, field.token_pos(),
+                       "error initializing static %s field '%s': "
+                       "type '%s' is not a subtype of type '%s'",
+                       field.is_const() ? "const" : "final",
+                       name.ToCString(),
+                       const_value_type_name.ToCString(),
+                       type_name.ToCString());
         } else {
           // Do not report an error yet, even in checked mode, since the field
           // may not actually be used.
@@ -1423,13 +1408,12 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                                                   &error)) {
           const String& class_name = String::Handle(cls.Name());
           const String& super_class_name = String::Handle(super_class.Name());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(error, script, function.token_pos(),
-                      "class '%s' overrides method '%s' of super class '%s' "
-                      "with incompatible parameters",
-                      class_name.ToCString(),
-                      name.ToCString(),
-                      super_class_name.ToCString());
+          ReportErrors(error, cls, function.token_pos(),
+                       "class '%s' overrides method '%s' of super "
+                       "class '%s' with incompatible parameters",
+                       class_name.ToCString(),
+                       name.ToCString(),
+                       super_class_name.ToCString());
         }
       }
     }
@@ -1439,9 +1423,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         if (!super_class.IsNull()) {
           const String& class_name = String::Handle(cls.Name());
           const String& super_class_name = String::Handle(super_class.Name());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(Error::Handle(),  // No previous error.
-                      script, function.token_pos(),
+          ReportError(cls, function.token_pos(),
                       "static setter '%s=' of class '%s' conflicts with "
                       "instance setter '%s=' of super class '%s'",
                       name.ToCString(),
@@ -1463,9 +1445,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, function.token_pos(),
+        ReportError(cls, function.token_pos(),
                     "static %s '%s' of class '%s' conflicts with "
                     "instance member '%s' of super class '%s'",
                     (function.IsGetterFunction() ||
@@ -1483,9 +1463,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, function.token_pos(),
+        ReportError(cls, function.token_pos(),
                     "getter '%s' of class '%s' conflicts with "
                     "method '%s' of super class '%s'",
                     name.ToCString(),
@@ -1501,9 +1479,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (!super_class.IsNull()) {
         const String& class_name = String::Handle(cls.Name());
         const String& super_class_name = String::Handle(super_class.Name());
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, function.token_pos(),
+        ReportError(cls, function.token_pos(),
                     "method '%s' of class '%s' conflicts with "
                     "getter '%s' of super class '%s'",
                     name.ToCString(),
@@ -1967,10 +1943,8 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
   // that the super class of the mixin class is class Object.
   GrowableArray<intptr_t> visited_mixins;
   if (!IsMixinCycleFree(mixin_class, &visited_mixins)) {
-    const Script& script = Script::Handle(mixin_class.script());
     const String& class_name = String::Handle(mixin_class.Name());
-    ReportError(Error::Handle(),  // No previous error.
-                script, mixin_class.token_pos(),
+    ReportError(mixin_class, mixin_class.token_pos(),
                 "mixin class '%s' illegally refers to itself",
                 class_name.ToCString());
   }
@@ -1986,10 +1960,8 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
     mixin_super_class = mixin_super_class.SuperClass();
   }
   if (mixin_super_class.IsNull() || !mixin_super_class.IsObjectClass()) {
-    const Script& script = Script::Handle(mixin_app_class.script());
     const String& class_name = String::Handle(mixin_class.Name());
-    ReportError(Error::Handle(),  // No previous error.
-                script, mixin_app_class.token_pos(),
+    ReportError(mixin_app_class, mixin_app_class.token_pos(),
                 "mixin class '%s' must extend class 'Object'",
                 class_name.ToCString());
   }
@@ -2127,9 +2099,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
     if (func.IsConstructor()) {
       // A mixin class must not have explicit constructors.
       if (!func.IsImplicitConstructor()) {
-        const Script& script = Script::Handle(isolate, cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, cls.token_pos(),
+        ReportError(cls, cls.token_pos(),
                     "mixin class '%s' must not have constructors\n",
                     String::Handle(isolate, mixin_cls.Name()).ToCString());
       }
@@ -2178,9 +2148,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
   if (!IsSuperCycleFree(cls)) {
     const String& name = String::Handle(cls.Name());
-    const Script& script = Script::Handle(cls.script());
-    ReportError(Error::Handle(),  // No previous error.
-                script, cls.token_pos(),
+    ReportError(cls, cls.token_pos(),
                 "class '%s' has a cycle in its superclass relationship",
                 name.ToCString());
   }
@@ -2212,9 +2180,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     GrowableArray<intptr_t> visited_aliases;
     if (!IsAliasCycleFree(cls, &visited_aliases)) {
       const String& name = String::Handle(cls.Name());
-      const Script& script = Script::Handle(cls.script());
-      ReportError(Error::Handle(),  // No previous error.
-                  script, cls.token_pos(),
+      ReportError(cls, cls.token_pos(),
                   "typedef '%s' illegally refers to itself",
                   name.ToCString());
     }
@@ -2248,9 +2214,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     ASSERT(interface_type.IsFinalized());
     ASSERT(super_type.IsNull() || super_type.IsFinalized());
     if (!super_type.IsNull() && interface_type.Equals(super_type)) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(Error::Handle(),  // No previous error.
-                  script, cls.token_pos(),
+      ReportError(cls, cls.token_pos(),
                   "super type '%s' may not be listed in "
                   "implements clause of class '%s'",
                   String::Handle(super_type.Name()).ToCString(),
@@ -2259,9 +2223,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     for (intptr_t j = 0; j < i; j++) {
       seen_interf ^= interface_types.At(j);
       if (interface_type.Equals(seen_interf)) {
-        const Script& script = Script::Handle(cls.script());
-        ReportError(Error::Handle(),  // No previous error.
-                    script, cls.token_pos(),
+        ReportError(cls, cls.token_pos(),
                     "interface '%s' appears twice in "
                     "implements clause of class '%s'",
                     String::Handle(interface_type.Name()).ToCString(),
@@ -2500,10 +2462,8 @@ void ClassFinalizer::CollectTypeArguments(
       return;
     }
     if (FLAG_error_on_bad_type) {
-      const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
-      ReportError(Error::Handle(),  // No previous error.
-                  script, type.token_pos(),
+      ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
                   type_class_name.ToCString());
     }
@@ -2672,9 +2632,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     if ((*visited)[i] == cls_index) {
       // We have already visited class 'cls'. We found a cycle.
       const String& class_name = String::Handle(isolate, cls.Name());
-      const Script& script = Script::Handle(isolate, cls.script());
-      ReportError(Error::Handle(isolate),  // No previous error.
-                  script, cls.token_pos(),
+      ReportError(cls, cls.token_pos(),
                   "cyclic reference found for class '%s'",
                   class_name.ToCString());
     }
@@ -2715,21 +2673,17 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     ReportError(Error::Handle(isolate, super_type.error()));
   }
   if (super_type.IsDynamicType()) {
-    const Script& script = Script::Handle(isolate, cls.script());
-    ReportError(Error::Handle(isolate),  // No previous error.
-                script, cls.token_pos(),
+    ReportError(cls, cls.token_pos(),
                 "class '%s' may not extend 'dynamic'",
                 String::Handle(isolate, cls.Name()).ToCString());
   }
   interface_class = super_type.type_class();
   if (interface_class.IsSignatureClass()) {
-    const Script& script = Script::Handle(isolate, cls.script());
-    ReportError(Error::Handle(isolate),  // No previous error.
-                script, cls.token_pos(),
+    ReportError(cls, cls.token_pos(),
                 "class '%s' may not extend function type alias '%s'",
                 String::Handle(isolate, cls.Name()).ToCString(),
                 String::Handle(isolate,
-                               super_type.UserVisibleName()).ToCString());
+                                  super_type.UserVisibleName()).ToCString());
   }
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
@@ -2774,12 +2728,12 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       }
     }
     if (is_error) {
-      const Script& script = Script::Handle(isolate, cls.script());
-      ReportError(Error::Handle(isolate),  // No previous error.
-                  script, cls.token_pos(),
+      const String& interface_name = String::Handle(isolate,
+                                                    interface_class.Name());
+      ReportError(cls, cls.token_pos(),
                   "'%s' is not allowed to extend '%s'",
                   String::Handle(isolate, cls.Name()).ToCString(),
-                  String::Handle(isolate, interface_class.Name()).ToCString());
+                  interface_name.ToCString());
     }
   }
   // Now resolve the super interfaces of the super type.
@@ -2795,18 +2749,16 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       ReportError(Error::Handle(isolate, interface.error()));
     }
     if (interface.IsDynamicType()) {
-      const Script& script = Script::Handle(isolate, cls.script());
-      ReportError(Error::Handle(isolate),  // No previous error.
-                  script, cls.token_pos(),
+      ReportError(cls, cls.token_pos(),
                   "'dynamic' may not be used as interface");
     }
     interface_class = interface.type_class();
     if (interface_class.IsSignatureClass()) {
-      const Script& script = Script::Handle(isolate, cls.script());
-      ReportError(Error::Handle(isolate),  // No previous error.
-                  script, cls.token_pos(),
+      const String& interface_name = String::Handle(isolate,
+                                                    interface_class.Name());
+      ReportError(cls, cls.token_pos(),
                   "function type alias '%s' may not be used as interface",
-                  String::Handle(isolate, interface_class.Name()).ToCString());
+                  interface_name.ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend, implement,
     // or mixin any of Null, bool, num, int, double, String, dynamic.
@@ -2818,17 +2770,14 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
           interface.IsDoubleType() ||
           interface.IsStringType() ||
           interface.IsDynamicType()) {
-        const Script& script = Script::Handle(isolate, cls.script());
         const String& interface_name = String::Handle(isolate,
                                                       interface_class.Name());
         if (cls.IsMixinApplication()) {
-          ReportError(Error::Handle(isolate),  // No previous error.
-                      script, cls.token_pos(),
+          ReportError(cls, cls.token_pos(),
                       "illegal mixin of '%s'",
                       interface_name.ToCString());
         } else {
-          ReportError(Error::Handle(isolate),  // No previous error.
-                      script, cls.token_pos(),
+          ReportError(cls, cls.token_pos(),
                       "'%s' is not allowed to extend or implement '%s'",
                       String::Handle(isolate, cls.Name()).ToCString(),
                       interface_name.ToCString());
@@ -2857,9 +2806,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
     if (!field.is_static() && !field.is_final()) {
       const String& class_name = String::Handle(cls.Name());
       const String& field_name = String::Handle(field.name());
-      const Script& script = Script::Handle(cls.script());
-      ReportError(Error::Handle(),  // No previous error.
-                  script, field.token_pos(),
+      ReportError(cls, field.token_pos(),
                   "const class '%s' has non-final field '%s'",
                   class_name.ToCString(), field_name.ToCString());
     }
@@ -2914,15 +2861,15 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 }
 
 // Either report an error or mark the type as malformed.
-void ClassFinalizer::ReportMalformedType(const Error& prev_error,
-                                         const Script& script,
-                                         const Type& type,
-                                         const char* format,
-                                         va_list args) {
+void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
+                                       const Script& script,
+                                       const Type& type,
+                                       const char* format,
+                                       va_list args) {
   LanguageError& error = LanguageError::Handle(
       LanguageError::NewFormattedV(
           prev_error, script, type.token_pos(),
-          LanguageError::kMalformedType, Heap::kOld,
+          Report::kMalformedType, Heap::kOld,
           format, args));
   if (FLAG_error_on_bad_type) {
     ReportError(error);
@@ -2955,7 +2902,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(const Error& prev_error,
                            type_pos));
   const Type& type = Type::Handle(
       Type::New(unresolved_class, TypeArguments::Handle(), type_pos));
-  ReportMalformedType(prev_error, script, type, format, args);
+  MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
   ASSERT(type.IsFinalized());
@@ -2969,7 +2916,7 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
                                            const char* format, ...) {
   va_list args;
   va_start(args, format);
-  ReportMalformedType(prev_error, script, type, format, args);
+  MarkTypeMalformed(prev_error, script, type, format, args);
   va_end(args);
 }
 
@@ -2983,7 +2930,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
   LanguageError& error = LanguageError::Handle(
       LanguageError::NewFormattedV(
           prev_error, script, type.token_pos(),
-          LanguageError::kMalboundedType, Heap::kOld,
+          Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
   if (FLAG_error_on_bad_type) {
@@ -2998,24 +2945,33 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
 
 
 void ClassFinalizer::ReportError(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Report::LongJump(error);
   UNREACHABLE();
 }
 
 
-void ClassFinalizer::ReportError(const Error& prev_error,
-                                 const Script& script,
+void ClassFinalizer::ReportErrors(const Error& prev_error,
+                                  const Class& cls,
+                                  intptr_t token_pos,
+                                  const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  const Script& script = Script::Handle(cls.script());
+  Report::LongJumpV(prev_error, script, token_pos, format, args);
+  va_end(args);
+  UNREACHABLE();
+}
+
+
+void ClassFinalizer::ReportError(const Class& cls,
                                  intptr_t token_pos,
                                  const char* format, ...) {
   va_list args;
   va_start(args, format);
-  Error& error = Error::Handle(
-      LanguageError::NewFormattedV(
-          prev_error, script, token_pos,
-          LanguageError::kError, Heap::kNew,
-          format, args));
+  const Script& script = Script::Handle(cls.script());
+  Report::MessageV(Report::kError, script, token_pos, format, args);
   va_end(args);
-  ReportError(error);
+  UNREACHABLE();
 }
 
 

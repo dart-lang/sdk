@@ -32,10 +32,10 @@
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
-#include "vm/longjump.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -706,11 +706,11 @@ void Object::InitOnce() {
   String& error_str = String::Handle();
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
   *snapshot_writer_error_ = LanguageError::New(error_str,
-                                               LanguageError::kError,
+                                               Report::kError,
                                                Heap::kOld);
   error_str = String::New("Branch offset overflow", Heap::kOld);
   *branch_offset_error_ = LanguageError::New(error_str,
-                                             LanguageError::kBailout,
+                                             Report::kBailout,
                                              Heap::kOld);
 
   ASSERT(!null_object_->IsSmi());
@@ -1767,17 +1767,12 @@ RawClass* Class::New() {
 
 
 static void ReportTooManyTypeArguments(const Class& cls) {
-  const Error& error = Error::Handle(
-      LanguageError::NewFormatted(
-          Error::Handle(),  // No previous error.
-          Script::Handle(cls.script()),
-          cls.token_pos(),
-          LanguageError::kError,
-          Heap::kNew,
-          "too many type parameters declared in class '%s' or in its "
-          "super classes",
-          String::Handle(cls.Name()).ToCString()));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kError,
+                   Script::Handle(cls.script()),
+                   cls.token_pos(),
+                   "too many type parameters declared in class '%s' or in its "
+                   "super classes",
+                   String::Handle(cls.Name()).ToCString());
   UNREACHABLE();
 }
 
@@ -2653,7 +2648,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           func.token_pos(),
-          LanguageError::kError,
+          Report::kError,
           Heap::kNew,
           "signature mismatch: '%s'", member_name.ToCString());
       return false;
@@ -2698,7 +2693,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
           *error,  // No previous error.
           Script::Handle(patch.script()),
           field.token_pos(),
-          LanguageError::kError,
+          Report::kError,
           Heap::kNew,
           "duplicate field: %s", member_name.ToCString());
       return false;
@@ -2800,7 +2795,7 @@ RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Compiler::CompileClass(*this));
   if (!error.IsNull() && (isolate->long_jump_base() != NULL)) {
-    isolate->long_jump_base()->Jump(1, error);
+    Report::LongJump(error);
     UNREACHABLE();
   }
   return error.raw();
@@ -5756,7 +5751,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()),
         other.token_pos(),
-        LanguageError::kError,
+        Report::kError,
         Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
         "type '%s' of function '%s'",
@@ -12547,7 +12542,7 @@ RawLanguageError* LanguageError::New() {
 RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
                                                const Script& script,
                                                intptr_t token_pos,
-                                               Kind kind,
+                                               Report::Kind kind,
                                                Heap::Space space,
                                                const char* format,
                                                va_list args) {
@@ -12572,7 +12567,7 @@ RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
 RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
                                               const Script& script,
                                               intptr_t token_pos,
-                                              Kind kind,
+                                              Report::Kind kind,
                                               Heap::Space space,
                                               const char* format, ...) {
   va_list args;
@@ -12586,7 +12581,7 @@ RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
 
 
 RawLanguageError* LanguageError::New(const String& formatted_message,
-                                     Kind kind,
+                                     Report::Kind kind,
                                      Heap::Space space) {
   ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
@@ -12638,68 +12633,16 @@ RawString* LanguageError::FormatMessage() const {
   if (formatted_message() != String::null()) {
     return formatted_message();
   }
-  const char* message_header;
-  switch (kind()) {
-    case kWarning: message_header = "warning"; break;
-    case kError: message_header = "error"; break;
-    case kMalformedType: message_header = "malformed type"; break;
-    case kMalboundedType: message_header = "malbounded type"; break;
-    case kBailout: message_header = "bailout"; break;
-    default: message_header = ""; UNREACHABLE();
-  }
-  String& result = String::Handle();
-  String& msg = String::Handle(message());
-  const Script& scr = Script::Handle(script());
-  if (!scr.IsNull()) {
-    const String& script_url = String::Handle(scr.url());
-    if (token_pos() >= 0) {
-      intptr_t line, column;
-      scr.GetTokenLocation(token_pos(), &line, &column);
-      // Only report the line position if we have the original source. We still
-      // need to get a valid column so that we can report the ^ mark below the
-      // snippet.
-      if (scr.HasSource()) {
-        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
-                                      script_url.ToCString(),
-                                      message_header,
-                                      line,
-                                      column);
-      } else {
-        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
-                                      script_url.ToCString(),
-                                      message_header,
-                                      line);
-      }
-      // Append the formatted error or warning message.
-      result = String::Concat(result, msg);
-      // Append the source line.
-      const String& script_line = String::Handle(scr.GetLine(line));
-      ASSERT(!script_line.IsNull());
-      result = String::Concat(result, Symbols::NewLine());
-      result = String::Concat(result, script_line);
-      result = String::Concat(result, Symbols::NewLine());
-      // Append the column marker.
-      const String& column_line = String::Handle(
-          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
-      result = String::Concat(result, column_line);
-    } else {
-      // Token position is unknown.
-      result = String::NewFormatted("'%s': %s: ",
-                                    script_url.ToCString(),
-                                    message_header);
-      result = String::Concat(result, msg);
-    }
-  } else {
-    // Script is unknown.
-    // Append the formatted error or warning message.
-    result = String::NewFormatted("%s: ", message_header);
-    result = String::Concat(result, msg);
-  }
+  String& result = String::Handle(
+      Report::PrependSnippet(kind(),
+                             Script::Handle(script()),
+                             token_pos(),
+                             String::Handle(message())));
   // Prepend previous error message.
   const Error& prev_error = Error::Handle(previous_error());
   if (!prev_error.IsNull()) {
-    msg = String::New(prev_error.ToErrorCString());
-    result = String::Concat(msg, result);
+    result = String::Concat(
+        String::Handle(String::New(prev_error.ToErrorCString())), result);
   }
   set_formatted_message(result);
   return result.raw();
@@ -13954,7 +13897,7 @@ bool Type::IsMalformed() const {
     return false;
   }
   const LanguageError& type_error = LanguageError::Handle(error());
-  return type_error.kind() == LanguageError::kMalformedType;
+  return type_error.kind() == Report::kMalformedType;
 }
 
 
@@ -13966,7 +13909,7 @@ bool Type::IsMalbounded() const {
     return false;
   }
   const LanguageError& type_error = LanguageError::Handle(error());
-  return type_error.kind() == LanguageError::kMalboundedType;
+  return type_error.kind() == Report::kMalboundedType;
 }
 
 
@@ -13975,10 +13918,10 @@ bool Type::IsMalformedOrMalbounded() const {
     return false;
   }
   const LanguageError& type_error = LanguageError::Handle(error());
-  if (type_error.kind() == LanguageError::kMalformedType) {
+  if (type_error.kind() == Report::kMalformedType) {
     return true;
   }
-  ASSERT(type_error.kind() == LanguageError::kMalboundedType);
+  ASSERT(type_error.kind() == Report::kMalboundedType);
   return FLAG_enable_type_checks;
 }
 
@@ -14717,7 +14660,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
           *bound_error,
           script,
           token_pos(),
-          LanguageError::kMalboundedType,
+          Report::kMalboundedType,
           Heap::kNew,
           "type parameter '%s' of class '%s' must extend bound '%s', "
           "but type argument '%s' is not a subtype of '%s'\n",

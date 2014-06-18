@@ -162,16 +162,19 @@ class ClassFinalizer : public AllStatic {
   static void PrintClassInformation(const Class& cls);
   static void CollectInterfaces(const Class& cls,
                                 const GrowableObjectArray& interfaces);
-  static void ReportMalformedType(const Error& prev_error,
-                                  const Script& script,
-                                  const Type& type,
-                                  const char* format,
-                                  va_list args);
+  static void MarkTypeMalformed(const Error& prev_error,
+                                const Script& script,
+                                const Type& type,
+                                const char* format,
+                                va_list args);
   static void ReportError(const Error& error);
-  static void ReportError(const Error& prev_error,
-                          const Script& script,
-                          intptr_t token_index,
-                          const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
+  static void ReportError(const Class& cls,
+                          intptr_t token_pos,
+                          const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
+  static void ReportErrors(const Error& prev_error,
+                           const Class& cls,
+                           intptr_t token_pos,
+                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of
   // Dart instances (e.g: _TypedListView, _ByteDataView).

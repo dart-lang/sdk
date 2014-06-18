@@ -354,16 +354,12 @@ void FlowGraphCompiler::VisitBlocks() {
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   const Function& function = parsed_function_.function();
-  const Error& error = Error::Handle(
-      LanguageError::NewFormatted(Error::Handle(),  // No previous error.
-                                  Script::Handle(function.script()),
-                                  function.token_pos(),
-                                  LanguageError::kBailout,
-                                  Heap::kNew,
-                                  "FlowGraphCompiler Bailout: %s %s",
-                                  String::Handle(function.name()).ToCString(),
-                                  reason));
-  isolate()->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function.script()),
+                   function.token_pos(),
+                   "FlowGraphCompiler Bailout: %s %s",
+                   String::Handle(function.name()).ToCString(),
+                   reason);
   UNREACHABLE();
 }
 

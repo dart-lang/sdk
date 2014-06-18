@@ -7,8 +7,8 @@
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
-#include "vm/longjump.h"
 #include "vm/growable_array.h"
+#include "vm/report.h"
 
 namespace dart {
 
@@ -1147,16 +1147,13 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
 
 void FlowGraph::Bailout(const char* reason) const {
   const Function& function = parsed_function_.function();
-  const Error& error = Error::Handle(
-      LanguageError::NewFormatted(Error::Handle(),  // No previous error.
-                                  Script::Handle(function.script()),
-                                  function.token_pos(),
-                                  LanguageError::kError,
-                                  Heap::kNew,
-                                  "FlowGraph Bailout: %s %s",
-                                  String::Handle(function.name()).ToCString(),
-                                  reason));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function.script()),
+                   function.token_pos(),
+                   "FlowGraph Bailout: %s %s",
+                   String::Handle(function.name()).ToCString(),
+                   reason);
+  UNREACHABLE();
 }
 
 

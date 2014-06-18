@@ -311,31 +311,27 @@ class Parser : public ValueObject {
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
 
-  // A null script means no source and a negative token_pos means no position.
-  static RawString* FormatMessage(const Script& script,
-                                  intptr_t token_pos,
-                                  LanguageError::Kind kind,
-                                  const char* format,
-                                  va_list args);
+  // Report already formatted error.
+  static void ReportError(const Error& error);
 
-  // Reports error/warning msg at location of current token in current script.
-  void ErrorMsg(const char* msg, ...) PRINTF_ATTRIBUTE(2, 3);
-  void Warning(const char* msg, ...)  PRINTF_ATTRIBUTE(2, 3);
-  void Unimplemented(const char* msg);
+  // Concatenate and report an already formatted error and a new error message.
+  static void ReportErrors(const Error& prev_error,
+                           const Script& script, intptr_t token_pos,
+                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
-  // Reports error message at given location in current script.
-  void ErrorMsg(intptr_t token_pos, const char* msg, ...) const
-      PRINTF_ATTRIBUTE(3, 4);
-  void Warning(intptr_t token_pos, const char* msg, ...)
-      PRINTF_ATTRIBUTE(3, 4);
+  // Report error message at location of current token in current script.
+  void ReportError(const char* msg, ...) const PRINTF_ATTRIBUTE(2, 3);
 
-  // Reports an already formatted error message.
-  static void ErrorMsg(const Error& error);
+  // Report error message at given location in current script.
+  void ReportError(intptr_t token_pos,
+                   const char* msg, ...) const PRINTF_ATTRIBUTE(3, 4);
 
-  // Concatenates two error messages, the previous and the current one.
-  void AppendErrorMsg(
-      const Error& prev_error, intptr_t token_pos, const char* format, ...)
-      PRINTF_ATTRIBUTE(4, 5);
+  // Report warning message at location of current token in current script.
+  void ReportWarning(const char* msg, ...) const PRINTF_ATTRIBUTE(2, 3);
+
+  // Report warning message at given location in current script.
+  void ReportWarning(intptr_t token_pos,
+                     const char* msg, ...) const PRINTF_ATTRIBUTE(3, 4);
 
   void CheckRecursiveInvocation();
 

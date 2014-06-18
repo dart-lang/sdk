@@ -157,10 +157,7 @@ class FlowGraphBuilder: public ValueObject {
 
   void WarnOnJSIntegralNumTypeTest(AstNode* node,
                                    const AbstractType& type) const;
-
-  void Warning(intptr_t token_pos, const char* format, ...) const
-      PRINTF_ATTRIBUTE(3, 4);
-
+  void JSWarning(intptr_t token_pos, const char* msg) const;
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

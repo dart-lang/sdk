@@ -6,20 +6,21 @@
 #define VM_EXCEPTIONS_H_
 
 #include "vm/allocation.h"
-#include "vm/growable_array.h"
 
 namespace dart {
 
 // Forward declarations.
+class Array;
 class Class;
 class DartFrameIterator;
 class Error;
 class Instance;
 class Object;
 class RawInstance;
+class RawObject;
 class RawScript;
 class RawStacktrace;
-class RawObject;
+class RawString;
 class Script;
 class StackFrame;
 class String;
@@ -34,22 +35,8 @@ class Exceptions : AllStatic {
                       const Instance& stacktrace);
   static void PropagateError(const Error& error);
 
-  // Report a Javascript compatibility warning at the call site given by
-  // caller_frame. Note that a JavascriptCompatibilityError is thrown
-  // if --warning_as_error is specified.
-  // Also calls TraceJSWarningV below.
-  static void JSWarning(StackFrame* caller_frame, const char* format, ...)
-      PRINTF_ATTRIBUTE(2, 3);
-
-  // Emit a Javascript compatibility warning to the current trace buffer.
-  static void TraceJSWarningF(const Script& script, intptr_t token_pos,
-                              const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
-  static void TraceJSWarningV(const Script& script, intptr_t token_pos,
-                              const char* format, va_list args);
-
-  static RawStacktrace* CurrentStacktrace();
-
   // Helpers to create and throw errors.
+  static RawStacktrace* CurrentStacktrace();
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
   static void CreateAndThrowTypeError(intptr_t location,
@@ -85,6 +72,7 @@ class Exceptions : AllStatic {
   static void ThrowOOM();
   static void ThrowStackOverflow();
   static void ThrowArgumentError(const Instance& arg);
+  static void ThrowJavascriptCompatibilityError(const char* msg);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.

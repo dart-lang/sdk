@@ -620,7 +620,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
 
       // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
-          (LanguageError::Cast(error).kind() == LanguageError::kBailout)) {
+          (LanguageError::Cast(error).kind() == Report::kBailout)) {
         isolate->object_store()->clear_sticky_error();
       }
       is_compiled = false;

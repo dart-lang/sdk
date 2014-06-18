@@ -19,6 +19,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/parser.h"
+#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -574,10 +575,10 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   String& dst_type_name = String::Handle();
   LanguageError& error = LanguageError::Handle(dst_type.error());
   ASSERT(!error.IsNull());
-  if (error.kind() == LanguageError::kMalformedType) {
+  if (error.kind() == Report::kMalformedType) {
     dst_type_name = Symbols::Malformed().raw();
   } else {
-    ASSERT(error.kind() == LanguageError::kMalboundedType);
+    ASSERT(error.kind() == Report::kMalboundedType);
     dst_type_name = Symbols::Malbounded().raw();
   }
   const String& error_message = String::ZoneHandle(
@@ -806,18 +807,6 @@ static RawFunction* InlineCacheMissHandler(
 }
 
 
-static void JSWarning(const ICData& ic_data, const char* msg) {
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  // Report warning only if not already reported at this location.
-  if (!ic_data.IssuedJSWarning()) {
-    ic_data.SetIssuedJSWarning();
-    Exceptions::JSWarning(caller_frame, "%s", msg);
-  }
-}
-
-
 // Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: IC data object.
@@ -833,9 +822,10 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
         String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
       const double value = Double::Cast(receiver).value();
       if (floor(value) == value) {
-        JSWarning(ic_data,
-                  "string representation of an integral value of type "
-                  "'double' has no decimal mark and no fractional part");
+        Report::JSWarningFromIC(ic_data,
+                                "string representation of an integral value "
+                                "of type 'double' has no decimal mark and "
+                                "no fractional part");
       }
     }
   }

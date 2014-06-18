@@ -10,6 +10,7 @@
 #include "vm/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -111,26 +112,6 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 }
 
 
-static void JSWarning(const char* msg) {
-  DartFrameIterator iterator;
-  iterator.NextFrame();  // Skip native call.
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
-  ASSERT(!caller_code.IsNull());
-  const uword caller_pc = caller_frame->pc();
-  // Assume an instance call.
-  ICData& ic_data = ICData::Handle();
-  CodePatcher::GetInstanceCallAt(caller_pc, caller_code, &ic_data);
-  ASSERT(!ic_data.IsNull());
-  // Report warning only if not already reported at this location.
-  if (!ic_data.IssuedJSWarning()) {
-    ic_data.SetIssuedJSWarning();
-    Exceptions::JSWarning(caller_frame, "%s", msg);
-  }
-}
-
-
 static void WarnOnJSIntegralNumTypeTest(
     const Instance& instance,
     const TypeArguments& instantiator_type_arguments,
@@ -148,14 +129,18 @@ static void WarnOnJSIntegralNumTypeTest(
     if (instantiated_type.IsIntType()) {
       const double value = Double::Cast(instance).value();
       if (floor(value) == value) {
-        JSWarning("integral value of type 'double' is also considered to be "
-                  "of type 'int'");
+        Report::JSWarningFromNative(
+            false,  // Object_instanceOf and Object_as are not static calls.
+            "integral value of type 'double' is also considered to be "
+            "of type 'int'");
       }
     }
   } else {
     ASSERT(instance_is_int);
     if (instantiated_type.IsDoubleType()) {
-      JSWarning("integer value is also considered to be of type 'double'");
+      Report::JSWarningFromNative(
+          false,  // Object_instanceOf and Object_as are not static calls.
+          "integer value is also considered to be of type 'double'");
     }
   }
 }

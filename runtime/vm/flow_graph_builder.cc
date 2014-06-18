@@ -16,11 +16,11 @@
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/isolate.h"
-#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -37,13 +37,12 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
-            "Warn on incompatibilities between vm and dart2js.");
 
 DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, silent_warnings);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, warning_as_error);
 
 // Quick access to the locally defined isolate() method.
@@ -1434,17 +1433,16 @@ void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
       const Double& double_instance = Double::Cast(instance);
       double value = double_instance.value();
       if (floor(value) == value) {
-        Warning(node->token_pos(),
-                "javascript compatibility warning: integral value of type "
-                "'double' is also considered to be of type 'int'");
+        JSWarning(node->token_pos(),
+                  "integral value of type 'double' is also considered "
+                  "to be of type 'int'");
       }
     }
   } else {
     ASSERT(type.IsDoubleType());
     if (instance.IsInteger()) {
-      Warning(node->token_pos(),
-              "javascript compatibility warning: integer value is also "
-              "considered to be of type 'double'");
+      JSWarning(node->token_pos(),
+                "integer value is also considered to be of type 'double'");
     }
   }
 }
@@ -3962,46 +3960,28 @@ void FlowGraphBuilder::PruneUnreachable() {
 }
 
 
-void FlowGraphBuilder::Warning(intptr_t token_pos,
-                               const char* format, ...) const {
-  if (FLAG_silent_warnings) return;
-  const Function& function = parsed_function_->function();
-  va_list args;
-  va_start(args, format);
-  const Script& script = Script::Handle(I, function.script());
-  const Error& error = Error::Handle(
-      I,
-      LanguageError::NewFormattedV(
-          Error::Handle(I, Error::null()),  // No previous error.
-          script, token_pos, LanguageError::kWarning,
-          Heap::kNew, format, args));
-  va_end(args);
+void FlowGraphBuilder::JSWarning(intptr_t token_pos, const char* msg) const {
+  const Script& script = Script::Handle(parsed_function_->function().script());
   if (FLAG_warning_as_error) {
-    I->long_jump_base()->Jump(1, error);
+    // Report::kJSWarning would result in a JavascriptCompatibilityError, but we
+    // want a compile-time error.
+    // TODO(regis): Should we change the expection and make the tests work with
+    // a JavascriptCompatibilityError?
+    Report::MessageF(Report::kWarning, script, token_pos, "%s", msg);
     UNREACHABLE();
-  } else {
-    OS::Print("%s", error.ToErrorCString());
-    va_start(args, format);
-    Exceptions::TraceJSWarningV(script, token_pos, format, args);
-    va_end(args);
   }
+  Report::MessageF(Report::kJSWarning, script, token_pos, "%s", msg);
 }
 
 
 void FlowGraphBuilder::Bailout(const char* reason) const {
   const Function& function = parsed_function_->function();
-  const Error& error = Error::Handle(
-      I,
-      LanguageError::NewFormatted(
-          Error::Handle(I, Error::null()),  // No previous error.
-          Script::Handle(I, function.script()),
-          function.token_pos(),
-          LanguageError::kBailout,
-          Heap::kNew,
-          "FlowGraphBuilder Bailout: %s %s",
-          String::Handle(I, function.name()).ToCString(),
-          reason));
-  I->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function.script()),
+                   function.token_pos(),
+                   "FlowGraphBuilder Bailout: %s %s",
+                   String::Handle(function.name()).ToCString(),
+                   reason);
   UNREACHABLE();
 }
 
