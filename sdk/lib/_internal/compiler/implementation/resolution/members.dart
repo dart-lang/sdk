@@ -298,15 +298,6 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  String constructorNameForDiagnostics(String className,
-                                       String constructorName) {
-    String classNameString = className;
-    String constructorNameString = constructorName;
-    return (constructorName == '')
-        ? classNameString
-        : "$classNameString.$constructorNameString";
-   }
-
   void resolveRedirectingConstructor(InitializerResolver resolver,
                                      Node node,
                                      FunctionElement constructor,
@@ -1425,8 +1416,7 @@ class InitializerResolver {
       Selector constructorSelector) {
     if (lookedupConstructor == null
         || !lookedupConstructor.isGenerativeConstructor) {
-      var fullConstructorName =
-          visitor.compiler.resolver.constructorNameForDiagnostics(
+      String fullConstructorName = Elements.constructorNameForDiagnostics(
               className,
               constructorSelector.name);
       MessageKind kind = isImplicitSuperCall
@@ -2695,7 +2685,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // class or typedef literal. We do not need to register this call as a
         // dynamic invocation, because we statically know what the target is.
       } else if (!selector.applies(target, compiler)) {
-        warnArgumentMismatch(node, target);
+        registry.registerThrowNoSuchMethod();
         if (node.isSuperCall) {
           // Similar to what we do when we can't find super via selector
           // in [resolveSend] above, we still need to register the invocation,
@@ -2727,14 +2717,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       registry.registerGetOfStaticFunction(target.declaration);
     }
     return node.isPropertyAccess ? target : null;
-  }
-
-  void warnArgumentMismatch(Send node, Element target) {
-    registry.registerThrowNoSuchMethod();
-    // TODO(karlklose): we can be more precise about the reason of the
-    // mismatch.
-    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
-            {'methodName': target.name});
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
@@ -3077,7 +3059,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     registry.useElement(node.send, constructor);
     if (Elements.isUnresolved(constructor)) return constructor;
     if (!callSelector.applies(constructor, compiler)) {
-      warnArgumentMismatch(node.send, constructor);
       registry.registerThrowNoSuchMethod();
     }
 
@@ -4561,8 +4542,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     Selector selector = createConstructorSelector(constructorName);
     Element result = cls.lookupConstructor(selector);
     if (result == null) {
-      String fullConstructorName =
-          resolver.compiler.resolver.constructorNameForDiagnostics(
+      String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
               constructorName);
       return failOrReturnErroneousElement(

@@ -527,6 +527,15 @@ class Elements {
     }
   }
 
+  static String constructorNameForDiagnostics(String className,
+                                              String constructorName) {
+    String classNameString = className;
+    String constructorNameString = constructorName;
+    return (constructorName == '')
+        ? classNameString
+        : "$classNameString.$constructorNameString";
+  }
+
   /// Returns `true` if [name] is the name of an operator method.
   static bool isOperatorName(String name) {
     return name == 'unary-' || isUserDefinableOperator(name);

@@ -400,8 +400,9 @@ main() => new C();"""]);
   static const MessageKind DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       "Cannot have more than one super initializer.");
 
-  static const MessageKind INVALID_ARGUMENTS = const MessageKind(
-      "Arguments do not match the expected parameters of '#{methodName}'.");
+  static const MessageKind INVALID_CONSTRUCTOR_ARGUMENTS = const MessageKind(
+      "Arguments do not match the expected parameters of constructor "
+      "'#{constructorName}'.");
 
   static const MessageKind NO_MATCHING_CONSTRUCTOR = const MessageKind(
       "'super' call arguments and constructor parameters do not match.");

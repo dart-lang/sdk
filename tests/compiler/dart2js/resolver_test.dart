@@ -82,7 +82,6 @@ main() {
     testIncrementsAndDecrements,
     testOverrideHashCodeCheck,
     testSupertypeOrder,
-    testConstructorArgumentMismatch,
     testConstConstructorAndNonFinalFields,
   ], (f) => f()));
 }
@@ -643,21 +642,6 @@ Future testNewExpression() {
     Element element = elements[expression.send];
     Expect.equals(ElementKind.GENERATIVE_CONSTRUCTOR, element.kind);
     Expect.isTrue(element.isSynthesized);
-  });
-}
-
-Future testConstructorArgumentMismatch() {
-  return MockCompiler.create((MockCompiler compiler) {
-    String script = "class A {} foo() { print(new A(42)); }";
-    compiler.parseScript(script);
-    FunctionElement fooElement = compiler.mainApp.find('foo');
-    Expect.isNotNull(fooElement);
-    fooElement.parseNode(compiler);
-    compiler.resolver.resolve(fooElement);
-
-    compareWarningKinds(
-        script, [MessageKind.INVALID_ARGUMENTS], compiler.warnings);
-    compareWarningKinds(script, [], compiler.errors);
   });
 }
 

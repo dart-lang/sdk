@@ -629,9 +629,12 @@ class CompileTimeConstantEvaluator extends Visitor {
                                                  compileConstant,
                                                  compiler);
     if (!succeeded) {
+      String name = Elements.constructorNameForDiagnostics(
+          target.enclosingClass.name, target.name);
       compiler.reportFatalError(
           node,
-          MessageKind.INVALID_ARGUMENTS, {'methodName': target.name});
+          MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
+          {'constructorName': name});
     }
     return compiledArguments;
   }
