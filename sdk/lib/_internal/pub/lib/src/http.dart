@@ -224,8 +224,10 @@ void handleJsonError(http.Response response) {
   fail(errorMap['error']['message']);
 }
 
-/// Parses a response body, assuming it's JSON-formatted. Throws a user-friendly
-/// error if the response body is invalid JSON, or if it's not a map.
+/// Parses a response body, assuming it's JSON-formatted.
+///
+/// Throws a user-friendly error if the response body is invalid JSON, or if
+/// it's not a map.
 Map parseJsonResponse(http.Response response) {
   var value;
   try {

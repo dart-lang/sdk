@@ -64,9 +64,10 @@ class SolveResult {
   final SolveFailure error;
 
   /// The number of solutions that were attempted before either finding a
-  /// successful solution or exhausting all options. In other words, one more
-  /// than the number of times it had to backtrack because it found an invalid
-  /// solution.
+  /// successful solution or exhausting all options.
+  ///
+  /// In other words, one more than the number of times it had to backtrack
+  /// because it found an invalid solution.
   final int attemptedSolutions;
 
   final SourceRegistry _sources;
@@ -106,6 +107,7 @@ class SolveResult {
 }
 
 /// Maintains a cache of previously-requested data: pubspecs and version lists.
+///
 /// Used to avoid requesting the same pubspec from the server repeatedly.
 class PubspecCache {
   final SourceRegistry _sources;
@@ -277,12 +279,14 @@ class Dependency {
 
 /// Base class for all failures that can occur while trying to resolve versions.
 abstract class SolveFailure implements ApplicationException {
-  /// The name of the package whose version could not be solved. Will be `null`
-  /// if the failure is not specific to one package.
+  /// The name of the package whose version could not be solved.
+  ///
+  /// Will be `null` if the failure is not specific to one package.
   final String package;
 
-  /// The known dependencies on [package] at the time of the failure. Will be
-  /// an empty collection if the failure is not specific to one package.
+  /// The known dependencies on [package] at the time of the failure.
+  ///
+  /// Will be an empty collection if the failure is not specific to one package.
   final Iterable<Dependency> dependencies;
 
   final innerError = null;
@@ -319,8 +323,9 @@ abstract class SolveFailure implements ApplicationException {
     return buffer.toString();
   }
 
-  /// Describes a dependency's reference in the output message. Override this
-  /// to highlight which aspect of [dep] led to the failure.
+  /// Describes a dependency's reference in the output message.
+  ///
+  /// Override this to highlight which aspect of [dep] led to the failure.
   String _describeDependency(PackageDep dep) =>
       "depends on version ${dep.constraint}";
 }

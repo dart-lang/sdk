@@ -412,6 +412,7 @@ Future<Stream> validateStream(Stream stream) {
 
 // TODO(nweiz): remove this when issue 7964 is fixed.
 /// Returns a [Future] that will complete to the first element of [stream].
+///
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
 Future streamFirst(Stream stream) {
   var completer = new Completer();
@@ -441,8 +442,10 @@ Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
 
 // TODO(nweiz): remove this when issue 7787 is fixed.
 /// Creates two single-subscription [Stream]s that each emit all values and
-/// errors from [stream]. This is useful if [stream] is single-subscription but
-/// multiple subscribers are necessary.
+/// errors from [stream].
+///
+/// This is useful if [stream] is single-subscription but multiple subscribers
+/// are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
   var controller1 = new StreamController(sync: true);
   var controller2 = new StreamController(sync: true);
@@ -488,6 +491,7 @@ List<String> splitLines(String text) =>
   text.split("\n").map((line) => line.replaceFirst(_trailingCR, "")).toList();
 
 /// Converts a stream of arbitrarily chunked strings into a line-by-line stream.
+///
 /// The lines don't include line termination characters. A single trailing
 /// newline is ignored.
 Stream<String> streamToLines(Stream<String> stream) {
@@ -529,7 +533,8 @@ Future<Iterable> futureWhere(Iterable iter, test(value)) {
 // pkg/http.
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
-/// This will always return an array of two elements or fewer.
+///
+/// This always returns an array of two elements or fewer.
 List<String> split1(String toSplit, String pattern) {
   if (toSplit.isEmpty) return <String>[];
 
@@ -581,8 +586,10 @@ Set unionAll(Iterable<Set> sets) =>
   sets.fold(new Set(), (union, set) => union.union(set));
 
 // TODO(nweiz): remove this when issue 9068 has been fixed.
-/// Whether [uri1] and [uri2] are equal. This consider HTTP URIs to default to
-/// port 80, and HTTPs URIs to default to port 443.
+/// Whether [uri1] and [uri2] are equal.
+///
+/// This consider HTTP URIs to default to port 80, and HTTPs URIs to default to
+/// port 443.
 bool urisEqual(Uri uri1, Uri uri2) =>
   canonicalizeUri(uri1) == canonicalizeUri(uri2);
 
@@ -614,14 +621,17 @@ String niceDuration(Duration duration) {
   return result + "$s.${ms}s";
 }
 
-/// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
-/// replacing `+` with ` `.
+/// Decodes a URL-encoded string.
+///
+/// Unlike [Uri.decodeComponent], this includes replacing `+` with ` `.
 String urlDecode(String encoded) =>
   Uri.decodeComponent(encoded.replaceAll("+", " "));
 
 /// Takes a simple data structure (composed of [Map]s, [Iterable]s, scalar
 /// objects, and [Future]s) and recursively resolves all the [Future]s contained
-/// within. Completes with the fully resolved structure.
+/// within.
+///
+/// Completes with the fully resolved structure.
 Future awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(awaitObject);
@@ -668,8 +678,9 @@ String getSpecial(String color, [String onWindows = '']) {
   }
 }
 
-/// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
-/// first line is prefixed with that instead.
+/// Prepends each line in [text] with [prefix].
+///
+/// If [firstPrefix] is passed, the first line is prefixed with that instead.
 String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
   var lines = text.split('\n');
   if (firstPrefix == null) {
@@ -711,9 +722,10 @@ Future resetStack(fn()) {
   return completer.future;
 }
 
-/// The subset of strings that don't need quoting in YAML. This pattern does
-/// not strictly follow the plain scalar grammar of YAML, which means some
-/// strings may be unnecessarily quoted, but it's much simpler.
+/// The subset of strings that don't need quoting in YAML.
+///
+/// This pattern does not strictly follow the plain scalar grammar of YAML,
+/// which means some strings may be unnecessarily quoted, but it's much simpler.
 final _unquotableYamlString = new RegExp(r"^[a-zA-Z_-][a-zA-Z_0-9-]*$");
 
 /// Converts [data], which is a parsed YAML object, to a pretty-printed string,
@@ -774,6 +786,7 @@ String yamlToString(data) {
 }
 
 /// An exception class for exceptions that are intended to be seen by the user.
+///
 /// These exceptions won't have any debugging information printed when they're
 /// thrown.
 class ApplicationException implements Exception {
@@ -842,8 +855,9 @@ final _userFacingExceptions = new Set<String>.from([
   'WebSocketException'
 ]);
 
-/// Returns whether [error] is a user-facing error object. This includes both
-/// [ApplicationException] and any dart:io errors.
+/// Returns whether [error] is a user-facing error object.
+///
+/// This includes both [ApplicationException] and any dart:io errors.
 bool isUserFacingException(error) {
   if (error is CrossIsolateException) {
     return _userFacingExceptions.contains(error.type);

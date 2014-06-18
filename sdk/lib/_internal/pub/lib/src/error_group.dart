@@ -7,9 +7,11 @@ library pub.error_group;
 import 'dart:async';
 
 /// An [ErrorGroup] entangles the errors of multiple [Future]s and [Stream]s
-/// with one another. This allows APIs to expose multiple [Future]s and
-/// [Stream]s that have identical error conditions without forcing API consumers
-/// to attach error handling to objects they don't care about.
+/// with one another.
+///
+/// This allows APIs to expose multiple [Future]s and [Stream]s that have
+/// identical error conditions without forcing API consumers to attach error
+/// handling to objects they don't care about.
 ///
 /// To use an [ErrorGroup], register [Future]s and [Stream]s with it using
 /// [registerFuture] and [registerStream]. These methods return wrapped versions
@@ -40,9 +42,10 @@ class ErrorGroup {
   /// The [Completer] for [done].
   final _doneCompleter = new Completer();
 
-  /// The underlying [Future] for [done]. We need to be able to access it
-  /// internally as an [_ErrorGroupFuture] so we can check if it has listeners
-  /// and signal errors on it.
+  /// The underlying [Future] for [done].
+  ///
+  /// We need to be able to access it internally as an [_ErrorGroupFuture] so
+  /// we can check if it has listeners and signal errors on it.
   _ErrorGroupFuture _done;
 
   /// Returns a [Future] that completes successully when all members of [this]
@@ -58,8 +61,9 @@ class ErrorGroup {
     this._done = new _ErrorGroupFuture(this, _doneCompleter.future);
   }
 
-  /// Registers a [Future] as a member of [this]. Returns a wrapped version of
-  /// [future] that should be used in its place.
+  /// Registers a [Future] as a member of [this].
+  ///
+  /// Returns a wrapped version of [future] that should be used in its place.
   ///
   /// If all members of [this] have already completed successfully or with an
   /// error, it's a [StateError] to try to register a new [Future].
@@ -74,9 +78,11 @@ class ErrorGroup {
     return wrapped;
   }
 
-  /// Registers a [Stream] as a member of [this]. Returns a wrapped version of
-  /// [stream] that should be used in its place. The returned [Stream] will be
-  /// multi-subscription if and only if [stream] is.
+  /// Registers a [Stream] as a member of [this].
+  ///
+  /// Returns a wrapped version of [stream] that should be used in its place.
+  /// The returned [Stream] will be multi-subscription if and only if [stream]
+  /// is.
   ///
   /// Since all errors in a group are passed to all members, the returned
   /// [Stream] will automatically unsubscribe all its listeners when it
@@ -95,9 +101,10 @@ class ErrorGroup {
     return wrapped;
   }
 
-  /// Sends [error] to all members of [this]. Like errors that come from
-  /// members, this will only be passed to the top-level error handler if no
-  /// members have listeners.
+  /// Sends [error] to all members of [this].
+  ///
+  /// Like errors that come from members, this will only be passed to the
+  /// top-level error handler if no members have listeners.
   ///
   /// If all members of [this] have already completed successfully or with an
   /// error, it's a [StateError] to try to signal an error.
@@ -109,8 +116,10 @@ class ErrorGroup {
     _signalError(error, stackTrace);
   }
 
-  /// Signal an error internally. This is just like [signalError], but instead
-  /// of throwing an error if [this] is complete, it just does nothing.
+  /// Signal an error internally.
+  ///
+  /// This is just like [signalError], but instead of throwing an error if
+  /// [this] is complete, it just does nothing.
   void _signalError(var error, [StackTrace stackTrace]) {
     if (_isDone) return;
 
@@ -150,8 +159,10 @@ class ErrorGroup {
 }
 
 /// A [Future] wrapper that keeps track of whether it's been completed and
-/// whether it has any listeners. It also notifies its parent [ErrorGroup] when
-/// it completes successfully or receives an error.
+/// whether it has any listeners.
+///
+/// It also notifies its parent [ErrorGroup] when it completes successfully or
+/// receives an error.
 class _ErrorGroupFuture implements Future {
   /// The parent [ErrorGroup].
   final ErrorGroup _group;
@@ -216,8 +227,10 @@ class _ErrorGroupFuture implements Future {
 // When this is fixed, this class will need to prevent such errors from being
 // top-leveled.
 /// A [Stream] wrapper that keeps track of whether it's been completed and
-/// whether it has any listeners. It also notifies its parent [ErrorGroup] when
-/// it completes successfully or receives an error.
+/// whether it has any listeners.
+///
+/// It also notifies its parent [ErrorGroup] when it completes successfully or
+/// receives an error.
 class _ErrorGroupStream extends Stream {
   /// The parent [ErrorGroup].
   final ErrorGroup _group;
@@ -228,8 +241,10 @@ class _ErrorGroupStream extends Stream {
   /// The underlying [StreamController] for [this].
   final StreamController _controller;
 
-  /// The controller's [Stream]. May be different than `_controller.stream` if
-  /// the wrapped stream is a broadcasting stream.
+  /// The controller's [Stream].
+  ///
+  /// May be different than `_controller.stream` if the wrapped stream is a
+  /// broadcasting stream.
   Stream _stream;
 
   /// The [StreamSubscription] that connects the wrapped [Stream] to

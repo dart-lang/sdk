@@ -299,7 +299,6 @@ class WebSocketApi {
   }
 }
 
-
 /// The pub-specific JSON RPC error codes.
 class _Error {
   /// The specified directory is not being served.

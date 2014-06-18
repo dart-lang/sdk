@@ -38,8 +38,10 @@ bool get isInstalled {
 }
 bool _isInstalledCache;
 
-/// Run a git process with [args] from [workingDir]. Returns the stdout as a
-/// list of strings if it succeeded. Completes to an exception if it failed.
+/// Run a git process with [args] from [workingDir].
+///
+/// Returns the stdout as a list of strings if it succeeded. Completes to an
+/// exception if it failed.
 Future<List<String>> run(List<String> args,
     {String workingDir, Map<String, String> environment}) {
   if (!isInstalled) {

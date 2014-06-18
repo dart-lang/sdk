@@ -18,8 +18,8 @@ import '../../../compiler/implementation/filenames.dart'
 
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
-import 'utils.dart';
 
+import 'utils.dart';
 /// Interface to communicate with dart2js.
 ///
 /// This is basically an amalgamation of dart2js's

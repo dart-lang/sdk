@@ -19,6 +19,8 @@ import 'source/cached.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
+/// The context surrounding the root package pub is operating on.
+///
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
 /// working directory is located. An entrypoint knows the [root] package it is
@@ -147,7 +149,9 @@ class Entrypoint {
   }
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
-  /// exists. If it doesn't, this completes to an empty [LockFile].
+  /// exists.
+  ///
+  /// If it doesn't, this completes to an empty [LockFile].
   LockFile loadLockFile() {
     if (!lockFileExists) return new LockFile.empty();
     return new LockFile.load(lockFilePath, cache.sources);
@@ -243,8 +247,10 @@ class Entrypoint {
   }
 
   /// Loads the package graph for the application and all of its transitive
-  /// dependencies. Before loading makes sure the lockfile and dependencies are
-  /// installed and up to date.
+  /// dependencies.
+  ///
+  /// Before loading, makes sure the lockfile and dependencies are installed
+  /// and up to date.
   Future<PackageGraph> loadPackageGraph() {
     return _ensureLockFileIsUpToDate().then((_) {
       var lockFile = loadLockFile();

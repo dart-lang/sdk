@@ -38,8 +38,9 @@ class Pubspec {
   /// is unknown or can't be represented by a Uri.
   final Uri _location;
 
-  /// All pubspec fields. This includes the fields from which other properties
-  /// are derived.
+  /// All pubspec fields.
+  ///
+  /// This includes the fields from which other properties are derived.
   final Map fields;
 
   /// The package's name.
@@ -283,10 +284,10 @@ class Pubspec {
     }
   }
 
-  /// Parses the pubspec stored at [filePath] whose text is [contents]. If the
-  /// pubspec doesn't define version for itself, it defaults to [Version.none].
-  /// [filePath] may be `null` if the pubspec is not on the user's local
-  /// file system.
+  /// Parses the pubspec stored at [filePath] whose text is [contents].
+  ///
+  /// If the pubspec doesn't define a version for itself, it defaults to
+  /// [Version.none].
   factory Pubspec.parse(String contents, SourceRegistry sources,
       {String expectedName, Uri location}) {
     if (contents.trim() == '') return new Pubspec.empty();
@@ -415,8 +416,8 @@ class Pubspec {
         () => new VersionConstraint.parse(yaml));
   }
 
-  // Make sure the same package doesn't appear as both a regular and dev
-  // dependency.
+  /// Makes sure the same package doesn't appear as both a regular and dev
+  /// dependency.
   void _checkDependencyOverlap(List<PackageDep> dependencies,
       List<PackageDep> devDependencies) {
     var dependencyNames = dependencies.map((dep) => dep.name).toSet();
@@ -456,8 +457,9 @@ class Pubspec {
   }
 }
 
-/// The environment-related metadata in the pubspec. Corresponds to the data
-/// under the "environment:" key in the pubspec.
+/// The environment-related metadata in the pubspec.
+///
+/// Corresponds to the data under the "environment:" key in the pubspec.
 class PubspecEnvironment {
   /// The version constraint specifying which SDK versions this package works
   /// with.

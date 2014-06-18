@@ -125,9 +125,10 @@ class Version implements Comparable<Version>, VersionConstraint {
     }
   }
 
-  /// Returns the primary version out of a list of candidates. This is the
-  /// highest-numbered stable (non-prerelease) version. If there are no stable
-  /// versions, it's just the highest-numbered version.
+  /// Returns the primary version out of a list of candidates.
+  ///
+  /// This is the highest-numbered stable (non-prerelease) version. If there
+  /// are no stable versions, it's just the highest-numbered version.
   static Version primary(List<Version> versions) {
     var primary;
     for (var version in versions) {
@@ -203,7 +204,7 @@ class Version implements Comparable<Version>, VersionConstraint {
   }
 
   /// Gets the next patch version number that follows this one.
-  ///bed8b33fda6ec81c3ba52274d189bc0661ed12bf
+  ///
   /// If this version is a pre-release, then it just strips the pre-release
   /// suffix. Otherwise, it increments the patch version.
   Version get nextPatch {
@@ -292,9 +293,11 @@ class Version implements Comparable<Version>, VersionConstraint {
 }
 
 /// A [VersionConstraint] is a predicate that can determine whether a given
-/// version is valid or not. For example, a ">= 2.0.0" constraint allows any
-/// version that is "2.0.0" or greater. Version objects themselves implement
-/// this to match a specific version.
+/// version is valid or not.
+///
+/// For example, a ">= 2.0.0" constraint allows any version that is "2.0.0" or
+/// greater. Version objects themselves implement this to match a specific
+/// version.
 abstract class VersionConstraint {
   /// A [VersionConstraint] that allows all versions.
   static VersionConstraint any = new VersionRange();
@@ -302,8 +305,10 @@ abstract class VersionConstraint {
   /// A [VersionConstraint] that allows no versions: i.e. the empty set.
   static VersionConstraint empty = const _EmptyVersion();
 
-  /// Parses a version constraint. This string is either "any" or a series of
-  /// version parts. Each part can be one of:
+  /// Parses a version constraint.
+  ///
+  /// This string is either "any" or a series of version parts. Each part can
+  /// be one of:
   ///
   ///   * A version string like `1.2.3`. In other words, anything that can be
   ///     parsed by [Version.parse()].
@@ -395,9 +400,11 @@ abstract class VersionConstraint {
   }
 
   /// Creates a new version constraint that is the intersection of
-  /// [constraints]. It will only allow versions that all of those constraints
-  /// allow. If constraints is empty, then it returns a VersionConstraint that
-  /// allows all versions.
+  /// [constraints].
+  ///
+  /// It only allows versions that all of those constraints allow. If
+  /// constraints is empty, then it returns a VersionConstraint that allows
+  /// all versions.
   factory VersionConstraint.intersection(
       Iterable<VersionConstraint> constraints) {
     var constraint = new VersionRange();
@@ -421,10 +428,11 @@ abstract class VersionConstraint {
   VersionConstraint intersect(VersionConstraint other);
 }
 
-/// Constrains versions to a fall within a given range. If there is a minimum,
-/// then this only allows versions that are at that minimum or greater. If there
-/// is a maximum, then only versions less than that are allowed. In other words,
-/// this allows `>= min, < max`.
+/// Constrains versions to a fall within a given range.
+///
+/// If there is a minimum, then this only allows versions that are at that
+/// minimum or greater. If there is a maximum, then only versions less than
+/// that are allowed. In other words, this allows `>= min, < max`.
 class VersionRange implements VersionConstraint {
   final Version min;
   final Version max;

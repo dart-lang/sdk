@@ -199,8 +199,10 @@ Future invokeCommand(String cacheDir, ArgResults mainOptions) {
   });
 }
 
-/// Checks that pub is running on a supported platform. If it isn't, it prints
-/// an error message and exits. Completes when the validation is done.
+/// Checks that pub is running on a supported platform.
+///
+/// If it isn't, it prints an error message and exits. Completes when the
+/// validation is done.
 Future validatePlatform() {
   return syncFuture(() {
     if (Platform.operatingSystem != 'windows') return null;

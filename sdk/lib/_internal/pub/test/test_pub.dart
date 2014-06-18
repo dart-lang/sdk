@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Test infrastructure for testing pub. Unlike typical unit tests, most pub
-/// tests are integration tests that stage some stuff on the file system, run
-/// pub, and then validate the results. This library provides an API to build
-/// tests like that.
+/// Test infrastructure for testing pub.
+///
+/// Unlike typical unit tests, most pub tests are integration tests that stage
+/// some stuff on the file system, run pub, and then validate the results. This
+/// library provides an API to build tests like that.
 library test_pub;
 
 import 'dart:async';
@@ -149,10 +150,10 @@ Future<List<String>> getRequestedPaths() {
   }, "get previous network requests");
 }
 
-/// Creates an HTTP server to serve [contents] as static files. This server will
-/// exist only for the duration of the pub run.
+/// Creates an HTTP server to serve [contents] as static files.
 ///
-/// Subsequent calls to [serve] will replace the previous server.
+/// This server will exist only for the duration of the pub run. Subsequent
+/// calls to [serve] replace the previous server.
 void serve([List<d.Descriptor> contents]) {
   var baseDir = d.dir("serve-dir", contents);
 
@@ -179,8 +180,9 @@ void serve([List<d.Descriptor> contents]) {
   }, 'starting a server serving:\n${baseDir.describe()}');
 }
 
-/// Closes [_server]. Returns a [Future] that will complete after the [_server]
-/// is closed.
+/// Closes [_server].
+///
+/// Returns a [Future] that completes after the [_server] is closed.
 Future _closeServer() {
   if (_server == null) return new Future.value();
   var future = _server.close();
@@ -209,12 +211,14 @@ d.DirectoryDescriptor _servedApiPackageDir;
 /// this test.
 d.DirectoryDescriptor _servedPackageDir;
 
-/// A map from package names to parsed pubspec maps for those packages. This
-/// represents the packages currently being served by [servePackages], and is
-/// `null` if [servePackages] has not yet been called for this test.
+/// A map from package names to parsed pubspec maps for those packages.
+///
+/// This represents the packages currently being served by [servePackages], and
+/// is `null` if [servePackages] has not yet been called for this test.
 Map<String, List<Map>> _servedPackages;
 
 /// Creates an HTTP server that replicates the structure of pub.dartlang.org.
+///
 /// [pubspecs] is a list of unserialized pubspecs representing the packages to
 /// serve.
 ///
@@ -292,15 +296,15 @@ final String pkgPath = path.absolute(path.join(
     path.dirname(Platform.executable),
     '..', '..', '..', '..', 'pkg'));
 
-/// The path of the package cache directory used for tests. Relative to the
+/// The path of the package cache directory used for tests, relative to the
 /// sandbox directory.
 final String cachePath = "cache";
 
-/// The path of the mock app directory used for tests. Relative to the sandbox
+/// The path of the mock app directory used for tests, relative to the sandbox
 /// directory.
 final String appPath = "myapp";
 
-/// The path of the packages directory in the mock app used for tests. Relative
+/// The path of the packages directory in the mock app used for tests, relative
 /// to the sandbox directory.
 final String packagesPath = "$appPath/packages";
 
@@ -319,6 +323,8 @@ class RunCommand {
   RunCommand(this.name, this.success);
 }
 
+/// Runs the tests defined within [callback] using both pub get and pub upgrade.
+///
 /// Many tests validate behavior that is the same between pub get and
 /// upgrade have the same behavior. Instead of duplicating those tests, this
 /// takes a callback that defines get/upgrade agnostic tests and runs them
@@ -368,8 +374,10 @@ void pubUpgrade({Iterable<String> args, output, error, warning}) {
       warning: warning);
 }
 
-/// Defines an integration test. The [body] should schedule a series of
-/// operations which will be run asynchronously.
+/// Defines an integration test.
+///
+/// The [body] should schedule a series of operations which will be run
+/// asynchronously.
 void integration(String description, void body()) =>
   _integration(description, body, test);
 
@@ -480,6 +488,7 @@ ScheduledProcess startPublish(ScheduledServer server, {List args}) {
 }
 
 /// Handles the beginning confirmation process for uploading a packages.
+///
 /// Ensures that the right output is shown and then enters "y" to confirm the
 /// upload.
 void confirmPublish(ScheduledProcess pub) {
@@ -658,7 +667,7 @@ void ensureGit() {
   }
 }
 
-/// Create a lock file for [package] without running `pub get`.
+/// Creates a lock file for [package] without running `pub get`.
 ///
 /// [sandbox] is a list of path dependencies to be found in the sandbox
 /// directory. [pkg] is a list of packages in the Dart repo's "pkg" directory;
@@ -728,7 +737,7 @@ void createLockFile(String package, {Iterable<String> sandbox,
       lockFile.serialize(null, sources)).create();
 }
 
-/// Use [client] as the mock HTTP client for this test.
+/// Uses [client] as the mock HTTP client for this test.
 ///
 /// Note that this will only affect HTTP requests made via http.dart in the
 /// parent process.
@@ -876,8 +885,10 @@ void _validateOutputJson(List<String> failures, String pipe,
 /// A function that creates a [Validator] subclass.
 typedef Validator ValidatorCreator(Entrypoint entrypoint);
 
-/// Schedules a single [Validator] to run on the [appPath]. Returns a scheduled
-/// Future that contains the errors and warnings produced by that validator.
+/// Schedules a single [Validator] to run on the [appPath].
+///
+/// Returns a scheduled Future that contains the errors and warnings produced
+/// by that validator.
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return schedule(() {

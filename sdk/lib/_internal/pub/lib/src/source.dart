@@ -21,8 +21,10 @@ import 'version.dart';
 /// package needs a dependency from a cached source, it is first installed in
 /// the [SystemCache] and then acquired from there.
 abstract class Source {
-  /// The name of the source. Should be lower-case, suitable for use in a
-  /// filename, and unique accross all sources.
+  /// The name of the source.
+  ///
+  /// Should be lower-case, suitable for use in a filename, and unique accross
+  /// all sources.
   String get name;
 
   /// Whether or not this source is the default source.
@@ -49,7 +51,9 @@ abstract class Source {
   }
 
   /// Get the list of all versions that exist for the package described by
-  /// [description]. [name] is the expected name of the package.
+  /// [description].
+  ///
+  /// [name] is the expected name of the package.
   ///
   /// Note that this does *not* require the packages to be downloaded locally,
   /// which is the point. This is used during version resolution to determine
@@ -64,8 +68,10 @@ abstract class Source {
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by
-  /// [id]. This may be called for packages that have not yet been downloaded
-  /// during the version resolution process.
+  /// [id].
+  ///
+  /// This may be called for packages that have not yet been downloaded during
+  /// the version resolution process.
   ///
   /// Sources should not override this. Instead, they implement [doDescribe].
   Future<Pubspec> describe(PackageId id) {
@@ -79,8 +85,10 @@ abstract class Source {
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by
-  /// [id]. This may be called for packages that have not yet been downloaded
-  /// during the version resolution process.
+  /// [id].
+  ///
+  /// This may be called for packages that have not yet been downloaded during
+  /// the version resolution process.
   ///
   /// This method is effectively protected: subclasses must implement it, but
   /// external code should not call this. Instead, call [describe].
@@ -99,6 +107,9 @@ abstract class Source {
   /// installed into the cache yet.
   Future<String> getDirectory(PackageId id);
 
+  /// Gives the source a chance to interpret and validate the description for
+  /// a package coming from this source.
+  ///
   /// When a [Pubspec] or [LockFile] is parsed, it reads in the description for
   /// each dependency. It is up to the dependency's [Source] to determine how
   /// that should be interpreted. This will be called during parsing to validate
@@ -137,10 +148,15 @@ abstract class Source {
   }
 
   /// Returns whether or not [description1] describes the same package as
-  /// [description2] for this source. This method should be light-weight. It
-  /// doesn't need to validate that either package exists.
+  /// [description2] for this source.
+  ///
+  /// This method should be light-weight. It doesn't need to validate that
+  /// either package exists.
   bool descriptionsEqual(description1, description2);
 
+  /// Resolves [id] to a more possibly more precise that will uniquely identify
+  /// a package regardless of when the package is requested.
+  ///
   /// For some sources, [PackageId]s can point to different chunks of code at
   /// different times. This takes such an [id] and returns a future that
   /// completes to a [PackageId] that will uniquely specify a single chunk of

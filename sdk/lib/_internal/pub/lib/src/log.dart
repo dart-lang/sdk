@@ -60,8 +60,9 @@ final _bold = getSpecial('\u001b[1m');
 /// By default, [ERROR] and [WARNING] messages are printed to sterr. [MESSAGE]
 /// messages are printed to stdout, and others are ignored.
 class Level {
-  /// An error occurred and an operation could not be completed. Usually shown
-  /// to the user on stderr.
+  /// An error occurred and an operation could not be completed.
+  ///
+  /// Usually shown to the user on stderr.
   static const ERROR = const Level._("ERR ");
 
   /// Something unexpected happened, but the program was able to continue,
@@ -78,9 +79,11 @@ class Level {
   /// Incremental output during pub's version constraint solver.
   static const SOLVER = const Level._("SLVR");
 
-  /// Fine-grained and verbose additional information. Can be used to provide
-  /// program state context for other logs (such as what pub was doing when an
-  /// IO operation occurred) or just more detail for an operation.
+  /// Fine-grained and verbose additional information.
+  ///
+  /// Used to provide program state context for other logs (such as what pub
+  /// was doing when an IO operation occurred) or just more detail for an
+  /// operation.
   static const FINE = const Level._("FINE");
 
   const Level._(this.name);
@@ -218,10 +221,11 @@ void write(Level level, message) {
   if (_transcript != null) _transcript.add(entry);
 }
 
-/// Logs an asynchronous IO operation. Logs [startMessage] before the operation
-/// starts, then when [operation] completes, invokes [endMessage] with the
-/// completion value and logs the result of that. Returns a future that
-/// completes after the logging is done.
+/// Logs an asynchronous IO operation.
+///
+/// Logs [startMessage] before the operation starts, then when [operation]
+/// completes, invokes [endMessage] with the completion value and logs the
+/// result of that. Returns a future that completes after the logging is done.
 ///
 /// If [endMessage] is omitted, then logs "Begin [startMessage]" before the
 /// operation and "End [startMessage]" after it.

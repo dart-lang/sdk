@@ -27,7 +27,9 @@ int show(SourceRegistry sources, Package root, LockFile previousLockFile,
 
 /// Unlike [SolveResult], which is the static data describing a resolution,
 /// this class contains the mutable state used while generating the report
-/// itself. It's a report builder.
+/// itself.
+///
+/// It's a report builder.
 class _SolveReport {
   final SourceRegistry _sources;
   final Package _root;

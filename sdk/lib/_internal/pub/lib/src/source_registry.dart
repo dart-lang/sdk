@@ -24,8 +24,9 @@ class SourceRegistry extends IterableBase<Source> {
     return sources.iterator;
   }
 
-  /// Sets the default source. This takes a string, which must be the name of a
-  /// registered source.
+  /// Sets the default source.
+  ///
+  /// This takes a string, which must be the name of a registered source.
   void setDefault(String name) {
     if (!_sources.containsKey(name)) {
       throw new StateError('Default source $name is not in the registry');
@@ -34,8 +35,10 @@ class SourceRegistry extends IterableBase<Source> {
     _default = _sources[name];
   }
 
-  /// Registers a new source. This source may not have the same name as a source
-  /// that's already been registered.
+  /// Registers a new source.
+  ///
+  /// This source may not have the same name as a source that's already been
+  /// registered.
   void register(Source source) {
     if (_sources.containsKey(source.name)) {
       throw new StateError('Source registry already has a source named '

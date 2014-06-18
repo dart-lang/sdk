@@ -24,8 +24,9 @@ export 'package:oauth2/oauth2.dart';
 final _identifier = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
     'googleusercontent.com';
 
-/// The pub client's OAuth2 secret. This isn't actually meant to be kept a
-/// secret.
+/// The pub client's OAuth2 secret.
+///
+/// This isn't actually meant to be kept a secret.
 final _secret = 'SWeqj8seoJW0w7_CpEPFLX0K';
 
 /// The URL to which the user will be directed to authorize the pub client to
@@ -40,8 +41,10 @@ final authorizationEndpoint = Uri.parse(
     '&approval_prompt=force');
 
 /// The URL from which the pub client will request an access token once it's
-/// been authorized by the user. This can be controlled externally by setting
-/// the _PUB_TEST_TOKEN_ENDPOINT environment variable.
+/// been authorized by the user.
+///
+/// This can be controlled externally by setting the `_PUB_TEST_TOKEN_ENDPOINT`
+/// environment variable.
 Uri get tokenEndpoint {
   var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
   if (tokenEndpoint != null) {
@@ -53,12 +56,16 @@ Uri get tokenEndpoint {
 
 final _tokenEndpoint = Uri.parse('https://accounts.google.com/o/oauth2/token');
 
-/// The OAuth2 scopes that the pub client needs. Currently the client only needs
-/// the user's email so that the server can verify their identity.
+/// The OAuth2 scopes that the pub client needs.
+///
+/// Currently the client only needs the user's email so that the server can
+/// verify their identity.
 final _scopes = ['https://www.googleapis.com/auth/userinfo.email'];
 
-/// An in-memory cache of the user's OAuth2 credentials. This should always be
-/// the same as the credentials file stored in the system cache.
+/// An in-memory cache of the user's OAuth2 credentials.
+///
+/// This should always be the same as the credentials file stored in the system
+/// cache.
 Credentials _credentials;
 
 /// Delete the cached credentials, if they exist.
@@ -101,8 +108,10 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
   });
 }
 
-/// Gets a new OAuth2 client. If saved credentials are available, those are
-/// used; otherwise, the user is prompted to authorize the pub client.
+/// Gets a new OAuth2 client.
+///
+/// If saved credentials are available, those are used; otherwise, the user is
+/// prompted to authorize the pub client.
 Future<Client> _getClient(SystemCache cache) {
   return new Future.sync(() {
     var credentials = _loadCredentials(cache);
@@ -116,8 +125,10 @@ Future<Client> _getClient(SystemCache cache) {
 }
 
 /// Loads the user's OAuth2 credentials from the in-memory cache or the
-/// filesystem if possible. If the credentials can't be loaded for any reason,
-/// the returned [Future] will complete to null.
+/// filesystem if possible.
+///
+/// If the credentials can't be loaded for any reason, the returned [Future]
+/// completes to `null`.
 Credentials _loadCredentials(SystemCache cache) {
   log.fine('Loading OAuth2 credentials.');
 
@@ -157,7 +168,8 @@ String _credentialsFile(SystemCache cache) =>
     path.join(cache.rootDir, 'credentials.json');
 
 /// Gets the user to authorize pub as a client of pub.dartlang.org via oauth2.
-/// Returns a Future that will complete to a fully-authorized [Client].
+///
+/// Returns a Future that completes to a fully-authorized [Client].
 Future<Client> _authorize() {
   var grant = new AuthorizationCodeGrant(
       _identifier,

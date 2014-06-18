@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A back-tracking depth-first solver. Attempts to find the best solution for
-/// a root package's transitive dependency graph, where a "solution" is a set
-/// of concrete package versions. A valid solution will select concrete
-/// versions for every package reached from the root package's dependency graph,
-/// and each of those packages will fit the version constraints placed on it.
+/// A back-tracking depth-first solver.
+///
+/// Attempts to find the best solution for a root package's transitive
+/// dependency graph, where a "solution" is a set of concrete package versions.
+/// A valid solution will select concrete versions for every package reached
+/// from the root package's dependency graph, and each of those packages will
+/// fit the version constraints placed on it.
 ///
 /// The solver builds up a solution incrementally by traversing the dependency
 /// graph starting at the root package. When it reaches a new package, it gets
@@ -50,9 +52,11 @@ import 'dependency_queue.dart';
 import 'version_queue.dart';
 import 'version_solver.dart';
 
-/// The top-level solver. Keeps track of the current potential solution, and
-/// the other possible versions for speculative package selections. Backtracks
-/// and advances to the next potential solution in the case of a failure.
+/// The top-level solver.
+///
+/// Keeps track of the current potential solution, and the other possible
+/// versions for speculative package selections. Backtracks and advances to the
+/// next potential solution in the case of a failure.
 class BacktrackingSolver {
   final SourceRegistry sources;
   final Package root;
@@ -62,8 +66,10 @@ class BacktrackingSolver {
 
   final PubspecCache cache;
 
-  /// The set of packages that are being explicitly upgraded. The solver will
-  /// only allow the very latest version for each of these packages.
+  /// The set of packages that are being explicitly upgraded.
+  ///
+  /// The solver will only allow the very latest version for each of these
+  /// packages.
   final _forceLatest = new Set<String>();
 
   /// If this is set, the contents of [lockFile] are ignored while solving.
@@ -76,6 +82,9 @@ class BacktrackingSolver {
   /// to use the one here.
   final _overrides = new Map<String, PackageDep>();
 
+  /// The package versions currently selected by the solver, along with the
+  /// versions which are remaining to be tried.
+  ///
   /// Every time a package is encountered when traversing the dependency graph,
   /// the solver must select a version for it, sometimes when multiple versions
   /// are valid. This keeps track of which versions have been selected so far
@@ -113,8 +122,10 @@ class BacktrackingSolver {
     }
   }
 
-  /// Run the solver. Completes with a list of specific package versions if
-  /// successful or an error if it failed to find a solution.
+  /// Run the solver.
+  ///
+  /// Completes with a list of specific package versions if successful or an
+  /// error if it failed to find a solution.
   Future<SolveResult> solve() {
     var stopwatch = new Stopwatch();
 
@@ -177,10 +188,11 @@ class BacktrackingSolver {
   }
 
   /// Adds [versions], which is the list of all allowed versions of a given
-  /// package, to the set of versions to consider for solutions. The first item
-  /// in the list will be the currently selected version of that package.
-  /// Subsequent items will be tried if it the current selection fails. Returns
-  /// the first selected version.
+  /// package, to the set of versions to consider for solutions.
+  ///
+  /// The first item in the list will be the currently selected version of that
+  /// package. Subsequent items will be tried if it the current selection fails.
+  /// Returns the first selected version.
   PackageId select(VersionQueue versions) {
     _selected.add(versions);
     logSolve();
@@ -201,8 +213,9 @@ class BacktrackingSolver {
     return null;
   }
 
-  /// Gets the version of [package] currently locked in the lock file. Returns
-  /// `null` if it isn't in the lockfile (or has been unlocked).
+  /// Gets the version of [package] currently locked in the lock file.
+  ///
+  /// Returns `null` if it isn't in the lockfile (or has been unlocked).
   PackageId getLocked(String package) {
     if (_upgradeAll) return null;
     if (_forceLatest.contains(package)) return null;
@@ -211,10 +224,12 @@ class BacktrackingSolver {
   }
 
   /// Traverses the root package's dependency graph using the current potential
-  /// solution. If successful, completes to the solution. If not, backtracks
-  /// to the most recently selected version of a package and tries the next
-  /// version of it. If there are no more versions, continues to backtrack to
-  /// previous selections, and so on. If there is nothing left to backtrack to,
+  /// solution.
+  ///
+  /// If successful, completes to the solution. If not, backtracks to the most
+  /// recently selected version of a package and tries the next version of it.
+  /// If there are no more versions, continues to backtrack to previous
+  /// selections, and so on. If there is nothing left to backtrack to,
   /// completes to the last failure that occurred.
   Future<List<PackageId>> _traverseSolution() => resetStack(() {
     return new Traverser(this).traverse().catchError((error) {
@@ -233,9 +248,11 @@ class BacktrackingSolver {
   });
 
   /// Backtracks from the current failed solution and determines the next
-  /// solution to try. If possible, it will backjump based on the cause of the
-  /// [failure] to minize backtracking. Otherwise, it will simply backtrack to
-  /// the next possible solution.
+  /// solution to try.
+  ///
+  /// If possible, it will backjump based on the cause of the [failure] to
+  /// minize backtracking. Otherwise, it will simply backtrack to the next
+  /// possible solution.
   ///
   /// Returns `true` if there is a new solution to try.
   Future<bool> _backtrack(SolveFailure failure) {
@@ -278,9 +295,10 @@ class BacktrackingSolver {
   }
 
   /// Walks the selected packages from most to least recent to determine which
-  /// ones can be ignored and jumped over by the backtracker. The only packages
-  /// we need to backtrack to are ones that led (possibly indirectly) to the
-  /// failure. Everything else can be skipped.
+  /// ones can be ignored and jumped over by the backtracker.
+  ///
+  /// The only packages we need to backtrack to are ones that led (possibly
+  /// indirectly) to the failure. Everything else can be skipped.
   void _backjump(SolveFailure failure) {
     for (var i = _selected.length - 1; i >= 0; i--) {
       // Each queue will never be empty since it gets discarded by _backtrack()
@@ -382,8 +400,9 @@ class BacktrackingSolver {
     log.solver(buffer.toString().trim());
   }
 
-  /// Logs [message] in the context of the current selected packages. If
-  /// [message] is omitted, just logs a description of leaf-most selection.
+  /// Logs [message] in the context of the current selected packages.
+  ///
+  /// If [message] is omitted, just logs a description of leaf-most selection.
   void logSolve([String message]) {
     if (message == null) {
       if (_selected.isEmpty) {
@@ -404,26 +423,32 @@ class BacktrackingSolver {
 
 /// Given the solver's current set of selected package versions, this tries to
 /// traverse the dependency graph and see if a complete set of valid versions
-/// has been chosen. If it reaches a conflict, it will fail and stop
-/// traversing. If it reaches a package that isn't selected it will refine the
-/// solution by adding that package's set of allowed versions to the solver and
-/// then select the best one and continue.
+/// has been chosen.
+///
+/// If it reaches a conflict, it fails and stops traversing. If it reaches a
+/// package that isn't selected, it refines the solution by adding that
+/// package's set of allowed versions to the solver and then select the best
+/// one and continuing.
 class Traverser {
   final BacktrackingSolver _solver;
 
-  /// The queue of packages left to traverse. We do a breadth-first traversal
-  /// using an explicit queue just to avoid the code complexity of a recursive
-  /// asynchronous traversal.
+  /// The queue of packages left to traverse.
+  ///
+  /// We do a breadth-first traversal using an explicit queue just to avoid the
+  /// code complexity of a recursive asynchronous traversal.
   final _packages = new Queue<PackageId>();
 
-  /// The packages we have already traversed. Used to avoid traversing the same
-  /// package multiple times, and to build the complete solution results.
+  /// The packages we have already traversed.
+  ///
+  /// Used to avoid traversing the same package multiple times, and to build
+  /// the complete solution results.
   final _visited = new Set<PackageId>();
 
-  /// The dependencies visited so far in the traversal. For each package name
-  /// (the map key) we track the list of dependencies that other packages have
-  /// placed on it so that we can calculate the complete constraint for shared
-  /// dependencies.
+  /// The dependencies visited so far in the traversal.
+  ///
+  /// For each package name (the map key) we track the list of dependencies
+  /// that other packages have placed on it so that we can calculate the
+  /// complete constraint for shared dependencies.
   final _dependencies = <String, List<Dependency>>{};
 
   Traverser(this._solver);
@@ -436,10 +461,11 @@ class Traverser {
     return _traversePackage();
   }
 
-  /// Traverses the next package in the queue. Completes to a list of package
-  /// IDs if the traversal completed successfully and found a solution.
-  /// Completes to an error if the traversal failed. Otherwise, recurses to the
-  /// next package in the queue, etc.
+  /// Traverses the next package in the queue.
+  ///
+  /// Completes to a list of package IDs if the traversal completed
+  /// successfully and found a solution. Completes to an error if the traversal
+  /// failed. Otherwise, recurses to the next package in the queue, etc.
   Future<List<PackageId>> _traversePackage() {
     if (_packages.isEmpty) {
       // We traversed the whole graph. If we got here, we successfully found
@@ -603,9 +629,10 @@ class Traverser {
   }
 
   /// Ensures that dependency [dep] from [depender] is consistent with the
-  /// other dependencies on the same package. Throws a [SolveFailure]
-  /// exception if not. Only validates sources and descriptions, not the
-  /// version.
+  /// other dependencies on the same package.
+  ///
+  /// Throws a [SolveFailure] exception if not. Only validates sources and
+  /// descriptions, not the version.
   void _validateDependency(PackageDep dep, PackageId depender) {
     // Make sure the dependencies agree on source and description.
     var required = _getRequired(dep.name);
@@ -630,10 +657,11 @@ class Traverser {
   }
 
   /// Validates the currently selected package against the new dependency that
-  /// [dep] and [constraint] place on it. Returns `null` if there is no
-  /// currently selected package, throws a [SolveFailure] if the new reference
-  /// it not does not allow the previously selected version, or returns the
-  /// selected package if successful.
+  /// [dep] and [constraint] place on it.
+  ///
+  /// Returns `null` if there is no currently selected package, throws a
+  /// [SolveFailure] if the new reference it not does not allow the previously
+  /// selected version, or returns the selected package if successful.
   PackageId _validateSelected(PackageDep dep, VersionConstraint constraint) {
     var selected = _solver.getSelected(dep.name);
     if (selected == null) return null;
@@ -648,17 +676,19 @@ class Traverser {
     return selected;
   }
 
-  /// Gets the list of dependencies for package [name]. Will create an empty
-  /// list if needed.
+  /// Gets the list of dependencies for package [name].
+  ///
+  /// Creates an empty list if needed.
   List<Dependency> _getDependencies(String name) {
     return _dependencies.putIfAbsent(name, () => <Dependency>[]);
   }
 
-  /// Gets a "required" reference to the package [name]. This is the first
-  /// non-root dependency on that package. All dependencies on a package must
-  /// agree on source and description, except for references to the root
-  /// package. This will return a reference to that "canonical" source and
-  /// description, or `null` if there is no required reference yet.
+  /// Gets a "required" reference to the package [name].
+  ///
+  /// This is the first non-root dependency on that package. All dependencies
+  /// on a package must agree on source and description, except for references
+  /// to the root package. This will return a reference to that "canonical"
+  /// source and description, or `null` if there is no required reference yet.
   ///
   /// This is required because you may have a circular dependency back onto the
   /// root package. That second dependency won't be a root dependency and it's
@@ -682,7 +712,9 @@ class Traverser {
 
   /// Gets the package [name] that's currently contained in the lockfile if it
   /// meets [constraint] and has the same source and description as other
-  /// references to that package. Returns `null` otherwise.
+  /// references to that package.
+  ///
+  /// Returns `null` otherwise.
   PackageId _getValidLocked(String name) {
     var package = _solver.getLocked(name);
     if (package == null) return null;
@@ -709,7 +741,9 @@ class Traverser {
 }
 
 /// Ensures that if [pubspec] has an SDK constraint, then it is compatible
-/// with the current SDK. Throws a [SolveFailure] if not.
+/// with the current SDK.
+///
+/// Throws a [SolveFailure] if not.
 void _validateSdkConstraint(Pubspec pubspec) {
   if (pubspec.environment.sdkVersion.allows(sdk.version)) return;
 

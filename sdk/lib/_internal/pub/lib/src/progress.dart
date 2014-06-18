@@ -18,8 +18,9 @@ class Progress {
   /// The [Stopwatch] used to track how long a progress log has been running.
   final _stopwatch = new Stopwatch();
 
-  /// The progress message as it's being incrementally appended. When the
-  /// progress is done, a single entry will be added to the log for it.
+  /// The progress message as it's being incrementally appended.
+  ///
+  /// When the progress is done, a single entry will be added to the log for it.
   final String _message;
 
   /// Gets the current progress time as a parenthesized, formatted string.

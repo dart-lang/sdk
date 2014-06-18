@@ -72,10 +72,11 @@ class Package {
   }
 
   /// Returns the path to the README file at the root of the entrypoint, or null
-  /// if no README file is found. If multiple READMEs are found, this uses the
-  /// same conventions as pub.dartlang.org for choosing the primary one: the
-  /// README with the fewest extensions that is lexically ordered first is
-  /// chosen.
+  /// if no README file is found.
+  ///
+  /// If multiple READMEs are found, this uses the same conventions as
+  /// pub.dartlang.org for choosing the primary one: the README with the fewest
+  /// extensions that is lexically ordered first is chosen.
   String get readmePath {
     var readmes = listDir(dir).map(path.basename).
         where((entry) => entry.contains(_README_REGEXP));
@@ -90,15 +91,18 @@ class Package {
     }));
   }
 
-  /// Loads the package whose root directory is [packageDir]. [name] is the
-  /// expected name of that package (e.g. the name given in the dependency), or
-  /// `null` if the package being loaded is the entrypoint package.
+  /// Loads the package whose root directory is [packageDir].
+  ///
+  /// [name] is the expected name of that package (e.g. the name given in the
+  /// dependency), or `null` if the package being loaded is the entrypoint
+  /// package.
   Package.load(String name, String packageDir, SourceRegistry sources)
       : dir = packageDir,
         pubspec = new Pubspec.load(packageDir, sources, expectedName: name);
 
-  /// Constructs a package with the given pubspec. The package will have no
-  /// directory associated with it.
+  /// Constructs a package with the given pubspec.
+  ///
+  /// The package will have no directory associated with it.
   Package.inMemory(this.pubspec)
     : dir = null;
 
@@ -107,9 +111,11 @@ class Package {
 }
 
 /// This is the private base class of [PackageRef], [PackageID], and
-/// [PackageDep]. It contains functionality and state that those classes share
-/// but is private so that from outside of this library, there is no type
-/// relationship between those three types.
+/// [PackageDep].
+///
+/// It contains functionality and state that those classes share but is private
+/// so that from outside of this library, there is no type relationship between
+/// those three types.
 class _PackageName {
   _PackageName(this.name, this.source, this.description);
 
@@ -117,11 +123,14 @@ class _PackageName {
   final String name;
 
   /// The name of the [Source] used to look up this package given its
-  /// [description]. If this is a root package, this will be `null`.
+  /// [description].
+  ///
+  /// If this is a root package, this will be `null`.
   final String source;
 
-  /// The metadata used by the package's [source] to identify and locate it. It
-  /// contains whatever [Source]-specific data it needs to be able to get
+  /// The metadata used by the package's [source] to identify and locate it.
+  ///
+  /// It contains whatever [Source]-specific data it needs to be able to get
   /// the package. For example, the description of a git sourced package might
   /// by the URL "git://github.com/dart/uilib.git".
   final description;
@@ -163,8 +172,9 @@ class PackageRef extends _PackageName {
   }
 }
 
-/// A reference to a specific version of a package. A package ID contains
-/// enough information to correctly get the package.
+/// A reference to a specific version of a package.
+///
+/// A package ID contains enough information to correctly get the package.
 ///
 /// Note that it's possible for multiple distinct package IDs to point to
 /// different packages that have identical contents. For example, the same

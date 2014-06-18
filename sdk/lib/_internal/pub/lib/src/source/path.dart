@@ -46,10 +46,11 @@ class PathSource extends Source {
   Future<String> getDirectory(PackageId id) =>
       newFuture(() => _validatePath(id.name, id.description));
 
-  /// Parses a path dependency. This takes in a path string and returns a map.
-  /// The "path" key will be the original path but resolved relative to the
-  /// containing path. The "relative" key will be `true` if the original path
-  /// was relative.
+  /// Parses a path dependency.
+  ///
+  /// This takes in a path string and returns a map. The "path" key will be the
+  /// original path but resolved relative to the containing path. The
+  /// "relative" key will be `true` if the original path was relative.
   ///
   /// A path coming from a pubspec is a simple string. From a lock file, it's
   /// an expanded {"path": ..., "relative": ...} map.
@@ -95,9 +96,10 @@ class PathSource extends Source {
     };
   }
 
-  /// Serializes path dependency's [description]. For the descriptions where
-  /// `relative` attribute is `true`, tries to make `path` relative to the
-  /// specified [containingPath].
+  /// Serializes path dependency's [description].
+  ///
+  /// For the descriptions where `relative` attribute is `true`, tries to make
+  /// `path` relative to the specified [containingPath].
   dynamic serializeDescription(String containingPath, description) {
     if (description["relative"]) {
       return {

@@ -196,8 +196,9 @@ class HostedSource extends CachedSource {
   }
 
   /// When an error occurs trying to read something about [package] from [url],
-  /// this tries to translate into a more user friendly error message. Always
-  /// throws an error, either the original one or a better one.
+  /// this tries to translate into a more user friendly error message.
+  ///
+  /// Always throws an error, either the original one or a better one.
   void _throwFriendlyError(error, StackTrace stackTrace, String package,
       String url) {
     if (error is PubHttpException &&
@@ -222,8 +223,10 @@ class HostedSource extends CachedSource {
 }
 
 /// This is the modified hosted source used when pub get or upgrade are run
-/// with "--offline". This uses the system cache to get the list of available
-/// packages and does no network access.
+/// with "--offline".
+///
+/// This uses the system cache to get the list of available packages and does
+/// no network access.
 class OfflineHostedSource extends HostedSource {
   /// Gets the list of all versions of [name] that are in the system cache.
   Future<List<Version>> getVersions(String name, description) {
@@ -305,8 +308,9 @@ String _directoryToUrl(String url) {
 }
 
 /// Parses [description] into its server and package name components, then
-/// converts that to a Uri given [pattern]. Ensures the package name is
-/// properly URL encoded.
+/// converts that to a Uri given [pattern].
+///
+/// Ensures the package name is properly URL encoded.
 Uri _makeUrl(description, String pattern(String server, String package)) {
   var parsed = _parseDescription(description);
   var server = parsed.last;
@@ -315,8 +319,9 @@ Uri _makeUrl(description, String pattern(String server, String package)) {
 }
 
 /// Parses [id] into its server, package name, and version components, then
-/// converts that to a Uri given [pattern]. Ensures the package name is
-/// properly URL encoded.
+/// converts that to a Uri given [pattern].
+///
+/// Ensures the package name is properly URL encoded.
 Uri _makeVersionUrl(PackageId id,
     String pattern(String server, String package, String version)) {
   var parsed = _parseDescription(id.description);

@@ -134,8 +134,10 @@ abstract class PubCommand {
   /// parsed after a non-option argument is parsed.
   bool get allowTrailingOptions => true;
 
-  /// Alternate names for this command. These names won't be used in the
-  /// documentation, but they will work when invoked on the command line.
+  /// Alternate names for this command.
+  ///
+  /// These names won't be used in the documentation, but they will work when
+  /// invoked on the command line.
   final aliases = const <String>[];
 
   /// The [ArgParser] for this command.
