@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 import 'package:watcher/watcher.dart';
 
 import '../entrypoint.dart';

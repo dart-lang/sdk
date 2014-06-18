@@ -122,6 +122,22 @@ bool isEntrypoint(CompilationUnit dart) {
   });
 }
 
+/// Efficiently parses the import and export directives in [contents].
+///
+/// If [name] is passed, it's used as the filename for error reporting.
+List<UriBasedDirective> parseImportsAndExports(String contents, {String name}) {
+  var collector = new _DirectiveCollector();
+  parseDirectives(contents, name: name).accept(collector);
+  return collector.directives;
+}
+
+/// A simple visitor that collects import and export nodes.
+class _DirectiveCollector extends GeneralizingAstVisitor {
+  final directives = <UriBasedDirective>[];
+
+  visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
+}
+
 /// Runs [code] in an isolate.
 ///
 /// [code] should be the contents of a Dart entrypoint. It may contain imports;

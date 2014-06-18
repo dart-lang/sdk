@@ -13,11 +13,12 @@ import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
 import 'asset_environment.dart';
+import 'barback_server.dart';
 import 'dart2js_transformer.dart';
 import 'excluding_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
-import 'barback_server.dart';
+import 'transformers_needed_by_transformers.dart';
 
 /// Loads all transformers depended on by packages in [environment].
 ///
@@ -29,33 +30,26 @@ import 'barback_server.dart';
 /// automatically be added to the end of the root package's cascade.
 Future loadAllTransformers(AssetEnvironment environment,
     BarbackServer transformerServer) {
-  // In order to determine in what order we should load transformers, we need to
-  // know which transformers depend on which others. This is different than
-  // normal package dependencies. Let's begin with some terminology:
-  //
-  // * If package A is transformed by package B, we say A has a "transformer
-  //   dependency" on B.
-  // * If A imports B we say A has a "package dependency" on B.
-  // * If A needs B's transformers to be loaded in order to load A's
-  //   transformers, we say A has an "ordering dependency" on B.
-  //
-  // In particular, an ordering dependency is defined as follows:
-  //
-  // * If A has a transformer dependency on B, A also has an ordering dependency
-  //   on B.
-  // * If A has a transitive package dependency on B and B has a transformer
-  //   dependency on C, A has an ordering dependency on C.
-  //
-  // The order that transformers are loaded is determined by each package's
-  // ordering dependencies. We treat the packages as a directed acyclic[1] graph
-  // where each package is a node and the ordering dependencies are the edges
-  // (that is, the packages form a partially ordered set). We then load[2]
-  // packages in a topological sort order of this graph.
-  //
-  // [1] TODO(nweiz): support cycles in some cases.
-  //
-  // [2] We use "loading a package" as a shorthand for loading that package's
-  //     transformers.
+  var transformersNeededByTransformers =
+      computeTransformersNeededByTransformers(environment.graph);
+
+  var buffer = new StringBuffer();
+  buffer.writeln("Transformer dependencies:");
+  transformersNeededByTransformers.forEach((id, dependencies) {
+    if (dependencies.isEmpty) {
+      buffer.writeln("$id: -");
+    } else {
+      buffer.writeln("$id: ${toSentence(dependencies)}");
+    }
+  });
+  log.fine(buffer);
+
+  var phasedTransformers = _phaseTransformers(transformersNeededByTransformers);
+
+  var packagesThatUseTransformers =
+      _packagesThatUseTransformers(environment.graph);
+
+  var loader = new _TransformerLoader(environment, transformerServer);
 
   // Add a rewrite transformer for each package, so that we can resolve
   // "package:" imports while loading transformers.
@@ -65,67 +59,26 @@ Future loadAllTransformers(AssetEnvironment environment,
   }
   environment.barback.updateTransformers(r'$pub', [[rewrite]]);
 
-  var orderingDeps = _computeOrderingDeps(environment.graph);
-  var reverseOrderingDeps = reverseGraph(orderingDeps);
-  var packageTransformers = _computePackageTransformers(environment.graph);
+  return Future.forEach(phasedTransformers, (phase) {
+    /// Load all the transformers in [phase], then add them to the appropriate
+    /// locations in the transformer graphs of the packages that use them.
+    return loader.load(phase).then((_) {
+      // Only update packages that use transformers in [phase].
+      var packagesToUpdate = unionAll(phase.map((id) =>
+          packagesThatUseTransformers[id]));
+      for (var packageName in packagesToUpdate) {
+        var package = environment.graph.packages[packageName];
+        var transformers = package.pubspec.transformers.map((packagePhase) {
+          return unionAll(packagePhase.map(loader.transformersFor));
+        }).toList();
 
-  var loader = new _TransformerLoader(environment, transformerServer);
-
-  // The packages on which no packages have ordering dependencies -- that is,
-  // the packages that don't need to be loaded before any other packages. These
-  // packages will be loaded last, since all of their ordering dependencies need
-  // to be loaded before they're loaded. However, they'll be traversed by
-  // [loadPackage] first.
-  var rootPackages = environment.graph.packages.keys.toSet()
-      .difference(unionAll(orderingDeps.values));
-
-  // The Futures for packages that have been loaded or are being actively loaded
-  // by [loadPackage]. Once one of these Futures is complete, the transformers
-  // for that package will all be available from [loader].
-  var loadingPackages = new Map<String, Future>();
-
-  // A helper function that loads all the transformers that [package] uses, then
-  // all the transformers that [package] defines.
-  Future loadPackage(String package) {
-    if (loadingPackages.containsKey(package)) return loadingPackages[package];
-
-    // First, load each package upon which [package] has an ordering dependency.
-    var future = Future.wait(orderingDeps[package].map(loadPackage)).then((_) {
-      // Go through the transformers used by [package] phase-by-phase. If any
-      // phase uses a transformer defined in [package] itself, that transformer
-      // should be loaded after running all previous phases.
-      var transformers = [[rewrite]];
-
-      var phases = environment.graph.packages[package].pubspec.transformers;
-      return Future.forEach(phases, (phase) {
-        return loader.load(phase.where((id) => id.package == package))
-            .then((_) {
-          // If we've already loaded all the transformers in this package and no
-          // other package imports it, there's no need to keep applying
-          // transformers, so we can short-circuit.
-          var loadedAllTransformers = packageTransformers[package]
-              .difference(loader.loadedTransformers).isEmpty;
-          if (loadedAllTransformers &&
-              !reverseOrderingDeps.containsKey(package)) {
-            return null;
-          }
-
-          transformers.add(unionAll(phase.map(
-              (id) => loader.transformersFor(id))));
-          environment.barback.updateTransformers(package, transformers);
-        });
-      }).then((_) {
-        // Now that we've applied all the transformers used by [package] via
-        // [Barback.updateTransformers], we load any transformers defined in
-        // [package] but used elsewhere.
-        return loader.load(packageTransformers[package]);
-      });
+        // Make sure [rewrite] is still the first phase so that future
+        // transformers' "package:" imports will work.
+        transformers.insert(0, [rewrite]);
+        environment.barback.updateTransformers(packageName, transformers);
+      }
     });
-    loadingPackages[package] = future;
-    return future;
-  }
-
-  return Future.wait(rootPackages.map(loadPackage)).then((_) {
+  }).then((_) {
     /// Reset the transformers for each package to get rid of [rewrite], which
     /// is no longer needed.
     for (var package in environment.graph.packages.values) {
@@ -148,85 +101,50 @@ Future loadAllTransformers(AssetEnvironment environment,
   });
 }
 
-/// Computes and returns the graph of ordering dependencies for [graph].
+/// Given [transformerDependencies], a directed acyclic graph, returns a list of
+/// "phases" (sets of transformers).
 ///
-/// This graph is in the form of a map whose keys are packages and whose values
-/// are those packages' ordering dependencies.
-Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
-  var orderingDeps = new Map<String, Set<String>>();
-  // Iterate through the packages in a deterministic order so that if there are
-  // multiple cycles we choose which to print consistently.
-  var packages = ordered(graph.packages.values.map((package) => package.name));
-  for (var package in packages) {
-    // This package's transformer dependencies are also ordering dependencies.
-    var deps = _transformerDeps(graph, package);
-    deps.remove(package);
-    // The transformer dependencies of this package's transitive package
-    // dependencies are also ordering dependencies for this package.
-    var transitivePackageDeps = graph.transitiveDependencies(package)
-        .map((package) => package.name);
-    for (var packageDep in ordered(transitivePackageDeps)) {
-      var transformerDeps = _transformerDeps(graph, packageDep);
-      if (transformerDeps.contains(package)) {
-        throw _cycleError(graph, package, packageDep);
-      }
-      deps.addAll(transformerDeps);
-    }
-    orderingDeps[package] = deps;
+/// Each phase must be fully loaded and passed to barback before the next phase
+/// can be safely loaded. However, transformers within a phase can be safely
+/// loaded in parallel.
+List<Set<TransformerId>> _phaseTransformers(
+    Map<TransformerId, Set<TransformerId>> transformerDependencies) {
+  // A map from transformer ids to the indices of the phases that those
+  // transformer ids should end up in. Populated by [phaseNumberFor].
+  var phaseNumbers = {};
+  var phases = [];
+
+  phaseNumberFor(id) {
+    if (phaseNumbers.containsKey(id)) return phaseNumbers[id];
+    var dependencies = transformerDependencies[id];
+    phaseNumbers[id] = dependencies.isEmpty ? 0 :
+        maxAll(dependencies.map(phaseNumberFor)) + 1;
+    return phaseNumbers[id];
   }
 
-  return orderingDeps;
+  for (var id in transformerDependencies.keys) {
+    var phaseNumber = phaseNumberFor(id);
+    if (phases.length <= phaseNumber) phases.length = phaseNumber + 1;
+    if (phases[phaseNumber] == null) phases[phaseNumber] = new Set();
+    phases[phaseNumber].add(id);
+  }
+
+  return phases;
 }
 
-/// Returns the set of transformer dependencies for [package].
-Set<String> _transformerDeps(PackageGraph graph, String package) =>
-  unionAll(graph.packages[package].pubspec.transformers)
-      .where((id) => !id.isBuiltInTransformer)
-      .map((id) => id.package).toSet();
-
-/// Returns an [ApplicationException] describing an ordering dependency cycle
-/// detected in [graph].
-///
-/// [dependee] and [depender] should be the names of two packages known to be in
-/// the cycle. In addition, [depender] should have a transformer dependency on
-/// [dependee].
-ApplicationException _cycleError(PackageGraph graph, String dependee,
-    String depender) {
-  assert(_transformerDeps(graph, depender).contains(dependee));
-
-  var simpleGraph = mapMap(graph.packages, value: (_, package) =>
-      package.dependencies.map((dep) => dep.name).toList());
-  var path = shortestPath(simpleGraph, dependee, depender);
-  path.add(dependee);
-  return new ApplicationException("Transformer cycle detected:\n" +
-      pairs(path).map((pair) {
-    var transformers = unionAll(graph.packages[pair.first].pubspec.transformers)
-        .where((id) => id.package == pair.last)
-        .map((id) => id.toString()).toList();
-    if (transformers.isEmpty) {
-      return "  ${pair.first} depends on ${pair.last}";
-    } else {
-      return "  ${pair.first} is transformed by ${toSentence(transformers)}";
-    }
-  }).join("\n"));
-}
-
-/// Returns a map from each package name in [graph] to the transformer ids of
-/// all transformers exposed by that package and used by other packages.
-Map<String, Set<TransformerId>> _computePackageTransformers(
+/// Returns a map from transformer ids to all packages in [graph] that use each
+/// transformer.
+Map<TransformerId, Set<String>> _packagesThatUseTransformers(
     PackageGraph graph) {
-  var packageTransformers = new Map.fromIterable(graph.packages.values,
-      key: (package) => package.name,
-      value: (_) => new Set<TransformerId>());
+  var results = {};
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
       for (var id in phase) {
-        if (id.isBuiltInTransformer) continue;
-        packageTransformers[id.package].add(id);
+        results.putIfAbsent(id, () => new Set()).add(package.name);
       }
     }
   }
-  return packageTransformers;
+  return results;
 }
 
 /// A class that loads transformers defined in specific files.
@@ -304,12 +222,12 @@ class _TransformerLoader {
 
   /// Returns the set of transformers for [id].
   ///
-  /// It's an error to call this before [load] is called with [id] and the
-  /// future it returns has completed.
+  /// If this is called before [load] for a given [id], it will return an empty
+  /// set.
   Set<Transformer> transformersFor(TransformerId id) {
     if (_transformers.containsKey(id)) return _transformers[id];
+    if (id.package != '\$dart2js') return new Set();
 
-    assert(id.package == '\$dart2js');
     var transformer;
     try {
       transformer = new Dart2JSTransformer.withSettings(_environment,

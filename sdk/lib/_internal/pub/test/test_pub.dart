@@ -287,6 +287,11 @@ String yaml(value) => JSON.encode(value);
 String get sandboxDir => _sandboxDir;
 String _sandboxDir;
 
+/// The path to the Dart repo's packages.
+final String pkgPath = path.absolute(path.join(
+    path.dirname(Platform.executable),
+    '..', '..', '..', '..', 'pkg'));
+
 /// The path of the package cache directory used for tests. Relative to the
 /// sandbox directory.
 final String cachePath = "cache";
@@ -673,10 +678,6 @@ void createLockFile(String package, {Iterable<String> sandbox,
   }
 
   if (pkg != null) {
-    var pkgDir = path.absolute(path.join(
-        path.dirname(Platform.executable),
-        '..', '..', '..', '..', 'pkg'));
-
     _addPackage(String package) {
       if (dependencies.containsKey(package)) return;
 
@@ -689,7 +690,7 @@ void createLockFile(String package, {Iterable<String> sandbox,
         }
         packagePath = _barbackDir;
       } else {
-        packagePath = path.join(pkgDir, package);
+        packagePath = path.join(pkgPath, package);
       }
 
       dependencies[package] = packagePath;

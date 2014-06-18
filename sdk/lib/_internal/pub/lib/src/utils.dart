@@ -6,7 +6,6 @@
 library pub.utils;
 
 import 'dart:async';
-import "dart:collection";
 import "dart:convert";
 import 'dart:io';
 import 'dart:isolate';
@@ -329,69 +328,9 @@ Future<Map> mapMapAsync(Map map, {key(key, value), value(key, value)}) {
       value: (mapKey) => value(mapKey, map[mapKey]));
 }
 
-/// Returns the shortest path from [start] to [end] in [graph].
-///
-/// The graph is represented by a map where each key is a vertex and the value
-/// is the set of other vertices directly reachable from the key. [start] and
-/// [end] must be vertices in this graph.
-List shortestPath(Map<dynamic, Iterable> graph, start, end) {
-  assert(graph.containsKey(start));
-  assert(graph.containsKey(end));
-
-  // Dijkstra's algorithm.
-  var infinity = graph.length;
-  var distance = mapMap(graph, value: (_1, _2) => infinity);
-
-  // A map from each node to the node that came before it on the shortest path
-  // from it back to [start].
-  var previous = {};
-
-  distance[start] = 0;
-  var remaining = graph.keys.toSet();
-  while (!remaining.isEmpty) {
-    var current = minBy(remaining, (node) => distance[node]);
-    remaining.remove(current);
-
-    // If there's no remaining node that's reachable from [start], then there's
-    // no path from [start] to [end].
-    if (distance[current] == infinity) return null;
-
-    // If we've reached [end], we've found the shortest path to it and we just
-    // need to reconstruct that path.
-    if (current == end) break;
-
-    for (var neighbor in graph[current]) {
-      if (!remaining.contains(neighbor)) continue;
-      var newDistance = distance[current] + 1;
-      if (newDistance >= distance[neighbor]) continue;
-      distance[neighbor] = newDistance;
-      previous[neighbor] = current;
-    }
-  }
-
-  var path = new Queue();
-  var current = end;
-  while (current != null) {
-    path.addFirst(current);
-    current = previous[current];
-  }
-
-  return path.toList();
-}
-
-/// Returns a copy of [graph] with all the edges reversed.
-///
-/// The graph is represented by a map where each key is a vertex and the value
-/// is the set of other vertices directly reachable from the key.
-Map<dynamic, Set> reverseGraph(Map<dynamic, Set> graph) {
-  var reversed = new Map.fromIterable(graph.keys, value: (_) => new Set());
-  graph.forEach((vertex, edges) {
-    for (var edge in edges) {
-      reversed[edge].add(vertex);
-    }
-  });
-  return reversed;
-}
+/// Returns the maximum value in [iter].
+int maxAll(Iterable<int> iter) =>
+    iter.reduce((max, element) => element > max ? element : max);
 
 /// Replace each instance of [matcher] in [source] with the return value of
 /// [fn].

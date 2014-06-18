@@ -7,8 +7,10 @@ library pub.barback;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
+import 'package:collection/collection.dart';
+import 'package:path/path.dart' as p;
 
+import 'io.dart';
 import 'utils.dart';
 import 'version.dart';
 
@@ -173,13 +175,13 @@ class TransformerId {
     throw new FormatException('Unsupported built-in transformer $package.');
   }
 
-  // TODO(nweiz): support deep equality on [configuration] as well.
   bool operator==(other) => other is TransformerId &&
       other.package == package &&
       other.path == path &&
-      other.configuration == configuration;
+      const DeepCollectionEquality().equals(other.configuration, configuration);
 
-  int get hashCode => package.hashCode ^ path.hashCode ^ configuration.hashCode;
+  int get hashCode => package.hashCode ^ path.hashCode ^
+      const DeepCollectionEquality().hash(configuration);
 
   String toString() => path == null ? package : '$package/$path';
 
@@ -197,11 +199,26 @@ class TransformerId {
             test: (e) => e is AssetNotFoundException);
   }
 
+  /// Returns the path to the library identified by this transformer within
+  /// [packageDir], which should be the directory of [package].
+  ///
+  /// If `path` is null, this will determine which library to load. Unlike
+  /// [getAssetId], this doesn't take generated assets into account; it's used
+  /// to determine transformers' dependencies, which requires looking at files
+  /// on disk.
+  String getFullPath(String packageDir) {
+    if (path != null) return p.join(packageDir, 'lib', p.fromUri('$path.dart'));
+
+    var transformerPath = p.join(packageDir, 'lib', 'transformer.dart');
+    if (fileExists(transformerPath)) return transformerPath;
+    return p.join(packageDir, 'lib', '$package.dart');
+  }
+
   /// Returns whether the include/exclude rules allow the transformer to run on
   /// [pathWithinPackage].
   ///
-  /// [pathWithinPackage] must be a path relative to the containing package's
-  /// root directory.
+  /// [pathWithinPackage] must be a URL-style path relative to the containing
+  /// package's root directory.
   bool canTransform(String pathWithinPackage) {
     // TODO(rnystrom): Support globs in addition to paths. See #17093.
     if (excludes != null) {
@@ -224,7 +241,7 @@ Uri idToPackageUri(AssetId id) {
   }
 
   return new Uri(scheme: 'package',
-      path: path.url.join(id.package, id.path.replaceFirst('lib/', '')));
+      path: p.url.join(id.package, id.path.replaceFirst('lib/', '')));
 }
 
 /// Converts [uri] into an [AssetId] if its path is within "packages".
@@ -234,7 +251,7 @@ Uri idToPackageUri(AssetId id) {
 ///
 /// If the URI doesn't contain one of those special directories, returns null.
 AssetId packagesUrlToId(Uri url) {
-  var parts = path.url.split(url.path);
+  var parts = p.url.split(url.path);
 
   // Strip the leading "/" from the URL.
   if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1).toList();
@@ -256,6 +273,6 @@ AssetId packagesUrlToId(Uri url) {
   }
 
   var package = parts[index + 1];
-  var assetPath = path.url.join("lib", path.url.joinAll(parts.skip(index + 2)));
+  var assetPath = p.url.join("lib", p.url.joinAll(parts.skip(index + 2)));
   return new AssetId(package, assetPath);
 }

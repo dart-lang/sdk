@@ -7,7 +7,8 @@ library pub.rewrite_import_transformer;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:analyzer/analyzer.dart';
+
+import '../dart.dart';
 
 /// A transformer used internally to rewrite "package:" imports so they point to
 /// the barback server rather than to pub's package root.
@@ -16,13 +17,12 @@ class RewriteImportTransformer extends Transformer {
 
   Future apply(Transform transform) {
     return transform.primaryInput.readAsString().then((contents) {
-      var collector = new _DirectiveCollector();
-      parseDirectives(contents, name: transform.primaryInput.id.toString())
-          .accept(collector);
+      var directives = parseImportsAndExports(contents,
+          name: transform.primaryInput.id.toString());
 
       var buffer = new StringBuffer();
       var index = 0;
-      for (var directive in collector.directives) {
+      for (var directive in directives) {
         var uri = Uri.parse(directive.uri.stringValue);
         if (uri.scheme != 'package') continue;
 
@@ -37,11 +37,4 @@ class RewriteImportTransformer extends Transformer {
           new Asset.fromString(transform.primaryInput.id, buffer.toString()));
     });
   }
-}
-
-/// A simple visitor that collects import and export nodes.
-class _DirectiveCollector extends GeneralizingAstVisitor {
-  final directives = <UriBasedDirective>[];
-
-  visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
 }
