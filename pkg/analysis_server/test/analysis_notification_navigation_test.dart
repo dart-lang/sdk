@@ -234,6 +234,18 @@ class AAA {
     });
   }
 
+  test_afterAnalysis() {
+    addTestFile('''
+class AAA {}
+AAA aaa;
+''');
+    return waitForTasksFinished().then((_) {
+      return prepareNavigation(() {
+        assertHasRegionTarget('AAA aaa;', 'AAA {}');
+      });
+    });
+  }
+
   test_identifier_resolved() {
     addTestFile('''
 class AAA {}

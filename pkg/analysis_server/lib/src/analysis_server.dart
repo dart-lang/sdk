@@ -398,25 +398,22 @@ class AnalysisServer {
           List<AnalysisError> errors = analysisContext.getErrors(source).errors;
           sendAnalysisNotificationErrors(this, file, errors);
         }
-        // TODO(scheglov)
-        // 1. implement resolveCompilationUnit()
-        // 2. Share "if (dartUnit != null)"
-        if (service == AnalysisService.HIGHLIGHTS) {
-          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+        // Dart unit notifications.
+        if (AnalysisEngine.isDartFileName(file)) {
+          CompilationUnit dartUnit = getResolvedCompilationUnitToResendNotification(file);
           if (dartUnit != null) {
-            sendAnalysisNotificationHighlights(this, file, dartUnit);
-          }
-        }
-        if (service == AnalysisService.NAVIGATION) {
-          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
-          if (dartUnit != null) {
-            sendAnalysisNotificationNavigation(this, file, dartUnit);
-          }
-        }
-        if (service == AnalysisService.OUTLINE) {
-          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
-          if (dartUnit != null) {
-            sendAnalysisNotificationOutline(this, file, dartUnit);
+            switch (service) {
+              case AnalysisService.HIGHLIGHTS:
+                sendAnalysisNotificationHighlights(this, file, dartUnit);
+                break;
+              case AnalysisService.NAVIGATION:
+                // TODO(scheglov) consider support for one unit in 2+ libraries
+                sendAnalysisNotificationNavigation(this, file, dartUnit);
+                break;
+              case AnalysisService.OUTLINE:
+                sendAnalysisNotificationOutline(this, file, dartUnit);
+                break;
+            }
           }
         }
       }
@@ -444,6 +441,33 @@ class AnalysisServer {
   Source _getSource(String path) {
     File file = contextDirectoryManager.resourceProvider.getResource(path);
     return file.createSource(UriKind.FILE_URI);
+  }
+
+  /**
+   * Returns the [CompilationUnit] of the Dart file with the given [path] that
+   * should be used to resend notifications for already resolved unit.
+   * Returns `null` if the file is not a part of any context, library has not
+   * been yet resolved, or any problem happened.
+   */
+  CompilationUnit getResolvedCompilationUnitToResendNotification(String path) {
+    // prepare AnalysisContext
+    AnalysisContext context = _getAnalysisContext(path);
+    if (context == null) {
+      return null;
+    }
+    // prepare sources
+    Source unitSource = _getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (librarySources.isEmpty) {
+      return null;
+    }
+    // if library has not been resolved yet, the unit will be resolved later
+    Source librarySource = librarySources[0];
+    if (context.getLibraryElement(librarySource) == null) {
+      return null;
+    }
+    // if library has been already resolved, resolve unit
+    return context.resolveCompilationUnit2(unitSource, librarySource);
   }
 
   /**

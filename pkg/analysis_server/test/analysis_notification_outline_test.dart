@@ -203,6 +203,23 @@ class B {
     });
   }
 
+  test_afterAnalysis() {
+    addTestFile('''
+class AAA {
+}
+class BBB {
+}
+''');
+    return waitForTasksFinished().then((_) {
+      expect(outline, isNull);
+      return prepareOutline(() {
+        _Outline unitOutline = outline;
+        List<_Outline> outlines = unitOutline.children;
+        expect(outlines, hasLength(2));
+      });
+    });
+  }
+
   test_sourceRange_inClass() {
     addTestFile('''
 class A { // leftA
