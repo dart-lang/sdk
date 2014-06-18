@@ -19,6 +19,9 @@
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"polymer/e2e_test/"])',
+            '../sdk/lib/_internal/compiler',
+            '../sdk/lib/_internal/libraries.dart',
+            '../site/try',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
