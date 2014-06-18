@@ -208,7 +208,7 @@ def Main():
   # (dart-editor-macosx.cocoa.x86.zip). It contains the editor application in a
   # dart/ subdirectory. We unzip the contents of the archive into OUTPUT. It
   # will use the ../dart-sdk directory as its SDK.
-  archives = glob.glob(join(OUTPUT, '*.zip'))
+  archives = glob.glob(join(OUTPUT, 'd*.zip'))
 
   if archives:
     ProcessEditorArchive(arch, archives[0], OUTPUT)
