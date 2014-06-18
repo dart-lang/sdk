@@ -832,6 +832,28 @@ TEST_CASE(Service_Classes) {
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    b0.raw()->Size() + b1.raw()->Size());
+  // ... and list the instances of class B.
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
+                      "['limit'], ['3']]", class_b.id());
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(), "\"type\":\"@Array\"");
+  // TODO(koda): Actually parse the response.
+  static const intptr_t kInstanceListId = 0;
+  ExpectSubstringF(handler.msg(), "\"id\":\"objects\\/%" Pd "\",\"length\":2",
+                   kInstanceListId);
+  Array& list = Array::Handle();
+  list ^= isolate->object_id_ring()->GetObjectForId(kInstanceListId);
+  EXPECT_EQ(2, list.Length());
+  // The list should contain {b0, b1}.
+  EXPECT((list.At(0) == b0.raw() && list.At(1) == b1.raw()) ||
+         (list.At(0) == b1.raw() && list.At(1) == b0.raw()));
+  // ... and if limit is 1, we one get one of them.
+  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
+                      "['limit'], ['1']]", class_b.id());
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(), "\"length\":1");
 }
 
 

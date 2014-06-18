@@ -24,6 +24,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/reusable_handles.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/version.h"
@@ -1137,6 +1138,63 @@ static bool HandleClassesRetained(Isolate* isolate, const Class& cls,
 }
 
 
+class GetInstancesVisitor : public ObjectVisitor {
+ public:
+  GetInstancesVisitor(Isolate* isolate, const Class& cls, const Array& storage)
+      : ObjectVisitor(isolate), cls_(cls), storage_(storage), count_(0) {}
+
+  virtual void VisitObject(RawObject* raw_obj) {
+    if (raw_obj->IsFreeListElement()) {
+      return;
+    }
+    REUSABLE_OBJECT_HANDLESCOPE(isolate());
+    Object& obj = isolate()->ObjectHandle();
+    obj = raw_obj;
+    if (obj.GetClassId() == cls_.id()) {
+      if (!storage_.IsNull() && count_ < storage_.Length()) {
+        storage_.SetAt(count_, obj);
+      }
+      ++count_;
+    }
+  }
+
+  intptr_t count() const { return count_; }
+
+ private:
+  const Class& cls_;
+  const Array& storage_;
+  intptr_t count_;
+};
+
+
+static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
+                                   JSONStream* js) {
+  if (js->num_arguments() != 3) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  intptr_t limit;
+  if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+    PrintError(js, "instances expects a 'limit' option\n",
+               js->num_arguments());
+    return true;
+  }
+  Array& storage = Array::Handle(Array::New(limit));
+  GetInstancesVisitor visitor(isolate, cls, storage);
+  isolate->heap()->IterateObjects(&visitor);
+  intptr_t count = visitor.count();
+  if (count < limit) {
+    // Truncate the list using utility method for GrowableObjectArray.
+    GrowableObjectArray& wrapper = GrowableObjectArray::Handle(
+        GrowableObjectArray::New(storage));
+    wrapper.SetLength(count);
+    storage = Array::MakeArray(wrapper);
+  }
+  storage.PrintJSON(js, true);
+  return true;
+}
+
+
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
@@ -1173,10 +1231,12 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesImplicitClosures(isolate, cls, js);
     } else if (strcmp(second, "dispatchers") == 0) {
       return HandleClassesDispatchers(isolate, cls, js);
-    } else if (!strcmp(second, "types")) {
+    } else if (strcmp(second, "types") == 0) {
       return HandleClassesTypes(isolate, cls, js);
-    } else if (!strcmp(second, "retained")) {
+    } else if (strcmp(second, "retained") == 0) {
       return HandleClassesRetained(isolate, cls, js);
+    } else if (strcmp(second, "instances") == 0) {
+      return HandleClassesInstances(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
