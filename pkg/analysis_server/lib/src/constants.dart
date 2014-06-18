@@ -109,4 +109,5 @@ const String REGIONS = 'regions';
 const String REMOVED = 'removed';
 const String RETURN_TYPE = 'returnType';
 const String SUBSCRIPTIONS = 'subscriptions';
+const String TYPE = 'type';
 const String VERSION = 'version';

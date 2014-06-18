@@ -4,6 +4,7 @@
 
 library computer.highlights;
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -263,7 +264,7 @@ class DartUnitHighlightsComputer {
   }
 
   void _addRegion(int offset, int length, HighlightType type) {
-    _regions.add({'offset': offset, 'length': length, 'type': type.name});
+    _regions.add({OFFSET: offset, LENGTH: length, TYPE: type.name});
   }
 
   bool _addRegion_node(AstNode node, HighlightType type) {
@@ -509,9 +510,6 @@ class HighlightType {
   static const HighlightType TYPE_PARAMETER = const HighlightType('TYPE_PARAMETER');
 
   final String name;
-
-  @override
-  String toString() => name;
 
   const HighlightType(this.name);
 }

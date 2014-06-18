@@ -18,13 +18,13 @@ import 'reflective_tests.dart';
 
 main() {
   group('notification.outline', () {
-    runReflectiveTests(AnalysisNotificationOutlineTest);
+    runReflectiveTests(_AnalysisNotificationOutlineTest);
   });
 }
 
 
 @ReflectiveTestCase()
-class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   _Outline outline;
 
   @override

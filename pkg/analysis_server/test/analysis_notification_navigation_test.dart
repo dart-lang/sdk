@@ -17,13 +17,13 @@ import 'reflective_tests.dart';
 
 main() {
   group('notification.navigation', () {
-    runReflectiveTests(AnalysisNotificationNavigationTest);
+    runReflectiveTests(_AnalysisNotificationNavigationTest);
   });
 }
 
 
 @ReflectiveTestCase()
-class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
+class _AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   List<_NavigationRegion> regions;
   _NavigationRegion testRegion;
   List<_NavigationTarget> testTargets;
