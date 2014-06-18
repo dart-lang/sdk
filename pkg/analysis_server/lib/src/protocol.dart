@@ -537,6 +537,14 @@ class Response {
     : this(request.id, new RequestError(-11, "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a `analysis.updateOptions` [request] that includes an unknown analysis
+   * option.
+   */
+  Response.unknownOptionName(Request request, String optionName)
+    : this(request.id, new RequestError(-12, 'Unknown analysis option: "$optionName"'));
+
+  /**
    * Initialize a newly created instance based upon the given JSON data
    */
   factory Response.fromJson(Map<String, Object> json) {

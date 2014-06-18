@@ -37,6 +37,11 @@ final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   final AnalysisServer analysisServer;
 
+  /**
+   * The default options used to create new analysis contexts.
+   */
+  AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+
   AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
       : super(resourceProvider);
 
@@ -45,7 +50,9 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
     ContextDirectory contextDirectory = new ContextDirectory(
         analysisServer.defaultSdk, resourceProvider, folder, pubspecFile);
     analysisServer.folderMap[folder] = contextDirectory;
-    analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
+    AnalysisContext context = contextDirectory.context;
+    context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
+    analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   @override
@@ -207,6 +214,31 @@ class AnalysisServer {
         sourceList = Source.EMPTY_ARRAY;
       }
       context.analysisPriorityOrder = sourceList;
+    });
+  }
+
+  /**
+   * Use the given updaters to update the values of the options in every
+   * existing analysis context.
+   */
+  void updateOptions(List<OptionUpdater> optionUpdaters) {
+    //
+    // Update existing contexts.
+    //
+    folderMap.forEach((Folder folder, ContextDirectory directory) {
+      AnalysisContext context = directory.context;
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(context.analysisOptions);
+      optionUpdaters.forEach((OptionUpdater optionUpdater) {
+        optionUpdater(options);
+      });
+      context.analysisOptions = options;
+    });
+    //
+    // Update the defaults used to create new contexts.
+    //
+    AnalysisOptionsImpl options = contextDirectoryManager.defaultOptions;
+    optionUpdaters.forEach((OptionUpdater optionUpdater) {
+      optionUpdater(options);
     });
   }
 
@@ -598,6 +630,7 @@ class ContextDirectory {
   }
 }
 
+typedef void OptionUpdater(AnalysisOptionsImpl options);
 
 /**
  * An enumeration of the services provided by the server domain.

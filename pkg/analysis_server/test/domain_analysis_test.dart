@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -115,18 +116,31 @@ main() {
       });
     });
 
-    test('updateOptions', () {
-      var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-      request.setParameter(
-          OPTIONS,
-          {
-            'analyzeAngular' : true,
-            'enableDeferredLoading': true,
-            'enableEnums': false
-          });
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
+    group('updateOptions', () {
+      test('invalid', () {
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
+        request.setParameter(OPTIONS, {'not-an-option' : true});
+        var response = handler.handleRequest(request);
+        expect(response, isResponseFailure('0'));
+      });
+
+      test('valid', () {
+        AnalysisOptions options = server.contextDirectoryManager.defaultOptions;
+        bool analyzeAngular = !options.analyzeAngular;
+        bool enableDeferredLoading = options.enableDeferredLoading;
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
+        request.setParameter(
+            OPTIONS,
+            {
+              'analyzeAngular' : analyzeAngular,
+              'enableDeferredLoading': enableDeferredLoading,
+              'enableEnums': false
+            });
+        var response = handler.handleRequest(request);
+        expect(response, isResponseSuccess('0'));
+        expect(options.analyzeAngular, equals(analyzeAngular));
+        expect(options.enableDeferredLoading, equals(enableDeferredLoading));
+      });
     });
 
     test('updateSdks', () {

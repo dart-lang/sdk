@@ -6,6 +6,7 @@ library domain.analysis;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -125,8 +126,52 @@ class AnalysisDomainHandler implements RequestHandler {
   Response updateOptions(Request request) {
     // options
     RequestDatum optionsDatum = request.getRequiredParameter(OPTIONS);
-    // TODO(scheglov) implement
-    return null;
+    List<OptionUpdater> updaters = new List<OptionUpdater>();
+    optionsDatum.forEachMap((String optionName, RequestDatum optionDatum) {
+      if (optionName == ANALYZE_ANGULAR) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.analyzeAngular = optionValue;
+        });
+      } else if (optionName == ANALYZE_POLYMER) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.analyzePolymer = optionValue;
+        });
+      } else if (optionName == ENABLE_ASYNC) {
+        // TODO(brianwilkerson) Uncomment this when the option is supported.
+//        bool optionValue = optionDatum.asBool();
+//        updaters.add((AnalysisOptionsImpl options) {
+//          options.enableAsync = optionValue;
+//        });
+      } else if (optionName == ENABLE_DEFERRED_LOADING) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.enableDeferredLoading = optionValue;
+        });
+      } else if (optionName == ENABLE_ENUMS) {
+        // TODO(brianwilkerson) Uncomment this when the option is supported.
+//        bool optionValue = optionDatum.asBool();
+//        updaters.add((AnalysisOptionsImpl options) {
+//          options.enableEnums = optionValue;
+//        });
+      } else if (optionName == GENERATE_DART2JS_HINTS) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.dart2jsHint = optionValue;
+        });
+      } else if (optionName == GENERATE_HINTS) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.hint = optionValue;
+        });
+      } else {
+        throw new RequestFailure(new Response.unknownOptionName(request,
+            optionName));
+      }
+    });
+    server.updateOptions(updaters);
+    return new Response(request.id);
   }
 
   /**

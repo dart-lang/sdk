@@ -109,3 +109,14 @@ const String RETURN_TYPE = 'returnType';
 const String SUBSCRIPTIONS = 'subscriptions';
 const String TYPE = 'type';
 const String VERSION = 'version';
+
+//
+// Analysis option names
+//
+const String ANALYZE_ANGULAR = 'analyzeAngular'; // boolean
+const String ANALYZE_POLYMER = 'analyzePolymer'; // boolean
+const String ENABLE_ASYNC = 'enableAsync'; // boolean
+const String ENABLE_DEFERRED_LOADING = 'enableDeferredLoading'; // boolean
+const String ENABLE_ENUMS = 'enableEnums'; // boolean
+const String GENERATE_DART2JS_HINTS = 'generateDart2jsHints'; // boolean
+const String GENERATE_HINTS = 'generateHints'; // boolean
