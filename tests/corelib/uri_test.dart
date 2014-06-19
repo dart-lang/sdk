@@ -221,6 +221,7 @@ void testInvalidUrls() {
     "\xe7",      "%C3%A7",       // Arbitrary non-ASCII letter
     " ",         "%20",          // Space, not allowed anywhere.
     '"',         "%22",          // Quote, not allowed anywhere
+    "<>",        "%3C%3E",       // Less/greater-than, not allowed anywhere.
     "\x7f",      "%7F",          // DEL, not allowed anywhere
     "\xdf",      "%C3%9F",       // German lower-case scharf-S.
                                  // Becomes ASCII when upper-cased.
@@ -261,8 +262,17 @@ void testInvalidUrls() {
   checkInvalid("s://:/");
   // @ not allowed in scheme.
   checkInvalid("s@://x:9/x?x#x");
+  // ] not allowed alone in host.
+  checkInvalid("s://xx]/");
+  // ] not allowed anywhere except in host.
+  checkInvalid("s://xx/]");
+  checkInvalid("s://xx/?]");
+  checkInvalid("s://xx/#]");
+  checkInvalid("s:/]");
+  checkInvalid("s:/?]");
+  checkInvalid("s:/#]");
   // IPv6 must be enclosed in [ and ] for Uri.parse.
-  // It is allowed un-enclosed as argument to Uri(hist: ) because we don't
+  // It is allowed un-enclosed as argument to `Uri(host:...)` because we don't
   // need to delimit.
   checkInvalid("s://ffff::ffff:1234/");
 }
