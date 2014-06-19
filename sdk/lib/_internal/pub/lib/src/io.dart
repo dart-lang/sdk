@@ -303,7 +303,10 @@ List<String> listDir(String dir, {bool recursive: false,
     if (pathInDir.contains("/.")) return false;
     if (Platform.operatingSystem != "windows") return true;
     return !pathInDir.contains("\\.");
-  }).map((entity) => entity.path).toList();
+  }).map((entity) {
+    if (Platform.operatingSystem != "windows") return entity.path;
+    return entity.path.replaceAll("/", "\\");
+  }).toList();
 }
 
 /// Returns whether [dir] exists on the file system.
