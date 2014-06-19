@@ -15,7 +15,6 @@ namespace dart {
 DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
-DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
 
 
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
@@ -181,9 +180,7 @@ void FlowGraph::DiscoverBlocks() {
 }
 
 
-#ifdef DEBUG
 // Debugging code to verify the construction of use lists.
-
 static intptr_t MembershipCount(Value* use, Value* list) {
   intptr_t count = 0;
   while (list != NULL) {
@@ -281,7 +278,6 @@ bool FlowGraph::VerifyUseLists() {
   }
   return true;  // Return true so we can ASSERT validation.
 }
-#endif  // DEBUG
 
 
 LivenessAnalysis::LivenessAnalysis(
@@ -718,9 +714,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
   GraphEntryInstr* entry = graph_entry();
-  if (!FLAG_optimize_try_catch && (entry->SuccessorCount() > 1)) {
-    Bailout("Catch-entry support in SSA.");
-  }
 
   // Initial renaming environment.
   GrowableArray<Definition*> env(variable_count());
@@ -1142,18 +1135,6 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
     }
   }
   return loop_headers;
-}
-
-
-void FlowGraph::Bailout(const char* reason) const {
-  const Function& function = parsed_function_.function();
-  Report::MessageF(Report::kBailout,
-                   Script::Handle(function.script()),
-                   function.token_pos(),
-                   "FlowGraph Bailout: %s %s",
-                   String::Handle(function.name()).ToCString(),
-                   reason);
-  UNREACHABLE();
 }
 
 
