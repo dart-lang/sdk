@@ -1199,12 +1199,13 @@ class VariableElementX extends ElementX with AnalyzableElementX
   }
 
   DartType computeType(Compiler compiler) {
+    if (variables.type != null) return variables.type;
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
-    compiler.withCurrentElement(this, () {
+    return compiler.withCurrentElement(this, () {
       parseNode(compiler);
+      return variables.computeType(this, compiler);
     });
-    return variables.computeType(this, compiler);
   }
 
   DartType get type {
@@ -2230,8 +2231,22 @@ abstract class BaseClassElementX extends ElementX
 }
 
 abstract class ClassElementX extends BaseClassElementX {
-  Link<Element> localMembers = const Link<Element>();
+  Link<Element> localMembersReversed = const Link<Element>();
   final ScopeX localScope = new ScopeX();
+
+  Link<Element> localMembersCache;
+
+  Link<Element> get localMembers {
+    if (localMembersCache == null) {
+      localMembersCache = localMembersReversed.reverse();
+    }
+    return localMembersCache;
+  }
+
+  void set localMembers(Link<Element> link) {
+    localMembersCache = null;
+    localMembersReversed = link;
+  }
 
   ClassElementX(String name, Element enclosing, int id, int initialState)
       : super(name, enclosing, id, initialState);
@@ -2242,7 +2257,8 @@ abstract class ClassElementX extends BaseClassElementX {
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
   void addMember(Element element, DiagnosticListener listener) {
-    localMembers = localMembers.prepend(element);
+    localMembersCache = null;
+    localMembersReversed = localMembersReversed.prepend(element);
     addToScope(element, listener);
   }
 
@@ -2262,7 +2278,7 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void forEachLocalMember(void f(Element member)) {
-    localMembers.reverse().forEach(f);
+    localMembers.forEach(f);
   }
 
   bool get hasConstructor {

@@ -1785,6 +1785,7 @@ class JavaScriptBackend extends Backend {
    * need to access it.
    */
   bool isNeededForReflection(Element element) {
+    if (!isTreeShakingDisabled) return false;
     element = getDartClass(element);
     if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
     /// Record the name of [element] in [symbolsUsed]. Return true for
