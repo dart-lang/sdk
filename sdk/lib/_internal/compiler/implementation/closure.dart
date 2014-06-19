@@ -452,9 +452,11 @@ class ClosureTranslator extends Visitor {
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
     } else if (inTryStatement) {
-      // Don't mark the this-element. This would complicate things in the
-      // builder.
-      if (element != closureData.thisElement) {
+      // Don't mark the this-element or a self-reference. This would complicate
+      // things in the builder.
+      // Note that nested (named) functions are immutable.
+      if (element != closureData.thisElement &&
+          element != closureData.closureElement) {
         // TODO(ngeoffray): only do this if the variable is mutated.
         closureData.usedVariablesInTry.add(element);
       }
