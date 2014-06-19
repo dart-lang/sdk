@@ -639,7 +639,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     if ((constant != NULL) && constant->value().IsSmi()) {
       const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
       const Double& dbl_obj =
-          Double::ZoneHandle(I, Double::New(dbl_val, Heap::kOld));
+          Double::ZoneHandle(I, Double::NewCanonical(dbl_val));
       ConstantInstr* double_const = flow_graph()->GetConstant(dbl_obj);
       converted = new(I) UnboxDoubleInstr(new(I) Value(double_const), deopt_id);
     } else {
