@@ -2243,11 +2243,6 @@ abstract class ClassElementX extends BaseClassElementX {
     return localMembersCache;
   }
 
-  void set localMembers(Link<Element> link) {
-    localMembersCache = null;
-    localMembersReversed = link;
-  }
-
   ClassElementX(String name, Element enclosing, int id, int initialState)
       : super(name, enclosing, id, initialState);
 
@@ -2290,9 +2285,8 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
-    addToScope(constructor, compiler);
     // The default constructor, although synthetic, is part of a class' API.
-    localMembers = localMembers.prepend(constructor);
+    addMember(constructor, compiler);
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
