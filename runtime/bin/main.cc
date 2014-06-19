@@ -436,19 +436,30 @@ static int ParseArguments(int argc,
             break;
           }
         }
+        i++;
+        continue;  // '-p' is not a VM flag so don't add to vm options.
       } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
         vm_options->AddArgument("--checked");
+        i++;
+        continue;  // '-c' is not a VM flag so don't add to vm options.
       } else if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
+      // The following two flags are processed by both the embedder and
+      // the VM.
       const char* kPrintFlags1 = "--print-flags";
       const char* kPrintFlags2 = "--print_flags";
+      const char* kVerboseDebug1 = "--verbose_debug";
+      const char* kVerboseDebug2 = "--verbose-debug";
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
         *print_flags_seen = true;
-      }
-      const char* kVerboseDebug = "--verbose_debug";
-      if (strncmp(argv[i], kVerboseDebug, strlen(kVerboseDebug)) == 0) {
+      } else if ((strncmp(argv[i],
+                          kVerboseDebug1,
+                          strlen(kVerboseDebug1)) == 0) ||
+                 (strncmp(argv[i],
+                          kVerboseDebug2,
+                          strlen(kVerboseDebug2)) == 0)) {
         *verbose_debug_seen = true;
       }
       vm_options->AddArgument(argv[i]);
