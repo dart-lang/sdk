@@ -14,8 +14,7 @@ import 'dart:_isolate_helper' show
     TimerImpl,
     leaveJsAsync,
     enterJsAsync,
-    isWorker,
-    globalThis;
+    isWorker;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -46,7 +45,7 @@ class _AsyncRun {
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
-    if (JS('', '#.scheduleImmediate', globalThis) != null) {
+    if (JS('', 'self.scheduleImmediate') != null) {
       return _scheduleImmediateJsOverride;
     }
     // TODO(9002): don't use the Timer to enqueue the immediate callback.
@@ -60,8 +59,7 @@ class _AsyncRun {
       callback();
     };
     enterJsAsync();
-    JS('void', '#.scheduleImmediate(#)',
-       globalThis,
+    JS('void', 'self.scheduleImmediate(#)',
        convertDartClosureToJS(internalCallback, 0));
   }
 

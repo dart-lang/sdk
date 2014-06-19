@@ -552,8 +552,6 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static computeGlobalThis() => JS('', 'function() { return this; }()');
-
   static _throwFormatException(String string) {
     throw new FormatException(string);
   }
@@ -721,7 +719,7 @@ class Primitives {
 
   static String currentUri() {
     // In a browser return self.location.href.
-    if (JS('bool', 'typeof self != "undefined"')) {
+    if (JS('bool', '!!self.location')) {
       return JS('String', 'self.location.href');
     }
 

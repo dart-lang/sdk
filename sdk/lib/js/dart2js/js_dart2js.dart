@@ -97,7 +97,7 @@ import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
 import 'dart:_js_helper' show Primitives, convertDartClosureToJS,
     getIsolateAffinityTag;
 
-final JsObject context = _wrapToDart(Primitives.computeGlobalThis());
+final JsObject context = _wrapToDart(JS('', 'self'));
 
 _convertDartFunction(Function f, {bool captureThis: false}) {
   return JS('',

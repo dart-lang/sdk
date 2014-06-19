@@ -228,12 +228,12 @@ class _Manager {
         "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
         DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
         mainManager);
-    JS("void", r"#.onmessage = #", globalThis, function);
+    JS("void", r"self.onmessage = #", function);
     // We define dartPrint so that the implementation of the Dart
     // print method knows what to call.
     // TODO(ngeoffray): Should we forward to the main isolate? What if
     // it exited?
-    JS('void', r'#.dartPrint = function (object) {}', globalThis);
+    JS('void', r'self.dartPrint = function (object) {}');
   }
 
 
@@ -403,10 +403,8 @@ class _IsolateContext implements IsolateContext {
         // don't print it.
         return;
       }
-      if (JS('bool', '#.console != null && '
-                     'typeof #.console.error == "function"',
-                     globalThis, globalThis)) {
-        JS('void', '#.console.error(#, #)', globalThis, error, stackTrace);
+      if (JS('bool', '!!self.console && !!self.console.error')) {
+        JS('void', 'self.console.error(#, #)', error, stackTrace);
       } else {
         print(error);
         if (stackTrace != null) print(stackTrace);
@@ -685,11 +683,9 @@ class _MainManagerStub {
 const String _SPAWNED_SIGNAL = "spawned";
 const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
-var globalThis = Primitives.computeGlobalThis();
-var globalWindow = JS('', "#.window", globalThis);
-var globalWorker = JS('', "#.Worker", globalThis);
-bool globalPostMessageDefined =
-    JS('', "#.postMessage !== (void 0)", globalThis);
+get globalWindow => JS('', "self.window");
+get globalWorker => JS('', "self.Worker");
+bool get globalPostMessageDefined => JS('bool', "!!self.postMessage");
 
 typedef _MainFunction();
 typedef _MainFunctionArgs(args);
@@ -869,7 +865,7 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
-    JS("void", r"#.console.log(#)", globalThis, msg);
+    JS("void", r"self.console.log(#)", msg);
   }
 
   static _getJSFunctionFromName(String functionName) {
@@ -1712,8 +1708,7 @@ class TimerImpl implements Timer {
 
       enterJsAsync();
 
-      _handle = JS('int', '#.setTimeout(#, #)',
-                   globalThis,
+      _handle = JS('int', 'self.setTimeout(#, #)',
                    convertDartClosureToJS(internalCallback, 0),
                    milliseconds);
     } else {
@@ -1726,8 +1721,7 @@ class TimerImpl implements Timer {
       : _once = false {
     if (hasTimer()) {
       enterJsAsync();
-      _handle = JS('int', '#.setInterval(#, #)',
-                   globalThis,
+      _handle = JS('int', 'self.setInterval(#, #)',
                    convertDartClosureToJS(() { callback(this); }, 0),
                    milliseconds);
     } else {
@@ -1743,9 +1737,9 @@ class TimerImpl implements Timer {
       if (_handle == null) return;
       leaveJsAsync();
       if (_once) {
-        JS('void', '#.clearTimeout(#)', globalThis, _handle);
+        JS('void', 'self.clearTimeout(#)', _handle);
       } else {
-        JS('void', '#.clearInterval(#)', globalThis, _handle);
+        JS('void', 'self.clearInterval(#)', _handle);
       }
       _handle = null;
     } else {
@@ -1756,7 +1750,7 @@ class TimerImpl implements Timer {
   bool get isActive => _handle != null;
 }
 
-bool hasTimer() => JS('', '#.setTimeout', globalThis) != null;
+bool hasTimer() => JS('', 'self.setTimeout') != null;
 
 
 /**

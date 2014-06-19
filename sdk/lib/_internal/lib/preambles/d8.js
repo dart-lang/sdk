@@ -4,14 +4,10 @@
 
 // Javascript preamble, that lets the output of dart2js run on V8's d8 shell.
 
-var setTimeout;
-var clearTimeout;
-var setInterval;
-var clearInterval;
-var dartMainRunner;
-var scheduleImmediate;
+(function(self) {
+  // Using strict mode to avoid accidentally defining global variables.
+  "use strict"; // Should be first statement of this function.
 
-(function() {
   // Event loop.
 
   // Task queue as cyclic list queue.
@@ -247,14 +243,17 @@ var scheduleImmediate;
     }
   }
 
-  dartMainRunner = function(main, args) {
+  // Global properties. "self" refers to the global object, so adding a
+  // property to "self" defines a global variable.
+  self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }
     eventLoop(action);
   };
-  setTimeout = addTimer;
-  clearTimeout = cancelTimer;
-  setInterval = addInterval;
-  clearInterval = cancelTimer;
-  scheduleImmediate = addTask;
-})();
+  self.setTimeout = addTimer;
+  self.clearTimeout = cancelTimer;
+  self.setInterval = addInterval;
+  self.clearInterval = cancelTimer;
+  self.scheduleImmediate = addTask;
+  self.self = self;
+})(this);
