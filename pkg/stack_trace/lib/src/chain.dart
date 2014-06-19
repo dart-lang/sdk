@@ -90,7 +90,14 @@ class Chain implements StackTrace {
   /// [15105]: https://code.google.com/p/dart/issues/detail?id=15105
   static capture(callback(), {ChainHandler onError}) {
     var spec = new StackZoneSpecification(onError);
-    return runZoned(callback, zoneSpecification: spec.toSpec(), zoneValues: {
+    return runZoned(() {
+      try {
+        return callback();
+      } catch (error, stackTrace) {
+        // TODO(nweiz): Don't special-case this when issue 19566 is fixed.
+        return Zone.current.handleUncaughtError(error, stackTrace);
+      }
+    }, zoneSpecification: spec.toSpec(), zoneValues: {
       #stack_trace.stack_zone.spec: spec
     });
   }
