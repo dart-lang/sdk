@@ -39,7 +39,7 @@ class PackageMapUriResolver extends UriResolver {
 
   @override
   Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.PACKAGE_SELF_URI || kind == UriKind.PACKAGE_URI) {
+    if (kind == UriKind.PACKAGE_URI) {
       Resource resource = resourceProvider.getResource(uri.path);
       if (resource is File) {
         return resource.createSource(kind);

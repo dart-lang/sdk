@@ -1234,11 +1234,10 @@ class ClassScope extends EnclosedScope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    * @param typeElement the element representing the type represented by this scope
    */
-  ClassScope(Scope enclosingScope, ClassElement typeElement) : super(new EnclosedScope(enclosingScope)) {
+  ClassScope(Scope enclosingScope, ClassElement typeElement) : super(enclosingScope) {
     if (typeElement == null) {
       throw new IllegalArgumentException("class element cannot be null");
     }
-    _defineTypeParameters(typeElement);
     _defineMembers(typeElement);
   }
 
@@ -1265,18 +1264,6 @@ class ClassScope extends EnclosedScope {
     }
     for (MethodElement method in typeElement.methods) {
       define(method);
-    }
-  }
-
-  /**
-   * Define the type parameters for the class.
-   *
-   * @param typeElement the element representing the type represented by this scope
-   */
-  void _defineTypeParameters(ClassElement typeElement) {
-    Scope parameterScope = enclosingScope;
-    for (TypeParameterElement typeParameter in typeElement.typeParameters) {
-      parameterScope.define(typeParameter);
     }
   }
 }
@@ -18027,6 +18014,8 @@ class ResolverVisitor extends ScopedVisitor {
       _enclosingClass = node.element;
       _typeAnalyzer.thisType = _enclosingClass == null ? null : _enclosingClass.type;
       super.visitClassDeclaration(node);
+      node.accept(_elementResolver);
+      node.accept(_typeAnalyzer);
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
       _enclosingClass = outerType;
@@ -19329,13 +19318,13 @@ class ScopeBuilder {
       if (element == null) {
         throw new AnalysisException("Cannot build a scope for an unresolved class");
       }
-      scope = new ClassScope(scope, element);
+      scope = new ClassScope(new TypeParameterScope(scope, element), element);
     } else if (node is ClassTypeAlias) {
       ClassElement element = node.element;
       if (element == null) {
         throw new AnalysisException("Cannot build a scope for an unresolved class type alias");
       }
-      scope = new ClassScope(scope, element);
+      scope = new ClassScope(new TypeParameterScope(scope, element), element);
     } else if (node is ConstructorDeclaration) {
       ConstructorElement element = node.element;
       if (element == null) {
@@ -19546,11 +19535,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       if (classElement == null) {
-        AnalysisEngine.instance.logger.logInformation2("Missing element for constructor ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+        AnalysisEngine.instance.logger.logInformation2("Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}", new JavaException());
+        super.visitClassDeclaration(node);
       } else {
+        _nameScope = new TypeParameterScope(_nameScope, classElement);
+        visitClassDeclarationInScope(node);
         _nameScope = new ClassScope(_nameScope, classElement);
+        visitClassMembersInScope(node);
       }
-      visitClassDeclarationInScope(node);
     } finally {
       _nameScope = outerScope;
     }
@@ -19561,7 +19553,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     Scope outerScope = _nameScope;
     try {
-      _nameScope = new ClassScope(_nameScope, node.element);
+      ClassElement element = node.element;
+      _nameScope = new ClassScope(new TypeParameterScope(_nameScope, element), element);
       super.visitClassTypeAlias(node);
     } finally {
       _nameScope = outerScope;
@@ -19892,7 +19885,18 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   void visitClassDeclarationInScope(ClassDeclaration node) {
-    super.visitClassDeclaration(node);
+    safelyVisit(node.name);
+    safelyVisit(node.typeParameters);
+    safelyVisit(node.extendsClause);
+    safelyVisit(node.withClause);
+    safelyVisit(node.implementsClause);
+    safelyVisit(node.nativeClause);
+  }
+
+  void visitClassMembersInScope(ClassDeclaration node) {
+    safelyVisit(node.documentationComment);
+    node.metadata.accept(this);
+    node.members.accept(this);
   }
 
   /**
@@ -22062,6 +22066,36 @@ class TypeOverrideManager_TypeOverrideScope {
 }
 
 /**
+ * Instances of the class `TypeParameterScope` implement the scope defined by the type
+ * parameters in a class.
+ */
+class TypeParameterScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope enclosed within another scope.
+   *
+   * @param enclosingScope the scope in which this scope is lexically enclosed
+   * @param typeElement the element representing the type represented by this scope
+   */
+  TypeParameterScope(Scope enclosingScope, ClassElement typeElement) : super(enclosingScope) {
+    if (typeElement == null) {
+      throw new IllegalArgumentException("class element cannot be null");
+    }
+    _defineTypeParameters(typeElement);
+  }
+
+  /**
+   * Define the type parameters for the class.
+   *
+   * @param typeElement the element representing the type represented by this scope
+   */
+  void _defineTypeParameters(ClassElement typeElement) {
+    for (TypeParameterElement typeParameter in typeElement.typeParameters) {
+      define(typeParameter);
+    }
+  }
+}
+
+/**
  * Instances of the class `TypePromotionManager` manage the ability to promote types of local
  * variables and formal parameters from their declared types based on control flow.
  */
@@ -22644,13 +22678,15 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.extendsClause;
+    WithClause withClause = node.withClause;
+    ImplementsClause implementsClause = node.implementsClause;
     _hasReferenceToSuper = false;
     super.visitClassDeclaration(node);
     ClassElementImpl classElement = _getClassElement(node.name);
     InterfaceType superclassType = null;
-    ExtendsClause extendsClause = node.extendsClause;
     if (extendsClause != null) {
-      ErrorCode errorCode = (node.withClause == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
+      ErrorCode errorCode = (withClause == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
       superclassType = _resolveType(extendsClause.superclass, errorCode, errorCode);
       if (!identical(superclassType, typeProvider.objectType)) {
         classElement.validMixin = false;
@@ -22666,7 +22702,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       classElement.supertype = superclassType;
       classElement.hasReferenceToSuper = _hasReferenceToSuper;
     }
-    _resolve(classElement, node.withClause, node.implementsClause);
+    _resolve(classElement, withClause, implementsClause);
     return null;
   }
 
@@ -23120,13 +23156,13 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitClassDeclarationInScope(ClassDeclaration node) {
+  void visitClassMembersInScope(ClassDeclaration node) {
     //
     // Process field declarations before constructors and methods so that the types of field formal
     // parameters can be correctly resolved.
     //
     List<ClassMember> nonFields = new List<ClassMember>();
-    node.visitChildren(new UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this, nonFields));
+    node.visitChildren(new UnifyingAstVisitor_TypeResolverVisitor_visitClassMembersInScope(this, nonFields));
     int count = nonFields.length;
     for (int i = 0; i < count; i++) {
       nonFields[i].accept(this);
@@ -23617,18 +23653,24 @@ class UnifyingAstVisitor_ElementBuilder_visitClassDeclaration extends UnifyingAs
   Object visitNode(AstNode node) => node.accept(ElementBuilder_this);
 }
 
-class UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope extends UnifyingAstVisitor<Object> {
+class UnifyingAstVisitor_TypeResolverVisitor_visitClassMembersInScope extends UnifyingAstVisitor<Object> {
   final TypeResolverVisitor TypeResolverVisitor_this;
 
   List<ClassMember> nonFields;
 
-  UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
+  UnifyingAstVisitor_TypeResolverVisitor_visitClassMembersInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     nonFields.add(node);
     return null;
   }
+
+  @override
+  Object visitExtendsClause(ExtendsClause node) => null;
+
+  @override
+  Object visitImplementsClause(ImplementsClause node) => null;
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
@@ -23638,6 +23680,9 @@ class UnifyingAstVisitor_TypeResolverVisitor_visitClassDeclarationInScope extend
 
   @override
   Object visitNode(AstNode node) => node.accept(TypeResolverVisitor_this);
+
+  @override
+  Object visitWithClause(WithClause node) => null;
 }
 
 /**

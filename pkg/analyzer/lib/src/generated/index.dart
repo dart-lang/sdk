@@ -1080,7 +1080,7 @@ class IndexContributor extends GeneralizingAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
-    if (element is MethodElement) {
+    if (element is MethodElement || element is PropertyAccessorElement) {
       Location location = _createLocationFromNode(name);
       Relationship relationship;
       if (node.target != null) {
@@ -1526,6 +1526,7 @@ class IndexHtmlUnitOperation implements IndexOperation {
       }
       AngularHtmlIndexContributor contributor = new AngularHtmlIndexContributor(_indexStore);
       unit.accept(contributor);
+      _indexStore.doneIndex();
     } catch (exception) {
       AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
@@ -1598,6 +1599,14 @@ abstract class IndexStore {
    * Removes all of the information.
    */
   void clear();
+
+  /**
+   * Notifies that index store that the current Dart or HTML unit indexing is done.
+   *
+   * If this method is not invoked after corresponding "aboutToIndex*" invocation, all recorded
+   * information may be lost.
+   */
+  void doneIndex();
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.
@@ -1736,6 +1745,7 @@ class IndexUnitOperation implements IndexOperation {
       }
       unit.accept(new IndexContributor(_indexStore));
       unit.accept(new AngularDartIndexContributor(_indexStore));
+      _indexStore.doneIndex();
     } catch (exception) {
       AnalysisEngine.instance.logger.logError2("Could not index ${unit.element.location}", exception);
     }
@@ -1994,6 +2004,10 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     _contextToSourceToLocations.clear();
     _contextToLibraryToUnits.clear();
     _contextToUnitToLibraries.clear();
+  }
+
+  @override
+  void doneIndex() {
   }
 
   @override

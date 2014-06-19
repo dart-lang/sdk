@@ -3640,6 +3640,14 @@ class ElementKind extends Enum<ElementKind> {
  */
 abstract class ElementLocation {
   /**
+   * Return the path to the element whose location is represented by this object. Clients must not
+   * modify the returned array.
+   *
+   * @return the path to the element whose location is represented by this object
+   */
+  List<String> get components;
+
+  /**
    * Return an encoded representation of this location that can be used to create a location that is
    * equal to this location.
    *
@@ -3686,6 +3694,15 @@ class ElementLocationImpl implements ElementLocation {
     this._components = _decode(encoding);
   }
 
+  /**
+   * Initialize a newly created location from the given components.
+   *
+   * @param components the components of a location
+   */
+  ElementLocationImpl.con3(List<String> components) {
+    this._components = components;
+  }
+
   @override
   bool operator ==(Object object) {
     if (identical(this, object)) {
@@ -3714,11 +3731,7 @@ class ElementLocationImpl implements ElementLocation {
     return true;
   }
 
-  /**
-   * Return the path to the element whose location is represented by this object.
-   *
-   * @return the path to the element whose location is represented by this object
-   */
+  @override
   List<String> get components => _components;
 
   @override
@@ -5157,7 +5170,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   String get displayName {
     String name = this.name;
     if (name == null || name.length == 0) {
-      // TODO(brianwilkerson) Determine whether function types should ever have an empty name.
+      // Function types have an empty name when they are defined implicitly by either a closure or
+      // as part of a parameter declaration.
       List<DartType> normalParameterTypes = this.normalParameterTypes;
       List<DartType> optionalParameterTypes = this.optionalParameterTypes;
       Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
@@ -6074,6 +6088,9 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
       builder.append(source.fullName);
     }
   }
+
+  @override
+  String get identifier => source.encoding;
 }
 
 /**

@@ -6375,7 +6375,7 @@ class ElementResolverTest extends EngineTestCase {
       Scope outerScope = _visitor.nameScope_J2DAccessor as Scope;
       try {
         _visitor.enclosingClass_J2DAccessor = enclosingClass;
-        EnclosedScope innerScope = new ClassScope(outerScope, enclosingClass);
+        EnclosedScope innerScope = new ClassScope(new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
         _visitor.nameScope_J2DAccessor = innerScope;
         node.accept(_resolver);
       } finally {
@@ -27644,6 +27644,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
   void test_visitClassDeclaration() {
     // class A extends B with C implements D {}
+    // class B {}
+    // class C {}
+    // class D {}
     ClassElement elementA = ElementFactory.classElement2("A", []);
     ClassElement elementB = ElementFactory.classElement2("B", []);
     ClassElement elementC = ElementFactory.classElement2("C", []);
@@ -27661,6 +27664,22 @@ class TypeResolverVisitorTest extends EngineTestCase {
     List<InterfaceType> interfaces = elementA.interfaces;
     EngineTestCase.assertLength(1, interfaces);
     JUnitTestCase.assertSame(elementD.type, interfaces[0]);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitClassDeclaration_instanceMemberCollidesWithClass() {
+    // class A {}
+    // class B extends A {
+    //   void A() {}
+    // }
+    ClassElementImpl elementA = ElementFactory.classElement2("A", []);
+    ClassElementImpl elementB = ElementFactory.classElement2("B", []);
+    elementB.methods = <MethodElement> [ElementFactory.methodElement("A", VoidTypeImpl.instance, [])];
+    ExtendsClause extendsClause = AstFactory.extendsClause(AstFactory.typeName(elementA, []));
+    ClassDeclaration declaration = AstFactory.classDeclaration(null, "B", null, extendsClause, null, null, []);
+    declaration.name.staticElement = elementB;
+    _resolveNode(declaration, [elementA, elementB]);
+    JUnitTestCase.assertSame(elementA.type, elementB.supertype);
     _listener.assertNoErrors();
   }
 
@@ -27858,6 +27877,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
       _ut.test('test_visitClassDeclaration', () {
         final __test = new TypeResolverVisitorTest();
         runJUnitTest(__test, __test.test_visitClassDeclaration);
+      });
+      _ut.test('test_visitClassDeclaration_instanceMemberCollidesWithClass', () {
+        final __test = new TypeResolverVisitorTest();
+        runJUnitTest(__test, __test.test_visitClassDeclaration_instanceMemberCollidesWithClass);
       });
       _ut.test('test_visitClassTypeAlias', () {
         final __test = new TypeResolverVisitorTest();

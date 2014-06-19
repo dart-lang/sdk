@@ -788,16 +788,11 @@ class UriKind extends Enum<UriKind> {
   static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
 
   /**
-   * A 'package:' URI referencing source package itself.
-   */
-  static const UriKind PACKAGE_SELF_URI = const UriKind('PACKAGE_SELF_URI', 2, 0x73);
-
-  /**
    * A 'package:' URI.
    */
-  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 3, 0x70);
+  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 2, 0x70);
 
-  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
+  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
    * Return the URI kind represented by the given encoding, or `null` if there is no kind with
@@ -812,8 +807,6 @@ class UriKind extends Enum<UriKind> {
         return DART_URI;
       } else if (encoding == 0x66) {
         return FILE_URI;
-      } else if (encoding == 0x73) {
-        return PACKAGE_SELF_URI;
       } else if (encoding == 0x70) {
         return PACKAGE_URI;
       }

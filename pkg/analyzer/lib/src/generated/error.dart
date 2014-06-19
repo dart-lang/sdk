@@ -2136,7 +2136,7 @@ class ErrorReporter {
     int count = arguments.length;
     HashSet<String> typeNames = new HashSet<String>();
     for (int i = 0; i < count; i++) {
-      if (arguments[i] is DartType && typeNames.add((arguments[i] as DartType).displayName)) {
+      if (arguments[i] is DartType && !typeNames.add((arguments[i] as DartType).displayName)) {
         return true;
       }
     }

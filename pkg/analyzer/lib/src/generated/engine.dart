@@ -966,6 +966,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     for (Source source in changeSet.changedSources) {
+      if (_contentCache.getContents(source) != null) {
+        // This source is overridden in the content cache, so the change will have no effect.
+        // Just ignore it to avoid wasting time doing re-analysis.
+        continue;
+      }
       _sourceChanged(source);
     }
     for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.changedContents)) {
@@ -1255,19 +1260,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Element getElement(ElementLocation location) {
     // TODO(brianwilkerson) This should not be a "get" method.
     try {
-      List<String> components = (location as ElementLocationImpl).components;
-      Source librarySource = _computeSourceFromEncoding(components[0]);
-      ElementImpl element = computeLibraryElement(librarySource) as ElementImpl;
-      for (int i = 1; i < components.length; i++) {
-        if (element == null) {
-          return null;
+      List<String> components = location.components;
+      Source source = _computeSourceFromEncoding(components[0]);
+      String sourceName = source.shortName;
+      if (AnalysisEngine.isDartFileName(sourceName)) {
+        ElementImpl element = computeLibraryElement(source) as ElementImpl;
+        for (int i = 1; i < components.length; i++) {
+          if (element == null) {
+            return null;
+          }
+          element = element.getChild(components[i]);
         }
-        element = element.getChild(components[i]);
+        return element;
       }
-      return element;
+      if (AnalysisEngine.isHtmlFileName(sourceName)) {
+        return computeHtmlElement(source);
+      }
     } on AnalysisException catch (exception) {
-      return null;
     }
+    return null;
   }
 
   @override
@@ -1439,6 +1450,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return source.modificationStamp;
   }
+
+  @override
+  List<Source> get prioritySources => _priorityOrder;
 
   @override
   Namespace getPublicNamespace(LibraryElement library) {
@@ -1739,7 +1753,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void set analysisOptions(AnalysisOptions options) {
-    bool needsRecompute = this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.enableDeferredLoading != options.enableDeferredLoading || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
+    bool needsRecompute = this._options.analyzeAngular != options.analyzeAngular || this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.enableDeferredLoading != options.enableDeferredLoading || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -1757,6 +1771,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _priorityOrder = newPriorityOrder;
       }
     }
+    this._options.analyzeAngular = options.analyzeAngular;
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.enableDeferredLoading = options.enableDeferredLoading;
@@ -3555,21 +3570,23 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-          CacheState verificationErrorsState = dartEntry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
-          if (verificationErrorsState == CacheState.INVALID || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
-            LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
-            if (libraryElement != null) {
-              sources.add(source);
-              return;
-            }
-          }
-          if (hintsEnabled) {
-            CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
-            if (hintsState == CacheState.INVALID || (isPriority && hintsState == CacheState.FLUSHED)) {
+          if (_generateSdkErrors || !source.isInSystemLibrary) {
+            CacheState verificationErrorsState = dartEntry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource);
+            if (verificationErrorsState == CacheState.INVALID || (isPriority && verificationErrorsState == CacheState.FLUSHED)) {
               LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
               if (libraryElement != null) {
                 sources.add(source);
                 return;
+              }
+            }
+            if (hintsEnabled) {
+              CacheState hintsState = dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource);
+              if (hintsState == CacheState.INVALID || (isPriority && hintsState == CacheState.FLUSHED)) {
+                LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+                if (libraryElement != null) {
+                  sources.add(source);
+                  return;
+                }
               }
             }
           }
@@ -5637,16 +5654,18 @@ class AnalysisContextImpl_CycleBuilder {
     List<CycleBuilder_SourceEntryPair> pairs = new List<CycleBuilder_SourceEntryPair>();
     Source librarySource = library.librarySource;
     DartEntry libraryEntry = AnalysisContextImpl_this._getReadableDartEntry(librarySource);
-    _ensureResolvableCompilationUnit(librarySource, libraryEntry);
-    pairs.add(new CycleBuilder_SourceEntryPair(librarySource, libraryEntry));
-    List<Source> partSources = _getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
-    int count = partSources.length;
-    for (int i = 0; i < count; i++) {
-      Source partSource = partSources[i];
-      DartEntry partEntry = AnalysisContextImpl_this._getReadableDartEntry(partSource);
-      if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-        _ensureResolvableCompilationUnit(partSource, partEntry);
-        pairs.add(new CycleBuilder_SourceEntryPair(partSource, partEntry));
+    if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+      _ensureResolvableCompilationUnit(librarySource, libraryEntry);
+      pairs.add(new CycleBuilder_SourceEntryPair(librarySource, libraryEntry));
+      List<Source> partSources = _getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
+      int count = partSources.length;
+      for (int i = 0; i < count; i++) {
+        Source partSource = partSources[i];
+        DartEntry partEntry = AnalysisContextImpl_this._getReadableDartEntry(partSource);
+        if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+          _ensureResolvableCompilationUnit(partSource, partEntry);
+          pairs.add(new CycleBuilder_SourceEntryPair(partSource, partEntry));
+        }
       }
     }
     return pairs;
@@ -8418,7 +8437,8 @@ class ChangeSet {
 
   /**
    * Record that the specified source has been changed. If the content of the source was previously
-   * overridden, use [changedContent] instead.
+   * overridden, this has no effect (the content remains overridden). To cancel (or change) the
+   * override, use [changedContent] instead.
    *
    * @param source the source that was changed
    */
@@ -11981,6 +12001,18 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  List<Source> get prioritySources {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getPrioritySources");
+    _checkThread(instrumentation);
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      return _basis.prioritySources;
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @override
   Namespace getPublicNamespace(LibraryElement library) => _basis.getPublicNamespace(library);
 
   @override
@@ -12314,6 +12346,14 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the analysis context that was initialized
    */
   InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext);
+
+  /**
+   * Return an array containing all of the sources that have been marked as priority sources.
+   * Clients must not modify the returned array.
+   *
+   * @return the sources that have been marked as priority sources
+   */
+  List<Source> get prioritySources;
 
   /**
    * Return a namespace containing mappings for all of the public names defined by the given

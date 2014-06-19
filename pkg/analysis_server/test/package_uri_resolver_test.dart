@@ -52,14 +52,6 @@ class _PackageMapUriResolverTest {
     expect(result.fullName, '/does/not/exist.dart');
   }
 
-  void test_fromEncoding_packageSelf() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
-    Uri uri = Uri.parse('package:/does/not/exist.dart');
-    Source result = resolver.fromEncoding(UriKind.PACKAGE_SELF_URI, uri);
-    expect(result, isNotNull);
-    expect(result.fullName, '/does/not/exist.dart');
-  }
-
   void test_isPackageUri_null_scheme() {
     Uri uri = Uri.parse('foo.dart');
     expect(uri.scheme, '');

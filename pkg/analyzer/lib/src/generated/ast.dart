@@ -5819,6 +5819,9 @@ class ElementLocator {
  */
 class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
+  Element visitAnnotation(Annotation node) => node.element;
+
+  @override
   Element visitAssignmentExpression(AssignmentExpression node) => node.bestElement;
 
   @override
@@ -5839,6 +5842,13 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element visitIdentifier(Identifier node) {
     AstNode parent = node.parent;
+    // Type name in Annotation
+    if (parent is Annotation) {
+      Annotation annotation = parent;
+      if (identical(annotation.name, node) && annotation.constructorName == null) {
+        return annotation.element;
+      }
+    }
     // Type name in InstanceCreationExpression
     {
       AstNode typeNameCandidate = parent;
@@ -15110,7 +15120,10 @@ class SimpleFormalParameter extends NormalFormalParameter {
 
   @override
   Token get beginToken {
-    if (keyword != null) {
+    NodeList<Annotation> metadata = this.metadata;
+    if (!metadata.isEmpty) {
+      return metadata.beginToken;
+    } else if (keyword != null) {
       return keyword;
     } else if (_type != null) {
       return _type.beginToken;
