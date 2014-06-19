@@ -23,6 +23,7 @@ polymer/test/build/script_compactor_test: Pass, Slow
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
+intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
 
 [ $compiler == none && ($runtime == dartium) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
