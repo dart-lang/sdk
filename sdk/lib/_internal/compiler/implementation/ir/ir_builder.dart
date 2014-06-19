@@ -1072,8 +1072,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     Selector selector = elements.getSelector(node);
 
     // TODO(lry): support default arguments, need support for locals.
-    List<ir.Definition> arguments = node.arguments.toList(growable:false)
-                                       .map(visit).toList(growable:false);
+    List<ir.Definition> arguments = node.arguments.mapToList(visit,
+                                                             growable:false);
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
@@ -1134,8 +1134,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         Selector selector = elements.getSelector(node);
         assert(selector.kind == SelectorKind.SETTER ||
             selector.kind == SelectorKind.INDEX);
-        List<ir.Definition> args = node.arguments.toList(growable: false)
-            .map(visit).toList(growable: false);
+        List<ir.Definition> args = node.arguments.mapToList(visit,
+                                                            growable:false);
         ir.InvokeMethod invoke =
             new ir.InvokeMethod(receiver, selector, k, args);
         add(new ir.LetCont(k, invoke));
@@ -1191,8 +1191,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     Selector selector = elements.getSelector(node.send);
     ast.Node selectorNode = node.send.selector;
     GenericType type = elements.getType(node);
-    List<ir.Definition> args = node.send.arguments.toList(growable:false)
-                                        .map(visit).toList(growable:false);
+    List<ir.Definition> args = node.send.arguments.mapToList(visit,
+                                                             growable:false);
     if (node.isConst) {
       List<ir.Primitive> arguments = new List<ir.Primitive>();
       node.send.arguments.forEach((ast.Node node) {

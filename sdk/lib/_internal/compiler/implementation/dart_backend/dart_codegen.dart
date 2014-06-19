@@ -452,8 +452,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (type is GenericType) { // TODO(asgerf): faster Link.map
       return new TypeAnnotation(
           type.element.name,
-          type.typeArguments.toList(growable:false)
-              .map(emitType).toList(growable:false))
+          type.typeArguments.mapToList(emitType, growable:false))
           ..dartType = type;
     } else if (type is VoidType) {
       return new TypeAnnotation('void')

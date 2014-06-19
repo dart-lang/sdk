@@ -87,11 +87,11 @@ class DartBackend extends Backend {
       if (type is InterfaceType) {
         InterfaceType interfaceType = type;
         // Check all type arguments.
-        workQueue.addAll(interfaceType.typeArguments.toList());
+        interfaceType.typeArguments.forEach(workQueue.add);
         ClassElement element = type.element;
         // Check all supertypes.
         if (element.allSupertypes != null) {
-          workQueue.addAll(element.allSupertypes.toList());
+          element.allSupertypes.forEach(workQueue.add);
         }
       }
     }

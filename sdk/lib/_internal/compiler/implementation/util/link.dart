@@ -53,6 +53,38 @@ class Link<T> {
     return result;
   }
 
+  /// Lazily maps over this linked list, returning an [Iterable].
+  Iterable map(dynamic fn(T item)) {
+    return new MappedLinkIterable<T,dynamic>(this, fn);
+  }
+
+  /// Invokes `fn` for every item in the linked list and returns the results
+  /// in a [List].
+  List mapToList(dynamic fn(T item), { bool growable: true }) {
+    List<T> result;
+    if (!growable) {
+      result = new List<T>(slowLength());
+    } else {
+      result = new List<T>();
+      result.length = slowLength();
+    }
+    int i = 0;
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      result[i++] = fn(link.head);
+    }
+    return result;
+  }
+
+  /// Invokes `fn` for every item in the linked list and returns the results
+  /// in a [Set].
+  Set mapToSet(dynamic fn(T item)) {
+    Set result = new Set();
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      result.add(fn(link.head));
+    }
+    return result;
+  }
+
   bool get isEmpty => true;
 
   Link<T> reverse() => this;

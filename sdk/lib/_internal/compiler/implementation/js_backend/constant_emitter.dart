@@ -369,7 +369,6 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
       InterfaceType interface = type;
       RuntimeTypes rti = backend.rti;
       Iterable<String> arguments = interface.typeArguments
-          .toList(growable: false)
           .map((DartType type) =>
               rti.getTypeRepresentationWithHashes(type, (_){}));
       jsAst.Expression argumentList =

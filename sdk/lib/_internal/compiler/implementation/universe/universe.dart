@@ -503,7 +503,7 @@ class Selector {
     List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
       namedParameters =
-          signature.optionalParameters.toList().map((e) => e.name).toList();
+          signature.optionalParameters.mapToList((e) => e.name);
     }
     Selector selector = new Selector.call(callee.name,
                                           caller.library,

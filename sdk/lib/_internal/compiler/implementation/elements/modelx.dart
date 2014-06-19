@@ -1446,8 +1446,8 @@ class FunctionSignatureX implements FunctionSignature {
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
-      Set<String> names = optionalParameters.toList().map(
-          (Element element) => element.name).toSet();
+      Set<String> names = optionalParameters.mapToSet(
+          (Element element) => element.name);
       for (Element namedParameter in signature.optionalParameters) {
         if (!names.contains(namedParameter.name)) {
           return false;
