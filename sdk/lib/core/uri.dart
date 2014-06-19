@@ -269,26 +269,27 @@ class Uri {
     // scheme loop by reaching the end of input.
     // All other breaks set their own state.
     int state = NOT_IN_PATH;
-    while (index < uri.length) {
-      char = uri.codeUnitAt(index);
+    int i = index;  // Temporary alias for index to avoid bug 19550 in dart2js.
+    while (i < uri.length) {
+      char = uri.codeUnitAt(i);
       if (char == _QUESTION || char == _NUMBER_SIGN) {
         state = NOT_IN_PATH;
         break;
       }
       if (char == _SLASH) {
-        state = (index == 0) ? ALLOW_AUTH : IN_PATH;
+        state = (i == 0) ? ALLOW_AUTH : IN_PATH;
         break;
       }
       if (char == _COLON) {
-        if (index == 0) _fail(uri, 0, "Invalid empty scheme");
-        scheme = _makeScheme(uri, index);
-        index++;
-        pathStart = index;
-        if (index == uri.length) {
+        if (i == 0) _fail(uri, 0, "Invalid empty scheme");
+        scheme = _makeScheme(uri, i);
+        i++;
+        pathStart = i;
+        if (i == uri.length) {
           char = EOI;
           state = NOT_IN_PATH;
         } else {
-          char = uri.codeUnitAt(index);
+          char = uri.codeUnitAt(i);
           if (char == _QUESTION || char == _NUMBER_SIGN) {
             state = NOT_IN_PATH;
           } else if (char == _SLASH) {
@@ -299,9 +300,10 @@ class Uri {
         }
         break;
       }
-      index++;
+      i++;
       char = EOI;
     }
+    index = i;  // Remove alias when bug is fixed.
 
     if (state == ALLOW_AUTH) {
       assert(char == _SLASH);
