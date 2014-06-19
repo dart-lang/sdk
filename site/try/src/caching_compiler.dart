@@ -7,6 +7,7 @@ library trydart.caching_compiler;
 import 'dart:async' show EventSink;
 
 import 'package:compiler/compiler.dart' show
+    CompilerInputProvider,
     CompilerOutputProvider,
     Diagnostic,
     DiagnosticHandler;
@@ -14,124 +15,134 @@ import 'package:compiler/compiler.dart' show
 import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
 
-// This file is copied from a dart2js test which uses dart:io. For now, mock up
-// a bunch of interfaces to silence the analyzer. This file will serve as basis
-// for incremental analysis.
-abstract class SourceFileProvider {}
-class FormattingDiagnosticHandler {
-  FormattingDiagnosticHandler(a);
-}
-abstract class Platform {
-  static var script;
-  static var packageRoot;
-}
-class MemorySourceFileProvider extends SourceFileProvider {
-  var readStringFromUri;
-  var memorySourceFiles;
-  MemorySourceFileProvider(a);
-}
-class NullSink extends EventSink<String> {
-  NullSink(a);
-  add(a) {}
-  addError(a, [b]) {}
-  close() {}
-}
-var expando;
+import 'package:compiler/implementation/dart2jslib.dart' show
+    LibraryLoaderTask, // TODO(ahe): Remove this import.
+    NullSink;
 
-DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
-                                          SourceFileProvider provider,
-                                          bool showDiagnostics) {
-  var handler = diagnosticHandler;
-  if (showDiagnostics) {
-    if (diagnosticHandler == null) {
-      handler = new FormattingDiagnosticHandler(provider);
-    } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider);
-      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
-        diagnosticHandler(uri, begin, end, message, kind);
-        formattingHandler(uri, begin, end, message, kind);
-      };
-    }
-  } else if (diagnosticHandler == null) {
-    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
+import 'package:compiler/implementation/js_backend/js_backend.dart' show
+    JavaScriptBackend;
+
+import 'package:compiler/implementation/elements/elements.dart' show
+    LibraryElement;
+
+void clearLibraryLoader(LibraryLoaderTask libraryLoader) {
+  // TODO(ahe): Move this method to [LibraryLoader].
+  libraryLoader
+      ..libraryResourceUriMap.clear()
+      ..libraryNames.clear();
+}
+
+void reuseLibrary(
+    LibraryLoaderTask libraryLoader,
+    LibraryElement library) {
+  // TODO(ahe): Move this method to [LibraryLoader].
+  String name = library.getLibraryOrScriptName();
+  Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
+  libraryLoader
+      ..libraryResourceUriMap[resourceUri] = library
+      ..libraryNames[name] = library;
+}
+
+Compiler reuseCompiler(
+    {DiagnosticHandler diagnosticHandler,
+     CompilerInputProvider inputProvider,
+     CompilerOutputProvider outputProvider,
+     List<String> options: const [],
+     Compiler cachedCompiler,
+     Uri libraryRoot,
+     Uri packageRoot}) {
+  if (libraryRoot == null) {
+    throw 'Missing libraryRoot';
   }
-  return handler;
-}
-
-Compiler compilerFor(Map<String,String> memorySourceFiles,
-                     {DiagnosticHandler diagnosticHandler,
-                      CompilerOutputProvider outputProvider,
-                      List<String> options: const [],
-                      Compiler cachedCompiler,
-                      bool showDiagnostics: true,
-                      Uri packageRoot}) {
-  Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri script = Uri.base.resolveUri(Platform.script);
-  if (packageRoot == null) {
-    packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
+  if (inputProvider == null) {
+    throw 'Missing inputProvider';
   }
-
-  MemorySourceFileProvider provider;
-  var readStringFromUri;
-  if (cachedCompiler == null) {
-    provider = new MemorySourceFileProvider(memorySourceFiles);
-    readStringFromUri = provider.readStringFromUri;
-    // Saving the provider in case we need it later for a cached compiler.
-    expando[readStringFromUri] = provider;
-  } else {
-    // When using a cached compiler, it has read a number of files from disk
-    // already (and will not attemp to read them again due to caching). These
-    // files must be available to the new diagnostic handler.
-    provider = expando[cachedCompiler.provider];
-    readStringFromUri = cachedCompiler.provider;
-    provider.memorySourceFiles = memorySourceFiles;
-  }
-  var handler =
-      createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
-
-  EventSink<String> noOutputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
-    return new NullSink('$name.$extension');
+  if (diagnosticHandler == null) {
+    throw 'Missing diagnosticHandler';
   }
   if (outputProvider == null) {
-    outputProvider = noOutputProvider;
+    outputProvider = NullSink.outputProvider;
   }
+  Compiler compiler = cachedCompiler;
+  if (compiler == null || compiler.libraryRoot != libraryRoot) {
+    compiler = new Compiler(
+        inputProvider,
+        outputProvider,
+        diagnosticHandler,
+        libraryRoot,
+        packageRoot,
+        options,
+        {});
+  } else {
+    compiler
+        ..outputProvider = outputProvider
+        ..provider = inputProvider
+        ..handler = diagnosticHandler
+        ..enqueuer.resolution.queueIsClosed = false
+        ..enqueuer.codegen.queueIsClosed = false
+        ..assembledCode = null
+        ..compilationFailed = false;
+    JavaScriptBackend backend = compiler.backend;
 
-  Compiler compiler = new Compiler(readStringFromUri,
-                                   outputProvider,
-                                   handler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   options,
-                                   {});
-  if (cachedCompiler != null) {
-    compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
-    compiler.types = cachedCompiler.types;
-    cachedCompiler.libraries.forEach((String uri, library) {
+    backend.emitter.containerBuilder
+        ..staticGetters.clear()
+        ..methodClosures.clear();
+
+    backend.emitter.nsmEmitter
+        ..trivialNsmHandlers.clear();
+
+    backend.emitter.typeTestEmitter
+        ..checkedClasses = null
+        ..checkedFunctionTypes = null
+        ..checkedGenericFunctionTypes.clear()
+        ..checkedNonGenericFunctionTypes.clear()
+        ..rtiNeededClasses.clear()
+        ..cachedClassesUsingTypeVariableTests = null;
+
+    backend.emitter.interceptorEmitter
+        ..interceptorInvocationNames.clear();
+
+    backend.emitter.metadataEmitter
+        ..globalMetadata.clear()
+        ..globalMetadataMap.clear();
+
+    backend.emitter.nativeEmitter
+        ..nativeBuffer.clear()
+        ..nativeClasses.clear()
+        ..nativeMethods.clear();
+
+    backend.emitter
+        ..needsDefineClass = false
+        ..needsMixinSupport = false
+        ..needsLazyInitializer = false
+        ..outputBuffers.clear()
+        ..deferredConstants.clear()
+        ..isolateProperties = null
+        ..classesCollector = null
+        ..neededClasses.clear()
+        ..outputClassLists.clear()
+        ..nativeClasses.clear()
+        ..mangledFieldNames.clear()
+        ..mangledGlobalFieldNames.clear()
+        ..recordedMangledNames.clear()
+        ..additionalProperties.clear()
+        ..readTypeVariables.clear()
+        ..instantiatedClasses = null
+        ..precompiledFunction.clear()
+        ..precompiledConstructorNames.clear()
+        ..hasMakeConstantList = false
+        ..elementDescriptors.clear();
+
+    backend
+        ..preMirrorsMethodCount = 0;
+
+    Map libraries = new Map.from(compiler.libraries);
+    compiler.libraries.clear();
+    clearLibraryLoader(compiler.libraryLoader);
+    libraries.forEach((String uri, LibraryElement library) {
       if (library.isPlatformLibrary) {
         compiler.libraries[uri] = library;
-        compiler.onLibraryLoaded(library, library.canonicalUri);
-      }
-    });
-
-    compiler.symbolConstructor = cachedCompiler.symbolConstructor;
-    compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
-    compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
-    compiler.mirrorSystemGetNameFunction =
-        cachedCompiler.mirrorSystemGetNameFunction;
-    compiler.symbolImplementationClass =
-        cachedCompiler.symbolImplementationClass;
-    compiler.symbolValidatedConstructor =
-        cachedCompiler.symbolValidatedConstructor;
-    compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
-    compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
-
-    Map cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.resolvedElements;
-    cachedTreeElements.forEach((element, treeElements) {
-      if (element.getLibrary().isPlatformLibrary) {
-        compiler.enqueuer.resolution.resolvedElements[element] =
-            treeElements;
+        reuseLibrary(compiler.libraryLoader, library);
       }
     });
   }

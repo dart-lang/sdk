@@ -39,8 +39,6 @@ import 'settings.dart' show
     onlyAnalyze,
     verboseCompiler;
 
-@lazy import 'caching_compiler.dart' as cacheCompiler;
-
 @lazy import 'compiler_isolate.dart';
 
 // const lazy = const DeferredLibrary('compiler_isolate');
@@ -299,8 +297,4 @@ void compilerIsolate(SendPort port) {
       port.send('$exception\n$stack');
     }
   });
-  var notTrue = false; // Confuse the analyzer.
-  if (notTrue) {
-    cacheCompiler.compilerFor(null);
-  }
 }

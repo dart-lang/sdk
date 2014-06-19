@@ -13,12 +13,24 @@ import 'compilation.dart' show PRIVATE_SCHEME;
 
 import 'package:compiler/compiler.dart' as compiler;
 
+import 'caching_compiler.dart' show
+    reuseCompiler;
+
 const bool THROW_ON_ERROR = false;
 
 final cachedSources = new Map<Uri, String>();
 
 Uri sdkLocation;
 List options = [];
+
+var cachedCompiler;
+
+void notifyDartHtml(SendPort port) {
+  // Notify the controlling isolate (Try Dart UI) that the program imports
+  // dart:html. This is used to determine how to run the program: in an iframe
+  // or in a worker.
+  port.send('dart:html');
+}
 
 compile(source, SendPort replyTo) {
   if (sdkLocation == null) {
@@ -51,7 +63,7 @@ compile(source, SendPort replyTo) {
   int charactersRead = 0;
   Future<String> inputProvider(Uri uri) {
     if (uri.path.endsWith('/lib/html/dart2js/html_dart2js.dart')) {
-      replyTo.send('dart:html');
+      notifyDartHtml(replyTo);
     }
     if (uri.scheme == 'sdk') {
       var value = cachedSources[uri];
@@ -85,12 +97,19 @@ compile(source, SendPort replyTo) {
       throw new Exception('Throw on error');
     }
   }
-  compiler.compile(Uri.parse('$PRIVATE_SCHEME:/main.dart'),
-                   sdkLocation,
-                   Uri.parse('packages/'),
-                   inputProvider,
-                   handler,
-                   options).then((js) {
+  cachedCompiler = reuseCompiler(
+      diagnosticHandler: handler,
+      inputProvider: inputProvider,
+      options: options,
+      cachedCompiler: cachedCompiler,
+      libraryRoot: sdkLocation,
+      packageRoot: Uri.parse('packages/'));
+
+  cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
+    if (cachedCompiler.libraries.containsKey('dart:html')) {
+      notifyDartHtml(replyTo);
+    }
+    String js = cachedCompiler.assembledCode;
     try {
       if (js == null) {
         if (!options.contains('--analyze-only')) replyTo.send('failed');
