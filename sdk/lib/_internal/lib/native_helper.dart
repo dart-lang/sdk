@@ -463,7 +463,7 @@ function() {
     }
   }
   function getUnknownTagGenericBrowser(object, tag) {
-    if (object instanceof HTMLElement) return "HTMLElement";
+    if (self.HTMLElement && object instanceof HTMLElement) return "HTMLElement";
     return getUnknownTag(object, tag);
   }
   function prototypeForTag(tag) {
