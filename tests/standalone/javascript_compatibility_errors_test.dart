@@ -8,14 +8,14 @@ import "package:expect/expect.dart";
 
 f(x, y) {
   // Unoptimized and optimized code.
-  1 is double;  /// 00: compile-time error
-  if (1 is double) { x++; }  /// 01: compile-time error
-  try { 1 as double; } on CastError catch (e) { }  /// 02: compile-time error
-  try { var y = 1 as double; } on CastError catch (e) { }  /// 03: compile-time error
-  1.0 is int;  /// 04: compile-time error
-  if (1.0 is int) { x++; }  /// 05: compile-time error
-  try { 1.0 as int; } on CastError catch (e) { }  /// 06: compile-time error
-  try { var z = 1.0 as int; } on CastError catch (e) { }  /// 07: compile-time error
+  1 is double;  /// 00: ok
+  if (1 is double) { x++; }  /// 01: ok
+  try { 1 as double; } on CastError catch (e) { }  /// 02: ok
+  try { var y = 1 as double; } on CastError catch (e) { }  /// 03: ok
+  1.0 is int;  /// 04: ok
+  if (1.0 is int) { x++; }  /// 05: ok
+  try { 1.0 as int; } on CastError catch (e) { }  /// 06: ok
+  try { var z = 1.0 as int; } on CastError catch (e) { }  /// 07: ok
 
   x is double;  /// 10: ok
   if (x is double) { }  /// 11: ok
@@ -26,8 +26,11 @@ f(x, y) {
   try { y as int; } on CastError catch (e) { }  /// 16: ok
   try { var z = y as int; } on CastError catch (e) { }  /// 17: ok
 
+  // It is a compile-time error if evaluation of a constant object results in
+  // an uncaught exception being thrown, a JavascriptCompatibilityError here.
   "${1.0}";  /// 20: compile-time error
   var z = "${1.0}";  /// 21: compile-time error
+
   (1.0).toString();  /// 22: ok
   var z = (1.0).toString();  /// 23: ok
   "$y";  /// 24: ok
@@ -56,6 +59,7 @@ f(x, y) {
 
     "${1.0}";  /// 50: compile-time error
     var z = "${1.0}";  /// 51: compile-time error
+
     (1.0).toString();  /// 52: ok
     var z = (1.0).toString();  /// 53: ok
     "$y";  /// 54: ok

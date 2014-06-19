@@ -155,9 +155,11 @@ class FlowGraphBuilder: public ValueObject {
     return ic_data_array_;
   }
 
-  void WarnOnJSIntegralNumTypeTest(AstNode* node,
+  // Return true if a Javascript compatibility warning should be emitted at
+  // runtime for this type test.
+  bool WarnOnJSIntegralNumTypeTest(AstNode* node,
                                    const AbstractType& type) const;
-  void JSWarning(intptr_t token_pos, const char* msg) const;
+
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

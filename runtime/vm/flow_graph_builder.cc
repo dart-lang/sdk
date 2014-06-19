@@ -41,9 +41,7 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, silent_warnings);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, warning_as_error);
 
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
@@ -1416,16 +1414,10 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 }
 
 
-void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
+bool FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
     AstNode* node, const AbstractType& type) const {
-  if (is_optimizing()) {
-    // Warnings for constants are issued when the graph is built for the first
-    // time only, i.e. just before generating unoptimized code.
-    // They should not be repeated when generating optimized code.
-    return;
-  }
   if (!(node->IsLiteralNode() && (type.IsIntType() || type.IsDoubleType()))) {
-    return;
+    return false;
   }
   const Instance& instance = node->AsLiteralNode()->literal();
   if (type.IsIntType()) {
@@ -1433,18 +1425,16 @@ void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
       const Double& double_instance = Double::Cast(instance);
       double value = double_instance.value();
       if (floor(value) == value) {
-        JSWarning(node->token_pos(),
-                  "integral value of type 'double' is also considered "
-                  "to be of type 'int'");
+        return true;
       }
     }
   } else {
     ASSERT(type.IsDoubleType());
     if (instance.IsInteger()) {
-      JSWarning(node->token_pos(),
-                "integer value is also considered to be of type 'double'");
+      return true;
     }
   }
+  return false;
 }
 
 
@@ -1463,12 +1453,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
-  }
-
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -1513,12 +1497,6 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
-  }
-
   ValueGraphVisitor for_value(owner());
   node->left()->Visit(&for_value);
   Append(for_value);
@@ -1528,8 +1506,13 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
                        for_value.value(),
                        type,
                        dst_name)) {
-    ReturnValue(for_value.value());
-    return;
+    // Check for javascript compatibility.
+    // Do not skip type check if javascript compatibility warning is required.
+    if (!FLAG_warn_on_javascript_compatibility ||
+        !owner()->WarnOnJSIntegralNumTypeTest(node->left(), type)) {
+      ReturnValue(for_value.value());
+      return;
+    }
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
   PushArgumentInstr* push_instantiator = NULL;
@@ -3957,20 +3940,6 @@ void FlowGraphBuilder::PruneUnreachable() {
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);
   ASSERT(found);
-}
-
-
-void FlowGraphBuilder::JSWarning(intptr_t token_pos, const char* msg) const {
-  const Script& script = Script::Handle(parsed_function_->function().script());
-  if (FLAG_warning_as_error) {
-    // Report::kJSWarning would result in a JavascriptCompatibilityError, but we
-    // want a compile-time error.
-    // TODO(regis): Should we change the expection and make the tests work with
-    // a JavascriptCompatibilityError?
-    Report::MessageF(Report::kWarning, script, token_pos, "%s", msg);
-    UNREACHABLE();
-  }
-  Report::MessageF(Report::kJSWarning, script, token_pos, "%s", msg);
 }
 
 

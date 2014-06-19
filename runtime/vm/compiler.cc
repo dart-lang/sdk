@@ -60,8 +60,6 @@ DEFINE_FLAG(bool, verify_compiler, false,
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_patching);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, warning_as_error);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -613,9 +611,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           OS::Print("%s\n", error.ToErrorCString());
         }
         done = true;
-        ASSERT(optimized ||
-               (FLAG_warn_on_javascript_compatibility &&
-                FLAG_warning_as_error));
+        ASSERT(optimized);
       }
 
       // Clear the error if it was not a real error, but just a bailout.
@@ -801,14 +797,7 @@ static RawError* CompileFunctionHelper(const Function& function,
         function.SetIsOptimizable(false);
         return Error::null();
       }
-      // So far, the only possible real error is a JS warning reported as error.
-      ASSERT(FLAG_warn_on_javascript_compatibility && FLAG_warning_as_error);
-      Error& error = Error::Handle();
-      // We got an error during compilation.
-      error = isolate->object_store()->sticky_error();
-      ASSERT(!error.IsNull());
-      isolate->object_store()->clear_sticky_error();
-      return error.raw();
+      UNREACHABLE();
     }
 
     per_compile_timer.Stop();
