@@ -246,15 +246,16 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes {
-    if (_provider._pathToWatcher.containsKey(path)) {
-      // Two clients watching the same path is not yet supported.
-      // TODO(paulberry): add support for this if needed.
-      throw new StateError('Path "$path" is already being watched for changes');
-    }
     StreamController<WatchEvent> streamController = new StreamController<WatchEvent>();
-    _provider._pathToWatcher[path] = streamController;
+    if (!_provider._pathToWatchers.containsKey(path)) {
+      _provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
+    }
+    _provider._pathToWatchers[path].add(streamController);
     streamController.done.then((_) {
-      _provider._pathToWatcher.remove(path);
+      _provider._pathToWatchers[path].remove(streamController);
+      if (_provider._pathToWatchers[path].isEmpty) {
+        _provider._pathToWatchers.remove(path);
+      }
     });
     return streamController.stream;
   }
@@ -270,8 +271,8 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, _MemoryResource>();
   final Map<String, String> _pathToContent = new HashMap<String, String>();
   final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
-  final Map<String, StreamController<WatchEvent>> _pathToWatcher =
-      new HashMap<String, StreamController<WatchEvent>>();
+  final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
+      new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
   @override
@@ -325,9 +326,11 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatcher.forEach((String watcherPath, StreamController<WatchEvent> streamController) {
+    _pathToWatchers.forEach((String watcherPath, List<StreamController<WatchEvent>> streamControllers) {
       if (posix.isWithin(watcherPath, path)) {
-        streamController.add(new WatchEvent(changeType, path));
+        for (StreamController<WatchEvent> streamController in streamControllers) {
+          streamController.add(new WatchEvent(changeType, path));
+        }
       }
     });
   }

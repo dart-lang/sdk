@@ -189,6 +189,16 @@ main() {
         });
       });
 
+      test('Add pubspec file', () {
+        manager.setRoots(<String>[projPath], <String>[]);
+        String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+        expect(manager.currentContextPubspecPaths[projPath], isNull);
+        provider.newFile(pubspecPath, 'pubspec');
+        return pumpEventQueue().then((_) {
+          expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
+        });
+      });
+
       test('Delete file', () {
         String filePath = posix.join(projPath, 'foo.dart');
         provider.newFile(filePath, 'contents');
@@ -198,6 +208,17 @@ main() {
         expect(filePaths, contains(filePath));
         provider.deleteFile(filePath);
         return pumpEventQueue().then((_) => expect(filePaths, hasLength(0)));
+      });
+
+      test('Delete pubspec file', () {
+        String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+        provider.newFile(pubspecPath, 'pubspec');
+        manager.setRoots(<String>[projPath], <String>[]);
+        expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
+        provider.deleteFile(pubspecPath);
+        return pumpEventQueue().then((_) {
+          expect(manager.currentContextPubspecPaths[projPath], isNull);
+        });
       });
 
       test('Modify file', () {

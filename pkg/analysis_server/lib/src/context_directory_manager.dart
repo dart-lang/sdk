@@ -27,6 +27,17 @@ class _ContextDirectoryInfo {
    * added to the context.
    */
   Map<String, Source> sources = new HashMap<String, Source>();
+
+  /**
+   * Pubspec file for this context, if there is one.  Otherwise null.
+   */
+  File pubspecFile = null;
+
+  /**
+   * Path to that the pubspec file for this context would have, if it has one.
+   * Otherwise path that the pubspec file would have.
+   */
+  String pubspecPath;
 }
 
 /**
@@ -34,6 +45,11 @@ class _ContextDirectoryInfo {
  * folders that should correspond to analysis contexts.
  */
 abstract class ContextDirectoryManager {
+  /**
+   * File name of pubspec files.
+   */
+  static const String PUBSPEC_NAME = 'pubspec.yaml';
+
   /**
    * [_ContextDirectoryInfo] object for each included directory in the most
    * recent successful call to [setRoots].
@@ -79,24 +95,43 @@ abstract class ContextDirectoryManager {
     Set<Folder> currentFolders = _currentDirectoryInfo.keys.toSet();
     Set<Folder> newFolders = includedFolders.difference(currentFolders);
     Set<Folder> oldFolders = currentFolders.difference(includedFolders);
-    // remove old contexts
+    // destroy old contexts
     for (Folder folder in oldFolders) {
-      _currentDirectoryInfo.remove(folder);
-      removeContext(folder);
+      _destroyContext(folder);
     }
-    // add new contexts
+    // create new contexts
     for (Folder folder in newFolders) {
-      _ContextDirectoryInfo info = new _ContextDirectoryInfo();
-      _currentDirectoryInfo[folder] = info;
-      info.changeSubscription = folder.changes.listen((WatchEvent event) {
-        _handleWatchEvent(folder, info, event);
-      });
-      File pubspecFile = folder.getChild('pubspec.yaml');
-      addContext(folder, pubspecFile.exists ? pubspecFile : null);
-      ChangeSet changeSet = new ChangeSet();
-      _addSourceFiles(changeSet, folder, info);
-      applyChangesToContext(folder, changeSet);
+      _createContext(folder);
     }
+  }
+
+  /**
+   * Create a new context associated with the given folder.
+   */
+  void _createContext(Folder folder) {
+    _ContextDirectoryInfo info = new _ContextDirectoryInfo();
+    _currentDirectoryInfo[folder] = info;
+    info.changeSubscription = folder.changes.listen((WatchEvent event) {
+      _handleWatchEvent(folder, info, event);
+    });
+    File pubspecFile = folder.getChild(PUBSPEC_NAME);
+    info.pubspecPath = pubspecFile.path;
+    if (pubspecFile.exists) {
+      info.pubspecFile = pubspecFile;
+    }
+    addContext(folder, info.pubspecFile);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+  }
+
+  /**
+   * Clean up and destroy the context associated with the given folder.
+   */
+  void _destroyContext(Folder folder) {
+    _currentDirectoryInfo[folder].changeSubscription.cancel();
+    _currentDirectoryInfo.remove(folder);
+    removeContext(folder);
   }
 
   void _handleWatchEvent(Folder folder, _ContextDirectoryInfo info, WatchEvent event) {
@@ -107,7 +142,14 @@ abstract class ContextDirectoryManager {
           // there is a pubspec.yaml?
           break;
         }
-        // TODO(paulberry): handle adding pubspec.yaml
+        if (info.pubspecFile == null && event.path == info.pubspecPath) {
+          // Pubspec file added.  This is likely to be such a rare event that
+          // there's no need to try to be clever.  Just destroy the old context
+          // and create a new one.
+          _destroyContext(folder);
+          _createContext(folder);
+          return;
+        }
         if (_shouldFileBeAnalyzed(event.path)) {
           ChangeSet changeSet = new ChangeSet();
           Resource resource = resourceProvider.getResource(event.path);
@@ -124,6 +166,14 @@ abstract class ContextDirectoryManager {
         }
         break;
       case ChangeType.REMOVE:
+        if (info.pubspecFile != null && event.path == info.pubspecPath) {
+          // Pubspec file removed.  This is likely to be such a rare event that
+          // there's no need to try to be clever.  Just destroy the old context
+          // and create a new one.
+          _destroyContext(folder);
+          _createContext(folder);
+          return;
+        }
         // TODO(paulberry): handle removing pubspec.yaml
         Source source = info.sources[event.path];
         if (source != null) {
