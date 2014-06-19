@@ -61,11 +61,11 @@ class Link<T> {
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
   List mapToList(dynamic fn(T item), { bool growable: true }) {
-    List<T> result;
+    List result;
     if (!growable) {
-      result = new List<T>(slowLength());
+      result = new List(slowLength());
     } else {
-      result = new List<T>();
+      result = new List();
       result.length = slowLength();
     }
     int i = 0;
