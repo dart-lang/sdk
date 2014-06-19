@@ -76,9 +76,6 @@ LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
-[ $compiler == dart2dart && $builder_tag == new_backend ]
-Language/12_Expressions/05_Strings_A20_t01: fail # Issue 19386
-
 [ $compiler == dart2dart ]
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
