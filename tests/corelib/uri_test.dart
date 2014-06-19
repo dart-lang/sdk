@@ -233,7 +233,7 @@ main() {
 
   Expect.stringEquals("\u{10000}", s);
 
-  testEncodeDecode("A + B", "A%20%2B%20B");
+  testEncodeDecode("A + B", "A%20+%20B");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
   testEncodeDecode("\uFFFF", "%EF%BF%BF");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
@@ -241,7 +241,29 @@ main() {
   testEncodeDecode("\x7f", "%7F");
   testEncodeDecode("\x80", "%C2%80");
   testEncodeDecode("\u0800", "%E0%A0%80");
-  testEncodeDecode(":/@',;?&=+\$", ":/@',;?&=%2B\$");
+  // All characters not escaped by encodeFull.
+  var unescapedFull =
+      r"abcdefghijklmnopqrstuvwxyz"
+      r"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      r"0123456789!#$&'()*+,-./:;=?@_~";
+  // ASCII characters escaped by encodeFull:
+  var escapedFull =
+      "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+      "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
+      r' "%<>[\]^`{|}'
+      "\x7f";
+  var escapedTo =
+      "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F"
+      "%10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F"
+      "%20%22%25%3C%3E%5B%5C%5D%5E%60%7B%7C%7D%7F";
+  testEncodeDecode(unescapedFull, unescapedFull);
+  testEncodeDecode(escapedFull, escapedTo);
+  var nonAscii =
+      "\x80-\xff-\u{100}-\u{7ff}-\u{800}-\u{ffff}-\u{10000}-\u{10ffff}";
+  var nonAsciiEncoding =
+      "%C2%80-%C3%BF-%C4%80-%DF%BF-%E0%A0%80-%EF%BF%BF-"
+      "%F0%90%80%80-%F4%8F%BF%BF";
+  testEncodeDecode(nonAscii, nonAsciiEncoding);
   testEncodeDecode(s, "%F0%90%80%80");
   testEncodeDecodeComponent("A + B", "A%20%2B%20B");
   testEncodeDecodeComponent("\uFFFE", "%EF%BF%BE");
@@ -256,6 +278,7 @@ main() {
   testEncodeDecodeQueryComponent("A + B", "A+%2B+B", "A+%2B+B", "A+%2B+B");
   testEncodeDecodeQueryComponent(
       "æ ø å", "%C3%A6+%C3%B8+%C3%A5", "%E6+%F8+%E5", null);
+  testEncodeDecodeComponent(nonAscii, nonAsciiEncoding);
 
   // Invalid URI - : and @ is swapped, port ("host") should be numeric.
   Expect.throws(
