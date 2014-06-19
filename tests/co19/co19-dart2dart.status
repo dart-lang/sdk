@@ -12,8 +12,6 @@ Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with s
 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
-LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
-
 Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure

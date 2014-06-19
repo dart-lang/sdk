@@ -88,10 +88,6 @@ compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 
-[ $compiler == dart2js || $compiler == dart2dart]
-symbol_operator_test/01: CompileTimeError # Issue 15653.
-symbol_operator_test/02: CompileTimeError # Issue 15653.
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

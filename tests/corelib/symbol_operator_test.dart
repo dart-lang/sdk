@@ -24,8 +24,8 @@ main() {
   testSymbol(#>, $>$, ">");
   testSymbol(#>=, $>=$, ">=");
   testSymbol(#==, new Symbol("=="), "==");  // Can't hit noSuchMethod.
-  testSymbol(#[], $[$], "[]");                      /// 01: ok
-  testSymbol(#[]=, ($[$]=$).lastMember, "[]=");     /// 02: ok
+  testSymbol(#[], $[$], "[]");
+  testSymbol(#[]=, ($[$]=$).lastMember, "[]=");
   testSymbol(const Symbol("unary-"), -$, "unary-");
 
   testSymbolThrows(">>>");  /// 03: ok

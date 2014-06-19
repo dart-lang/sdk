@@ -1530,12 +1530,10 @@ Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # co19-roll r587: P
 Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: Please triage this failure
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
-Language/12_Expressions/06_Symbols_A01_t02: CompileTimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t04: fail # Issue 14654
-LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # co19-roll r672: Please triage this failure
