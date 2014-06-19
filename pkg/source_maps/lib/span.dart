@@ -360,3 +360,27 @@ class SourceFileSegment extends SourceFile {
   String getText(int start, [int end]) =>
     super.getText(start - _baseOffset, end == null ? null : end - _baseOffset);
 }
+
+/// A class for exceptions that have source span information attached.
+class SpanException implements Exception {
+  /// A message describing the exception.
+  final String message;
+
+  /// The span associated with this exception.
+  ///
+  /// This may be `null` if the source location can't be determined.
+  final Span span;
+
+  SpanException(this.message, this.span);
+
+  String toString({bool useColors: false, String color}) {
+    if (span == null) return message;
+    return span.getLocationMessage(message, useColors: useColors, color: color);
+  }
+}
+
+/// A [SpanException] that's also a [FormatException].
+class SpanFormatException extends SpanException implements FormatException {
+  SpanFormatException(String message, Span span)
+      : super(message, span);
+}
