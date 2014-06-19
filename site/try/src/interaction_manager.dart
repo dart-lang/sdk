@@ -43,6 +43,7 @@ import 'ui.dart' show
     mainEditorPane,
     observer,
     outputDiv,
+    outputFrame,
     statusDiv;
 
 import 'decoration.dart' show
@@ -130,6 +131,9 @@ abstract class InteractionManager {
 
   /// Called every 500ms.
   void onHeartbeat(Timer timer);
+
+  /// Called by [:window.onMessage.listen:].
+  void onMessage(MessageEvent event);
 }
 
 /**
@@ -213,6 +217,8 @@ class InteractionContext extends InteractionManager {
   }
 
   void onHeartbeat(Timer timer) => state.onHeartbeat(timer);
+
+  void onMessage(MessageEvent event) => state.onMessage(event);
 }
 
 abstract class InteractionState implements InteractionManager {
@@ -526,6 +532,57 @@ class InitialState extends InteractionState {
       });
     }
     setupCompleter();
+  }
+
+  void onMessage(MessageEvent event) {
+    if (event.source is! WindowBase || event.source == window) {
+      return onBadMessage(event);
+    }
+    if (event.data is List) {
+      List message = event.data;
+      if (message.length > 0) {
+        switch (message[0]) {
+          case 'error':
+            return onErrorMessage(message[1]['url'], message[1]['message']);
+          case 'scrollHeight':
+            return onScrollHeightMessage(message[1]);
+        }
+      }
+      return onBadMessage(event);
+    } else {
+      return consolePrintLine(event.data);
+    }
+  }
+
+  /// Called when an exception occurs in an iframe.
+  void onErrorMessage(String url, String message) {
+    outputDiv.appendText('$message\n');
+  }
+
+  /// Called when an iframe is modified.
+  void onScrollHeightMessage(int scrollHeight) {
+    window.console.log('scrollHeight = $scrollHeight');
+    if (scrollHeight > 8) {
+      outputFrame.style
+          ..height = '${scrollHeight}px'
+          ..visibility = ''
+          ..position = '';
+      while (outputFrame.nextNode is IFrameElement) {
+        outputFrame.nextNode.remove();
+      }
+    }
+  }
+
+  void onBadMessage(MessageEvent event) {
+    window.console
+        ..groupCollapsed('Bad message')
+        ..dir(event)
+        ..log(event.source.runtimeType)
+        ..groupEnd();
+  }
+
+  void consolePrintLine(data) {
+    outputDiv.appendText('$data\n');
   }
 }
 

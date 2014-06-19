@@ -198,27 +198,7 @@ buildUI() {
   var settingsElement = document.getElementById('settings');
   settingsElement.onClick.listen(openSettings);
 
-  window.onMessage.listen((MessageEvent event) {
-    if (event.data is List) {
-      List message = event.data;
-      if (message.length > 0) {
-        switch (message[0]) {
-        case 'error':
-          Map diagnostics = message[1];
-          String url = diagnostics['url'];
-          outputDiv.appendText('${diagnostics["message"]}\n');
-          return;
-        case 'scrollHeight':
-          int scrollHeight = message[1];
-          if (scrollHeight > 0) {
-            outputFrame.style.height = '${scrollHeight}px';
-          }
-          return;
-        }
-      }
-    }
-    outputDiv.appendText('${event.data}\n');
-  });
+  window.onMessage.listen(interaction.onMessage);
 
   observer = new MutationObserver(interaction.onMutation)
       ..observe(
