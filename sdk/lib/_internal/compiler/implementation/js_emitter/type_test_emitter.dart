@@ -281,6 +281,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     // TODO(sigurdm): We should avoid running through this list for each
     // output unit.
 
+    jsAst.Statement variables = js.statement('var TRUE = !0, _;');
     List<jsAst.Statement> statements = <jsAst.Statement>[];
 
     for (ClassElement cls in typeChecks) {
@@ -289,26 +290,40 @@ class TypeTestEmitter extends CodeEmitterHelper {
       if (destination != outputUnit) continue;
       // TODO(9556).  The properties added to 'holder' should be generated
       // directly as properties of the class object, not added later.
-      jsAst.Expression holder = namer.elementAccess(cls);
+
+      // Each element is a pair: [propertyName, valueExpression]
+      List<List> properties = <List>[];
 
       for (TypeCheck check in typeChecks[cls]) {
-        ClassElement cls = check.cls;
-        buffer.write(
-            jsAst.prettyPrint(
-                js('#.# = true', [holder, namer.operatorIs(cls)]),
-                compiler));
-        buffer.write('$N');
+        ClassElement checkedClass = check.cls;
+        properties.add([namer.operatorIs(checkedClass), js('TRUE')]);
         Substitution substitution = check.substitution;
         if (substitution != null) {
           jsAst.Expression body = substitution.getCode(rti, false);
-          buffer.write(
-              jsAst.prettyPrint(
-                  js('#.# = #',
-                      [holder, namer.substitutionName(cls), body]),
-                  compiler));
-          buffer.write('$N');
+          properties.add([namer.substitutionName(checkedClass), body]);
         }
       }
+
+      jsAst.Expression holder = namer.elementAccess(cls);
+      if (properties.length > 1) {
+        // Use temporary shortened reference.
+        statements.add(js.statement('_ = #;', holder));
+        holder = js('#', '_');
+      }
+      for (List nameAndValue in properties) {
+        statements.add(
+            js.statement('#.# = #',
+                [holder, nameAndValue[0], nameAndValue[1]]));
+      }
+    }
+
+    if (statements.isNotEmpty) {
+      buffer.write(';');
+      buffer.write(
+          jsAst.prettyPrint(
+              js.statement('(function() { #; #; })()', [variables, statements]),
+              compiler));
+      buffer.write('$N');
     }
   }
 
