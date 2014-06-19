@@ -75,6 +75,10 @@ class ScriptCompactor extends Transformer {
               const Deprecated(this.expires);
             }
             const Object deprecated = const Deprecated("next release");
+            class _Override { const _Override(); }
+            const Object override = const _Override();
+            class _Proxy { const _Proxy(); }
+            const Object proxy = const _Proxy();
 
             class List<V> extends Object {}
             class Map<K, V> extends Object {}
