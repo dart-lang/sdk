@@ -12,7 +12,6 @@ indexeddb_5_test: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 blob_constructor_test: Fail # Issue 19500
 transferables_test: Fail # Issue 19500
-indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 xhr_test/xhr: RuntimeError # Issue 18049
 
 [ $compiler == dart2js && $csp ]
