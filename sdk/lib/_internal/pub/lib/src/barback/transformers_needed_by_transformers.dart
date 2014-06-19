@@ -6,13 +6,14 @@ library pub.barback.transformers_needed_by_transformers;
 
 import 'package:path/path.dart' as p;
 
-import '../barback.dart';
 import '../dart.dart';
 import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
 import '../utils.dart';
 import 'cycle_exception.dart';
+import 'transformer_config.dart';
+import 'transformer_id.dart';
 
 /// Returns a dependency graph for transformers in [graph].
 ///
@@ -31,7 +32,8 @@ Map<TransformerId, Set<TransformerId>> computeTransformersNeededByTransformers(
   for (var packageName in ordered(graph.packages.keys)) {
     var package = graph.packages[packageName];
     for (var phase in package.pubspec.transformers) {
-      for (var id in phase) {
+      for (var config in phase) {
+        var id = config.id;
         if (id.isBuiltInTransformer) continue;
         result[id] = computer.transformersNeededByTransformer(id);
       }
@@ -122,7 +124,8 @@ class _DependencyComputer {
 
       var package = _graph.packages[packageName];
       for (var phase in package.pubspec.transformers) {
-        for (var id in phase) {
+        for (var config in phase) {
+          var id = config.id;
           if (id.isBuiltInTransformer) continue;
           if (_loadingPackageComputers.contains(id.package)) {
             throw new CycleException("$packageName is transformed by $id");
@@ -179,7 +182,7 @@ class _PackageDependencyComputer {
   /// This is added to phase-by-phase while [this] is being initialized. This is
   /// necessary to model the dependencies of a transformer that's applied to its
   /// own package.
-  final _applicableTransformers = new Set();
+  final _applicableTransformers = new Set<TransformerConfig>();
 
   /// A cache of imports and exports parsed from libraries in this package.
   final _directives = new Map<Uri, Set<Uri>>();
@@ -213,7 +216,8 @@ class _PackageDependencyComputer {
     // [_transformersNeededByLibraries] while [_applicableTransformers] is
     // smaller.
     for (var phase in _package.pubspec.transformers) {
-      for (var id in phase) {
+      for (var config in phase) {
+        var id = config.id;
         try {
           if (id.package != _package.name) {
             // Probe [id]'s transformer dependencies to ensure that it doesn't
@@ -280,7 +284,8 @@ class _PackageDependencyComputer {
         // package is modified by a transformer, we don't know what it will
         // load, so we take the conservative approach and say it depends on
         // everything.
-        return _applicableTransformers.union(unionAll(dependencies.map((dep) {
+        return _applicableTransformers.map((config) => config.id).toSet().union(
+            unionAll(dependencies.map((dep) {
           try {
             return _dependencyComputer.transformersNeededByPackage(dep.name);
           } on CycleException catch (error) {
@@ -363,7 +368,8 @@ class _PackageDependencyComputer {
   Set<Uri> _getDirectives(String library) {
     var libraryUri = p.toUri(p.normalize(library));
     var relative = p.toUri(p.relative(library, from: _package.dir)).path;
-    if (_applicableTransformers.any((id) => id.canTransform(relative))) {
+    if (_applicableTransformers.any((config) =>
+            config.canTransform(relative))) {
       _directives[libraryUri] = null;
       return null;
     }

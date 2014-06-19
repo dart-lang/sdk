@@ -98,6 +98,9 @@ const NOT_SERVED = 1;
 /// If [import] is passed, it should be the name of a package that defines its
 /// own TOKEN constant. The primary library of that package will be imported
 /// here and its TOKEN value will be added to this library's.
+///
+/// This transformer takes one configuration field: "addition". This is
+/// concatenated to its TOKEN value before adding it to the output library.
 String dartTransformer(String id, {String import}) {
   if (import != null) {
     id = '$id imports \${$import.TOKEN}';
@@ -112,12 +115,16 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 $import
 
+import 'dart:io';
+
 const TOKEN = "$id";
 
 final _tokenRegExp = new RegExp(r'^const TOKEN = "(.*?)";\$', multiLine: true);
 
 class DartTransformer extends Transformer {
-  DartTransformer.asPlugin();
+  final BarbackSettings _settings;
+
+  DartTransformer.asPlugin(this._settings);
 
   String get allowedExtensions => '.dart';
 
@@ -125,7 +132,10 @@ class DartTransformer extends Transformer {
     return transform.primaryInput.readAsString().then((contents) {
       transform.addOutput(new Asset.fromString(transform.primaryInput.id,
           contents.replaceAllMapped(_tokenRegExp, (match) {
-        return 'const TOKEN = "(\${match[1]}, \$TOKEN)";';
+        var token = TOKEN;
+        var addition = _settings.configuration["addition"];
+        if (addition != null) token += addition;
+        return 'const TOKEN = "(\${match[1]}, \$token)";';
       })));
     });
   }

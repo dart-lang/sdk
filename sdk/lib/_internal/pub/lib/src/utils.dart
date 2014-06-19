@@ -318,16 +318,6 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
   })).then((_) => map);
 }
 
-/// Like [mapMap], but [key] and [value] may return [Future]s.
-Future<Map> mapMapAsync(Map map, {key(key, value), value(key, value)}) {
-  if (key == null) key = (key, _) => key;
-  if (value == null) value = (_, value) => value;
-
-  return mapFromIterableAsync(map.keys,
-      key: (mapKey) => key(mapKey, map[mapKey]),
-      value: (mapKey) => value(mapKey, map[mapKey]));
-}
-
 /// Given a list of filenames, returns a set of patterns that can be used to
 /// filter for those filenames.
 ///

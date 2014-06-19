@@ -8,39 +8,39 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import '../barback.dart';
+import 'transformer_config.dart';
 
 /// Decorates an inner [AggregateTransformer] and handles including and
 /// excluding primary inputs.
 class ExcludingAggregateTransformer extends AggregateTransformer {
-  /// If [id] defines includes or excludes, wraps [inner] in an
+  /// If [config] defines includes or excludes, wraps [inner] in an
   /// [ExcludingAggregateTransformer] that handles those.
   ///
   /// Otherwise, just returns [inner] unmodified.
   static AggregateTransformer wrap(AggregateTransformer inner,
-      TransformerId id) {
-    if (!id.hasExclusions) return inner;
+      TransformerConfig config) {
+    if (!config.hasExclusions) return inner;
 
     if (inner is LazyAggregateTransformer) {
       return new _LazyExcludingAggregateTransformer(
-          inner as LazyAggregateTransformer, id);
+          inner as LazyAggregateTransformer, config);
     } else if (inner is DeclaringAggregateTransformer) {
       return new _DeclaringExcludingAggregateTransformer(
-          inner as DeclaringAggregateTransformer, id);
+          inner as DeclaringAggregateTransformer, config);
     } else {
-      return new ExcludingAggregateTransformer._(inner, id);
+      return new ExcludingAggregateTransformer._(inner, config);
     }
   }
 
   final AggregateTransformer _inner;
 
-  /// The id containing rules for which assets to include or exclude.
-  final TransformerId _id;
+  /// The config containing rules for which assets to include or exclude.
+  final TransformerConfig _config;
 
-  ExcludingAggregateTransformer._(this._inner, this._id);
+  ExcludingAggregateTransformer._(this._inner, this._config);
 
   classifyPrimary(AssetId id) {
-    if (!_id.canTransform(id.path)) return null;
+    if (!_config.canTransform(id.path)) return null;
     return _inner.classifyPrimary(id);
   }
 
@@ -53,8 +53,8 @@ class _DeclaringExcludingAggregateTransformer
     extends ExcludingAggregateTransformer
     implements DeclaringAggregateTransformer {
   _DeclaringExcludingAggregateTransformer(DeclaringAggregateTransformer inner,
-        TransformerId id)
-      : super._(inner as AggregateTransformer, id);
+        TransformerConfig config)
+      : super._(inner as AggregateTransformer, config);
 
   Future declareOutputs(DeclaringAggregateTransform transform) =>
       (_inner as DeclaringAggregateTransformer).declareOutputs(transform);
@@ -64,6 +64,6 @@ class _LazyExcludingAggregateTransformer
     extends _DeclaringExcludingAggregateTransformer
     implements LazyAggregateTransformer {
   _LazyExcludingAggregateTransformer(DeclaringAggregateTransformer inner,
-        TransformerId id)
-      : super(inner, id);
+        TransformerConfig config)
+      : super(inner, config);
 }

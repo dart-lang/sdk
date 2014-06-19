@@ -7,7 +7,7 @@ library pub.pubspec;
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path;
 
-import 'barback.dart';
+import 'barback/transformer_config.dart';
 import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
@@ -114,8 +114,8 @@ class Pubspec {
   }
   List<PackageDep> _dependencyOverrides;
 
-  /// The ids of the transformers to use for this package.
-  List<Set<TransformerId>> get transformers {
+  /// The configurations of the transformers to use for this package.
+  List<Set<TransformerConfig>> get transformers {
     if (_transformers != null) return _transformers;
 
     var transformers = fields['transformers'];
@@ -164,26 +164,27 @@ class Pubspec {
           }
         }
 
-        var id = _wrapFormatException("transformer configuration",
+        var config = _wrapFormatException("transformer configuration",
             "$field.$library",
-            () => new TransformerId.parse(library, configuration));
+            () => new TransformerConfig.parse(library, configuration));
 
-        if (id.package != name &&
-            !id.isBuiltInTransformer &&
-            !dependencies.any((ref) => ref.name == id.package) &&
-            !devDependencies.any((ref) => ref.name == id.package) &&
-            !dependencyOverrides.any((ref) => ref.name == id.package)) {
+        var package = config.id.package;
+        if (package != name &&
+            !config.id.isBuiltInTransformer &&
+            !dependencies.any((ref) => ref.name == package) &&
+            !devDependencies.any((ref) => ref.name == package) &&
+            !dependencyOverrides.any((ref) => ref.name == package)) {
           _error('"$field.$library" refers to a package that\'s not a '
               'dependency.');
         }
 
-        return id;
+        return config;
       }).toSet();
     }).toList();
 
     return _transformers;
   }
-  List<Set<TransformerId>> _transformers;
+  List<Set<TransformerConfig>> _transformers;
 
   /// The environment-related metadata.
   PubspecEnvironment get environment {
@@ -245,7 +246,7 @@ class Pubspec {
       _dependencies = <PackageDep>[],
       _devDependencies = <PackageDep>[],
       _environment = new PubspecEnvironment(),
-      _transformers = <Set<TransformerId>>[],
+      _transformers = <Set<TransformerConfig>>[],
       fields = {};
 
   /// Returns a Pubspec object for an already-parsed map representing its

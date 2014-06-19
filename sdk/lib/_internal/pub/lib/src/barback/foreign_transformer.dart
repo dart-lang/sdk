@@ -10,9 +10,9 @@ import 'dart:isolate';
 import 'package:barback/barback.dart';
 
 import '../../../asset/dart/serialize.dart';
-import '../barback.dart';
 import 'excluding_transformer.dart';
 import 'excluding_aggregate_transformer.dart';
+import 'transformer_config.dart';
 
 /// A wrapper for a transformer that's in a different isolate.
 class _ForeignTransformer extends Transformer {
@@ -124,10 +124,10 @@ class _ForeignGroup implements TransformerGroup {
   /// The result of calling [toString] on the transformer group in the isolate.
   final String _toString;
 
-  _ForeignGroup(TransformerId id, Map map)
+  _ForeignGroup(TransformerConfig config, Map map)
       : phases = map['phases'].map((phase) {
           return phase.map((transformer) => deserializeTransformerLike(
-              transformer, id)).toList();
+              transformer, config)).toList();
         }).toList(),
         _toString = map['toString'];
 
@@ -136,10 +136,10 @@ class _ForeignGroup implements TransformerGroup {
 
 /// Converts a serializable map into a [Transformer], an [AggregateTransformer],
 /// or a [TransformerGroup].
-deserializeTransformerLike(Map map, TransformerId id) {
+deserializeTransformerLike(Map map, TransformerConfig config) {
   var transformer;
   switch(map['type']) {
-    case 'TransformerGroup': return new _ForeignGroup(id, map);
+    case 'TransformerGroup': return new _ForeignGroup(config, map);
     case 'Transformer':
       transformer = new _ForeignTransformer(map);
       break;
@@ -162,9 +162,9 @@ deserializeTransformerLike(Map map, TransformerId id) {
   }
 
   if (transformer is Transformer) {
-    return ExcludingTransformer.wrap(transformer, id);
+    return ExcludingTransformer.wrap(transformer, config);
   } else {
     assert(transformer is AggregateTransformer);
-    return ExcludingAggregateTransformer.wrap(transformer, id);
+    return ExcludingAggregateTransformer.wrap(transformer, config);
   }
 }

@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import '../barback.dart';
 import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
@@ -16,8 +15,10 @@ import 'asset_environment.dart';
 import 'barback_server.dart';
 import 'dart2js_transformer.dart';
 import 'excluding_transformer.dart';
-import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
+import 'transformer_config.dart';
+import 'transformer_id.dart';
+import 'transformer_isolate.dart';
 import 'transformers_needed_by_transformers.dart';
 
 /// Loads all transformers depended on by packages in [environment].
@@ -66,38 +67,37 @@ Future loadAllTransformers(AssetEnvironment environment,
       // Only update packages that use transformers in [phase].
       var packagesToUpdate = unionAll(phase.map((id) =>
           packagesThatUseTransformers[id]));
-      for (var packageName in packagesToUpdate) {
+      return Future.wait(packagesToUpdate.map((packageName) {
         var package = environment.graph.packages[packageName];
-        var transformers = package.pubspec.transformers.map((packagePhase) {
-          return unionAll(packagePhase.map(loader.transformersFor));
-        }).toList();
+        return loader.transformersForPhases(package.pubspec.transformers)
+            .then((phases) {
 
-        // Make sure [rewrite] is still the first phase so that future
-        // transformers' "package:" imports will work.
-        transformers.insert(0, [rewrite]);
-        environment.barback.updateTransformers(packageName, transformers);
-      }
+          // Make sure [rewrite] is still the first phase so that future
+          // transformers' "package:" imports will work.
+          phases.insert(0, new Set.from([rewrite]));
+          environment.barback.updateTransformers(packageName, phases);
+        });
+      }));
     });
   }).then((_) {
     /// Reset the transformers for each package to get rid of [rewrite], which
     /// is no longer needed.
-    for (var package in environment.graph.packages.values) {
-      var phases = package.pubspec.transformers.map((phase) {
-        return unionAll(phase.map((id) => loader.transformersFor(id)));
-      }).toList();
+    return Future.wait(environment.graph.packages.values.map((package) {
+      return loader.transformersForPhases(package.pubspec.transformers)
+          .then((phases) {
+        var transformers = environment.getBuiltInTransformers(package);
+        if (transformers != null) phases.add(transformers);
 
-      var transformers = environment.getBuiltInTransformers(package);
-      if (transformers != null) phases.add(transformers);
-
-      // TODO(nweiz): remove the [newFuture] here when issue 17305 is fixed. If
-      // no transformer in [phases] applies to a source input,
-      // [updateTransformers] may cause a [BuildResult] to be scheduled for
-      // immediate emission. Issue 17305 means that the caller will be unable to
-      // receive this result unless we delay the update to after this function
-      // returns.
-      newFuture(() =>
-          environment.barback.updateTransformers(package.name, phases));
-    }
+        // TODO(nweiz): remove the [newFuture] here when issue 17305 is fixed.
+        // If no transformer in [phases] applies to a source input,
+        // [updateTransformers] may cause a [BuildResult] to be scheduled for
+        // immediate emission. Issue 17305 means that the caller will be unable
+        // to receive this result unless we delay the update to after this
+        // function returns.
+        newFuture(() =>
+            environment.barback.updateTransformers(package.name, phases));
+      });
+    }));
   });
 }
 
@@ -139,8 +139,8 @@ Map<TransformerId, Set<String>> _packagesThatUseTransformers(
   var results = {};
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
-      for (var id in phase) {
-        results.putIfAbsent(id, () => new Set()).add(package.name);
+      for (var config in phase) {
+        results.putIfAbsent(config.id, () => new Set()).add(package.name);
       }
     }
   }
@@ -153,93 +153,103 @@ class _TransformerLoader {
 
   final BarbackServer _transformerServer;
 
-  /// The loaded transformers defined in the library identified by each
-  /// transformer id.
-  final _transformers = new Map<TransformerId, Set<Transformer>>();
+  final _isolates = new Map<TransformerId, TransformerIsolate>();
 
-  /// The packages that use each transformer asset id.
+  final _transformers = new Map<TransformerConfig, Set<Transformer>>();
+
+  /// The packages that use each transformer id.
   ///
   /// Used for error reporting.
-  final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
-
-  // TODO(nweiz): Make this a view when issue 17637 is fixed.
-  /// The set of all transformers that have been loaded so far.
-  Set<TransformerId> get loadedTransformers => _transformers.keys.toSet();
+  final _transformerUsers = new Map<TransformerId, Set<String>>();
 
   _TransformerLoader(this._environment, this._transformerServer) {
     for (var package in _environment.graph.packages.values) {
-      for (var id in unionAll(package.pubspec.transformers)) {
-        _transformerUsers.putIfAbsent(
-            new Pair(id.package, id.path), () => new Set<String>())
+      for (var config in unionAll(package.pubspec.transformers)) {
+        _transformerUsers.putIfAbsent(config.id, () => new Set<String>())
             .add(package.name);
       }
     }
   }
 
-  /// Loads the transformer(s) defined in [ids].
+  /// Loads a transformer plugin isolate that imports the transformer libraries
+  /// indicated by [ids].
   ///
-  /// Once the returned future completes, these transformers can be retrieved
-  /// using [transformersFor]. If any id doesn't define any transformers, this
-  /// will complete to an error.
+  /// Once the returned future completes, transformer instances from this
+  /// isolate can be created using [transformersFor] or [transformersForPhase].
   ///
-  /// This will skip and ids that have already been loaded.
+  /// This will skip any ids that have already been loaded.
   Future load(Iterable<TransformerId> ids) {
-    ids = ids.where((id) => !_transformers.containsKey(id)).toList();
+    ids = ids.where((id) => !_isolates.containsKey(id)).toList();
     if (ids.isEmpty) return new Future.value();
 
-    // TODO(nweiz): load multiple instances of the same transformer from the
-    // same isolate rather than spinning up a separate isolate for each one.
-    return log.progress("Loading ${toSentence(ids)} transformers",
-        () => loadTransformers(_environment, _transformerServer, ids))
-        .then((allTransformers) {
+    return log.progress("Loading ${toSentence(ids)} transformers", () {
+      return TransformerIsolate.spawn(_environment, _transformerServer, ids);
+    }).then((isolate) {
       for (var id in ids) {
-        var transformers = allTransformers[id];
-        if (transformers != null && transformers.isNotEmpty) {
-          _transformers[id] = transformers;
-          continue;
-        }
-
-        var message = "No transformers";
-        if (id.configuration.isNotEmpty) {
-          message += " that accept configuration";
-        }
-
-        var location;
-        if (id.path == null) {
-          location = 'package:${id.package}/transformer.dart or '
-            'package:${id.package}/${id.package}.dart';
-        } else {
-          location = 'package:$id.dart';
-        }
-        var pair = new Pair(id.package, id.path);
-
-        throw new ApplicationException(
-            "$message were defined in $location,\n"
-            "required by ${ordered(_transformerUsers[pair]).join(', ')}.");
+        _isolates[id] = isolate;
       }
     });
   }
 
-  /// Returns the set of transformers for [id].
+  /// Instantiates and returns all transformers in the library indicated by
+  /// [config] with the given configuration.
   ///
-  /// If this is called before [load] for a given [id], it will return an empty
-  /// set.
-  Set<Transformer> transformersFor(TransformerId id) {
-    if (_transformers.containsKey(id)) return _transformers[id];
-    if (id.package != '\$dart2js') return new Set();
+  /// If this is called before the library has been loaded into an isolate via
+  /// [load], it will return an empty set.
+  Future<Set<Transformer>> transformersFor(TransformerConfig config) {
+    if (_transformers.containsKey(config)) {
+      return new Future.value(_transformers[config]);
+    } else if (_isolates.containsKey(config.id)) {
+      return _isolates[config.id].create(config).then((transformers) {
+        if (transformers.isNotEmpty) {
+          _transformers[config] = transformers;
+          return transformers;
+        }
+
+        var message = "No transformers";
+        if (config.configuration.isNotEmpty) {
+          message += " that accept configuration";
+        }
+
+        var location;
+        if (config.id.path == null) {
+          location = 'package:${config.id.package}/transformer.dart or '
+            'package:${config.id.package}/${config.id.package}.dart';
+        } else {
+          location = 'package:$config.dart';
+        }
+
+        var users = toSentence(ordered(_transformerUsers[config.id]));
+        throw new ApplicationException(
+            "$message were defined in $location,\n"
+            "required by $users.");
+      });
+    } else if (config.id.package != '\$dart2js') {
+      return new Future.value(new Set());
+    }
 
     var transformer;
     try {
       transformer = new Dart2JSTransformer.withSettings(_environment,
-          new BarbackSettings(id.configuration, _environment.mode));
-
-      // Handle any exclusions.
-      transformer = ExcludingTransformer.wrap(transformer, id);
+          new BarbackSettings(config.configuration, _environment.mode));
     } on FormatException catch (error, stackTrace) {
       fail(error.message, error, stackTrace);
     }
 
-    _transformers[id] = new Set.from([transformer]);
-    return _transformers[id];
+    // Handle any exclusions.
+    _transformers[config] = new Set.from(
+        [ExcludingTransformer.wrap(transformer, config)]);
+    return new Future.value(_transformers[config]);
+  }
+
+  /// Loads all transformers defined in each phase of [phases].
+  ///
+  /// If any library hasn't yet been loaded via [load], it will be ignored.
+  Future<List<Set<Transformer>>> transformersForPhases(
+      Iterable<Set<TransformerConfig>> phases) {
+    return Future.wait(phases.map((phase) =>
+            Future.wait(phase.map(transformersFor)).then(unionAll)))
+        // Return a growable list so that callers can add phases.
+        .then((phases) => phases.toList());
   }
 }

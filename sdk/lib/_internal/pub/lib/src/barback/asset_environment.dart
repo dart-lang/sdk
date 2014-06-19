@@ -359,8 +359,8 @@ class AssetEnvironment {
       // TODO(nweiz): if/when we support more built-in transformers, make
       // this more general.
       var containsDart2JS = graph.entrypoint.root.pubspec.transformers
-          .any((transformers) => transformers
-          .any((id) => id.package == '\$dart2js'));
+          .any((transformers) =>
+              transformers.any((config) => config.id.package == '\$dart2js'));
 
       if (!containsDart2JS && useDart2JS) {
         _builtInTransformers.addAll([

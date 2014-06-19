@@ -8,38 +8,38 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import '../barback.dart';
+import 'transformer_config.dart';
 
 /// Decorates an inner [Transformer] and handles including and excluding
 /// primary inputs.
 class ExcludingTransformer extends Transformer {
-  /// If [id] defines includes or excludes, wraps [inner] in an
+  /// If [config] defines includes or excludes, wraps [inner] in an
   /// [ExcludingTransformer] that handles those.
   ///
   /// Otherwise, just returns [inner] unmodified.
-  static Transformer wrap(Transformer inner, TransformerId id) {
-    if (!id.hasExclusions) return inner;
+  static Transformer wrap(Transformer inner, TransformerConfig config) {
+    if (!config.hasExclusions) return inner;
 
     if (inner is LazyTransformer) {
       // TODO(nweiz): Remove these unnecessary "as"es when issue 19046 is fixed.
-      return new _LazyExcludingTransformer(inner as LazyTransformer, id);
+      return new _LazyExcludingTransformer(inner as LazyTransformer, config);
     } else if (inner is DeclaringTransformer) {
       return new _DeclaringExcludingTransformer(
-          inner as DeclaringTransformer, id);
+          inner as DeclaringTransformer, config);
     } else {
-      return new ExcludingTransformer._(inner, id);
+      return new ExcludingTransformer._(inner, config);
     }
   }
 
   final Transformer _inner;
 
-  /// The id containing rules for which assets to include or exclude.
-  final TransformerId _id;
+  /// The config containing rules for which assets to include or exclude.
+  final TransformerConfig _config;
 
-  ExcludingTransformer._(this._inner, this._id);
+  ExcludingTransformer._(this._inner, this._config);
 
   isPrimary(AssetId id) {
-    if (!_id.canTransform(id.path)) return false;
+    if (!_config.canTransform(id.path)) return false;
     return _inner.isPrimary(id);
   }
 
@@ -50,8 +50,9 @@ class ExcludingTransformer extends Transformer {
 
 class _DeclaringExcludingTransformer extends ExcludingTransformer
     implements DeclaringTransformer {
-  _DeclaringExcludingTransformer(DeclaringTransformer inner, TransformerId id)
-      : super._(inner as Transformer, id);
+  _DeclaringExcludingTransformer(DeclaringTransformer inner,
+          TransformerConfig config)
+      : super._(inner as Transformer, config);
 
   Future declareOutputs(DeclaringTransform transform) =>
       (_inner as DeclaringTransformer).declareOutputs(transform);
@@ -59,6 +60,7 @@ class _DeclaringExcludingTransformer extends ExcludingTransformer
 
 class _LazyExcludingTransformer extends _DeclaringExcludingTransformer
     implements LazyTransformer {
-  _LazyExcludingTransformer(DeclaringTransformer inner, TransformerId id)
-      : super(inner, id);
+  _LazyExcludingTransformer(DeclaringTransformer inner,
+          TransformerConfig config)
+      : super(inner, config);
 }

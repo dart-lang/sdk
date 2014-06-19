@@ -339,7 +339,7 @@ dependencies:
 transformers:
 - foo''', sources);
 
-      expect(pubspec.transformers[0].single.package, equals("foo"));
+      expect(pubspec.transformers[0].single.id.package, equals("foo"));
     });
 
     test("allows a transformer from a dev dependency", () {
@@ -351,7 +351,7 @@ dev_dependencies:
 transformers:
 - foo''', sources);
 
-      expect(pubspec.transformers[0].single.package, equals("foo"));
+      expect(pubspec.transformers[0].single.id.package, equals("foo"));
     });
 
     test("allows a transformer from a dependency override", () {
@@ -363,7 +363,7 @@ dependency_overrides:
 transformers:
 - foo''', sources);
 
-      expect(pubspec.transformers[0].single.package, equals("foo"));
+      expect(pubspec.transformers[0].single.id.package, equals("foo"));
     });
 
     test("allows comment-only files", () {
