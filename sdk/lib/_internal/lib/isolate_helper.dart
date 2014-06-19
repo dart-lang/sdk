@@ -229,13 +229,22 @@ class _Manager {
         DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
         mainManager);
     JS("void", r"self.onmessage = #", function);
-    // We define dartPrint so that the implementation of the Dart
+    // We ensure dartPrint is defined so that the implementation of the Dart
     // print method knows what to call.
-    // TODO(ngeoffray): Should we forward to the main isolate? What if
-    // it exited?
-    JS('void', r'self.dartPrint = function (object) {}');
+    JS('', '''self.dartPrint = self.dartPrint || (function(serialize) {
+  return function (object) {
+    if (self.console && self.console.log) {
+      self.console.log(object)
+    } else {
+      self.postMessage(serialize(object));
+    }
+  }
+})(#)''', DART_CLOSURE_TO_JS(_serializePrintMessage));
   }
 
+  static _serializePrintMessage(object) {
+    return _serializeMessage({"command": "print", "msg": object});
+  }
 
   /**
    * Close the worker running this code if all isolates are done and
@@ -403,7 +412,7 @@ class _IsolateContext implements IsolateContext {
         // don't print it.
         return;
       }
-      if (JS('bool', '!!self.console && !!self.console.error')) {
+      if (JS('bool', 'self.console && self.console.error')) {
         JS('void', 'self.console.error(#, #)', error, stackTrace);
       } else {
         print(error);
