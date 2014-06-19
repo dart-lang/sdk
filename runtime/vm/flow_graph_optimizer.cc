@@ -4541,7 +4541,7 @@ class RangeAnalysis : public ValueObject {
  private:
   // Collect all values that were proven to be smi in smi_values_ array and all
   // CheckSmi instructions in smi_check_ array.
-  void CollectSmiValues();
+  void CollectValues();
 
   // Iterate over smi values and constrain them at branch successors.
   // Additionally constraint values after CheckSmi instructions.
@@ -4612,15 +4612,17 @@ class RangeAnalysis : public ValueObject {
 
   FlowGraph* flow_graph_;
 
-  GrowableArray<Definition*> smi_values_;  // Value that are known to be smi.
-  GrowableArray<CheckSmiInstr*> smi_checks_;  // All CheckSmi instructions.
+  // Value that are known to be smi or mint.
+  GrowableArray<Definition*> values_;
+  // All CheckSmi instructions.
+  GrowableArray<CheckSmiInstr*> smi_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.
   GrowableArray<ConstraintInstr*> constraints_;
 
-  // Bitvector for a quick filtering of known smi values.
-  BitVector* smi_definitions_;
+  // Bitvector for a quick filtering of known smi or mint values.
+  BitVector* definitions_;
 
   // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
@@ -4631,20 +4633,22 @@ class RangeAnalysis : public ValueObject {
 
 
 void RangeAnalysis::Analyze() {
-  CollectSmiValues();
+  CollectValues();
   InsertConstraints();
   InferRanges();
   RemoveConstraints();
 }
 
 
-void RangeAnalysis::CollectSmiValues() {
+void RangeAnalysis::CollectValues() {
   const GrowableArray<Definition*>& initial =
       *flow_graph_->graph_entry()->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* current = initial[i];
     if (current->Type()->ToCid() == kSmiCid) {
-      smi_values_.Add(current);
+      values_.Add(current);
+    } else if (current->IsMintDefinition()) {
+      values_.Add(current);
     }
   }
 
@@ -4661,7 +4665,9 @@ void RangeAnalysis::CollectSmiValues() {
       for (intptr_t i = 0; i < initial.length(); ++i) {
         Definition* current = initial[i];
         if (current->Type()->ToCid() == kSmiCid) {
-          smi_values_.Add(current);
+          values_.Add(current);
+        } else if (current->IsMintDefinition()) {
+          values_.Add(current);
         }
       }
     }
@@ -4671,7 +4677,7 @@ void RangeAnalysis::CollectSmiValues() {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
         if (current->Type()->ToCid() == kSmiCid) {
-          smi_values_.Add(current);
+          values_.Add(current);
         }
       }
     }
@@ -4684,7 +4690,10 @@ void RangeAnalysis::CollectSmiValues() {
       if (defn != NULL) {
         if ((defn->Type()->ToCid() == kSmiCid) &&
             (defn->ssa_temp_index() != -1)) {
-          smi_values_.Add(defn);
+          values_.Add(defn);
+        } else if ((defn->IsMintDefinition()) &&
+                   (defn->ssa_temp_index() != -1)) {
+          values_.Add(defn);
         }
       } else if (current->IsCheckSmi()) {
         smi_checks_.Add(current->AsCheckSmi());
@@ -4849,6 +4858,7 @@ void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
   }
 }
 
+
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list();
        use != NULL;
@@ -4887,11 +4897,22 @@ void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
 void RangeAnalysis::InsertConstraints() {
   for (intptr_t i = 0; i < smi_checks_.length(); i++) {
     CheckSmiInstr* check = smi_checks_[i];
-    InsertConstraintFor(check->value()->definition(), Range::Unknown(), check);
+    ConstraintInstr* constraint =
+        InsertConstraintFor(check->value()->definition(),
+                            Range::UnknownSmi(),
+                            check);
+    if (constraint == NULL) {
+      // No constraint was needed.
+      continue;
+    }
+    // Mark the constraint's value's reaching type as smi.
+    CompileType* smi_compile_type =
+        ZoneCompileType::Wrap(CompileType::FromCid(kSmiCid));
+    constraint->value()->SetReachingType(smi_compile_type);
   }
 
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    InsertConstraintsFor(smi_values_[i]);
+  for (intptr_t i = 0; i < values_.length(); i++) {
+    InsertConstraintsFor(values_[i]);
   }
 
   for (intptr_t i = 0; i < constraints_.length(); i++) {
@@ -4929,9 +4950,9 @@ RangeAnalysis::Direction RangeAnalysis::ToDirection(Value* val) {
                                                           : kNegative;
   } else if (val->definition()->range() != NULL) {
     Range* range = val->definition()->range();
-    if (Range::ConstantMin(range).value() >= 0) {
+    if (Range::ConstantMin(range).ConstantValue() >= 0) {
       return kPositive;
-    } else if (Range::ConstantMax(range).value() <= 0) {
+    } else if (Range::ConstantMax(range).ConstantValue() <= 0) {
       return kNegative;
     }
   }
@@ -5029,7 +5050,7 @@ Range* RangeAnalysis::InferInductionVariableRange(JoinEntryInstr* loop_header,
 
     case kUnknown:
     case kBoth:
-      return Range::Unknown();
+      return Range::UnknownSmi();
   }
 
   UNREACHABLE();
@@ -5043,7 +5064,7 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
     const bool is_loop_header = (join->loop_info() != NULL);
     for (PhiIterator it(join); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
-      if (smi_definitions_->Contains(phi->ssa_temp_index())) {
+      if (definitions_->Contains(phi->ssa_temp_index())) {
         if (is_loop_header) {
           // Try recognizing simple induction variables.
           Range* range = InferInductionVariableRange(join, phi);
@@ -5064,7 +5085,7 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
     Definition* defn = current->AsDefinition();
     if ((defn != NULL) &&
         (defn->ssa_temp_index() != -1) &&
-        smi_definitions_->Contains(defn->ssa_temp_index())) {
+        definitions_->Contains(defn->ssa_temp_index())) {
       defn->InferRange();
     } else if (FLAG_array_bounds_check_elimination &&
                current->IsCheckArrayBound()) {
@@ -5084,13 +5105,19 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
 
 
 void RangeAnalysis::InferRanges() {
-  // Initialize bitvector for quick filtering of smi values.
-  smi_definitions_ = new(I) BitVector(flow_graph_->current_ssa_temp_index());
-  for (intptr_t i = 0; i < smi_values_.length(); i++) {
-    smi_definitions_->Add(smi_values_[i]->ssa_temp_index());
+  if (FLAG_trace_range_analysis) {
+    OS::Print("---- before range analysis -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+  // Initialize bitvector for quick filtering of int values.
+  definitions_ =
+      new(I) BitVector(flow_graph_->current_ssa_temp_index());
+  for (intptr_t i = 0; i < values_.length(); i++) {
+    definitions_->Add(values_[i]->ssa_temp_index());
   }
   for (intptr_t i = 0; i < constraints_.length(); i++) {
-    smi_definitions_->Add(constraints_[i]->ssa_temp_index());
+    definitions_->Add(constraints_[i]->ssa_temp_index());
   }
 
   // Infer initial values of ranges.
@@ -5098,7 +5125,7 @@ void RangeAnalysis::InferRanges() {
       *flow_graph_->graph_entry()->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* definition = initial[i];
-    if (smi_definitions_->Contains(definition->ssa_temp_index())) {
+    if (definitions_->Contains(definition->ssa_temp_index())) {
       definition->InferRange();
     }
   }
@@ -5126,7 +5153,7 @@ void RangeAnalysis::RemoveConstraints() {
 }
 
 
-void FlowGraphOptimizer::InferSmiRanges() {
+void FlowGraphOptimizer::InferIntRanges() {
   RangeAnalysis range_analysis(flow_graph_);
   range_analysis.Analyze();
 }

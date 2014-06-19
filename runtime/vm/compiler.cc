@@ -451,7 +451,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
-          optimizer.InferSmiRanges();
+          optimizer.InferIntRanges();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 

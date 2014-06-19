@@ -171,6 +171,17 @@ class Utils {
            count <= (length - offset);
   }
 
+  static inline bool WillAddOverflow(int64_t a, int64_t b) {
+    return ((b > 0) && (a > (kMaxInt64 - b))) ||
+           ((b < 0) && (a < (kMinInt64 - b)));
+  }
+
+  static inline bool WillSubOverflow(int64_t a, int64_t b) {
+    return ((b > 0) && (a < (kMinInt64 + b))) ||
+           ((b < 0) && (a > (kMaxInt64 + b)));
+  }
+
+
   // Utility functions for converting values from host endianess to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);

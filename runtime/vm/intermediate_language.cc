@@ -2449,7 +2449,7 @@ void Environment::DeepCopyToOuter(Isolate* isolate, Instruction* instr) const {
 }
 
 
-RangeBoundary RangeBoundary::FromDefinition(Definition* defn, intptr_t offs) {
+RangeBoundary RangeBoundary::FromDefinition(Definition* defn, int64_t offs) {
   if (defn->IsConstant() && defn->AsConstant()->value().IsSmi()) {
     return FromConstant(Smi::Cast(defn->AsConstant()->value()).Value() + offs);
   }
@@ -2458,7 +2458,9 @@ RangeBoundary RangeBoundary::FromDefinition(Definition* defn, intptr_t offs) {
 
 
 RangeBoundary RangeBoundary::LowerBound() const {
-  if (IsNegativeInfinity()) return *this;
+  if (IsInfinity()) {
+    return NegativeInfinity();
+  }
   if (IsConstant()) return *this;
   return Add(Range::ConstantMin(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
@@ -2467,11 +2469,79 @@ RangeBoundary RangeBoundary::LowerBound() const {
 
 
 RangeBoundary RangeBoundary::UpperBound() const {
-  if (IsPositiveInfinity()) return *this;
+  if (IsInfinity()) {
+    return PositiveInfinity();
+  }
   if (IsConstant()) return *this;
   return Add(Range::ConstantMax(symbol()->range()),
              RangeBoundary::FromConstant(offset_),
              PositiveInfinity());
+}
+
+
+RangeBoundary RangeBoundary::Add(const RangeBoundary& a,
+                                 const RangeBoundary& b,
+                                 const RangeBoundary& overflow) {
+  ASSERT(a.IsConstant() && b.IsConstant());
+
+  if (Utils::WillAddOverflow(a.ConstantValue(), b.ConstantValue())) {
+    return overflow;
+  }
+
+  int64_t result = a.ConstantValue() + b.ConstantValue();
+
+  return RangeBoundary::FromConstant(result);
+}
+
+
+RangeBoundary RangeBoundary::Sub(const RangeBoundary& a,
+                                 const RangeBoundary& b,
+                                 const RangeBoundary& overflow) {
+  ASSERT(a.IsConstant() && b.IsConstant());
+
+  if (Utils::WillSubOverflow(a.ConstantValue(), b.ConstantValue())) {
+    return overflow;
+  }
+
+  int64_t result = a.ConstantValue() - b.ConstantValue();
+
+  return RangeBoundary::FromConstant(result);
+}
+
+
+bool RangeBoundary::SymbolicAdd(const RangeBoundary& a,
+                                const RangeBoundary& b,
+                                RangeBoundary* result) {
+  if (a.IsSymbol() && b.IsConstant()) {
+    if (Utils::WillAddOverflow(a.offset(), b.ConstantValue())) {
+      return false;
+    }
+
+    const int64_t offset = a.offset() + b.ConstantValue();
+
+    *result = RangeBoundary::FromDefinition(a.symbol(), offset);
+    return true;
+  } else if (b.IsSymbol() && a.IsConstant()) {
+    return SymbolicAdd(b, a, result);
+  }
+  return false;
+}
+
+
+bool RangeBoundary::SymbolicSub(const RangeBoundary& a,
+                                const RangeBoundary& b,
+                                RangeBoundary* result) {
+  if (a.IsSymbol() && b.IsConstant()) {
+    if (Utils::WillSubOverflow(a.offset(), b.ConstantValue())) {
+      return false;
+    }
+
+    const int64_t offset = a.offset() - b.ConstantValue();
+
+    *result = RangeBoundary::FromDefinition(a.symbol(), offset);
+    return true;
+  }
+  return false;
 }
 
 
@@ -2502,41 +2572,47 @@ static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {
 }
 
 
-// Returns true if range has a least specific minimum value.
-static bool IsMinSmi(Range* range) {
-  return (range == NULL) ||
-      (range->min().IsConstant() &&
-       (range->min().value() <= Smi::kMinValue));
-}
-
-
-// Returns true if range has a least specific maximium value.
-static bool IsMaxSmi(Range* range) {
-  return (range == NULL) ||
-      (range->max().IsConstant() &&
-       (range->max().value() >= Smi::kMaxValue));
-}
-
-
-// Returns true if two range boundaries can be proven to be equal.
-static bool IsEqual(const RangeBoundary& a, const RangeBoundary& b) {
-  if (a.IsConstant() && b.IsConstant()) {
-    return a.value() == b.value();
-  } else if (a.IsSymbol() && b.IsSymbol()) {
-    return (a.offset() == b.offset()) && DependOnSameSymbol(a, b);
-  } else {
-    return false;
+bool RangeBoundary::Equals(const RangeBoundary& other) const {
+  if (IsConstant() && other.IsConstant()) {
+    return ConstantValue() == other.ConstantValue();
+  } else if (IsInfinity() && other.IsInfinity()) {
+    return kind() == other.kind();
+  } else if (IsSymbol() && other.IsSymbol()) {
+    return (offset() == other.offset()) && DependOnSameSymbol(*this, other);
+  } else if (IsUnknown() && other.IsUnknown()) {
+    return true;
   }
+  return false;
+}
+
+
+RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
+                                 int64_t shift_count,
+                                 const RangeBoundary& overflow) {
+  ASSERT(value_boundary.IsConstant());
+  ASSERT(shift_count >= 0);
+  int64_t limit = 64 - shift_count;
+  int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+
+  if ((value == 0) ||
+      (shift_count == 0) ||
+      ((limit > 0) && (Utils::IsInt(limit, value)))) {
+    // Result stays in 64 bit range.
+    int64_t result = value << shift_count;
+    return Smi::IsValid64(result) ? RangeBoundary(result) : overflow;
+  }
+
+  return overflow;
 }
 
 
 static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
                                           const RangeBoundary& overflow) {
-  if (a.IsConstant() || a.IsNegativeInfinity() || a.IsPositiveInfinity()) {
+  if (a.IsConstant() || a.IsInfinity()) {
     return a;
   }
 
-  intptr_t offset = a.offset();
+  int64_t offset = a.offset();
   Definition* symbol = a.symbol();
 
   bool changed;
@@ -2552,11 +2628,19 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
       switch (op->op_kind()) {
         case Token::kADD:
           if (right->IsConstant()) {
-            offset += Smi::Cast(right->AsConstant()->value()).Value();
+            int64_t rhs = Smi::Cast(right->AsConstant()->value()).Value();
+            if (Utils::WillAddOverflow(offset, rhs)) {
+              return overflow;
+            }
+            offset += rhs;
             symbol = left;
             changed = true;
           } else if (left->IsConstant()) {
-            offset += Smi::Cast(left->AsConstant()->value()).Value();
+            int64_t rhs = Smi::Cast(left->AsConstant()->value()).Value();
+            if (Utils::WillAddOverflow(offset, rhs)) {
+              return overflow;
+            }
+            offset += rhs;
             symbol = right;
             changed = true;
           }
@@ -2564,7 +2648,11 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
 
         case Token::kSUB:
           if (right->IsConstant()) {
-            offset -= Smi::Cast(right->AsConstant()->value()).Value();
+            int64_t rhs = Smi::Cast(right->AsConstant()->value()).Value();
+            if (Utils::WillSubOverflow(offset, rhs)) {
+              return overflow;
+            }
+            offset -= rhs;
             symbol = left;
             changed = true;
           }
@@ -2574,8 +2662,6 @@ static RangeBoundary CanonicalizeBoundary(const RangeBoundary& a,
           break;
       }
     }
-
-    if (!Smi::IsValid(offset)) return overflow;
   } while (changed);
 
   return RangeBoundary::FromDefinition(symbol, offset);
@@ -2588,12 +2674,14 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
   Range* range = a->symbol()->range();
   if ((range == NULL) || !range->max().IsSymbol()) return false;
 
-  const intptr_t offset = range->max().offset() + a->offset();
 
-  if (!Smi::IsValid(offset)) {
+  if (Utils::WillAddOverflow(range->max().offset(), a->offset())) {
     *a = RangeBoundary::PositiveInfinity();
     return true;
   }
+
+  const int64_t offset = range->max().offset() + a->offset();
+
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->max().symbol(), offset),
@@ -2609,11 +2697,12 @@ static bool CanonicalizeMinBoundary(RangeBoundary* a) {
   Range* range = a->symbol()->range();
   if ((range == NULL) || !range->min().IsSymbol()) return false;
 
-  const intptr_t offset = range->min().offset() + a->offset();
-  if (!Smi::IsValid(offset)) {
+  if (Utils::WillAddOverflow(range->min().offset(), a->offset())) {
     *a = RangeBoundary::NegativeInfinity();
     return true;
   }
+
+  const int64_t offset = range->min().offset() + a->offset();
 
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->min().symbol(), offset),
@@ -2623,44 +2712,172 @@ static bool CanonicalizeMinBoundary(RangeBoundary* a) {
 }
 
 
-RangeBoundary RangeBoundary::Min(RangeBoundary a, RangeBoundary b) {
+RangeBoundary RangeBoundary::Min(RangeBoundary a, RangeBoundary b,
+                                 RangeSize size) {
+  ASSERT(!(a.IsNegativeInfinity() || b.IsNegativeInfinity()));
+  ASSERT(!a.IsUnknown() || !b.IsUnknown());
+  if (a.IsUnknown() && !b.IsUnknown()) {
+    return b;
+  }
+  if (!a.IsUnknown() && b.IsUnknown()) {
+    return a;
+  }
+  if (size == kRangeBoundarySmi) {
+    if (a.IsSmiMaximumOrAbove() && !b.IsSmiMaximumOrAbove()) {
+      return b;
+    }
+    if (!a.IsSmiMaximumOrAbove() && b.IsSmiMaximumOrAbove()) {
+      return a;
+    }
+  } else {
+    ASSERT(size == kRangeBoundaryInt64);
+    if (a.IsMaximumOrAbove() && !b.IsMaximumOrAbove()) {
+      return b;
+    }
+    if (!a.IsMaximumOrAbove() && b.IsMaximumOrAbove()) {
+      return a;
+    }
+  }
+
+  if (a.Equals(b)) {
+    return b;
+  }
+
+  {
+    RangeBoundary canonical_a =
+        CanonicalizeBoundary(a, RangeBoundary::PositiveInfinity());
+    RangeBoundary canonical_b =
+        CanonicalizeBoundary(b, RangeBoundary::PositiveInfinity());
+    do {
+      if (DependOnSameSymbol(canonical_a, canonical_b)) {
+        a = canonical_a;
+        b = canonical_b;
+        break;
+      }
+    } while (CanonicalizeMaxBoundary(&canonical_a) ||
+             CanonicalizeMaxBoundary(&canonical_b));
+  }
+
   if (DependOnSameSymbol(a, b)) {
     return (a.offset() <= b.offset()) ? a : b;
   }
 
-  const intptr_t min_a = a.LowerBound().Clamp().value();
-  const intptr_t min_b = b.LowerBound().Clamp().value();
+  const int64_t min_a = a.UpperBound().Clamp(size).ConstantValue();
+  const int64_t min_b = b.UpperBound().Clamp(size).ConstantValue();
 
   return RangeBoundary::FromConstant(Utils::Minimum(min_a, min_b));
 }
 
 
-RangeBoundary RangeBoundary::Max(RangeBoundary a, RangeBoundary b) {
-  if (DependOnSameSymbol(a, b)) {
-    return (a.offset() >= b.offset()) ? a : b;
+RangeBoundary RangeBoundary::Max(RangeBoundary a, RangeBoundary b,
+                                 RangeSize size) {
+  ASSERT(!(a.IsPositiveInfinity() || b.IsPositiveInfinity()));
+  ASSERT(!a.IsUnknown() || !b.IsUnknown());
+  if (a.IsUnknown() && !b.IsUnknown()) {
+    return b;
+  }
+  if (!a.IsUnknown() && b.IsUnknown()) {
+    return a;
+  }
+  if (size == kRangeBoundarySmi) {
+    if (a.IsSmiMinimumOrBelow() && !b.IsSmiMinimumOrBelow()) {
+      return b;
+    }
+    if (!a.IsSmiMinimumOrBelow() && b.IsSmiMinimumOrBelow()) {
+      return a;
+    }
+  } else {
+     ASSERT(size == kRangeBoundaryInt64);
+    if (a.IsMinimumOrBelow() && !b.IsMinimumOrBelow()) {
+      return b;
+    }
+    if (!a.IsMinimumOrBelow() && b.IsMinimumOrBelow()) {
+      return a;
+    }
+  }
+  if (a.Equals(b)) {
+    return b;
   }
 
-  const intptr_t max_a = a.UpperBound().Clamp().value();
-  const intptr_t max_b = b.UpperBound().Clamp().value();
+  {
+    RangeBoundary canonical_a =
+        CanonicalizeBoundary(a, RangeBoundary::NegativeInfinity());
+    RangeBoundary canonical_b =
+        CanonicalizeBoundary(b, RangeBoundary::NegativeInfinity());
+
+    do {
+      if (DependOnSameSymbol(canonical_a, canonical_b)) {
+        a = canonical_a;
+        b = canonical_b;
+        break;
+      }
+    } while (CanonicalizeMinBoundary(&canonical_a) ||
+             CanonicalizeMinBoundary(&canonical_b));
+  }
+
+  if (DependOnSameSymbol(a, b)) {
+    return (a.offset() <= b.offset()) ? b : a;
+  }
+
+  const int64_t max_a = a.LowerBound().Clamp(size).ConstantValue();
+  const int64_t max_b = b.LowerBound().Clamp(size).ConstantValue();
 
   return RangeBoundary::FromConstant(Utils::Maximum(max_a, max_b));
 }
 
 
+int64_t RangeBoundary::ConstantValue() const {
+  ASSERT(IsConstant());
+  return value_;
+}
+
+
 void Definition::InferRange() {
-  ASSERT(Type()->ToCid() == kSmiCid);  // Has meaning only for smis.
-  if (range_ == NULL) {
-    range_ = Range::Unknown();
+  if (Type()->ToCid() == kSmiCid) {
+    if (range_ == NULL) {
+      range_ = Range::UnknownSmi();
+    }
+  } else if (IsMintDefinition()) {
+    if (range_ == NULL) {
+      range_ = Range::Unknown();
+    }
+  } else {
+    // Only Smi and Mint supported.
+    UNREACHABLE();
   }
 }
 
 
 void ConstantInstr::InferRange() {
-  ASSERT(value_.IsSmi());
+  if (value_.IsSmi()) {
+    if (range_ == NULL) {
+      int64_t value = Smi::Cast(value_).Value();
+      range_ = new Range(RangeBoundary::FromConstant(value),
+                         RangeBoundary::FromConstant(value));
+    }
+  } else if (value_.IsMint()) {
+    if (range_ == NULL) {
+      int64_t value = Mint::Cast(value_).value();
+      range_ = new Range(RangeBoundary::FromConstant(value),
+                         RangeBoundary::FromConstant(value));
+    }
+  } else {
+    // Only Smi and Mint supported.
+    UNREACHABLE();
+  }
+}
+
+
+void UnboxIntegerInstr::InferRange() {
   if (range_ == NULL) {
-    intptr_t value = Smi::Cast(value_).Value();
-    range_ = new Range(RangeBoundary::FromConstant(value),
-                       RangeBoundary::FromConstant(value));
+    Definition* unboxed = value()->definition();
+    ASSERT(unboxed != NULL);
+    Range* range = unboxed->range();
+    if (range == NULL) {
+      range_ = Range::Unknown();
+      return;
+    }
+    range_ = new Range(range->min(), range->max());
   }
 }
 
@@ -2668,71 +2885,31 @@ void ConstantInstr::InferRange() {
 void ConstraintInstr::InferRange() {
   Range* value_range = value()->definition()->range();
 
+  // Only constraining smi values.
+  ASSERT(value()->IsSmiValue());
+
   RangeBoundary min;
   RangeBoundary max;
 
-  if (IsMinSmi(value_range) && !IsMinSmi(constraint())) {
-    min = constraint()->min();
-  } else if (IsMinSmi(constraint()) && !IsMinSmi(value_range)) {
-    min = value_range->min();
-  } else if ((value_range != NULL) &&
-             IsEqual(constraint()->min(), value_range->min())) {
-    min = constraint()->min();
-  } else {
-    if (value_range != NULL) {
-      RangeBoundary canonical_a =
-          CanonicalizeBoundary(constraint()->min(),
-                               RangeBoundary::NegativeInfinity());
-      RangeBoundary canonical_b =
-          CanonicalizeBoundary(value_range->min(),
-                               RangeBoundary::NegativeInfinity());
-
-      do {
-        if (DependOnSameSymbol(canonical_a, canonical_b)) {
-          min = (canonical_a.offset() <= canonical_b.offset()) ? canonical_b
-                                                               : canonical_a;
-        }
-      } while (CanonicalizeMinBoundary(&canonical_a) ||
-               CanonicalizeMinBoundary(&canonical_b));
-    }
-
-    if (min.IsUnknown()) {
-      min = RangeBoundary::Max(Range::ConstantMin(value_range),
-                               Range::ConstantMin(constraint()));
-    }
+  {
+    RangeBoundary value_min = (value_range == NULL) ?
+        RangeBoundary() : value_range->min();
+    RangeBoundary constraint_min = constraint()->min();
+    min = RangeBoundary::Max(value_min, constraint_min,
+                             RangeBoundary::kRangeBoundarySmi);
   }
 
-  if (IsMaxSmi(value_range) && !IsMaxSmi(constraint())) {
-    max = constraint()->max();
-  } else if (IsMaxSmi(constraint()) && !IsMaxSmi(value_range)) {
-    max = value_range->max();
-  } else if ((value_range != NULL) &&
-             IsEqual(constraint()->max(), value_range->max())) {
-    max = constraint()->max();
-  } else {
-    if (value_range != NULL) {
-      RangeBoundary canonical_b =
-          CanonicalizeBoundary(value_range->max(),
-                               RangeBoundary::PositiveInfinity());
-      RangeBoundary canonical_a =
-          CanonicalizeBoundary(constraint()->max(),
-                               RangeBoundary::PositiveInfinity());
+  ASSERT(!min.IsUnknown());
 
-      do {
-        if (DependOnSameSymbol(canonical_a, canonical_b)) {
-          max = (canonical_a.offset() <= canonical_b.offset()) ? canonical_a
-                                                               : canonical_b;
-          break;
-        }
-      } while (CanonicalizeMaxBoundary(&canonical_a) ||
-               CanonicalizeMaxBoundary(&canonical_b));
-    }
-
-    if (max.IsUnknown()) {
-      max = RangeBoundary::Min(Range::ConstantMax(value_range),
-                               Range::ConstantMax(constraint()));
-    }
+  {
+    RangeBoundary value_max = (value_range == NULL) ?
+        RangeBoundary() : value_range->max();
+    RangeBoundary constraint_max = constraint()->max();
+    max = RangeBoundary::Min(value_max, constraint_max,
+                             RangeBoundary::kRangeBoundarySmi);
   }
+
+  ASSERT(!max.IsUnknown());
 
   range_ = new Range(min, max);
 
@@ -2804,6 +2981,22 @@ void LoadIndexedInstr::InferRange() {
     case kTypedDataUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
+      break;
+    case kTypedDataInt32ArrayCid:
+      if (CanDeoptimize()) {
+        range_ = Range::UnknownSmi();
+      } else {
+        range_ = new Range(RangeBoundary::FromConstant(kMinInt32),
+                           RangeBoundary::FromConstant(kMaxInt32));
+      }
+      break;
+    case kTypedDataUint32ArrayCid:
+      if (CanDeoptimize()) {
+        range_ = Range::UnknownSmi();
+      } else {
+        range_ = new Range(RangeBoundary::FromConstant(0),
+                           RangeBoundary::FromConstant(kMaxUint32));
+      }
       break;
     case kOneByteStringCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
@@ -2923,29 +3116,35 @@ void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;
 
+  ASSERT(Type()->ToCid() == kSmiCid);
+
   for (intptr_t i = 0; i < InputCount(); i++) {
     Range* input_range = InputAt(i)->definition()->range();
     if (input_range == NULL) {
-      range_ = Range::Unknown();
+      range_ = Range::UnknownSmi();
       return;
     }
 
     if (new_min.IsUnknown()) {
       new_min = Range::ConstantMin(input_range);
     } else {
-      new_min = RangeBoundary::Min(new_min, Range::ConstantMin(input_range));
+      new_min = RangeBoundary::Min(new_min,
+                                   Range::ConstantMinSmi(input_range),
+                                   RangeBoundary::kRangeBoundarySmi);
     }
 
     if (new_max.IsUnknown()) {
       new_max = Range::ConstantMax(input_range);
     } else {
-      new_max = RangeBoundary::Max(new_max, Range::ConstantMax(input_range));
+      new_max = RangeBoundary::Max(new_max,
+                                   Range::ConstantMaxSmi(input_range),
+                                   RangeBoundary::kRangeBoundarySmi);
     }
   }
 
   ASSERT(new_min.IsUnknown() == new_max.IsUnknown());
   if (new_min.IsUnknown()) {
-    range_ = Range::Unknown();
+    range_ = Range::UnknownSmi();
     return;
   }
 
@@ -2964,67 +3163,12 @@ bool PhiInstr::IsRedundant() const {
 }
 
 
-static bool SymbolicSub(const RangeBoundary& a,
-                        const RangeBoundary& b,
-                        RangeBoundary* result) {
-  if (a.IsSymbol() && b.IsConstant() && !b.Overflowed()) {
-    const intptr_t offset = a.offset() - b.value();
-    if (!Smi::IsValid(offset)) return false;
-
-    *result = RangeBoundary::FromDefinition(a.symbol(), offset);
-    return true;
-  }
-  return false;
-}
-
-
-static bool SymbolicAdd(const RangeBoundary& a,
-                        const RangeBoundary& b,
-                        RangeBoundary* result) {
-  if (a.IsSymbol() && b.IsConstant() && !b.Overflowed()) {
-    const intptr_t offset = a.offset() + b.value();
-    if (!Smi::IsValid(offset)) return false;
-
-    *result = RangeBoundary::FromDefinition(a.symbol(), offset);
-    return true;
-  } else if (b.IsSymbol() && a.IsConstant() && !a.Overflowed()) {
-    const intptr_t offset = b.offset() + a.value();
-    if (!Smi::IsValid(offset)) return false;
-
-    *result = RangeBoundary::FromDefinition(b.symbol(), offset);
-    return true;
-  }
-  return false;
-}
-
-
 static bool IsArrayLength(Definition* defn) {
+  if (defn == NULL) {
+    return false;
+  }
   LoadFieldInstr* load = defn->AsLoadField();
   return (load != NULL) && load->IsImmutableLengthLoad();
-}
-
-
-static int64_t ConstantAbsMax(const Range* range) {
-  if (range == NULL) return Smi::kMaxValue;
-  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).value());
-  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).value());
-  return abs_min > abs_max ? abs_min : abs_max;
-}
-
-
-static bool OnlyPositiveOrZero(const Range* a, const Range* b) {
-  if ((a == NULL) || (b == NULL)) return false;
-  if (Range::ConstantMin(a).value() < 0) return false;
-  if (Range::ConstantMin(b).value() < 0) return false;
-  return true;
-}
-
-
-static bool OnlyNegativeOrZero(const Range* a, const Range* b) {
-  if ((a == NULL) || (b == NULL)) return false;
-  if (Range::ConstantMax(a).value() > 0) return false;
-  if (Range::ConstantMax(b).value() > 0) return false;
-  return true;
 }
 
 
@@ -3037,111 +3181,75 @@ void BinarySmiOpInstr::InferRange() {
   Range* right_range = right()->definition()->range();
 
   if ((left_range == NULL) || (right_range == NULL)) {
-    range_ = new Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
+    range_ = Range::UnknownSmi();
     return;
   }
 
-  RangeBoundary left_min =
-    IsArrayLength(left_defn) ?
-        RangeBoundary::FromDefinition(left_defn) : left_range->min();
+  Range* possible_range = Range::BinaryOp(op_kind(),
+                                          left_range,
+                                          right_range,
+                                          left_defn);
 
-  RangeBoundary left_max =
-    IsArrayLength(left_defn) ?
-        RangeBoundary::FromDefinition(left_defn) : left_range->max();
-
-  RangeBoundary min;
-  RangeBoundary max;
-  switch (op_kind()) {
-    case Token::kADD:
-      if (!SymbolicAdd(left_min, right_range->min(), &min)) {
-        min =
-          RangeBoundary::Add(Range::ConstantMin(left_range),
-                             Range::ConstantMin(right_range),
-                             RangeBoundary::NegativeInfinity());
-      }
-
-      if (!SymbolicAdd(left_max, right_range->max(), &max)) {
-        max =
-          RangeBoundary::Add(Range::ConstantMax(right_range),
-                             Range::ConstantMax(left_range),
-                             RangeBoundary::PositiveInfinity());
-      }
-      break;
-
-    case Token::kSUB:
-      if (!SymbolicSub(left_min, right_range->max(), &min)) {
-        min =
-          RangeBoundary::Sub(Range::ConstantMin(left_range),
-                             Range::ConstantMax(right_range),
-                             RangeBoundary::NegativeInfinity());
-      }
-
-      if (!SymbolicSub(left_max, right_range->min(), &max)) {
-        max =
-          RangeBoundary::Sub(Range::ConstantMax(left_range),
-                             Range::ConstantMin(right_range),
-                             RangeBoundary::PositiveInfinity());
-      }
-      break;
-
-    case Token::kMUL: {
-      const int64_t left_max = ConstantAbsMax(left_range);
-      const int64_t right_max = ConstantAbsMax(right_range);
-      ASSERT(left_max <= -kSmiMin);
-      ASSERT(right_max <= -kSmiMin);
-      if ((left_max == 0) || (right_max <= kMaxInt64 / left_max)) {
-        // Product of left and right max values stays in 64 bit range.
-        const int64_t result_max = left_max * right_max;
-        if (Smi::IsValid64(result_max) && Smi::IsValid64(-result_max)) {
-          const intptr_t r_min =
-              OnlyPositiveOrZero(left_range, right_range) ? 0 : -result_max;
-          min = RangeBoundary::FromConstant(r_min);
-          const intptr_t r_max =
-              OnlyNegativeOrZero(left_range, right_range) ? 0 : result_max;
-          max = RangeBoundary::FromConstant(r_max);
-          break;
-        }
-      }
-      if (range_ == NULL) {
-        range_ = Range::Unknown();
-      }
-      return;
-    }
-    case Token::kSHL: {
-      Range::Shl(left_range, right_range, &min, &max);
-      break;
-    }
-    case Token::kBIT_AND:
-      if (Range::ConstantMin(right_range).value() >= 0) {
-        min = RangeBoundary::FromConstant(0);
-        max = Range::ConstantMax(right_range);
-        break;
-      }
-      if (Range::ConstantMin(left_range).value() >= 0) {
-        min = RangeBoundary::FromConstant(0);
-        max = Range::ConstantMax(left_range);
-        break;
-      }
-
-      if (range_ == NULL) {
-        range_ = Range::Unknown();
-      }
-      return;
-
-    default:
-      if (range_ == NULL) {
-        range_ = Range::Unknown();
-      }
-      return;
+  if ((range_ == NULL) && (possible_range == NULL)) {
+    // Initialize.
+    range_ = Range::UnknownSmi();
+    return;
   }
 
-  ASSERT(!min.IsUnknown() && !max.IsUnknown());
-  set_overflow(min.LowerBound().Overflowed() || max.UpperBound().Overflowed());
+  if (possible_range == NULL) {
+    // Nothing new.
+    return;
+  }
 
-  if (min.IsConstant()) min.Clamp();
-  if (max.IsConstant()) max.Clamp();
+  range_ = possible_range;
 
-  range_ = new Range(min, max);
+  ASSERT(!range_->min().IsUnknown() && !range_->max().IsUnknown());
+  // Calculate overflowed status before clamping.
+  const bool overflowed = range_->min().LowerBound().OverflowedSmi() ||
+                          range_->max().UpperBound().OverflowedSmi();
+
+  // Clamp value to be within smi range.
+  range_->Clamp(RangeBoundary::kRangeBoundarySmi);
+
+  set_overflow(overflowed);
+}
+
+
+void BinaryMintOpInstr::InferRange() {
+  // TODO(vegorov): canonicalize BinaryMintOpInstr to always have constant on
+  // the right and a non-constant on the left.
+  Definition* left_defn = left()->definition();
+
+  Range* left_range = left_defn->range();
+  Range* right_range = right()->definition()->range();
+
+  if ((left_range == NULL) || (right_range == NULL)) {
+    range_ = Range::Unknown();
+    return;
+  }
+
+  Range* possible_range = Range::BinaryOp(op_kind(),
+                                          left_range,
+                                          right_range,
+                                          left_defn);
+
+  if ((range_ == NULL) && (possible_range == NULL)) {
+    // Initialize.
+    range_ = Range::Unknown();
+    return;
+  }
+
+  if (possible_range == NULL) {
+    // Nothing new.
+    return;
+  }
+
+  range_ = possible_range;
+
+  ASSERT(!range_->min().IsUnknown() && !range_->max().IsUnknown());
+
+  // Clamp value to be within mint range.
+  range_->Clamp(RangeBoundary::kRangeBoundaryInt64);
 }
 
 
@@ -3149,68 +3257,61 @@ bool Range::IsPositive() const {
   if (min().IsNegativeInfinity()) {
     return false;
   }
-  if (min().LowerBound().value() < 0) {
+  if (min().LowerBound().ConstantValue() < 0) {
     return false;
   }
   if (max().IsPositiveInfinity()) {
     return true;
   }
-  return max().UpperBound().value() >= 0;
+  return max().UpperBound().ConstantValue() >= 0;
 }
 
 
-bool Range::IsNegative() const {
-  if (max().IsPositiveInfinity()) {
-    return false;
-  }
-  if (max().UpperBound().value() >= 0) {
-    return false;
-  }
-  if (min().IsNegativeInfinity()) {
-    return true;
-  }
-  return min().LowerBound().value() < 0;
-}
-
-
-bool Range::OnlyLessThanOrEqualTo(intptr_t val) const {
+bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
   if (max().IsPositiveInfinity()) {
     // Cannot be true.
     return false;
   }
-  if (max().UpperBound().value() > val) {
+  if (max().UpperBound().ConstantValue() > val) {
     // Not true.
     return false;
   }
-  if (!min().IsNegativeInfinity()) {
-    if (min().LowerBound().value() > val) {
-      // Lower bound is > value.
-      return false;
-    }
+  return true;
+}
+
+
+bool Range::OnlyGreaterThanOrEqualTo(int64_t val) const {
+  if (min().IsNegativeInfinity()) {
+    return false;
+  }
+  if (min().LowerBound().ConstantValue() < val) {
+    return false;
   }
   return true;
 }
 
 
 // Inclusive.
-bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
+bool Range::IsWithin(int64_t min_int, int64_t max_int) const {
   RangeBoundary lower_min = min().LowerBound();
-  if (lower_min.IsNegativeInfinity() || (lower_min.value() < min_int)) {
+  if (lower_min.IsNegativeInfinity() || (lower_min.ConstantValue() < min_int)) {
     return false;
   }
   RangeBoundary upper_max = max().UpperBound();
-  if (upper_max.IsPositiveInfinity() || (upper_max.value() > max_int)) {
+  if (upper_max.IsPositiveInfinity() || (upper_max.ConstantValue() > max_int)) {
     return false;
   }
   return true;
 }
 
 
-bool Range::Overlaps(intptr_t min_int, intptr_t max_int) const {
-  const intptr_t this_min = min().IsNegativeInfinity() ?
-      kIntptrMin : min().LowerBound().value();
-  const intptr_t this_max = max().IsPositiveInfinity() ?
-      kIntptrMax : max().UpperBound().value();
+bool Range::Overlaps(int64_t min_int, int64_t max_int) const {
+  RangeBoundary lower = min().LowerBound();
+  RangeBoundary upper = max().UpperBound();
+  const int64_t this_min = lower.IsNegativeInfinity() ?
+      RangeBoundary::kMin : lower.ConstantValue();
+  const int64_t this_max = upper.IsPositiveInfinity() ?
+      RangeBoundary::kMax : upper.ConstantValue();
   if ((this_min <= min_int) && (min_int <= this_max)) return true;
   if ((this_min <= max_int) && (max_int <= this_max)) return true;
   if ((min_int < this_min) && (max_int > this_max)) return true;
@@ -3224,7 +3325,8 @@ bool Range::IsUnsatisfiable() const {
     return true;
   }
   // Constant case: For example [0, -1].
-  if (Range::ConstantMin(this).value() > Range::ConstantMax(this).value()) {
+  if (Range::ConstantMin(this).ConstantValue() >
+      Range::ConstantMax(this).ConstantValue()) {
     return true;
   }
   // Symbol case: For example [v+1, v].
@@ -3235,32 +3337,229 @@ bool Range::IsUnsatisfiable() const {
 }
 
 
-void Range::Shl(Range* left,
-                Range* right,
+void Range::Clamp(RangeBoundary::RangeSize size) {
+  min_ = min_.Clamp(size);
+  max_ = max_.Clamp(size);
+}
+
+
+void Range::Shl(const Range* left,
+                const Range* right,
                 RangeBoundary* result_min,
                 RangeBoundary* result_max) {
+  ASSERT(left != NULL);
+  ASSERT(right != NULL);
+  ASSERT(result_min != NULL);
+  ASSERT(result_max != NULL);
   RangeBoundary left_max = Range::ConstantMax(left);
   RangeBoundary left_min = Range::ConstantMin(left);
   // A negative shift count always deoptimizes (and throws), so the minimum
   // shift count is zero.
-  intptr_t right_max = Utils::Maximum(Range::ConstantMax(right).value(),
-                                      static_cast<intptr_t>(0));
-  intptr_t right_min = Utils::Maximum(Range::ConstantMin(right).value(),
-                                      static_cast<intptr_t>(0));
+  int64_t right_max = Utils::Maximum(Range::ConstantMax(right).ConstantValue(),
+                                     static_cast<int64_t>(0));
+  int64_t right_min = Utils::Maximum(Range::ConstantMin(right).ConstantValue(),
+                                     static_cast<int64_t>(0));
 
   *result_min = RangeBoundary::Shl(
       left_min,
-      left_min.value() > 0 ? right_min : right_max,
-      left_min.value() > 0
+      left_min.ConstantValue() > 0 ? right_min : right_max,
+      left_min.ConstantValue() > 0
           ? RangeBoundary::PositiveInfinity()
           : RangeBoundary::NegativeInfinity());
 
   *result_max = RangeBoundary::Shl(
       left_max,
-      left_max.value() > 0 ? right_max : right_min,
-      left_max.value() > 0
+      left_max.ConstantValue() > 0 ? right_max : right_min,
+      left_max.ConstantValue() > 0
           ? RangeBoundary::PositiveInfinity()
           : RangeBoundary::NegativeInfinity());
+}
+
+
+bool Range::And(const Range* left_range,
+                const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  ASSERT(left_range != NULL);
+  ASSERT(right_range != NULL);
+  ASSERT(result_min != NULL);
+  ASSERT(result_max != NULL);
+
+  if (Range::ConstantMin(right_range).ConstantValue() >= 0) {
+    *result_min = RangeBoundary::FromConstant(0);
+    *result_max = Range::ConstantMax(right_range);
+    return true;
+  }
+
+  if (Range::ConstantMin(left_range).ConstantValue() >= 0) {
+    *result_min = RangeBoundary::FromConstant(0);
+    *result_max = Range::ConstantMax(left_range);
+    return true;
+  }
+
+  return false;
+}
+
+
+void Range::Add(const Range* left_range,
+                const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max,
+                Definition* left_defn) {
+  ASSERT(left_range != NULL);
+  ASSERT(right_range != NULL);
+  ASSERT(result_min != NULL);
+  ASSERT(result_max != NULL);
+
+  RangeBoundary left_min =
+    IsArrayLength(left_defn) ?
+        RangeBoundary::FromDefinition(left_defn) : left_range->min();
+
+  RangeBoundary left_max =
+    IsArrayLength(left_defn) ?
+        RangeBoundary::FromDefinition(left_defn) : left_range->max();
+
+  if (!RangeBoundary::SymbolicAdd(left_min, right_range->min(), result_min)) {
+    *result_min = RangeBoundary::Add(left_range->min().LowerBound(),
+                                     right_range->min().LowerBound(),
+                                     RangeBoundary::NegativeInfinity());
+  }
+  if (!RangeBoundary::SymbolicAdd(left_max, right_range->max(), result_max)) {
+    *result_max = RangeBoundary::Add(right_range->max().UpperBound(),
+                                     left_range->max().UpperBound(),
+                                     RangeBoundary::PositiveInfinity());
+  }
+}
+
+
+void Range::Sub(const Range* left_range,
+                const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max,
+                Definition* left_defn) {
+  ASSERT(left_range != NULL);
+  ASSERT(right_range != NULL);
+  ASSERT(result_min != NULL);
+  ASSERT(result_max != NULL);
+
+  RangeBoundary left_min =
+    IsArrayLength(left_defn) ?
+        RangeBoundary::FromDefinition(left_defn) : left_range->min();
+
+  RangeBoundary left_max =
+    IsArrayLength(left_defn) ?
+        RangeBoundary::FromDefinition(left_defn) : left_range->max();
+
+  if (!RangeBoundary::SymbolicSub(left_min, right_range->max(), result_min)) {
+    *result_min = RangeBoundary::Sub(left_range->min().LowerBound(),
+                              right_range->max().UpperBound(),
+                              RangeBoundary::NegativeInfinity());
+  }
+  if (!RangeBoundary::SymbolicSub(left_max, right_range->min(), result_max)) {
+    *result_max = RangeBoundary::Sub(left_range->max().UpperBound(),
+                                     right_range->min().LowerBound(),
+                                     RangeBoundary::PositiveInfinity());
+  }
+}
+
+
+bool Range::Mul(const Range* left_range,
+                const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  ASSERT(left_range != NULL);
+  ASSERT(right_range != NULL);
+  ASSERT(result_min != NULL);
+  ASSERT(result_max != NULL);
+
+  const int64_t left_max = ConstantAbsMax(left_range);
+  const int64_t right_max = ConstantAbsMax(right_range);
+  if ((left_max <= -kSmiMin) && (right_max <= -kSmiMin) &&
+      ((left_max == 0) || (right_max <= kMaxInt64 / left_max))) {
+    // Product of left and right max values stays in 64 bit range.
+    const int64_t mul_max = left_max * right_max;
+    if (Smi::IsValid64(mul_max) && Smi::IsValid64(-mul_max)) {
+      const intptr_t r_min =
+          OnlyPositiveOrZero(*left_range, *right_range) ? 0 : -mul_max;
+      *result_min = RangeBoundary::FromConstant(r_min);
+      const intptr_t r_max =
+          OnlyNegativeOrZero(*left_range, *right_range) ? 0 : mul_max;
+      *result_max = RangeBoundary::FromConstant(r_max);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Both the a and b ranges are >= 0.
+bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
+  return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
+}
+
+
+// Both the a and b ranges are <= 0.
+bool Range::OnlyNegativeOrZero(const Range& a, const Range& b) {
+  return a.OnlyLessThanOrEqualTo(0) && b.OnlyLessThanOrEqualTo(0);
+}
+
+
+// Return the maximum absolute value included in range.
+int64_t Range::ConstantAbsMax(const Range* range) {
+  if (range == NULL) {
+    return RangeBoundary::kMax;
+  }
+  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).ConstantValue());
+  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).ConstantValue());
+  return Utils::Maximum(abs_min, abs_max);
+}
+
+
+Range* Range::BinaryOp(const Token::Kind op,
+                       const Range* left_range,
+                       const Range* right_range,
+                       Definition* left_defn) {
+  ASSERT(left_range != NULL);
+  ASSERT(right_range != NULL);
+
+  // Both left and right ranges are finite.
+  ASSERT(left_range->IsFinite());
+  ASSERT(right_range->IsFinite());
+
+  RangeBoundary min;
+  RangeBoundary max;
+  ASSERT(min.IsUnknown() && max.IsUnknown());
+
+  switch (op) {
+    case Token::kADD:
+      Range::Add(left_range, right_range, &min, &max, left_defn);
+      break;
+    case Token::kSUB:
+      Range::Sub(left_range, right_range, &min, &max, left_defn);
+      break;
+    case Token::kMUL: {
+      if (!Range::Mul(left_range, right_range, &min, &max)) {
+        return NULL;
+      }
+      break;
+    }
+    case Token::kSHL: {
+      Range::Shl(left_range, right_range, &min, &max);
+      break;
+    }
+    case Token::kBIT_AND:
+      if (!Range::And(left_range, right_range, &min, &max)) {
+        return NULL;
+      }
+      break;
+    default:
+      return NULL;
+      break;
+  }
+
+  ASSERT(!min.IsUnknown() && !max.IsUnknown());
+
+  return new Range(min, max);
 }
 
 
@@ -3278,14 +3577,14 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   }
 
   // Range of the index is not positive. Check can't be redundant.
-  if (Range::ConstantMin(index_range).value() < 0) {
+  if (Range::ConstantMinSmi(index_range).ConstantValue() < 0) {
     return false;
   }
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
                                            RangeBoundary::PositiveInfinity());
 
-  if (max.Overflowed()) {
+  if (max.OverflowedSmi()) {
     return false;
   }
 
@@ -3293,17 +3592,17 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary length_lower = length.LowerBound();
 
-  if (max_upper.Overflowed() || length_lower.Overflowed()) {
+  if (max_upper.OverflowedSmi() || length_lower.OverflowedSmi()) {
     return false;
   }
 
   // Try to compare constant boundaries.
-  if (max_upper.value() < length_lower.value()) {
+  if (max_upper.ConstantValue() < length_lower.ConstantValue()) {
     return true;
   }
 
   length = CanonicalizeBoundary(length, RangeBoundary::PositiveInfinity());
-  if (length.Overflowed()) {
+  if (length.OverflowedSmi()) {
     return false;
   }
 
