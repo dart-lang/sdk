@@ -314,7 +314,8 @@ bool _abortScheduled = false;
 /// Enum identifying a pub command that can be run with a well-defined success
 /// output.
 class RunCommand {
-  static final get = new RunCommand('get', new RegExp(r'Got dependencies!$'));
+  static final get = new RunCommand('get', new RegExp(
+      r'Got dependencies!|Changed \d+ dependenc(y|ies)!'));
   static final upgrade = new RunCommand('upgrade', new RegExp(
       r'(No dependencies changed\.|Changed \d+ dependenc(y|ies)!)$'));
 
@@ -365,8 +366,9 @@ void pubCommand(RunCommand command,
   schedulePub(args: allArgs, output: output, error: error, exitCode: exitCode);
 }
 
-void pubGet({Iterable<String> args, error, warning}) {
-  pubCommand(RunCommand.get, args: args, error: error, warning: warning);
+void pubGet({Iterable<String> args, output, error, warning}) {
+  pubCommand(RunCommand.get, args: args, output: output, error: error,
+      warning: warning);
 }
 
 void pubUpgrade({Iterable<String> args, output, error, warning}) {

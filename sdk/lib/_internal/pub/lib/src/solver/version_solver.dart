@@ -17,7 +17,7 @@ import '../source_registry.dart';
 import '../version.dart';
 import '../utils.dart';
 import 'backtracking_solver.dart';
-import 'solve_report.dart' as solve_report;
+import 'solve_report.dart';
 
 /// Attempts to select the best concrete versions for all of the transitive
 /// dependencies of [root] taking into account all of the [VersionConstraint]s
@@ -86,13 +86,21 @@ class SolveResult {
 
   /// Displays a report of what changes were made to the lockfile.
   ///
-  /// If [showAll] is true, displays all new and previous dependencies.
-  /// Otherwise, just shows a warning for any overrides in effect.
+  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
+  /// command.
+  void showReport({bool isUpgrade: false}) {
+    new SolveReport(_sources, _root, _previousLockFile, this,
+        showAll: isUpgrade).show();
+  }
+
+  /// Displays a one-line message summarizing what changes were made (or would
+  /// be made) to the lockfile.
   ///
-  /// Returns the number of changed (added, removed, or modified) dependencies.
-  int showReport({bool showAll: false}) {
-    return solve_report.show(_sources, _root, _previousLockFile, this,
-        showAll: showAll);
+  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
+  /// command.
+  void summarizeChanges({bool isUpgrade: false, bool dryRun: false}) {
+    new SolveReport(_sources, _root, _previousLockFile, this,
+        showAll: isUpgrade).summarize(dryRun: dryRun);
   }
 
   String toString() {

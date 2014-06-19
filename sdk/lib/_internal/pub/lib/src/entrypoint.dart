@@ -108,29 +108,24 @@ class Entrypoint {
   /// from scratch. Otherwise, it will attempt to preserve the versions of all
   /// previously locked packages.
   ///
-  /// If [useLatest] is non-empty or [upgradeAll] is true, displays a detailed
-  /// report of the changes made relative to the previous lockfile. If [dryRun]
-  /// is `true`, no physical changes are made.
-  ///
-  /// Returns a [Future] that completes to the number of changed dependencies.
-  /// It completes when an up-to-date lockfile has been generated and all
-  /// dependencies are available.
-  Future<int> acquireDependencies({List<String> useLatest,
-      bool upgradeAll: false, bool dryRun: false}) {
-    var numChanged = 0;
-
+  /// Shows a report of the changes made relative to the previous lockfile. If
+  /// [isUpgrade] is `true`, all transitive dependencies are shown in the
+  /// report. Otherwise, only dependencies that were changed are shown. If
+  /// [dryRun] is `true`, no physical changes are made.
+  Future acquireDependencies({List<String> useLatest, bool isUpgrade: false,
+      bool dryRun: false}) {
     return syncFuture(() {
       return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
-          useLatest: useLatest, upgradeAll: upgradeAll);
+          useLatest: useLatest, upgradeAll: isUpgrade && useLatest.isEmpty);
     }).then((result) {
       if (!result.succeeded) throw result.error;
 
-      // TODO(rnystrom): Should also show the report if there were changes.
-      // That way pub get/build/serve will show the report when relevant.
-      // https://code.google.com/p/dart/issues/detail?id=15587
-      numChanged = result.showReport(showAll: useLatest != null || upgradeAll);
+      result.showReport(isUpgrade: isUpgrade);
 
-      if (dryRun) return numChanged;
+      if (dryRun) {
+        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
+        return null;
+      }
 
       // Install the packages.
       cleanDir(packagesDir);
@@ -141,8 +136,7 @@ class Entrypoint {
         _saveLockFile(ids);
         _linkSelf();
         _linkSecondaryPackageDirs();
-
-        return numChanged;
+        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
       });
     });
   }
@@ -239,9 +233,7 @@ class Entrypoint {
       });
     }).then((upToDate) {
       if (upToDate) return null;
-      return acquireDependencies().then((_) {
-        log.message("Got dependencies!");
-      });
+      return acquireDependencies();
     });
   }
 

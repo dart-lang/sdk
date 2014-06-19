@@ -70,6 +70,7 @@ main() {
           Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
+          -n, --dry-run         Report what dependencies would change but don't change any.
     ''');
   });
 
@@ -81,6 +82,7 @@ main() {
           Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
+          -n, --dry-run         Report what dependencies would change but don't change any.
     ''');
   });
 
@@ -199,6 +201,7 @@ main() {
             Usage: pub get
             -h, --help            Print usage information for this command.
                 --[no-]offline    Use cached packages instead of accessing the network.
+            -n, --dry-run         Report what dependencies would change but don't change any.
             ''');
     });
 

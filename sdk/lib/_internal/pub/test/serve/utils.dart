@@ -194,7 +194,10 @@ ScheduledProcess pubServe({bool shouldGetFirst: false, bool createWebDir: true,
   });
 
   if (shouldGetFirst) {
-    _pubServer.stdout.expect(consumeThrough("Got dependencies!"));
+    _pubServer.stdout.expect(consumeThrough(anyOf([
+      "Got dependencies!",
+      matches(new RegExp(r"^Changed \d+ dependenc"))
+    ])));
   }
 
   _pubServer.stdout.expect(startsWith("Loading source assets..."));

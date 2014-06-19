@@ -24,32 +24,13 @@ class UpgradeCommand extends PubCommand {
         help: 'Use cached packages instead of accessing the network.');
 
     commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
-        help: 'Report what dependencies would change but do not change any.');
+        help: "Report what dependencies would change but don't change any.");
   }
 
   Future onRun() {
-    var upgradeAll = commandOptions.rest.isEmpty;
     var dryRun = commandOptions['dry-run'];
     return entrypoint.acquireDependencies(useLatest: commandOptions.rest,
-        upgradeAll: upgradeAll, dryRun: dryRun).then((numChanged) {
-      if (dryRun) {
-        if (numChanged == 0) {
-          log.message("No dependencies would change.");
-        } else if (numChanged == 1) {
-          log.message("Would change $numChanged dependency.");
-        } else {
-          log.message("Would change $numChanged dependencies.");
-        }
-      } else {
-        if (numChanged == 0) {
-          log.message("No dependencies changed.");
-        } else if (numChanged == 1) {
-          log.message("Changed $numChanged dependency!");
-        } else {
-          log.message("Changed $numChanged dependencies!");
-        }
-      }
-
+        isUpgrade: true, dryRun: dryRun).then((_) {
       if (isOffline) {
         log.warning("Warning: Upgrading when offline may not update you to the "
                     "latest versions of your dependencies.");

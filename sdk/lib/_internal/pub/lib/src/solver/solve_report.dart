@@ -11,26 +11,15 @@ import '../source_registry.dart';
 import '../utils.dart';
 import 'version_solver.dart';
 
-/// Generates and displays nicely formatted reports for the results of running
-/// a version resolution.
-///
-/// If [showAll] is true, then all of the previous and current dependencies
-/// are shown and their changes relative to the previous lock file are
-/// highlighted. Otherwise, only overrides are shown.
-///
-/// Returns the number of changed dependencies.
-int show(SourceRegistry sources, Package root, LockFile previousLockFile,
-         SolveResult result, {bool showAll: false}) {
-  var report = new _SolveReport(sources, root, previousLockFile, result);
-  return report.show(showAll: showAll);
-}
-
 /// Unlike [SolveResult], which is the static data describing a resolution,
 /// this class contains the mutable state used while generating the report
 /// itself.
 ///
 /// It's a report builder.
-class _SolveReport {
+class SolveReport {
+  /// Whether all dependencies should be reported, or just ones that changed.
+  final bool _showAll;
+
   final SourceRegistry _sources;
   final Package _root;
   final LockFile _previousLockFile;
@@ -41,8 +30,9 @@ class _SolveReport {
 
   final _output = new StringBuffer();
 
-  _SolveReport(this._sources, this._root, this._previousLockFile,
-      this._result) {
+  SolveReport(this._sources, this._root, this._previousLockFile,
+      this._result, {bool showAll: false})
+      : _showAll = showAll {
     // Fill the map so we can use it later.
     for (var id in _result.packages) {
       _dependencies[id.name] = id;
@@ -51,22 +41,22 @@ class _SolveReport {
 
   /// Displays a report of the results of the version resolution relative to
   /// the previous lock file.
-  ///
-  /// If [showAll] is true, then all of the previous and current dependencies
-  /// are shown and their changes relative to the previous lock file are
-  /// highlighted. Otherwise, only overrides are shown.
-  ///
-  /// Returns the number of changed dependencies.
-  int show({bool showAll: false}) {
-    if (showAll) _reportChanges();
+  void show() {
+    _reportChanges();
     _reportOverrides();
+  }
 
+  /// Displays a one-line message summarizing what changes were made (or would
+  /// be made) to the lockfile.
+  ///
+  /// If [dryRun] is true, describes it in terms of what would be done.
+  void summarize({bool dryRun: false}) {
     // Count how many dependencies actually changed.
     var dependencies = _dependencies.keys.toSet();
     dependencies.addAll(_previousLockFile.packages.keys);
     dependencies.remove(_root.name);
 
-    return dependencies.where((name) {
+    var numChanged = dependencies.where((name) {
       var oldId = _previousLockFile.packages[name];
       var newId = _dependencies[name];
 
@@ -78,6 +68,28 @@ class _SolveReport {
       return !_descriptionsEqual(oldId, newId) ||
           oldId.version != newId.version;
     }).length;
+
+    if (dryRun) {
+      if (numChanged == 0) {
+        log.message("No dependencies would change.");
+      } else if (numChanged == 1) {
+        log.message("Would change $numChanged dependency.");
+      } else {
+        log.message("Would change $numChanged dependencies.");
+      }
+    } else {
+      if (numChanged == 0) {
+        if (_showAll) {
+          log.message("No dependencies changed.");
+        } else {
+          log.message("Got dependencies!");
+        }
+      } else if (numChanged == 1) {
+        log.message("Changed $numChanged dependency!");
+      } else {
+        log.message("Changed $numChanged dependencies!");
+      }
+    }
   }
 
   /// Displays a report of all of the previous and current dependencies and
@@ -98,7 +110,7 @@ class _SolveReport {
       _output.writeln("These packages are no longer being depended on:");
       removed = removed.toList();
       removed.sort();
-      removed.forEach(_reportPackage);
+      removed.forEach((name) => _reportPackage(name, alwaysShow: true));
     }
 
     log.message(_output);
@@ -114,7 +126,8 @@ class _SolveReport {
       overrides.sort((a, b) => a.compareTo(b));
 
       overrides.forEach(
-          (name) => _reportPackage(name, highlightOverride: false));
+          (name) => _reportPackage(name, alwaysShow: true,
+              highlightOverride: false));
 
       log.warning(_output);
     }
@@ -122,11 +135,11 @@ class _SolveReport {
 
   /// Reports the results of the upgrade on the package named [name].
   ///
-  /// If [highlightOverride] is true (or absent), writes "(override)" next to
-  /// overridden packages.
-  void _reportPackage(String name, {bool highlightOverride}) {
-    if (highlightOverride == null) highlightOverride = true;
-
+  /// If [alwaysShow] is true, the package is reported even if it didn't change,
+  /// regardless of [_showAll]. If [highlightOverride] is true (or absent),
+  /// writes "(override)" next to overridden packages.
+  void _reportPackage(String name,
+      {bool alwaysShow: false, bool highlightOverride: true}) {
     var newId = _dependencies[name];
     var oldId = _previousLockFile.packages[name];
     var id = newId != null ? newId : oldId;
@@ -134,7 +147,12 @@ class _SolveReport {
     var isOverridden = _result.overrides.map(
         (dep) => dep.name).contains(id.name);
 
+    // If the package was previously a dependency but the dependency has
+    // changed in some way.
     var changed = false;
+
+    // If the dependency was added or removed.
+    var addedOrRemoved = false;
 
     // Show a one-character "icon" describing the change. They are:
     //
@@ -144,26 +162,32 @@ class _SolveReport {
     //     > The package was upgraded from a lower version.
     //     < The package was downgraded from a higher version.
     //     * Any other change between the old and new package.
+    var icon;
     if (isOverridden) {
-      _output.write(log.magenta("! "));
+      icon = log.magenta("! ");
     } else if (newId == null) {
-      _output.write(log.red("- "));
+      icon = log.red("- ");
+      addedOrRemoved = true;
     } else if (oldId == null) {
-      _output.write(log.green("+ "));
+      icon = log.green("+ ");
+      addedOrRemoved = true;
     } else if (!_descriptionsEqual(oldId, newId)) {
-      _output.write(log.cyan("* "));
+      icon = log.cyan("* ");
       changed = true;
     } else if (oldId.version < newId.version) {
-      _output.write(log.green("> "));
+      icon = log.green("> ");
       changed = true;
     } else if (oldId.version > newId.version) {
-      _output.write(log.cyan("< "));
+      icon = log.cyan("< ");
       changed = true;
     } else {
       // Unchanged.
-      _output.write("  ");
+      icon = "  ";
     }
 
+    if (!(alwaysShow || changed || addedOrRemoved || _showAll)) return;
+
+    _output.write(icon);
     _output.write(log.bold(id.name));
     _output.write(" ");
     _writeId(id);
