@@ -33,6 +33,8 @@ import 'selection.dart' show
 import 'shadow_root.dart' show
     getShadowRoot;
 
+import 'settings.dart' as settings;
+
 const String INDENT = '\u{a0}\u{a0}';
 
 Set<String> seenIdentifiers;
@@ -216,7 +218,11 @@ Decoration getDecoration(Token token) {
   if (tokenInfo == 'string') return currentTheme.string;
   if (tokenInfo == 'identifier') {
     seenIdentifiers.add(tokenValue);
-    return CodeCompletionDecoration.from(currentTheme.foreground);
+    Decoration decoration = currentTheme.foreground;
+    if (settings.enableCodeCompletion.value) {
+      decoration = CodeCompletionDecoration.from(decoration);
+    }
+    return decoration;
   }
   if (tokenInfo == 'keyword') return currentTheme.keyword;
   if (tokenInfo == 'comment') return currentTheme.singleLineComment;

@@ -82,7 +82,15 @@ void checkAtEndOfSecondLineWithFisk() {
   Expect.equals(4, text.length);
   Text newline = secondLine.firstChild.nextNode;
   Expect.equals(newline, secondLine.lastChild);
-  checkSelectionIsCollapsed(newline, 0);
+  /// Chrome and Firefox cannot agree on where to put the cursor.  At the end
+  /// of [text] or at the beginning of [newline].  It's the same position.
+  if (window.getSelection().anchorOffset == 0) {
+    // Firefox.
+    checkSelectionIsCollapsed(newline, 0);
+  } else {
+    // Chrome.
+    checkSelectionIsCollapsed(text, 4);
+  }
 }
 
 class MockKeyboardEvent extends KeyEvent {
