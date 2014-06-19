@@ -143,3 +143,5 @@ typed_data_view_test: StaticWarning
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
 
+[ $system == windows ]
+io/skipping_dart2js_compilations_test: Fail # Issue 19551.
