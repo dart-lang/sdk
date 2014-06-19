@@ -1674,10 +1674,10 @@ class _HttpClient implements HttpClient {
                                  String host,
                                  int port,
                                  String path) {
+    Uri uri = new Uri(scheme: "http", host: host, port: port).resolve(path);
     // TODO(sgjesse): The path set here can contain both query and
     // fragment. They should be cracked and set correctly.
-    return _openUrl(method, new Uri(
-        scheme: "http", host: host, port: port, path: path));
+    return _openUrl(method, uri);
   }
 
   Future<HttpClientRequest> openUrl(String method, Uri url) {
