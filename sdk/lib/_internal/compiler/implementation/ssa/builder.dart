@@ -1580,6 +1580,8 @@ class SsaBuilder extends ResolvedVisitor {
     assert(elements != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
+
+    insertTraceCall(function);
   }
 
   void restoreState(AstInliningState state) {
@@ -2167,6 +2169,21 @@ class SsaBuilder extends ResolvedVisitor {
     } else {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);
+    }
+
+    insertTraceCall(element);
+  }
+
+  insertTraceCall(Element element) {
+    if (JavaScriptBackend.TRACE_CALLS) {
+      if (element == backend.traceHelper) return;
+      n(e) => e == null ? '' : e.name;
+      String name = "${n(element.library)}:${n(element.enclosingClass)}."
+        "${n(element)}";
+      HConstant nameConstant = addConstantString(name);
+      add(new HInvokeStatic(backend.traceHelper,
+                            <HInstruction>[nameConstant],
+                            backend.dynamicType));
     }
   }
 

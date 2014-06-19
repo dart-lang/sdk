@@ -114,6 +114,19 @@ void throwInvalidReflectionError(String memberName) {
       "because it is not included in a @MirrorsUsed annotation.");
 }
 
+/// Helper to print the given method information to the console the first
+/// time it is called with it.
+@NoInline()
+void traceHelper(String method) {
+  if (JS('bool', '!this.cache')) {
+    JS('', 'this.cache = Object.create(null)');
+  }
+  if (JS('bool', '!this.cache[#]', method)) {
+    JS('', 'console.log(#)', method);
+    JS('', 'this.cache[#] = true', method);
+  }
+}
+
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;

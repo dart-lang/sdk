@@ -117,6 +117,12 @@ class JavaScriptBackend extends Backend {
   Element getInterceptorMethod;
   Element interceptedNames;
 
+  /// If [true], the compiler will emit code that writes the name of the current
+  /// method together with its class and library to the console the first time
+  /// the method is called.
+  static const bool TRACE_CALLS = false;
+  Element traceHelper;
+
   /**
    * This element is a top-level variable (in generated output) that the
    * compiler initializes to a datastructure used to map from a Type to the
@@ -759,6 +765,11 @@ class JavaScriptBackend extends Backend {
       Element e =
           compiler.findHelper('boolConversionCheck');
       if (e != null) enqueue(world, e, registry);
+    }
+    if (TRACE_CALLS) {
+      traceHelper = compiler.findHelper('traceHelper');
+      assert(traceHelper != null);
+      enqueueInResolution(traceHelper, registry);
     }
     registerCheckedModeHelpers(registry);
   }
