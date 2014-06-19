@@ -1,3 +1,7 @@
+## 0.14.1+1
+
+* Fix a bug where an event could be added to a closed stream.
+
 ## 0.14.1
 
 * Add an `AggregateTransformer` type. Aggregate transformers transform groups of

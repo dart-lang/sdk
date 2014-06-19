@@ -113,6 +113,8 @@ class Phase {
   /// The subscription to [previous]'s [onAsset] stream.
   StreamSubscription<AssetNode> _previousOnAssetSubscription;
 
+  final _inputSubscriptions = new Set<StreamSubscription>();
+
   /// A map of asset ids to completers for [getInput] requests.
   ///
   /// If an asset node is requested before it's available, we put a completer in
@@ -177,13 +179,13 @@ class Phase {
 
     _inputOrigins.add(node.origin);
     _inputs.add(node);
-    node.onStateChange.listen((state) {
+    _inputSubscriptions.add(node.onStateChange.listen((state) {
       if (state.isRemoved) {
         _inputOrigins.remove(node.origin);
         _forwarders.remove(node.id).remove();
       }
       _streams.changeStatus(status);
-    });
+    }));
 
     for (var classifier in _classifiers.values) {
       classifier.addInput(node);
@@ -324,6 +326,9 @@ class Phase {
       group.remove();
     }
     _streams.close();
+    for (var subscription in _inputSubscriptions) {
+      subscription.cancel();
+    }
     if (_previousStatusSubscription != null) {
       _previousStatusSubscription.cancel();
     }
