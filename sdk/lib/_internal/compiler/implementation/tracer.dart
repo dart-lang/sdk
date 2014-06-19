@@ -41,7 +41,8 @@ class Tracer extends TracerUtil {
                         ItemCompilationContext compilationContext,
                         Compiler compiler) {
     if (!isEnabled) return;
-    if (!TRACE_FILTER.hasMatch(methodName)) return;
+    traceActive = TRACE_FILTER.hasMatch(methodName);
+    if (!traceActive) return;
     this.context = compilationContext;
     this.compiler = compiler;
     tag("compilation", () {
