@@ -721,15 +721,21 @@ class CodegenEnqueuer extends Enqueuer {
   final Map<Element, js.Expression> generatedCode =
       new Map<Element, js.Expression>();
 
+  final Set<Element> newlyEnqueuedElements;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
-      : super('codegen enqueuer', compiler, itemCompilationContextCreator),
-        queue = new Queue<CodegenWorkItem>();
+      : queue = new Queue<CodegenWorkItem>(),
+        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
+        super('codegen enqueuer', compiler, itemCompilationContextCreator);
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
 
   void internalAddToWorkList(Element element) {
+    if (compiler.hasIncrementalSupport) {
+      newlyEnqueuedElements.add(element);
+    }
     // Don't generate code for foreign elements.
     if (element.isForeign(compiler)) return;
 

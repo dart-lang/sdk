@@ -506,6 +506,8 @@ abstract class Compiler implements DiagnosticListener {
   String assembledCode;
   Types types;
 
+  final CacheStrategy cacheStrategy;
+
   /**
    * Map from token to the first preceeding comment token.
    */
@@ -599,6 +601,10 @@ abstract class Compiler implements DiagnosticListener {
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
   final bool suppressWarnings;
+
+  /// If `true`, some values are cached for reuse in incremental compilation.
+  /// Incremental compilation is basically calling [run] more than once.
+  final bool hasIncrementalSupport;
 
   api.CompilerOutputProvider outputProvider;
 
@@ -839,6 +845,7 @@ abstract class Compiler implements DiagnosticListener {
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
+            bool hasIncrementalSupport: false,
             outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -847,6 +854,8 @@ abstract class Compiler implements DiagnosticListener {
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.analyzeAllFlag = analyzeAllFlag,
+        this.hasIncrementalSupport = hasIncrementalSupport,
+        cacheStrategy = new CacheStrategy(hasIncrementalSupport),
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {

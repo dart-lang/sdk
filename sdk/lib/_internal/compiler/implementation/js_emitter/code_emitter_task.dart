@@ -18,6 +18,11 @@ class CodeEmitterTask extends CompilerTask {
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
+  final Set<Constant> cachedEmittedConstants;
+  final CodeBuffer cachedEmittedConstantsBuffer = new CodeBuffer();
+  final Map<Element, ClassBuilder> cachedClassBuilders;
+  final Set<Element> cachedElements;
+
   bool needsDefineClass = false;
   bool needsMixinSupport = false;
   bool needsLazyInitializer = false;
@@ -98,6 +103,9 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
       : this.namer = namer,
         constantEmitter = new ConstantEmitter(compiler, namer),
+        cachedEmittedConstants = compiler.cacheStrategy.newSet(),
+        cachedClassBuilders = compiler.cacheStrategy.newMap(),
+        cachedElements = compiler.cacheStrategy.newSet(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
     containerBuilder.task = this;
@@ -766,8 +774,23 @@ class CodeEmitterTask extends CompilerTask {
 
   void generateClass(ClassElement classElement, ClassBuilder properties) {
     compiler.withCurrentElement(classElement, () {
-      classEmitter.generateClass(
-          classElement, properties, additionalProperties[classElement]);
+      if (compiler.hasIncrementalSupport) {
+        ClassBuilder builder =
+            cachedClassBuilders.putIfAbsent(classElement, () {
+              ClassBuilder builder = new ClassBuilder(namer);
+              classEmitter.generateClass(
+                  classElement, builder, additionalProperties[classElement]);
+              return builder;
+            });
+        invariant(classElement, builder.fields.isEmpty);
+        invariant(classElement, builder.superName == null);
+        invariant(classElement, builder.functionType == null);
+        invariant(classElement, builder.fieldMetadata == null);
+        properties.properties.addAll(builder.properties);
+      } else {
+        classEmitter.generateClass(
+            classElement, properties, additionalProperties[classElement]);
+      }
     });
   }
 
@@ -901,7 +924,15 @@ class CodeEmitterTask extends CompilerTask {
   void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
     List<Constant> constants = outputConstantLists[outputUnit];
     if (constants == null) return;
+    bool isMainBuffer = buffer == mainBuffer;
+    if (compiler.hasIncrementalSupport && isMainBuffer) {
+      buffer = cachedEmittedConstantsBuffer;
+    }
     for (Constant constant in constants) {
+      if (compiler.hasIncrementalSupport && isMainBuffer) {
+        if (cachedEmittedConstants.contains(constant)) continue;
+        cachedEmittedConstants.add(constant);
+      }
       String name = namer.constantName(constant);
       if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
       jsAst.Expression init = js('#.# = #',
@@ -909,6 +940,9 @@ class CodeEmitterTask extends CompilerTask {
            constantInitializerExpression(constant)]);
       buffer.write(jsAst.prettyPrint(init, compiler));
       buffer.write('$N');
+    }
+    if (compiler.hasIncrementalSupport && isMainBuffer) {
+      mainBuffer.add(cachedEmittedConstantsBuffer);
     }
   }
 
@@ -1094,7 +1128,7 @@ class CodeEmitterTask extends CompilerTask {
   void computeNeededConstants() {
     JavaScriptConstantCompiler handler = backend.constants;
     List<Constant> constants = handler.getConstantsForEmission(
-        compareConstants);
+        compiler.hasIncrementalSupport ? null : compareConstants);
     for (Constant constant in constants) {
       if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
       OutputUnit constantUnit =
@@ -1302,6 +1336,8 @@ class CodeEmitterTask extends CompilerTask {
 
   String assembleProgram() {
     measure(() {
+      invalidateCaches();
+
       // Compute the required type checks to know which classes need a
       // 'is$' method.
       typeTestEmitter.computeRequiredTypeChecks();
@@ -1445,22 +1481,24 @@ class CodeEmitterTask extends CompilerTask {
         List<Element> sortedElements =
             Elements.sortedByPosition(elementDescriptors.keys);
 
-        Iterable<Element> pendingStatics = sortedElements.where((element) {
-            return !element.isLibrary &&
-                elementDescriptors[element].values.any((descriptor) =>
-                    descriptor != null);
-        });
+        Iterable<Element> pendingStatics;
+        if (!compiler.hasIncrementalSupport) {
+          pendingStatics = sortedElements.where((element) {
+              return !element.isLibrary &&
+                  elementDescriptors[element].values.any((descriptor) =>
+                      descriptor != null);
+          });
 
-        pendingStatics.forEach((element) =>
-            compiler.reportInfo(
-                element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
-
+          pendingStatics.forEach((element) =>
+              compiler.reportInfo(
+                  element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
+        }
         for (LibraryElement library in sortedElements.where((element) =>
             element.isLibrary)) {
           writeLibraryDescriptors(library);
           elementDescriptors[library] = const {};
         }
-        if (!pendingStatics.isEmpty) {
+        if (pendingStatics != null && !pendingStatics.isEmpty) {
           compiler.internalError(pendingStatics.first,
               'Pending statics (see above).');
         }
@@ -1754,5 +1792,18 @@ class CodeEmitterTask extends CompilerTask {
 
   void registerReadTypeVariable(TypeVariableElement element) {
     readTypeVariables.add(element);
+  }
+
+  void invalidateCaches() {
+    if (!compiler.hasIncrementalSupport) return;
+    if (cachedElements.isEmpty) return;
+    for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
+      if (element.isInstanceMember) {
+        cachedClassBuilders.remove(element.enclosingClass);
+
+        nativeEmitter.cachedBuilders.remove(element.enclosingClass);
+
+      }
+    }
   }
 }

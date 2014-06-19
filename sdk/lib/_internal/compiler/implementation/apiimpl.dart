@@ -66,6 +66,7 @@ class Compiler extends leg.Compiler {
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
             useContentSecurityPolicy: hasOption(options, '--csp'),
+            hasIncrementalSupport: hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");

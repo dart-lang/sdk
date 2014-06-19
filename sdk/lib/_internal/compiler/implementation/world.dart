@@ -32,6 +32,8 @@ class World {
   final Set<Element> functionsThatMightBePassedToApply =
       new Set<FunctionElement>();
 
+  final Set<Element> alreadyPopulated;
+
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
   }
@@ -55,10 +57,14 @@ class World {
 
   World(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
-        this.compiler = compiler;
+        this.compiler = compiler,
+        alreadyPopulated = compiler.cacheStrategy.newSet();
 
   void populate() {
     void addSubtypes(ClassElement cls) {
+      if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
+        return;
+      }
       assert(cls.isDeclaration);
       if (cls.resolutionState != STATE_DONE) {
         compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');

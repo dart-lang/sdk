@@ -90,6 +90,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Set<ClassElement> pendingClasses = new Set<ClassElement>();
   final Set<ClassElement> unusedClasses = new Set<ClassElement>();
 
+  final Set<LibraryElement> processedLibraries;
+
   bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
 
   final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
@@ -121,9 +123,17 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ClassElement _annotationJsNameClass;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
-  NativeEnqueuerBase(this.world, this.compiler, this.enableLiveTypeAnalysis);
+  NativeEnqueuerBase(this.world, Compiler compiler, this.enableLiveTypeAnalysis)
+      : this.compiler = compiler,
+        processedLibraries = compiler.cacheStrategy.newSet();
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
+    if (compiler.hasIncrementalSupport) {
+      // Since [Set.add] returns bool if an element was added, this restricts
+      // [libraries] to ones that haven't already been processed. This saves
+      // time during incremental compiles.
+      libraries = libraries.where(processedLibraries.add);
+    }
     libraries.forEach(processNativeClassesInLibrary);
     if (compiler.isolateHelperLibrary != null) {
       processNativeClassesInLibrary(compiler.isolateHelperLibrary);
