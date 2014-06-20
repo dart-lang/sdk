@@ -4045,7 +4045,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     } else if (mixinType.isTypeVariable) {
       compiler.reportError(mixinNode, MessageKind.CLASS_NAME_EXPECTED);
     } else if (mixinType.isMalformed) {
-      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED);
+      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED,
+          {'className': element.name, 'malformedType': mixinType});
     }
     return mixinType;
   }
@@ -4224,7 +4225,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     DartType supertype = resolveType(superclass);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
-        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED);
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED,
+            {'className': element.name, 'malformedType': supertype});
         return objectType;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
         compiler.reportError(superclass.typeName,
@@ -4247,7 +4249,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (interfaceType != null) {
         if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
           compiler.reportError(superclass,
-              MessageKind.CANNOT_IMPLEMENT_MALFORMED);
+              MessageKind.CANNOT_IMPLEMENT_MALFORMED,
+              {'className': element.name, 'malformedType': interfaceType});
         } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;

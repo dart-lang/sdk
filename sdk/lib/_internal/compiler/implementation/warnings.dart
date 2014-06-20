@@ -759,8 +759,10 @@ main() { F f = null; }"""]);
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "'#{type}' cannot be implemented.");
 
+  // TODO(johnnwinther): Split messages into reasons for malformedness.
   static const MessageKind CANNOT_EXTEND_MALFORMED = const MessageKind(
-      "A class can't extend a malformed type.",
+      "Class '#{className}' can't extend the type '#{malformedType}' because "
+      "it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "'extends' clause.",
       examples: const ["""
@@ -768,7 +770,8 @@ class A extends Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_IMPLEMENT_MALFORMED = const MessageKind(
-      "A class can't implement a malformed type.",
+      "Class '#{className}' can't implement the type '#{malformedType}' "
+      "because it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'implements' clause.",
       examples: const ["""
@@ -776,7 +779,8 @@ class A implements Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_MIXIN_MALFORMED = const MessageKind(
-      "A class can't mixin a malformed type.",
+      "Class '#{className}' can't mixin the type '#{malformedType}' because it "
+      "is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'with' clause.",
       examples: const ["""

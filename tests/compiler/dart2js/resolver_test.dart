@@ -522,7 +522,7 @@ Future testSuperclass() {
       compiler.resolveStatement("Foo bar;");
       Expect.equals(1, compiler.errors.length);
       var cannotResolveBar = new Message(MessageKind.CANNOT_EXTEND_MALFORMED,
-                                         {'typeName': 'Bar'}, false);
+          {'className': 'Foo', 'malformedType': 'Bar'}, false);
       Expect.equals(cannotResolveBar, compiler.errors[0].message);
       compiler.clearMessages();
     }),
