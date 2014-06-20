@@ -25,6 +25,9 @@ typedef bool AllowAsset(AssetId id);
 
 /// A server that serves assets transformed by barback.
 class BarbackServer extends BaseServer<BarbackServerResult> {
+  /// The package whose assets are being served.
+  final String package;
+
   /// The directory in the root which will serve as the root of this server as
   /// a native platform path.
   ///
@@ -43,18 +46,26 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
 
   /// Creates a new server and binds it to [port] of [host].
   ///
-  /// This server will serve assets from [barback], and use [rootDirectory] as
-  /// the root directory.
+  /// This server serves assets from [barback], and uses [rootDirectory]
+  /// (which is relative to the root directory of [package]) as the root
+  /// directory. If [rootDirectory] is omitted, the bound server can only be
+  /// used to serve assets from packages' lib directories (i.e. "packages/..."
+  /// URLs). If [package] is omitted, it defaults to the entrypoint package.
   static Future<BarbackServer> bind(AssetEnvironment environment,
-      String host, int port, String rootDirectory) {
+      String host, int port, {String package, String rootDirectory}) {
+    if (package == null) package = environment.rootPackage.name;
     return Chain.track(bindServer(host, port)).then((server) {
-      log.fine('Bound "$rootDirectory" to $host:$port.');
-      return new BarbackServer._(environment, server, rootDirectory);
+      if (rootDirectory == null) {
+        log.fine('Serving packages on $host:$port.');
+      } else {
+        log.fine('Bound "$rootDirectory" to $host:$port.');
+      }
+      return new BarbackServer._(environment, server, package, rootDirectory);
     });
   }
 
   BarbackServer._(AssetEnvironment environment, HttpServer server,
-      this.rootDirectory)
+      this.package, this.rootDirectory)
       : super(environment, server);
 
   /// Converts a [url] served by this server into an [AssetId] that can be
@@ -76,7 +87,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
     if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
 
     var relativePath = path.url.join(rootDirectory, path.url.joinAll(parts));
-    return new AssetId(environment.rootPackage.name, relativePath);
+    return new AssetId(package, relativePath);
   }
 
   /// Handles an HTTP request.

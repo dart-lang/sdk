@@ -204,6 +204,20 @@ class AssetEnvironment {
     });
   }
 
+  /// Binds a new port to serve assets from within the "bin" directory of
+  /// [package].
+  ///
+  /// Adds the sources within that directory and then binds a server to it.
+  /// Unlike [serveDirectory], this works with packages that are not the
+  /// entrypoint.
+  ///
+  /// Returns a [Future] that completes to the bound server.
+  Future<BarbackServer> servePackageBinDirectory(String package) {
+    return _provideDirectorySources(graph.packages[package], "bin").then(
+        (_) => BarbackServer.bind(this, _hostname, 0, package: package,
+            rootDirectory: "bin"));
+  }
+
   /// Stops the server bound to [rootDirectory].
   ///
   /// Also removes any source files within that directory from barback. Returns
@@ -395,7 +409,7 @@ class AssetEnvironment {
 
       // Bind a server that we can use to load the transformers.
       var transformerServer;
-      return BarbackServer.bind(this, _hostname, 0, null).then((server) {
+      return BarbackServer.bind(this, _hostname, 0).then((server) {
         transformerServer = server;
 
         var errorStream = barback.errors.map((error) {
