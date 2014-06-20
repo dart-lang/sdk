@@ -103,7 +103,7 @@ compile(source, SendPort replyTo) {
       options: options,
       cachedCompiler: cachedCompiler,
       libraryRoot: sdkLocation,
-      packageRoot: Uri.parse('packages/'));
+      packageRoot: Uri.base.resolve('/packages/'));
 
   cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
     if (cachedCompiler.libraries.containsKey('dart:html')) {

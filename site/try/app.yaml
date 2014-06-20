@@ -28,6 +28,56 @@ threadsafe: yes
 default_expiration: 1s
 
 handlers:
+- url: /packages/analyzer
+  static_dir: packages/analyzer
+
+- url: /packages/args
+  static_dir: packages/args
+
+- url: /packages/collection
+  static_dir: packages/collection
+
+- url: /packages/crypto
+  static_dir: packages/crypto
+
+- url: /packages/http
+  static_dir: packages/http
+
+- url: /packages/http_parser
+  static_dir: packages/http_parser
+
+- url: /packages/intl
+  static_dir: packages/intl
+
+- url: /packages/logging
+  static_dir: packages/logging
+
+- url: /packages/markdown
+  static_dir: packages/markdown
+
+- url: /packages/matcher
+  static_dir: packages/matcher
+
+- url: /packages/math
+  static_dir: packages/math
+
+- url: /packages/path
+  static_dir: packages/path
+
+- url: /packages/serialization
+  static_dir: packages/serialization
+
+- url: /packages/stack_trace
+  static_dir: packages/stack_trace
+
+- url: /packages/string_scanner
+  static_dir: packages/string_scanner
+
+- url: /packages/unittest
+  static_dir: packages/unittest
+
+- url: /packages/yaml
+  static_dir: packages/yaml
 
 - url: /favicon\.ico
   static_files: favicon.ico
