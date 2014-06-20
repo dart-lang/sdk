@@ -25,7 +25,7 @@ class AnalysisServerTestHelper {
   AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
     server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
-        rethrowExceptions: rethrowExceptions);
+        new MockPackageMapProvider(), rethrowExceptions: rethrowExceptions);
   }
 }
 

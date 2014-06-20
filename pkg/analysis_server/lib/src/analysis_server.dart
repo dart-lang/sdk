@@ -15,6 +15,8 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -25,7 +27,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analysis_server/src/package_uri_resolver.dart';
 
 
 /**
@@ -47,8 +48,10 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void addContext(Folder folder, File pubspecFile) {
+    Map<String, Folder> packageMap =
+        analysisServer.packageMapProvider.computePackageMap(folder);
     ContextDirectory contextDirectory = new ContextDirectory(
-        analysisServer.defaultSdk, resourceProvider, folder, pubspecFile);
+        analysisServer.defaultSdk, resourceProvider, folder, packageMap);
     analysisServer.folderMap[folder] = contextDirectory;
     AnalysisContext context = contextDirectory.context;
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
@@ -84,6 +87,12 @@ class AnalysisServer {
    * to context directories.
    */
   AnalysisServerContextDirectoryManager contextDirectoryManager;
+
+  /**
+   * Provider which is used to determine the mapping from package name to
+   * package folder.
+   */
+  final PackageMapProvider packageMapProvider;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -146,7 +155,7 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      {this.rethrowExceptions: true}) {
+      this.packageMapProvider, {this.rethrowExceptions: true}) {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -575,28 +584,20 @@ class ContextDirectory {
   final Folder _folder;
 
   /**
-   * The `pubspec.yaml` file in [_folder], or null if there isn't one.
-   */
-  File _pubspecFile;
-
-  /**
    * The [AnalysisContext] of this [_folder].
    */
   AnalysisContext _context;
 
   ContextDirectory(DartSdk sdk, this._resourceProvider, this._folder,
-      this._pubspecFile) {
+      Map<String, Folder> packageMap) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
     List<UriResolver> resolvers = <UriResolver>[new DartUriResolver(sdk),
         new FileUriResolver(),
     ];
-    {
-      UriResolver packageResolver = _createPackageUriResolver();
-      if (packageResolver != null) {
-        resolvers.add(packageResolver);
-      }
+    if (packageMap != null) {
+      resolvers.add(new PackageMapUriResolver(_resourceProvider, packageMap));
     }
     _context.sourceFactory = new SourceFactory(resolvers);
   }
@@ -605,29 +606,6 @@ class ContextDirectory {
    * Return the [AnalysisContext] of this folder.
    */
   AnalysisContext get context => _context;
-
-  /**
-   * Returns an [UriResolver] for `package` URIs, or `null` if not a Pub
-   * application.
-   */
-  UriResolver _createPackageUriResolver() {
-    // prepare 'packages' folder
-    Resource packagesResource = _folder.getChild('packages');
-    if (packagesResource is! Folder) {
-      return null;
-    }
-    Folder packagesFolder = packagesResource;
-    // list packages
-    Map<String, Folder> packageMap = <String, Folder>{};
-    List<Resource> children = packagesFolder.getChildren();
-    for (Resource child in children) {
-      if (child is Folder) {
-        packageMap[child.shortName] = child;
-      }
-    }
-    // done
-    return new PackageMapUriResolver(_resourceProvider, packageMap);
-  }
 }
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);

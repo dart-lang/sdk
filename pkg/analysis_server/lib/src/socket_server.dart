@@ -11,6 +11,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_edit.dart';
 import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 
@@ -40,9 +41,11 @@ class SocketServer {
       });
       return;
     }
+    PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     analysisServer = new AnalysisServer(
         serverChannel,
-        PhysicalResourceProvider.INSTANCE,
+        resourceProvider,
+        new PubPackageMapProvider(resourceProvider),
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }

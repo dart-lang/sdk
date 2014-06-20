@@ -24,7 +24,8 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, new MockPackageMapProvider());
     server.defaultSdk = new MockSdk();
     handler = new CompletionDomainHandler(server);
   });

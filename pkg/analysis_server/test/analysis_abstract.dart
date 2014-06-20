@@ -23,6 +23,7 @@ import 'mocks.dart';
 class AbstractAnalysisTest {
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
+  MockPackageMapProvider packageMapProvider;
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
@@ -43,7 +44,9 @@ class AbstractAnalysisTest {
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    packageMapProvider = new MockPackageMapProvider();
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, packageMapProvider);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

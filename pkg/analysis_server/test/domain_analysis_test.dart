@@ -32,7 +32,8 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, new MockPackageMapProvider());
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
   });
@@ -209,7 +210,8 @@ class AnalysisTestHelper {
   AnalysisTestHelper() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, new MockPackageMapProvider());
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -569,12 +571,14 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
   }
 
   test_setRoots_packages() {
-    // prepare project with 'packages' folder
-    String pkgFile = '/project/packages/pkgA/libA.dart';
+    // prepare package
+    String pkgFile = '/packages/pkgA/libA.dart';
     resourceProvider.newFile(pkgFile, '''
 library lib_a;
 class A {}
 ''');
+    packageMapProvider.packageMap['pkgA'] =
+        resourceProvider.getResource('/packages/pkgA');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {

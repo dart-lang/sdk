@@ -10,18 +10,19 @@ import 'dart:io';
 @MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
+import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/resource.dart' as resource;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart' as resource;
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
-import 'package:analysis_server/src/operation/operation.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running
@@ -410,3 +411,14 @@ class MockSdk implements DartSdk {
   List<String> get uris => throw unimplemented;
 }
 
+/**
+ * A mock [PackageMapProvider].
+ */
+class MockPackageMapProvider implements PackageMapProvider {
+  Map<String, resource.Folder> packageMap = <String, resource.Folder>{};
+
+  @override
+  Map<String, resource.Folder> computePackageMap(resource.Folder folder) {
+    return packageMap;
+  }
+}
