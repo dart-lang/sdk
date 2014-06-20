@@ -35,6 +35,11 @@ class ContextCodec {
       );
 
   /**
+   * The next id to assign.
+   */
+  int _nextId = 0;
+
+  /**
    * Returns the [AnalysisContext] that corresponds to the given index.
    */
   AnalysisContext decode(int index) => _indexToContext[index];
@@ -45,11 +50,21 @@ class ContextCodec {
   int encode(AnalysisContext context) {
     int index = _contextToIndex[context];
     if (index == null) {
-      index = _indexToContext.length;
+      index = _nextId++;
       _contextToIndex[context] = index;
       _indexToContext[index] = context;
     }
     return index;
+  }
+
+  /**
+   * Removes the given [context].
+   */
+  void remove(AnalysisContext context) {
+    int id = _contextToIndex.remove(context);
+    if (id != null) {
+      _indexToContext.remove(id);
+    }
   }
 }
 
@@ -904,6 +919,8 @@ class SplitIndexStore implements IndexStore {
     _contextToLibraryToUnits.remove(context);
     _contextToUnitToLibraries.remove(context);
     _contextNodeRelations.remove(_contextCodec.encode(context));
+    // remove context from codec
+    _contextCodec.remove(context);
   }
 
   @override

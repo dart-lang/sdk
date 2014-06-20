@@ -70,13 +70,37 @@ void _assertHasLocation(List<Location> locations, Element element, int offset,
 class _ContextCodecTest {
   ContextCodec codec = new ContextCodec();
 
-  void test_all() {
+  void test_encode_decode() {
     AnalysisContext contextA = new _MockAnalysisContext('contextA');
     AnalysisContext contextB = new _MockAnalysisContext('contextB');
     int idA = codec.encode(contextA);
     int idB = codec.encode(contextB);
+    expect(idA, codec.encode(contextA));
+    expect(idB, codec.encode(contextB));
     expect(codec.decode(idA), contextA);
     expect(codec.decode(idB), contextB);
+  }
+
+  void test_remove() {
+    // encode
+    {
+      AnalysisContext context = new _MockAnalysisContext('context');
+      // encode
+      int id = codec.encode(context);
+      expect(id, 0);
+      expect(codec.decode(id), context);
+      // remove
+      codec.remove(context);
+      expect(codec.decode(id), isNull);
+    }
+    // encode again
+    {
+      AnalysisContext context = new _MockAnalysisContext('context');
+      // encode
+      int id = codec.encode(context);
+      expect(id, 1);
+      expect(codec.decode(id), context);
+    }
   }
 }
 
