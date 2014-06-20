@@ -25,10 +25,10 @@ main() {
 
 @ReflectiveTestCase()
 class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
-  List<_HighlighRegion> regions;
+  List<_HighlightRegion> regions;
 
   void assertHasRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlighRegion region in regions) {
+    for (_HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
           type.name) {
         return;
@@ -45,7 +45,7 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
   void assertNoRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlighRegion region in regions) {
+    for (_HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
           type.name) {
         fail(
@@ -97,7 +97,7 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
         List<Map<String, Object>> regionsJson = notification.getParameter(
             REGIONS);
         for (Map<String, Object> regionJson in regionsJson) {
-          regions.add(new _HighlighRegion.fromJson(regionJson));
+          regions.add(new _HighlightRegion.fromJson(regionJson));
         }
       }
     }
@@ -756,14 +756,14 @@ class A<T> {
 }
 
 
-class _HighlighRegion {
+class _HighlightRegion {
   final int length;
   final int offset;
   final String type;
 
-  _HighlighRegion(this.type, this.offset, this.length);
+  _HighlightRegion(this.type, this.offset, this.length);
 
-  factory _HighlighRegion.fromJson(Map<String, Object> map) {
-    return new _HighlighRegion(map[TYPE], map[OFFSET], map[LENGTH]);
+  factory _HighlightRegion.fromJson(Map<String, Object> map) {
+    return new _HighlightRegion(map[TYPE], map[OFFSET], map[LENGTH]);
   }
 }
