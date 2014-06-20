@@ -10,7 +10,7 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
-import '../../../sdk/lib/_internal/compiler/compiler.dart';
+import 'package:compiler/compiler.dart';
 
 runCompiler(String main, List<String> options,
             onValue(String code, List errors, List warnings)) {

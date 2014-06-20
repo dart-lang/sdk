@@ -6,8 +6,8 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'mock_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' as jsAst;
-import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' show js;
+import 'package:compiler/implementation/js/js.dart' as jsAst;
+import 'package:compiler/implementation/js/js.dart' show js;
 
 Future testExpression(String expression, [String expect = ""]) {
   jsAst.Node node = js(expression);

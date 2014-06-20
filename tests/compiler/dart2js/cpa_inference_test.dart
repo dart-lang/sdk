@@ -5,9 +5,9 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/inferrer/concrete_types_inferrer.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/types/types.dart';
+import 'package:compiler/implementation/inferrer/concrete_types_inferrer.dart';
 
 import "parser_helper.dart";
 import "compiler_helper.dart";

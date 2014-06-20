@@ -8,8 +8,8 @@ import "dart:io";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as compiler;
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
+import 'package:compiler/compiler.dart' as compiler;
+import 'package:compiler/implementation/filenames.dart';
 
 const SOURCES = const {
   "/main.dart": """

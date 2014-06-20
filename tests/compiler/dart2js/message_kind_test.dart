@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/implementation/dart2jslib.dart' show
     DualKind,
     MessageKind;
 

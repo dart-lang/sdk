@@ -8,16 +8,16 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
+import 'package:compiler/implementation/elements/elements.dart'
        as lego;
-export '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+export 'package:compiler/implementation/elements/elements.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
+import 'package:compiler/implementation/js_backend/js_backend.dart'
        as js;
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        as leg;
-export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+export 'package:compiler/implementation/dart2jslib.dart'
        show Constant,
             Message,
             MessageKind,
@@ -25,22 +25,22 @@ export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
             TypedSelector,
             SourceSpan;
 
-import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
+import 'package:compiler/implementation/ssa/ssa.dart' as ssa;
 
-import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+import 'package:compiler/implementation/types/types.dart'
        as types;
-export '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+export 'package:compiler/implementation/types/types.dart'
        show TypeMask;
 
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
-export '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+import 'package:compiler/implementation/util/util.dart';
+export 'package:compiler/implementation/util/util.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/source_file.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        show Compiler;
 
-export '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+export 'package:compiler/implementation/tree/tree.dart';
 
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';

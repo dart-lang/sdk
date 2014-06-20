@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart";
+import "package:compiler/implementation/ssa/ssa.dart";
+import "package:compiler/implementation/dart2jslib.dart";
+import "package:compiler/implementation/js_backend/js_backend.dart";
 
 ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 

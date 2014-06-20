@@ -5,10 +5,10 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+import "package:compiler/implementation/dart2jslib.dart";
+import "package:compiler/implementation/elements/elements.dart";
+import "package:compiler/implementation/tree/tree.dart";
+import "package:compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
 

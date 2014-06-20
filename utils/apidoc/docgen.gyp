@@ -84,6 +84,8 @@
             '--exclude-lib=async_helper',
             '--exclude-lib=expect',
             '--exclude-lib=docgen',
+            '--exclude-lib=compiler',
+            '--exclude-lib=try',
             '../../pkg'
           ],
           'message': 'Running docgen: <(_action)',

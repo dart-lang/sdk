@@ -6,22 +6,22 @@ library parser_helper;
 
 import "package:expect/expect.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/source_file.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+import "package:compiler/implementation/elements/elements.dart";
+import "package:compiler/implementation/tree/tree.dart";
+import "package:compiler/implementation/scanner/scannerlib.dart";
+import "package:compiler/implementation/source_file.dart";
+import "package:compiler/implementation/util/util.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart"
+import "package:compiler/implementation/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
+import "package:compiler/implementation/dart2jslib.dart";
 
-export "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+export "package:compiler/implementation/dart2jslib.dart"
     show DiagnosticListener;
 // TODO(ahe): We should have token library to export instead.
-export "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
+export "package:compiler/implementation/scanner/scannerlib.dart";
 
 class LoggerCanceler implements DiagnosticListener {
   void cancel(String reason, {node, token, instruction, element}) {

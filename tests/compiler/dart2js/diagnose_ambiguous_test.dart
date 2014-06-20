@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart'
+import 'package:compiler/compiler.dart'
        show Diagnostic;
 
 main() {

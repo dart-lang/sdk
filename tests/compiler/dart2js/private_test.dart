@@ -6,8 +6,8 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/dart2jslib.dart';
 
 const String PRIVATE_SOURCE_URI = 'src:private';
 const String PRIVATE_SOURCE = '''

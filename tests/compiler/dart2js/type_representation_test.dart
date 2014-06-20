@@ -7,11 +7,11 @@ library subtype_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
+import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/implementation/js/js.dart';
+import 'package:compiler/implementation/elements/elements.dart'
        show Element, ClassElement;
-import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
+import 'package:compiler/implementation/js_backend/js_backend.dart'
        show JavaScriptBackend, TypeRepresentationGenerator;
 
 void main() {

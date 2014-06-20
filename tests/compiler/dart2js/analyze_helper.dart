@@ -6,13 +6,13 @@ library analyze_helper;
 
 import 'dart:async';
 import 'dart:io';
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/implementation/apiimpl.dart';
+import 'package:compiler/implementation/dart2jslib.dart'
     hide Compiler;
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
+import 'package:compiler/implementation/filenames.dart';
+import 'package:compiler/implementation/source_file_provider.dart';
+import 'package:compiler/implementation/util/uri_extras.dart';
 
 /**
  * Map of whitelisted warnings and errors.

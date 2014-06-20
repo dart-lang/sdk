@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dump_info.dart';
+import 'package:compiler/implementation/dump_info.dart';
 
 const String TEST_ONE = r"""
 library main;

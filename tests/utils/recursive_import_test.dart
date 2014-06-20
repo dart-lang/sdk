@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'dart:async';
 import 'dummy_compiler_test.dart';
-import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'package:compiler/compiler.dart';
 
 const String RECURSIVE_MAIN = """
 library fisk;

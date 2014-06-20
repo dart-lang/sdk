@@ -7,11 +7,11 @@ library members_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+import 'package:compiler/implementation/dart_types.dart';
+import "package:compiler/implementation/elements/elements.dart"
        show Element, ClassElement, MemberSignature, Name, PublicName,
             DeclaredMember, Member;
-import "../../../sdk/lib/_internal/compiler/implementation/resolution/class_members.dart"
+import "package:compiler/implementation/resolution/class_members.dart"
   show DeclaredMember, ErroneousMember, SyntheticMember;
 
 void main() {

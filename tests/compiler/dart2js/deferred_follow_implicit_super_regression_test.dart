@@ -8,7 +8,7 @@ import 'memory_source_file_helper.dart';
 import "memory_compiler.dart";
 import "dart:async";
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        as dart2js;
 
 runTest(String mainScript, test) {

@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart';
+import 'package:compiler/implementation/apiimpl.dart';
 
 const String NO_RUNTIME_TYPE = r"""
 import 'dart:core' as prefix;

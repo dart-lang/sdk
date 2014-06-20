@@ -4,4 +4,4 @@
 
 library docgen.exports.mirrors_util;
 
-export '../../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+export 'package:compiler/implementation/mirrors/mirrors_util.dart';

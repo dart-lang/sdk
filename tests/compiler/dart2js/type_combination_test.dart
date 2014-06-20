@@ -5,9 +5,9 @@
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "compiler_helper.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
+import "package:compiler/implementation/types/types.dart";
 import "type_mask_test_helper.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
+import 'package:compiler/implementation/js_backend/js_backend.dart';
 
 TypeMask nullType;
 TypeMask objectType;

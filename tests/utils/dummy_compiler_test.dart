@@ -10,7 +10,7 @@ library dummy_compiler;
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
-import '../../sdk/lib/_internal/compiler/compiler.dart';
+import 'package:compiler/compiler.dart';
 
 String libProvider(Uri uri) {
   if (uri.path.endsWith("/core.dart")) {

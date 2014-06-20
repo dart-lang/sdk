@@ -4,7 +4,7 @@
 
 // Test to ensure that dart2js is free of warnings.
 
-import '../../sdk/lib/_internal/compiler/implementation/dart2js.dart'
+import 'package:compiler/implementation/dart2js.dart'
     as dart2js;
 
 void main() {

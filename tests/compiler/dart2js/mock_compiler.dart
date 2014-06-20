@@ -8,24 +8,24 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:collection';
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/resolution/resolution.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/tree/tree.dart';
+import 'package:compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
+import 'package:compiler/implementation/elements/modelx.dart'
     show ElementX,
          LibraryElementX,
          ErroneousElementX,
          FunctionElementX;
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
 
-import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
+import 'package:compiler/implementation/deferred_load.dart'
     show DeferredLoadTask,
          OutputUnit;
 

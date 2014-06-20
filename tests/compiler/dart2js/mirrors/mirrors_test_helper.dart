@@ -5,9 +5,9 @@
 import 'dart:io';
 import 'dart:async';
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart' as source_mirrors;
-import '../../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
+import 'package:compiler/implementation/mirrors/source_mirrors.dart';
+import 'package:compiler/implementation/mirrors/analyze.dart' as source_mirrors;
+import 'package:compiler/implementation/source_file_provider.dart';
 
 TypeMirror createInstantiation(TypeSourceMirror type,
                                List<TypeMirror> typeArguments) {

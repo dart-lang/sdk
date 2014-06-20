@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/util_implementation.dart';
+import 'package:compiler/implementation/util/util.dart';
+import 'package:compiler/implementation/util/util_implementation.dart';
 
 main() {
   test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),

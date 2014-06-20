@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
+import 'package:compiler/implementation/util/uri_extras.dart';
 
 
 void testRelativize() {

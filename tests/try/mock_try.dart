@@ -7,15 +7,15 @@ import 'dart:html' show
     MutationObserver,
     document;
 
-import '../../site/try/src/interaction_manager.dart' show
+import 'package:try/src/interaction_manager.dart' show
     InteractionManager;
 
-import '../../site/try/src/ui.dart' show
+import 'package:try/src/ui.dart' show
     hackDiv,
     mainEditorPane,
     observer;
 
-import '../../site/try/src/user_option.dart' show
+import 'package:try/src/user_option.dart' show
     UserOption;
 
 InteractionManager mockTryDartInteraction() {

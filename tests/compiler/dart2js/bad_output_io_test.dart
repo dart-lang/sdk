@@ -9,11 +9,11 @@ library dart2js.test.missing_file;
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart'
+import 'package:compiler/compiler.dart'
        show Diagnostic;
-import '../../../sdk/lib/_internal/compiler/implementation/dart2js.dart'
+import 'package:compiler/implementation/dart2js.dart'
        show exitFunc, compileFunc, compile, diagnosticHandler;
-import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart'
+import 'package:compiler/implementation/source_file_provider.dart'
        show FormattingDiagnosticHandler;
 
 class CollectingFormattingDiagnosticHandler

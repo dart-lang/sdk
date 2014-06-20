@@ -7,8 +7,8 @@ library dart2js.test.memory_source_file_helper;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+import 'package:compiler/implementation/mirrors/source_mirrors.dart';
+import 'package:compiler/implementation/mirrors/mirrors_util.dart';
 
 const Map MEMORY_SOURCE_FILES = const {
   'main.dart': r"""

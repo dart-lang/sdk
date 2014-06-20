@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:collection';
-import '../../../sdk/lib/_internal/compiler/implementation/util/setlet.dart';
+import 'package:compiler/implementation/util/setlet.dart';
 
 main() {
   for (int i = 1; i <= 32; i++) {

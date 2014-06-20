@@ -7,12 +7,12 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'dart:collection';
 
-import "../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart";
+import "package:compiler/implementation/resolution/resolution.dart";
 import "compiler_helper.dart";
 import "parser_helper.dart";
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart';
+import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/implementation/elements/modelx.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 

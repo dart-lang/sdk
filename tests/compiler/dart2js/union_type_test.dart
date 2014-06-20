@@ -7,8 +7,8 @@ import "package:async_helper/async_helper.dart";
 import "compiler_helper.dart";
 import "parser_helper.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/dart_types.dart";
+import "package:compiler/implementation/types/types.dart";
+import "package:compiler/implementation/dart_types.dart";
 
 main() {
   asyncTest(() => MockCompiler.create((MockCompiler compiler) {

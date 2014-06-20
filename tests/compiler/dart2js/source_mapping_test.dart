@@ -5,10 +5,10 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+import "package:compiler/implementation/dart2jslib.dart";
+import 'package:compiler/implementation/source_file.dart';
 import "mock_compiler.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart';
+import 'package:compiler/implementation/js_backend/js_backend.dart';
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler.internal();

@@ -6,18 +6,13 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show compilerFor;
-import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' show
+import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
-import
-    '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart'
-show
+import 'package:compiler/implementation/dart_backend/dart_backend.dart' show
     DartBackend;
-import
-    '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
-show Identifier, Node, Send;
-import
-    '../../../sdk/lib/_internal/compiler/implementation/mirror_renamer/mirror_renamer.dart'
-show
+import 'package:compiler/implementation/tree/tree.dart' show
+    Identifier, Node, Send;
+import 'package:compiler/implementation/mirror_renamer/mirror_renamer.dart' show
     MirrorRenamer;
 
 main() {

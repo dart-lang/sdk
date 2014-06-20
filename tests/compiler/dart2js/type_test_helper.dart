@@ -8,14 +8,14 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/implementation/dart2jslib.dart'
     show Compiler;
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
+import 'package:compiler/implementation/elements/elements.dart'
     show Element,
          TypeDeclarationElement,
          ClassElement;
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
+import 'package:compiler/implementation/util/util.dart'
     show Link, LinkBuilder;
 
 GenericType instantiate(TypeDeclarationElement element,
