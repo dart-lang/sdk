@@ -39,11 +39,11 @@ xhr_test/json: Fail # Issue 13069
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
+indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
-indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
