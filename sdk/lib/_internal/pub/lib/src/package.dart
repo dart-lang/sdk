@@ -146,9 +146,13 @@ class Package {
       // Git always prints files relative to the repository root, but we want
       // them relative to the working directory. It also prints forward slashes
       // on Windows which we normalize away for easier testing.
-      files = files.map((file) => "$dir${path.separator}$file")
-          // Filter out broken symlinks, since git doesn't do so automatically.
-          .where((file) => !linkExists(file) || fileExists(file));
+      files = files.map((file) {
+        if (Platform.operatingSystem != 'windows') return "$dir/$file";
+        return "$dir\\${file.replaceAll("/", "\\")}";
+      }).where((file) {
+        // Filter out broken symlinks, since git doesn't do so automatically.
+        return !linkExists(file) || fileExists(file);
+      });
     } else {
       files = listDir(beneath, recursive: true, includeDirs: false,
           whitelist: _WHITELISTED_FILES);
