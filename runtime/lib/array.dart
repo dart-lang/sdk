@@ -5,7 +5,7 @@
 
 // TODO(srdjan): Use shared array implementation.
 class _List<E> implements List<E> {
-  static final int _classId = (new _List(0))._cid;
+  static final int _classId = ClassID.getID(new _List(0));
 
   factory _List(length) native "List_allocate";
 
@@ -271,7 +271,7 @@ class _List<E> implements List<E> {
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
 class _ImmutableList<E> implements List<E> {
-  static final int _classId = (const [])._cid;
+  static final int _classId = ClassID.getID(const []);
 
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(

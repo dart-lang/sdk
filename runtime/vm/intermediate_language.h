@@ -39,10 +39,9 @@ class Range;
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
   V(::, identical, ObjectIdentical, 496869842)                                 \
+  V(ClassID, getID, ClassIDgetID, 1322490980)                                  \
   V(Object, ==, ObjectEquals, 1068471689)                                      \
   V(Object, Object., ObjectConstructor, 1066669787)                            \
-  V(Object, get:_cid, ObjectCid, 1771959715)                                   \
-  V(_TypedListBase, get:_cid, TypedListBaseCid, 1438451377)                    \
   V(_List, get:length, ObjectArrayLength, 1181352729)                          \
   V(_List, _List., ObjectArrayConstructor, 1595327584)                         \
   V(_ImmutableList, get:length, ImmutableArrayLength, 274917727)               \
@@ -75,7 +74,7 @@ class Range;
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 49873871)                     \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
   V(_StringBase, [], StringBaseCharAt, 1512210677)                             \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 172499441)               \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 2001502149)              \
   V(_OneByteString, _setAt, OneByteStringSetAt, 468605749)                     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1084977108)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \

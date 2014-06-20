@@ -71,8 +71,6 @@ patch class Object {
     return result;
   }
 
-  int get _cid native "Object_cid";
-
   _leftShiftWithMask32(count, mask)  {
     return (this << count) & mask;
   }

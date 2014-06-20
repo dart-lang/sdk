@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _GrowableList<T> implements List<T> {
-  static final int _classId = (new _GrowableList(0))._cid;
+  static final int _classId = ClassID.getID(new _GrowableList(0));
 
   void insert(int index, T element) {
     if (index < 0 || index > length) {

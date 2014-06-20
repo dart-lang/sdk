@@ -125,6 +125,7 @@
         '../lib/mirrors_sources.gypi',
         '../lib/typed_data_sources.gypi',
         '../lib/profiler_sources.gypi',
+        '../lib/internal_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -167,6 +168,7 @@
         '../lib/mirrors_sources.gypi',
         '../lib/typed_data_sources.gypi',
         '../lib/profiler_sources.gypi',
+        '../lib/internal_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocorelib.cc',

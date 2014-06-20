@@ -561,7 +561,7 @@ abstract class _TypedListBase {
               count * elementSizeInBytes,
               from.buffer._data,
               skipCount * elementSizeInBytes + from.offsetInBytes,
-              this._cid, from._cid)) {
+              ClassID.getID(this), ClassID.getID(from))) {
           return;
         }
       } else if (from.buffer == this.buffer) {
@@ -608,8 +608,6 @@ abstract class _TypedListBase {
                  _TypedListBase from, int startFromInBytes,
                  int toCid, int fromCid)
       native "TypedData_setRange";
-
-  int get _cid native "Object_cid";
 }
 
 

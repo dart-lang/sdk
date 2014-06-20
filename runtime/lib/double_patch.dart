@@ -14,7 +14,7 @@ patch class double {
 
     if (str.length == 0) return null;
 
-    final ccid = str._cid;
+    final ccid = ClassID.getID(str);
     _OneByteString oneByteString;
     // TODO(floitsch): Allow _ExternalOneByteStrings. As of May 2013 they don't
     // have any _classId.

@@ -8,6 +8,8 @@
   'sources': [
     'internal_patch.dart',
     # The above file needs to be first as it imports required libraries.
+    'class_id.dart',
+    'class_id.cc',
     'print_patch.dart',
     'symbol_patch.dart',
   ],

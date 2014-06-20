@@ -28,12 +28,6 @@ DEFINE_NATIVE_ENTRY(Object_equals, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_cid, 1) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  return Smi::New(instance.GetClassId());
-}
-
-
 DEFINE_NATIVE_ENTRY(Object_getHash, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   Heap* heap = isolate->heap();

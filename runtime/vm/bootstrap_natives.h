@@ -21,7 +21,6 @@ namespace dart {
   V(Object_runtimeType, 1)                                                     \
   V(Object_instanceOf, 5)                                                      \
   V(Object_as, 4)                                                              \
-  V(Object_cid, 1)                                                             \
   V(Function_apply, 2)                                                         \
   V(FunctionImpl_equals, 2)                                                    \
   V(FunctionImpl_hashCode, 1)                                                  \
@@ -358,6 +357,7 @@ namespace dart {
   V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
+  V(ClassID_getID, 1)                                                          \
 
 
 class BootstrapNatives : public AllStatic {

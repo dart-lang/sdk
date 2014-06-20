@@ -3047,10 +3047,11 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kObjectCid:
-      case MethodRecognizer::kTypedListBaseCid: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
+      case MethodRecognizer::kClassIDgetID: {
+        LocalVariable* value_var =
+            node->scope()->LookupVariable(Symbols::Value(), true);
+        Value* value = Bind(new LoadLocalInstr(*value_var));
+        LoadClassIdInstr* load = new LoadClassIdInstr(value);
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kGrowableArrayCapacity: {
