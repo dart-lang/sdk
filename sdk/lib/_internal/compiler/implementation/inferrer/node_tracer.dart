@@ -110,10 +110,15 @@ abstract class TracerVisitor<T extends TypeInformation>
     addNewEscapeInformation(tracedType);
     while (!workList.isEmpty) {
       currentUser = workList.removeLast();
-      currentUser.users.forEach((TypeInformation info) {
+      int expectedWork = analyzedElements.length + currentUser.users.length;
+      if (expectedWork > MAX_ANALYSIS_COUNT) {
+        bailout('Too many users');
+        break;
+      }
+      for (TypeInformation info in currentUser.users) {
         analyzedElements.add(info.owner);
         info.accept(this);
-      });
+      }
       while (!listsToAnalyze.isEmpty) {
         analyzeStoredIntoList(listsToAnalyze.removeLast());
       }
@@ -121,10 +126,6 @@ abstract class TracerVisitor<T extends TypeInformation>
         analyzeStoredIntoMap(mapsToAnalyze.removeLast());
       }
       if (!continueAnalyzing) break;
-      if (analyzedElements.length > MAX_ANALYSIS_COUNT) {
-        bailout('Too many users');
-        break;
-      }
     }
   }
 
