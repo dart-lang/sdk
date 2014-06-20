@@ -39,6 +39,7 @@
           'favicon.ico',
 
           '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
+          '<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
           '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
         ],
         'try_dart_hosted_package_directories': [
@@ -108,8 +109,32 @@
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
             '-p../../sdk/lib/_internal/',
             '-Denable_ir=false',
+            '--show-package-warnings',
             'src/leap.dart',
             '-o<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
+          ],
+        },
+        {
+          'action_name': 'compile_isolate',
+          'message': 'Creating compiler_isolate.dart.js',
+          'inputs': [
+            # Depending on this file ensures that the SDK is built before this
+            # action is executed.
+            '<(PRODUCT_DIR)/dart-sdk/README',
+
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
+            '-p../../sdk/lib/_internal/',
+            '-Denable_ir=false',
+            '--show-package-warnings',
+            '--trust-type-annotations',
+            'src/compiler_isolate.dart',
+            '-o<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
           ],
         },
         {

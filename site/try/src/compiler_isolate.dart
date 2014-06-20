@@ -18,7 +18,7 @@ import 'caching_compiler.dart' show
 
 const bool THROW_ON_ERROR = false;
 
-final cachedSources = new Map<Uri, String>();
+final cachedSources = new Map<Uri, Future<String>>();
 
 Uri sdkLocation;
 List options = [];
@@ -44,7 +44,7 @@ compile(source, SendPort replyTo) {
       }
       sdkLocation = Uri.parse('sdk:/sdk/');
       JSON.decode(request.responseText).forEach((file, content) {
-        cachedSources[Uri.parse(file)] = content;
+        cachedSources[Uri.parse(file)] = new Future<String>.value(content);
       });
     } else {
       sdkLocation = Uri.parse(source);
@@ -62,29 +62,34 @@ compile(source, SendPort replyTo) {
   }
   int charactersRead = 0;
   Future<String> inputProvider(Uri uri) {
-    if (uri.path.endsWith('/lib/html/dart2js/html_dart2js.dart')) {
-      notifyDartHtml(replyTo);
-    }
+    Future<String> future;
     if (uri.scheme == 'sdk') {
-      var value = cachedSources[uri];
-      charactersRead += value.length;
-      return new Future.value(value);
+      if (uri.path.endsWith('/lib/html/dart2js/html_dart2js.dart')) {
+        notifyDartHtml(replyTo);
+      }
+      future = cachedSources[uri];
     } else if (uri.scheme == 'http' || uri.scheme == 'https') {
-      var value = cachedSources.putIfAbsent(uri, () {
-        var request = new HttpRequest();
-        request.open('GET', '$uri', async: false);
-        request.send(null);
-        return request.responseText;
-      });
-      charactersRead += value.length;
-      return new Future.value(value);
+      future =
+          cachedSources.putIfAbsent(uri, () => HttpRequest.getString('$uri'));
     } else if ('$uri' == '$PRIVATE_SCHEME:/main.dart') {
-      charactersRead += source.length;
-      return new Future.value(source);
+      future = new Future<String>.value(source);
     } else if (uri.scheme == PRIVATE_SCHEME) {
-      return HttpRequest.getString('project${uri.path}');
+      future = HttpRequest.getString('project${uri.path}');
     }
-    throw new Exception('Error: Cannot read: $uri');
+    if (future == null) {
+      future = new Future<String>.error('$uri: Not found');
+    }
+    return future.then((String value) {
+      charactersRead += value.length;
+      return value;
+    }).catchError((Event event) {
+      var target = event.target;
+      if (target is HttpRequest) {
+        throw '$uri: ${target.statusText}';
+      } else {
+        throw event;
+      }
+    }, test: (error) => error is Event);
   }
   void handler(Uri uri, int begin, int end,
                String message, compiler.Diagnostic kind) {
@@ -97,6 +102,7 @@ compile(source, SendPort replyTo) {
       throw new Exception('Throw on error');
     }
   }
+  Stopwatch compilationTimer = new Stopwatch()..start();
   cachedCompiler = reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
@@ -106,38 +112,50 @@ compile(source, SendPort replyTo) {
       packageRoot: Uri.base.resolve('/packages/'));
 
   cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
+    compilationTimer.stop();
+    print('Compilation took ${compilationTimer.elapsed}');
     if (cachedCompiler.libraries.containsKey('dart:html')) {
       notifyDartHtml(replyTo);
     }
     String js = cachedCompiler.assembledCode;
-    try {
-      if (js == null) {
-        if (!options.contains('--analyze-only')) replyTo.send('failed');
-      } else {
-        var url;
-        if (options.contains('--verbose')) {
-          handler(null, 0, 0,
-                  'Compiled ${source.length}/${charactersRead} characters Dart'
-                  ' -> ${js.length} characters.',
-                  compiler.Diagnostic.VERBOSE_INFO);
-        }
-        try {
-          // At least Safari and Firefox do not support creating an
-          // object URL from a web worker.  MDN claims that it will be
-          // supported in Firefox 21.
-          url = Url.createObjectUrl(new Blob([js], 'application/javascript'));
-        } catch (_) {
-          // Ignored.
-        }
-        if (url != null) {
-          replyTo.send(['url', url]);
-        } else {
-          replyTo.send(['code', js]);
-        }
+    if (js == null) {
+      if (!options.contains('--analyze-only')) replyTo.send('failed');
+    } else {
+      var url;
+      handler(null, 0, 0,
+              'Compiled ${source.length}/${charactersRead} characters Dart'
+              ' -> ${js.length} characters.',
+              compiler.Diagnostic.VERBOSE_INFO);
+      try {
+        // At least Safari and Firefox do not support creating an
+        // object URL from a web worker.  MDN claims that it will be
+        // supported in Firefox 21.
+        url = Url.createObjectUrl(new Blob([js], 'application/javascript'));
+      } catch (_) {
+        // Ignored.
       }
-    } catch (e, trace) {
-      replyTo.send(['crash', '$e, $trace']);
+      if (url != null) {
+        replyTo.send(['url', url]);
+      } else {
+        replyTo.send(['code', js]);
+      }
     }
+  }).catchError((e, trace) {
+    replyTo.send(['crash', '$e, $trace']);
+  }).whenComplete(() {
     replyTo.send('done');
+  });
+}
+
+void main(List<String> arguments, SendPort port) {
+  ReceivePort replyTo = new ReceivePort();
+  port.send(replyTo.sendPort);
+  replyTo.listen((message) {
+    try {
+      List list = message as List;
+      compile(list[0], list[1]);
+    } catch (exception, stack) {
+      port.send('$exception\n$stack');
+    }
   });
 }

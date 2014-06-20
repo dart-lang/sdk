@@ -39,10 +39,6 @@ import 'settings.dart' show
     onlyAnalyze,
     verboseCompiler;
 
-@lazy import 'compiler_isolate.dart';
-
-// const lazy = const DeferredLibrary('compiler_isolate');
-const lazy = null;
 
 /**
  * Scheme for recognizing files stored in memory.
