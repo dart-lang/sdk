@@ -3666,7 +3666,7 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
   }
   if (num_native_fields != cls.num_native_fields()) {
     return Api::NewError(
-        "%s: invalid number of native fields %d passed in, expected %d",
+        "%s: invalid number of native fields %" Pd " passed in, expected %d",
         CURRENT_FUNC, num_native_fields, cls.num_native_fields());
   }
   const Instance& instance = Instance::Handle(isolate,
