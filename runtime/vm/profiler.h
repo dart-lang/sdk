@@ -118,9 +118,6 @@ class SampleVisitor : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(SampleVisitor);
 };
 
-// The maximum number of stack frames a sample can hold.
-#define kSampleFramesSize 256
-
 // Each Sample holds a stack trace from an isolate.
 class Sample {
  public:
@@ -134,8 +131,9 @@ class Sample {
     sp_ = 0;
     fp_ = 0;
     state_ = 0;
-    for (intptr_t i = 0; i < kSampleFramesSize; i++) {
-      pcs_[i] = 0;
+    uword* pcs = GetPCArray();
+    for (intptr_t i = 0; i < pcs_length_; i++) {
+      pcs[i] = 0;
     }
   }
 
@@ -152,15 +150,17 @@ class Sample {
   // Get stack trace entry.
   uword At(intptr_t i) const {
     ASSERT(i >= 0);
-    ASSERT(i < kSampleFramesSize);
-    return pcs_[i];
+    ASSERT(i < pcs_length_);
+    uword* pcs = GetPCArray();
+    return pcs[i];
   }
 
   // Set stack trace entry.
   void SetAt(intptr_t i, uword pc) {
     ASSERT(i >= 0);
-    ASSERT(i < kSampleFramesSize);
-    pcs_[i] = pc;
+    ASSERT(i < pcs_length_);
+    uword* pcs = GetPCArray();
+    pcs[i] = pc;
   }
 
   uword vm_tag() const {
@@ -203,13 +203,18 @@ class Sample {
   }
 
   void InsertCallerForTopFrame(uword pc) {
+    if (pcs_length_ == 1) {
+      // Only sampling top frame.
+      return;
+    }
+    uword* pcs = GetPCArray();
     // The caller for the top frame is store at index 1.
     // Shift all entries down by one.
-    for (intptr_t i = kSampleFramesSize - 1; i >= 2; i--) {
-      pcs_[i] = pcs_[i - 1];
+    for (intptr_t i = pcs_length_ - 1; i >= 2; i--) {
+      pcs[i] = pcs[i - 1];
     }
     // Insert caller for top frame.
-    pcs_[1] = pc;
+    pcs[1] = pc;
   }
 
   bool processed() const {
@@ -228,7 +233,17 @@ class Sample {
     state_ = LeafFrameIsDart::update(leaf_frame_is_dart, state_);
   }
 
+  static void InitOnce();
+
+  static intptr_t instance_size() {
+    return instance_size_;
+  }
+
+  uword* GetPCArray() const;
+
  private:
+  static intptr_t instance_size_;
+  static intptr_t pcs_length_;
   enum StateBits {
     kProcessedBit = 0,
     kLeafFrameIsDartBit = 1,
@@ -245,7 +260,11 @@ class Sample {
   uword sp_;
   uword fp_;
   uword state_;
-  uword pcs_[kSampleFramesSize];
+
+  /* There are a variable number of words that follow, the words hold the
+   * sampled pc values. Access via GetPCArray() */
+
+  DISALLOW_COPY_AND_ASSIGN(Sample);
 };
 
 
@@ -254,11 +273,7 @@ class SampleBuffer {
  public:
   static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
-  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity) {
-    samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(*samples_)));
-    capacity_ = capacity;
-    cursor_ = 0;
-  }
+  explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
 
   ~SampleBuffer() {
     if (samples_ != NULL) {
@@ -271,13 +286,8 @@ class SampleBuffer {
 
   intptr_t capacity() const { return capacity_; }
 
+  Sample* At(intptr_t idx) const;
   Sample* ReserveSample();
-
-  Sample* At(intptr_t idx) const {
-    ASSERT(idx >= 0);
-    ASSERT(idx < capacity_);
-    return &samples_[idx];
-  }
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);

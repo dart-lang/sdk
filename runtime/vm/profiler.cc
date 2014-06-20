@@ -46,6 +46,7 @@ void Profiler::InitOnce() {
   // Place some sane restrictions on user controlled flags.
   SetSamplePeriod(FLAG_profile_period);
   SetSampleDepth(FLAG_profile_depth);
+  Sample::InitOnce();
   if (!FLAG_profile) {
     return;
   }
@@ -70,7 +71,7 @@ void Profiler::Shutdown() {
 
 void Profiler::SetSampleDepth(intptr_t depth) {
   const int kMinimumDepth = 1;
-  const int kMaximumDepth = kSampleFramesSize - 1;
+  const int kMaximumDepth = 255;
   if (depth < kMinimumDepth) {
     FLAG_profile_depth = kMinimumDepth;
   } else if (depth > kMaximumDepth) {
@@ -1614,6 +1615,42 @@ void IsolateProfilerData::Unblock() {
     // We just unblocked this isolate, wake up the thread interrupter.
     ThreadInterrupter::WakeUp();
   }
+}
+
+
+intptr_t Sample::pcs_length_ = 0;
+intptr_t Sample::instance_size_ = 0;
+
+
+void Sample::InitOnce() {
+  ASSERT(FLAG_profile_depth >= 1);
+  pcs_length_ = FLAG_profile_depth;
+  instance_size_ =
+      sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
+}
+
+
+uword* Sample::GetPCArray() const {
+  return reinterpret_cast<uword*>(
+        reinterpret_cast<uintptr_t>(this) + sizeof(*this));
+}
+
+
+SampleBuffer::SampleBuffer(intptr_t capacity) {
+  ASSERT(Sample::instance_size() > 0);
+  samples_ = reinterpret_cast<Sample*>(
+      calloc(capacity, Sample::instance_size()));
+  capacity_ = capacity;
+  cursor_ = 0;
+}
+
+
+Sample* SampleBuffer::At(intptr_t idx) const {
+  ASSERT(idx >= 0);
+  ASSERT(idx < capacity_);
+  intptr_t offset = idx * Sample::instance_size();
+  uint8_t* samples = reinterpret_cast<uint8_t*>(samples_);
+  return reinterpret_cast<Sample*>(samples + offset);
 }
 
 
