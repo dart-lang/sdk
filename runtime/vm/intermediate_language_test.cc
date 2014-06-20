@@ -112,6 +112,15 @@ TEST_CASE(RangeTests) {
   TEST_RANGE_OP(Range::Shl, -100, 0, 0, 64,
                 RangeBoundary::NegativeInfinity(), RangeBoundary(0));
 
+  TEST_RANGE_OP(Range::Shr, -8, 8, 1, 2, RangeBoundary(-4), RangeBoundary(4));
+  TEST_RANGE_OP(Range::Shr, 1, 8, 1, 2, RangeBoundary(0), RangeBoundary(4));
+  TEST_RANGE_OP(Range::Shr, -16, -8, 1, 2,
+                RangeBoundary(-8), RangeBoundary(-2));
+  TEST_RANGE_OP(Range::Shr, 2, 4, -1, 1, RangeBoundary(1), RangeBoundary(4));
+  TEST_RANGE_OP(Range::Shr, kMaxInt64, kMaxInt64, 0, 1,
+                RangeBoundary(kMaxInt64 >> 1), RangeBoundary(kMaxInt64));
+  TEST_RANGE_OP(Range::Shr, kMinInt64, kMinInt64, 0, 1,
+                RangeBoundary(kMinInt64), RangeBoundary(kMinInt64 >> 1));
 #undef TEST_RANGE_OP
 }
 

@@ -2561,7 +2561,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->is_truncating();
+  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -2681,7 +2681,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
       ((op_kind() == Token::kADD) ||
        (op_kind() == Token::kMOD) ||
        (op_kind() == Token::kTRUNCDIV) ||
-       (((op_kind() == Token::kSHL) && !is_truncating()) ||
+       (((op_kind() == Token::kSHL) && !IsTruncating()) ||
          (op_kind() == Token::kSHR))) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -2706,7 +2706,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !is_truncating()) ||
+  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   } else if (op_kind() == Token::kADD) {
@@ -2727,7 +2727,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ASSERT(!is_truncating());
   Register left = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   Label* deopt = NULL;

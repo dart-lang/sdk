@@ -2573,7 +2573,7 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->is_truncating();
+  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -2592,7 +2592,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     } else if ((value < 0) || (value >= kCountLimit)) {
       // This condition may not be known earlier in some cases because
       // of constant propagation, inlining, etc.
-      if ((value >=kCountLimit) && is_truncating) {
+      if ((value >= kCountLimit) && is_truncating) {
         __ xorq(result, result);
       } else {
         // Result is Mint or exception.
@@ -2766,12 +2766,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = !is_truncating() ? 1 : 0;
+    const intptr_t kNumTemps = !IsTruncating() ? 1 : 0;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
-    if (!is_truncating()) {
+    if (!IsTruncating()) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
@@ -2798,7 +2798,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ASSERT(!is_truncating());
   Register left = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(left == result);

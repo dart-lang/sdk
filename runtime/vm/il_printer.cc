@@ -592,7 +592,7 @@ void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');
-  f->Print(" %ct", is_truncating() ? '+' : '-');
+  f->Print(" %ct", IsTruncating() ? '+' : '-');
 }
 
 

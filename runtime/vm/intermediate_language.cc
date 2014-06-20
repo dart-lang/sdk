@@ -1238,7 +1238,7 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     }
     case Token::kSHL: {
       Range* right_range = this->right()->definition()->range();
-      if ((right_range != NULL) && is_truncating()) {
+      if ((right_range != NULL) && IsTruncating()) {
         // Can deoptimize if right can be negative.
         return !right_range->IsPositive();
       }
@@ -3207,7 +3207,6 @@ void BinarySmiOpInstr::InferRange() {
   // Calculate overflowed status before clamping.
   const bool overflowed = range_->min().LowerBound().OverflowedSmi() ||
                           range_->max().UpperBound().OverflowedSmi();
-
   // Clamp value to be within smi range.
   range_->Clamp(RangeBoundary::kRangeBoundarySmi);
 
@@ -3373,6 +3372,29 @@ void Range::Shl(const Range* left,
       left_max.ConstantValue() > 0
           ? RangeBoundary::PositiveInfinity()
           : RangeBoundary::NegativeInfinity());
+}
+
+
+void Range::Shr(const Range* left,
+                const Range* right,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  RangeBoundary left_max = Range::ConstantMax(left);
+  RangeBoundary left_min = Range::ConstantMin(left);
+  // A negative shift count always deoptimizes (and throws), so the minimum
+  // shift count is zero.
+  int64_t right_max = Utils::Maximum(Range::ConstantMax(right).ConstantValue(),
+                                     static_cast<int64_t>(0));
+  int64_t right_min = Utils::Maximum(Range::ConstantMin(right).ConstantValue(),
+                                     static_cast<int64_t>(0));
+
+  *result_min = RangeBoundary::Shr(
+      left_min,
+      left_min.ConstantValue() > 0 ? right_max : right_min);
+
+  *result_max = RangeBoundary::Shr(
+      left_max,
+      left_max.ConstantValue() > 0 ? right_min : right_max);
 }
 
 
@@ -3545,6 +3567,10 @@ Range* Range::BinaryOp(const Token::Kind op,
     }
     case Token::kSHL: {
       Range::Shl(left_range, right_range, &min, &max);
+      break;
+    }
+    case Token::kSHR: {
+      Range::Shr(left_range, right_range, &min, &max);
       break;
     }
     case Token::kBIT_AND:

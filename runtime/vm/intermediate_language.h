@@ -2691,6 +2691,15 @@ class RangeBoundary : public ValueObject {
                            int64_t shift_count,
                            const RangeBoundary& overflow);
 
+  static RangeBoundary Shr(const RangeBoundary& value_boundary,
+                           intptr_t shift_count) {
+    ASSERT(value_boundary.IsConstant());
+    ASSERT(shift_count >= 0);
+    int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+    int64_t result = value >> shift_count;
+    return RangeBoundary(result);
+  }
+
   // Attempts to calculate a + b when:
   // a is a symbol and b is a constant OR
   // a is a constant and b is a symbol
@@ -2803,6 +2812,10 @@ class Range : public ZoneAllocated {
                   Definition* left_defn);
 
   static bool Mul(const Range* left_range,
+                  const Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
+  static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
                   RangeBoundary* max);
@@ -7224,7 +7237,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   void set_overflow(bool overflow) { overflow_ = overflow; }
 
   void set_is_truncating(bool value) { is_truncating_ = value; }
-  bool is_truncating() const { return is_truncating_; }
+  bool IsTruncating() const { return is_truncating_ || !overflow_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
