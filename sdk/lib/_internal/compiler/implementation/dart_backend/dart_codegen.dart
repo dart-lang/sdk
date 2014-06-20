@@ -101,12 +101,28 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
+  Parameter emitParameterFromElement(ParameterElement element, [String name]) {
+    if (name == null) {
+      name = element.name;
+    }
+    if (element.functionSignature != null) {
+      FunctionSignature signature = element.functionSignature;
+      TypeAnnotation returnType = emitOptionalType(signature.type.returnType);
+      Parameters innerParameters = new Parameters(
+          signature.requiredParameters.mapToList(emitParameterFromElement),
+          signature.optionalParameters.mapToList(emitParameterFromElement),
+          signature.optionalParametersAreNamed);
+      return new Parameter.function(name, returnType, innerParameters)
+                 ..element = element;
+    } else {
+      TypeAnnotation type = emitOptionalType(element.type);
+      return new Parameter(name, type:type)
+                 ..element = element;
+    }
+  }
+
   Parameter emitParameter(tree.Variable param) {
-    String name = getVariableName(param);
-    ParameterElement element = param.element;
-    TypeAnnotation type = emitOptionalType(element.type);
-    return new Parameter(name, type:type)
-               ..element = element;
+    return emitParameterFromElement(param.element, getVariableName(param));
   }
 
   Parameters emitParameters(List<tree.Variable> params) {

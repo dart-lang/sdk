@@ -826,7 +826,8 @@ class TreePrinter {
       Token assign = params.hasNamedParameters ? colon : eq;
       Token open = params.hasNamedParameters ? openBrace : openBracket;
       Token close = params.hasNamedParameters ? closeBrace : closeBracket;
-      List opt = params.optionalParameters.map((p) => makeParameter(p,assign));
+      Iterable<tree.Node> opt =
+          params.optionalParameters.map((p) => makeParameter(p,assign));
       nodes.add(new tree.NodeList(open, makeLink(opt), close, ','));
     }
     return argList(nodes);
@@ -843,6 +844,7 @@ class TreePrinter {
           makeEmptyModifiers(), // TODO: Function parameter modifiers?
           null, // initializers
           null); // get/set
+      setElement(definition, param.element, param);
       if (param.defaultValue != null) {
         return new tree.SendSet(
             null,
@@ -850,7 +852,10 @@ class TreePrinter {
             new tree.Operator(assignOperator),
             singleton(makeExpression(param.defaultValue)));
       } else {
-        return definition;
+        return new tree.VariableDefinitions(
+            null,
+            makeEmptyModifiers(),
+            singleton(definition));
       }
     } else {
       tree.Node definition;

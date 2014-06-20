@@ -102,15 +102,6 @@ class IrBuilderTask extends CompilerTask {
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount > 0) return false;
 
-    SupportedTypeVerifier typeVerifier = new SupportedTypeVerifier();
-    if (!typeVerifier.visit(signature.type.returnType, null)) return false;
-    bool parameters_ok = true;
-    signature.forEachParameter((parameter) {
-      parameters_ok =
-          parameters_ok && typeVerifier.visit(parameter.type, null);
-    });
-    if (!parameters_ok) return false;
-
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
@@ -1286,17 +1277,3 @@ class SupportedConstantVisitor extends ConstantVisitor<bool> {
   bool visitDeferred(DeferredConstant constant) => false;
 }
 
-// Verify that types are ones that can be reconstructed by the type emitter.
-class SupportedTypeVerifier extends DartTypeVisitor<bool, Null> {
-  bool visit(DartType type, Null _) => type.accept(this, null);
-
-  bool visitType(DartType type, Null _) => false;
-
-  bool visitDynamicType(DynamicType type, Null _) => true;
-
-  bool visitVoidType(VoidType type, Null _) => true;
-
-  // Currently, InterfaceType and TypedefType are supported so long as they
-  // do not have type parameters.  They are subclasses of GenericType.
-  bool visitGenericType(GenericType type, Null _) => !type.isGeneric;
-}

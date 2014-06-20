@@ -255,7 +255,7 @@ class PlaceholderCollector extends Visitor {
 
   void tryMakeLocalPlaceholder(Element element, Identifier node) {
     bool isNamedOptionalParameter() {
-      FunctionElement function = element.enclosingElement;
+      FunctionTypedElement function = element.enclosingElement;
       FunctionSignature signature = function.functionSignature;
       if (!signature.optionalParametersAreNamed) return false;
       for (Element parameter in signature.optionalParameters) {
