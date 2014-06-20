@@ -122,7 +122,7 @@ class ElementCodec {
       int componentId = path[i];
       String component = _stringCodec.decode(componentId);
       if (i < length - 1 && path[i + 1] < 0) {
-        component += "@${(-path[i + 1])}";
+        component += '@${(-path[i + 1])}';
         i++;
       }
       components.add(component);
@@ -236,7 +236,7 @@ class FileNodeManager implements NodeManager {
       _DataInputStream stream = new _DataInputStream(bytes);
       return _readNode(stream);
     }).catchError((e, stackTrace) {
-      _logger.logError2("Exception during reading index file ${name}",
+      _logger.logError2('Exception during reading index file ${name}',
           new CaughtException(e, stackTrace));
     });
   }
@@ -261,7 +261,7 @@ class FileNodeManager implements NodeManager {
       var bytes = stream.getBytes();
       return _fileManager.write(name, bytes);
     }).catchError((e, stackTrace) {
-      _logger.logError2("Exception during reading index file ${name}",
+      _logger.logError2('Exception during reading index file ${name}',
           new CaughtException(e, stackTrace));
     });
   }
@@ -299,7 +299,7 @@ class FileNodeManager implements NodeManager {
       int version = stream.readInt();
       if (version != _VERSION) {
         throw new StateError(
-            "Version ${_VERSION} expected, but ${version} found.");
+            'Version ${_VERSION} expected, but ${version} found.');
       }
     }
     // context
@@ -676,8 +676,8 @@ class SplitIndexStore implements IndexStore {
   ContextCodec _contextCodec;
 
   /**
-   * Information about "universe" elements. We need to keep them together to avoid loading of all
-   * index nodes.
+   * Information about "universe" elements.
+   * We need to keep them together to avoid loading of all index nodes.
    *
    * Order of keys: contextId, nodeId, Relationship.
    */
@@ -739,7 +739,7 @@ class SplitIndexStore implements IndexStore {
 
   @override
   String get statistics =>
-      "[${_nodeManager.locationCount} locations, ${_sources.length} sources, ${_nameToNodeNames.length} names]";
+      '[${_nodeManager.locationCount} locations, ${_sources.length} sources, ${_nameToNodeNames.length} names]';
 
   @override
   bool aboutToIndexDart(AnalysisContext context,
@@ -800,7 +800,7 @@ class SplitIndexStore implements IndexStore {
     String unitName = unit.fullName;
     int libraryNameIndex = _stringCodec.encode(libraryName);
     int unitNameIndex = _stringCodec.encode(unitName);
-    _currentNodeName = "${libraryNameIndex}_${unitNameIndex}.index";
+    _currentNodeName = '${libraryNameIndex}_${unitNameIndex}.index';
     _currentNodeNameId = _stringCodec.encode(_currentNodeName);
     _currentNode = _nodeManager.newNode(context);
     _currentContextId = _contextCodec.encode(context);
@@ -827,7 +827,7 @@ class SplitIndexStore implements IndexStore {
     // prepare node
     String sourceName = source.fullName;
     int sourceNameIndex = _stringCodec.encode(sourceName);
-    _currentNodeName = "${sourceNameIndex}.index";
+    _currentNodeName = '${sourceNameIndex}.index';
     _currentNodeNameId = _stringCodec.encode(_currentNodeName);
     _currentNode = _nodeManager.newNode(context);
     return true;
@@ -1078,7 +1078,7 @@ class SplitIndexStore implements IndexStore {
     String unitName = unit.fullName;
     int libraryNameIndex = _stringCodec.encode(libraryName);
     int unitNameIndex = _stringCodec.encode(unitName);
-    String nodeName = "${libraryNameIndex}_${unitNameIndex}.index";
+    String nodeName = '${libraryNameIndex}_${unitNameIndex}.index';
     _nodeManager.removeNode(nodeName);
     // remove source
     _sources.remove(library);

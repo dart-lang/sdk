@@ -118,8 +118,8 @@ class _ElementCodecTest {
   void test_localLocalVariable() {
     {
       Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(["main", "foo@1",
-          "bar@2"]);
+      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@1',
+          'bar@2']);
       when(context.getElement(location)).thenReturn(element);
       when(element.location).thenReturn(location);
       int id = codec.encode(element);
@@ -127,8 +127,8 @@ class _ElementCodecTest {
     }
     {
       Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(["main", "foo@10",
-          "bar@20"]);
+      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@10',
+          'bar@20']);
       when(context.getElement(location)).thenReturn(element);
       when(element.location).thenReturn(location);
       int id = codec.encode(element);
@@ -144,8 +144,8 @@ class _ElementCodecTest {
   void test_localVariable() {
     {
       Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(["main",
-          "foo@42"]);
+      ElementLocation location = new ElementLocationImpl.con3(['main',
+          'foo@42']);
       when(context.getElement(location)).thenReturn(element);
       when(element.location).thenReturn(location);
       int id = codec.encode(element);
@@ -153,8 +153,8 @@ class _ElementCodecTest {
     }
     {
       Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(["main",
-          "foo@4200"]);
+      ElementLocation location = new ElementLocationImpl.con3(['main',
+          'foo@4200']);
       when(context.getElement(location)).thenReturn(element);
       when(element.location).thenReturn(location);
       int id = codec.encode(element);
@@ -168,7 +168,7 @@ class _ElementCodecTest {
 
   void test_notLocal() {
     Element element = new _MockElement();
-    ElementLocation location = new ElementLocationImpl.con3(["foo", "bar"]);
+    ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
     when(element.location).thenReturn(location);
     when(context.getElement(location)).thenReturn(element);
     int id = codec.encode(element);
@@ -213,7 +213,7 @@ class _FileNodeManagerTest {
   }
 
   void test_getNode_contextNull() {
-    String name = "42.index";
+    String name = '42.index';
     // record bytes
     List<int> bytes;
     when(fileManager.write(name, anyObject)).thenInvoke((name, bs) {
@@ -241,7 +241,7 @@ class _FileNodeManagerTest {
   }
 
   test_getNode_invalidVersion() {
-    String name = "42.index";
+    String name = '42.index';
     // prepare a stream with an invalid version
     when(fileManager.read(name)).thenReturn(new Future.value([0x01, 0x02, 0x03,
         0x04]));
@@ -255,7 +255,7 @@ class _FileNodeManagerTest {
   }
 
   test_getNode_streamException() {
-    String name = "42.index";
+    String name = '42.index';
     when(fileManager.read(name)).thenReturn(new Future(() {
       return throw new Exception();
     }));
@@ -268,7 +268,7 @@ class _FileNodeManagerTest {
   }
 
   test_getNode_streamNull() {
-    String name = "42.index";
+    String name = '42.index';
     when(fileManager.read(name)).thenReturn(new Future.value(null));
     // do in the Future
     return nodeManager.getNode(name).then((IndexNode node) {
@@ -285,7 +285,7 @@ class _FileNodeManagerTest {
   }
 
   test_putNode_getNode() {
-    String name = "42.index";
+    String name = '42.index';
     // record bytes
     List<int> bytes;
     when(fileManager.write(name, anyObject)).thenInvoke((name, bs) {
@@ -295,7 +295,7 @@ class _FileNodeManagerTest {
     Element elementA = _mockElement();
     Element elementB = _mockElement();
     Element elementC = _mockElement();
-    Relationship relationship = Relationship.getRelationship("my-relationship");
+    Relationship relationship = Relationship.getRelationship('my-relationship');
     // put Node
     Future putFuture;
     {
@@ -340,7 +340,7 @@ class _FileNodeManagerTest {
   }
 
   test_putNode_streamException() {
-    String name = "42.index";
+    String name = '42.index';
     Exception exception = new Exception();
     when(fileManager.write(name, anyObject)).thenReturn(new Future(() {
       return throw exception;
@@ -358,7 +358,7 @@ class _FileNodeManagerTest {
   }
 
   void test_removeNode() {
-    String name = "42.index";
+    String name = '42.index';
     nodeManager.removeNode(name);
     verify(fileManager.delete(name)).once();
   }
@@ -395,7 +395,7 @@ class _IndexNodeTest {
     Element elementA = _mockElement();
     Element elementB = _mockElement();
     Element elementC = _mockElement();
-    Relationship relationship = Relationship.getRelationship("my-relationship");
+    Relationship relationship = Relationship.getRelationship('my-relationship');
     Location locationA = new Location(elementB, 1, 2);
     Location locationB = new Location(elementC, 10, 20);
     // empty initially
@@ -426,7 +426,7 @@ class _IndexNodeTest {
     Element elementA = _mockElement();
     Element elementB = _mockElement();
     Element elementC = _mockElement();
-    Relationship relationship = Relationship.getRelationship("my-relationship");
+    Relationship relationship = Relationship.getRelationship('my-relationship');
     // record
     {
       int elementIdA = 0;
@@ -760,13 +760,13 @@ class _RelationKeyDataTest {
     int elementId = 2;
     {
       element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(["foo", "bar"]);
+      ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
       when(element.location).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
       when(elementCodec.encode(element)).thenReturn(elementId);
     }
     // prepare relationship
-    Relationship relationship = Relationship.getRelationship("my-relationship");
+    Relationship relationship = Relationship.getRelationship('my-relationship');
     int relationshipId = 1;
     when(relationshipCodec.encode(relationship)).thenReturn(relationshipId);
     // create RelationKeyData
@@ -794,7 +794,7 @@ class _RelationshipCodecTest {
   }
 
   void test_all() {
-    Relationship relationship = Relationship.getRelationship("my-relationship");
+    Relationship relationship = Relationship.getRelationship('my-relationship');
     int id = codec.encode(relationship);
     expect(codec.decode(id), relationship);
   }
@@ -823,20 +823,20 @@ class _SplitIndexStoreTest {
   Element elementC = new _MockElement('elementC');
   Element elementD = new _MockElement('elementD');
   ElementLocation elementLocationA = new ElementLocationImpl.con3(
-      ["/home/user/sourceA.dart", "ClassA"]);
+      ['/home/user/sourceA.dart', 'ClassA']);
   ElementLocation elementLocationB = new ElementLocationImpl.con3(
-      ["/home/user/sourceB.dart", "ClassB"]);
+      ['/home/user/sourceB.dart', 'ClassB']);
   ElementLocation elementLocationC = new ElementLocationImpl.con3(
-      ["/home/user/sourceC.dart", "ClassC"]);
+      ['/home/user/sourceC.dart', 'ClassC']);
   ElementLocation elementLocationD = new ElementLocationImpl.con3(
-      ["/home/user/sourceD.dart", "ClassD"]);
+      ['/home/user/sourceD.dart', 'ClassD']);
   HtmlElement htmlElementA = new _MockHtmlElement();
   HtmlElement htmlElementB = new _MockHtmlElement();
   LibraryElement libraryElement = new _MockLibraryElement();
   Source librarySource = new _MockSource('librarySource');
   CompilationUnitElement libraryUnitElement = new _MockCompilationUnitElement();
   _MemoryNodeManager nodeManager = new _MemoryNodeManager();
-  Relationship relationship = Relationship.getRelationship("test-relationship");
+  Relationship relationship = Relationship.getRelationship('test-relationship');
   Source sourceA = new _MockSource('sourceA');
   Source sourceB = new _MockSource('sourceB');
   Source sourceC = new _MockSource('sourceC');
@@ -855,10 +855,10 @@ class _SplitIndexStoreTest {
     when(contextA.getElement(elementLocationB)).thenReturn(elementB);
     when(contextA.getElement(elementLocationC)).thenReturn(elementC);
     when(contextA.getElement(elementLocationD)).thenReturn(elementD);
-    when(sourceA.fullName).thenReturn("/home/user/sourceA.dart");
-    when(sourceB.fullName).thenReturn("/home/user/sourceB.dart");
-    when(sourceC.fullName).thenReturn("/home/user/sourceC.dart");
-    when(sourceD.fullName).thenReturn("/home/user/sourceD.dart");
+    when(sourceA.fullName).thenReturn('/home/user/sourceA.dart');
+    when(sourceB.fullName).thenReturn('/home/user/sourceB.dart');
+    when(sourceC.fullName).thenReturn('/home/user/sourceC.dart');
+    when(sourceD.fullName).thenReturn('/home/user/sourceD.dart');
     when(elementA.context).thenReturn(contextA);
     when(elementB.context).thenReturn(contextA);
     when(elementC.context).thenReturn(contextA);
@@ -1320,7 +1320,8 @@ class _SplitIndexStoreTest {
   }
 
   /**
-   * Asserts that the "actual" locations have all the "expected" locations and only them.
+   * Asserts that the [actual] locations have all the [expected] locations and
+   * only them.
    */
   static void assertLocations(List<Location> actual, List<Location> expected) {
     List<_LocationEqualsWrapper> actualWrappers = wrapLocations(actual);
