@@ -608,7 +608,7 @@ class Selector {
   }
 
   Selector extendIfReachesAll(Compiler compiler) {
-    return new TypedSelector(compiler.typesTask.dynamicType, this);
+    return new TypedSelector(compiler.typesTask.dynamicType, this, compiler);
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
@@ -634,7 +634,9 @@ class TypedSelector extends Selector {
   static Map<Selector, Map<TypeMask, TypedSelector>> canonicalizedValues =
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
-  factory TypedSelector(TypeMask mask, Selector selector) {
+  factory TypedSelector(TypeMask mask, Selector selector, Compiler compiler) {
+    // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
+    assert(compiler.phase > Compiler.PHASE_RESOLVING || mask.isExact);
     if (selector.mask == mask) return selector;
     Selector untyped = selector.asUntyped;
     Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
@@ -647,19 +649,21 @@ class TypedSelector extends Selector {
     return result;
   }
 
-  factory TypedSelector.exact(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.exact(base), selector);
+  factory TypedSelector.exact(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.exact(base), selector, compiler);
 
-  factory TypedSelector.subclass(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.subclass(base), selector);
+  factory TypedSelector.subclass(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subclass(base), selector, compiler);
 
-  factory TypedSelector.subtype(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.subtype(base), selector);
+  factory TypedSelector.subtype(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subtype(base), selector, compiler);
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used after resolution.
-    assert(compiler.phase > Compiler.PHASE_RESOLVING);
     if (!element.isMember) return false;
 
     // A closure can be called through any typed selector:
@@ -679,7 +683,7 @@ class TypedSelector extends Selector {
     bool canReachAll = compiler.enabledInvokeOn
         && mask.needsNoSuchMethodHandling(this, compiler);
     return canReachAll
-        ? new TypedSelector(compiler.typesTask.dynamicType, this)
+        ? new TypedSelector(compiler.typesTask.dynamicType, this, compiler)
         : this;
   }
 }

@@ -5862,7 +5862,7 @@ class StringBuilderVisitor extends ast.Visitor {
     // directly.
     Selector selector =
         new TypedSelector(expression.instructionType,
-            new Selector.call('toString', null, 0));
+            new Selector.call('toString', null, 0), compiler);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (type.containsOnlyString(compiler)) {
       builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);

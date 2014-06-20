@@ -118,7 +118,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
-    return new TypedSelector(receiver, selector);
+    return new TypedSelector(receiver, selector, compiler);
   }
 
   TypeMask addPhiInput(Element element, TypeMask phiType, TypeMask newType) {

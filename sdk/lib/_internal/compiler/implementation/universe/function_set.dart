@@ -68,7 +68,8 @@ class FunctionSet {
     if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
     selector = (selector.mask == null)
         ? compiler.noSuchMethodSelector
-        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector);
+        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector,
+            compiler);
 
     return noSuchMethods.query(selector, compiler, null);
   }
@@ -175,7 +176,7 @@ class FunctionSetNode {
     if (noSuchMethods != null
         && mask.needsNoSuchMethodHandling(selector, compiler)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          new TypedSelector(mask, compiler.noSuchMethodSelector),
+          new TypedSelector(mask, compiler.noSuchMethodSelector, compiler),
           compiler,
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {

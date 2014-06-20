@@ -1651,16 +1651,16 @@ testSelectors() {
         new TypeMask.unionOf([a, b, c]
             .map((cls) => new TypeMask.nonNullExact(cls)), result.compiler));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(x, foo),
+        new TypedSelector.subclass(x, foo, result.compiler),
         new TypeMask.nonNullExact(b));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(y, foo),
+        new TypedSelector.subclass(y, foo, result.compiler),
         new TypeMask.nonNullExact(c));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(z, foo),
+        new TypedSelector.subclass(z, foo, result.compiler),
         new TypeMask.nonNullExact(a));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(xy, foo),
+        new TypedSelector.subclass(xy, foo, result.compiler),
         new TypeMask.unionOf([b, c].map((cls) =>
             new TypeMask.nonNullExact(cls)), result.compiler));
 

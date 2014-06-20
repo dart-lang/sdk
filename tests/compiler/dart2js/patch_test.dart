@@ -779,7 +779,7 @@ testPatchAndSelector() {
     // Check that a method just in the patch class is a target for a
     // typed selector.
     var selector = new Selector.call('method', compiler.coreLibrary, 0);
-    var typedSelector = new TypedSelector.exact(cls, selector);
+    var typedSelector = new TypedSelector.exact(cls, selector, compiler);
     Element method = cls.implementation.lookupLocalMember('method');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
@@ -787,7 +787,7 @@ testPatchAndSelector() {
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
     selector = new Selector.call('clear', compiler.coreLibrary, 0);
-    typedSelector = new TypedSelector.exact(cls, selector);
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
     method = cls.lookupLocalMember('clear');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
@@ -796,7 +796,7 @@ testPatchAndSelector() {
     // for a typed selector on a subclass.
     cls = ensure(compiler, "B", compiler.coreLibrary.find);
     cls.ensureResolved(compiler);
-    typedSelector = new TypedSelector.exact(cls, selector);
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
   }));

@@ -451,11 +451,13 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return hasElementIn(self, selector, element, compiler);
     } else if (isSubclass) {
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
       return hasElementIn(self, selector, element, compiler)
           || other.isSubclassOf(self)
           || compiler.world.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
       bool result = hasElementIn(self, selector, element, compiler)
           || other.implementsInterface(self)
           || compiler.world.hasAnySubclassThatImplements(other, base)
