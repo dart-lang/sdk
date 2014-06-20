@@ -4,6 +4,8 @@
 
 library pub.package;
 
+import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
 import 'io.dart';
