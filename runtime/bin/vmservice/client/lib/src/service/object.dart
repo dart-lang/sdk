@@ -1109,6 +1109,12 @@ class Class extends ServiceObject {
       superClass._addToChildren(this);
     }
     error = map['error'];
+    
+    var allocationStats = map['allocationStats'];
+    if (allocationStats != null) {
+      newSpace.update(allocationStats['new']);
+      oldSpace.update(allocationStats['old']);
+    }
   }
 
   void _addToChildren(Class cls) {

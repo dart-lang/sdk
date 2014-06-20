@@ -97,7 +97,7 @@ class ClassHeapStats {
   void ResetAtOldGC();
   void ResetAccumulator();
   void UpdateSize(intptr_t instance_size);
-  void PrintTOJSONArray(const Class& cls, JSONArray* array);
+  void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
 };
 
 
@@ -157,6 +157,7 @@ class ClassTable {
     return reinterpret_cast<uword>(&class_heap_stats_table_);
   }
 
+  ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 
   void AllocationProfilePrintJSON(JSONStream* stream);
   void ResetAllocationAccumulators();
@@ -178,7 +179,8 @@ class ClassTable {
 
   ClassHeapStats* predefined_class_heap_stats_table_;
 
-  ClassHeapStats* StatsAt(intptr_t cid);
+  // May not have updated size for variable size classes.
+  ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
   void UpdateLiveOld(intptr_t cid, intptr_t size);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
 

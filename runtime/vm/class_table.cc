@@ -240,13 +240,13 @@ void ClassHeapStats::ResetAccumulator() {
 }
 
 
-void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
-  JSONObject obj(array);
-  obj.AddProperty("type", "ClassHeapStats");
-  obj.AddPropertyF("id", "allocationprofile/%" Pd "", cls.id());
-  obj.AddProperty("class", cls);
+void ClassHeapStats::PrintToJSONObject(const Class& cls,
+                                       JSONObject* obj) const {
+  obj->AddProperty("type", "ClassHeapStats");
+  obj->AddPropertyF("id", "allocationprofile/%" Pd "", cls.id());
+  obj->AddProperty("class", cls);
   {
-    JSONArray new_stats(&obj, "new");
+    JSONArray new_stats(obj, "new");
     new_stats.AddValue(pre_gc.new_count);
     new_stats.AddValue(pre_gc.new_size);
     new_stats.AddValue(post_gc.new_count);
@@ -259,7 +259,7 @@ void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
                          last_reset.new_size);
   }
   {
-    JSONArray old_stats(&obj, "old");
+    JSONArray old_stats(obj, "old");
     old_stats.AddValue(pre_gc.old_count);
     old_stats.AddValue(pre_gc.old_size);
     old_stats.AddValue(post_gc.old_count);
@@ -275,7 +275,7 @@ void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
 
 
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = StatsAt(cid);
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
   stats->recent.AddNew(size);
@@ -283,7 +283,7 @@ void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
 
 
 void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = StatsAt(cid);
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
   stats->recent.AddOld(size);
@@ -295,13 +295,30 @@ bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
 }
 
 
-ClassHeapStats* ClassTable::StatsAt(intptr_t cid) {
+ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
   ASSERT(cid > 0);
   if (cid < kNumPredefinedCids) {
     return &predefined_class_heap_stats_table_[cid];
   }
   ASSERT(cid < top_);
   return &class_heap_stats_table_[cid];
+}
+
+
+ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
+  if (!HasValidClassAt(cid) || (cid == kFreeListElement) || (cid == kSmiCid)) {
+    return NULL;
+  }
+  Class& cls = Class::Handle(At(cid));
+  if (!(cls.is_finalized() || cls.is_prefinalized())) {
+    // Not finalized.
+    return NULL;
+  }
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  if (ShouldUpdateSizeForClassId(cid)) {
+    stats->UpdateSize(cls.instance_size());
+  }
+  return stats;
 }
 
 
@@ -352,81 +369,32 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
     }
   }
   {
-    Class& cls = Class::Handle();
     JSONArray arr(&obj, "members");
-    for (intptr_t i = 1; i < kNumPredefinedCids; i++) {
-      if (!HasValidClassAt(i) || (i == kFreeListElement) || (i == kSmiCid)) {
-        continue;
+    Class& cls = Class::Handle();
+    for (intptr_t i = 1; i < top_; i++) {
+      const ClassHeapStats* stats = StatsWithUpdatedSize(i);
+      if (stats != NULL) {
+        JSONObject obj(&arr);
+        cls = At(i);
+        stats->PrintToJSONObject(cls, &obj);
       }
-      cls = At(i);
-      if (!(cls.is_finalized() || cls.is_prefinalized())) {
-        // Not finalized.
-        continue;
-      }
-      if (ShouldUpdateSizeForClassId(i)) {
-        intptr_t instance_size = cls.instance_size();
-        predefined_class_heap_stats_table_[i].UpdateSize(instance_size);
-      }
-      predefined_class_heap_stats_table_[i].PrintTOJSONArray(cls, &arr);
-    }
-    for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
-      if (!HasValidClassAt(i)) {
-        continue;
-      }
-      cls = At(i);
-      if (!(cls.is_finalized() || cls.is_prefinalized())) {
-        // Not finalized.
-        continue;
-      }
-      if (ShouldUpdateSizeForClassId(i)) {
-        intptr_t instance_size = cls.instance_size();
-        class_heap_stats_table_[i].UpdateSize(instance_size);
-      }
-      class_heap_stats_table_[i].PrintTOJSONArray(cls, &arr);
     }
   }
 }
 
 
 void ClassTable::ResetAllocationAccumulators() {
-  Class& cls = Class::Handle();
-  for (intptr_t i = 1; i < kNumPredefinedCids; i++) {
-    if (!HasValidClassAt(i) || (i == kFreeListElement) || (i == kSmiCid)) {
-      continue;
+  for (intptr_t i = 1; i < top_; i++) {
+    ClassHeapStats* stats = StatsWithUpdatedSize(i);
+    if (stats != NULL) {
+      stats->ResetAccumulator();
     }
-    cls = At(i);
-    if (!(cls.is_finalized() || cls.is_prefinalized())) {
-      // Not finalized.
-      continue;
-    }
-    // Update size before resetting accumulator.
-    if (ShouldUpdateSizeForClassId(i)) {
-      intptr_t instance_size = cls.instance_size();
-      predefined_class_heap_stats_table_[i].UpdateSize(instance_size);
-    }
-    predefined_class_heap_stats_table_[i].ResetAccumulator();
-  }
-  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
-    if (!HasValidClassAt(i)) {
-      continue;
-    }
-    cls = At(i);
-    if (!(cls.is_finalized() || cls.is_prefinalized())) {
-      // Not finalized.
-      continue;
-    }
-    // Update size before resetting accumulator.
-    if (ShouldUpdateSizeForClassId(i)) {
-      intptr_t instance_size = cls.instance_size();
-      class_heap_stats_table_[i].UpdateSize(instance_size);
-    }
-    class_heap_stats_table_[i].ResetAccumulator();
   }
 }
 
 
 void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = StatsAt(cid);
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddOld(size);
@@ -434,7 +402,7 @@ void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
 
 
 void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = StatsAt(cid);
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);

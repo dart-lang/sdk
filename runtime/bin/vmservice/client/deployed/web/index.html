@@ -3802,12 +3802,6 @@ hr {
             <div class="memberValue">{{ cls.vmName }}</div>
           </div>
         </template>
-        <div class="memberItem">
-          <div class="memberName">retained size<br>(all instances)</div>
-          <div class="memberValue">
-            <eval-link callback="{{ retainedSize }}"></eval-link>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -3854,6 +3848,22 @@ hr {
           </div>
         </curly-block><br><br>
       </template>
+      
+      <template if="{{ !cls.hasNoAllocations }}">
+        current instances ({{ cls.newSpace.current.instances + cls.oldSpace.current.instances }})
+          <div class="memberItem">
+            <div class="memberName">shallow size</div>
+            <div class="memberValue">
+              {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes }}
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
+          </div>
+        </template>
     </div>
 
     <hr>
@@ -16504,4 +16514,4 @@ hr {
 
   <observatory-application></observatory-application>
 
-<script src="index.html_bootstrap.dart.js"></script></body></html>
+<script type="application/dart" src="index.html_bootstrap.dart"></script><script src="packages/browser/dart.js"></script></body></html>

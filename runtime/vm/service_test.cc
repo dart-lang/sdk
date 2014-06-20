@@ -726,6 +726,7 @@ TEST_CASE(Service_Classes) {
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+  ExpectSubstringF(handler.msg(), "\"allocationStats\":");
 
   // Evaluate an expression from class A.
   service_msg = EvalF(h_lib,
