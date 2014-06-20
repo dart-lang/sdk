@@ -52,7 +52,6 @@
           '../../pkg/http_parser/lib',
           '../../pkg/intl/lib',
           '../../pkg/logging/lib',
-          '../../pkg/markdown/lib',
           '../../pkg/matcher/lib',
           '../../pkg/math/lib',
           '../../pkg/path/lib',

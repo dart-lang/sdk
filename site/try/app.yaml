@@ -52,9 +52,6 @@ handlers:
 - url: /packages/logging
   static_dir: packages/logging
 
-- url: /packages/markdown
-  static_dir: packages/markdown
-
 - url: /packages/matcher
   static_dir: packages/matcher
 
