@@ -126,10 +126,6 @@ class ObservatoryApplication extends Observable {
 
   @reflectable ServiceObject lastErrorOrException;
 
-  /// Any client-level arguments for viewing the current response.
-  @observable String args;
-  // TODO(turnidge): Make args a Map.
-
   void _initOnce() {
     _registerPanes();
     vm.errors.stream.listen(_onError);
@@ -154,15 +150,16 @@ class ObservatoryApplication extends Observable {
 
   void _onError(ServiceError error) {
     lastErrorOrException = error;
-    _visit('error/');
+    _visit('error/', null);
   }
 
   void _onException(ServiceException exception) {
     lastErrorOrException = exception;
-    _visit('error/');
+    _visit('error/', null);
   }
 
-  void _visit(String url) {
+  void _visit(String url, String args) {
+    // TODO(johnmccutchan): Pass [args] to pane.
     for (var i = 0; i < _paneRegistry.length; i++) {
       var pane = _paneRegistry[i];
       if (pane.canVisit(url)) {

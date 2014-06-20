@@ -42,7 +42,16 @@ abstract class LocationManager extends Observable {
     if (url.startsWith('/')) {
       url = url.substring(1);
     }
-    _app._visit(url);
+    var args;
+    // Parse out arguments.
+    if (url.contains('#')) {
+      var chunks = url.split('#');
+      url = chunks[0];
+      if ((chunks.length > 1) && (chunks[1] != '')) {
+        args = chunks[1];
+      }
+    }
+    _app._visit(url, args);
   }
 
   /// Go back.

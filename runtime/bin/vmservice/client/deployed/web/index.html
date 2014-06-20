@@ -5982,29 +5982,16 @@ hr {
     <div class="sourceInset">
       <content></content>
       <div class="grayBox">
-        <template if="{{ coverage == true }}">
-          <table>
-            <tbody>
-              <tr template="" repeat="{{ line in lines }}">
-                <td style="{{ hitStyle(line) }}"><span>  </span></td>
-                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-                <td>&nbsp;</td>
-                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-        <template if="{{ coverage == false }}">
-          <table>
-            <tbody>
-              <tr template="" repeat="{{ line in lines }}">
-                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-                <td>&nbsp;</td>
-                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
+        <table>
+          <tbody>
+            <tr template="" repeat="{{ lineNumber in lineNumbers }}">
+              <td style="{{ styleForHits(script.lines[lineNumber].hits) }}"><span>  </span></td>
+              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{script.lines[lineNumber].line}}</td>
+              <td>&nbsp;</td>
+              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{script.lines[lineNumber].text}}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </template>
@@ -12709,6 +12696,7 @@ hr {
             See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
           </div>
         </div>
+        <!-- Temporarily disabled until UI for dart:io is acceptable.
         <template if="{{ isolate.ioEnabled }}">
           <div class="memberItem">
             <div class="memberValue">
@@ -12716,6 +12704,7 @@ hr {
             </div>
           </div>
         </template>
+        -->
       </div>
       <div class="flex-item-10-percent">
       </div>
@@ -15130,12 +15119,7 @@ hr {
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ script.isolate }}">
     </isolate-nav-menu>
-    <nav-menu link="." anchor="{{ script.name }}" last="{{ true }}">
-      <li>
-        <input type="checkbox" checked="{{ showCoverage }}">
-        <label>Show Coverage Data</label>
-      </li>
-    </nav-menu>
+    <nav-menu link="{{ script.link }}" anchor="{{ script.name }}" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>
     <nav-control></nav-control>

@@ -14,68 +14,69 @@ class ScriptInsetElement extends ObservatoryElement {
   @published Script script;
   @published int pos;
   @published int endPos;
-  @published bool coverage = false;
+  final List<int> lineNumbers = new ObservableList<int>();
+  @observable int startLine;
+  @observable int endLine;
 
   @observable List<ScriptLine> lines = toObservable([]);
 
+  void attached() {
+    super.attached();
+  }
+
   void scriptChanged(oldValue) {
-    _updateProperties();
-    notifyPropertyChange(#hitStyle, 0, 1);
-    notifyPropertyChange(#lines, 0, 1);
+    _updateLines();
   }
 
   void posChanged(oldValue) {
-    _updateProperties();
+    _updateLines();
   }
 
-  coverageChanged(oldValue) {
-    _updateProperties();
-    notifyPropertyChange(#lines, 0, 1);
-    notifyPropertyChange(#hitStyle, 0, 1);
+  void endPosChanged(oldValue) {
+    _updateLines();
   }
 
   static const hitStyleNone = 'min-width:32px;';
-  static const hitStyleExecuted = 'min-width:32px;background-color:green';
-  static const hitStyleNotExecuted = 'min-width:32px;background-color:red';
+  static const hitStyleExecuted = 'min-width:32px; background-color:green';
+  static const hitStyleNotExecuted = 'min-width:32px; background-color:red';
 
-  @observable String hitStyle(ScriptLine line) {
-    if ((script == null) || !coverage) {
+  /// [hits] can be null which indicates that the line is not executable.
+  /// When [hits] is 0, the line is executable but hasn't been executed and
+  /// when [hits] is positive, the line is executable and has been executed.
+  String styleForHits(int hits) {
+    if (hits == null) {
       return hitStyleNone;
-    }
-    var hit = script.hits[line.line];
-    if (hit == null) {
-      return hitStyleNone;
-    }
-    if (hit == 0) {
+    } else if (hits == 0) {
       return hitStyleNotExecuted;
     }
-    assert(hit > 0);
+    assert(hits > 0);
     return hitStyleExecuted;
   }
 
+  var _updateFuture;
 
-  void _updateProperties() {
-    if (!script.loaded) {
-      script.load().then((_) {
-          if (script.loaded) {
-            _updateProperties();
-          }
-        });
+  void _updateLines() {
+    if (_updateFuture != null) {
+      // Already scheduled.
       return;
     }
-    notifyPropertyChange(#lines, 0, 1);
-    lines.clear();
-    var startLineNumber = script.tokenToLine(pos);
-    if (startLineNumber != null) {
-      if (endPos == null) {
-        lines.add(script.lines[startLineNumber - 1]);
-      } else {
-        var endLineNumber = script.tokenToLine(endPos);
-        assert(endLineNumber != null);
-        for (var i = startLineNumber; i <= endLineNumber; i++) {
-          lines.add(script.lines[i - 1]);
+    if (!script.loaded) {
+      _updateFuture = script.load().then((_) {
+        if (script.loaded) {
+          _updateFuture = null;
+          _updateLines();
         }
-      }
+      });
+      return;
+    }
+    startLine =
+        (pos != null) ? script.tokenToLine(pos) - 1 : 0;
+    endLine =
+        (endPos != null) ? script.tokenToLine(endPos) : script.lines.length;
+    // Add line numbers.
+    lineNumbers.clear();
+    for (var i = startLine; i < endLine; i++) {
+      lineNumbers.add(i);
     }
   }
 

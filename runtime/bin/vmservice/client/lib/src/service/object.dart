@@ -258,18 +258,18 @@ abstract class VM extends ServiceObjectOwner {
       String isolateId = _parseIsolateId(id);
       String objectId = _parseObjectId(id);
       return _getIsolate(isolateId).then((isolate) {
-          if (isolate == null) {
-            // The isolate does not exist.  Return the VM object instead.
-            //
-            // TODO(turnidge): Generate a service error?
-            return this;
-          }
-          if (objectId == null) {
-            return isolate.reload();
-          } else {
-            return isolate.get(objectId);
-          }
-        });
+        if (isolate == null) {
+          // The isolate does not exist.  Return the VM object instead.
+          //
+          // TODO(turnidge): Generate a service error?
+          return this;
+        }
+        if (objectId == null) {
+          return isolate.reload();
+        } else {
+          return isolate.get(objectId);
+        }
+      });
     }
 
     var obj = _cache[id];
@@ -1119,15 +1119,16 @@ class Class extends ServiceObject {
   }
 }
 
-class ScriptLine {
-  @reflectable final int line;
-  @reflectable final String text;
+class ScriptLine extends Observable {
+  final int line;
+  final String text;
+  @observable int hits;
   ScriptLine(this.line, this.text);
 }
 
 class Script extends ServiceObject {
-  @reflectable final lines = new ObservableList<ScriptLine>();
-  @reflectable final hits = new ObservableMap<int, int>();
+  final lines = new ObservableList<ScriptLine>();
+  final _hits = new Map<int, int>();
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
@@ -1196,12 +1197,14 @@ class Script extends ServiceObject {
 
   void _processHits(List scriptHits) {
     // Update hits table.
+    _hits.clear();
     for (var i = 0; i < scriptHits.length; i += 2) {
       var line = scriptHits[i];
       var hit = scriptHits[i + 1]; // hit status.
       assert(line >= 1); // Lines start at 1.
-      hits[line] = hit;
+      _hits[line] = hit;
     }
+    _applyHitsToLines();
   }
 
   void _processSource(String source) {
@@ -1220,6 +1223,17 @@ class Script extends ServiceObject {
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
       lines.add(new ScriptLine(i + 1, sourceLines[i]));
+    }
+    _applyHitsToLines();
+  }
+
+  void _applyHitsToLines() {
+    if (lines.length == 0) {
+      return;
+    }
+    for (var line in lines) {
+      var hits = _hits[line.line];
+      line.hits = hits;
     }
   }
 }
