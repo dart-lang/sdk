@@ -64,7 +64,9 @@ abstract class Span implements Comparable {
 
   String getLocationMessage(String message,
       {bool useColors: false, String color}) {
-    return '$formatLocation: $message';
+    var source = url == null ? '' : ' of ${p.prettyUri(url)}';
+    return 'line ${start.line + 1}, column ${start.column + 1}$source: ' +
+        message;
   }
 
   bool operator ==(Span other) =>
@@ -375,7 +377,8 @@ class SpanException implements Exception {
 
   String toString({bool useColors: false, String color}) {
     if (span == null) return message;
-    return span.getLocationMessage(message, useColors: useColors, color: color);
+    return "Error on " + span.getLocationMessage(message,
+        useColors: useColors, color: color);
   }
 }
 

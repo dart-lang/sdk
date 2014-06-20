@@ -1,3 +1,8 @@
+## 0.9.2+1
+
+* Minor readability improvements to `FixedSpan.getLocationMessage` and
+  `SpanException.toString`.
+
 ## 0.9.2
 
 * Add `SpanException` and `SpanFormatException` classes.
