@@ -117,7 +117,7 @@ unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.c
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 7728
+scheduled_test/test/unittest_compatibility_test: Fail # Issue 7728
 unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
