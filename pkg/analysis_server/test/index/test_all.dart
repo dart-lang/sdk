@@ -10,6 +10,7 @@ import 'b_plus_tree_test.dart' as b_plus_tree_test;
 import 'file_page_manager_test.dart' as file_page_manager_test;
 import 'lru_cache_test.dart' as lru_cache_test;
 import 'page_node_manager_test.dart' as page_node_manager_test;
+import 'split_store_test.dart' as split_store_test;
 
 
 /**
@@ -22,5 +23,6 @@ main() {
     page_node_manager_test.main();
     file_page_manager_test.main();
     lru_cache_test.main();
+    split_store_test.main();
   });
 }
