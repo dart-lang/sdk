@@ -42,7 +42,8 @@ isolates_test: Fail # Issue 13921
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip #Issue 17666
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
+indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
@@ -54,7 +55,7 @@ element_offset_test/offset: Skip # Issue 17550
 indexeddb_1_test/functional: RuntimeError # Issue 19127. Actually a timeout, but do not skip.
 mouse_event_test: Skip # Times out. Issue 19127
 request_animation_frame_test: Timeout # Issue 19127. Do not skip, for stability.
-xhr_test/xhr: RuntimeError # Issue 19127.
+xhr_test/xhr: RuntimeError # Issue 19127
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
