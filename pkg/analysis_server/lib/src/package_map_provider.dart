@@ -21,7 +21,7 @@ abstract class PackageMapProvider {
    *
    * If a package map can't be computed, return null.
    */
-  Map<String, Folder> computePackageMap(Folder folder);
+  Map<String, List<Folder>> computePackageMap(Folder folder);
 }
 
 /**
@@ -39,7 +39,7 @@ class PubPackageMapProvider implements PackageMapProvider {
   PubPackageMapProvider(this.resourceProvider);
 
   @override
-  Map<String, Folder> computePackageMap(Folder folder) {
+  Map<String, List<Folder>> computePackageMap(Folder folder) {
     // TODO(paulberry) make this asynchronous so that we can (a) do other
     // analysis while it's in progress, and (b) time out if it takes too long
     // to respond.
@@ -70,7 +70,7 @@ class PubPackageMapProvider implements PackageMapProvider {
   /**
    * Decode the JSON output from pub into a package map.
    */
-  Map<String, Folder> parsePackageMap(String jsonText) {
+  Map<String, List<Folder>> parsePackageMap(String jsonText) {
     // The output of pub looks like this:
     // {
     //   "packages": {
@@ -82,17 +82,28 @@ class PubPackageMapProvider implements PackageMapProvider {
     //     "path/to/myapp/pubspec.lock"
     //   ]
     // }
-    Map<String, Folder> packageMap = <String, Folder>{};
+    Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
     Map obj = JSON.decode(jsonText);
     Map packages = obj['packages'];
+    processPaths(String packageName, List paths) {
+      List<Folder> folders = <Folder>[];
+      for (var path in paths) {
+        if (path is String) {
+          Resource resource = resourceProvider.getResource(path);
+          if (resource is Folder) {
+            folders.add(resource);
+          }
+        }
+      }
+      if (folders.isNotEmpty) {
+        packageMap[packageName] = folders;
+      }
+    }
     packages.forEach((key, value) {
       if (value is String) {
-        Resource resource = resourceProvider.getResource(value);
-        if (resource is Folder) {
-          packageMap[key] = resource;
-        }
+        processPaths(key, [value]);
       } else if (value is List) {
-        // TODO(paulberry): support string lists.
+        processPaths(key, value);
       }
     });
     return packageMap;

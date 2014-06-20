@@ -48,7 +48,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void addContext(Folder folder, File pubspecFile) {
-    Map<String, Folder> packageMap =
+    Map<String, List<Folder>> packageMap =
         analysisServer.packageMapProvider.computePackageMap(folder);
     ContextDirectory contextDirectory = new ContextDirectory(
         analysisServer.defaultSdk, resourceProvider, folder, packageMap);
@@ -589,7 +589,7 @@ class ContextDirectory {
   AnalysisContext _context;
 
   ContextDirectory(DartSdk sdk, this._resourceProvider, this._folder,
-      Map<String, Folder> packageMap) {
+      Map<String, List<Folder>> packageMap) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver

@@ -22,7 +22,7 @@ main() {
 
 @ReflectiveTestCase()
 class _PackageMapUriResolverTest {
-  static const EMPTY_MAP = const <String, Folder>{};
+  static const EMPTY_MAP = const <String, List<Folder>>{};
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   setUp() {
@@ -70,9 +70,9 @@ class _PackageMapUriResolverTest {
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
     PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
-        <String, Folder>{
-      'pkgA': provider.getResource('/pkgA/lib/'),
-      'pkgB': provider.getResource('/pkgB/lib/')
+        <String, List<Folder>>{
+      'pkgA': [provider.getResource('/pkgA/lib/')],
+      'pkgB': [provider.getResource('/pkgB/lib/')]
     });
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
@@ -84,6 +84,34 @@ class _PackageMapUriResolverTest {
     }
     {
       Uri uri = Uri.parse('package:pkgB/libB.dart');
+      Source result = resolver.resolveAbsolute(uri);
+      expect(result, isNotNull);
+      expect(result.exists(), isTrue);
+      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.fullName, pkgFileB);
+    }
+  }
+
+  void test_resolve_multiple_folders() {
+    const pkgFileA = '/part1/lib/libA.dart';
+    const pkgFileB = '/part2/lib/libB.dart';
+    provider.newFile(pkgFileA, 'library lib_a');
+    provider.newFile(pkgFileB, 'library lib_b');
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
+        <String, List<Folder>>{
+      'pkg': [provider.getResource('/part1/lib/'),
+              provider.getResource('/part2/lib/')]
+    });
+    {
+      Uri uri = Uri.parse('package:pkg/libA.dart');
+      Source result = resolver.resolveAbsolute(uri);
+      expect(result, isNotNull);
+      expect(result.exists(), isTrue);
+      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.fullName, pkgFileA);
+    }
+    {
+      Uri uri = Uri.parse('package:pkg/libB.dart');
       Source result = resolver.resolveAbsolute(uri);
       expect(result, isNotNull);
       expect(result.exists(), isTrue);

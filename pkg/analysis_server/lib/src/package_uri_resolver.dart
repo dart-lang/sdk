@@ -19,10 +19,10 @@ class PackageMapUriResolver extends UriResolver {
   static const String PACKAGE_SCHEME = "package";
 
   /**
-   * A table mapping package names to the path of the directory containing
+   * A table mapping package names to the path of the directories containing
    * the package.
    */
-  final Map<String, Folder> packageMap;
+  final Map<String, List<Folder>> packageMap;
 
   /**
    * The [ResourceProvider] for this resolver.
@@ -32,8 +32,8 @@ class PackageMapUriResolver extends UriResolver {
   /**
    * Create a new [PackageMapUriResolver].
    *
-   * [packageMap] is a table mapping package names to the path of the directory
-   * containing the package
+   * [packageMap] is a table mapping package names to the paths of the
+   * directories containing the package
    */
   PackageMapUriResolver(this.resourceProvider, this.packageMap);
 
@@ -67,11 +67,15 @@ class PackageMapUriResolver extends UriResolver {
       relPath = path.substring(index + 1);
     }
     // Try to find an existing file.
-    Folder packageDir = packageMap[pkgName];
-    if (packageDir != null && packageDir.exists) {
-      Resource result = packageDir.getChild(relPath);
-      if (result is File && result.exists) {
-        return result.createSource(UriKind.PACKAGE_URI);
+    List<Folder> packageDirs = packageMap[pkgName];
+    if (packageDirs != null) {
+      for (Folder packageDir in packageDirs) {
+        if (packageDir.exists) {
+          Resource result = packageDir.getChild(relPath);
+          if (result is File && result.exists) {
+            return result.createSource(UriKind.PACKAGE_URI);
+          }
+        }
       }
     }
     // Return a NonExistingSource instance.

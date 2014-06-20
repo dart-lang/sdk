@@ -578,7 +578,7 @@ library lib_a;
 class A {}
 ''');
     packageMapProvider.packageMap['pkgA'] =
-        resourceProvider.getResource('/packages/pkgA');
+        [resourceProvider.getResource('/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
