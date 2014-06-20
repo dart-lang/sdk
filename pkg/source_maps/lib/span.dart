@@ -64,7 +64,8 @@ abstract class Span implements Comparable {
 
   String getLocationMessage(String message,
       {bool useColors: false, String color}) {
-    var source = url == null ? '' : ' of ${p.prettyUri(url)}';
+    var source = start.sourceUrl == null ? '' :
+        ' of ${p.prettyUri(start.sourceUrl)}';
     return 'line ${start.line + 1}, column ${start.column + 1}$source: ' +
         message;
   }

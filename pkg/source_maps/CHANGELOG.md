@@ -1,3 +1,7 @@
+## 0.9.2+2
+
+* Fix a bug in `FixedSpan.getLocationMessage`.
+
 ## 0.9.2+1
 
 * Minor readability improvements to `FixedSpan.getLocationMessage` and
