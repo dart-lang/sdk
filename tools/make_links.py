@@ -73,12 +73,13 @@ def main(argv):
     # it. This is necessary, otherwise we can end up having links in there
     # pointing to directories which no longer exist (on incremental builds).
     for link in os.listdir(target):
-      if utils.GuessOS() == 'win32':
-        # It seems like python on windows is treating pseudo symlinks to
+      full_link = os.path.join(target, link)
+      if os.path.isdir(full_link) and utils.IsWindows():
+        # It seems like python on Windows is treating pseudo symlinks to
         # directories as directories.
-        os.rmdir(os.path.join(target, link))
+        os.rmdir(full_link)
       else:
-        os.remove(os.path.join(target, link))
+        os.remove(full_link)
   else:
     os.makedirs(target)
   for source in args[1:]:
