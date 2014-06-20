@@ -13100,6 +13100,23 @@ void Instance::SetNativeField(int index, intptr_t value) const {
 }
 
 
+void Instance::SetNativeFields(uint16_t num_native_fields,
+                               const intptr_t* field_values) const {
+  ASSERT(num_native_fields == NumNativeFields());
+  ASSERT(field_values != NULL);
+  Object& native_fields = Object::Handle(*NativeFieldsAddr());
+  if (native_fields.IsNull()) {
+    // Allocate backing storage for the native fields.
+    native_fields = TypedData::New(kIntPtrCid, NumNativeFields());
+    StorePointer(NativeFieldsAddr(), native_fields.raw());
+  }
+  for (uint16_t i = 0; i < num_native_fields; i++) {
+    intptr_t byte_offset = i * sizeof(intptr_t);
+    TypedData::Cast(native_fields).SetIntPtr(byte_offset, field_values[i]);
+  }
+}
+
+
 bool Instance::IsClosure() const {
   const Class& cls = Class::Handle(clazz());
   return cls.IsSignatureClass();

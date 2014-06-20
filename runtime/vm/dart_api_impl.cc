@@ -3596,23 +3596,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 }
 
 
-DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  CHECK_CALLBACK_STATE(isolate);
-
-  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
-  // Get the class to instantiate.
-  if (type_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, type, Type);
-  }
-  const Class& cls = Class::Handle(isolate, type_obj.type_class());
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
-  if (!error.IsNull()) {
-    // An error occurred, return error object.
-    return Api::NewHandle(isolate, error.raw());
-  }
-
+static RawInstance* AllocateObject(Isolate* isolate, const Class& cls) {
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Class& iterate_cls = Class::Handle(isolate, cls.raw());
@@ -3634,7 +3618,61 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
 
   // Allocate an object for the given class.
-  return Api::NewHandle(isolate, Instance::New(cls));
+  return Instance::New(cls);
+}
+
+
+DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
+  return Api::NewHandle(isolate, AllocateObject(isolate, cls));
+}
+
+
+DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
+    Dart_Handle type,
+    intptr_t num_native_fields,
+    const intptr_t* native_fields) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  if (native_fields == NULL) {
+    RETURN_NULL_ERROR(native_fields);
+  }
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
+  if (num_native_fields != cls.num_native_fields()) {
+    return Api::NewError(
+        "%s: invalid number of native fields %d passed in, expected %d",
+        CURRENT_FUNC, num_native_fields, cls.num_native_fields());
+  }
+  const Instance& instance = Instance::Handle(isolate,
+                                              AllocateObject(isolate, cls));
+  instance.SetNativeFields(num_native_fields, native_fields);
+  return Api::NewHandle(isolate, instance.raw());
 }
 
 

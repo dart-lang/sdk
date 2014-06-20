@@ -4225,6 +4225,8 @@ class Instance : public Object {
   inline intptr_t GetNativeField(int index) const;
   inline void GetNativeFields(uint16_t num_fields,
                               intptr_t* field_values) const;
+  void SetNativeFields(uint16_t num_fields,
+                       const intptr_t* field_values) const;
 
   uint16_t NumNativeFields() const {
     return clazz()->ptr()->num_native_fields_;

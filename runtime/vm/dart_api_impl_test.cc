@@ -5316,12 +5316,17 @@ static void NativeArgumentCreate(Dart_NativeArguments args) {
   EXPECT_VALID(type);
 
   // Allocate without a constructor.
-  Dart_Handle obj = Dart_Allocate(type);
+  const int num_native_fields = 2;
+  const intptr_t native_fields[] = {
+    kNativeArgumentNativeField1Value,
+    kNativeArgumentNativeField2Value
+  };
+  // Allocate and Setup native fields.
+  Dart_Handle obj = Dart_AllocateWithNativeFields(type,
+                                                  num_native_fields,
+                                                  native_fields);
   EXPECT_VALID(obj);
 
-  // Setup native fields.
-  Dart_SetNativeInstanceField(obj, 0, kNativeArgumentNativeField1Value);
-  Dart_SetNativeInstanceField(obj, 1, kNativeArgumentNativeField2Value);
   kNativeArgumentNativeField1Value *= 2;
   kNativeArgumentNativeField2Value *= 2;
   Dart_SetReturnValue(args, obj);
