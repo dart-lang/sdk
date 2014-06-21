@@ -43,7 +43,6 @@ io/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
-full_coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: Skip # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
@@ -75,7 +74,6 @@ medium_integer_test: RuntimeError, OK # Test fails with JS number semantics: iss
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
-full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
 double_smi_comparison_test: Skip # Precision > 53 bits.
