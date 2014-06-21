@@ -107,6 +107,10 @@ class GCSNamer(object):
     return '/'.join([self.editor_directory(revision),
       self.editor_installer_filename(system, arch, extension)])
 
+  def editor_android_zipfilepath(self, revision):
+    return '/'.join([self.editor_directory(revision),
+      self.editor_android_zipfilename()])
+
   def sdk_zipfilepath(self, revision, system, arch, mode):
     return '/'.join([self.sdk_directory(revision),
       self.sdk_zipfilename(system, arch, mode)])
@@ -168,6 +172,9 @@ class GCSNamer(object):
   def editor_zipfilename(self, system, arch):
     return 'darteditor-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch])
+
+  def editor_android_zipfilename(self):
+    return 'android.zip'
 
   def editor_installer_filename(self, system, arch, extension):
     assert extension in ['dmg', 'msi']
@@ -333,7 +340,7 @@ def CreateChecksumFile(filename, mangled_filename=None):
   return checksum_filename
 
 def GetChannelFromName(name):
-  """Get the channel from the name. Bleeding edge builders don't 
+  """Get the channel from the name. Bleeding edge builders don't
       have a suffix."""
   channel_name = string.split(name, '-').pop()
   if channel_name in Channel.ALL_CHANNELS:
