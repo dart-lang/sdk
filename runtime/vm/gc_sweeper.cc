@@ -57,14 +57,24 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 
 
 bool GCSweeper::SweepLargePage(HeapPage* page) {
+  bool in_use = false;
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
-  if (!raw_obj->IsMarked()) {
-    // The large object was not marked. Used size is zero, which also tells the
-    // calling code that the large object page can be recycled.
-    return false;
+  if (raw_obj->IsMarked()) {
+    raw_obj->ClearMarkBit();
+    in_use = true;
   }
-  raw_obj->ClearMarkBit();
-  return true;
+#ifdef DEBUG
+  // String::MakeExternal and Array::MakeArray create trailing filler objects,
+  // but they are always unreachable. Verify that they are not marked.
+  uword current = RawObject::ToAddr(raw_obj) + raw_obj->Size();
+  uword end = page->object_end();
+  while (current < end) {
+    RawObject* cur_obj = RawObject::FromAddr(current);
+    ASSERT(!cur_obj->IsMarked());
+    current += cur_obj->Size();
+  }
+#endif  // DEBUG
+  return in_use;
 }
 
 }  // namespace dart

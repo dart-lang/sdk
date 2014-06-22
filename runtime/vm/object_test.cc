@@ -2050,6 +2050,18 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
   EXPECT_EQ((6 * kWordSize), left_over_array.Length());
+
+  // 4. Verify that GC can handle the filler object for a large array.
+  array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 1; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  new_array = Array::MakeArray(array);
+  EXPECT_EQ(1, new_array.Length());
+  Isolate::Current()->heap()->CollectAllGarbage();
+  EXPECT_EQ(1, new_array.Length());
 }
 
 
