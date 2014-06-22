@@ -748,7 +748,7 @@ void Scavenger::WriteProtect(bool read_only) {
 
 void Scavenger::PrintToJSONObject(JSONObject* object) {
   JSONObject space(object, "new");
-  space.AddProperty("type", "@Scavenger");
+  space.AddProperty("type", "Scavenger");
   space.AddProperty("id", "heaps/new");
   space.AddProperty("name", "Scavenger");
   space.AddProperty("user_name", "new");

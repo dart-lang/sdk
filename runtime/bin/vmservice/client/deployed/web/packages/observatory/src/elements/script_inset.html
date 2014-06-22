@@ -1,6 +1,6 @@
-<head>
-  <link rel="import" href="observatory_element.html">
-</head>
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="observatory_element.html">
+
 <polymer-element name="script-inset" extends="observatory-element">
   <template>
     <style>
@@ -18,31 +18,19 @@
     <div class="sourceInset">
       <content></content>
       <div class="grayBox">
-        <template if="{{ coverage == true }}">
-          <table>
-            <tbody>
-              <tr template repeat="{{ line in lines }}">
-                <td style="{{ hitStyle(line) }}"><span>  </span></td>
-                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-                <td>&nbsp;</td>
-                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-        <template if="{{ coverage == false }}">
-          <table>
-            <tbody>
-              <tr template repeat="{{ line in lines }}">
-                <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
-                <td>&nbsp;</td>
-                <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{line.text}}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
+        <table>
+          <tbody>
+            <tr template repeat="{{ lineNumber in lineNumbers }}">
+              <td style="{{ styleForHits(script.lines[lineNumber].hits) }}"><span>  </span></td>
+              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{script.lines[lineNumber].line}}</td>
+              <td>&nbsp;</td>
+              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{script.lines[lineNumber].text}}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </template>
-  <script type="application/dart" src="script_inset.dart"></script>
 </polymer-element>
+
+<script type="application/dart" src="script_inset.dart"></script>

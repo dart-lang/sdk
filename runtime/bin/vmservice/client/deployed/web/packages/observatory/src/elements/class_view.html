@@ -1,15 +1,15 @@
-<head>
-  <link rel="import" href="curly_block.html">
-  <link rel="import" href="eval_box.html">
-  <link rel="import" href="eval_link.html">
-  <link rel="import" href="field_ref.html">
-  <link rel="import" href="function_ref.html">
-  <link rel="import" href="instance_ref.html">
-  <link rel="import" href="library_ref.html">
-  <link rel="import" href="nav_bar.html">
-  <link rel="import" href="observatory_element.html">
-  <link rel="import" href="script_ref.html">
-</head>
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="curly_block.html">
+<link rel="import" href="eval_box.html">
+<link rel="import" href="eval_link.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="library_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_ref.html">
+
 <polymer-element name="class-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -86,12 +86,6 @@
             <div class="memberValue">{{ cls.vmName }}</div>
           </div>
         </template>
-        <div class="memberItem">
-          <div class="memberName">retained size<br>(all instances)</div>
-          <div class="memberValue">
-            <eval-link callback="{{ retainedSize }}"></eval-link>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -138,6 +132,22 @@
           </div>
         </curly-block><br><br>
       </template>
+      
+      <template if="{{ !cls.hasNoAllocations }}">
+        current instances ({{ cls.newSpace.current.instances + cls.oldSpace.current.instances }})
+          <div class="memberItem">
+            <div class="memberName">shallow size</div>
+            <div class="memberValue">
+              {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes }}
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <eval-link callback="{{ retainedSize }}"></eval-link>
+            </div>
+          </div>
+        </template>
     </div>
 
     <hr>
@@ -148,5 +158,6 @@
     <br><br><br><br>
     <br><br><br><br>
   </template>
-  <script type="application/dart" src="class_view.dart"></script>
 </polymer-element>
+
+<script type="application/dart" src="class_view.dart"></script>

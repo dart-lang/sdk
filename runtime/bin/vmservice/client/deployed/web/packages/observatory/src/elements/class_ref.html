@@ -1,9 +1,8 @@
-<head>
+<link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="service_ref.html">
-</head>
-<polymer-element name="class-ref" extends="service-ref">
 
-<template><link rel="stylesheet" href="css/shared.css"><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+<polymer-element name="class-ref" extends="service-ref">
+  <template><link rel="stylesheet" href="css/shared.css"><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+</polymer-element>
 
 <script type="application/dart" src="class_ref.dart"></script>
-</polymer-element>

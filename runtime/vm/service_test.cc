@@ -208,12 +208,8 @@ TEST_CASE(Service_Isolate) {
   EXPECT_SUBSTRING("isolates/", buffer);
 
   // heap
-  EXPECT(reader.Seek("heap"));
+  EXPECT(reader.Seek("heaps"));
   EXPECT_EQ(reader.Type(), JSONReader::kObject);
-
-  // timers
-  EXPECT(reader.Seek("timers"));
-  EXPECT_EQ(reader.Type(), JSONReader::kArray);
 }
 
 
@@ -730,6 +726,7 @@ TEST_CASE(Service_Classes) {
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+  ExpectSubstringF(handler.msg(), "\"allocationStats\":");
 
   // Evaluate an expression from class A.
   service_msg = EvalF(h_lib,

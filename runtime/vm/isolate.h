@@ -452,6 +452,23 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
+  void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
+    last_allocationprofile_accumulator_reset_timestamp_ =
+      OS::GetCurrentTimeMillis();
+  }
+
+  int64_t last_allocationprofile_accumulator_reset_timestamp() const {
+    return last_allocationprofile_accumulator_reset_timestamp_;
+  }
+
+  void UpdateLastAllocationProfileGCTimestamp() {
+    last_allocationprofile_gc_timestamp_ = OS::GetCurrentTimeMillis();
+  }
+
+  int64_t last_allocationprofile_gc_timestamp() const {
+    return last_allocationprofile_gc_timestamp_;
+  }
+
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -591,6 +608,10 @@ class Isolate : public BaseIsolate {
   // Status support.
   char* stacktrace_;
   intptr_t stack_frame_index_;
+
+  // Timestamps of last operation via service.
+  int64_t last_allocationprofile_accumulator_reset_timestamp_;
+  int64_t last_allocationprofile_gc_timestamp_;
 
   bool cha_used_;
 

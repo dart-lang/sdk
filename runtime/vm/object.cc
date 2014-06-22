@@ -4058,6 +4058,14 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddPropertyF("name", "canonical types of %s", internal_class_name);
     jsobj.AddPropertyF("user_name", "canonical types of %s", pretty_class_name);
   }
+  {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    const ClassHeapStats* stats = class_table->StatsWithUpdatedSize(id());
+    if (stats != NULL) {
+     JSONObject allocation_stats(&jsobj, "allocationStats");
+      stats->PrintToJSONObject(*this, &allocation_stats);
+    }
+  }
 }
 
 
