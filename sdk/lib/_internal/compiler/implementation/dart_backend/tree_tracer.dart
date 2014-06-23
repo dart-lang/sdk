@@ -62,6 +62,7 @@ class BlockCollector extends Visitor {
   visitLiteralList(LiteralList node) {}
   visitLiteralMap(LiteralMap node) {}
   visitConstant(Constant node) {}
+  visitThis(This node) {}
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
   visitNot(Not node) {}
@@ -337,6 +338,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitConstant(Constant node) {
     return "${node.value}";
+  }
+
+  String visitThis(This node) {
+    return "this";
   }
 
   bool usesInfixNotation(Expression node) {

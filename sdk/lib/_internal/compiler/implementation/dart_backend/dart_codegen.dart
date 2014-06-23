@@ -333,6 +333,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return emitConstant(exp.value);
   }
 
+  Expression visitThis(tree.This exp) {
+    return new This();
+  }
+
   Expression visitLiteralList(tree.LiteralList exp) {
     return new LiteralList(
         exp.values.map(visitExpression).toList(growable: false),

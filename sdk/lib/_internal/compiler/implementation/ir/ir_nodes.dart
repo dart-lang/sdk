@@ -307,6 +307,12 @@ class Constant extends Primitive {
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
+class This extends Primitive {
+  This();
+
+  accept(Visitor visitor) => visitor.visitThis(this);
+}
+
 class LiteralList extends Primitive {
   /// The List type being created; this is not the type argument.
   final GenericType type;
@@ -406,6 +412,7 @@ abstract class Visitor<T> {
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
   T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
+  T visitThis(This node) => visitPrimitive(node);
   T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);

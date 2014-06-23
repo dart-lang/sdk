@@ -162,7 +162,10 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "ConstConstruction ($values)");
   }
 
-
+  visitThis(ir.This node) {
+    String dummy = names.name(node);
+    printStmt(dummy, "This");
+  }
 
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);

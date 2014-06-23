@@ -810,6 +810,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
+  ir.Primitive visitIdentifier(ast.Identifier node) {
+    assert(isOpen);
+    assert(node.isThis());
+    return lookupThis();
+  }
+
   ir.Primitive visitParenthesizedExpression(
       ast.ParenthesizedExpression node) {
     assert(isOpen);
@@ -834,6 +840,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Primitive receiver = _currentCascadeReceiver;
     _currentCascadeReceiver = oldCascadeReceiver;
     return receiver;
+  }
+
+  ir.Primitive lookupThis() {
+    ir.Primitive result = new ir.This();
+    add(new ir.LetPrim(result));
+    return result;
   }
 
   ir.Primitive lookupLocal(Element element) {
@@ -907,10 +919,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (Elements.isLocal(element)) {
       return lookupLocal(element);
     } else if (element == null || Elements.isInstanceField(element)) {
-      // TODO: Support implicit this.
-      if (node.receiver == null) return giveup(node);
-
-      ir.Primitive receiver = visit(node.receiver);
+      ir.Primitive receiver = node.receiver == null
+          ? lookupThis()
+          : visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
       Selector selector = elements.getSelector(node);
@@ -1169,11 +1180,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         // - Assignment to final variable (will not be resolved)
         return giveup(node, 'SendSet: non-local, non-static, but no receiver');
       } else {
+        if (element != null && Elements.isUnresolved(element)) return giveup();
+
         // Setter or index-setter invocation
         assert(node.receiver != null);
+
         if (node.receiver.isSuper()) return giveup(node, 'Super SendSet');
 
-        ir.Primitive receiver = visit(node.receiver);
+        ir.Primitive receiver = node.receiver == null
+            ? lookupThis()
+            : visit(node.receiver);
         ir.Parameter v = new ir.Parameter(null);
         ir.Continuation k = new ir.Continuation([v]);
         Selector selector = elements.getSelector(node);

@@ -174,6 +174,10 @@ class Constant extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 }
 
+class This extends Expression {
+  accept(Visitor visitor) => visitor.visitThis(this);
+}
+
 class LiteralList extends Expression {
   final GenericType type;
   final List<Expression> values;
@@ -421,6 +425,7 @@ abstract class ExpressionVisitor<E> {
   E visitInvokeConstructor(InvokeConstructor node);
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
+  E visitThis(This node);
   E visitConditional(Conditional node);
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
@@ -808,6 +813,10 @@ class Builder extends ir.Visitor<Node> {
     return new Constant(node.value);
   }
 
+  Expression visitThis(ir.This node) {
+    return new This();
+  }
+
   Expression visitLiteralList(ir.LiteralList node) {
     return new LiteralList(
             node.type,
@@ -1152,6 +1161,10 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitConstant(Constant node) {
+    return node;
+  }
+
+  Expression visitThis(This node) {
     return node;
   }
 
@@ -1664,6 +1677,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitConstant(Constant node) {
+    return node;
+  }
+
+  Expression visitThis(This node) {
     return node;
   }
 
