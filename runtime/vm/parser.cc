@@ -432,22 +432,6 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
 }
 
 
-// A QualIdent is an optionally qualified identifier.
-struct QualIdent {
-  QualIdent() {
-    Clear();
-  }
-  void Clear() {
-    lib_prefix = NULL;
-    ident_pos = 0;
-    ident = NULL;
-  }
-  LibraryPrefix* lib_prefix;
-  intptr_t ident_pos;
-  String* ident;
-};
-
-
 struct ParamDesc {
   ParamDesc()
       : type(NULL),
@@ -3130,44 +3114,46 @@ void Parser::SkipInitializers() {
 }
 
 
-void Parser::ParseQualIdent(QualIdent* qual_ident) {
-  TRACE_PARSER("ParseQualIdent");
+// If the current identifier is a library prefix followed by a period,
+// consume the identifier and period, and return the resolved library
+// prefix.
+RawLibraryPrefix* Parser::ParsePrefix() {
   ASSERT(IsIdentifier());
-  ASSERT(!current_class().IsNull());
-  qual_ident->ident_pos = TokenPos();
-  qual_ident->ident = CurrentLiteral();
-  qual_ident->lib_prefix = NULL;
-  ConsumeToken();
-  if (CurrentToken() == Token::kPERIOD) {
-    // An identifier cannot be resolved in a local scope when top level parsing.
-    if (is_top_level_ ||
-        !ResolveIdentInLocalScope(qual_ident->ident_pos,
-                                  *(qual_ident->ident),
-                                  NULL)) {
-      LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle(I);
-      if (!current_class().IsMixinApplication()) {
-        lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
-      } else {
-        // TODO(hausner): Should we resolve the prefix via the library scope
-        // rather than via the class?
-        Class& cls = Class::Handle(I, parsed_function()->function().origin());
-        lib_prefix = cls.LookupLibraryPrefix(*(qual_ident->ident));
-      }
-      if (!lib_prefix.IsNull()) {
-        // We have a library prefix qualified identifier, unless the prefix is
-        // shadowed by a type parameter in scope.
-        if (current_class().IsNull() ||
-            (current_class().LookupTypeParameter(*(qual_ident->ident)) ==
-             TypeParameter::null())) {
-          ConsumeToken();  // Consume the kPERIOD token.
-          qual_ident->lib_prefix = &lib_prefix;
-          qual_ident->ident_pos = TokenPos();
-          qual_ident->ident =
-              ExpectIdentifier("identifier expected after '.'");
-        }
-      }
-    }
+  // A library prefix can never stand by itself. It must be followed by
+  // a period.
+  if (LookaheadToken(1) != Token::kPERIOD) {
+    return LibraryPrefix::null();
   }
+  const String& ident = *CurrentLiteral();
+
+  // It is relatively fast to look up a name in the library dictionary,
+  // compared to searching the nested local scopes. Look up the name
+  // in the library scope and return in the common case where ident is
+  // not a library prefix.
+  LibraryPrefix& prefix =
+      LibraryPrefix::Handle(I, library_.LookupLocalLibraryPrefix(ident));
+  if (prefix.IsNull()) {
+    return LibraryPrefix::null();
+  }
+
+  // A library prefix with the name exists. Now check whether it is
+  // shadowed by a local definition.
+  if (!is_top_level_ &&
+      ResolveIdentInLocalScope(TokenPos(), ident, NULL)) {
+    return LibraryPrefix::null();
+  }
+  // Check whether the identifier is shadowed by a type parameter.
+  ASSERT(!current_class().IsNull());
+  if (current_class().LookupTypeParameter(ident) != TypeParameter::null()) {
+    return LibraryPrefix::null();
+  }
+
+  // We have a name that is not shadowed, followed by a period.
+  // Consume the identifier and the period.
+  ConsumeToken();
+  ASSERT(CurrentToken() == Token::kPERIOD);  // We checked above.
+  ConsumeToken();
+  return prefix.raw();
 }
 
 
@@ -3285,8 +3271,13 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
     is_redirecting = true;
+    const bool consume_unresolved_prefix =
+        (LookaheadToken(3) == Token::kLT) ||
+        (LookaheadToken(3) == Token::kPERIOD);
     const AbstractType& type = AbstractType::Handle(I,
-        ParseType(ClassFinalizer::kResolveTypeParameters));
+        ParseType(ClassFinalizer::kResolveTypeParameters,
+                  false,  // Deferred types not allowed.
+                  consume_unresolved_prefix));
     if (!type.IsMalformed() && type.IsTypeParameter()) {
       // Replace the type with a malformed type and compile a throw when called.
       redirection_type = ClassFinalizer::NewFinalizedMalformedType(
@@ -6070,12 +6061,32 @@ bool Parser::IsIdentifier() {
 }
 
 
+// Returns true if the next tokens can be parsed as a an optionally
+// qualified identifier: [ident '.'] ident.
+// Current token position is not restored.
+bool Parser::TryParseQualIdent() {
+  if (CurrentToken() != Token::kIDENT) {
+    return false;
+  }
+  ConsumeToken();
+  if (CurrentToken() == Token::kPERIOD) {
+    ConsumeToken();
+    if (CurrentToken() != Token::kIDENT) {
+      return false;
+    }
+    ConsumeToken();
+  }
+  return true;
+}
+
+
 // Returns true if the next tokens can be parsed as a type with optional
 // type parameters. Current token position is not restored.
 bool Parser::TryParseOptionalType() {
   if (CurrentToken() == Token::kIDENT) {
-    QualIdent type_name;
-    ParseQualIdent(&type_name);
+    if (!TryParseQualIdent()) {
+      return false;
+    }
     if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
       return false;
     }
@@ -9493,10 +9504,14 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 // finalize it according to the given type finalization mode.
 RawAbstractType* Parser::ParseType(
     ClassFinalizer::FinalizationKind finalization,
-    bool allow_deferred_type) {
+    bool allow_deferred_type,
+    bool consume_unresolved_prefix) {
   TRACE_PARSER("ParseType");
   CheckToken(Token::kIDENT, "type name expected");
-  QualIdent type_name;
+  intptr_t ident_pos = TokenPos();
+  LibraryPrefix& prefix = LibraryPrefix::Handle(I);
+  String& type_name = String::Handle(I);;
+
   if (finalization == ClassFinalizer::kIgnore) {
     if (!is_top_level_ && (current_block_ != NULL)) {
       // Add the library prefix or type class name to the list of referenced
@@ -9505,43 +9520,69 @@ RawAbstractType* Parser::ParseType(
     }
     SkipQualIdent();
   } else {
-    ParseQualIdent(&type_name);
-    // An identifier cannot be resolved in a local scope when top level parsing.
-    if (!is_top_level_ &&
-        (type_name.lib_prefix == NULL) &&
-        ResolveIdentInLocalScope(type_name.ident_pos, *type_name.ident, NULL)) {
+    prefix = ParsePrefix();
+    type_name = CurrentLiteral()->raw();
+    ConsumeToken();
+
+    // Check whether we have a malformed qualified type name if the caller
+    // requests to consume unresolved prefix names:
+    // If we didn't see a valid prefix but the identifier is followed by
+    // a period and another identifier, consume the qualified identifier
+    // and create a malformed type.
+    if (consume_unresolved_prefix &&
+        prefix.IsNull() &&
+        (CurrentToken() == Token::kPERIOD) &&
+        (Token::IsIdentifier(LookaheadToken(1)))) {
+      if (!is_top_level_ && (current_block_ != NULL)) {
+        // Add the unresolved prefix name to the list of referenced
+        // names of this scope.
+        current_block_->scope->AddReferencedName(TokenPos(), type_name);
+      }
+      ConsumeToken();  // Period token.
+      ASSERT(IsIdentifier());
+      String& qualified_name = String::Handle(I, type_name.raw());
+      qualified_name = String::Concat(qualified_name, Symbols::Dot());
+      qualified_name = String::Concat(qualified_name, *CurrentLiteral());
+      ConsumeToken();
       // The type is malformed. Skip over its type arguments.
       ParseTypeArguments(ClassFinalizer::kIgnore);
       return ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(I),  // No previous error.
           script_,
-          type_name.ident_pos,
-          "using '%s' in this context is invalid",
-          type_name.ident->ToCString());
+          ident_pos,
+          "qualified name '%s' does not refer to a type",
+          qualified_name.ToCString());
     }
-    if ((type_name.lib_prefix != NULL) &&
-        type_name.lib_prefix->is_deferred_load() &&
-        !allow_deferred_type) {
+
+    // If parsing inside a local scope, check whether the type name
+    // is shadowed by a local declaration.
+    if (!is_top_level_ &&
+        (prefix.IsNull()) &&
+        ResolveIdentInLocalScope(ident_pos, type_name, NULL)) {
+      // The type is malformed. Skip over its type arguments.
       ParseTypeArguments(ClassFinalizer::kIgnore);
       return ClassFinalizer::NewFinalizedMalformedType(
           Error::Handle(I),  // No previous error.
           script_,
-          type_name.ident_pos,
+          ident_pos,
+          "using '%s' in this context is invalid",
+          type_name.ToCString());
+    }
+    if (!prefix.IsNull() && prefix.is_deferred_load() && !allow_deferred_type) {
+      ParseTypeArguments(ClassFinalizer::kIgnore);
+      return ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(I),  // No previous error.
+          script_,
+          ident_pos,
           "using deferred type '%s.%s' is invalid",
-          String::Handle(I, type_name.lib_prefix->name()).ToCString(),
-          type_name.ident->ToCString());
+          String::Handle(I, prefix.name()).ToCString(),
+          type_name.ToCString());
     }
   }
   Object& type_class = Object::Handle(I);
   // Leave type_class as null if type finalization mode is kIgnore.
   if (finalization != ClassFinalizer::kIgnore) {
-    LibraryPrefix& lib_prefix = LibraryPrefix::Handle(I);
-    if (type_name.lib_prefix != NULL) {
-      lib_prefix = type_name.lib_prefix->raw();
-    }
-    type_class = UnresolvedClass::New(lib_prefix,
-                                      *type_name.ident,
-                                      type_name.ident_pos);
+    type_class = UnresolvedClass::New(prefix, type_name, ident_pos);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(
       I, ParseTypeArguments(finalization));
@@ -9549,7 +9590,7 @@ RawAbstractType* Parser::ParseType(
     return Type::DynamicType();
   }
   AbstractType& type = AbstractType::Handle(
-      I, Type::New(type_class, type_arguments, type_name.ident_pos));
+      I, Type::New(type_class, type_arguments, ident_pos));
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
     ResolveTypeFromClass(current_class(), finalization, &type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
@@ -10091,8 +10132,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   intptr_t type_pos = TokenPos();
   // Can't allocate const objects of a deferred type.
   const bool allow_deferred_type = !is_const;
+  const bool consume_unresolved_prefix = (LookaheadToken(3) == Token::kLT) ||
+                                         (LookaheadToken(3) == Token::kPERIOD);
   AbstractType& type = AbstractType::Handle(I,
-      ParseType(ClassFinalizer::kCanonicalizeWellFormed, allow_deferred_type));
+      ParseType(ClassFinalizer::kCanonicalizeWellFormed,
+                allow_deferred_type,
+                consume_unresolved_prefix));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
@@ -10109,9 +10154,9 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
-  // is a named constructor. Note that ParseType() above will not consume it as
-  // part of a misinterpreted qualified identifier, because only a valid library
-  // prefix is accepted as qualifier.
+  // is a named constructor. Note that we tell ParseType() above not to
+  // consume it as part of a misinterpreted qualified identifier. Only a
+  // valid library prefix is accepted as qualifier.
   String* named_constructor = NULL;
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
@@ -10482,47 +10527,44 @@ AstNode* Parser::ParsePrimary() {
     primary = ParseFunctionStatement(true);
     CloseBlock();
   } else if (IsIdentifier()) {
-    QualIdent qual_ident;
     intptr_t qual_ident_pos = TokenPos();
-    ParseQualIdent(&qual_ident);
-    if (qual_ident.lib_prefix == NULL) {
-      if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
-                                    *qual_ident.ident,
-                                    &primary)) {
+    const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(I, ParsePrefix());
+    String& ident = *CurrentLiteral();
+    ConsumeToken();
+    if (prefix.IsNull()) {
+      if (!ResolveIdentInLocalScope(qual_ident_pos, ident, &primary)) {
         // Check whether the identifier is a type parameter.
         if (!current_class().IsNull()) {
           TypeParameter& type_param = TypeParameter::ZoneHandle(I,
-              current_class().LookupTypeParameter(*(qual_ident.ident)));
+              current_class().LookupTypeParameter(ident));
           if (!type_param.IsNull()) {
-            return new(I) PrimaryNode(qual_ident.ident_pos, type_param);
+            return new(I) PrimaryNode(qual_ident_pos, type_param);
           }
         }
         // This is a non-local unqualified identifier so resolve the
         // identifier locally in the main app library and all libraries
         // imported by it.
-        primary = ResolveIdentInCurrentLibraryScope(qual_ident.ident_pos,
-                                                    *qual_ident.ident);
+        primary = ResolveIdentInCurrentLibraryScope(qual_ident_pos, ident);
       }
     } else {
       // This is a qualified identifier with a library prefix so resolve
       // the identifier locally in that library (we do not include the
       // libraries imported by that library).
-      primary = ResolveIdentInPrefixScope(qual_ident.ident_pos,
-                                          *qual_ident.lib_prefix,
-                                          *qual_ident.ident);
+      primary = ResolveIdentInPrefixScope(qual_ident_pos, prefix, ident);
+
       // If the identifier could not be resolved, throw a NoSuchMethodError.
       // Note: unlike in the case of an unqualified identifier, do not
       // interpret the unresolved identifier as an instance method or
       // instance getter call when compiling an instance method.
       if (primary == NULL) {
-        if (qual_ident.lib_prefix->is_deferred_load() &&
-            qual_ident.ident->Equals(Symbols::LoadLibrary())) {
+        if (prefix.is_deferred_load() &&
+            ident.Equals(Symbols::LoadLibrary())) {
           // Hack Alert: recognize special 'loadLibrary' call on the
           // prefix object. The prefix is the primary. Rewind parser and
           // let ParseSelectors() handle the loadLibrary call.
           SetPosition(qual_ident_pos);
           ConsumeToken();  // Prefix name.
-          primary = new(I) LiteralNode(qual_ident_pos, *qual_ident.lib_prefix);
+          primary = new(I) LiteralNode(qual_ident_pos, prefix);
         } else {
           // TODO(hausner): Ideally we should generate the NoSuchMethodError
           // later, when we know more about how the unresolved name is used.
@@ -10534,10 +10576,9 @@ AstNode* Parser::ParsePrimary() {
           // is used. We cheat a little here by looking at the next token
           // to determine whether we have an unresolved method call or
           // field access.
-          String& qualified_name =
-              String::ZoneHandle(I, qual_ident.lib_prefix->name());
+          String& qualified_name = String::ZoneHandle(I, prefix.name());
           qualified_name = String::Concat(qualified_name, Symbols::Dot());
-          qualified_name = String::Concat(qualified_name, *qual_ident.ident);
+          qualified_name = String::Concat(qualified_name, ident);
           qualified_name = Symbols::New(qualified_name);
           InvocationMirror::Type call_type =
               CurrentToken() == Token::kLPAREN ?

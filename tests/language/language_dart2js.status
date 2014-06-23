@@ -6,8 +6,6 @@
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 bad_constructor_test/05: CompileTimeError # Issue 13669
-malformed_test/05: MissingCompileTimeError # Issue 12695
-malformed_test/06: MissingCompileTimeError # Issue 12695
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
@@ -92,6 +90,7 @@ mixin_mixin_bound_test: RuntimeError # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
+malformed_test/none: Fail # Expect failure in lib/_internal/lib/preambles/d8.js
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 
@@ -100,7 +99,7 @@ type_variable_conflict2_test/02: Crash # Issue 16180
 type_variable_conflict2_test/06: Crash # Issue 16180
 type_variable_conflict2_test/08: Crash # Issue 16180
 type_variable_conflict2_test/10: Crash # Issue 16180
-malformed_test/none: RuntimeError # Issue 12695
+
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301

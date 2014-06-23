@@ -258,6 +258,8 @@ class Parser : public ValueObject {
 
   void ComputeCurrentToken();
 
+  RawLibraryPrefix* ParsePrefix();
+
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
   RawDouble* CurrentDoubleLiteral() const;
@@ -379,11 +381,11 @@ class Parser : public ValueObject {
                             ClassFinalizer::FinalizationKind finalization,
                             AbstractType* type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
-                             bool allow_deferred_type = false);
+                             bool allow_deferred_type = false,
+                             bool consume_unresolved_prefix = true);
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
-  void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
@@ -544,6 +546,7 @@ class Parser : public ValueObject {
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
   bool IsMixinAppAlias();
+  bool TryParseQualIdent();
   bool TryParseTypeParameters();
   bool TryParseOptionalType();
   bool TryParseReturnType();
