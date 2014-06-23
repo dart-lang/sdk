@@ -131,6 +131,26 @@ void main() {
           ..close();
       });
     });
+
+    test("throws when calling read()/readAsString() multiple times", () {
+      var request;
+
+      request = _createMessage();
+      expect(request.read().toList(), completion(isEmpty));
+      expect(() => request.read(), throwsStateError);
+
+      request = _createMessage();
+      expect(request.readAsString(), completion(isEmpty));
+      expect(() => request.readAsString(), throwsStateError);
+
+      request = _createMessage();
+      expect(request.readAsString(), completion(isEmpty));
+      expect(() => request.read(), throwsStateError);
+
+      request = _createMessage();
+      expect(request.read().toList(), completion(isEmpty));
+      expect(() => request.readAsString(), throwsStateError);
+    });
   });
 
   group("contentLength", () {

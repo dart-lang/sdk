@@ -37,6 +37,12 @@ abstract class Message {
   /// This can be read via [read] or [readAsString].
   final Stream<List<int>> _body;
 
+  /// This boolean indicates whether [_body] has been read.
+  ///
+  /// After calling [read], or [readAsString] (which internally calls [read]),
+  /// this will be `true`.
+  bool _bodyWasRead = false;
+
   /// Creates a new [Message].
   ///
   /// If [headers] is `null`, it is treated as empty.
@@ -98,7 +104,14 @@ abstract class Message {
   /// Returns a [Stream] representing the body.
   ///
   /// Can only be called once.
-  Stream<List<int>> read() => _body;
+  Stream<List<int>> read() {
+    if (_bodyWasRead) {
+      throw new StateError("The 'read' method can only be called once on a "
+                           "shelf.Request/shelf.Response object.");
+    }
+    _bodyWasRead = true;
+    return _body;
+  }
 
   /// Returns a [Future] containing the body as a String.
   ///
