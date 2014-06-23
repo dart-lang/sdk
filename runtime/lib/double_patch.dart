@@ -16,9 +16,10 @@ patch class double {
 
     final ccid = ClassID.getID(str);
     _OneByteString oneByteString;
-    // TODO(floitsch): Allow _ExternalOneByteStrings. As of May 2013 they don't
-    // have any _classId.
-    if (ccid != _OneByteString._classId) {
+    // TODO(Srdjan): Allow _ExternalOneByteStrings.
+    if (ccid == ClassID.cidOneByteString) {
+      oneByteString = str;
+    } else {
       int length = str.length;
       var s = _OneByteString._allocate(length);
       for (int i = 0; i < length; i++) {
@@ -31,8 +32,6 @@ patch class double {
         }
       }
       oneByteString = s;
-    } else {
-      oneByteString = str;
     }
 
     return _native_parse(oneByteString);

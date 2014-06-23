@@ -74,7 +74,7 @@ class Range;
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 49873871)                     \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
   V(_StringBase, [], StringBaseCharAt, 1512210677)                             \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 2001502149)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 1758627989)              \
   V(_OneByteString, _setAt, OneByteStringSetAt, 468605749)                     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1084977108)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \

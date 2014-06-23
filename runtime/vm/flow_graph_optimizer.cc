@@ -4363,18 +4363,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     CreateArrayInstr* create_array =
         new(I) CreateArrayInstr(call->token_pos(), type, num_elements);
     ReplaceCall(call, create_array);
-  } else if (Library::PrivateCoreLibName(Symbols::ClassId()).Equals(
-      String::Handle(I, call->function().name()))) {
-    // Check for core library get:_classId.
-    intptr_t cid = Class::Handle(I, call->function().Owner()).id();
-    // Currently only implemented for a subset of classes.
-    ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
-           (cid == kExternalOneByteStringCid) ||
-           (cid == kGrowableObjectArrayCid) ||
-           (cid == kImmutableArrayCid) || (cid == kArrayCid));
-    ConstantInstr* cid_instr =
-        new(I) ConstantInstr(Smi::Handle(I, Smi::New(cid)));
-    ReplaceCall(call, cid_instr);
   } else if (call->function().IsFactory()) {
     const Class& function_class =
         Class::Handle(I, call->function().Owner());

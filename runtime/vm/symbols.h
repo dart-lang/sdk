@@ -316,13 +316,13 @@ class ObjectPointerVisitor;
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
-  V(ClassId, "get:_classId")                                                   \
   V(AllocationStubFor, "Allocation stub for ")                                 \
   V(TempParam, ":temp_param")                                                  \
   V(UserTag, "UserTag")                                                        \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \
   V(StubPrefix, "[Stub] ")                                                     \
+  V(ClassID, "ClassID")                                                        \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

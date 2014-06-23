@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _GrowableList<T> implements List<T> {
-  static final int _classId = ClassID.getID(new _GrowableList(0));
 
   void insert(int index, T element) {
-    if (index < 0 || index > length) {
+    if ((index < 0) || (index > length)) {
       throw new RangeError.range(index, 0, length);
     }
     if (index == this.length) {
@@ -110,7 +109,7 @@ class _GrowableList<T> implements List<T> {
     return list;
   }
 
-  static final int _kDefaultCapacity = 2;
+  static const int _kDefaultCapacity = 2;
 
   factory _GrowableList(int length) {
     var data = new _List((length == 0) ? _kDefaultCapacity : length);

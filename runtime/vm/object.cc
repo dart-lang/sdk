@@ -1372,6 +1372,30 @@ RawError* Object::Init(Isolate* isolate) {
   // Set up recognized state of all functions (core, math and typed data).
   MethodRecognizer::InitializeState();
 
+  // Adds static const fields (class ids) to the class 'ClassID');
+  lib = Library::LookupLibrary(Symbols::DartInternal());
+  ASSERT(!lib.IsNull());
+  cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
+  ASSERT(!cls.IsNull());
+  Field& field = Field::Handle(isolate);
+  Smi& value = Smi::Handle(isolate);
+  String& field_name = String::Handle(isolate);
+
+#define CLASS_LIST_WITH_NULL(V)                                                \
+  V(Null)                                                                      \
+  CLASS_LIST_NO_OBJECT(V)
+
+#define ADD_SET_FIELD(clazz)                                                   \
+  field_name = Symbols::New("cid"#clazz);                                      \
+  field = Field::New(field_name, true, false, true, cls, 0);                   \
+  value = Smi::New(k##clazz##Cid);                                             \
+  field.set_value(value);                                                      \
+  field.set_type(Type::Handle(Type::IntType()));                               \
+  cls.AddField(field);                                                         \
+
+  CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
+
   return Error::null();
 }
 
