@@ -90,6 +90,9 @@ void set theme(String b) {
 const BooleanUserOption enableCodeCompletion =
     const BooleanUserOption('enableCodeCompletion', isHidden: true);
 
+const BooleanUserOption incrementalCompilation =
+    const BooleanUserOption('incrementalCompilation');
+
 const List<UserOption> options = const <UserOption>[
     _alwaysRunInWorker,
     _verboseCompiler,
@@ -97,6 +100,7 @@ const List<UserOption> options = const <UserOption>[
     _onlyAnalyze,
     _enableDartMind,
     _compilationPaused,
+    incrementalCompilation,
     _codeFont,
     _theme,
     _currentSample,

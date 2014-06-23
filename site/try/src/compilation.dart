@@ -33,6 +33,7 @@ import 'ui.dart' show
 
 import 'settings.dart' show
     alwaysRunInWorker,
+    incrementalCompilation,
     minified,
     onlyAnalyze,
     verboseCompiler;
@@ -98,13 +99,14 @@ class CompilationProcess {
     current = this;
     var options = [
         '--analyze-main',
-        '--disable-type-inference',
-        '--incremental-support',
         '--no-source-maps',
     ];
     if (verboseCompiler) options.add('--verbose');
     if (minified) options.add('--minify');
     if (onlyAnalyze) options.add('--analyze-only');
+    if (incrementalCompilation.value) {
+      options.addAll(['--incremental-support', '--disable-type-inference']);
+    }
     interaction.compilationStarting();
     compilerPort.send([['options', options], receivePort.sendPort]);
     receivePort.listen(onMessage);

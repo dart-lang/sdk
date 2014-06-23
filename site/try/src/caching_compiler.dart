@@ -69,11 +69,12 @@ Compiler reuseCompiler(
   Compiler compiler = cachedCompiler;
   if (compiler == null ||
       compiler.libraryRoot != libraryRoot ||
+      !compiler.hasIncrementalSupport ||
       compiler.hasCrashed ||
       compiler.compilerWasCancelled ||
       compiler.enqueuer.resolution.hasEnqueuedEverything ||
       compiler.deferredLoadTask.splitProgram) {
-    if (compiler != null) {
+    if (compiler != null && compiler.hasIncrementalSupport) {
       print('***FLUSH***');
       if (compiler.hasCrashed) {
         print('Unable to reuse compiler due to crash.');
