@@ -1109,7 +1109,7 @@ class Class extends ServiceObject {
       superClass._addToChildren(this);
     }
     error = map['error'];
-    
+
     var allocationStats = map['allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
@@ -1123,7 +1123,7 @@ class Class extends ServiceObject {
     }
     children.add(cls);
   }
-  
+
   Future<ServiceObject> get(String command) {
     return isolate.get(id + "/$command");
   }
@@ -1207,11 +1207,14 @@ class Script extends ServiceObject {
 
   void _processHits(List scriptHits) {
     // Update hits table.
-    _hits.clear();
     for (var i = 0; i < scriptHits.length; i += 2) {
       var line = scriptHits[i];
       var hit = scriptHits[i + 1]; // hit status.
       assert(line >= 1); // Lines start at 1.
+      var oldHits = _hits[line];
+      if (oldHits != null) {
+        hit += oldHits;
+      }
       _hits[line] = hit;
     }
     _applyHitsToLines();
