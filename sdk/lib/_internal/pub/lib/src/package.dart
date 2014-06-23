@@ -153,7 +153,7 @@ class Package {
         return "$dir\\${file.replaceAll("/", "\\")}";
       }).where((file) {
         // Filter out broken symlinks, since git doesn't do so automatically.
-        return !linkExists(file) || fileExists(file);
+        return fileExists(file);
       });
     } else {
       files = listDir(beneath, recursive: true, includeDirs: false,
