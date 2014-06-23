@@ -1010,7 +1010,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if ((node->token_pos() != Scanner::kNoSourcePos) &&
       !function.is_native() && FLAG_enable_debugger) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
-                                           PcDescriptors::kReturn));
+                                           PcDescriptors::kRuntimeCall));
   }
 
   if (FLAG_enable_type_checks) {

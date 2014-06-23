@@ -10262,7 +10262,6 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kOptStaticCall:   return "opt-call     ";
     case PcDescriptors::kUnoptStaticCall: return "unopt-call   ";
     case PcDescriptors::kClosureCall:     return "closure-call ";
-    case PcDescriptors::kReturn:          return "return       ";
     case PcDescriptors::kRuntimeCall:     return "runtime-call ";
     case PcDescriptors::kOsrEntry:        return "osr-entry    ";
     case PcDescriptors::kOther:           return "other        ";

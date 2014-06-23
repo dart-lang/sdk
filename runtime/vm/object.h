@@ -2994,7 +2994,6 @@ class PcDescriptors : public Object {
     kUnoptStaticCall,  // Call to a known target via a stub.
     kClosureCall,      // Closure call.
     kRuntimeCall,      // Runtime call.
-    kReturn,           // Return from function.
     kOsrEntry,         // OSR entry point in unoptimized code.
     kOther
   };
