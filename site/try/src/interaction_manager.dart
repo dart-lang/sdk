@@ -76,6 +76,9 @@ import 'shadow_root.dart' show
     removeShadowRootPolyfill,
     setShadowRoot;
 
+import 'iframe_error_handler.dart' show
+    ErrorMessage;
+
 const String TRY_DART_NEW_DEFECT =
     'https://code.google.com/p/dart/issues/entry'
     '?template=Try+Dart+Internal+Error';
@@ -159,6 +162,12 @@ abstract class InteractionManager {
 
   // TODO(ahe): Remove this from InteractionManager, but not from InitialState.
   void consolePrintLine(line);
+
+  /// Called just before running a freshly compiled program.
+  void aboutToRun();
+
+  /// Called when an error occurs when running user code in an iframe.
+  void onIframeError(ErrorMessage message);
 
   void verboseCompilerMessage(String message);
 }
@@ -267,6 +276,10 @@ class InteractionContext extends InteractionManager {
   void compilationStarting() => state.compilationStarting();
 
   void consolePrintLine(line) => state.consolePrintLine(line);
+
+  void aboutToRun() => state.aboutToRun();
+
+  void onIframeError(ErrorMessage message) => state.onIframeError(message);
 
   void verboseCompilerMessage(String message) {
     return state.verboseCompilerMessage(message);
@@ -605,8 +618,6 @@ class InitialState extends InteractionState {
       List message = event.data;
       if (message.length > 0) {
         switch (message[0]) {
-          case 'error':
-            return onErrorMessage(message[1]['url'], message[1]['message']);
           case 'scrollHeight':
             return onScrollHeightMessage(message[1]);
         }
@@ -618,7 +629,7 @@ class InitialState extends InteractionState {
   }
 
   /// Called when an exception occurs in an iframe.
-  void onErrorMessage(String url, String message) {
+  void onErrorMessage(ErrorMessage message) {
     outputDiv.appendText('$message\n');
   }
 
@@ -701,6 +712,17 @@ class InitialState extends InteractionState {
     context.oldDiagnostics
         ..clear()
         ..addAll(mainEditorPane.querySelectorAll('a.diagnostic'));
+  }
+
+  void aboutToRun() {
+    context.shouldClearConsole = true;
+  }
+
+  void onIframeError(ErrorMessage message) {
+    // TODO(ahe): Consider replacing object URLs with something like <a
+    // href='...'>out.js</a>.
+    // TODO(ahe): Use source maps to translate stack traces.
+    consolePrintLine(message);
   }
 
   void verboseCompilerMessage(String message) {

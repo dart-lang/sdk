@@ -37,6 +37,8 @@ import 'settings.dart' show
     onlyAnalyze,
     verboseCompiler;
 
+import 'iframe_error_handler.dart' show
+    errorStream;
 
 /**
  * Scheme for recognizing files stored in memory.
@@ -160,48 +162,25 @@ self.importScripts("$url");
     var wrapperUrl =
         Url.createObjectUrl(new Blob([wrapper], 'application/javascript'));
     objectUrls.add(wrapperUrl);
-    void retryInIframe(_) {
-      var frame = makeOutputFrame(url);
-      outputFrame.replaceWith(frame);
-      outputFrame = frame;
-      console.append(buildButton('Try in iframe', retryInIframe));
-    }
-    void onError(String errorMessage) {
-      console.appendText(errorMessage);
-      console.appendText(' ');
-      console.append(buildButton('Try in iframe', retryInIframe));
-      console.appendText('\n');
-    }
-    if (usesDartHtml && !alwaysRunInWorker) {
-      retryInIframe(null);
-    } else {
-      runInWorker(wrapperUrl, onError);
-    }
+
+    run(wrapperUrl, () => makeOutputFrame(url));
   }
 
   // This is called in browsers that do not support creating Object
   // URLs in a web worker.  For example, Safari and Firefox < 21.
   onCode(String code) {
-    void retryInIframe(_) {
+    IFrameElement makeIframe() {
       // The obvious thing would be to call [makeOutputFrame], but
       // Safari doesn't support access to Object URLs in an iframe.
 
-      var frame = new IFrameElement()
+      IFrameElement frame = new IFrameElement()
           ..src = 'iframe.html'
           ..style.width = '100%'
           ..style.height = '0px';
       frame.onLoad.listen((_) {
         frame.contentWindow.postMessage(['source', code], '*');
       });
-      outputFrame.replaceWith(frame);
-      outputFrame = frame;
-    }
-
-    void onError(String errorMessage) {
-      console.appendText(errorMessage);
-      console.appendText(' ');
-      console.append(buildButton('Try in iframe', retryInIframe));
-      console.appendText('\n');
+      return frame;
     }
 
     String codeWithPrint =
@@ -212,8 +191,29 @@ self.importScripts("$url");
             new Blob([codeWithPrint], 'application/javascript'));
     objectUrls.add(url);
 
+    run(url, makeIframe);
+  }
+
+  void run(String url, IFrameElement makeIframe()) {
+    void retryInIframe() {
+      var frame = makeIframe();
+      frame.style
+          ..visibility = 'hidden'
+          ..position = 'absolute';
+      outputFrame.parent.insertBefore(frame, outputFrame);
+      outputFrame = frame;
+      errorStream(frame).listen(interaction.onIframeError);
+    }
+    void onError(String errorMessage) {
+      console
+          ..appendText(errorMessage)
+          ..appendText(' ')
+          ..append(buildButton('Try in iframe', (_) => retryInIframe()))
+          ..appendText('\n');
+    }
+    interaction.aboutToRun();
     if (usesDartHtml && !alwaysRunInWorker) {
-      retryInIframe(null);
+      retryInIframe();
     } else {
       runInWorker(url, onError);
     }
