@@ -24,7 +24,6 @@ custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
