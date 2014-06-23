@@ -146,8 +146,19 @@ class RequestDatumTest {
         equals(['foo', 'bar']));
   }
 
+  void test_isList() {
+    expect(makeDatum(3).isList, isFalse);
+    expect(makeDatum(null).isList, isTrue);
+    expect(makeDatum([]).isList, isTrue);
+    expect(makeDatum(['foo', 'bar']).isList, isTrue);
+  }
+
   void test_asList_nonList() {
     expect(() => makeDatum(3).asList((datum) => null), _throwsInvalidParameter);
+  }
+
+  void test_asList_null() {
+    expect(makeDatum(null).asList((datum) => datum.asString()), equals([]));
   }
 
   void test_asString() {
@@ -155,11 +166,38 @@ class RequestDatumTest {
     expect(() => makeDatum(3).asString(), _throwsInvalidParameter);
   }
 
+  void test_isStringList() {
+    expect(makeDatum(['foo', 'bar']).isStringList, isTrue);
+    expect(makeDatum([]).isStringList, isTrue);
+    expect(makeDatum(null).isStringList, isTrue);
+    expect(makeDatum(['foo', 1]).isStringList, isFalse);
+    expect(makeDatum({}).isStringList, isFalse);
+  }
+
   void test_asStringList() {
     expect(makeDatum(['foo', 'bar']).asStringList(), equals(['foo', 'bar']));
     expect(makeDatum([]).asStringList(), equals([]));
+    expect(makeDatum(null).asStringList(), equals([]));
     expect(() => makeDatum(['foo', 1]).asStringList(), _throwsInvalidParameter);
     expect(() => makeDatum({}).asStringList(), _throwsInvalidParameter);
+  }
+
+  void test_isStringListMap() {
+    expect(makeDatum({
+      'key1': ['value11', 'value12'],
+      'key2': ['value21', 'value22']
+    }).isStringListMap, isTrue);
+    expect(makeDatum({
+      'key1': 10,
+      'key2': 20
+    }).isStringListMap, isFalse);
+    expect(makeDatum({
+      'key1': [11, 12],
+      'key2': [21, 22]
+    }).isStringListMap, isFalse);
+    expect(makeDatum({}).isStringListMap, isTrue);
+    expect(makeDatum(null).isStringListMap, isTrue);
+    expect(makeDatum(3).isStringListMap, isFalse);
   }
 
   void test_asStringListMap() {
@@ -184,6 +222,42 @@ class RequestDatumTest {
       };
       expect(() => makeDatum(map).asStringListMap(), _throwsInvalidParameter);
     }
+  }
+
+  void test_isMap() {
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 'value2'
+    }).isMap, isTrue);
+    expect(makeDatum({}).isMap, isTrue);
+    expect(makeDatum(null).isMap, isTrue);
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 2
+    }).isMap, isTrue);
+    expect(makeDatum({
+      'key1': 1,
+      'key2': 2
+    }).isMap, isTrue);
+    expect(makeDatum([]).isMap, isFalse);
+  }
+
+  void test_isStringMap() {
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 'value2'
+    }).isStringMap, isTrue);
+    expect(makeDatum({}).isStringMap, isTrue);
+    expect(makeDatum(null).isStringMap, isTrue);
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 2
+    }).isStringMap, isFalse);
+    expect(makeDatum({
+      'key1': 1,
+      'key2': 2
+    }).isStringMap, isFalse);
+    expect(makeDatum([]).isMap, isFalse);
   }
 
   void test_asStringMap() {
@@ -216,6 +290,12 @@ class RequestDatumTest {
     expect(() => makeDatum(1).forEachMap((key, value) {
       fail('Non-map should not be iterated');
     }), _throwsInvalidParameter);
+  }
+
+   void test_forEachMap_null() {
+    makeDatum(null).forEachMap((key, value) {
+      fail('Empty map should not be iterated');
+    });
   }
 
   void test_forEachMap_oneElementMap() {
@@ -256,6 +336,10 @@ class RequestDatumTest {
     expect(datum.hasKey('baz'), isFalse);
   }
 
+  void test_hasKey_null() {
+    expect(makeDatum(null).hasKey('foo'), isFalse);
+  }
+
   void test_indexOperator_hasKey() {
     var indexResult = makeDatum({
       'foo': 'bar'
@@ -263,6 +347,10 @@ class RequestDatumTest {
     expect(indexResult, isRequestDatum);
     expect(indexResult.datum, equals('bar'));
     expect(indexResult.path, equals('myPath.foo'));
+  }
+
+  void test_indexOperator_null() {
+    expect(() => makeDatum(null)['foo'], _throwsInvalidParameter);
   }
 
   void test_indexOperator_missingKey() {
@@ -408,6 +496,13 @@ class RequestTest {
     expect(request.getParameter(name, null).datum, equals(value));
   }
 
+   void test_getParameter_null() {
+    String name = 'name';
+    Request request = new Request('0', '');
+    request.setParameter(name, null);
+    expect(request.getParameter(name, 'default').datum, equals(null));
+  }
+
   void test_getParameter_undefined() {
     String name = 'name';
     String defaultValue = 'default value';
@@ -422,6 +517,13 @@ class RequestTest {
     Request request = new Request('0', '');
     request.setParameter(name, value);
     expect(request.getRequiredParameter(name).datum, equals(value));
+  }
+
+   void test_getRequiredParameter_null() {
+    String name = 'name';
+    Request request = new Request('0', '');
+    request.setParameter(name, null);
+    expect(request.getRequiredParameter(name).datum, equals(null));
   }
 
   void test_getRequiredParameter_undefined() {
