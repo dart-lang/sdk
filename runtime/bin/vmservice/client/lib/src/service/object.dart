@@ -1123,6 +1123,10 @@ class Class extends ServiceObject {
     }
     children.add(cls);
   }
+  
+  Future<ServiceObject> get(String command) {
+    return isolate.get(id + "/$command");
+  }
 }
 
 class ScriptLine extends Observable {
