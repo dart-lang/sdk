@@ -192,6 +192,7 @@ class Range;
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
+  V(Object, ==, ObjectEquals, 1068471689)                                      \
   V(_List, get:length, ObjectArrayLength, 1181352729)                          \
   V(_ImmutableList, get:length, ImmutableArrayLength, 274917727)               \
   V(_TypedList, get:length, TypedDataLength, 522565357)                        \
