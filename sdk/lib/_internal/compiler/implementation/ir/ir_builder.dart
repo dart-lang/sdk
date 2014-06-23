@@ -1180,7 +1180,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         // - Assignment to final variable (will not be resolved)
         return giveup(node, 'SendSet: non-local, non-static, but no receiver');
       } else {
-        if (element != null && Elements.isUnresolved(element)) return giveup();
+        if (element != null && Elements.isUnresolved(element)) {
+          return giveup(node);
+        }
 
         // Setter or index-setter invocation
         assert(node.receiver != null);

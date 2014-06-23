@@ -310,6 +310,8 @@ class Constant extends Primitive {
 class This extends Primitive {
   This();
 
+  dart2js.Constant get constant => null;
+
   accept(Visitor visitor) => visitor.visitThis(this);
 }
 
