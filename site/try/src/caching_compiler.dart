@@ -4,7 +4,8 @@
 
 library trydart.caching_compiler;
 
-import 'dart:async' show EventSink;
+import 'dart:profiler' show
+    UserTag;
 
 import 'package:compiler/compiler.dart' show
     CompilerInputProvider,
@@ -24,6 +25,8 @@ import 'package:compiler/implementation/js_backend/js_backend.dart' show
 
 import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement;
+
+import 'package:compiler/implementation/native_handler.dart' as native;
 
 void clearLibraryLoader(LibraryLoaderTask libraryLoader) {
   // TODO(ahe): Move this method to [LibraryLoader].
@@ -50,7 +53,9 @@ Compiler reuseCompiler(
      List<String> options: const [],
      Compiler cachedCompiler,
      Uri libraryRoot,
-     Uri packageRoot}) {
+     Uri packageRoot,
+     bool packagesAreImmutable: false}) {
+  UserTag oldTag = new UserTag('reuseCompiler').makeCurrent();
   if (libraryRoot == null) {
     throw 'Missing libraryRoot';
   }
@@ -64,7 +69,26 @@ Compiler reuseCompiler(
     outputProvider = NullSink.outputProvider;
   }
   Compiler compiler = cachedCompiler;
-  if (compiler == null || compiler.libraryRoot != libraryRoot) {
+  if (compiler == null ||
+      compiler.libraryRoot != libraryRoot ||
+      compiler.hasCrashed ||
+      compiler.compilerWasCancelled ||
+      compiler.enqueuer.resolution.hasEnqueuedEverything ||
+      compiler.deferredLoadTask.splitProgram) {
+    if (compiler != null) {
+      print('***FLUSH***');
+      if (compiler.hasCrashed) {
+        print('Unable to reuse compiler due to crash.');
+      } else if (compiler.compilerWasCancelled) {
+        print('Unable to reuse compiler due to cancel.');
+      } else if (compiler.enqueuer.resolution.hasEnqueuedEverything) {
+        print('Unable to reuse compiler due to dart:mirrors.');
+      } else if (compiler.deferredLoadTask.splitProgram) {
+        print('Unable to reuse compiler due to deferred loading.');
+      } else {
+        print('Unable to reuse compiler.');
+      }
+    }
     compiler = new Compiler(
         inputProvider,
         outputProvider,
@@ -79,10 +103,18 @@ Compiler reuseCompiler(
         ..provider = inputProvider
         ..handler = diagnosticHandler
         ..enqueuer.resolution.queueIsClosed = false
+        ..enqueuer.resolution.hasEnqueuedEverything = false
+        ..enqueuer.resolution.hasEnqueuedReflectiveStaticFields = false
         ..enqueuer.codegen.queueIsClosed = false
+        ..enqueuer.codegen.hasEnqueuedEverything = false
+        ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
         ..assembledCode = null
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
+
+    backend.emitter.cachedElements.addAll(backend.generatedCode.keys);
+
+    compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
 
     backend.emitter.containerBuilder
         ..staticGetters.clear()
@@ -112,9 +144,6 @@ Compiler reuseCompiler(
         ..nativeMethods.clear();
 
     backend.emitter
-        ..needsDefineClass = false
-        ..needsMixinSupport = false
-        ..needsLazyInitializer = false
         ..outputBuffers.clear()
         ..deferredConstants.clear()
         ..isolateProperties = null
@@ -140,11 +169,13 @@ Compiler reuseCompiler(
     compiler.libraries.clear();
     clearLibraryLoader(compiler.libraryLoader);
     libraries.forEach((String uri, LibraryElement library) {
-      if (library.isPlatformLibrary) {
+      if (library.isPlatformLibrary ||
+          (packagesAreImmutable && library.isPackageLibrary)) {
         compiler.libraries[uri] = library;
         reuseLibrary(compiler.libraryLoader, library);
       }
     });
   }
+  oldTag.makeCurrent();
   return compiler;
 }

@@ -109,7 +109,8 @@ compile(source, SendPort replyTo) {
       options: options,
       cachedCompiler: cachedCompiler,
       libraryRoot: sdkLocation,
-      packageRoot: Uri.base.resolve('/packages/'));
+      packageRoot: Uri.base.resolve('/packages/'),
+      packagesAreImmutable: true);
 
   cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
     compilationTimer.stop();
