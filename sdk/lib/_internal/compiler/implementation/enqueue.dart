@@ -85,6 +85,7 @@ abstract class Enqueuer {
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
+  bool get queueIsEmpty => queue.isEmpty;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;

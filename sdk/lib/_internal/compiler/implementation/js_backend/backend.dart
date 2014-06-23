@@ -1899,6 +1899,11 @@ class JavaScriptBackend extends Backend {
 
   /// Called when [enqueuer] is empty, but before it is closed.
   void onQueueEmpty(Enqueuer enqueuer) {
+    // Add elements referenced only via custom elements.  Return early if any
+    // elements are added to avoid counting the elements as due to mirrors.
+    customElementsAnalysis.onQueueEmpty(enqueuer);
+    if (!enqueuer.queueIsEmpty) return;
+
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
@@ -1924,8 +1929,6 @@ class JavaScriptBackend extends Backend {
       }
       metadataConstants.clear();
     }
-
-    customElementsAnalysis.onQueueEmpty(enqueuer);
   }
 
   void onElementResolved(Element element, TreeElements elements) {
