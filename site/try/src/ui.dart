@@ -92,6 +92,7 @@ void onCodeChange(Event event) {
   Function action = codeCallbacks[id];
   if (action != null) action(event);
   outputFrame.style.display = 'none';
+  outputDiv.nodes.clear();
 }
 
 buildUI() {
@@ -198,7 +199,7 @@ buildUI() {
   var settingsElement = document.getElementById('settings');
   settingsElement.onClick.listen(openSettings);
 
-  window.onMessage.listen(interaction.onMessage);
+  window.onMessage.listen(interaction.onWindowMessage);
 
   observer = new MutationObserver(interaction.onMutation)
       ..observe(

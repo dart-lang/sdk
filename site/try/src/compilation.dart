@@ -71,7 +71,6 @@ class CompilationProcess {
   final Element console;
   final ReceivePort receivePort = new ReceivePort();
   final Set<String> seenMessages = new Set<String>();
-  bool isCleared = false;
   bool isDone = false;
   bool usesDartHtml = false;
   Worker worker;
@@ -88,12 +87,6 @@ class CompilationProcess {
     return true;
   }
 
-  void clear() {
-    if (verboseCompiler) return;
-    if (!isCleared) console.nodes.clear();
-    isCleared = true;
-  }
-
   void start() {
     if (!shouldStartCompilation()) {
       receivePort.close();
@@ -101,7 +94,6 @@ class CompilationProcess {
     }
     if (current != null) current.dispose();
     current = this;
-    console.nodes.clear();
     var options = [
         '--analyze-main',
         '--disable-type-inference',
@@ -113,9 +105,6 @@ class CompilationProcess {
     if (onlyAnalyze) options.add('--analyze-only');
     interaction.compilationStarting();
     compilerPort.send([['options', options], receivePort.sendPort]);
-    console.appendHtml('<i class="icon-spinner icon-spin"></i>');
-    console.appendText(' Compiling Dart program...\n');
-    outputFrame.style.display = 'none';
     receivePort.listen(onMessage);
     compilerPort.send([source, receivePort.sendPort]);
   }
@@ -146,8 +135,8 @@ class CompilationProcess {
   }
 
   onFail(_) {
-    clear();
-    consolePrint('Compilation failed');
+    // TODO(ahe): Call interaction.onCompilationFailed().
+    interaction.consolePrintLine('Compilation failed');
   }
 
   onDone(_) {
@@ -160,7 +149,6 @@ class CompilationProcess {
   // web worker.  For example, Chrome and Firefox 21.
   onUrl(String url) {
     objectUrls.add(url);
-    clear();
     String wrapper = '''
 // Fool isolate_helper.dart so it does not think this is an isolate.
 var window = self;
@@ -194,8 +182,6 @@ self.importScripts("$url");
   // This is called in browsers that do not support creating Object
   // URLs in a web worker.  For example, Safari and Firefox < 21.
   onCode(String code) {
-    clear();
-
     void retryInIframe(_) {
       // The obvious thing would be to call [makeOutputFrame], but
       // Safari doesn't support access to Object URLs in an iframe.
@@ -236,7 +222,7 @@ self.importScripts("$url");
   void runInWorker(String url, void onError(String errorMessage)) {
     worker = new Worker(url)
         ..onMessage.listen((MessageEvent event) {
-          consolePrint(event.data);
+          interaction.consolePrintLine(event.data);
         })
         ..onError.listen((ErrorEvent event) {
           worker.terminate();
@@ -250,16 +236,12 @@ self.importScripts("$url");
     String kind = diagnostic['kind'];
     String message = diagnostic['message'];
     if (kind == 'verbose info') {
-      if (verboseCompiler) {
-        consolePrint(message);
-      } else {
-        console.appendText('.');
-      }
+      interaction.verboseCompilerMessage(message);
       return;
     }
     String uri = diagnostic['uri'];
     if (uri != '${PRIVATE_SCHEME}:/main.dart') {
-      consolePrint('$uri: [$kind] $message');
+      interaction.consolePrintLine('$uri: [$kind] $message');
       return;
     }
     int begin = diagnostic['begin'];
@@ -272,17 +254,6 @@ self.importScripts("$url");
   }
 
   onCrash(data) {
-    consolePrint(data);
-  }
-
-  void consolePrint(message) {
-    if (window.parent != window) {
-      // Test support.
-      // TODO(ahe): Use '/' instead of '*' when Firefox is upgraded to version
-      // 30 across build bots.  Support for '/' was added in version 29, and we
-      // support the two most recent versions.
-      window.parent.postMessage('$message\n', '*');
-    }
-    console.appendText('$message\n');
+    interaction.consolePrintLine(data);
   }
 }
