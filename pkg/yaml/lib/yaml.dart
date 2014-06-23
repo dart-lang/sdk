@@ -4,6 +4,8 @@
 
 library yaml;
 
+import 'package:string_scanner/string_scanner.dart';
+
 import 'src/composer.dart';
 import 'src/constructor.dart';
 import 'src/parser.dart';
@@ -40,7 +42,8 @@ loadYaml(String yaml, {String sourceName}) =>
 YamlNode loadYamlNode(String yaml, {String sourceName}) {
   var stream = loadYamlStream(yaml, sourceName: sourceName);
   if (stream.length != 1) {
-    throw new YamlException("Expected 1 document, were ${stream.length}.");
+    throw new YamlException("Expected 1 document, were ${stream.length}.",
+        stream.span);
   }
   return stream.nodes[0];
 }
@@ -62,8 +65,8 @@ YamlList loadYamlStream(String yaml, {String sourceName}) {
   var pair;
   try {
     pair = new Parser(yaml, sourceName).l_yamlStream();
-  } on FormatException catch (error) {
-    throw new YamlException(error.toString());
+  } on StringScannerException catch (error) {
+    throw new YamlException(error.message, error.span);
   }
 
   var nodes = pair.first

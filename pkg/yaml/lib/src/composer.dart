@@ -34,7 +34,8 @@ class Composer extends Visitor {
   /// Returns the anchor to which an alias node refers.
   Node visitAlias(AliasNode alias) {
     if (!_anchors.containsKey(alias.anchor)) {
-      throw new YamlException("No anchor for alias ${alias.anchor}.");
+      throw new YamlException("No anchor for alias ${alias.anchor}.",
+          alias.span);
     }
     return _anchors[alias.anchor];
   }
@@ -56,8 +57,8 @@ class Composer extends Visitor {
 
     var result = _parseByTag(scalar);
     if (result != null) return setAnchor(scalar, result);
-    throw new YamlException('Invalid literal for ${scalar.tag}: '
-        '"${scalar.content}".');
+    throw new YamlException('Invalid literal for ${scalar.tag}.',
+        scalar.span);
   }
 
   ScalarNode _parseByTag(ScalarNode scalar) {
@@ -68,14 +69,15 @@ class Composer extends Visitor {
       case "float": return parseFloat(scalar);
       case "str": return parseString(scalar);
     }
-    throw new YamlException('Undefined tag: ${scalar.tag}.');
+    throw new YamlException('Undefined tag: ${scalar.tag}.', scalar.span);
   }
 
   /// Assigns a tag to the sequence and recursively composes its contents.
   Node visitSequence(SequenceNode seq) {
     var tagName = seq.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != Tag.yaml("seq")) {
-      throw new YamlException("Invalid tag for sequence: ${seq.tag}.");
+      throw new YamlException("Invalid tag for sequence: ${seq.tag}.",
+          seq.span);
     }
 
     var result = setAnchor(seq,
@@ -88,7 +90,8 @@ class Composer extends Visitor {
   Node visitMapping(MappingNode map) {
     var tagName = map.tag.name;
     if (tagName != "!" && tagName != "?" && tagName != Tag.yaml("map")) {
-      throw new YamlException("Invalid tag for mapping: ${map.tag}.");
+      throw new YamlException("Invalid tag for mapping: ${map.tag}.",
+          map.span);
     }
 
     var result = setAnchor(map,
