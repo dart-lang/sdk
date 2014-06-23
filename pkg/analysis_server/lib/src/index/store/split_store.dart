@@ -40,7 +40,7 @@ abstract class FileManager {
   /**
    * Write a list of bytes to a file.
    */
-  Future write(String name, Uint8List bytes);
+  Future write(String name, List<int> bytes);
 }
 
 
