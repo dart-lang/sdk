@@ -4771,7 +4771,13 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   }
 
   @override
-  String get identifier => "${name}@${nameOffset}";
+  String get identifier {
+    String identifier = super.identifier;
+    if (!isStatic) {
+      identifier += "@${nameOffset}";
+    }
+    return identifier;
+  }
 }
 
 /**
