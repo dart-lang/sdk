@@ -147,7 +147,7 @@ void testValidCharacters() {
       for (var host in ["", "$REGNAMECHAR$REGNAMECHAR",
                         "255.255.255.256",  // valid reg-name.
                         "[ffff::ffff:ffff]", "[ffff::255.255.255.255]"]) {
-        for (var port in ["", ":$DIGIT$DIGIT"]) {
+        for (var port in ["", ":", ":$DIGIT$DIGIT"]) {
           var auth = "$userinfo$host$port";
           if (auth.isNotEmpty) auth = "//$auth";
           var paths = ["", "/", "/$PCHAR", "/$PCHAR/"];  // Absolute or empty.
@@ -258,8 +258,6 @@ void testInvalidUrls() {
   checkInvalid("s://x@x:9:9/");
   // At most one #.
   checkInvalid("s://x/x#foo#bar");
-  // Colon in host implies port and port may not be empty.
-  checkInvalid("s://:/");
   // @ not allowed in scheme.
   checkInvalid("s@://x:9/x?x#x");
   // ] not allowed alone in host.
@@ -340,6 +338,20 @@ void testNormalization() {
 
   uri = Uri.parse("x://%61/");
   Expect.equals("a", uri.host);
+
+  uri = new Uri(scheme: "x", path: "//y");
+  Expect.equals("//y", uri.path);
+  Expect.equals("x:////y", uri.toString());
+
+  uri = new Uri(scheme: "file", path: "//y");
+  Expect.equals("//y", uri.path);
+  Expect.equals("file:////y", uri.toString());
+
+  // File scheme noralizes to always showing authority, even if empty.
+  uri = new Uri(scheme: "file", path: "/y");
+  Expect.equals("file:///y", uri.toString());
+  uri = new Uri(scheme: "file", path: "y");
+  Expect.equals("file:///y", uri.toString());
 }
 
 main() {
@@ -502,6 +514,10 @@ main() {
   Expect.throws(
       () => Uri.parse("file://user@password:host/path"),
       (e) => e is FormatException);
+
+  testValidCharacters();
+  testInvalidUrls();
+  testNormalization();
 }
 
 String dump(Uri uri) {

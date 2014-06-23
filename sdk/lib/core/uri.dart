@@ -234,9 +234,6 @@ class Uri {
         hostStart = lastAt + 1;
       }
       if (lastColon >= 0) {
-        if (lastColon + 1 == index) {
-          _fail(uri, index, "Invalid port number");
-        }
         int portNumber = 0;
         for (int i = lastColon + 1; i < index; i++) {
           int digit = uri.codeUnitAt(i);
@@ -1485,7 +1482,9 @@ class Uri {
   String toString() {
     StringBuffer sb = new StringBuffer();
     _addIfNonEmpty(sb, scheme, scheme, ':');
-    if (hasAuthority || (scheme == "file")) {
+    if (hasAuthority || path.startsWith("//") || (scheme == "file")) {
+      // File URIS always have the authority, even if it is empty.
+      // The empty URI means "localhost".
       sb.write("//");
       _writeAuthority(sb);
     }
