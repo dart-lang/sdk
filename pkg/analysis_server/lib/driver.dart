@@ -82,6 +82,7 @@ class Driver {
       if (serve_http) {
         httpServer.close();
       }
+      exit(0);
     });
   }
 
