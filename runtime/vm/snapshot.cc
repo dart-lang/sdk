@@ -302,7 +302,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   }
 
   // For all other internal VM classes we read the object inline.
-  intptr_t tags = ReadIntptrValue();
+  intptr_t tags = ReadTags();
   switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
@@ -315,6 +315,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     case kTypedData##clazz##Cid:                                               \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      tags = RawObject::ClassIdTag::update(class_id, tags);
       obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
@@ -323,6 +324,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     case kExternalTypedData##clazz##Cid:                                       \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      tags = RawObject::ClassIdTag::update(class_id, tags);
       obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
@@ -812,7 +814,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
-  intptr_t tags = ReadIntptrValue();
+  intptr_t tags = ReadTags();
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     // Object is regular dart instance.
     Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
@@ -892,6 +894,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     case kTypedData##clazz##Cid:                                               \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      tags = RawObject::ClassIdTag::update(cls_.id(), tags);
       obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
@@ -900,6 +903,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     case kExternalTypedData##clazz##Cid:                                       \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      tags = RawObject::ClassIdTag::update(cls_.id(), tags);
       obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
@@ -1388,7 +1392,7 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   // case.
   // Write out the class and tags information.
   WriteVMIsolateObject(kClassCid);
-  WriteIntptrValue(GetObjectTags(cls));
+  WriteTags(GetObjectTags(cls));
 
   // Write out the library url and class name.
   RawLibrary* library = cls->ptr()->library_;
@@ -1411,7 +1415,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 
   // Write out the class and tags information.
   WriteIndexedObject(array_kind);
-  WriteIntptrValue(tags);
+  WriteTags(tags);
 
   // Write out the length field.
   Write<RawObject*>(length);
@@ -1471,7 +1475,7 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
 
   // Write out the tags.
-  WriteIntptrValue(tags);
+  WriteTags(tags);
 
   // Write out the class information for this object.
   WriteObjectImpl(cls);

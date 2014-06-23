@@ -258,7 +258,7 @@ static Dart_TypedData_Type GetTypedDataTypeFromView(
 Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
-  intptr_t tags = ReadIntptrValue();
+  intptr_t tags = ReadTags();
   USE(tags);
   intptr_t class_id;
 
@@ -426,7 +426,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     return value;
   }
 
-  intptr_t tags = ReadIntptrValue();
+  intptr_t tags = ReadTags();
   USE(tags);
 
   return ReadInternalVMObject(class_id, object_id);
@@ -782,7 +782,7 @@ void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
 
   // Write out the class and tags information.
   WriteIndexedObject(kArrayCid);
-  WriteIntptrValue(0);
+  WriteTags(0);
 
   // Write out the length field.
   Write<RawObject*>(Smi::New(field_count));
@@ -878,7 +878,7 @@ void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
   WriteInlinedHeader(object);
   // Write out the class and tags information.
   WriteIndexedObject(kMintCid);
-  WriteIntptrValue(0);
+  WriteTags(0);
   // Write the 64-bit value.
   Write<int64_t>(value);
 }
@@ -933,7 +933,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
     WriteInlinedHeader(object);
     // Write out the class and tags information.
     WriteIndexedObject(kArrayCid);
-    WriteIntptrValue(0);
+    WriteTags(0);
     // Write out the length information.
     WriteSmi(array_length);
     // Write out the type arguments.
@@ -993,7 +993,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id);
   // Write out the class and tags information.
   WriteIndexedObject(kArrayCid);
-  WriteIntptrValue(0);
+  WriteTags(0);
   // Write out the length information.
   WriteSmi(array_length);
   // Write out the type arguments.
@@ -1038,7 +1038,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInlinedHeader(object);
       // Write out the class and tags information.
       WriteIndexedObject(kBigintCid);
-      WriteIntptrValue(0);
+      WriteTags(0);
       // Write hex string length and content
       intptr_t len = strlen(hex_string);
       WriteIntptrValue(len);
@@ -1071,7 +1071,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the class and tags information.
       WriteIndexedObject(type == Utf8::kLatin1 ? kOneByteStringCid
                                                : kTwoByteStringCid);
-      WriteIntptrValue(0);
+      WriteTags(0);
       // Write string length, hash and content
       WriteSmi(len);
       WriteSmi(0);  // TODO(sgjesse): Hash - not written.
@@ -1123,7 +1123,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       WriteIndexedObject(class_id);
-      WriteIntptrValue(RawObject::ClassIdTag::update(class_id, 0));
+      WriteTags(RawObject::ClassIdTag::update(class_id, 0));
       WriteSmi(len);
       uint8_t* bytes = object->value.as_typed_data.values;
       for (intptr_t i = 0; i < len; i++) {
@@ -1141,7 +1141,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInlinedHeader(object);
       // Write out the class and tag information.
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
-      WriteIntptrValue(RawObject::ClassIdTag::update(
+      WriteTags(RawObject::ClassIdTag::update(
           kExternalTypedDataUint8ArrayCid, 0));
       intptr_t length = object->value.as_external_typed_data.length;
       if (length < 0 ||
