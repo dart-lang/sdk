@@ -695,16 +695,23 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static num numMicroseconds() {
-    if (JS('bool', 'typeof window != "undefined" && window !== null')) {
-      var performance = JS('var', 'window.performance');
-      if (performance != null &&
-          JS('bool', 'typeof #.webkitNow == "function"', performance)) {
-        return (1000 * JS('num', '#.webkitNow()', performance)).floor();
-      }
-    }
-    return 1000 * dateNow();
+  static void initTicker() {
+    if (timerFrequency != null) return;
+    // Start with low-resolution. We overwrite the fields if we find better.
+    timerFrequency = 1000;
+    timerTicks = dateNow;
+    if (JS('bool', 'typeof window == "undefined"')) return;
+    var window = JS('var', 'window');
+    if (window == null) return;
+    var performance = JS('var', '#.performance', window);
+    if (performance == null) return;
+    if (JS('bool', 'typeof #.now != "function"', performance)) return;
+    timerFrequency = 1000000;
+    timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
   }
+
+  static int timerFrequency;
+  static Function timerTicks;
 
   static bool get isD8 {
     return JS('bool',

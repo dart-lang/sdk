@@ -219,9 +219,13 @@ class DateTime {
 @patch
 class Stopwatch {
   @patch
-  static int _frequency() => 1000000;
+  static void _initTicker() {
+    Primitives.initTicker();
+    _frequency = Primitives.timerFrequency;
+  }
+
   @patch
-  static int _now() => Primitives.numMicroseconds();
+  static int _now() => Primitives.timerTicks();
 }
 
 class _ListConstructorSentinel extends JSInt {
