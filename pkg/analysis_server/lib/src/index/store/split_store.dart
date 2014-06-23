@@ -9,163 +9,13 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-
-/**
- * A helper that encodes/decodes [AnalysisContext]s from/to integers.
- *
- * TODO(scheglov) add API to remove [AnalysisContext]s.
- */
-class ContextCodec {
-  /**
-   * A table mapping contexts to their unique indices.
-   */
-  Map<AnalysisContext, int> _contextToIndex = new HashMap<AnalysisContext, int>(
-      );
-
-  /**
-   * A table mapping indices to the corresponding contexts.
-   */
-  Map<int, AnalysisContext> _indexToContext = new HashMap<int, AnalysisContext>(
-      );
-
-  /**
-   * The next id to assign.
-   */
-  int _nextId = 0;
-
-  /**
-   * Returns the [AnalysisContext] that corresponds to the given index.
-   */
-  AnalysisContext decode(int index) => _indexToContext[index];
-
-  /**
-   * Returns an unique index for the given [AnalysisContext].
-   */
-  int encode(AnalysisContext context) {
-    int index = _contextToIndex[context];
-    if (index == null) {
-      index = _nextId++;
-      _contextToIndex[context] = index;
-      _indexToContext[index] = context;
-    }
-    return index;
-  }
-
-  /**
-   * Removes the given [context].
-   */
-  void remove(AnalysisContext context) {
-    int id = _contextToIndex.remove(context);
-    if (id != null) {
-      _indexToContext.remove(id);
-    }
-  }
-}
-
-
-/**
- * A helper that encodes/decodes [Element]s to/from integers.
- */
-class ElementCodec {
-  /**
-   * A list that works as a mapping of integers to element encodings (in form of integer arrays).
-   */
-  List<List<int>> _indexToPath = [];
-
-  /**
-   * A table mapping element locations (in form of integer arrays) into a single integer.
-   */
-  IntArrayToIntMap _pathToIndex = new IntArrayToIntMap(10000, 0.75);
-
-  final StringCodec _stringCodec;
-
-  ElementCodec(this._stringCodec);
-
-  /**
-   * Returns an [Element] that corresponds to the given location.
-   *
-   * @param context the [AnalysisContext] to find [Element] in
-   * @param index an integer corresponding to the [Element]
-   * @return the [Element] or `null`
-   */
-  Element decode(AnalysisContext context, int index) {
-    List<int> path = _indexToPath[index];
-    List<String> components = _getLocationComponents(path);
-    ElementLocation location = new ElementLocationImpl.con3(components);
-    return context.getElement(location);
-  }
-
-  /**
-   * Returns a unique integer that corresponds to the given [Element].
-   */
-  int encode(Element element) {
-    List<int> path = _getLocationPath(element);
-    int index = _pathToIndex.get(path, -1);
-    if (index == -1) {
-      index = _indexToPath.length;
-      _pathToIndex.put(path, index);
-      _indexToPath.add(path);
-    }
-    return index;
-  }
-
-  List<String> _getLocationComponents(List<int> path) {
-    int length = path.length;
-    List<String> components = new List<String>();
-    for (int i = 0; i < length; i++) {
-      int componentId = path[i];
-      String component = _stringCodec.decode(componentId);
-      if (i < length - 1 && path[i + 1] < 0) {
-        component += '@${(-path[i + 1])}';
-        i++;
-      }
-      components.add(component);
-    }
-    return components;
-  }
-
-  List<int> _getLocationPath(Element element) {
-    List<String> components = element.location.components;
-    int length = components.length;
-    if (_hasLocalOffset(components)) {
-      List<int> path = new List<int>();
-      for (String component in components) {
-        int atOffset = component.indexOf('@');
-        if (atOffset == -1) {
-          path.add(_stringCodec.encode(component));
-        } else {
-          String preAtString = component.substring(0, atOffset);
-          String atString = component.substring(atOffset + 1);
-          path.add(_stringCodec.encode(preAtString));
-          path.add(-1 * int.parse(atString));
-        }
-      }
-      return path;
-    } else {
-      List<int> path = new List<int>.filled(length, 0);
-      for (int i = 0; i < length; i++) {
-        String component = components[i];
-        path[i] = _stringCodec.encode(component);
-      }
-      return path;
-    }
-  }
-
-  bool _hasLocalOffset(List<String> components) {
-    for (String component in components) {
-      if (component.indexOf('@') != -1) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
+import 'package:analysis_server/src/index/store/codec.dart';
 
 
 /**
@@ -212,7 +62,7 @@ class FileNodeManager implements NodeManager {
 
   final Logger _logger;
 
-  Map<String, int> _nodeLocationCounts = {};
+  Map<String, int> _nodeLocationCounts = new HashMap<String, int>();
 
   final RelationshipCodec _relationshipCodec;
 
@@ -309,7 +159,8 @@ class FileNodeManager implements NodeManager {
       return null;
     }
     // relations
-    Map<RelationKeyData, List<LocationData>> relations = {};
+    Map<RelationKeyData, List<LocationData>> relations =
+        new HashMap<RelationKeyData, List<LocationData>>();
     int numRelations = stream.readInt();
     for (int i = 0; i < numRelations; i++) {
       RelationKeyData key = _readElementRelationKey(stream);
@@ -412,7 +263,7 @@ class IndexNode {
       return Location.EMPTY_ARRAY;
     }
     // convert to Location(s)
-    List<Location> locations = [];
+    List<Location> locations = <Location>[];
     for (LocationData locationData in locationDatas) {
       Location location = locationData.getLocation(context, _elementCodec);
       if (location != null) {
@@ -436,87 +287,11 @@ class IndexNode {
     // prepare LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
-      locationDatas = [];
+      locationDatas = <LocationData>[];
       _relations[key] = locationDatas;
     }
     // add new LocationData
     locationDatas.add(new LocationData.forObject(_elementCodec, location));
-  }
-}
-
-
-class IntArrayToIntMap {
-  // TODO(scheglov) consider using Int32List
-  final Map<List<int>, int> map = new HashMap<List<int>, int>(equals:
-      _intArrayEquals, hashCode: _intArrayHashCode);
-
-  IntArrayToIntMap(int initialCapacity, double loadFactor);
-
-  int get(List<int> key, int defaultValue) {
-    int value = map[key];
-    if (value == null) {
-      return defaultValue;
-    }
-    return value;
-  }
-
-  void put(List<int> key, int value) {
-    map[key] = value;
-  }
-
-  static bool _intArrayEquals(List<int> a, List<int> b) {
-    int length = a.length;
-    if (length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < length; i++) {
-      if (a[i] != b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  static int _intArrayHashCode(List<int> key) {
-    return key.fold(0, (int result, int item) {
-      return 31 * result + item;
-    });
-  }
-}
-
-
-class IntToIntSetMap {
-  // TODO(scheglov) consider using Int32List
-  final Map<int, List<int>> _map = new HashMap<int, List<int>>();
-  int _size = 0;
-
-  IntToIntSetMap(int initialCapacity, double loadFactor);
-
-  int get length => _size;
-
-  void add(int key, int value) {
-    List<int> values = _map[key];
-    if (values == null) {
-      values = new List<int>();
-      _map[key] = values;
-    }
-    if (values.indexOf(value) == -1) {
-      values.add(value);
-      _size++;
-    }
-  }
-
-  void clear() {
-    _map.clear();
-    _size = 0;
-  }
-
-  List<int> get(int key) {
-    List<int> values = _map[key];
-    if (values == null) {
-      values = <int>[];
-    }
-    return values;
   }
 }
 
@@ -647,26 +422,6 @@ class RelationKeyData {
 
 
 /**
- * A helper that encodes/decodes [Relationship]s to/from integers.
- */
-class RelationshipCodec {
-  final StringCodec _stringCodec;
-
-  RelationshipCodec(this._stringCodec);
-
-  Relationship decode(int idIndex) {
-    String id = _stringCodec.decode(idIndex);
-    return Relationship.getRelationship(id);
-  }
-
-  int encode(Relationship relationship) {
-    String id = relationship.identifier;
-    return _stringCodec.encode(id);
-  }
-}
-
-
-/**
  * An [IndexStore] which keeps index information in separate nodes for each unit.
  */
 class SplitIndexStore implements IndexStore {
@@ -714,7 +469,7 @@ class SplitIndexStore implements IndexStore {
    * A table mapping element names to the node names that may have relations with elements with
    * these names.
    */
-  IntToIntSetMap _nameToNodeNames = new IntToIntSetMap(10000, 0.75);
+  IntToIntSetMap _nameToNodeNames = new IntToIntSetMap();
 
   /**
    * The [NodeManager] to get/put [IndexNode]s.
@@ -768,7 +523,7 @@ class SplitIndexStore implements IndexStore {
     // special handling for the defining library unit
     if (unit == library) {
       // prepare new parts
-      Set<Source> newParts = new Set();
+      HashSet<Source> newParts = new HashSet<Source>();
       for (CompilationUnitElement part in libraryElement.parts) {
         newParts.add(part.source);
       }
@@ -776,7 +531,7 @@ class SplitIndexStore implements IndexStore {
       Map<Source, Set<Source>> libraryToUnits =
           _contextToLibraryToUnits[context];
       if (libraryToUnits == null) {
-        libraryToUnits = {};
+        libraryToUnits = new HashMap<Source, Set<Source>>();
         _contextToLibraryToUnits[context] = libraryToUnits;
       }
       Set<Source> oldParts = libraryToUnits[library];
@@ -984,7 +739,7 @@ class SplitIndexStore implements IndexStore {
   String _getElementName(Element element) => element.name;
 
   List<Location> _getRelationshipsUniverse(Relationship relationship) {
-    List<Location> locations = [];
+    List<Location> locations = <Location>[];
     _contextNodeRelations.forEach((contextId, contextRelations) {
       AnalysisContext context = _contextCodec.decode(contextId);
       if (context != null) {
@@ -1010,12 +765,12 @@ class SplitIndexStore implements IndexStore {
       Source unit) {
     Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
     if (libraryToUnits == null) {
-      libraryToUnits = {};
+      libraryToUnits = new HashMap<Source, Set<Source>>();
       _contextToLibraryToUnits[context] = libraryToUnits;
     }
     Set<Source> units = libraryToUnits[library];
     if (units == null) {
-      units = new Set();
+      units = new HashSet<Source>();
       libraryToUnits[library] = units;
     }
     units.add(unit);
@@ -1033,20 +788,20 @@ class SplitIndexStore implements IndexStore {
     Map<int, Map<Relationship, List<LocationData>>> nodeRelations =
         _contextNodeRelations[_currentContextId];
     if (nodeRelations == null) {
-      nodeRelations = {};
+      nodeRelations = new HashMap<int, Map<Relationship, List<LocationData>>>();
       _contextNodeRelations[_currentContextId] = nodeRelations;
     }
     // in current node
     Map<Relationship, List<LocationData>> relations =
         nodeRelations[_currentNodeNameId];
     if (relations == null) {
-      relations = {};
+      relations = new HashMap<Relationship, List<LocationData>>();
       nodeRelations[_currentNodeNameId] = relations;
     }
     // for the given relationship
     List<LocationData> locations = relations[relationship];
     if (locations == null) {
-      locations = [];
+      locations = <LocationData>[];
       relations[relationship] = locations;
     }
     // record LocationData
@@ -1058,12 +813,12 @@ class SplitIndexStore implements IndexStore {
     Map<Source, Set<Source>> unitToLibraries =
         _contextToUnitToLibraries[context];
     if (unitToLibraries == null) {
-      unitToLibraries = {};
+      unitToLibraries = new HashMap<Source, Set<Source>>();
       _contextToUnitToLibraries[context] = unitToLibraries;
     }
     Set<Source> libraries = unitToLibraries[unit];
     if (libraries == null) {
-      libraries = new Set();
+      libraries = new HashSet<Source>();
       unitToLibraries[unit] = libraries;
     }
     libraries.add(library);
@@ -1096,40 +851,6 @@ class SplitIndexStore implements IndexStore {
       context = (context as InstrumentedAnalysisContextImpl).basis;
     }
     return context;
-  }
-}
-
-
-/**
- * A helper that encodes/decodes [String]s from/to integers.
- */
-class StringCodec {
-  /**
-   * A table mapping names to their unique indices.
-   */
-  final Map<String, int> nameToIndex = {};
-
-  /**
-   * A table mapping indices to the corresponding strings.
-   */
-  List<String> _indexToName = [];
-
-  /**
-   * Returns the [String] that corresponds to the given index.
-   */
-  String decode(int index) => _indexToName[index];
-
-  /**
-   * Returns an unique index for the given [String].
-   */
-  int encode(String name) {
-    int index = nameToIndex[name];
-    if (index == null) {
-      index = _indexToName.length;
-      nameToIndex[name] = index;
-      _indexToName.add(name);
-    }
-    return index;
   }
 }
 

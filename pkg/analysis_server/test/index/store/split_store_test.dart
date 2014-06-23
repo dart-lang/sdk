@@ -7,7 +7,8 @@ library test.index.split.store;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/index/split_store.dart';
+import 'package:analysis_server/src/index/store/codec.dart';
+import 'package:analysis_server/src/index/store/split_store.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/index.dart';
@@ -15,25 +16,17 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
+import '../../reflective_tests.dart';
+import 'typed_mocks.dart';
 
 
 main() {
   groupSep = ' | ';
-  group('ContextCodec', () {
-    runReflectiveTests(_ContextCodecTest);
-  });
-  group('ElementCodec', () {
-    runReflectiveTests(_ElementCodecTest);
-  });
   group('FileNodeManager', () {
     runReflectiveTests(_FileNodeManagerTest);
   });
   group('IndexNode', () {
     runReflectiveTests(_IndexNodeTest);
-  });
-  group('IntToIntSetMap', () {
-    runReflectiveTests(_IntToIntSetMapTest);
   });
   group('LocationData', () {
     runReflectiveTests(_LocationDataTest);
@@ -41,14 +34,8 @@ main() {
   group('RelationKeyData', () {
     runReflectiveTests(_RelationKeyDataTest);
   });
-  group('RelationshipCodec', () {
-    runReflectiveTests(_RelationshipCodecTest);
-  });
   group('SplitIndexStore', () {
     runReflectiveTests(_SplitIndexStoreTest);
-  });
-  group('StringCodec', () {
-    runReflectiveTests(_StringCodecTest);
   });
 }
 
@@ -67,129 +54,13 @@ void _assertHasLocation(List<Location> locations, Element element, int offset,
 
 
 @ReflectiveTestCase()
-class _ContextCodecTest {
-  ContextCodec codec = new ContextCodec();
-
-  void test_encode_decode() {
-    AnalysisContext contextA = new _MockAnalysisContext('contextA');
-    AnalysisContext contextB = new _MockAnalysisContext('contextB');
-    int idA = codec.encode(contextA);
-    int idB = codec.encode(contextB);
-    expect(idA, codec.encode(contextA));
-    expect(idB, codec.encode(contextB));
-    expect(codec.decode(idA), contextA);
-    expect(codec.decode(idB), contextB);
-  }
-
-  void test_remove() {
-    // encode
-    {
-      AnalysisContext context = new _MockAnalysisContext('context');
-      // encode
-      int id = codec.encode(context);
-      expect(id, 0);
-      expect(codec.decode(id), context);
-      // remove
-      codec.remove(context);
-      expect(codec.decode(id), isNull);
-    }
-    // encode again
-    {
-      AnalysisContext context = new _MockAnalysisContext('context');
-      // encode
-      int id = codec.encode(context);
-      expect(id, 1);
-      expect(codec.decode(id), context);
-    }
-  }
-}
-
-
-@ReflectiveTestCase()
-class _ElementCodecTest {
-  ElementCodec codec;
-  AnalysisContext context = new _MockAnalysisContext('context');
-  StringCodec stringCodec = new StringCodec();
-
-  void setUp() {
-    codec = new ElementCodec(stringCodec);
-  }
-
-  void test_localLocalVariable() {
-    {
-      Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@1',
-          'bar@2']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
-      int id = codec.encode(element);
-      expect(codec.decode(context, id), element);
-    }
-    {
-      Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@10',
-          'bar@20']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
-      int id = codec.encode(element);
-      expect(codec.decode(context, id), element);
-    }
-    // check strings, "foo" as a single string, no "foo@1" or "foo@10"
-    expect(stringCodec.nameToIndex, hasLength(3));
-    expect(stringCodec.nameToIndex, containsPair('main', 0));
-    expect(stringCodec.nameToIndex, containsPair('foo', 1));
-    expect(stringCodec.nameToIndex, containsPair('bar', 2));
-  }
-
-  void test_localVariable() {
-    {
-      Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main',
-          'foo@42']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
-      int id = codec.encode(element);
-      expect(codec.decode(context, id), element);
-    }
-    {
-      Element element = new _MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main',
-          'foo@4200']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
-      int id = codec.encode(element);
-      expect(codec.decode(context, id), element);
-    }
-    // check strings, "foo" as a single string, no "foo@42" or "foo@4200"
-    expect(stringCodec.nameToIndex, hasLength(2));
-    expect(stringCodec.nameToIndex, containsPair('main', 0));
-    expect(stringCodec.nameToIndex, containsPair('foo', 1));
-  }
-
-  void test_notLocal() {
-    Element element = new _MockElement();
-    ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
-    when(element.location).thenReturn(location);
-    when(context.getElement(location)).thenReturn(element);
-    int id = codec.encode(element);
-    expect(codec.encode(element), id);
-    expect(codec.decode(context, id), element);
-    // check strings
-    expect(stringCodec.nameToIndex, hasLength(2));
-    expect(stringCodec.nameToIndex, containsPair('foo', 0));
-    expect(stringCodec.nameToIndex, containsPair('bar', 1));
-  }
-}
-
-
-@ReflectiveTestCase()
 class _FileNodeManagerTest {
-  AnalysisContext context = new _MockAnalysisContext('context');
-  ContextCodec contextCodec = new _MockContextCodec();
+  AnalysisContext context = new MockAnalysisContext('context');
+  ContextCodec contextCodec = new MockContextCodec();
   int contextId = 13;
-  ElementCodec elementCodec = new _MockElementCodec();
+  ElementCodec elementCodec = new MockElementCodec();
   FileManager fileManager = new _MockFileManager();
-  _MockLogger logger = new _MockLogger();
+  MockLogger logger = new MockLogger();
   int nextElementId = 0;
   FileNodeManager nodeManager;
   RelationshipCodec relationshipCodec;
@@ -365,7 +236,7 @@ class _FileNodeManagerTest {
 
   Element _mockElement() {
     int elementId = nextElementId++;
-    Element element = new _MockElement();
+    Element element = new MockElement();
     when(elementCodec.encode(element)).thenReturn(elementId);
     when(elementCodec.decode(context, elementId)).thenReturn(element);
     return element;
@@ -375,8 +246,8 @@ class _FileNodeManagerTest {
 
 @ReflectiveTestCase()
 class _IndexNodeTest {
-  AnalysisContext context = new _MockAnalysisContext('context');
-  ElementCodec elementCodec = new _MockElementCodec();
+  AnalysisContext context = new MockAnalysisContext('context');
+  ElementCodec elementCodec = new MockElementCodec();
   int nextElementId = 0;
   IndexNode node;
   RelationshipCodec relationshipCodec;
@@ -450,7 +321,7 @@ class _IndexNodeTest {
 
   Element _mockElement() {
     int elementId = nextElementId++;
-    Element element = new _MockElement();
+    Element element = new MockElement();
     when(elementCodec.encode(element)).thenReturn(elementId);
     when(elementCodec.decode(context, elementId)).thenReturn(element);
     return element;
@@ -459,55 +330,13 @@ class _IndexNodeTest {
 
 
 @ReflectiveTestCase()
-class _IntToIntSetMapTest {
-  IntToIntSetMap map = new IntToIntSetMap(32, 0.75);
-
-  void test_clear() {
-    map.add(1, 10);
-    map.add(2, 20);
-    expect(map.length, 2);
-    map.clear();
-    expect(map.length, 0);
-  }
-
-  void test_get() {
-    map.add(1, 10);
-    map.add(1, 11);
-    map.add(1, 12);
-    map.add(2, 20);
-    map.add(2, 21);
-    expect(map.get(1), unorderedEquals([10, 11, 12]));
-    expect(map.get(2), unorderedEquals([20, 21]));
-  }
-
-  void test_get_no() {
-    expect(map.get(3), []);
-  }
-
-  void test_length() {
-    expect(map.length, 0);
-    map.add(1, 10);
-    expect(map.length, 1);
-    map.add(1, 11);
-    expect(map.length, 2);
-    map.add(1, 12);
-    expect(map.length, 3);
-    map.add(2, 20);
-    expect(map.length, 4);
-    map.add(2, 21);
-    expect(map.length, 5);
-  }
-}
-
-
-@ReflectiveTestCase()
 class _LocationDataTest {
-  AnalysisContext context = new _MockAnalysisContext('context');
-  ElementCodec elementCodec = new _MockElementCodec();
+  AnalysisContext context = new MockAnalysisContext('context');
+  ElementCodec elementCodec = new MockElementCodec();
   StringCodec stringCodec = new StringCodec();
 
   void test_newForData() {
-    Element element = new _MockElement();
+    Element element = new MockElement();
     when(elementCodec.decode(context, 0)).thenReturn(element);
     LocationData locationData = new LocationData.forData(0, 1, 2);
     Location location = locationData.getLocation(context, elementCodec);
@@ -518,7 +347,7 @@ class _LocationDataTest {
 
   void test_newForObject() {
     // prepare Element
-    Element element = new _MockElement();
+    Element element = new MockElement();
     when(elementCodec.encode(element)).thenReturn(42);
     when(elementCodec.decode(context, 42)).thenReturn(element);
     // create
@@ -577,7 +406,6 @@ class _MemoryNodeManager implements NodeManager {
   ElementCodec _elementCodec;
   int _locationCount = 0;
   final Map<String, int> _nodeLocationCounts = new HashMap<String, int>();
-
   final Map<String, IndexNode> _nodes = new HashMap<String, IndexNode>();
   RelationshipCodec _relationshipCodec;
   StringCodec _stringCodec = new StringCodec();
@@ -657,44 +485,7 @@ class _MemoryNodeManager implements NodeManager {
 }
 
 
-class _MockAnalysisContext extends TypedMock implements AnalysisContext {
-  String _name;
-  _MockAnalysisContext(this._name);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-  String toString() => _name;
-}
-
-
-class _MockCompilationUnitElement extends TypedMock implements
-    CompilationUnitElement {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockContextCodec extends TypedMock implements ContextCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockElement extends TypedMock implements Element {
-  String _name;
-  _MockElement([this._name = '<element>']);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-  String toString() => _name;
-}
-
-
-class _MockElementCodec extends TypedMock implements ElementCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
 class _MockFileManager extends TypedMock implements FileManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockHtmlElement extends TypedMock implements HtmlElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -704,45 +495,11 @@ class _MockIndexNode extends TypedMock implements IndexNode {
 }
 
 
-class _MockInstrumentedAnalysisContextImpl extends TypedMock implements
-    InstrumentedAnalysisContextImpl {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockLibraryElement extends TypedMock implements LibraryElement {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockLocation extends TypedMock implements Location {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockLogger extends TypedMock implements Logger {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockRelationshipCodec extends TypedMock implements RelationshipCodec {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class _MockSource extends TypedMock implements Source {
-  String _name;
-  _MockSource(this._name);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-  String toString() => _name;
-}
-
-
 @ReflectiveTestCase()
 class _RelationKeyDataTest {
-  AnalysisContext context = new _MockAnalysisContext('context');
-  ElementCodec elementCodec = new _MockElementCodec();
-  RelationshipCodec relationshipCodec = new _MockRelationshipCodec();
+  AnalysisContext context = new MockAnalysisContext('context');
+  ElementCodec elementCodec = new MockElementCodec();
+  RelationshipCodec relationshipCodec = new MockRelationshipCodec();
   StringCodec stringCodec = new StringCodec();
 
   void test_newFromData() {
@@ -759,7 +516,7 @@ class _RelationKeyDataTest {
     Element element;
     int elementId = 2;
     {
-      element = new _MockElement();
+      element = new MockElement();
       ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
       when(element.location).thenReturn(location);
       when(context.getElement(location)).thenReturn(element);
@@ -784,23 +541,6 @@ class _RelationKeyDataTest {
 }
 
 
-@ReflectiveTestCase()
-class _RelationshipCodecTest {
-  RelationshipCodec codec;
-  StringCodec stringCodec = new StringCodec();
-
-  void setUp() {
-    codec = new RelationshipCodec(stringCodec);
-  }
-
-  void test_all() {
-    Relationship relationship = Relationship.getRelationship('my-relationship');
-    int id = codec.encode(relationship);
-    expect(codec.decode(id), relationship);
-  }
-}
-
-
 class _SingleSourceContainer implements SourceContainer {
   final Source _source;
   _SingleSourceContainer(this._source);
@@ -811,17 +551,17 @@ class _SingleSourceContainer implements SourceContainer {
 
 @ReflectiveTestCase()
 class _SplitIndexStoreTest {
-  AnalysisContext contextA = new _MockAnalysisContext('contextA');
+  AnalysisContext contextA = new MockAnalysisContext('contextA');
 
-  AnalysisContext contextB = new _MockAnalysisContext('contextB');
+  AnalysisContext contextB = new MockAnalysisContext('contextB');
 
-  AnalysisContext contextC = new _MockAnalysisContext('contextC');
+  AnalysisContext contextC = new MockAnalysisContext('contextC');
 
-  Element elementA = new _MockElement('elementA');
-  Element elementB = new _MockElement('elementB');
+  Element elementA = new MockElement('elementA');
+  Element elementB = new MockElement('elementB');
 
-  Element elementC = new _MockElement('elementC');
-  Element elementD = new _MockElement('elementD');
+  Element elementC = new MockElement('elementC');
+  Element elementD = new MockElement('elementD');
   ElementLocation elementLocationA = new ElementLocationImpl.con3(
       ['/home/user/sourceA.dart', 'ClassA']);
   ElementLocation elementLocationB = new ElementLocationImpl.con3(
@@ -830,22 +570,22 @@ class _SplitIndexStoreTest {
       ['/home/user/sourceC.dart', 'ClassC']);
   ElementLocation elementLocationD = new ElementLocationImpl.con3(
       ['/home/user/sourceD.dart', 'ClassD']);
-  HtmlElement htmlElementA = new _MockHtmlElement();
-  HtmlElement htmlElementB = new _MockHtmlElement();
-  LibraryElement libraryElement = new _MockLibraryElement();
-  Source librarySource = new _MockSource('librarySource');
-  CompilationUnitElement libraryUnitElement = new _MockCompilationUnitElement();
+  HtmlElement htmlElementA = new MockHtmlElement();
+  HtmlElement htmlElementB = new MockHtmlElement();
+  LibraryElement libraryElement = new MockLibraryElement();
+  Source librarySource = new MockSource('librarySource');
+  CompilationUnitElement libraryUnitElement = new MockCompilationUnitElement();
   _MemoryNodeManager nodeManager = new _MemoryNodeManager();
   Relationship relationship = Relationship.getRelationship('test-relationship');
-  Source sourceA = new _MockSource('sourceA');
-  Source sourceB = new _MockSource('sourceB');
-  Source sourceC = new _MockSource('sourceC');
-  Source sourceD = new _MockSource('sourceD');
+  Source sourceA = new MockSource('sourceA');
+  Source sourceB = new MockSource('sourceB');
+  Source sourceC = new MockSource('sourceC');
+  Source sourceD = new MockSource('sourceD');
   SplitIndexStore store;
-  CompilationUnitElement unitElementA = new _MockCompilationUnitElement();
-  CompilationUnitElement unitElementB = new _MockCompilationUnitElement();
-  CompilationUnitElement unitElementC = new _MockCompilationUnitElement();
-  CompilationUnitElement unitElementD = new _MockCompilationUnitElement();
+  CompilationUnitElement unitElementA = new MockCompilationUnitElement();
+  CompilationUnitElement unitElementB = new MockCompilationUnitElement();
+  CompilationUnitElement unitElementC = new MockCompilationUnitElement();
+  CompilationUnitElement unitElementD = new MockCompilationUnitElement();
   void setUp() {
     store = new SplitIndexStore(nodeManager);
     when(contextA.isDisposed).thenReturn(false);
@@ -902,7 +642,7 @@ class _SplitIndexStoreTest {
   void test_aboutToIndexDart_disposedContext_wrapped() {
     when(contextA.isDisposed).thenReturn(true);
     InstrumentedAnalysisContextImpl instrumentedContext =
-        new _MockInstrumentedAnalysisContextImpl();
+        new MockInstrumentedAnalysisContextImpl();
     when(instrumentedContext.basis).thenReturn(contextA);
     expect(store.aboutToIndexDart(instrumentedContext, unitElementA), isFalse);
   }
@@ -1333,7 +1073,7 @@ class _SplitIndexStoreTest {
    * @return the new [Location] mock.
    */
   static Location mockLocation(Element element) {
-    Location location = new _MockLocation();
+    Location location = new MockLocation();
     when(location.element).thenReturn(element);
     when(location.offset).thenReturn(0);
     when(location.length).thenReturn(0);
@@ -1349,18 +1089,5 @@ class _SplitIndexStoreTest {
       wrappers.add(new _LocationEqualsWrapper(location));
     }
     return wrappers;
-  }
-}
-
-
-@ReflectiveTestCase()
-class _StringCodecTest {
-  StringCodec codec = new StringCodec();
-
-  void test_all() {
-    int idA = codec.encode('aaa');
-    int idB = codec.encode('bbb');
-    expect(codec.decode(idA), 'aaa');
-    expect(codec.decode(idB), 'bbb');
   }
 }
