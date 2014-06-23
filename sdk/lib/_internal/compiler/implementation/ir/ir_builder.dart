@@ -941,6 +941,35 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
   }
 
+  ir.Primitive buildNegation(ir.Primitive condition) {
+    // ! e is translated as e ? false : true
+
+    // Add a continuation parameter for the result of the expression.
+    ir.Parameter resultParameter = new ir.Parameter(null);
+
+    ir.Continuation joinContinuation = new ir.Continuation([resultParameter]);
+    ir.Continuation thenContinuation = new ir.Continuation([]);
+    ir.Continuation elseContinuation = new ir.Continuation([]);
+
+    ir.Constant trueConstant =
+        new ir.Constant(constantSystem.createBool(true));
+    ir.Constant falseConstant =
+        new ir.Constant(constantSystem.createBool(false));
+
+    thenContinuation.body = new ir.LetPrim(falseConstant)
+        ..plug(new ir.InvokeContinuation(joinContinuation, [falseConstant]));
+    elseContinuation.body = new ir.LetPrim(trueConstant)
+        ..plug(new ir.InvokeContinuation(joinContinuation, [trueConstant]));
+
+    add(new ir.LetCont(joinContinuation,
+          new ir.LetCont(thenContinuation,
+            new ir.LetCont(elseContinuation,
+              new ir.Branch(new ir.IsTrue(condition),
+                            thenContinuation,
+                            elseContinuation)))));
+    return resultParameter;
+  }
+
   ir.Primitive translateLogicalOperator(ast.Operator op,
                                         ast.Expression left,
                                         ast.Expression right) {
@@ -1041,6 +1070,17 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       assert(!node.arguments.isEmpty);
       assert(node.arguments.tail.isEmpty);
       return translateLogicalOperator(op, node.receiver, node.arguments.head);
+    }
+    if (op.source == "!") {
+      assert(node.receiver != null);
+      assert(node.arguments.isEmpty);
+      return buildNegation(visit(node.receiver));
+    }
+    if (op.source == "!=") {
+      assert(node.receiver != null);
+      assert(!node.arguments.isEmpty);
+      assert(node.arguments.tail.isEmpty);
+      return buildNegation(visitDynamicSend(node));
     }
     return giveup();
   }
