@@ -108,6 +108,9 @@ abstract class InteractionManager {
 
   InteractionManager.internal();
 
+  // TODO(ahe): Remove this.
+  Set<AnchorElement> get oldDiagnostics;
+
   void onInput(Event event);
 
   // TODO(ahe): Rename to onKeyDown (as it is called in response to keydown
@@ -134,6 +137,12 @@ abstract class InteractionManager {
 
   /// Called by [:window.onMessage.listen:].
   void onMessage(MessageEvent event);
+
+  void onCompilationDone();
+
+  /// Called when a compilation is starting, but just before sending the
+  /// initiating message to the compiler isolate.
+  void compilationStarting();
 }
 
 /**
@@ -159,6 +168,8 @@ class InteractionContext extends InteractionManager {
   Timer heartbeat;
 
   Completer<String> completeSaveOperation;
+
+  final Set<AnchorElement> oldDiagnostics = new Set<AnchorElement>();
 
   InteractionContext()
       : super.internal() {
@@ -219,10 +230,19 @@ class InteractionContext extends InteractionManager {
   void onHeartbeat(Timer timer) => state.onHeartbeat(timer);
 
   void onMessage(MessageEvent event) => state.onMessage(event);
+
+  void onCompilationDone() => state.onCompilationDone();
+
+  void compilationStarting() => state.compilationStarting();
 }
 
 abstract class InteractionState implements InteractionManager {
   InteractionContext get context;
+
+  // TODO(ahe): Remove this.
+  Set<AnchorElement> get oldDiagnostics {
+    throw 'Use context.oldDiagnostics instead';
+  }
 
   void set state(InteractionState newState);
 
@@ -583,6 +603,23 @@ class InitialState extends InteractionState {
 
   void consolePrintLine(data) {
     outputDiv.appendText('$data\n');
+  }
+
+  void onCompilationDone() {
+    for (AnchorElement diagnostic in context.oldDiagnostics) {
+      if (diagnostic.parent != null) {
+        // Problem fixed, remove the diagnostic.
+        diagnostic.replaceWith(new Text(getText(diagnostic)));
+      }
+    }
+    context.oldDiagnostics.clear();
+    observer.takeRecords(); // Discard mutations.
+  }
+
+  void compilationStarting() {
+    context.oldDiagnostics
+        ..clear()
+        ..addAll(mainEditorPane.querySelectorAll('a.diagnostic'));
   }
 }
 

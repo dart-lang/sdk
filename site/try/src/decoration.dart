@@ -80,7 +80,7 @@ createAlert(text, [String cls]) {
   }
   SpanElement result = new SpanElement()
       ..classes.addAll(classes)
-      ..style.opacity = '0.75';
+      ..style.fontWeight = 'normal';
   setShadowRoot(result, text);
   return result;
 }

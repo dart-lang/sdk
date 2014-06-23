@@ -30,6 +30,7 @@ import 'run.dart' show
 
 import 'ui.dart' show
     buildButton,
+    interaction,
     outputDiv,
     outputFrame;
 
@@ -72,6 +73,7 @@ class CompilationProcess {
   final String source;
   final Element console;
   final ReceivePort receivePort = new ReceivePort();
+  final Set<String> seenMessages = new Set<String>();
   bool isCleared = false;
   bool isDone = false;
   bool usesDartHtml = false;
@@ -112,6 +114,7 @@ class CompilationProcess {
     if (verboseCompiler) options.add('--verbose');
     if (minified) options.add('--minify');
     if (onlyAnalyze) options.add('--analyze-only');
+    interaction.compilationStarting();
     compilerPort.send([['options', options], receivePort.sendPort]);
     console.appendHtml('<i class="icon-spinner icon-spin"></i>');
     console.appendText(' Compiling Dart program...\n');
@@ -151,6 +154,7 @@ class CompilationProcess {
   }
 
   onDone(_) {
+    interaction.onCompilationDone();
     isDone = true;
     receivePort.close();
   }
@@ -245,6 +249,7 @@ self.importScripts("$url");
   }
 
   onDiagnostic(Map<String, dynamic> diagnostic) {
+    if (currentSource != source) return;
     String kind = diagnostic['kind'];
     String message = diagnostic['message'];
     if (kind == 'verbose info') {
@@ -256,17 +261,17 @@ self.importScripts("$url");
       return;
     }
     String uri = diagnostic['uri'];
-    if (uri == null) {
-      clear();
-      consolePrint(message);
+    if (uri != '${PRIVATE_SCHEME}:/main.dart') {
+      consolePrint('$uri: [$kind] $message');
       return;
     }
-    if (uri != '${PRIVATE_SCHEME}:/main.dart') return;
-    if (currentSource != source) return;
     int begin = diagnostic['begin'];
     int end = diagnostic['end'];
     if (begin == null) return;
-    addDiagnostic(kind, message, begin, end);
+    if (seenMessages.add('$begin:$end: [$kind] $message')) {
+      // Guard against duplicated messages.
+      addDiagnostic(kind, message, begin, end);
+    }
   }
 
   onCrash(data) {
