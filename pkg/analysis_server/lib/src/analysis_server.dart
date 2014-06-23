@@ -47,7 +47,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
       : super(resourceProvider);
 
   @override
-  void addContext(Folder folder, File pubspecFile) {
+  void addContext(Folder folder) {
     Map<String, List<Folder>> packageMap =
         analysisServer.packageMapProvider.computePackageMap(folder);
     ContextDirectory contextDirectory = new ContextDirectory(

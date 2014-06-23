@@ -21,7 +21,6 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
   int now = 0;
 
   final Set<String> currentContextPaths = new Set<String>();
-  final Map<String, String> currentContextPubspecPaths = <String, String>{};
 
   /**
    * Map from context to (map from file path to timestamp of last event)
@@ -29,10 +28,9 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
   final Map<String, Map<String, int>> currentContextFilePaths = <String, Map<String, int>>{};
 
   @override
-  void addContext(Folder folder, File pubspecFile) {
+  void addContext(Folder folder) {
     String path = folder.path;
     currentContextPaths.add(path);
-    currentContextPubspecPaths[path] = pubspecFile != null ? pubspecFile.path : null;
     currentContextFilePaths[path] = <String, int>{};
   }
 
@@ -57,7 +55,6 @@ class TestContextDirectoryManager extends ContextDirectoryManager {
   void removeContext(Folder folder) {
     String path = folder.path;
     currentContextPaths.remove(path);
-    currentContextPubspecPaths.remove(path);
     currentContextFilePaths.remove(path);
   }
 }
@@ -82,7 +79,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       expect(manager.currentContextPaths, hasLength(1));
       expect(manager.currentContextPaths, contains(projPath));
-      expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
       expect(manager.currentContextFilePaths[projPath], hasLength(0));
     });
 
@@ -92,7 +88,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       expect(manager.currentContextPaths, hasLength(1));
       expect(manager.currentContextPaths, contains(projPath));
-      expect(manager.currentContextPubspecPaths[projPath], isNull);
       expect(manager.currentContextFilePaths[projPath], hasLength(0));
     });
 
@@ -126,7 +121,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       manager.setRoots(<String>[], <String>[]);
       expect(manager.currentContextPaths, hasLength(0));
-      expect(manager.currentContextPubspecPaths, hasLength(0));
       expect(manager.currentContextFilePaths, hasLength(0));
     });
 
@@ -136,7 +130,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       manager.setRoots(<String>[], <String>[]);
       expect(manager.currentContextPaths, hasLength(0));
-      expect(manager.currentContextPubspecPaths, hasLength(0));
       expect(manager.currentContextFilePaths, hasLength(0));
     });
 
@@ -189,16 +182,6 @@ main() {
         });
       });
 
-      test('Add pubspec file', () {
-        manager.setRoots(<String>[projPath], <String>[]);
-        String pubspecPath = posix.join(projPath, 'pubspec.yaml');
-        expect(manager.currentContextPubspecPaths[projPath], isNull);
-        provider.newFile(pubspecPath, 'pubspec');
-        return pumpEventQueue().then((_) {
-          expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
-        });
-      });
-
       test('Delete file', () {
         String filePath = posix.join(projPath, 'foo.dart');
         provider.newFile(filePath, 'contents');
@@ -208,17 +191,6 @@ main() {
         expect(filePaths, contains(filePath));
         provider.deleteFile(filePath);
         return pumpEventQueue().then((_) => expect(filePaths, hasLength(0)));
-      });
-
-      test('Delete pubspec file', () {
-        String pubspecPath = posix.join(projPath, 'pubspec.yaml');
-        provider.newFile(pubspecPath, 'pubspec');
-        manager.setRoots(<String>[projPath], <String>[]);
-        expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
-        provider.deleteFile(pubspecPath);
-        return pumpEventQueue().then((_) {
-          expect(manager.currentContextPubspecPaths[projPath], isNull);
-        });
       });
 
       test('Modify file', () {
