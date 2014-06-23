@@ -1,3 +1,10 @@
+## 0.0.3
+
+* Make `StringScannerException` inherit from source_map's
+  [`SpanFormatException`][].
+
+[SpanFormatException]: (http://www.dartdocs.org/documentation/source_maps/0.9.2/index.html#source_maps/source_maps.SpanFormatException)
+
 ## 0.0.2
 
 * `new StringScanner()` now takes an optional `sourceUrl` argument that provides
