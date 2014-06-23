@@ -17,8 +17,8 @@ class Environment {
   var input;
   var output;
   int workers;
-  bool prettyPrint;
-  bool lcov;
+  bool prettyPrint = false;
+  bool lcov = false;
   bool expectMarkers;
   bool verbose;
 }
@@ -405,7 +405,8 @@ parseArgs(List<String> arguments) {
   parser.addOption("sdk-root", abbr: "s",
                    help: "path to the SDK root");
   parser.addOption("package-root", abbr: "p",
-                   help: "path to the package root");
+                   help: "override path to the package root "
+                         "(default: inherited from dart)");
   parser.addOption("in", abbr: "i",
                    help: "input(s): may be file or directory");
   parser.addOption("out", abbr: "o",
@@ -465,6 +466,8 @@ parseArgs(List<String> arguments) {
     if (!FileSystemEntity.isDirectorySync(env.pkgRoot)) {
       fail("Provided package root '${args["package-root"]}' is not directory.");
     }
+  } else {
+    env.pkgRoot = Platform.packageRoot;
   }
 
   if (args["in"] == null) {
