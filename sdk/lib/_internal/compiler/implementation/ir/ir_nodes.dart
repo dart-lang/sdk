@@ -6,7 +6,7 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant;
+import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant;
 import '../elements/elements.dart'
     show FunctionElement, LibraryElement, ParameterElement, ClassElement,
     Element, VariableElement;
@@ -60,6 +60,9 @@ abstract class Primitive extends Definition {
   /// Separate register spaces are used for primitives with different [element].
   /// Assigned by [RegisterAllocator], is null before that phase.
   int registerIndex;
+
+  /// If non-null, this primitive is a reference to the given constant.
+  dart2js.Constant get constant;
 
   /// Use the given element as a hint for naming this primitive.
   ///
@@ -214,6 +217,8 @@ class InvokeConstConstructor extends Primitive {
   final List<Reference> arguments;
   final Selector selector;
 
+  final dart2js.ConstructedConstant constant;
+
   /// The class being instantiated. This is the same as `target.enclosingClass`
   /// and `type.element`.
   ClassElement get targetClass => constructor.enclosingElement;
@@ -224,10 +229,12 @@ class InvokeConstConstructor extends Primitive {
   InvokeConstConstructor(this.type,
                     this.constructor,
                     this.selector,
-                    List<Definition> args)
+                    List<Definition> args,
+                    this.constant)
       : arguments = _referenceList(args) {
     assert(constructor.isConstructor);
     assert(type.element == constructor.enclosingElement);
+    assert(constant.type == type);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
@@ -295,23 +302,35 @@ class Constant extends Primitive {
 
   Constant(this.value);
 
+  dart2js.Constant get constant => value;
+
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
 class LiteralList extends Primitive {
-  List<Reference> values;
+  /// The List type being created; this is not the type argument.
+  final GenericType type;
+  final List<Reference> values;
 
-  LiteralList(List<Primitive> values)
+  /// Set to null if this is not a const literal list.
+  final dart2js.Constant constant;
+
+  LiteralList(this.type, List<Primitive> values, [this.constant])
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 }
 
 class LiteralMap extends Primitive {
-  List<Reference> keys;
-  List<Reference> values;
+  final GenericType type;
+  final List<Reference> keys;
+  final List<Reference> values;
 
-  LiteralMap(List<Primitive> keys, List<Primitive> values)
+  /// Set to null if this is not a const literal map.
+  final dart2js.Constant constant;
+
+  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values,
+             [this.constant])
       : this.keys = _referenceList(keys),
         this.values = _referenceList(values);
 
@@ -322,6 +341,8 @@ class Parameter extends Primitive {
   Parameter(Element element) {
     super.element = element;
   }
+
+  dart2js.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }

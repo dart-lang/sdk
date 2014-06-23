@@ -14,6 +14,7 @@ import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
 import '../util/util.dart' show Link;
+import '../helpers/helpers.dart';
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -109,6 +110,11 @@ class IrBuilderTask extends CompilerTask {
 
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative) return false;
+
+    // TODO(asgerf): support syntax for redirecting factory constructors
+    if (function is ConstructorElement && function.isRedirectingFactory) {
+      return false;
+    }
 
     return true;
   }
@@ -616,6 +622,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(isOpen);
+    if (node.modifiers.isConst) {
+      return giveup(node, 'Local const'); // TODO(asgerf): const vars
+    }
     for (ast.Node definition in node.definitions.nodes) {
       Element element = elements[definition];
       // Definitions are either SendSets if there is an initializer, or
@@ -652,7 +661,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitReturn(ast.Return node) {
     assert(isOpen);
     // TODO(lry): support native returns.
-    if (node.beginToken.value == 'native') return giveup();
+    if (node.beginToken.value == 'native') return giveup(node, 'Native return');
     ir.Primitive value;
     if (node.expression == null) {
       value = new ir.Constant(constantSystem.createNull());
@@ -769,46 +778,27 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return constant;
   }
 
-  bool isSupportedConst(Constant constant) {
-    return const SupportedConstantVisitor().visit(constant);
-  }
-
   ir.Primitive visitLiteralList(ast.LiteralList node) {
     assert(isOpen);
-    ir.Primitive result;
-    if (node.isConst) {
-      // TODO(sigurdm): Remove when all constants are supported.
-      Constant constant = getConstantForNode(node);
-      if (!isSupportedConst(constant)) return giveup();
-      result = new ir.Constant(constant);
-    } else {
-      List<ir.Primitive> values = new List<ir.Primitive>();
-      node.elements.nodes.forEach((ast.Node node) {
-        values.add(visit(node));
-      });
-      result = new ir.LiteralList(values);
-    }
+    List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
+    Constant constant = node.isConst ? getConstantForNode(node) : null;
+    GenericType type = elements.getType(node);
+    ir.Primitive result = new ir.LiteralList(type, values, constant);
     add(new ir.LetPrim(result));
     return result;
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
     assert(isOpen);
-    ir.Primitive result;
-    if (node.isConst) {
-      // TODO(sigurdm): Remove when all constants are supported.
-      Constant constant = getConstantForNode(node);
-      if (!isSupportedConst(constant)) return giveup();
-      result = new ir.Constant(constant);
-    } else {
-      List<ir.Primitive> keys = new List<ir.Primitive>();
-      List<ir.Primitive> values = new List<ir.Primitive>();
-      node.entries.nodes.forEach((ast.LiteralMapEntry node) {
-        keys.add(visit(node.key));
-        values.add(visit(node.value));
-      });
-      result = new ir.LiteralMap(keys, values);
-    }
+    List<ir.Primitive> keys = new List<ir.Primitive>();
+    List<ir.Primitive> values = new List<ir.Primitive>();
+    node.entries.nodes.forEach((ast.LiteralMapEntry node) {
+      keys.add(visit(node.key));
+      values.add(visit(node.value));
+    });
+    GenericType type = elements.getType(node);
+    Constant constant = node.isConst ? getConstantForNode(node) : null;
+    ir.Primitive result = new ir.LiteralMap(type, keys, values, constant);
     add(new ir.LetPrim(result));
     return result;
   }
@@ -855,7 +845,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   // ==== Sends ====
   ir.Primitive visitAssert(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    return giveup(node, 'Assert');
   }
 
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {
@@ -895,7 +885,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitDynamicSend(ast.Send node) {
     assert(isOpen);
     if (node.receiver == null || node.receiver.isSuper()) {
-      return giveup();
+      return giveup(node, 'DynamicSend without receiver, or super receiver');
     }
     Selector selector = elements.getSelector(node);
     ir.Primitive receiver = visit(node.receiver);
@@ -918,7 +908,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       return lookupLocal(element);
     } else if (element == null || Elements.isInstanceField(element)) {
       // TODO: Support implicit this.
-      if (node.receiver == null) return giveup();
+      if (node.receiver == null) return giveup(node);
 
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
@@ -936,8 +926,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       ir.InvokeStatic invoke = new ir.InvokeStatic(element, selector, k, []);
       add(new ir.LetCont(k, invoke));
       return v;
+    } else if (Elements.isStaticOrTopLevelFunction(element)) {
+      ir.Primitive prim = new ir.Constant(new FunctionConstant(element));
+      add(new ir.LetPrim(prim));
+      return prim;
     } else {
-      return giveup(); // TODO: figure out what's missing here
+      return giveup(node); // TODO(asgerf): figure out what's missing here
     }
   }
 
@@ -1082,7 +1076,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       assert(node.arguments.tail.isEmpty);
       return buildNegation(visitDynamicSend(node));
     }
-    return giveup();
+    return giveup(node);
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
@@ -1091,14 +1085,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor) return giveup();
+    if (element.isConstructor) return giveup(node, 'StaticSend: constructor');
     // TODO(lry): support foreign functions.
-    if (element.isForeign(compiler)) return giveup();
+    if (element.isForeign(compiler)) return giveup(node, 'StaticSend: foreign');
     // TODO(lry): for elements that could not be resolved emit code to throw a
     // [NoSuchMethodError].
-    if (element.isErroneous) return giveup();
+    if (element.isErroneous) return giveup(node, 'StaticSend: erroneous');
     // TODO(lry): generate IR for object identicality.
-    if (element == compiler.identicalFunction) giveup();
+    if (element == compiler.identicalFunction) {
+      return giveup(node, 'StaticSend: identical');
+    }
 
     Selector selector = elements.getSelector(node);
 
@@ -1115,12 +1111,30 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitSuperSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    return giveup(node, 'SuperSend');
   }
 
   ir.Primitive visitTypeReferenceSend(ast.Send node) {
     assert(isOpen);
-    return giveup();
+    if (node.argumentsNode != null) {
+      // May happen in strange, invalid code.
+      // TODO(asgerf): Generate code that throws a runtime error.
+      return giveup(node, 'TypeReferenceSend: has argument');
+    }
+    Element element = elements[node];
+    if (element is TypeDeclarationElement) {
+      DartType typeType = compiler.backend.typeImplementation.rawType;
+      ir.Primitive prim =
+          new ir.Constant(new TypeConstant(element.rawType, typeType));
+      add(new ir.LetPrim(prim));
+      return prim;
+    } else if (element.isTypeVariable) {
+      // TODO(asgerf): Introduce IR to reify type variables
+      return giveup(node, 'TypeReferenceSend: type variable');
+    } else {
+      // TODO(asgerf): Any other cases?
+      return giveup(node);
+    }
   }
 
   ir.Primitive visitSendSet(ast.SendSet node) {
@@ -1153,11 +1167,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         // Nodes that fall in this case:
         // - Unresolved top-level
         // - Assignment to final variable (will not be resolved)
-        return giveup();
+        return giveup(node, 'SendSet: non-local, non-static, but no receiver');
       } else {
         // Setter or index-setter invocation
         assert(node.receiver != null);
-        if (node.receiver.isSuper()) return giveup();
+        if (node.receiver.isSuper()) return giveup(node, 'Super SendSet');
 
         ir.Primitive receiver = visit(node.receiver);
         ir.Parameter v = new ir.Parameter(null);
@@ -1175,9 +1189,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     } else if (ast.Operator.COMPLEX_OPERATORS.contains(op.source)) {
       Element selectorElement = elements[node.selector];
       if (selectorElement != null && !selectorElement.isAssignable) {
-        return giveup();
+        return giveup(node, 'Unresolved or non-assignable compound assignment');
       }
-      if (!Elements.isLocal(selectorElement)) return giveup();
+      if (!Elements.isLocal(selectorElement)) {
+        return giveup(node, 'Non-local compound assignment');
+      }
 
       Selector selector = elements.getOperatorSelectorInComplexSendSet(node);
       getter = lookupLocal(selectorElement);
@@ -1217,31 +1233,23 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     FunctionElement element = elements[node.send];
     if (Elements.isUnresolved(element)) {
-      return giveup();
+      return giveup(node, 'NewExpression: unresolved constructor');
     }
     Selector selector = elements.getSelector(node.send);
     ast.Node selectorNode = node.send.selector;
     GenericType type = elements.getType(node);
-    List<ir.Definition> args = node.send.arguments.mapToList(visit,
-                                                             growable:false);
+    List<ir.Primitive> args =
+        node.send.arguments.mapToList(visit, growable:false);
     if (node.isConst) {
-      List<ir.Primitive> arguments = new List<ir.Primitive>();
-      node.send.arguments.forEach((ast.Node node) {
-        arguments.add(visit(node));
-      });
-      ir.Primitive result = new ir.InvokeConstConstructor(type, element, selector,
-                                                     arguments);
+      ir.Primitive result = new ir.InvokeConstConstructor(type, element,
+          selector, args, getConstantForNode(node));
       add(new ir.LetPrim(result));
       return result;
     }
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
-    ir.InvokeConstructor invoke = new ir.InvokeConstructor(
-        type,
-        element,
-        selector,
-        k,
-        args);
+    ir.InvokeConstructor invoke =
+        new ir.InvokeConstructor(type, element,selector, k, args);
     add(new ir.LetCont(k, invoke));
     return v;
   }
@@ -1275,7 +1283,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-  ir.Primitive giveup() => throw ABORT_IRNODE_BUILDER;
+  ir.Primitive giveup(ast.Node node, [String reason]) {
+    throw ABORT_IRNODE_BUILDER;
+  }
 
   ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
     try {
@@ -1287,33 +1297,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   }
 
   void internalError(String reason, {ast.Node node}) {
-    giveup();
+    giveup(node);
   }
-}
-
-// While we don't support all constants we need to filter out the unsupported
-// ones:
-class SupportedConstantVisitor extends ConstantVisitor<bool> {
-  const SupportedConstantVisitor();
-
-  bool visit(Constant constant) => constant.accept(this);
-  bool visitFunction(FunctionConstant constant) => false;
-  bool visitNull(NullConstant constant) => true;
-  bool visitInt(IntConstant constant) => true;
-  bool visitDouble(DoubleConstant constant) => true;
-  bool visitTrue(TrueConstant constant) => true;
-  bool visitFalse(FalseConstant constant) => true;
-  bool visitString(StringConstant constant) => true;
-  bool visitList(ListConstant constant) {
-    return constant.entries.every(visit);
-  }
-  bool visitMap(MapConstant constant) {
-    return visit(constant.keys) && constant.values.every(visit);
-  }
-  bool visitConstructed(ConstructedConstant constant) => false;
-  bool visitType(TypeConstant constant) => false;
-  bool visitInterceptor(InterceptorConstant constant) => false;
-  bool visitDummy(DummyConstant constant) => false;
-  bool visitDeferred(DeferredConstant constant) => false;
 }
 

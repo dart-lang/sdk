@@ -335,7 +335,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   Expression visitLiteralList(tree.LiteralList exp) {
     return new LiteralList(
-        exp.values.map(visitExpression).toList(growable: false));
+        exp.values.map(visitExpression).toList(growable: false),
+        isConst: exp.constant != null,
+        typeArgument: emitOptionalType(exp.type.typeArguments.single));
   }
 
   Expression visitLiteralMap(tree.LiteralMap exp) {
@@ -343,7 +345,12 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
         exp.values.length,
         (i) => new LiteralMapEntry(visitExpression(exp.keys[i]),
                                    visitExpression(exp.values[i])));
-    return new LiteralMap(entries);
+    List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
+        ? null
+        : exp.type.typeArguments.mapToList(emitType);
+    return new LiteralMap(entries,
+                          isConst: exp.constant != null,
+                          typeArguments: typeArguments);
   }
 
   List<Argument> emitArguments(tree.Invoke exp) {
@@ -422,17 +429,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List args = emitArguments(exp);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(emitType(exp.type), args, constructorName: name)
-               ..constructor = constructor
-               ..dartType = exp.type;
-  }
-
-  Expression visitInvokeConstConstructor(tree.InvokeConstConstructor exp) {
-    List args = emitArguments(exp);
-    FunctionElement constructor = exp.target;
-    String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(emitType(exp.type), args, constructorName: name,
-                       isConst: true)
+    return new CallNew(emitType(exp.type),
+                       args,
+                       constructorName: name,
+                       isConst: exp.constant != null)
                ..constructor = constructor
                ..dartType = exp.type;
   }
@@ -500,26 +500,20 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   Expression emitConstant(dart2js.Constant constant) {
     if (constant is dart2js.PrimitiveConstant) {
       return new Literal(constant);
-    } else if (constant is dart2js.ListConstant) {
-      return new LiteralList(
-          constant.entries.map(emitConstant).toList(growable: false),
-          isConst: true);
-    } else if (constant is dart2js.MapConstant) {
-      List<LiteralMapEntry> entries = <LiteralMapEntry>[];
-      for (var i = 0; i < constant.keys.length; i++) {
-        entries.add(new LiteralMapEntry(
-            emitConstant(constant.keys.entries[i]),
-            emitConstant(constant.values[i])));
-      }
-      return new LiteralMap(entries, isConst: true);
+    } else if (constant is dart2js.ConstructedConstant &&
+               constant.isLiteralSymbol) {
+      dart2js.StringConstant nameConstant = constant.fields[0];
+      String nameString = nameConstant.value.slowToString();
+      return new LiteralSymbol(nameString);
+    } else if (constant is dart2js.FunctionConstant) {
+      return new Identifier(constant.element.name)
+                 ..element = constant.element;
+    } else if (constant is dart2js.TypeConstant) {
+      GenericType type = constant.representedType;
+      return new Identifier(type.name)
+                 ..element = type.element;
     } else {
-      if (constant is dart2js.ConstructedConstant && constant.isLiteralSymbol) {
-        dart2js.StringConstant nameConstant = constant.fields[0];
-        String nameString = nameConstant.value.slowToString();
-        return new LiteralSymbol(nameString);
-      } else {
-        throw "Unsupported constant: $constant";
-      }
+      throw "Unsupported constant: $constant";
     }
   }
 }

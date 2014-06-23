@@ -136,15 +136,17 @@ class InvokeMethod extends Expression implements Invoke {
 }
 
 /**
- * Non-const call to a factory or generative constructor.
+ * Call to a factory or generative constructor.
  */
 class InvokeConstructor extends Expression implements Invoke {
   final GenericType type;
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;
+  final dart2js.Constant constant;
 
-  InvokeConstructor(this.type, this.target, this.selector, this.arguments);
+  InvokeConstructor(this.type, this.target, this.selector, this.arguments,
+      [this.constant]);
 
   ClassElement get targetClass => target.enclosingElement;
 
@@ -154,8 +156,9 @@ class InvokeConstructor extends Expression implements Invoke {
 /// Calls [toString] on each argument and concatenates the results.
 class ConcatenateStrings extends Expression {
   final List<Expression> arguments;
+  final dart2js.Constant constant;
 
-  ConcatenateStrings(this.arguments);
+  ConcatenateStrings(this.arguments, [this.constant]);
 
   accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
 }
@@ -172,33 +175,24 @@ class Constant extends Expression {
 }
 
 class LiteralList extends Expression {
+  final GenericType type;
   final List<Expression> values;
+  final dart2js.Constant constant;
 
-  LiteralList(this.values) ;
+  LiteralList(this.type, this.values, [this.constant]);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
 }
 
 class LiteralMap extends Expression {
+  final GenericType type;
   final List<Expression> keys;
   final List<Expression> values;
+  final dart2js.Constant constant;
 
-  LiteralMap(this.keys, this.values) ;
+  LiteralMap(this.type, this.keys, this.values, [this.constant]);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
-}
-
-class InvokeConstConstructor extends Expression implements Invoke {
-  final GenericType type;
-  final FunctionElement target;
-  final List<Expression> arguments;
-  final Selector selector;
-
-  ClassElement get targetClass => target.enclosingElement;
-
-  InvokeConstConstructor(this.type, this.target, this.selector, this.arguments);
-
-  accept(ExpressionVisitor visitor) => visitor.visitInvokeConstConstructor(this);
 }
 
 /// A conditional expression.
@@ -432,7 +426,6 @@ abstract class ExpressionVisitor<E> {
   E visitNot(Not node);
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
-  E visitInvokeConstConstructor(InvokeConstConstructor node);
 }
 
 abstract class StatementVisitor<S> {
@@ -666,18 +659,10 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Statement visitLetPrim(ir.LetPrim node) {
-    // LetPrim is translated to Assign.
-    Expression definition = visit(node.primitive);
     Variable variable = getVariable(node.primitive);
-    if (variable != null) { // Variable is null if primitive is unused.
-      return new Assign(variable, definition, visit(node.body));
-    } else if (node.primitive is ir.Constant) {
-      // TODO(kmillikin): Implement more systematic treatment of pure CPS
-      // values (e.g., as part of a shrinking reductions pass).
-      return visit(node.body);
-    } else {
-      return new ExpressionStatement(definition, visit(node.body));
-    }
+    return variable == null
+        ? visit(node.body)
+        : new Assign(variable, visit(node.primitive), visit(node.body));
   }
 
   Statement visitLetCont(ir.LetCont node) {
@@ -811,8 +796,12 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Expression visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
-    return new InvokeConstConstructor(node.type, node.constructor, node.selector,
-        translateArguments(node.arguments));
+    return new InvokeConstructor(
+        node.type,
+        node.constructor,
+        node.selector,
+        translateArguments(node.arguments),
+        node.constant);
   }
 
   Expression visitConstant(ir.Constant node) {
@@ -820,13 +809,18 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Expression visitLiteralList(ir.LiteralList node) {
-    return new LiteralList(translateArguments(node.values));
+    return new LiteralList(
+            node.type,
+            translateArguments(node.values),
+            node.constant);
   }
 
   Expression visitLiteralMap(ir.LiteralMap node) {
     return new LiteralMap(
+        node.type,
         translateArguments(node.keys),
-        translateArguments(node.values));
+        translateArguments(node.values),
+        node.constant);
   }
 
   Expression visitParameter(ir.Parameter node) {
@@ -1011,13 +1005,6 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
-    return node;
-  }
-
-  Expression visitInvokeConstConstructor(InvokeConstConstructor node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
     }
@@ -1737,11 +1724,6 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
       node.elseExpression = tmp;
     }
 
-    return node;
-  }
-
-  Expression visitInvokeConstConstructor(InvokeConstConstructor node) {
-    _rewriteList(node.arguments);
     return node;
   }
 

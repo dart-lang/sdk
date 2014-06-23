@@ -61,7 +61,6 @@ class BlockCollector extends Visitor {
   visitConcatenateStrings(ConcatenateStrings node) {}
   visitLiteralList(LiteralList node) {}
   visitLiteralMap(LiteralMap node) {}
-  visitInvokeConstConstructor(InvokeConstConstructor node) {}
   visitConstant(Constant node) {}
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
@@ -312,7 +311,8 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       callName = '${node.type}.${node.target.name}';
     }
     String args = formatArguments(node);
-    return "new $callName($args)";
+    String keyword = node.constant != null ? 'const' : 'new';
+    return "$keyword $callName($args)";
   }
 
   String visitConcatenateStrings(ConcatenateStrings node) {
@@ -333,17 +333,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       entries.add("$key: $value");
     }
     return "map [${entries.join(', ')}]";
-  }
-
-  String visitInvokeConstConstructor(InvokeConstConstructor node) {
-    String callName;
-    if (node.target.name.isEmpty) {
-      callName = '${node.type}';
-    } else {
-      callName = '${node.type}.${node.target.name}';
-    }
-    String arguments = node.arguments.map(visitExpression).join(', ');
-    return "const $callName($arguments)";
   }
 
   String visitConstant(Constant node) {
