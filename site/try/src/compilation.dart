@@ -14,9 +14,6 @@ import 'dart:html' show
     Worker,
     window;
 
-import 'dart:async' show
-    Timer;
-
 import 'dart:isolate' show
     ReceivePort,
     SendPort;
@@ -288,19 +285,4 @@ self.importScripts("$url");
     }
     console.appendText('$message\n');
   }
-}
-
-void compilerIsolate(SendPort port) {
-  // TODO(ahe): Restore when restoring deferred loading.
-  // lazy.load().then((_) => port.listen(compile));
-  ReceivePort replyTo = new ReceivePort();
-  port.send(replyTo.sendPort);
-  replyTo.listen((message) {
-    List list = message as List;
-    try {
-      compile(list[0], list[1]);
-    } catch (exception, stack) {
-      port.send('$exception\n$stack');
-    }
-  });
 }

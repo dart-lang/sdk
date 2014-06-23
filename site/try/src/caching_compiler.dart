@@ -26,8 +26,6 @@ import 'package:compiler/implementation/js_backend/js_backend.dart' show
 import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement;
 
-import 'package:compiler/implementation/native_handler.dart' as native;
-
 void clearLibraryLoader(LibraryLoaderTask libraryLoader) {
   // TODO(ahe): Move this method to [LibraryLoader].
   libraryLoader
