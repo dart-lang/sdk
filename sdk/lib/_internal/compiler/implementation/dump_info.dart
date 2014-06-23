@@ -4,7 +4,11 @@
 
 library dump_info;
 
-import 'dart:convert' show HtmlEscape;
+import 'dart:convert' show
+    HtmlEscape,
+    JsonEncoder,
+    StringConversionSink,
+    ChunkedConversionSink;
 
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
@@ -79,6 +83,14 @@ String sizeDescription(int size, ProgramInfo programInfo) {
       ' bytes (${size * 100 ~/ programInfo.size}%)', cls: 'size');
 }
 
+String sizePercent(int size, ProgramInfo programInfo) {
+  if (size == null) {
+    return "0.000%";
+  } else {
+    return (100 * size / programInfo.size).toStringAsFixed(3) + "%";
+  }
+}
+
 /// An [InfoNode] holds information about a part the program.
 abstract class InfoNode {
   String get name;
@@ -87,6 +99,8 @@ abstract class InfoNode {
 
   void emitHtml(ProgramInfo programInfo, StringSink buffer,
       [String indentation = '']);
+
+  Map<String, dynamic> toJson(ProgramInfo programInfo);
 }
 
 /// An [ElementNode] holds information about an [Element]
@@ -129,6 +143,25 @@ class ElementInfoNode implements InfoNode {
       this.contents,
       this.extra: "",
       this.outputUnitId});
+
+  Map<String, dynamic> toJson(ProgramInfo programInfo) {
+    Map<String, dynamic> json = <String, dynamic>{
+      'kind': this.kind,
+      'modifiers': this.modifiers,
+      'name': this.name,
+      'type': this.type,
+      'size': this.size,
+      'sizePercent': sizePercent(this.size, programInfo),
+      'extra': this.extra
+    };
+
+    if (this.contents != null) {
+      json['children'] =
+        this.contents.map((c) => c.toJson(programInfo)).toList();
+    }
+
+    return json;
+  }
 
   void emitHtml(ProgramInfo programInfo, StringSink buffer,
       [String indentation = '']) {
@@ -197,6 +230,16 @@ class CodeInfoNode implements InfoNode {
         code(esc(generatedCode)));
     buffer.write('\n');
   }
+
+  Map<String, dynamic> toJson(ProgramInfo programInfo) {
+    return <String, dynamic>{
+      'kind': 'code',
+      'description': description,
+      'code': generatedCode,
+      'size': generatedCode.length,
+      'sizePercent': sizePercent(generatedCode.length, programInfo)
+    };
+  }
 }
 
 /// Instances represent information inferred about the program such as
@@ -215,6 +258,15 @@ class InferredInfoNode implements InfoNode {
   get size => 0;
 
   InferredInfoNode({this.name: "", this.description, this.type});
+
+  Map<String, dynamic> toJson(ProgramInfo programInfo) {
+    return <String, dynamic>{
+      'kind': 'inferred',
+      'name': name,
+      'type': type,
+      'desc': description
+    };
+  }
 
   void emitHtml(ProgramInfo programInfo, StringBuffer buffer,
       [String indentation = '']) {
@@ -253,6 +305,15 @@ class ProgramInfo {
                this.compilationDuration,
                this.dart2jsVersion,
                this.outputUnitNumbering: null});
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'program_size': size,
+      'compile_time': compilationMoment.toString(),
+      'compile_duration': compilationDuration.toString(),
+      'dart2js_version': dart2jsVersion
+    };
+  }
 }
 
 class InfoDumpVisitor extends ElementVisitor<InfoNode> {
@@ -532,12 +593,32 @@ class DumpInfoTask extends CompilerTask {
   void dumpInfo() {
     measure(() {
       ProgramInfo info = infoDumpVisitor.collectDumpInfo();
-      StringBuffer buffer = new StringBuffer();
-      dumpInfoHtml(info, buffer);
+
+      StringBuffer htmlBuffer = new StringBuffer();
+      dumpInfoHtml(info, htmlBuffer);
       compiler.outputProvider('', 'info.html')
-        ..add(buffer.toString())
+        ..add(htmlBuffer.toString())
+        ..close();
+
+      StringBuffer jsonBuffer = new StringBuffer();
+      dumpInfoJson(info, jsonBuffer);
+      compiler.outputProvider('', 'info.json')
+        ..add(jsonBuffer.toString())
         ..close();
     });
+  }
+
+  void dumpInfoJson(ProgramInfo info, StringSink buffer) {
+    Map<String, dynamic> entire = <String, dynamic>{
+      'program': info.toJson(),
+      'libs': info.libraries.map((lib) => lib.toJson(info)).toList()
+    };
+
+    JsonEncoder encoder = const JsonEncoder();
+    ChunkedConversionSink<Object> sink =
+      encoder.startChunkedConversion(
+          new StringConversionSink.fromStringSink(buffer));
+    sink.add(entire);
   }
 
   void dumpInfoHtml(ProgramInfo info, StringSink buffer) {

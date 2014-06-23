@@ -417,9 +417,9 @@ Future compile(List<String> argv) {
             " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
-      } else if (extension == 'info.html') {
+      } else if (extension == 'info.html' || extension == "info.json") {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
-        uri = out.resolve('${outName}.$extension');
+        uri = out.resolve('$outName.$extension');
       } else {
         fail('Unknown extension: $extension');
       }
