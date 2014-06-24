@@ -94,6 +94,10 @@ const Duration SAVE_INTERVAL = const Duration(seconds: 5);
 /// from the time of last modification.
 const Duration COMPILE_INTERVAL = const Duration(seconds: 1);
 
+/// Determines how frequently the compiler is invoked in "live" mode.  The time
+/// is measured from the time of last modification.
+const Duration LIVE_COMPILE_INTERVAL = const Duration(seconds: 0);
+
 /// Determines if a compilation is slow.  The time is measured from the last
 /// compilation started.  If a compilation is slow, progress information is
 /// displayed to the user, but the console is untouched if the compilation
@@ -208,6 +212,10 @@ class InteractionContext extends InteractionManager {
   bool isFirstCompile = true;
 
   final Set<AnchorElement> oldDiagnostics = new Set<AnchorElement>();
+
+  final Duration compileInterval = settings.live.value
+      ? LIVE_COMPILE_INTERVAL
+      : COMPILE_INTERVAL;
 
   InteractionContext()
       : super.internal() {
@@ -569,7 +577,7 @@ class InitialState extends InteractionState {
       saveUnits();
     }
     if (!settings.compilationPaused &&
-        context.compileTimer.elapsed > COMPILE_INTERVAL) {
+        context.compileTimer.elapsed > context.compileInterval) {
       if (startCompilation()) {
         context.compileTimer
             ..stop()

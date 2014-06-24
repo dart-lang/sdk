@@ -4,6 +4,23 @@
 
 library trydart.userOption;
 
+/// Persistent user-configurable option.
+///
+/// Options included in [options] in settings.dart will automatically be
+/// included in the settings UI unless [isHidden] is true.
+///
+/// The value of an option is persisted in [storage] which is normally the
+/// browser's "localStorage", and [name] is a key in "localStorage".  This
+/// means that hidden options can be controlled by opening the JavaScript
+/// console and evaluate:
+///
+///   localStorage['name'] = value // or
+///   localStorage.name = value
+///
+/// An option can be reset to the default value using:
+///
+///   delete localStorage['name'] // or
+///   delete localStorage.name
 class UserOption {
   final String name;
 

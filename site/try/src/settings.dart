@@ -93,6 +93,8 @@ const BooleanUserOption enableCodeCompletion =
 const BooleanUserOption incrementalCompilation =
     const BooleanUserOption('incrementalCompilation');
 
+const BooleanUserOption live = const BooleanUserOption('live', isHidden: true);
+
 const List<UserOption> options = const <UserOption>[
     _alwaysRunInWorker,
     _verboseCompiler,
@@ -101,8 +103,9 @@ const List<UserOption> options = const <UserOption>[
     _enableDartMind,
     _compilationPaused,
     incrementalCompilation,
+    live,
+    enableCodeCompletion,
     _codeFont,
     _theme,
     _currentSample,
-    enableCodeCompletion,
   ];
