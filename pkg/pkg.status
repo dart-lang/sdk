@@ -172,9 +172,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
-polymer/test/bind_mdv_test: Slow, Pass
-template_binding/test/custom_element_bindings_test: Fail, Timeout # Issue 16717
-polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
+polymer/test/bind_mdv_test: Slow, Pass, RuntimeError # Issue 14412, 13260
 matcher/test/core_matchers_test: RuntimeError # Issue 17762
 polymer_expressions/test/bindings_test: RuntimeError # Issue 19265
 polymer_expressions/test/globals_test: RuntimeError # Issue 19265
@@ -399,6 +397,9 @@ watcher/test/*/windows_test: Skip
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
+
+[ $runtime == chrome ] # Note: this only fails on Chrome 35. They pass 36+
+polymer/test/entered_view_test: Fail # Chrome 35 
 
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
