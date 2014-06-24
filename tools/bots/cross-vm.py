@@ -91,6 +91,8 @@ def target_builder(arch, mode):
     for path in temporary_files:
       if os.path.exists(path):
         os.remove(path)
+    # We always clobber this to save disk on the arm board.
+    bot.Clobber(force=True)
 
 def main():
   name, is_buildbot = bot.GetBotName()
