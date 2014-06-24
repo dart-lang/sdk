@@ -15265,7 +15265,7 @@ RawInteger* Integer::AsValidInteger() const {
   if (IsMint()) {
     Mint& mint = Mint::Handle();
     mint ^= raw();
-    if (Smi::IsValid64(mint.value())) {
+    if (Smi::IsValid(mint.value())) {
       return Smi::New(mint.value());
     } else {
       return raw();
@@ -15507,7 +15507,7 @@ static bool FitsIntoSmi(const Integer& integer) {
   }
   if (integer.IsMint()) {
     int64_t mint_value = integer.AsInt64Value();
-    return Smi::IsValid64(mint_value);
+    return Smi::IsValid(mint_value);
   }
   if (integer.IsBigint()) {
     return BigintOperations::FitsIntoSmi(Bigint::Cast(integer));
@@ -15570,7 +15570,7 @@ void Mint::set_value(int64_t value) const {
 
 RawMint* Mint::New(int64_t val, Heap::Space space) {
   // Do not allocate a Mint if Smi would do.
-  ASSERT(!Smi::IsValid64(val));
+  ASSERT(!Smi::IsValid(val));
   ASSERT(Isolate::Current()->object_store()->mint_class() != Class::null());
   Mint& result = Mint::Handle();
   {
@@ -15587,7 +15587,7 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
 
 RawMint* Mint::NewCanonical(int64_t value) {
   // Do not allocate a Mint if Smi would do.
-  ASSERT(!Smi::IsValid64(value));
+  ASSERT(!Smi::IsValid(value));
   const Class& cls =
       Class::Handle(Isolate::Current()->object_store()->mint_class());
   const Array& constants = Array::Handle(cls.constants());

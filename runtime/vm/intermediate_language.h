@@ -1811,6 +1811,7 @@ class Definition : public Instruction {
             IsBinaryMintOp() ||
             IsUnaryMintOp() ||
             IsShiftMintOp() ||
+            IsBoxInteger() ||
             IsUnboxInteger();
   }
 
@@ -5096,11 +5097,14 @@ class BoxInt32x4Instr : public TemplateDefinition<1> {
 
 class BoxIntegerInstr : public TemplateDefinition<1> {
  public:
-  explicit BoxIntegerInstr(Value* value) {
+  explicit BoxIntegerInstr(Value* value) : is_smi_(false) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
+
+  bool is_smi() const { return is_smi_; }
+  void set_is_smi(bool is_smi) { is_smi_ = is_smi; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -5115,6 +5119,9 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
   DECLARE_INSTRUCTION(BoxInteger)
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
+  virtual void InferRange();
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -5124,6 +5131,8 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
+  bool is_smi_;
+
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
@@ -7138,6 +7147,8 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
     // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
+
+  virtual void InferRange();
 
   DECLARE_INSTRUCTION(ShiftMintOp)
 

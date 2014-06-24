@@ -1315,7 +1315,7 @@ static RawObject* LookupObjectId(Isolate* isolate,
     arg += 4;
     int64_t value = 0;
     if (!OS::StringToInt64(arg, &value) ||
-        !Smi::IsValid64(value)) {
+        !Smi::IsValid(value)) {
       *error = true;
       return Object::null();
     }

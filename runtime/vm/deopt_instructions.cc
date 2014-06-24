@@ -706,7 +706,7 @@ class DeoptMintRegisterPairInstr: public DeoptInstr {
     int32_t hi_value = deopt_context->RegisterValue(hi_reg_);
     int64_t value = Utils::LowHighTo64Bits(lo_value, hi_value);
     *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid64(value)) {
+    if (Smi::IsValid(value)) {
       *dest_addr = reinterpret_cast<intptr_t>(
           Smi::New(static_cast<intptr_t>(value)));
     } else {
@@ -768,7 +768,7 @@ class DeoptMintStackSlotPairInstr: public DeoptInstr {
         deopt_context->GetSourceFrameAddressAt(hi_source_index));
     int64_t value = Utils::LowHighTo64Bits(*lo_source_addr, *hi_source_addr);
     *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid64(value)) {
+    if (Smi::IsValid(value)) {
       *dest_addr = reinterpret_cast<intptr_t>(
           Smi::New(static_cast<intptr_t>(value)));
     } else {
@@ -847,7 +847,7 @@ class DeoptMintStackSlotRegisterInstr : public DeoptInstr {
       value = Utils::LowHighTo64Bits(slot_value, reg_value);
     }
     *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid64(value)) {
+    if (Smi::IsValid(value)) {
       *dest_addr = reinterpret_cast<intptr_t>(
           Smi::New(static_cast<intptr_t>(value)));
     } else {

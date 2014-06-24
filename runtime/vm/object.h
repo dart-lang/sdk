@@ -5,6 +5,7 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
+#include <limits>
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -5026,12 +5027,18 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(intptr_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
-  }
+  template <typename T>
+  static bool IsValid(T value) {
+    COMPILE_ASSERT(sizeof(kMinValue) == sizeof(kMaxValue));
+    COMPILE_ASSERT(std::numeric_limits<T>::is_integer);
+    if (sizeof(value) < sizeof(kMinValue)) {
+      return true;
+    }
 
-  static bool IsValid64(int64_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
+    T min_value = std::numeric_limits<T>::is_signed
+        ? static_cast<T>(kMinValue) : 0;
+    return (value >= min_value)
+        && (value <= static_cast<T>(kMaxValue));
   }
 
   RawInteger* ShiftOp(Token::Kind kind,

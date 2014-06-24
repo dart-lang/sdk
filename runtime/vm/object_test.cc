@@ -285,15 +285,18 @@ TEST_CASE(Smi) {
 
   EXPECT(Smi::IsValid(0));
   EXPECT(Smi::IsValid(-15));
+  EXPECT(Smi::IsValid(0xFFu));
   // Upper two bits must be either 00 or 11.
 #if defined(ARCH_IS_64_BIT)
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
-  EXPECT(Smi::IsValid(0xFFFFFFFFFFFFFFFF));
+  EXPECT(Smi::IsValid(-1));
+  EXPECT(!Smi::IsValid(0xFFFFFFFFFFFFFFFFu));
 #else
   EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));
-  EXPECT(Smi::IsValid(0xFFFFFFFF));
+  EXPECT(Smi::IsValid(-1));
+  EXPECT(!Smi::IsValid(0xFFFFFFFFu));
 #endif
 
   EXPECT_EQ(5, smi.AsInt64Value());

@@ -862,7 +862,7 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
 
 
 void ApiMessageWriter::WriteSmi(int64_t value) {
-  ASSERT(Smi::IsValid64(value));
+  ASSERT(Smi::IsValid(value));
   Write<RawObject*>(Smi::New(static_cast<intptr_t>(value)));
 }
 
@@ -873,7 +873,7 @@ void ApiMessageWriter::WriteNullObject() {
 
 
 void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
-  ASSERT(!Smi::IsValid64(value));
+  ASSERT(!Smi::IsValid(value));
   // Write out the serialization header value for mint object.
   WriteInlinedHeader(object);
   // Write out the class and tags information.
@@ -886,7 +886,7 @@ void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
 
 void ApiMessageWriter::WriteInt32(Dart_CObject* object) {
   int64_t value = object->value.as_int32;
-  if (Smi::IsValid64(value)) {
+  if (Smi::IsValid(value)) {
     WriteSmi(value);
   } else {
     WriteMint(object, value);
@@ -896,7 +896,7 @@ void ApiMessageWriter::WriteInt32(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
   int64_t value = object->value.as_int64;
-  if (Smi::IsValid64(value)) {
+  if (Smi::IsValid(value)) {
     WriteSmi(value);
   } else {
     WriteMint(object, value);

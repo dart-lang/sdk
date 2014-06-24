@@ -26,7 +26,7 @@ void DeferredDouble::Materialize(DeoptContext* deopt_context) {
 
 void DeferredMint::Materialize(DeoptContext* deopt_context) {
   RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
-  ASSERT(!Smi::IsValid64(value()));
+  ASSERT(!Smi::IsValid(value()));
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value());
   *mint_slot = mint.raw();

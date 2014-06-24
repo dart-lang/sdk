@@ -5827,14 +5827,18 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxIntegerInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = is_smi() ? 0 : 1;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs,
                           kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
+                          is_smi()
+                              ? LocationSummary::kNoCall
+                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_temp(0, Location::RequiresRegister());
+  if (!is_smi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5874,6 +5878,15 @@ class BoxIntegerSlowPath : public SlowPathCode {
 
 
 void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (is_smi()) {
+    PairLocation* value_pair = locs()->in(0).AsPairLocation();
+    Register value_lo = value_pair->At(0).reg();
+    Register out_reg = locs()->out(0).reg();
+    __ mov(out_reg, Operand(value_lo));
+    __ SmiTag(out_reg);
+    return;
+  }
+
   BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
   PairLocation* value_pair = locs()->in(0).AsPairLocation();

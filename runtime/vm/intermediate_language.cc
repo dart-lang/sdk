@@ -318,7 +318,7 @@ ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
          !BigintOperations::FitsIntoSmi(Bigint::Cast(value)));
   ASSERT(!value.IsBigint() ||
          !BigintOperations::FitsIntoInt64(Bigint::Cast(value)));
-  ASSERT(!value.IsMint() || !Smi::IsValid64(Mint::Cast(value).AsInt64Value()));
+  ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
 }
 
 
@@ -2602,7 +2602,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
       ((limit > 0) && (Utils::IsInt(limit, value)))) {
     // Result stays in 64 bit range.
     int64_t result = value << shift_count;
-    return Smi::IsValid64(result) ? RangeBoundary(result) : overflow;
+    return Smi::IsValid(result) ? RangeBoundary(result) : overflow;
   }
 
   return overflow;
@@ -3255,6 +3255,54 @@ void BinaryMintOpInstr::InferRange() {
 }
 
 
+void ShiftMintOpInstr::InferRange() {
+  Definition* left_defn = left()->definition();
+
+  Range* left_range = left_defn->range();
+  Range* right_range = right()->definition()->range();
+
+  if ((left_range == NULL) || (right_range == NULL)) {
+    range_ = Range::Unknown();
+    return;
+  }
+
+  Range* possible_range = Range::BinaryOp(op_kind(),
+                                          left_range,
+                                          right_range,
+                                          left_defn);
+
+  if ((range_ == NULL) && (possible_range == NULL)) {
+    // Initialize.
+    range_ = Range::Unknown();
+    return;
+  }
+
+  if (possible_range == NULL) {
+    // Nothing new.
+    return;
+  }
+
+  range_ = possible_range;
+
+  ASSERT(!range_->min().IsUnknown() && !range_->max().IsUnknown());
+
+  // Clamp value to be within mint range.
+  range_->Clamp(RangeBoundary::kRangeBoundaryInt64);
+}
+
+
+void BoxIntegerInstr::InferRange() {
+  Range* input_range = value()->definition()->range();
+  if (input_range != NULL) {
+    bool is_smi = !input_range->min().LowerBound().OverflowedSmi() &&
+                  !input_range->max().UpperBound().OverflowedSmi();
+    set_is_smi(is_smi);
+    // The output range is the same as the input range.
+    range_ = input_range;
+  }
+}
+
+
 bool Range::IsPositive() const {
   if (min().IsNegativeInfinity()) {
     return false;
@@ -3503,7 +3551,7 @@ bool Range::Mul(const Range* left_range,
       ((left_max == 0) || (right_max <= kMaxInt64 / left_max))) {
     // Product of left and right max values stays in 64 bit range.
     const int64_t mul_max = left_max * right_max;
-    if (Smi::IsValid64(mul_max) && Smi::IsValid64(-mul_max)) {
+    if (Smi::IsValid(mul_max) && Smi::IsValid(-mul_max)) {
       const intptr_t r_min =
           OnlyPositiveOrZero(*left_range, *right_range) ? 0 : -mul_max;
       *result_min = RangeBoundary::FromConstant(r_min);

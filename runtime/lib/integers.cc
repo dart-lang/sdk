@@ -32,7 +32,7 @@ static bool CheckInteger(const Integer& i) {
   }
   if (i.IsMint()) {
     const Mint& mint = Mint::Cast(i);
-    return !Smi::IsValid64(mint.value());
+    return !Smi::IsValid(mint.value());
   }
   return true;
 }

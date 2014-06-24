@@ -1974,7 +1974,7 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
   // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  if (Smi::IsValid64(value)) {
+  if (Smi::IsValid(value)) {
     NOHANDLESCOPE(isolate);
     return Api::NewHandle(isolate, Smi::New(static_cast<intptr_t>(value)));
   }
@@ -4699,7 +4699,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
                                             int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->isolate() == Isolate::Current());
-  if (Smi::IsValid64(retval)) {
+  if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, retval);
   } else {
     // Slow path for Mints and Bigints.
