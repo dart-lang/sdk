@@ -12,16 +12,14 @@ import 'dart:io';
 import 'dart:profiler' show
     UserTag;
 
+import 'package:dart2js_incremental/dart2js_incremental.dart' show
+    IncrementalCompiler;
+
 import '../memory_source_file_helper.dart' show
     Compiler;
 
 import '../memory_compiler.dart' show
     compilerFor;
-
-import '../../../../site/try/src/caching_compiler.dart' show
-    reuseCompiler;
-
-import 'incremental_helper.dart';
 
 const bool verbose = false;
 
@@ -46,9 +44,15 @@ void compileTests(Map<String, String> sources) {
   Set<String> crashes = new Set<String>();
   Compiler memoryCompiler = compilerFor(sources);
   memoryCompiler.handler.verbose = verbose;
-  Compiler compiler;
-  var options = new List<String>.from(INCREMENTAL_OPTIONS);
+  var options = ['--analyze-main'];
   if (true || verbose) options.add('--verbose');
+  IncrementalCompiler compiler = new IncrementalCompiler(
+      libraryRoot: memoryCompiler.libraryRoot,
+      inputProvider: memoryCompiler.provider,
+      outputProvider: memoryCompiler.outputProvider,
+      diagnosticHandler: memoryCompiler.handler,
+      packageRoot: memoryCompiler.packageRoot,
+      options: options);
   Future.forEach(sources.keys, (String path) {
     UserTag.defaultTag.makeCurrent();
     if (!path.endsWith('_test.dart')) return new Future.value(null);
@@ -61,15 +65,7 @@ void compileTests(Map<String, String> sources) {
       }
     }
     Stopwatch sw = new Stopwatch()..start();
-    compiler = reuseCompiler(
-        libraryRoot: memoryCompiler.libraryRoot,
-        inputProvider: memoryCompiler.provider,
-        outputProvider: memoryCompiler.outputProvider,
-        diagnosticHandler: memoryCompiler.handler,
-        packageRoot: memoryCompiler.packageRoot,
-        cachedCompiler: compiler,
-        options: options);
-    return compiler.run(Uri.parse('memory:$path')).then((bool success) {
+    return compiler.compile(Uri.parse('memory:$path')).then((bool success) {
       UserTag.defaultTag.makeCurrent();
       sw.stop();
       print('Compiled $path in ${sw.elapsedMilliseconds}');

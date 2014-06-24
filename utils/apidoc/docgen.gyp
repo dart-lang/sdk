@@ -82,9 +82,10 @@
             '--no-include-dependent-packages',
             '--package-root=<(PRODUCT_DIR)/packages',
             '--exclude-lib=async_helper',
-            '--exclude-lib=expect',
-            '--exclude-lib=docgen',
             '--exclude-lib=compiler',
+            '--exclude-lib=dart2js_incremental',
+            '--exclude-lib=docgen',
+            '--exclude-lib=expect',
             '--exclude-lib=try',
             '../../pkg'
           ],

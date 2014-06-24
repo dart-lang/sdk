@@ -2,29 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library trydart.caching_compiler;
+part of dart2js_incremental;
 
-import 'dart:profiler' show
-    UserTag;
-
-import 'package:compiler/compiler.dart' show
-    CompilerInputProvider,
-    CompilerOutputProvider,
-    Diagnostic,
-    DiagnosticHandler;
-
-import 'package:compiler/implementation/apiimpl.dart' show
-    Compiler;
-
-import 'package:compiler/implementation/dart2jslib.dart' show
-    NullSink;
-
-import 'package:compiler/implementation/js_backend/js_backend.dart' show
-    JavaScriptBackend;
-
-import 'package:compiler/implementation/elements/elements.dart' show
-    LibraryElement;
-
+/// Do not call this method directly. It will be made private.
+// TODO(ahe): Make this method private.
 Compiler reuseCompiler(
     {DiagnosticHandler diagnosticHandler,
      CompilerInputProvider inputProvider,
@@ -33,8 +14,9 @@ Compiler reuseCompiler(
      Compiler cachedCompiler,
      Uri libraryRoot,
      Uri packageRoot,
-     bool packagesAreImmutable: false}) {
-  UserTag oldTag = new UserTag('reuseCompiler').makeCurrent();
+     bool packagesAreImmutable: false,
+     Map<String, dynamic> environment}) {
+  UserTag oldTag = new UserTag('_reuseCompiler').makeCurrent();
   if (libraryRoot == null) {
     throw 'Missing libraryRoot';
   }
@@ -46,6 +28,9 @@ Compiler reuseCompiler(
   }
   if (outputProvider == null) {
     outputProvider = NullSink.outputProvider;
+  }
+  if (environment == null) {
+    environment = {};
   }
   Compiler compiler = cachedCompiler;
   if (compiler == null ||
@@ -76,7 +61,7 @@ Compiler reuseCompiler(
         libraryRoot,
         packageRoot,
         options,
-        {});
+        environment);
   } else {
     compiler
         ..outputProvider = outputProvider

@@ -20,6 +20,7 @@
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
         '../../create_sdk.gyp:create_sdk_internal',
+        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'variables': {
         'try_dart_static_files': [
@@ -100,6 +101,9 @@
             # action is executed.
             '<(PRODUCT_DIR)/dart-sdk/README',
 
+            # Ensure the packages directory is built first.
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
           ],
           'outputs': [
@@ -107,7 +111,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
-            '-p../../sdk/lib/_internal/',
+            '-p<(PRODUCT_DIR)/packages/',
             '-Denable_ir=false',
             '--show-package-warnings',
             'src/leap.dart',
@@ -122,6 +126,9 @@
             # action is executed.
             '<(PRODUCT_DIR)/dart-sdk/README',
 
+            # Ensure the packages directory is built first.
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
           ],
           'outputs': [
@@ -129,7 +136,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
-            '-p../../sdk/lib/_internal/',
+            '-p<(PRODUCT_DIR)/packages/',
             '-Denable_ir=false',
             '--show-package-warnings',
             '--trust-type-annotations',

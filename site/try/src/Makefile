@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 SDK_DIR=../../../xcodebuild/ReleaseIA32/dart-sdk
-PACKAGE_ROOT=../../../sdk/lib/_internal/
+PACKAGE_ROOT=../../../xcodebuild/ReleaseIA32/packages/
 
 all:
 	$(SDK_DIR)/bin/dartanalyzer -p $(PACKAGE_ROOT) \

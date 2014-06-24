@@ -11,10 +11,11 @@ import 'dart:io' show
 import 'dart:async' show
     Future;
 
-import 'package:try/src/caching_compiler.dart' show
-    reuseCompiler;
+import 'package:dart2js_incremental/dart2js_incremental.dart' show
+    IncrementalCompiler;
 
-import 'package:compiler/compiler.dart' as compiler;
+import 'package:compiler/compiler.dart' show
+    Diagnostic;
 
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
@@ -24,8 +25,6 @@ import 'package:expect/expect.dart' show
 
 import '../memory_source_file_helper.dart' show
     MemorySourceFileProvider;
-
-import 'incremental_helper.dart';
 
 var tests = {
 '/test1.dart':
@@ -78,33 +77,29 @@ var testResults = {
   '/test5.dart': true,
 };
 
-var cachedCompiler;
-
 main() {
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolveUri(
       new Uri.file('${Platform.packageRoot}/'));
   MemorySourceFileProvider provider =
       new MemorySourceFileProvider(tests);
-  asyncTest(
-      () => runTests(libraryRoot, packageRoot, provider, INCREMENTAL_OPTIONS));
+  asyncTest(() => runTests(libraryRoot, packageRoot, provider));
 }
 
 Future runTests(
     Uri libraryRoot,
     Uri packageRoot,
-    MemorySourceFileProvider provider,
-    options) {
+    MemorySourceFileProvider provider) {
+  IncrementalCompiler compiler = new IncrementalCompiler(
+      diagnosticHandler: handler,
+      inputProvider: provider,
+      options: ['--analyze-main'],
+      libraryRoot: libraryRoot,
+      packageRoot: packageRoot);
+
   return Future.forEach(tests.keys, (String testName) {
-    cachedCompiler = reuseCompiler(
-        diagnosticHandler: handler,
-        inputProvider: provider,
-        options: options,
-        cachedCompiler: cachedCompiler,
-        libraryRoot: libraryRoot,
-        packageRoot: packageRoot);
     Uri testUri = Uri.parse('memory:$testName');
-    return cachedCompiler.run(testUri).then((bool success) {
+    return compiler.compile(testUri).then((bool success) {
       Expect.equals(
           testResults[testName], success,
           'Compilation unexpectedly ${success ? "succeed" : "failed"}.');
@@ -116,8 +111,8 @@ void handler(Uri uri,
              int begin,
              int end,
              String message,
-             compiler.Diagnostic kind) {
-  if (kind != compiler.Diagnostic.VERBOSE_INFO) {
+             Diagnostic kind) {
+  if (kind != Diagnostic.VERBOSE_INFO) {
     print('$uri:$begin:$end:$message:$kind');
   }
 }

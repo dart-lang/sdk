@@ -13,7 +13,7 @@ import 'compilation.dart' show PRIVATE_SCHEME;
 
 import 'package:compiler/compiler.dart' as compiler;
 
-import 'caching_compiler.dart' show
+import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
 const bool THROW_ON_ERROR = false;
