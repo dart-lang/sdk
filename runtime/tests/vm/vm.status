@@ -49,8 +49,7 @@ cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
-[ $arch == simmips && $arch == mips ]
-cc/Service_Coverage: Skip # Dart bug 16250
+[ $arch == simmips || $arch == mips ]
 cc/Coverage_MainWithClass: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
