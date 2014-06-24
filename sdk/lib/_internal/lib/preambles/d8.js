@@ -4,9 +4,33 @@
 
 // Javascript preamble, that lets the output of dart2js run on V8's d8 shell.
 
+// Node wraps files and provides them with a different `this`. The global
+// `this` can be accessed through `global`.
+
+var self = this;
+if (typeof global != "undefined") self = global;  // Node.js.
+
 (function(self) {
   // Using strict mode to avoid accidentally defining global variables.
   "use strict"; // Should be first statement of this function.
+
+  // Location (Uri.base)
+
+  var workingDirectory;
+  // TODO(sgjesse): This does not work on Windows.
+  if (typeof os == "object" && "system" in os) {
+    // V8.
+    workingDirectory = os.system("pwd");
+    var length = workingDirectory.length;
+    if (workingDirectory[length - 1] == '\n') {
+      workingDirectory = workingDirectory.substring(0, length - 1);
+    }
+  } else if (typeof process != "undefined" &&
+             typeof process.cwd == "function") {
+    // Node.js.
+    workingDirectory = process.cwd();
+  }
+  self.location = { href: "file://" + workingDirectory + "/" };
 
   // Event loop.
 
@@ -256,4 +280,4 @@
   self.clearInterval = cancelTimer;
   self.scheduleImmediate = addTask;
   self.self = self;
-})(this);
+})(self);

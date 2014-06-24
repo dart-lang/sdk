@@ -730,26 +730,7 @@ class Primitives {
       return JS('String', 'self.location.href');
     }
 
-    // In JavaScript shells try to determine the current working
-    // directory.
-    var workingDirectory;
-    if (isD8) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'os.system("pwd")');
-      var length = workingDirectory.length;
-      if (workingDirectory[length - 1] == '\n') {
-        workingDirectory = workingDirectory.substring(0, length - 1);
-      }
-    }
-
-    if (isJsshell) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'environment["PWD"]');
-    }
-
-    return workingDirectory != null
-        ? "file://" + workingDirectory + "/"
-        : null;
+    return null;
   }
 
   // This is to avoid stack overflows due to very large argument arrays in
