@@ -33,12 +33,13 @@ class PathSource extends Source {
     return path1 == path2;
   }
 
-  /// Create a symlink from the source path directly to the destination
-  /// directory.
-  Future get(PackageId id, String destination) {
+  /// Path dependencies are already local.
+  Future ensureLocal(PackageId id) => new Future.value();
+
+  Future get(PackageId id, String symlink) {
     return syncFuture(() {
       var dir = _validatePath(id.name, id.description);
-      createPackageSymlink(id.name, dir, destination,
+      createPackageSymlink(id.name, dir, symlink,
           relative: id.description["relative"]);
     });
   }

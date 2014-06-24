@@ -65,41 +65,6 @@ class Entrypoint {
   /// The path to the entrypoint package's lockfile.
   String get lockFilePath => path.join(root.dir, 'pubspec.lock');
 
-  /// Gets package [id] and makes it available for use by this entrypoint.
-  ///
-  /// If this completes successfully, the package is guaranteed to be importable
-  /// using the `package:` scheme. Returns the resolved [PackageId].
-  ///
-  /// This automatically downloads the package to the system-wide cache as well
-  /// if it requires network access to retrieve (specifically, if the package's
-  /// source is a [CachedSource]).
-  ///
-  /// See also [getDependencies].
-  Future<PackageId> get(PackageId id) {
-    var pending = _pendingGets[id];
-    if (pending != null) return pending;
-
-    var packageDir = path.join(packagesDir, id.name);
-
-    var future = syncFuture(() {
-      ensureDir(path.dirname(packageDir));
-
-      if (entryExists(packageDir)) {
-        // TODO(nweiz): figure out when to actually delete the directory, and
-        // when we can just re-use the existing symlink.
-        log.fine("Deleting package directory for ${id.name} before get.");
-        deleteEntry(packageDir);
-      }
-
-      var source = cache.sources[id.source];
-      return source.get(id, packageDir).then((_) => source.resolveId(id));
-    });
-
-    _pendingGets[id] = future;
-
-    return future;
-  }
-
   /// Gets all dependencies of the [root] package.
   ///
   /// [useLatest], if provided, defines a list of packages that will be
@@ -129,16 +94,37 @@ class Entrypoint {
 
       // Install the packages.
       cleanDir(packagesDir);
-      return Future.wait(result.packages.map((id) {
-        if (id.isRoot) return new Future.value(id);
-        return get(id);
-      }).toList()).then((ids) {
+      return Future.wait(result.packages.map(_get).toList()).then((ids) {
         _saveLockFile(ids);
         _linkSelf();
         _linkSecondaryPackageDirs();
         result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
       });
     });
+  }
+
+  /// Makes sure the package at [id] is locally available.
+  ///
+  /// This automatically downloads the package to the system-wide cache as well
+  /// if it requires network access to retrieve (specifically, if the package's
+  /// source is a [CachedSource]).
+  Future<PackageId> _get(PackageId id) {
+    if (id.isRoot) return new Future.value(id);
+
+    var pending = _pendingGets[id];
+    if (pending != null) return pending;
+
+    var future = syncFuture(() {
+      var packageDir = path.join(packagesDir, id.name);
+      if (entryExists(packageDir)) deleteEntry(packageDir);
+
+      var source = cache.sources[id.source];
+      return source.get(id, packageDir).then((_) => source.resolveId(id));
+    });
+
+    _pendingGets[id] = future;
+
+    return future;
   }
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it

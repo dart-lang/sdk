@@ -24,8 +24,6 @@ class GitSource extends CachedSource {
   /// has already been run during this run of pub.
   final _updatedRepos = new Set<String>();
 
-  GitSource();
-
   /// Since we don't have an easy way to read from a remote Git repo, this
   /// just installs [id] into the system cache, then describes it from there.
   Future<Pubspec> describeUncached(PackageId id) {
@@ -44,11 +42,7 @@ class GitSource extends CachedSource {
   /// `<package name>-<url hash>`. These are used to check out the repository
   /// itself; each of the commit-specific directories are clones of a directory
   /// in `cache/`.
-  Future<Package> downloadToSystemCache(PackageId id, {bool force}) {
-    // Force is not supported because the cache repair command doesn't need it.
-    // Instead, it uses [resetCachedPackages].
-    assert(force != true);
-
+  Future<Package> downloadToSystemCache(PackageId id) {
     var revisionCachePath;
 
     if (!git.isInstalled) {
