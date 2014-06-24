@@ -3854,13 +3854,19 @@ hr {
           <div class="memberItem">
             <div class="memberName">shallow size</div>
             <div class="memberValue">
-              {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes }}
+              {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes | formatSize }}
             </div>
           </div>
           <div class="memberItem">
             <div class="memberName">retained size</div>
             <div class="memberValue">
-              <eval-link callback="{{ retainedSize }}"></eval-link>
+              <template if="{{ retainedBytes == null }}">
+                <eval-link callback="{{ retainedSize }}" label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ retainedBytes != null }}">
+                {{ retainedBytes | formatSize }}
+              </template>
             </div>
           </div>
         </template>
@@ -13411,8 +13417,13 @@ hr {
           <div class="memberItem">
             <div class="memberName">retained size</div>
             <div class="memberValue">
-              <eval-link callback="{{ retainedSize }}" label="[calculate]">
-              </eval-link>
+              <template if="{{ retainedBytes == null }}">
+                <eval-link callback="{{ retainedSize }}" label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ retainedBytes != null }}">
+                {{ retainedBytes | formatSize }}
+              </template>
             </div>
           </div>
           <div class="memberItem">

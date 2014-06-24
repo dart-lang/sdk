@@ -56,9 +56,14 @@
           <div class="memberItem">
             <div class="memberName">retained size</div>
             <div class="memberValue">
-              <eval-link callback="{{ retainedSize }}"
-                         label="[calculate]">
-              </eval-link>
+              <template if="{{ retainedBytes == null }}">
+                <eval-link callback="{{ retainedSize }}"
+                           label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ retainedBytes != null }}">
+                {{ retainedBytes | formatSize }}
+              </template>
             </div>
           </div>
           <div class="memberItem">

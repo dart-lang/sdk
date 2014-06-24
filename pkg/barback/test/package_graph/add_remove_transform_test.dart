@@ -360,4 +360,31 @@ main() {
     expectAsset("app|foo.out", "foo.mid.out");
     buildShouldSucceed();
   });
+
+  // Regression test for issue 19540.
+  test("a phase is removed and then one of its inputs is updated", () {
+    // Have an empty first phase because the first phase is never removed.
+    initGraph(["app|foo.txt"], {
+      "app": [[], [new RewriteTransformer("txt", "out")]]
+    });
+
+    updateSources(["app|foo.txt"]);
+    expectAsset("app|foo.out", "foo.out");
+    buildShouldSucceed();
+
+    // First empty both phases. This allows the second phase to be considered
+    // idle even when its transformer is no longer running.
+    updateTransformers("app", [[], []]);
+    buildShouldSucceed();
+
+    // Now remove the second phase. It should unsubscribe from its input's
+    // events.
+    updateTransformers("app", [[]]);
+    buildShouldSucceed();
+
+    // Update the input. With issue 19540, this would cause the removed phase to
+    // try to update its status, which would crash.
+    updateSources(["app|foo.txt"]);
+    buildShouldSucceed();
+  });
 }
