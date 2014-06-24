@@ -403,7 +403,18 @@ abstract class Backend {
 
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
-  void onLibraryScanned(LibraryElement library) {}
+  Future onLibraryScanned(LibraryElement library,
+                          LibraryLoader loader) {
+    // TODO(johnniwinther): Move this to the JavaScript backend.
+    if (library.isPlatformLibrary && !library.isPatched) {
+      // Apply patch, if any.
+      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
+      if (patchUri != null) {
+        return compiler.patchParser.patchLibrary(loader, patchUri, library);
+      }
+    }
+    return new Future.value();
+  }
 
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
@@ -497,7 +508,8 @@ abstract class Compiler implements DiagnosticListener {
   static final Uri DART_INTERNAL = new Uri(scheme: 'dart', path: '_internal');
   static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
 
-  // TODO(johnniwinther): Change to map from [Uri] to [LibraryElement].
+  // TODO(johnniwinther): Move this to [LibraryLoaderTask] and hange to map from
+  // [Uri] to [LibraryElement].
   final Map<String, LibraryElement> libraries =
     new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();
@@ -750,7 +762,7 @@ abstract class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   PatchParserTask patchParser;
-  LibraryLoader libraryLoader;
+  LibraryLoaderTask libraryLoader;
   TreeValidatorTask validator;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
@@ -1051,7 +1063,10 @@ abstract class Compiler implements DiagnosticListener {
   /// Use this callback method to store references to specific member declared
   /// in certain libraries. Note that [library] has not been patched yet, nor
   /// has its imports/exports been resolved.
-  void onLibraryScanned(LibraryElement library) {
+  ///
+  /// Use [loader] to register the creation and scanning of a patch library
+  /// for [library].
+  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     Uri uri = library.canonicalUri;
     if (uri == DART_CORE) {
       initializeCoreClasses();
@@ -1069,7 +1084,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     }
-    backend.onLibraryScanned(library);
+    return backend.onLibraryScanned(library, loader);
   }
 
   /// This method is called when all new libraries loaded through

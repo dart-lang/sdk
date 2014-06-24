@@ -171,7 +171,16 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
       if (library.isPlatformLibrary) {
         compiler.onLibraryCreated(library);
         compiler.libraries[uri] = library;
-        compiler.onLibraryScanned(library);
+        // TODO(johnniwinther): Assert that no libraries are created lazily from
+        // this call.
+        compiler.onLibraryScanned(library, null);
+        if (library.isPatched) {
+          var patchLibrary = library.patch;
+          compiler.onLibraryCreated(patchLibrary);
+          // TODO(johnniwinther): Assert that no libraries are created lazily
+          // from this call.
+          compiler.onLibraryScanned(patchLibrary, null);
+        }
         copiedLibraries[library.canonicalUri] = library;
       }
     });

@@ -126,6 +126,7 @@ import "elements/modelx.dart"
          MetadataAnnotationX,
          ClassElementX,
          FunctionElementX;
+import "library_loader.dart" show LibraryLoader;
 import 'util/util.dart';
 
 class PatchParserTask extends leg.CompilerTask {
@@ -137,43 +138,33 @@ class PatchParserTask extends leg.CompilerTask {
    * injections to the library, and returns a list of class
    * patches.
    */
-  Future patchLibrary(leg.LibraryDependencyHandler handler,
+  Future patchLibrary(LibraryLoader loader,
                       Uri patchUri, LibraryElement originLibrary) {
     return compiler.readScript(originLibrary, patchUri)
         .then((leg.Script script) {
       var patchLibrary = new LibraryElementX(script, null, originLibrary);
       return compiler.withCurrentElement(patchLibrary, () {
-        handler.registerNewLibrary(patchLibrary);
-        var imports = new LinkBuilder<tree.LibraryTag>();
+        loader.registerNewLibrary(patchLibrary);
         compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
           // This patches the elements of the patch library into [library].
           // Injected elements are added directly under the compilation unit.
           // Patch elements are stored on the patched functions or classes.
-          scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
+          scanLibraryElements(patchLibrary.entryCompilationUnit);
         });
-        // TODO(rnystrom): Remove .toList() here if #11523 is fixed.
-        return Future.forEach(imports.toLink().toList(), (tag) {
-          return compiler.withCurrentElement(patchLibrary, () {
-            return compiler.libraryLoader.registerLibraryFromTag(
-                handler, patchLibrary, tag);
-          });
-        });
+        return loader.processLibraryTags(patchLibrary);
       });
     });
   }
 
-  void scanLibraryElements(
-        CompilationUnitElement compilationUnit,
-        LinkBuilder<tree.LibraryTag> imports) {
+  void scanLibraryElements(CompilationUnitElement compilationUnit) {
     measure(() {
-      // TODO(lrn): Possibly recursively handle 'part' directives in patch.
+      // TODO(johnniwinther): Test that parts and exports are handled correctly.
       leg.Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;
       Listener patchListener = new PatchElementListener(compiler,
                                                         compilationUnit,
-                                                        idGenerator,
-                                                        imports);
+                                                        idGenerator);
       new PartialParser(patchListener).parseUnit(tokens);
     });
   }
@@ -222,25 +213,12 @@ class PatchClassElementParser extends PartialParser {
  */
 class PatchElementListener extends ElementListener implements Listener {
   final leg.Compiler compiler;
-  final LinkBuilder<tree.LibraryTag> imports;
 
   PatchElementListener(leg.Compiler compiler,
                        CompilationUnitElement patchElement,
-                       int idGenerator(),
-                       this.imports)
+                       int idGenerator())
     : this.compiler = compiler,
       super(compiler, patchElement, idGenerator);
-
-  /**
-    * Allow script tags (import only, the parser rejects the rest for now) in
-    * patch files. The import tags will be added to the library.
-    */
-  bool allowLibraryTags() => true;
-
-  void addLibraryTag(tree.LibraryTag tag) {
-    super.addLibraryTag(tag);
-    imports.addLast(tag);
-  }
 
   void pushElement(Element patch) {
     super.pushElement(patch);

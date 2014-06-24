@@ -817,9 +817,9 @@ class ElementListener extends Listener {
   bool allowLibraryTags() {
     // Library tags are only allowed in the library file itself, not
     // in sourced files.
-    LibraryElement library = compilationUnitElement.library;
-    return !compilationUnitElement.hasMembers
-      && library.entryCompilationUnit == compilationUnitElement;
+    LibraryElement library = compilationUnitElement.implementationLibrary;
+    return !compilationUnitElement.hasMembers &&
+           library.entryCompilationUnit == compilationUnitElement;
   }
 
   void endLibraryName(Token libraryKeyword, Token semicolon) {

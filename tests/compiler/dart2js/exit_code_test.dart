@@ -17,6 +17,7 @@ import 'package:compiler/implementation/dart2js.dart' as entry;
 import 'package:compiler/implementation/dart2jslib.dart';
 import 'package:compiler/implementation/apiimpl.dart' as apiimpl;
 import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/library_loader.dart';
 import 'package:compiler/implementation/resolution/resolution.dart';
 import 'package:compiler/implementation/scanner/scannerlib.dart';
 import 'package:compiler/implementation/util/util.dart';
@@ -48,9 +49,9 @@ class TestCompiler extends apiimpl.Compiler {
     return super.run(uri);
   }
 
-  void onLibraryScanned(LibraryElement element) {
+  Future onLibraryScanned(LibraryElement element, LibraryLoader loader) {
     test('Compiler.onLibraryScanned');
-    super.onLibraryScanned(element);
+    return super.onLibraryScanned(element, loader);
   }
 
   Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {

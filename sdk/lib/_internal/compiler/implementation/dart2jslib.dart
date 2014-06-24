@@ -25,6 +25,9 @@ import 'elements/modelx.dart'
          DeferredLoaderGetterElementX;
 import 'helpers/helpers.dart';
 import 'js_backend/js_backend.dart' as js_backend;
+import 'library_loader.dart'
+    show LibraryLoader,
+         LibraryLoaderTask;
 import 'native_handler.dart' as native;
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
@@ -67,7 +70,6 @@ part 'constant_system.dart';
 part 'constant_system_dart.dart';
 part 'diagnostic_listener.dart';
 part 'enqueue.dart';
-part 'library_loader.dart';
 part 'resolved_visitor.dart';
 part 'script.dart';
 part 'tree_validator.dart';

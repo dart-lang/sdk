@@ -970,11 +970,11 @@ class LibraryElementX
 
   String toString() {
     if (origin != null) {
-      return 'patch library(${getLibraryOrScriptName()})';
+      return 'patch library(${canonicalUri})';
     } else if (patch != null) {
-      return 'origin library(${getLibraryOrScriptName()})';
+      return 'origin library(${canonicalUri})';
     } else {
-      return 'library(${getLibraryOrScriptName()})';
+      return 'library(${canonicalUri})';
     }
   }
 

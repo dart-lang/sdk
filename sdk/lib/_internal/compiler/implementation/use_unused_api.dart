@@ -67,6 +67,7 @@ void main(List<String> arguments) {
   usedByTests();
   useElements(null, null);
   useIr(null, null);
+  useCompiler(null);
 }
 
 useApi() {
@@ -230,4 +231,9 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
   task
     ..hasIr(null)
     ..getIr(null);
+}
+
+useCompiler(dart2jslib.Compiler compiler) {
+  compiler.libraryLoader.reset();
+  compiler.libraryLoader.reuseLibrary(null);
 }

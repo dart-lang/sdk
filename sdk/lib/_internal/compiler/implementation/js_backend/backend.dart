@@ -1601,70 +1601,72 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryScanned(LibraryElement library) {
-    Uri uri = library.canonicalUri;
+  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
+    return super.onLibraryScanned(library, loader).then((_) {
+      Uri uri = library.canonicalUri;
 
-    // TODO(johnniwinther): Assert that the elements are found.
-    VariableElement findVariable(String name) {
-      return library.find(name);
-    }
+      // TODO(johnniwinther): Assert that the elements are found.
+      VariableElement findVariable(String name) {
+        return library.find(name);
+      }
 
-    FunctionElement findMethod(String name) {
-      return library.find(name);
-    }
+      FunctionElement findMethod(String name) {
+        return library.find(name);
+      }
 
-    ClassElement findClass(String name) {
-      return library.find(name);
-    }
+      ClassElement findClass(String name) {
+        return library.find(name);
+      }
 
-    if (uri == Compiler.DART_INTERCEPTORS) {
-      getInterceptorMethod = findMethod('getInterceptor');
-      interceptedNames = findVariable('interceptedNames');
-      mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
-      getNativeInterceptorMethod = findMethod('getNativeInterceptor');
+      if (uri == Compiler.DART_INTERCEPTORS) {
+        getInterceptorMethod = findMethod('getInterceptor');
+        interceptedNames = findVariable('interceptedNames');
+        mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
+        getNativeInterceptorMethod = findMethod('getNativeInterceptor');
 
-      List<ClassElement> classes = [
-        jsInterceptorClass = findClass('Interceptor'),
-        jsStringClass = findClass('JSString'),
-        jsArrayClass = findClass('JSArray'),
-        // The int class must be before the double class, because the
-        // emitter relies on this list for the order of type checks.
-        jsIntClass = findClass('JSInt'),
-        jsPositiveIntClass = findClass('JSPositiveInt'),
-        jsUInt32Class = findClass('JSUInt32'),
-        jsUInt31Class = findClass('JSUInt31'),
-        jsDoubleClass = findClass('JSDouble'),
-        jsNumberClass = findClass('JSNumber'),
-        jsNullClass = findClass('JSNull'),
-        jsBoolClass = findClass('JSBool'),
-        jsMutableArrayClass = findClass('JSMutableArray'),
-        jsFixedArrayClass = findClass('JSFixedArray'),
-        jsExtendableArrayClass = findClass('JSExtendableArray'),
-        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
-        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
-      ];
+        List<ClassElement> classes = [
+          jsInterceptorClass = findClass('Interceptor'),
+          jsStringClass = findClass('JSString'),
+          jsArrayClass = findClass('JSArray'),
+          // The int class must be before the double class, because the
+          // emitter relies on this list for the order of type checks.
+          jsIntClass = findClass('JSInt'),
+          jsPositiveIntClass = findClass('JSPositiveInt'),
+          jsUInt32Class = findClass('JSUInt32'),
+          jsUInt31Class = findClass('JSUInt31'),
+          jsDoubleClass = findClass('JSDouble'),
+          jsNumberClass = findClass('JSNumber'),
+          jsNullClass = findClass('JSNull'),
+          jsBoolClass = findClass('JSBool'),
+          jsMutableArrayClass = findClass('JSMutableArray'),
+          jsFixedArrayClass = findClass('JSFixedArray'),
+          jsExtendableArrayClass = findClass('JSExtendableArray'),
+          jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
+          jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
+        ];
 
-      jsIndexableClass = findClass('JSIndexable');
-      jsMutableIndexableClass = findClass('JSMutableIndexable');
-    } else if (uri == Compiler.DART_JS_HELPER) {
-      typeLiteralClass = findClass('TypeImpl');
-      constMapLiteralClass = findClass('ConstantMap');
-      typeVariableClass = findClass('TypeVariable');
+        jsIndexableClass = findClass('JSIndexable');
+        jsMutableIndexableClass = findClass('JSMutableIndexable');
+      } else if (uri == Compiler.DART_JS_HELPER) {
+        typeLiteralClass = findClass('TypeImpl');
+        constMapLiteralClass = findClass('ConstantMap');
+        typeVariableClass = findClass('TypeVariable');
 
-      jsIndexingBehaviorInterface = findClass('JavaScriptIndexingBehavior');
+        jsIndexingBehaviorInterface = findClass('JavaScriptIndexingBehavior');
 
-      noSideEffectsClass = findClass('NoSideEffects');
-      noThrowsClass = findClass('NoThrows');
-      noInlineClass = findClass('NoInline');
-      irRepresentationClass = findClass('IrRepresentation');
-    } else if (uri == DART_JS_MIRRORS) {
-      disableTreeShakingMarker = library.find('disableTreeShaking');
-      preserveMetadataMarker = library.find('preserveMetadata');
-    } else if (uri == DART_JS_NAMES) {
-      preserveNamesMarker = library.find('preserveNames');
-    } else if (uri == Compiler.DART_JS_HELPER) {
-      getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
-    }
+        noSideEffectsClass = findClass('NoSideEffects');
+        noThrowsClass = findClass('NoThrows');
+        noInlineClass = findClass('NoInline');
+        irRepresentationClass = findClass('IrRepresentation');
+      } else if (uri == DART_JS_MIRRORS) {
+        disableTreeShakingMarker = library.find('disableTreeShaking');
+        preserveMetadataMarker = library.find('preserveMetadata');
+      } else if (uri == DART_JS_NAMES) {
+        preserveNamesMarker = library.find('preserveNames');
+      } else if (uri == Compiler.DART_JS_HELPER) {
+        getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
+      }
+    });
   }
 
   Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {

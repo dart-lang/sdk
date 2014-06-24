@@ -17,7 +17,6 @@ import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
 
 import 'package:compiler/implementation/dart2jslib.dart' show
-    LibraryLoaderTask, // TODO(ahe): Remove this import.
     NullSink;
 
 import 'package:compiler/implementation/js_backend/js_backend.dart' show
@@ -25,24 +24,6 @@ import 'package:compiler/implementation/js_backend/js_backend.dart' show
 
 import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement;
-
-void clearLibraryLoader(LibraryLoaderTask libraryLoader) {
-  // TODO(ahe): Move this method to [LibraryLoader].
-  libraryLoader
-      ..libraryResourceUriMap.clear()
-      ..libraryNames.clear();
-}
-
-void reuseLibrary(
-    LibraryLoaderTask libraryLoader,
-    LibraryElement library) {
-  // TODO(ahe): Move this method to [LibraryLoader].
-  String name = library.getLibraryOrScriptName();
-  Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
-  libraryLoader
-      ..libraryResourceUriMap[resourceUri] = library
-      ..libraryNames[name] = library;
-}
 
 Compiler reuseCompiler(
     {DiagnosticHandler diagnosticHandler,
@@ -166,12 +147,12 @@ Compiler reuseCompiler(
 
     Map libraries = new Map.from(compiler.libraries);
     compiler.libraries.clear();
-    clearLibraryLoader(compiler.libraryLoader);
+    compiler.libraryLoader.reset();
     libraries.forEach((String uri, LibraryElement library) {
       if (library.isPlatformLibrary ||
           (packagesAreImmutable && library.isPackageLibrary)) {
         compiler.libraries[uri] = library;
-        reuseLibrary(compiler.libraryLoader, library);
+        compiler.libraryLoader.reuseLibrary(library);
       }
     });
   }
