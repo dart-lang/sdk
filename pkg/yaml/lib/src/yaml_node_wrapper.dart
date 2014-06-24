@@ -14,7 +14,7 @@ import 'yaml_node.dart';
 
 /// A wrapper that makes a normal Dart map behave like a [YamlMap].
 class YamlMapWrapper extends MapBase
-    with pkg_collection.UnmodifiableMapMixin<dynamic, YamlNode>
+    with pkg_collection.UnmodifiableMapMixin
     implements YamlMap {
   final Map _dartMap;
 
@@ -61,7 +61,8 @@ class _YamlMapNodes extends MapBase<dynamic, YamlNode>
   _YamlMapNodes(this._dartMap, this._span);
 
   YamlNode operator [](Object key) {
-    if (key is YamlScalar) key = key.value;
+    // Use "as" here because key being assigned to invalidates type propagation.
+    if (key is YamlScalar) key = (key as YamlScalar).value;
     if (!_dartMap.containsKey(key)) return null;
     return _nodeForValue(_dartMap[key], _span);
   }

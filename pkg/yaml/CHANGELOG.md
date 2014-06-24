@@ -1,3 +1,9 @@
+## 1.1.1
+
+* Fix broken type arguments that caused breakage on dart2js.
+
+* Fix an analyzer warning in `yaml_node_wrapper.dart`.
+
 ## 1.1.0
 
 * Add new publicly-accessible constructors for `YamlNode` subclasses. These
