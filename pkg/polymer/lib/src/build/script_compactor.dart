@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/element.dart' hide Element;
 import 'package:analyzer/src/generated/element.dart' as analyzer show Element;
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_maps/span.dart' show SourceFile;
+import 'package:source_maps/span.dart' show SourceFile, Span;
 import 'package:smoke/codegen/generator.dart';
 import 'package:smoke/codegen/recorder.dart';
 import 'package:code_transformers/resolver.dart';
@@ -490,10 +490,10 @@ class _HtmlExtractor extends TreeVisitor {
   final TransformLogger logger;
   bool _inTemplate = false;
 
-  _HtmlExtractor(this.logger, SmokeCodeGenerator generator,
+  _HtmlExtractor(TransformLogger logger, SmokeCodeGenerator generator,
       this.publishedAttributes)
-      : generator = generator,
-        visitor = new _SubExpressionVisitor(generator);
+      : logger = logger, generator = generator,
+        visitor = new _SubExpressionVisitor(generator, logger);
 
   void visitElement(Element node) {
     if (_inTemplate) _processNormalElement(node);
@@ -558,7 +558,7 @@ class _HtmlExtractor extends TreeVisitor {
   }
 
   void _addExpression(String stringExpression, bool inEvent, bool isTwoWay,
-      span) {
+      Span span) {
 
     if (inEvent) {
       if (stringExpression.startsWith('@')) {
@@ -568,10 +568,15 @@ class _HtmlExtractor extends TreeVisitor {
       }
 
       if (stringExpression == '') return;
+      if (stringExpression.startsWith('_')) {
+        logger.warning('private symbols cannot be used in event handlers',
+            span: span);
+        return;
+      }
       generator.addGetter(stringExpression);
       generator.addSymbol(stringExpression);
     }
-    visitor.run(pe.parse(stringExpression), isTwoWay);
+    visitor.run(pe.parse(stringExpression), isTwoWay, span);
   }
 }
 
@@ -579,21 +584,28 @@ class _HtmlExtractor extends TreeVisitor {
 /// be needed to evaluate a single expression at runtime.
 class _SubExpressionVisitor extends pe.RecursiveVisitor {
   final SmokeCodeGenerator generator;
+  final TransformLogger logger;
   bool _includeSetter;
+  Span _currentSpan;
 
-  _SubExpressionVisitor(this.generator);
+  _SubExpressionVisitor(this.generator, this.logger);
 
   /// Visit [exp], and record getters and setters that are needed in order to
   /// evaluate it at runtime. [includeSetter] is only true if this expression
   /// occured in a context where it could be updated, for example in two-way
   /// bindings such as `<input value={{exp}}>`.
-  void run(pe.Expression exp, bool includeSetter) {
+  void run(pe.Expression exp, bool includeSetter, span) {
+    _currentSpan = span;
     _includeSetter = includeSetter;
     visit(exp);
   }
 
   /// Adds a getter and symbol for [name], and optionally a setter.
   _add(String name) {
+    if (name.startsWith('_')) {
+      logger.warning('private symbols are not supported', span: _currentSpan);
+      return;
+    }
     generator.addGetter(name);
     generator.addSymbol(name);
     if (_includeSetter) generator.addSetter(name);
