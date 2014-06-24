@@ -7,7 +7,7 @@
 
 import "package:expect/expect.dart";
 
-void parse(String uri) {
+String parse(String uri) {
   int index = 0;
   int char = -1;
 
