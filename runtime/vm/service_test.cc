@@ -838,7 +838,9 @@ TEST_CASE(Service_Classes) {
                       "['limit'], ['3']]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  ExpectSubstringF(handler.msg(), "\"type\":\"@Array\"");
+  ExpectSubstringF(handler.msg(), "\"type\":\"InstanceSet\"");
+  ExpectSubstringF(handler.msg(), "\"totalCount\":2");
+  ExpectSubstringF(handler.msg(), "\"sampleCount\":2");
   // TODO(koda): Actually parse the response.
   static const intptr_t kInstanceListId = 0;
   ExpectSubstringF(handler.msg(), "\"id\":\"objects\\/%" Pd "\",\"length\":2",
@@ -854,7 +856,8 @@ TEST_CASE(Service_Classes) {
                       "['limit'], ['1']]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  ExpectSubstringF(handler.msg(), "\"length\":1");
+  ExpectSubstringF(handler.msg(), "\"totalCount\":2");
+  ExpectSubstringF(handler.msg(), "\"sampleCount\":1");
 }
 
 

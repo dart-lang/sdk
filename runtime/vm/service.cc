@@ -1138,17 +1138,19 @@ static bool HandleClassesRetained(Isolate* isolate, const Class& cls,
 }
 
 
-class GetInstancesVisitor : public ObjectVisitor {
+class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(Isolate* isolate, const Class& cls, const Array& storage)
-      : ObjectVisitor(isolate), cls_(cls), storage_(storage), count_(0) {}
+  GetInstancesVisitor(const Class& cls, const Array& storage)
+      : cls_(cls), storage_(storage), count_(0) {}
 
-  virtual void VisitObject(RawObject* raw_obj) {
+  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
+    RawObject* raw_obj = it->Get();
     if (raw_obj->IsFreeListElement()) {
-      return;
+      return kProceed;
     }
-    REUSABLE_OBJECT_HANDLESCOPE(isolate());
-    Object& obj = isolate()->ObjectHandle();
+    Isolate* isolate = Isolate::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(isolate);
+    Object& obj = isolate->ObjectHandle();
     obj = raw_obj;
     if (obj.GetClassId() == cls_.id()) {
       if (!storage_.IsNull() && count_ < storage_.Length()) {
@@ -1156,6 +1158,7 @@ class GetInstancesVisitor : public ObjectVisitor {
       }
       ++count_;
     }
+    return kProceed;
   }
 
   intptr_t count() const { return count_; }
@@ -1180,8 +1183,9 @@ static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
     return true;
   }
   Array& storage = Array::Handle(Array::New(limit));
-  GetInstancesVisitor visitor(isolate, cls, storage);
-  isolate->heap()->IterateObjects(&visitor);
+  GetInstancesVisitor visitor(cls, storage);
+  ObjectGraph graph(isolate);
+  graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
   if (count < limit) {
     // Truncate the list using utility method for GrowableObjectArray.
@@ -1190,7 +1194,12 @@ static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
     wrapper.SetLength(count);
     storage = Array::MakeArray(wrapper);
   }
-  storage.PrintJSON(js, true);
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "InstanceSet");
+  jsobj.AddProperty("id", "instance_set");
+  jsobj.AddProperty("totalCount", count);
+  jsobj.AddProperty("sampleCount", storage.Length());
+  jsobj.AddProperty("sample", storage);
   return true;
 }
 

@@ -3850,11 +3850,30 @@ hr {
       </template>
       
       <template if="{{ !cls.hasNoAllocations }}">
-        current instances ({{ cls.newSpace.current.instances + cls.oldSpace.current.instances }})
+        instances
           <div class="memberItem">
-            <div class="memberName">shallow size</div>
+            <div class="memberName">currently allocated</div>
             <div class="memberValue">
-              {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes | formatSize }}
+              count {{ cls.newSpace.current.instances + cls.oldSpace.current.instances }}
+              (shallow size {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes | formatSize }})
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">strongly reachable</div>
+            <div class="memberValue">
+              <template if="{{ instances == null }}">
+                <eval-link callback="{{ reachable }}" label="[find]" expr="100">
+                </eval-link>
+              </template>
+              <template if="{{ instances != null }}">
+                sample
+                <instance-ref ref="{{ instances['sample'] }}"></instance-ref>
+                <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
+                  <eval-link callback="{{ reachable }}" label="[more]" expr="{{ instances['sampleCount'] * 2 }}">
+                  </eval-link>
+                </template>
+                of total {{ instances['totalCount'] }}
+              </template>
             </div>
           </div>
           <div class="memberItem">

@@ -4893,15 +4893,15 @@ var $$ = {};
   "^": "",
   main0: [function() {
     var t1, t2, t3, t4, t5;
-    t1 = P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, new E.main_closure(), C.Symbol_address, new E.main_closure0(), C.Symbol_anchor, new E.main_closure1(), C.Symbol_assertsEnabled, new E.main_closure2(), C.Symbol_bpt, new E.main_closure3(), C.Symbol_busy, new E.main_closure4(), C.Symbol_buttonClick, new E.main_closure5(), C.Symbol_bytes, new E.main_closure6(), C.Symbol_callback, new E.main_closure7(), C.Symbol_capacity, new E.main_closure8(), C.Symbol_change, new E.main_closure9(), C.Symbol_changeSort, new E.main_closure10(), C.Symbol_checked, new E.main_closure11(), C.Symbol_checkedText, new E.main_closure12(), C.Symbol_classTable, new E.main_closure13(), C.Symbol_classes, new E.main_closure14(), C.Symbol_closing, new E.main_closure15(), C.Symbol_cls, new E.main_closure16(), C.Symbol_code, new E.main_closure17(), C.Symbol_coloring, new E.main_closure18(), C.Symbol_columns, new E.main_closure19(), C.Symbol_connection, new E.main_closure20(), C.Symbol_counters, new E.main_closure21(), C.Symbol_countersChanged, new E.main_closure22(), C.Symbol_current, new E.main_closure23(), C.Symbol_descriptor, new E.main_closure24(), C.Symbol_descriptors, new E.main_closure25(), C.Symbol_devtools, new E.main_closure26(), C.Symbol_displayCutoff, new E.main_closure27(), C.Symbol_doAction, new E.main_closure28(), C.Symbol_element, new E.main_closure29(), C.Symbol_endLine, new E.main_closure30(), C.Symbol_endPos, new E.main_closure31(), C.Symbol_endPosChanged, new E.main_closure32(), C.Symbol_entry, new E.main_closure33(), C.Symbol_error, new E.main_closure34(), C.Symbol_eval, new E.main_closure35(), C.Symbol_evalNow, new E.main_closure36(), C.Symbol_exception, new E.main_closure37(), C.Symbol_expand, new E.main_closure38(), C.Symbol_expandChanged, new E.main_closure39(), C.Symbol_expanded, new E.main_closure40(), C.Symbol_expander, new E.main_closure41(), C.Symbol_expanderStyle, new E.main_closure42(), C.Symbol_expr, new E.main_closure43(), C.Symbol_external, new E.main_closure44(), C.Symbol_fd, new E.main_closure45(), C.Symbol_field, new E.main_closure46(), C.Symbol_fields, new E.main_closure47(), C.Symbol_file, new E.main_closure48(), C.Symbol_firstTokenPos, new E.main_closure49(), C.Symbol_flag, new E.main_closure50(), C.Symbol_flagList, new E.main_closure51(), C.Symbol_formatSize, new E.main_closure52(), C.Symbol_formatTime, new E.main_closure53(), C.Symbol_formattedAddress, new E.main_closure54(), C.Symbol_formattedAverage, new E.main_closure55(), C.Symbol_formattedCollections, new E.main_closure56(), C.Symbol_formattedDeoptId, new E.main_closure57(), C.Symbol_formattedExclusive, new E.main_closure58(), C.Symbol_formattedExclusiveTicks, new E.main_closure59(), C.Symbol_formattedInclusive, new E.main_closure60(), C.Symbol_formattedInclusiveTicks, new E.main_closure61(), C.Symbol_formattedLine, new E.main_closure62(), C.Symbol_formattedTotalCollectionTime, new E.main_closure63(), C.Symbol_fragmentation, new E.main_closure64(), C.Symbol_fragmentationChanged, new E.main_closure65(), C.Symbol_frame, new E.main_closure66(), C.Symbol_function, new E.main_closure67(), C.Symbol_functionChanged, new E.main_closure68(), C.Symbol_functions, new E.main_closure69(), C.Symbol_getColumnLabel, new E.main_closure70(), C.Symbol_goto, new E.main_closure71(), C.Symbol_gotoLink, new E.main_closure72(), C.Symbol_hasClass, new E.main_closure73(), C.Symbol_hasDescriptors, new E.main_closure74(), C.Symbol_hasDisassembly, new E.main_closure75(), C.Symbol_hasNoAllocations, new E.main_closure76(), C.Symbol_hasParent, new E.main_closure77(), C.Symbol_hashLinkWorkaround, new E.main_closure78(), C.Symbol_hideTagsChecked, new E.main_closure79(), C.Symbol_hits, new E.main_closure80(), C.Symbol_hoverText, new E.main_closure81(), C.Symbol_httpServer, new E.main_closure82(), C.Symbol_human, new E.main_closure83(), C.Symbol_idle, new E.main_closure84(), C.Symbol_imp, new E.main_closure85(), C.Symbol_imports, new E.main_closure86(), C.Symbol_instance, new E.main_closure87(), C.Symbol_instances, new E.main_closure88(), C.Symbol_instruction, new E.main_closure89(), C.Symbol_instructions, new E.main_closure90(), C.Symbol_interface, new E.main_closure91(), C.Symbol_interfaces, new E.main_closure92(), C.Symbol_internal, new E.main_closure93(), C.Symbol_io, new E.main_closure94(), C.Symbol_isAbstract, new E.main_closure95(), C.Symbol_isBool, new E.main_closure96(), C.Symbol_isComment, new E.main_closure97(), C.Symbol_isDart, new E.main_closure98(), C.Symbol_isDartCode, new E.main_closure99(), C.Symbol_isDouble, new E.main_closure100(), C.Symbol_isEmpty, new E.main_closure101(), C.Symbol_isError, new E.main_closure102(), C.Symbol_isInstance, new E.main_closure103(), C.Symbol_isInt, new E.main_closure104(), C.Symbol_isList, new E.main_closure105(), C.Symbol_isNotEmpty, new E.main_closure106(), C.Symbol_isNull, new E.main_closure107(), C.Symbol_isOptimized, new E.main_closure108(), C.Symbol_isPatch, new E.main_closure109(), C.Symbol_isPipe, new E.main_closure110(), C.Symbol_isString, new E.main_closure111(), C.Symbol_isType, new E.main_closure112(), C.Symbol_isUnexpected, new E.main_closure113(), C.Symbol_isolate, new E.main_closure114(), C.Symbol_isolateChanged, new E.main_closure115(), C.Symbol_isolates, new E.main_closure116(), C.Symbol_jumpTarget, new E.main_closure117(), C.Symbol_kind, new E.main_closure118(), C.Symbol_label, new E.main_closure119(), C.Symbol_last, new E.main_closure120(), C.Symbol_lastAccumulatorReset, new E.main_closure121(), C.Symbol_lastServiceGC, new E.main_closure122(), C.Symbol_lastTokenPos, new E.main_closure123(), C.Symbol_lastUpdate, new E.main_closure124(), C.Symbol_length, new E.main_closure125(), C.Symbol_lib, new E.main_closure126(), C.Symbol_libraries, new E.main_closure127(), C.Symbol_library, new E.main_closure128(), C.Symbol_line, new E.main_closure129(), C.Symbol_lineMode, new E.main_closure130(), C.Symbol_lineNumber, new E.main_closure131(), C.Symbol_lineNumbers, new E.main_closure132(), C.Symbol_lines, new E.main_closure133(), C.Symbol_link, new E.main_closure134(), C.Symbol_list, new E.main_closure135(), C.Symbol_listening, new E.main_closure136(), C.Symbol_loading, new E.main_closure137(), C.Symbol_localAddress, new E.main_closure138(), C.Symbol_localPort, new E.main_closure139(), C.Symbol_mainPort, new E.main_closure140(), C.Symbol_map, new E.main_closure141(), C.Symbol_mapAsString, new E.main_closure142(), C.Symbol_mapChanged, new E.main_closure143(), C.Symbol_message, new E.main_closure144(), C.Symbol_mouseOut, new E.main_closure145(), C.Symbol_mouseOver, new E.main_closure146(), C.Symbol_msg, new E.main_closure147(), C.Symbol_name, new E.main_closure148(), C.Symbol_nameIsEmpty, new E.main_closure149(), C.Symbol_newSpace, new E.main_closure150(), C.Symbol_object, new E.main_closure151(), C.Symbol_objectChanged, new E.main_closure152(), C.Symbol_objectPool, new E.main_closure153(), C.Symbol_oldSpace, new E.main_closure154(), C.Symbol_pad, new E.main_closure155(), C.Symbol_padding, new E.main_closure156(), C.Symbol_path, new E.main_closure157(), C.Symbol_pause, new E.main_closure158(), C.Symbol_pauseEvent, new E.main_closure159(), C.Symbol_pid, new E.main_closure160(), C.Symbol_pos, new E.main_closure161(), C.Symbol_posChanged, new E.main_closure162(), C.Symbol_process, new E.main_closure163(), C.Symbol_profile, new E.main_closure164(), C.Symbol_profileChanged, new E.main_closure165(), C.Symbol_protocol, new E.main_closure166(), C.Symbol_qualified, new E.main_closure167(), C.Symbol_qualifiedName, new E.main_closure168(), C.Symbol_readClosed, new E.main_closure169(), C.Symbol_ref, new E.main_closure170(), C.Symbol_refChanged, new E.main_closure171(), C.Symbol_refresh, new E.main_closure172(), C.Symbol_refreshCoverage, new E.main_closure173(), C.Symbol_refreshGC, new E.main_closure174(), C.Symbol_refreshTime, new E.main_closure175(), C.Symbol_relativeLink, new E.main_closure176(), C.Symbol_remoteAddress, new E.main_closure177(), C.Symbol_remotePort, new E.main_closure178(), C.Symbol_resetAccumulator, new E.main_closure179(), C.Symbol_response, new E.main_closure180(), C.Symbol_result, new E.main_closure181(), C.Symbol_results, new E.main_closure182(), C.Symbol_resume, new E.main_closure183(), C.Symbol_retainedBytes, new E.main_closure184(), C.Symbol_retainedSize, new E.main_closure185(), C.Symbol_retainingPath, new E.main_closure186(), C.Symbol_rootLib, new E.main_closure187(), C.Symbol_row, new E.main_closure188(), C.Symbol_rows, new E.main_closure189(), C.Symbol_running, new E.main_closure190(), C.Symbol_sampleCount, new E.main_closure191(), C.Symbol_sampleDepth, new E.main_closure192(), C.Symbol_sampleRate, new E.main_closure193(), C.Symbol_script, new E.main_closure194(), C.Symbol_scriptChanged, new E.main_closure195(), C.Symbol_scripts, new E.main_closure196(), C.Symbol_selectExpr, new E.main_closure197(), C.Symbol_serviceType, new E.main_closure198(), C.Symbol_small, new E.main_closure199(), C.Symbol_socket, new E.main_closure200(), C.Symbol_socketOwner, new E.main_closure201(), C.Symbol_startLine, new E.main_closure202(), C.Symbol_status, new E.main_closure203(), C.Symbol_styleForHits, new E.main_closure204(), C.Symbol_subClasses, new E.main_closure205(), C.Symbol_subclass, new E.main_closure206(), C.Symbol_superClass, new E.main_closure207(), C.Symbol_tagSelector, new E.main_closure208(), C.Symbol_tagSelectorChanged, new E.main_closure209(), C.Symbol_text, new E.main_closure210(), C.Symbol_timeSpan, new E.main_closure211(), C.Symbol_tipExclusive, new E.main_closure212(), C.Symbol_tipKind, new E.main_closure213(), C.Symbol_tipParent, new E.main_closure214(), C.Symbol_tipTicks, new E.main_closure215(), C.Symbol_tipTime, new E.main_closure216(), C.Symbol_toggleExpand, new E.main_closure217(), C.Symbol_toggleExpanded, new E.main_closure218(), C.Symbol_tokenPos, new E.main_closure219(), C.Symbol_topFrame, new E.main_closure220(), C.Symbol_trace, new E.main_closure221(), C.Symbol_tree, new E.main_closure222(), C.Symbol_typeChecksEnabled, new E.main_closure223(), C.Symbol_uncheckedText, new E.main_closure224(), C.Symbol_updateLineMode, new E.main_closure225(), C.Symbol_uptime, new E.main_closure226(), C.Symbol_url, new E.main_closure227(), C.Symbol_used, new E.main_closure228(), C.Symbol_v, new E.main_closure229(), C.Symbol_variable, new E.main_closure230(), C.Symbol_variables, new E.main_closure231(), C.Symbol_version, new E.main_closure232(), C.Symbol_vm, new E.main_closure233(), C.Symbol_vmName, new E.main_closure234(), C.Symbol_webSocket, new E.main_closure235(), C.Symbol_writeClosed, new E.main_closure236()], null, null);
-    t2 = P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, new E.main_closure237(), C.Symbol_anchor, new E.main_closure238(), C.Symbol_busy, new E.main_closure239(), C.Symbol_callback, new E.main_closure240(), C.Symbol_checked, new E.main_closure241(), C.Symbol_checkedText, new E.main_closure242(), C.Symbol_classTable, new E.main_closure243(), C.Symbol_cls, new E.main_closure244(), C.Symbol_code, new E.main_closure245(), C.Symbol_connection, new E.main_closure246(), C.Symbol_counters, new E.main_closure247(), C.Symbol_devtools, new E.main_closure248(), C.Symbol_displayCutoff, new E.main_closure249(), C.Symbol_endLine, new E.main_closure250(), C.Symbol_endPos, new E.main_closure251(), C.Symbol_entry, new E.main_closure252(), C.Symbol_error, new E.main_closure253(), C.Symbol_eval, new E.main_closure254(), C.Symbol_exception, new E.main_closure255(), C.Symbol_expand, new E.main_closure256(), C.Symbol_expanded, new E.main_closure257(), C.Symbol_expr, new E.main_closure258(), C.Symbol_field, new E.main_closure259(), C.Symbol_file, new E.main_closure260(), C.Symbol_firstTokenPos, new E.main_closure261(), C.Symbol_flag, new E.main_closure262(), C.Symbol_flagList, new E.main_closure263(), C.Symbol_fragmentation, new E.main_closure264(), C.Symbol_frame, new E.main_closure265(), C.Symbol_function, new E.main_closure266(), C.Symbol_hasClass, new E.main_closure267(), C.Symbol_hasParent, new E.main_closure268(), C.Symbol_hashLinkWorkaround, new E.main_closure269(), C.Symbol_hideTagsChecked, new E.main_closure270(), C.Symbol_httpServer, new E.main_closure271(), C.Symbol_imp, new E.main_closure272(), C.Symbol_instance, new E.main_closure273(), C.Symbol_interface, new E.main_closure274(), C.Symbol_internal, new E.main_closure275(), C.Symbol_io, new E.main_closure276(), C.Symbol_isDart, new E.main_closure277(), C.Symbol_isolate, new E.main_closure278(), C.Symbol_kind, new E.main_closure279(), C.Symbol_label, new E.main_closure280(), C.Symbol_last, new E.main_closure281(), C.Symbol_lastAccumulatorReset, new E.main_closure282(), C.Symbol_lastServiceGC, new E.main_closure283(), C.Symbol_lastTokenPos, new E.main_closure284(), C.Symbol_lib, new E.main_closure285(), C.Symbol_library, new E.main_closure286(), C.Symbol_lineMode, new E.main_closure287(), C.Symbol_lines, new E.main_closure288(), C.Symbol_link, new E.main_closure289(), C.Symbol_list, new E.main_closure290(), C.Symbol_map, new E.main_closure291(), C.Symbol_mapAsString, new E.main_closure292(), C.Symbol_msg, new E.main_closure293(), C.Symbol_name, new E.main_closure294(), C.Symbol_object, new E.main_closure295(), C.Symbol_objectPool, new E.main_closure296(), C.Symbol_pad, new E.main_closure297(), C.Symbol_path, new E.main_closure298(), C.Symbol_pause, new E.main_closure299(), C.Symbol_pos, new E.main_closure300(), C.Symbol_process, new E.main_closure301(), C.Symbol_profile, new E.main_closure302(), C.Symbol_qualified, new E.main_closure303(), C.Symbol_qualifiedName, new E.main_closure304(), C.Symbol_ref, new E.main_closure305(), C.Symbol_refresh, new E.main_closure306(), C.Symbol_refreshCoverage, new E.main_closure307(), C.Symbol_refreshGC, new E.main_closure308(), C.Symbol_refreshTime, new E.main_closure309(), C.Symbol_resetAccumulator, new E.main_closure310(), C.Symbol_result, new E.main_closure311(), C.Symbol_results, new E.main_closure312(), C.Symbol_resume, new E.main_closure313(), C.Symbol_retainedBytes, new E.main_closure314(), C.Symbol_retainedSize, new E.main_closure315(), C.Symbol_retainingPath, new E.main_closure316(), C.Symbol_rootLib, new E.main_closure317(), C.Symbol_sampleCount, new E.main_closure318(), C.Symbol_sampleDepth, new E.main_closure319(), C.Symbol_sampleRate, new E.main_closure320(), C.Symbol_script, new E.main_closure321(), C.Symbol_small, new E.main_closure322(), C.Symbol_socket, new E.main_closure323(), C.Symbol_socketOwner, new E.main_closure324(), C.Symbol_startLine, new E.main_closure325(), C.Symbol_status, new E.main_closure326(), C.Symbol_subclass, new E.main_closure327(), C.Symbol_superClass, new E.main_closure328(), C.Symbol_tagSelector, new E.main_closure329(), C.Symbol_text, new E.main_closure330(), C.Symbol_timeSpan, new E.main_closure331(), C.Symbol_tokenPos, new E.main_closure332(), C.Symbol_trace, new E.main_closure333(), C.Symbol_uncheckedText, new E.main_closure334(), C.Symbol_vm, new E.main_closure335(), C.Symbol_webSocket, new E.main_closure336()], null, null);
+    t1 = P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, new E.main_closure(), C.Symbol_address, new E.main_closure0(), C.Symbol_anchor, new E.main_closure1(), C.Symbol_assertsEnabled, new E.main_closure2(), C.Symbol_bpt, new E.main_closure3(), C.Symbol_busy, new E.main_closure4(), C.Symbol_buttonClick, new E.main_closure5(), C.Symbol_bytes, new E.main_closure6(), C.Symbol_callback, new E.main_closure7(), C.Symbol_capacity, new E.main_closure8(), C.Symbol_change, new E.main_closure9(), C.Symbol_changeSort, new E.main_closure10(), C.Symbol_checked, new E.main_closure11(), C.Symbol_checkedText, new E.main_closure12(), C.Symbol_classTable, new E.main_closure13(), C.Symbol_classes, new E.main_closure14(), C.Symbol_closing, new E.main_closure15(), C.Symbol_cls, new E.main_closure16(), C.Symbol_code, new E.main_closure17(), C.Symbol_coloring, new E.main_closure18(), C.Symbol_columns, new E.main_closure19(), C.Symbol_connection, new E.main_closure20(), C.Symbol_counters, new E.main_closure21(), C.Symbol_countersChanged, new E.main_closure22(), C.Symbol_current, new E.main_closure23(), C.Symbol_descriptor, new E.main_closure24(), C.Symbol_descriptors, new E.main_closure25(), C.Symbol_devtools, new E.main_closure26(), C.Symbol_displayCutoff, new E.main_closure27(), C.Symbol_doAction, new E.main_closure28(), C.Symbol_element, new E.main_closure29(), C.Symbol_endLine, new E.main_closure30(), C.Symbol_endPos, new E.main_closure31(), C.Symbol_endPosChanged, new E.main_closure32(), C.Symbol_entry, new E.main_closure33(), C.Symbol_error, new E.main_closure34(), C.Symbol_eval, new E.main_closure35(), C.Symbol_evalNow, new E.main_closure36(), C.Symbol_exception, new E.main_closure37(), C.Symbol_expand, new E.main_closure38(), C.Symbol_expandChanged, new E.main_closure39(), C.Symbol_expanded, new E.main_closure40(), C.Symbol_expander, new E.main_closure41(), C.Symbol_expanderStyle, new E.main_closure42(), C.Symbol_expr, new E.main_closure43(), C.Symbol_external, new E.main_closure44(), C.Symbol_fd, new E.main_closure45(), C.Symbol_field, new E.main_closure46(), C.Symbol_fields, new E.main_closure47(), C.Symbol_file, new E.main_closure48(), C.Symbol_firstTokenPos, new E.main_closure49(), C.Symbol_flag, new E.main_closure50(), C.Symbol_flagList, new E.main_closure51(), C.Symbol_formatSize, new E.main_closure52(), C.Symbol_formatTime, new E.main_closure53(), C.Symbol_formattedAddress, new E.main_closure54(), C.Symbol_formattedAverage, new E.main_closure55(), C.Symbol_formattedCollections, new E.main_closure56(), C.Symbol_formattedDeoptId, new E.main_closure57(), C.Symbol_formattedExclusive, new E.main_closure58(), C.Symbol_formattedExclusiveTicks, new E.main_closure59(), C.Symbol_formattedInclusive, new E.main_closure60(), C.Symbol_formattedInclusiveTicks, new E.main_closure61(), C.Symbol_formattedLine, new E.main_closure62(), C.Symbol_formattedTotalCollectionTime, new E.main_closure63(), C.Symbol_fragmentation, new E.main_closure64(), C.Symbol_fragmentationChanged, new E.main_closure65(), C.Symbol_frame, new E.main_closure66(), C.Symbol_function, new E.main_closure67(), C.Symbol_functionChanged, new E.main_closure68(), C.Symbol_functions, new E.main_closure69(), C.Symbol_getColumnLabel, new E.main_closure70(), C.Symbol_goto, new E.main_closure71(), C.Symbol_gotoLink, new E.main_closure72(), C.Symbol_hasClass, new E.main_closure73(), C.Symbol_hasDescriptors, new E.main_closure74(), C.Symbol_hasDisassembly, new E.main_closure75(), C.Symbol_hasNoAllocations, new E.main_closure76(), C.Symbol_hasParent, new E.main_closure77(), C.Symbol_hashLinkWorkaround, new E.main_closure78(), C.Symbol_hideTagsChecked, new E.main_closure79(), C.Symbol_hits, new E.main_closure80(), C.Symbol_hoverText, new E.main_closure81(), C.Symbol_httpServer, new E.main_closure82(), C.Symbol_human, new E.main_closure83(), C.Symbol_idle, new E.main_closure84(), C.Symbol_imp, new E.main_closure85(), C.Symbol_imports, new E.main_closure86(), C.Symbol_instance, new E.main_closure87(), C.Symbol_instances, new E.main_closure88(), C.Symbol_instruction, new E.main_closure89(), C.Symbol_instructions, new E.main_closure90(), C.Symbol_interface, new E.main_closure91(), C.Symbol_interfaces, new E.main_closure92(), C.Symbol_internal, new E.main_closure93(), C.Symbol_io, new E.main_closure94(), C.Symbol_isAbstract, new E.main_closure95(), C.Symbol_isBool, new E.main_closure96(), C.Symbol_isComment, new E.main_closure97(), C.Symbol_isDart, new E.main_closure98(), C.Symbol_isDartCode, new E.main_closure99(), C.Symbol_isDouble, new E.main_closure100(), C.Symbol_isEmpty, new E.main_closure101(), C.Symbol_isError, new E.main_closure102(), C.Symbol_isInstance, new E.main_closure103(), C.Symbol_isInt, new E.main_closure104(), C.Symbol_isList, new E.main_closure105(), C.Symbol_isNotEmpty, new E.main_closure106(), C.Symbol_isNull, new E.main_closure107(), C.Symbol_isOptimized, new E.main_closure108(), C.Symbol_isPatch, new E.main_closure109(), C.Symbol_isPipe, new E.main_closure110(), C.Symbol_isString, new E.main_closure111(), C.Symbol_isType, new E.main_closure112(), C.Symbol_isUnexpected, new E.main_closure113(), C.Symbol_isolate, new E.main_closure114(), C.Symbol_isolateChanged, new E.main_closure115(), C.Symbol_isolates, new E.main_closure116(), C.Symbol_jumpTarget, new E.main_closure117(), C.Symbol_kind, new E.main_closure118(), C.Symbol_label, new E.main_closure119(), C.Symbol_last, new E.main_closure120(), C.Symbol_lastAccumulatorReset, new E.main_closure121(), C.Symbol_lastServiceGC, new E.main_closure122(), C.Symbol_lastTokenPos, new E.main_closure123(), C.Symbol_lastUpdate, new E.main_closure124(), C.Symbol_length, new E.main_closure125(), C.Symbol_lib, new E.main_closure126(), C.Symbol_libraries, new E.main_closure127(), C.Symbol_library, new E.main_closure128(), C.Symbol_line, new E.main_closure129(), C.Symbol_lineMode, new E.main_closure130(), C.Symbol_lineNumber, new E.main_closure131(), C.Symbol_lineNumbers, new E.main_closure132(), C.Symbol_lines, new E.main_closure133(), C.Symbol_link, new E.main_closure134(), C.Symbol_list, new E.main_closure135(), C.Symbol_listening, new E.main_closure136(), C.Symbol_loading, new E.main_closure137(), C.Symbol_localAddress, new E.main_closure138(), C.Symbol_localPort, new E.main_closure139(), C.Symbol_mainPort, new E.main_closure140(), C.Symbol_map, new E.main_closure141(), C.Symbol_mapAsString, new E.main_closure142(), C.Symbol_mapChanged, new E.main_closure143(), C.Symbol_message, new E.main_closure144(), C.Symbol_mouseOut, new E.main_closure145(), C.Symbol_mouseOver, new E.main_closure146(), C.Symbol_msg, new E.main_closure147(), C.Symbol_name, new E.main_closure148(), C.Symbol_nameIsEmpty, new E.main_closure149(), C.Symbol_newSpace, new E.main_closure150(), C.Symbol_object, new E.main_closure151(), C.Symbol_objectChanged, new E.main_closure152(), C.Symbol_objectPool, new E.main_closure153(), C.Symbol_oldSpace, new E.main_closure154(), C.Symbol_pad, new E.main_closure155(), C.Symbol_padding, new E.main_closure156(), C.Symbol_path, new E.main_closure157(), C.Symbol_pause, new E.main_closure158(), C.Symbol_pauseEvent, new E.main_closure159(), C.Symbol_pid, new E.main_closure160(), C.Symbol_pos, new E.main_closure161(), C.Symbol_posChanged, new E.main_closure162(), C.Symbol_process, new E.main_closure163(), C.Symbol_profile, new E.main_closure164(), C.Symbol_profileChanged, new E.main_closure165(), C.Symbol_protocol, new E.main_closure166(), C.Symbol_qualified, new E.main_closure167(), C.Symbol_qualifiedName, new E.main_closure168(), C.Symbol_reachable, new E.main_closure169(), C.Symbol_readClosed, new E.main_closure170(), C.Symbol_ref, new E.main_closure171(), C.Symbol_refChanged, new E.main_closure172(), C.Symbol_refresh, new E.main_closure173(), C.Symbol_refreshCoverage, new E.main_closure174(), C.Symbol_refreshGC, new E.main_closure175(), C.Symbol_refreshTime, new E.main_closure176(), C.Symbol_relativeLink, new E.main_closure177(), C.Symbol_remoteAddress, new E.main_closure178(), C.Symbol_remotePort, new E.main_closure179(), C.Symbol_resetAccumulator, new E.main_closure180(), C.Symbol_response, new E.main_closure181(), C.Symbol_result, new E.main_closure182(), C.Symbol_results, new E.main_closure183(), C.Symbol_resume, new E.main_closure184(), C.Symbol_retainedBytes, new E.main_closure185(), C.Symbol_retainedSize, new E.main_closure186(), C.Symbol_retainingPath, new E.main_closure187(), C.Symbol_rootLib, new E.main_closure188(), C.Symbol_row, new E.main_closure189(), C.Symbol_rows, new E.main_closure190(), C.Symbol_running, new E.main_closure191(), C.Symbol_sampleCount, new E.main_closure192(), C.Symbol_sampleDepth, new E.main_closure193(), C.Symbol_sampleRate, new E.main_closure194(), C.Symbol_script, new E.main_closure195(), C.Symbol_scriptChanged, new E.main_closure196(), C.Symbol_scripts, new E.main_closure197(), C.Symbol_selectExpr, new E.main_closure198(), C.Symbol_serviceType, new E.main_closure199(), C.Symbol_small, new E.main_closure200(), C.Symbol_socket, new E.main_closure201(), C.Symbol_socketOwner, new E.main_closure202(), C.Symbol_startLine, new E.main_closure203(), C.Symbol_status, new E.main_closure204(), C.Symbol_styleForHits, new E.main_closure205(), C.Symbol_subClasses, new E.main_closure206(), C.Symbol_subclass, new E.main_closure207(), C.Symbol_superClass, new E.main_closure208(), C.Symbol_tagSelector, new E.main_closure209(), C.Symbol_tagSelectorChanged, new E.main_closure210(), C.Symbol_text, new E.main_closure211(), C.Symbol_timeSpan, new E.main_closure212(), C.Symbol_tipExclusive, new E.main_closure213(), C.Symbol_tipKind, new E.main_closure214(), C.Symbol_tipParent, new E.main_closure215(), C.Symbol_tipTicks, new E.main_closure216(), C.Symbol_tipTime, new E.main_closure217(), C.Symbol_toggleExpand, new E.main_closure218(), C.Symbol_toggleExpanded, new E.main_closure219(), C.Symbol_tokenPos, new E.main_closure220(), C.Symbol_topFrame, new E.main_closure221(), C.Symbol_trace, new E.main_closure222(), C.Symbol_tree, new E.main_closure223(), C.Symbol_typeChecksEnabled, new E.main_closure224(), C.Symbol_uncheckedText, new E.main_closure225(), C.Symbol_updateLineMode, new E.main_closure226(), C.Symbol_uptime, new E.main_closure227(), C.Symbol_url, new E.main_closure228(), C.Symbol_used, new E.main_closure229(), C.Symbol_v, new E.main_closure230(), C.Symbol_variable, new E.main_closure231(), C.Symbol_variables, new E.main_closure232(), C.Symbol_version, new E.main_closure233(), C.Symbol_vm, new E.main_closure234(), C.Symbol_vmName, new E.main_closure235(), C.Symbol_webSocket, new E.main_closure236(), C.Symbol_writeClosed, new E.main_closure237()], null, null);
+    t2 = P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, new E.main_closure238(), C.Symbol_anchor, new E.main_closure239(), C.Symbol_busy, new E.main_closure240(), C.Symbol_callback, new E.main_closure241(), C.Symbol_checked, new E.main_closure242(), C.Symbol_checkedText, new E.main_closure243(), C.Symbol_classTable, new E.main_closure244(), C.Symbol_cls, new E.main_closure245(), C.Symbol_code, new E.main_closure246(), C.Symbol_connection, new E.main_closure247(), C.Symbol_counters, new E.main_closure248(), C.Symbol_devtools, new E.main_closure249(), C.Symbol_displayCutoff, new E.main_closure250(), C.Symbol_endLine, new E.main_closure251(), C.Symbol_endPos, new E.main_closure252(), C.Symbol_entry, new E.main_closure253(), C.Symbol_error, new E.main_closure254(), C.Symbol_eval, new E.main_closure255(), C.Symbol_exception, new E.main_closure256(), C.Symbol_expand, new E.main_closure257(), C.Symbol_expanded, new E.main_closure258(), C.Symbol_expr, new E.main_closure259(), C.Symbol_field, new E.main_closure260(), C.Symbol_file, new E.main_closure261(), C.Symbol_firstTokenPos, new E.main_closure262(), C.Symbol_flag, new E.main_closure263(), C.Symbol_flagList, new E.main_closure264(), C.Symbol_fragmentation, new E.main_closure265(), C.Symbol_frame, new E.main_closure266(), C.Symbol_function, new E.main_closure267(), C.Symbol_hasClass, new E.main_closure268(), C.Symbol_hasParent, new E.main_closure269(), C.Symbol_hashLinkWorkaround, new E.main_closure270(), C.Symbol_hideTagsChecked, new E.main_closure271(), C.Symbol_httpServer, new E.main_closure272(), C.Symbol_imp, new E.main_closure273(), C.Symbol_instance, new E.main_closure274(), C.Symbol_instances, new E.main_closure275(), C.Symbol_interface, new E.main_closure276(), C.Symbol_internal, new E.main_closure277(), C.Symbol_io, new E.main_closure278(), C.Symbol_isDart, new E.main_closure279(), C.Symbol_isolate, new E.main_closure280(), C.Symbol_kind, new E.main_closure281(), C.Symbol_label, new E.main_closure282(), C.Symbol_last, new E.main_closure283(), C.Symbol_lastAccumulatorReset, new E.main_closure284(), C.Symbol_lastServiceGC, new E.main_closure285(), C.Symbol_lastTokenPos, new E.main_closure286(), C.Symbol_lib, new E.main_closure287(), C.Symbol_library, new E.main_closure288(), C.Symbol_lineMode, new E.main_closure289(), C.Symbol_lines, new E.main_closure290(), C.Symbol_link, new E.main_closure291(), C.Symbol_list, new E.main_closure292(), C.Symbol_map, new E.main_closure293(), C.Symbol_mapAsString, new E.main_closure294(), C.Symbol_msg, new E.main_closure295(), C.Symbol_name, new E.main_closure296(), C.Symbol_object, new E.main_closure297(), C.Symbol_objectPool, new E.main_closure298(), C.Symbol_pad, new E.main_closure299(), C.Symbol_path, new E.main_closure300(), C.Symbol_pause, new E.main_closure301(), C.Symbol_pos, new E.main_closure302(), C.Symbol_process, new E.main_closure303(), C.Symbol_profile, new E.main_closure304(), C.Symbol_qualified, new E.main_closure305(), C.Symbol_qualifiedName, new E.main_closure306(), C.Symbol_reachable, new E.main_closure307(), C.Symbol_ref, new E.main_closure308(), C.Symbol_refresh, new E.main_closure309(), C.Symbol_refreshCoverage, new E.main_closure310(), C.Symbol_refreshGC, new E.main_closure311(), C.Symbol_refreshTime, new E.main_closure312(), C.Symbol_resetAccumulator, new E.main_closure313(), C.Symbol_result, new E.main_closure314(), C.Symbol_results, new E.main_closure315(), C.Symbol_resume, new E.main_closure316(), C.Symbol_retainedBytes, new E.main_closure317(), C.Symbol_retainedSize, new E.main_closure318(), C.Symbol_retainingPath, new E.main_closure319(), C.Symbol_rootLib, new E.main_closure320(), C.Symbol_sampleCount, new E.main_closure321(), C.Symbol_sampleDepth, new E.main_closure322(), C.Symbol_sampleRate, new E.main_closure323(), C.Symbol_script, new E.main_closure324(), C.Symbol_small, new E.main_closure325(), C.Symbol_socket, new E.main_closure326(), C.Symbol_socketOwner, new E.main_closure327(), C.Symbol_startLine, new E.main_closure328(), C.Symbol_status, new E.main_closure329(), C.Symbol_subclass, new E.main_closure330(), C.Symbol_superClass, new E.main_closure331(), C.Symbol_tagSelector, new E.main_closure332(), C.Symbol_text, new E.main_closure333(), C.Symbol_timeSpan, new E.main_closure334(), C.Symbol_tokenPos, new E.main_closure335(), C.Symbol_trace, new E.main_closure336(), C.Symbol_uncheckedText, new E.main_closure337(), C.Symbol_vm, new E.main_closure338(), C.Symbol_webSocket, new E.main_closure339()], null, null);
     t3 = P.LinkedHashMap_LinkedHashMap$_literal([C.Type_kA7, C.Type_GNh, C.Type_ON8, C.Type_EOZ, C.Type_ql8, C.Type_UJT, C.Type_dRp, C.Type_EOZ, C.Type_O5a, C.Type_EOZ, C.Type_2jN, C.Type_UJT, C.Type_Aym, C.Type_EOZ, C.Type_cop, C.Type_GNh, C.Type_Npb, C.Type_EOZ, C.Type_8eb, C.Type_EOZ, C.Type_p2P, C.Type_GNh, C.Type_ohY, C.Type_UJT, C.Type_4IJ, C.Type_EOZ, C.Type_7g3, C.Type_EOZ, C.Type_f1j, C.Type_EOZ, C.Type_wgH, C.Type_oyU, C.Type_bDN, C.Type_EOZ, C.Type_SoB, C.Type_EOZ, C.Type_LV6, C.Type_EOZ, C.Type_EVD, C.Type_UJT, C.Type_gqS, C.Type_EOZ, C.Type_uIL, C.Type_UJT, C.Type_L9j, C.Type_EOZ, C.Type_yvP, C.Type_EOZ, C.Type_i7j, C.Type_UJT, C.Type_M6L, C.Type_EOZ, C.Type_8KD, C.Type_EOZ, C.Type_qMZ, C.Type_oyU, C.Type_AHF, C.Type_EOZ, C.Type_IuH, C.Type_EOZ, C.Type_mWg, C.Type_UJT, C.Type_8cK, C.Type_EOZ, C.Type_JmU, C.Type_UJT, C.Type_4m4, C.Type_EOZ, C.Type_B8J, C.Type_UJT, C.Type_61d, C.Type_EOZ, C.Type_TEn, C.Type_EOZ, C.Type_gg4, C.Type_EOZ, C.Type_MUU, C.Type_UJT, C.Type_AyI, C.Type_EOZ, C.Type_cOY, C.Type_EOZ, C.Type_ES1, C.Type_UJT, C.Type_wT1, C.Type_EOZ, C.Type_ECh, C.Type_EOZ, C.Type_aAD, C.Type_EOZ, C.Type_8Gl, C.Type_EOZ, C.Type_iL9, C.Type_EOZ, C.Type_ZKG, C.Type_EOZ, C.Type_Kyy, C.Type_EOZ, C.Type_mpV, C.Type_UJT, C.Type_qph, C.Type_EOZ, C.Type_JFX, C.Type_EOZ, C.Type_wsa, C.Type_EOZ, C.Type_s2l, C.Type_EOZ, C.Type_nV5, C.Type_EOZ, C.Type_9ur, C.Type_sRP, C.Type_KMd, C.Type_EOZ, C.Type_AD4, C.Type_EOZ, C.Type_Sxn, C.Type_EOZ, C.Type_C7R, C.Type_EOZ, C.Type_YgH, C.Type_EOZ, C.Type_sRP, C.Type_I2I, C.Type_a1Y, C.Type_EOZ, C.Type_wBh, C.Type_oyU, C.Type_0e9, C.Type_EOZ, C.Type_FKd, C.Type_EOZ, C.Type_y1j, C.Type_EOZ, C.Type_UJT, C.Type_EOZ, C.Type_Mu6, C.Type_EOZ, C.Type_kuc, C.Type_GNh, C.Type_Jcu, C.Type_EOZ, C.Type_nVV, C.Type_EOZ, C.Type_Eue, C.Type_UJT, C.Type_E0k, C.Type_EOZ, C.Type_GNh, C.Type_I2I, C.Type_EOZ, C.Type_sRP, C.Type_oyU, C.Type_UJT], null, null);
-    t4 = P.LinkedHashMap_LinkedHashMap$_literal([C.Type_kA7, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_label, C.Declaration_0g2], null, null), C.Type_ON8, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_msg, C.Declaration_gc6], null, null), C.Type_ql8, C.Map_empty, C.Type_dRp, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_agR, C.Symbol_isolateChanged, C.Declaration_e3c], null, null), C.Type_O5a, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_cls, C.Declaration_okX, C.Symbol_retainedBytes, C.Declaration_CIB], null, null), C.Type_2jN, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_code, C.Declaration_AgZ, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_Aym, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_code, C.Declaration_woc], null, null), C.Type_cop, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_expand, C.Declaration_yXb0, C.Symbol_expandChanged, C.Declaration_Dbk, C.Symbol_expanded, C.Declaration_RQo], null, null), C.Type_Npb, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_eea], null, null), C.Type_8eb, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_callback, C.Declaration_IF7, C.Symbol_lineMode, C.Declaration_ww8, C.Symbol_results, C.Declaration_ggw, C.Symbol_text, C.Declaration_ZfX], null, null), C.Type_p2P, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_expr, C.Declaration_gLQ, C.Symbol_label, C.Declaration_0g2, C.Symbol_result, C.Declaration_2No], null, null), C.Type_ohY, C.Map_empty, C.Type_4IJ, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_field, C.Declaration_iyl], null, null), C.Type_7g3, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_flag, C.Declaration_6YB], null, null), C.Type_f1j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_flagList, C.Declaration_wE9], null, null), C.Type_wgH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_hasClass, C.Declaration_X8B, C.Symbol_hasParent, C.Declaration_0qV, C.Symbol_isDart, C.Declaration_o7e, C.Symbol_qualified, C.Declaration_e24, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_bDN, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_function, C.Declaration_y9n, C.Symbol_functionChanged, C.Declaration_Chj, C.Symbol_kind, C.Declaration_Xdi, C.Symbol_qualifiedName, C.Declaration_i3y], null, null), C.Type_SoB, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_fragmentation, C.Declaration_0Y4, C.Symbol_fragmentationChanged, C.Declaration_ivD, C.Symbol_status, C.Declaration_8sn], null, null), C.Type_LV6, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_classTable, C.Declaration_gsm, C.Symbol_isolate, C.Declaration_agR, C.Symbol_lastAccumulatorReset, C.Declaration_vA1, C.Symbol_lastServiceGC, C.Declaration_mPk, C.Symbol_profile, C.Declaration_EkK, C.Symbol_profileChanged, C.Declaration_j3g], null, null), C.Type_EVD, C.Map_empty, C.Type_gqS, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_instance, C.Declaration_o7L, C.Symbol_path, C.Declaration_cMb, C.Symbol_retainedBytes, C.Declaration_CIB], null, null), C.Type_uIL, C.Map_empty, C.Type_L9j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_connection, C.Declaration_yDj], null, null), C.Type_yvP, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_i7j, C.Map_empty, C.Type_M6L, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_httpServer, C.Declaration_BSX], null, null), C.Type_8KD, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_qMZ, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_small, C.Declaration_pPA], null, null), C.Type_AHF, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_process, C.Declaration_a13], null, null), C.Type_IuH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_mWg, C.Map_empty, C.Type_8cK, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_file, C.Declaration_Ix1], null, null), C.Type_JmU, C.Map_empty, C.Type_4m4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_B8J, C.Map_empty, C.Type_61d, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_socket, C.Declaration_Iiu], null, null), C.Type_TEn, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_io, C.Declaration_bh9], null, null), C.Type_gg4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_MUU, C.Map_empty, C.Type_AyI, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_webSocket, C.Declaration_mT8], null, null), C.Type_cOY, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_displayCutoff, C.Declaration_CR6, C.Symbol_hideTagsChecked, C.Declaration_a1A, C.Symbol_profile, C.Declaration_EkK, C.Symbol_profileChanged, C.Declaration_j3g, C.Symbol_refreshTime, C.Declaration_ijl, C.Symbol_sampleCount, C.Declaration_ac8, C.Symbol_sampleDepth, C.Declaration_2AE, C.Symbol_sampleRate, C.Declaration_3VL, C.Symbol_tagSelector, C.Declaration_Q0F, C.Symbol_tagSelectorChanged, C.Declaration_ECn, C.Symbol_timeSpan, C.Declaration_dIf], null, null), C.Type_ES1, C.Map_empty, C.Type_wT1, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_counters, C.Declaration_2Qn, C.Symbol_countersChanged, C.Declaration_cJC], null, null), C.Type_ECh, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_aAD, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_8Gl, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_iL9, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_ZKG, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_Kyy, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_map, C.Declaration_wzu, C.Symbol_mapAsString, C.Declaration_Qx4, C.Symbol_mapChanged, C.Declaration_iLh], null, null), C.Type_mpV, C.Map_empty, C.Type_qph, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_library, C.Declaration_6ts], null, null), C.Type_JFX, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_cls, C.Declaration_qrv, C.Symbol_last, C.Declaration_06U], null, null), C.Type_wsa, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj, C.Symbol_isolateChanged, C.Declaration_e3c, C.Symbol_last, C.Declaration_06U], null, null), C.Type_s2l, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_last, C.Declaration_06U, C.Symbol_library, C.Declaration_6ts], null, null), C.Type_nV5, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_pad, C.Declaration_EsU], null, null), C.Type_9ur, C.Map_empty, C.Type_KMd, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_anchor, C.Declaration_suy, C.Symbol_last, C.Declaration_06U, C.Symbol_link, C.Declaration_ibz], null, null), C.Type_AD4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_anchor, C.Declaration_suy, C.Symbol_link, C.Declaration_ibz], null, null), C.Type_Sxn, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, C.Declaration_dw1, C.Symbol_callback, C.Declaration_yXb, C.Symbol_label, C.Declaration_0g2], null, null), C.Type_C7R, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_last, C.Declaration_06U], null, null), C.Type_YgH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_devtools, C.Declaration_c4R], null, null), C.Type_sRP, C.Map_empty, C.Type_a1Y, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_endLine, C.Declaration_ZcJ, C.Symbol_endPos, C.Declaration_ACG, C.Symbol_endPosChanged, C.Declaration_QAa, C.Symbol_lines, C.Declaration_WfA, C.Symbol_pos, C.Declaration_i3t, C.Symbol_posChanged, C.Declaration_owq, C.Symbol_script, C.Declaration_yx3, C.Symbol_scriptChanged, C.Declaration_ixB, C.Symbol_startLine, C.Declaration_k6K], null, null), C.Type_wBh, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_pos, C.Declaration_i3t, C.Symbol_posChanged, C.Declaration_owq], null, null), C.Type_0e9, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_script, C.Declaration_yx3], null, null), C.Type_FKd, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_4eA], null, null), C.Type_y1j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_exception, C.Declaration_v0l], null, null), C.Type_UJT, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_internal, C.Declaration_XBb, C.Symbol_ref, C.Declaration_e3c0, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_Mu6, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_object, C.Declaration_HtW, C.Symbol_objectChanged, C.Declaration_4up], null, null), C.Type_kuc, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_checked, C.Declaration_siO, C.Symbol_checkedText, C.Declaration_cdS, C.Symbol_uncheckedText, C.Declaration_IRg], null, null), C.Type_Jcu, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_frame, C.Declaration_65l], null, null), C.Type_nVV, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_trace, C.Declaration_ssf], null, null), C.Type_Eue, C.Map_empty, C.Type_E0k, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_0, C.Symbol_vm, C.Declaration_Qi2], null, null)], null, null);
-    t5 = O.GeneratedSymbolConverterService$(new O.StaticConfiguration(t1, t2, t3, t4, C.Map_empty, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, "active", C.Symbol_address, "address", C.Symbol_anchor, "anchor", C.Symbol_assertsEnabled, "assertsEnabled", C.Symbol_bpt, "bpt", C.Symbol_busy, "busy", C.Symbol_buttonClick, "buttonClick", C.Symbol_bytes, "bytes", C.Symbol_callback, "callback", C.Symbol_capacity, "capacity", C.Symbol_change, "change", C.Symbol_changeSort, "changeSort", C.Symbol_checked, "checked", C.Symbol_checkedText, "checkedText", C.Symbol_classTable, "classTable", C.Symbol_classes, "classes", C.Symbol_closing, "closing", C.Symbol_cls, "cls", C.Symbol_code, "code", C.Symbol_coloring, "coloring", C.Symbol_columns, "columns", C.Symbol_connection, "connection", C.Symbol_counters, "counters", C.Symbol_countersChanged, "countersChanged", C.Symbol_current, "current", C.Symbol_descriptor, "descriptor", C.Symbol_descriptors, "descriptors", C.Symbol_devtools, "devtools", C.Symbol_displayCutoff, "displayCutoff", C.Symbol_doAction, "doAction", C.Symbol_element, "element", C.Symbol_endLine, "endLine", C.Symbol_endPos, "endPos", C.Symbol_endPosChanged, "endPosChanged", C.Symbol_entry, "entry", C.Symbol_error, "error", C.Symbol_eval, "eval", C.Symbol_evalNow, "evalNow", C.Symbol_exception, "exception", C.Symbol_expand, "expand", C.Symbol_expandChanged, "expandChanged", C.Symbol_expanded, "expanded", C.Symbol_expander, "expander", C.Symbol_expanderStyle, "expanderStyle", C.Symbol_expr, "expr", C.Symbol_external, "external", C.Symbol_fd, "fd", C.Symbol_field, "field", C.Symbol_fields, "fields", C.Symbol_file, "file", C.Symbol_firstTokenPos, "firstTokenPos", C.Symbol_flag, "flag", C.Symbol_flagList, "flagList", C.Symbol_formatSize, "formatSize", C.Symbol_formatTime, "formatTime", C.Symbol_formattedAddress, "formattedAddress", C.Symbol_formattedAverage, "formattedAverage", C.Symbol_formattedCollections, "formattedCollections", C.Symbol_formattedDeoptId, "formattedDeoptId", C.Symbol_formattedExclusive, "formattedExclusive", C.Symbol_formattedExclusiveTicks, "formattedExclusiveTicks", C.Symbol_formattedInclusive, "formattedInclusive", C.Symbol_formattedInclusiveTicks, "formattedInclusiveTicks", C.Symbol_formattedLine, "formattedLine", C.Symbol_formattedTotalCollectionTime, "formattedTotalCollectionTime", C.Symbol_fragmentation, "fragmentation", C.Symbol_fragmentationChanged, "fragmentationChanged", C.Symbol_frame, "frame", C.Symbol_function, "function", C.Symbol_functionChanged, "functionChanged", C.Symbol_functions, "functions", C.Symbol_getColumnLabel, "getColumnLabel", C.Symbol_goto, "goto", C.Symbol_gotoLink, "gotoLink", C.Symbol_hasClass, "hasClass", C.Symbol_hasDescriptors, "hasDescriptors", C.Symbol_hasDisassembly, "hasDisassembly", C.Symbol_hasNoAllocations, "hasNoAllocations", C.Symbol_hasParent, "hasParent", C.Symbol_hashLinkWorkaround, "hashLinkWorkaround", C.Symbol_hideTagsChecked, "hideTagsChecked", C.Symbol_hits, "hits", C.Symbol_hoverText, "hoverText", C.Symbol_httpServer, "httpServer", C.Symbol_human, "human", C.Symbol_idle, "idle", C.Symbol_imp, "imp", C.Symbol_imports, "imports", C.Symbol_instance, "instance", C.Symbol_instances, "instances", C.Symbol_instruction, "instruction", C.Symbol_instructions, "instructions", C.Symbol_interface, "interface", C.Symbol_interfaces, "interfaces", C.Symbol_internal, "internal", C.Symbol_io, "io", C.Symbol_isAbstract, "isAbstract", C.Symbol_isBool, "isBool", C.Symbol_isComment, "isComment", C.Symbol_isDart, "isDart", C.Symbol_isDartCode, "isDartCode", C.Symbol_isDouble, "isDouble", C.Symbol_isEmpty, "isEmpty", C.Symbol_isError, "isError", C.Symbol_isInstance, "isInstance", C.Symbol_isInt, "isInt", C.Symbol_isList, "isList", C.Symbol_isNotEmpty, "isNotEmpty", C.Symbol_isNull, "isNull", C.Symbol_isOptimized, "isOptimized", C.Symbol_isPatch, "isPatch", C.Symbol_isPipe, "isPipe", C.Symbol_isString, "isString", C.Symbol_isType, "isType", C.Symbol_isUnexpected, "isUnexpected", C.Symbol_isolate, "isolate", C.Symbol_isolateChanged, "isolateChanged", C.Symbol_isolates, "isolates", C.Symbol_jumpTarget, "jumpTarget", C.Symbol_kind, "kind", C.Symbol_label, "label", C.Symbol_last, "last", C.Symbol_lastAccumulatorReset, "lastAccumulatorReset", C.Symbol_lastServiceGC, "lastServiceGC", C.Symbol_lastTokenPos, "lastTokenPos", C.Symbol_lastUpdate, "lastUpdate", C.Symbol_length, "length", C.Symbol_lib, "lib", C.Symbol_libraries, "libraries", C.Symbol_library, "library", C.Symbol_line, "line", C.Symbol_lineMode, "lineMode", C.Symbol_lineNumber, "lineNumber", C.Symbol_lineNumbers, "lineNumbers", C.Symbol_lines, "lines", C.Symbol_link, "link", C.Symbol_list, "list", C.Symbol_listening, "listening", C.Symbol_loading, "loading", C.Symbol_localAddress, "localAddress", C.Symbol_localPort, "localPort", C.Symbol_mainPort, "mainPort", C.Symbol_map, "map", C.Symbol_mapAsString, "mapAsString", C.Symbol_mapChanged, "mapChanged", C.Symbol_message, "message", C.Symbol_mouseOut, "mouseOut", C.Symbol_mouseOver, "mouseOver", C.Symbol_msg, "msg", C.Symbol_name, "name", C.Symbol_nameIsEmpty, "nameIsEmpty", C.Symbol_newSpace, "newSpace", C.Symbol_object, "object", C.Symbol_objectChanged, "objectChanged", C.Symbol_objectPool, "objectPool", C.Symbol_oldSpace, "oldSpace", C.Symbol_pad, "pad", C.Symbol_padding, "padding", C.Symbol_path, "path", C.Symbol_pause, "pause", C.Symbol_pauseEvent, "pauseEvent", C.Symbol_pid, "pid", C.Symbol_pos, "pos", C.Symbol_posChanged, "posChanged", C.Symbol_process, "process", C.Symbol_profile, "profile", C.Symbol_profileChanged, "profileChanged", C.Symbol_protocol, "protocol", C.Symbol_qualified, "qualified", C.Symbol_qualifiedName, "qualifiedName", C.Symbol_readClosed, "readClosed", C.Symbol_ref, "ref", C.Symbol_refChanged, "refChanged", C.Symbol_refresh, "refresh", C.Symbol_refreshCoverage, "refreshCoverage", C.Symbol_refreshGC, "refreshGC", C.Symbol_refreshTime, "refreshTime", C.Symbol_relativeLink, "relativeLink", C.Symbol_remoteAddress, "remoteAddress", C.Symbol_remotePort, "remotePort", C.Symbol_resetAccumulator, "resetAccumulator", C.Symbol_response, "response", C.Symbol_result, "result", C.Symbol_results, "results", C.Symbol_resume, "resume", C.Symbol_retainedBytes, "retainedBytes", C.Symbol_retainedSize, "retainedSize", C.Symbol_retainingPath, "retainingPath", C.Symbol_rootLib, "rootLib", C.Symbol_row, "row", C.Symbol_rows, "rows", C.Symbol_running, "running", C.Symbol_sampleCount, "sampleCount", C.Symbol_sampleDepth, "sampleDepth", C.Symbol_sampleRate, "sampleRate", C.Symbol_script, "script", C.Symbol_scriptChanged, "scriptChanged", C.Symbol_scripts, "scripts", C.Symbol_selectExpr, "selectExpr", C.Symbol_serviceType, "serviceType", C.Symbol_small, "small", C.Symbol_socket, "socket", C.Symbol_socketOwner, "socketOwner", C.Symbol_startLine, "startLine", C.Symbol_status, "status", C.Symbol_styleForHits, "styleForHits", C.Symbol_subClasses, "subClasses", C.Symbol_subclass, "subclass", C.Symbol_superClass, "superClass", C.Symbol_tagSelector, "tagSelector", C.Symbol_tagSelectorChanged, "tagSelectorChanged", C.Symbol_text, "text", C.Symbol_timeSpan, "timeSpan", C.Symbol_tipExclusive, "tipExclusive", C.Symbol_tipKind, "tipKind", C.Symbol_tipParent, "tipParent", C.Symbol_tipTicks, "tipTicks", C.Symbol_tipTime, "tipTime", C.Symbol_toggleExpand, "toggleExpand", C.Symbol_toggleExpanded, "toggleExpanded", C.Symbol_tokenPos, "tokenPos", C.Symbol_topFrame, "topFrame", C.Symbol_trace, "trace", C.Symbol_tree, "tree", C.Symbol_typeChecksEnabled, "typeChecksEnabled", C.Symbol_uncheckedText, "uncheckedText", C.Symbol_updateLineMode, "updateLineMode", C.Symbol_uptime, "uptime", C.Symbol_url, "url", C.Symbol_used, "used", C.Symbol_v, "v", C.Symbol_variable, "variable", C.Symbol_variables, "variables", C.Symbol_version, "version", C.Symbol_vm, "vm", C.Symbol_vmName, "vmName", C.Symbol_webSocket, "webSocket", C.Symbol_writeClosed, "writeClosed"], null, null), false));
+    t4 = P.LinkedHashMap_LinkedHashMap$_literal([C.Type_kA7, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_label, C.Declaration_0g2], null, null), C.Type_ON8, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_msg, C.Declaration_gc6], null, null), C.Type_ql8, C.Map_empty, C.Type_dRp, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_agR, C.Symbol_isolateChanged, C.Declaration_e3c], null, null), C.Type_O5a, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_cls, C.Declaration_okX, C.Symbol_instances, C.Declaration_qr9, C.Symbol_retainedBytes, C.Declaration_CIB], null, null), C.Type_2jN, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_code, C.Declaration_AgZ, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_Aym, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_code, C.Declaration_woc], null, null), C.Type_cop, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_expand, C.Declaration_yXb0, C.Symbol_expandChanged, C.Declaration_Dbk, C.Symbol_expanded, C.Declaration_RQo], null, null), C.Type_Npb, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_eea], null, null), C.Type_8eb, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_callback, C.Declaration_IF7, C.Symbol_lineMode, C.Declaration_ww8, C.Symbol_results, C.Declaration_ggw, C.Symbol_text, C.Declaration_ZfX], null, null), C.Type_p2P, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_busy, C.Declaration_izV, C.Symbol_callback, C.Declaration_yXb, C.Symbol_expr, C.Declaration_gLQ, C.Symbol_label, C.Declaration_0g2, C.Symbol_result, C.Declaration_2No], null, null), C.Type_ohY, C.Map_empty, C.Type_4IJ, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_field, C.Declaration_iyl], null, null), C.Type_7g3, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_flag, C.Declaration_6YB], null, null), C.Type_f1j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_flagList, C.Declaration_wE9], null, null), C.Type_wgH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_hasClass, C.Declaration_X8B, C.Symbol_hasParent, C.Declaration_0qV, C.Symbol_isDart, C.Declaration_o7e, C.Symbol_qualified, C.Declaration_e24, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_bDN, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_function, C.Declaration_y9n, C.Symbol_functionChanged, C.Declaration_Chj, C.Symbol_kind, C.Declaration_Xdi, C.Symbol_qualifiedName, C.Declaration_i3y], null, null), C.Type_SoB, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_fragmentation, C.Declaration_0Y4, C.Symbol_fragmentationChanged, C.Declaration_ivD, C.Symbol_status, C.Declaration_8sn], null, null), C.Type_LV6, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_classTable, C.Declaration_gsm, C.Symbol_isolate, C.Declaration_agR, C.Symbol_lastAccumulatorReset, C.Declaration_vA1, C.Symbol_lastServiceGC, C.Declaration_mPk, C.Symbol_profile, C.Declaration_EkK, C.Symbol_profileChanged, C.Declaration_j3g], null, null), C.Type_EVD, C.Map_empty, C.Type_gqS, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_instance, C.Declaration_o7L, C.Symbol_path, C.Declaration_cMb, C.Symbol_retainedBytes, C.Declaration_CIB], null, null), C.Type_uIL, C.Map_empty, C.Type_L9j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_connection, C.Declaration_yDj], null, null), C.Type_yvP, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_i7j, C.Map_empty, C.Type_M6L, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_httpServer, C.Declaration_BSX], null, null), C.Type_8KD, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_qMZ, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_small, C.Declaration_pPA], null, null), C.Type_AHF, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_process, C.Declaration_a13], null, null), C.Type_IuH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_mWg, C.Map_empty, C.Type_8cK, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_file, C.Declaration_Ix1], null, null), C.Type_JmU, C.Map_empty, C.Type_4m4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_B8J, C.Map_empty, C.Type_61d, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_socket, C.Declaration_Iiu], null, null), C.Type_TEn, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_io, C.Declaration_bh9], null, null), C.Type_gg4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_list, C.Declaration_BKW], null, null), C.Type_MUU, C.Map_empty, C.Type_AyI, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_webSocket, C.Declaration_mT8], null, null), C.Type_cOY, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_displayCutoff, C.Declaration_CR6, C.Symbol_hideTagsChecked, C.Declaration_a1A, C.Symbol_profile, C.Declaration_EkK, C.Symbol_profileChanged, C.Declaration_j3g, C.Symbol_refreshTime, C.Declaration_ijl, C.Symbol_sampleCount, C.Declaration_ac8, C.Symbol_sampleDepth, C.Declaration_2AE, C.Symbol_sampleRate, C.Declaration_3VL, C.Symbol_tagSelector, C.Declaration_Q0F, C.Symbol_tagSelectorChanged, C.Declaration_ECn, C.Symbol_timeSpan, C.Declaration_dIf], null, null), C.Type_ES1, C.Map_empty, C.Type_wT1, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_counters, C.Declaration_2Qn, C.Symbol_countersChanged, C.Declaration_cJC], null, null), C.Type_ECh, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_aAD, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_8Gl, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_iL9, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_ZKG, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj], null, null), C.Type_Kyy, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_map, C.Declaration_wzu, C.Symbol_mapAsString, C.Declaration_Qx4, C.Symbol_mapChanged, C.Declaration_iLh], null, null), C.Type_mpV, C.Map_empty, C.Type_qph, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_library, C.Declaration_6ts], null, null), C.Type_JFX, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_cls, C.Declaration_qrv, C.Symbol_last, C.Declaration_06U], null, null), C.Type_wsa, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_isolate, C.Declaration_voj, C.Symbol_isolateChanged, C.Declaration_e3c, C.Symbol_last, C.Declaration_06U], null, null), C.Type_s2l, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_last, C.Declaration_06U, C.Symbol_library, C.Declaration_6ts], null, null), C.Type_nV5, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_pad, C.Declaration_EsU], null, null), C.Type_9ur, C.Map_empty, C.Type_KMd, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_anchor, C.Declaration_suy, C.Symbol_last, C.Declaration_06U, C.Symbol_link, C.Declaration_ibz], null, null), C.Type_AD4, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_anchor, C.Declaration_suy, C.Symbol_link, C.Declaration_ibz], null, null), C.Type_Sxn, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, C.Declaration_dw1, C.Symbol_callback, C.Declaration_yXb, C.Symbol_label, C.Declaration_0g2], null, null), C.Type_C7R, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_last, C.Declaration_06U], null, null), C.Type_YgH, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_devtools, C.Declaration_c4R], null, null), C.Type_sRP, C.Map_empty, C.Type_a1Y, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_endLine, C.Declaration_ZcJ, C.Symbol_endPos, C.Declaration_ACG, C.Symbol_endPosChanged, C.Declaration_QAa, C.Symbol_lines, C.Declaration_WfA, C.Symbol_pos, C.Declaration_i3t, C.Symbol_posChanged, C.Declaration_owq, C.Symbol_script, C.Declaration_yx3, C.Symbol_scriptChanged, C.Declaration_ixB, C.Symbol_startLine, C.Declaration_k6K], null, null), C.Type_wBh, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_pos, C.Declaration_i3t, C.Symbol_posChanged, C.Declaration_owq], null, null), C.Type_0e9, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_script, C.Declaration_yx3], null, null), C.Type_FKd, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_4eA], null, null), C.Type_y1j, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_exception, C.Declaration_v0l], null, null), C.Type_UJT, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_internal, C.Declaration_XBb, C.Symbol_ref, C.Declaration_e3c0, C.Symbol_refChanged, C.Declaration_MJ5], null, null), C.Type_Mu6, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_object, C.Declaration_HtW, C.Symbol_objectChanged, C.Declaration_4up], null, null), C.Type_kuc, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_checked, C.Declaration_siO, C.Symbol_checkedText, C.Declaration_cdS, C.Symbol_uncheckedText, C.Declaration_IRg], null, null), C.Type_Jcu, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_frame, C.Declaration_65l], null, null), C.Type_nVV, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_trace, C.Declaration_ssf], null, null), C.Type_Eue, C.Map_empty, C.Type_E0k, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_error, C.Declaration_0, C.Symbol_vm, C.Declaration_Qi2], null, null)], null, null);
+    t5 = O.GeneratedSymbolConverterService$(new O.StaticConfiguration(t1, t2, t3, t4, C.Map_empty, P.LinkedHashMap_LinkedHashMap$_literal([C.Symbol_active, "active", C.Symbol_address, "address", C.Symbol_anchor, "anchor", C.Symbol_assertsEnabled, "assertsEnabled", C.Symbol_bpt, "bpt", C.Symbol_busy, "busy", C.Symbol_buttonClick, "buttonClick", C.Symbol_bytes, "bytes", C.Symbol_callback, "callback", C.Symbol_capacity, "capacity", C.Symbol_change, "change", C.Symbol_changeSort, "changeSort", C.Symbol_checked, "checked", C.Symbol_checkedText, "checkedText", C.Symbol_classTable, "classTable", C.Symbol_classes, "classes", C.Symbol_closing, "closing", C.Symbol_cls, "cls", C.Symbol_code, "code", C.Symbol_coloring, "coloring", C.Symbol_columns, "columns", C.Symbol_connection, "connection", C.Symbol_counters, "counters", C.Symbol_countersChanged, "countersChanged", C.Symbol_current, "current", C.Symbol_descriptor, "descriptor", C.Symbol_descriptors, "descriptors", C.Symbol_devtools, "devtools", C.Symbol_displayCutoff, "displayCutoff", C.Symbol_doAction, "doAction", C.Symbol_element, "element", C.Symbol_endLine, "endLine", C.Symbol_endPos, "endPos", C.Symbol_endPosChanged, "endPosChanged", C.Symbol_entry, "entry", C.Symbol_error, "error", C.Symbol_eval, "eval", C.Symbol_evalNow, "evalNow", C.Symbol_exception, "exception", C.Symbol_expand, "expand", C.Symbol_expandChanged, "expandChanged", C.Symbol_expanded, "expanded", C.Symbol_expander, "expander", C.Symbol_expanderStyle, "expanderStyle", C.Symbol_expr, "expr", C.Symbol_external, "external", C.Symbol_fd, "fd", C.Symbol_field, "field", C.Symbol_fields, "fields", C.Symbol_file, "file", C.Symbol_firstTokenPos, "firstTokenPos", C.Symbol_flag, "flag", C.Symbol_flagList, "flagList", C.Symbol_formatSize, "formatSize", C.Symbol_formatTime, "formatTime", C.Symbol_formattedAddress, "formattedAddress", C.Symbol_formattedAverage, "formattedAverage", C.Symbol_formattedCollections, "formattedCollections", C.Symbol_formattedDeoptId, "formattedDeoptId", C.Symbol_formattedExclusive, "formattedExclusive", C.Symbol_formattedExclusiveTicks, "formattedExclusiveTicks", C.Symbol_formattedInclusive, "formattedInclusive", C.Symbol_formattedInclusiveTicks, "formattedInclusiveTicks", C.Symbol_formattedLine, "formattedLine", C.Symbol_formattedTotalCollectionTime, "formattedTotalCollectionTime", C.Symbol_fragmentation, "fragmentation", C.Symbol_fragmentationChanged, "fragmentationChanged", C.Symbol_frame, "frame", C.Symbol_function, "function", C.Symbol_functionChanged, "functionChanged", C.Symbol_functions, "functions", C.Symbol_getColumnLabel, "getColumnLabel", C.Symbol_goto, "goto", C.Symbol_gotoLink, "gotoLink", C.Symbol_hasClass, "hasClass", C.Symbol_hasDescriptors, "hasDescriptors", C.Symbol_hasDisassembly, "hasDisassembly", C.Symbol_hasNoAllocations, "hasNoAllocations", C.Symbol_hasParent, "hasParent", C.Symbol_hashLinkWorkaround, "hashLinkWorkaround", C.Symbol_hideTagsChecked, "hideTagsChecked", C.Symbol_hits, "hits", C.Symbol_hoverText, "hoverText", C.Symbol_httpServer, "httpServer", C.Symbol_human, "human", C.Symbol_idle, "idle", C.Symbol_imp, "imp", C.Symbol_imports, "imports", C.Symbol_instance, "instance", C.Symbol_instances, "instances", C.Symbol_instruction, "instruction", C.Symbol_instructions, "instructions", C.Symbol_interface, "interface", C.Symbol_interfaces, "interfaces", C.Symbol_internal, "internal", C.Symbol_io, "io", C.Symbol_isAbstract, "isAbstract", C.Symbol_isBool, "isBool", C.Symbol_isComment, "isComment", C.Symbol_isDart, "isDart", C.Symbol_isDartCode, "isDartCode", C.Symbol_isDouble, "isDouble", C.Symbol_isEmpty, "isEmpty", C.Symbol_isError, "isError", C.Symbol_isInstance, "isInstance", C.Symbol_isInt, "isInt", C.Symbol_isList, "isList", C.Symbol_isNotEmpty, "isNotEmpty", C.Symbol_isNull, "isNull", C.Symbol_isOptimized, "isOptimized", C.Symbol_isPatch, "isPatch", C.Symbol_isPipe, "isPipe", C.Symbol_isString, "isString", C.Symbol_isType, "isType", C.Symbol_isUnexpected, "isUnexpected", C.Symbol_isolate, "isolate", C.Symbol_isolateChanged, "isolateChanged", C.Symbol_isolates, "isolates", C.Symbol_jumpTarget, "jumpTarget", C.Symbol_kind, "kind", C.Symbol_label, "label", C.Symbol_last, "last", C.Symbol_lastAccumulatorReset, "lastAccumulatorReset", C.Symbol_lastServiceGC, "lastServiceGC", C.Symbol_lastTokenPos, "lastTokenPos", C.Symbol_lastUpdate, "lastUpdate", C.Symbol_length, "length", C.Symbol_lib, "lib", C.Symbol_libraries, "libraries", C.Symbol_library, "library", C.Symbol_line, "line", C.Symbol_lineMode, "lineMode", C.Symbol_lineNumber, "lineNumber", C.Symbol_lineNumbers, "lineNumbers", C.Symbol_lines, "lines", C.Symbol_link, "link", C.Symbol_list, "list", C.Symbol_listening, "listening", C.Symbol_loading, "loading", C.Symbol_localAddress, "localAddress", C.Symbol_localPort, "localPort", C.Symbol_mainPort, "mainPort", C.Symbol_map, "map", C.Symbol_mapAsString, "mapAsString", C.Symbol_mapChanged, "mapChanged", C.Symbol_message, "message", C.Symbol_mouseOut, "mouseOut", C.Symbol_mouseOver, "mouseOver", C.Symbol_msg, "msg", C.Symbol_name, "name", C.Symbol_nameIsEmpty, "nameIsEmpty", C.Symbol_newSpace, "newSpace", C.Symbol_object, "object", C.Symbol_objectChanged, "objectChanged", C.Symbol_objectPool, "objectPool", C.Symbol_oldSpace, "oldSpace", C.Symbol_pad, "pad", C.Symbol_padding, "padding", C.Symbol_path, "path", C.Symbol_pause, "pause", C.Symbol_pauseEvent, "pauseEvent", C.Symbol_pid, "pid", C.Symbol_pos, "pos", C.Symbol_posChanged, "posChanged", C.Symbol_process, "process", C.Symbol_profile, "profile", C.Symbol_profileChanged, "profileChanged", C.Symbol_protocol, "protocol", C.Symbol_qualified, "qualified", C.Symbol_qualifiedName, "qualifiedName", C.Symbol_reachable, "reachable", C.Symbol_readClosed, "readClosed", C.Symbol_ref, "ref", C.Symbol_refChanged, "refChanged", C.Symbol_refresh, "refresh", C.Symbol_refreshCoverage, "refreshCoverage", C.Symbol_refreshGC, "refreshGC", C.Symbol_refreshTime, "refreshTime", C.Symbol_relativeLink, "relativeLink", C.Symbol_remoteAddress, "remoteAddress", C.Symbol_remotePort, "remotePort", C.Symbol_resetAccumulator, "resetAccumulator", C.Symbol_response, "response", C.Symbol_result, "result", C.Symbol_results, "results", C.Symbol_resume, "resume", C.Symbol_retainedBytes, "retainedBytes", C.Symbol_retainedSize, "retainedSize", C.Symbol_retainingPath, "retainingPath", C.Symbol_rootLib, "rootLib", C.Symbol_row, "row", C.Symbol_rows, "rows", C.Symbol_running, "running", C.Symbol_sampleCount, "sampleCount", C.Symbol_sampleDepth, "sampleDepth", C.Symbol_sampleRate, "sampleRate", C.Symbol_script, "script", C.Symbol_scriptChanged, "scriptChanged", C.Symbol_scripts, "scripts", C.Symbol_selectExpr, "selectExpr", C.Symbol_serviceType, "serviceType", C.Symbol_small, "small", C.Symbol_socket, "socket", C.Symbol_socketOwner, "socketOwner", C.Symbol_startLine, "startLine", C.Symbol_status, "status", C.Symbol_styleForHits, "styleForHits", C.Symbol_subClasses, "subClasses", C.Symbol_subclass, "subclass", C.Symbol_superClass, "superClass", C.Symbol_tagSelector, "tagSelector", C.Symbol_tagSelectorChanged, "tagSelectorChanged", C.Symbol_text, "text", C.Symbol_timeSpan, "timeSpan", C.Symbol_tipExclusive, "tipExclusive", C.Symbol_tipKind, "tipKind", C.Symbol_tipParent, "tipParent", C.Symbol_tipTicks, "tipTicks", C.Symbol_tipTime, "tipTime", C.Symbol_toggleExpand, "toggleExpand", C.Symbol_toggleExpanded, "toggleExpanded", C.Symbol_tokenPos, "tokenPos", C.Symbol_topFrame, "topFrame", C.Symbol_trace, "trace", C.Symbol_tree, "tree", C.Symbol_typeChecksEnabled, "typeChecksEnabled", C.Symbol_uncheckedText, "uncheckedText", C.Symbol_updateLineMode, "updateLineMode", C.Symbol_uptime, "uptime", C.Symbol_url, "url", C.Symbol_used, "used", C.Symbol_v, "v", C.Symbol_variable, "variable", C.Symbol_variables, "variables", C.Symbol_version, "version", C.Symbol_vm, "vm", C.Symbol_vmName, "vmName", C.Symbol_webSocket, "webSocket", C.Symbol_writeClosed, "writeClosed"], null, null), false));
     $.objectAccessor = new O.GeneratedObjectAccessorService(t1, t2, C.Map_empty);
     $.typeInspector = new O.GeneratedTypeInspectorService(t3, t4, false);
     $.symbolConverter = t5;
-    $.initializers = [new E.main_closure337(), new E.main_closure338(), new E.main_closure339(), new E.main_closure340(), new E.main_closure341(), new E.main_closure342(), new E.main_closure343(), new E.main_closure344(), new E.main_closure345(), new E.main_closure346(), new E.main_closure347(), new E.main_closure348(), new E.main_closure349(), new E.main_closure350(), new E.main_closure351(), new E.main_closure352(), new E.main_closure353(), new E.main_closure354(), new E.main_closure355(), new E.main_closure356(), new E.main_closure357(), new E.main_closure358(), new E.main_closure359(), new E.main_closure360(), new E.main_closure361(), new E.main_closure362(), new E.main_closure363(), new E.main_closure364(), new E.main_closure365(), new E.main_closure366(), new E.main_closure367(), new E.main_closure368(), new E.main_closure369(), new E.main_closure370(), new E.main_closure371(), new E.main_closure372(), new E.main_closure373(), new E.main_closure374(), new E.main_closure375(), new E.main_closure376(), new E.main_closure377(), new E.main_closure378(), new E.main_closure379(), new E.main_closure380(), new E.main_closure381(), new E.main_closure382(), new E.main_closure383(), new E.main_closure384(), new E.main_closure385(), new E.main_closure386(), new E.main_closure387(), new E.main_closure388(), new E.main_closure389(), new E.main_closure390(), new E.main_closure391(), new E.main_closure392(), new E.main_closure393(), new E.main_closure394(), new E.main_closure395(), new E.main_closure396(), new E.main_closure397(), new E.main_closure398(), new E.main_closure399(), new E.main_closure400(), new E.main_closure401(), new E.main_closure402(), new E.main_closure403(), new E.main_closure404(), new E.main_closure405(), new E.main_closure406(), new E.main_closure407(), new E.main_closure408(), new E.main_closure409(), new E.main_closure410()];
+    $.initializers = [new E.main_closure340(), new E.main_closure341(), new E.main_closure342(), new E.main_closure343(), new E.main_closure344(), new E.main_closure345(), new E.main_closure346(), new E.main_closure347(), new E.main_closure348(), new E.main_closure349(), new E.main_closure350(), new E.main_closure351(), new E.main_closure352(), new E.main_closure353(), new E.main_closure354(), new E.main_closure355(), new E.main_closure356(), new E.main_closure357(), new E.main_closure358(), new E.main_closure359(), new E.main_closure360(), new E.main_closure361(), new E.main_closure362(), new E.main_closure363(), new E.main_closure364(), new E.main_closure365(), new E.main_closure366(), new E.main_closure367(), new E.main_closure368(), new E.main_closure369(), new E.main_closure370(), new E.main_closure371(), new E.main_closure372(), new E.main_closure373(), new E.main_closure374(), new E.main_closure375(), new E.main_closure376(), new E.main_closure377(), new E.main_closure378(), new E.main_closure379(), new E.main_closure380(), new E.main_closure381(), new E.main_closure382(), new E.main_closure383(), new E.main_closure384(), new E.main_closure385(), new E.main_closure386(), new E.main_closure387(), new E.main_closure388(), new E.main_closure389(), new E.main_closure390(), new E.main_closure391(), new E.main_closure392(), new E.main_closure393(), new E.main_closure394(), new E.main_closure395(), new E.main_closure396(), new E.main_closure397(), new E.main_closure398(), new E.main_closure399(), new E.main_closure400(), new E.main_closure401(), new E.main_closure402(), new E.main_closure403(), new E.main_closure404(), new E.main_closure405(), new E.main_closure406(), new E.main_closure407(), new E.main_closure408(), new E.main_closure409(), new E.main_closure410(), new E.main_closure411(), new E.main_closure412(), new E.main_closure413()];
     $.deployMode = true;
     F.main();
   }, "call$0", "main0$closure", 0, 0, 18],
@@ -5531,7 +5531,7 @@ var $$ = {};
   main_closure88: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$instances();
+      return J.get$instances$x(o);
     },
     $isFunction: true
   },
@@ -6098,1691 +6098,1712 @@ var $$ = {};
   main_closure169: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$readClosed();
+      return J.get$reachable$x(o);
     },
     $isFunction: true
   },
   main_closure170: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$ref$x(o);
+      return o.get$readClosed();
     },
     $isFunction: true
   },
   main_closure171: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$refChanged$x(o);
+      return J.get$ref$x(o);
     },
     $isFunction: true
   },
   main_closure172: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$refresh$x(o);
+      return J.get$refChanged$x(o);
     },
     $isFunction: true
   },
   main_closure173: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$refreshCoverage$x(o);
+      return J.get$refresh$x(o);
     },
     $isFunction: true
   },
   main_closure174: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$refreshGC$x(o);
+      return J.get$refreshCoverage$x(o);
     },
     $isFunction: true
   },
   main_closure175: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$refreshTime$x(o);
+      return J.get$refreshGC$x(o);
     },
     $isFunction: true
   },
   main_closure176: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$relativeLink();
+      return J.get$refreshTime$x(o);
     },
     $isFunction: true
   },
   main_closure177: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$remoteAddress();
+      return o.get$relativeLink();
     },
     $isFunction: true
   },
   main_closure178: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$remotePort();
+      return o.get$remoteAddress();
     },
     $isFunction: true
   },
   main_closure179: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$resetAccumulator$x(o);
+      return o.get$remotePort();
     },
     $isFunction: true
   },
   main_closure180: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$response$x(o);
+      return J.get$resetAccumulator$x(o);
     },
     $isFunction: true
   },
   main_closure181: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$result$x(o);
+      return J.get$response$x(o);
     },
     $isFunction: true
   },
   main_closure182: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$results$x(o);
+      return J.get$result$x(o);
     },
     $isFunction: true
   },
   main_closure183: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$resume$x(o);
+      return J.get$results$x(o);
     },
     $isFunction: true
   },
   main_closure184: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$retainedBytes$x(o);
+      return J.get$resume$x(o);
     },
     $isFunction: true
   },
   main_closure185: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$retainedSize$x(o);
+      return J.get$retainedBytes$x(o);
     },
     $isFunction: true
   },
   main_closure186: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$retainingPath$x(o);
+      return J.get$retainedSize$x(o);
     },
     $isFunction: true
   },
   main_closure187: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$rootLib();
+      return J.get$retainingPath$x(o);
     },
     $isFunction: true
   },
   main_closure188: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$row();
+      return o.get$rootLib();
     },
     $isFunction: true
   },
   main_closure189: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$rows$x(o);
+      return o.get$row();
     },
     $isFunction: true
   },
   main_closure190: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$running();
+      return J.get$rows$x(o);
     },
     $isFunction: true
   },
   main_closure191: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$sampleCount$x(o);
+      return o.get$running();
     },
     $isFunction: true
   },
   main_closure192: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$sampleDepth$x(o);
+      return J.get$sampleCount$x(o);
     },
     $isFunction: true
   },
   main_closure193: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$sampleRate$x(o);
+      return J.get$sampleDepth$x(o);
     },
     $isFunction: true
   },
   main_closure194: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$script$x(o);
+      return J.get$sampleRate$x(o);
     },
     $isFunction: true
   },
   main_closure195: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$scriptChanged$x(o);
+      return J.get$script$x(o);
     },
     $isFunction: true
   },
   main_closure196: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$scripts();
+      return J.get$scriptChanged$x(o);
     },
     $isFunction: true
   },
   main_closure197: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$selectExpr$x(o);
+      return o.get$scripts();
     },
     $isFunction: true
   },
   main_closure198: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$serviceType();
+      return J.get$selectExpr$x(o);
     },
     $isFunction: true
   },
   main_closure199: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$small$x(o);
+      return o.get$serviceType();
     },
     $isFunction: true
   },
   main_closure200: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$socket$x(o);
+      return J.get$small$x(o);
     },
     $isFunction: true
   },
   main_closure201: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$socketOwner();
+      return J.get$socket$x(o);
     },
     $isFunction: true
   },
   main_closure202: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$startLine$x(o);
+      return o.get$socketOwner();
     },
     $isFunction: true
   },
   main_closure203: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$status$x(o);
+      return J.get$startLine$x(o);
     },
     $isFunction: true
   },
   main_closure204: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$styleForHits$x(o);
+      return J.get$status$x(o);
     },
     $isFunction: true
   },
   main_closure205: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$subClasses();
+      return J.get$styleForHits$x(o);
     },
     $isFunction: true
   },
   main_closure206: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$subclass();
+      return o.get$subClasses();
     },
     $isFunction: true
   },
   main_closure207: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$superClass();
+      return o.get$subclass();
     },
     $isFunction: true
   },
   main_closure208: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$tagSelector$x(o);
+      return o.get$superClass();
     },
     $isFunction: true
   },
   main_closure209: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$tagSelectorChanged$x(o);
+      return J.get$tagSelector$x(o);
     },
     $isFunction: true
   },
   main_closure210: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$text$x(o);
+      return J.get$tagSelectorChanged$x(o);
     },
     $isFunction: true
   },
   main_closure211: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$timeSpan$x(o);
+      return J.get$text$x(o);
     },
     $isFunction: true
   },
   main_closure212: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tipExclusive();
+      return J.get$timeSpan$x(o);
     },
     $isFunction: true
   },
   main_closure213: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tipKind();
+      return o.get$tipExclusive();
     },
     $isFunction: true
   },
   main_closure214: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tipParent();
+      return o.get$tipKind();
     },
     $isFunction: true
   },
   main_closure215: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tipTicks();
+      return o.get$tipParent();
     },
     $isFunction: true
   },
   main_closure216: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tipTime();
+      return o.get$tipTicks();
     },
     $isFunction: true
   },
   main_closure217: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$toggleExpand$x(o);
+      return o.get$tipTime();
     },
     $isFunction: true
   },
   main_closure218: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$toggleExpanded$x(o);
+      return J.get$toggleExpand$x(o);
     },
     $isFunction: true
   },
   main_closure219: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$tokenPos();
+      return J.get$toggleExpanded$x(o);
     },
     $isFunction: true
   },
   main_closure220: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$topFrame();
+      return o.get$tokenPos();
     },
     $isFunction: true
   },
   main_closure221: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$trace$x(o);
+      return o.get$topFrame();
     },
     $isFunction: true
   },
   main_closure222: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$tree$x(o);
+      return J.get$trace$x(o);
     },
     $isFunction: true
   },
   main_closure223: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$typeChecksEnabled();
+      return J.get$tree$x(o);
     },
     $isFunction: true
   },
   main_closure224: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$uncheckedText$x(o);
+      return o.get$typeChecksEnabled();
     },
     $isFunction: true
   },
   main_closure225: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$updateLineMode$x(o);
+      return J.get$uncheckedText$x(o);
     },
     $isFunction: true
   },
   main_closure226: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$uptime();
+      return J.get$updateLineMode$x(o);
     },
     $isFunction: true
   },
   main_closure227: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$url$x(o);
+      return o.get$uptime();
     },
     $isFunction: true
   },
   main_closure228: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$used();
+      return J.get$url$x(o);
     },
     $isFunction: true
   },
   main_closure229: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$v();
+      return o.get$used();
     },
     $isFunction: true
   },
   main_closure230: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$variable();
+      return o.get$v();
     },
     $isFunction: true
   },
   main_closure231: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$variables();
+      return o.get$variable();
     },
     $isFunction: true
   },
   main_closure232: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$version$x(o);
+      return o.get$variables();
     },
     $isFunction: true
   },
   main_closure233: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$vm$x(o);
+      return J.get$version$x(o);
     },
     $isFunction: true
   },
   main_closure234: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$vmName();
+      return J.get$vm$x(o);
     },
     $isFunction: true
   },
   main_closure235: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return J.get$webSocket$x(o);
+      return o.get$vmName();
     },
     $isFunction: true
   },
   main_closure236: {
     "^": "Closure:13;",
     call$1: function(o) {
-      return o.get$writeClosed();
+      return J.get$webSocket$x(o);
     },
     $isFunction: true
   },
   main_closure237: {
-    "^": "Closure:75;",
-    call$2: function(o, v) {
-      J.set$active$x(o, v);
+    "^": "Closure:13;",
+    call$1: function(o) {
+      return o.get$writeClosed();
     },
     $isFunction: true
   },
   main_closure238: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$anchor$x(o, v);
+      J.set$active$x(o, v);
     },
     $isFunction: true
   },
   main_closure239: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$busy$x(o, v);
+      J.set$anchor$x(o, v);
     },
     $isFunction: true
   },
   main_closure240: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$callback$x(o, v);
+      J.set$busy$x(o, v);
     },
     $isFunction: true
   },
   main_closure241: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$checked$x(o, v);
+      J.set$callback$x(o, v);
     },
     $isFunction: true
   },
   main_closure242: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$checkedText$x(o, v);
+      J.set$checked$x(o, v);
     },
     $isFunction: true
   },
   main_closure243: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$classTable$x(o, v);
+      J.set$checkedText$x(o, v);
     },
     $isFunction: true
   },
   main_closure244: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$cls$x(o, v);
+      J.set$classTable$x(o, v);
     },
     $isFunction: true
   },
   main_closure245: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$code$x(o, v);
+      J.set$cls$x(o, v);
     },
     $isFunction: true
   },
   main_closure246: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$connection$x(o, v);
+      J.set$code$x(o, v);
     },
     $isFunction: true
   },
   main_closure247: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$counters$x(o, v);
+      J.set$connection$x(o, v);
     },
     $isFunction: true
   },
   main_closure248: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$devtools$x(o, v);
+      J.set$counters$x(o, v);
     },
     $isFunction: true
   },
   main_closure249: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$displayCutoff$x(o, v);
+      J.set$devtools$x(o, v);
     },
     $isFunction: true
   },
   main_closure250: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$endLine$x(o, v);
+      J.set$displayCutoff$x(o, v);
     },
     $isFunction: true
   },
   main_closure251: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$endPos$x(o, v);
+      J.set$endLine$x(o, v);
     },
     $isFunction: true
   },
   main_closure252: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$entry(v);
+      J.set$endPos$x(o, v);
     },
     $isFunction: true
   },
   main_closure253: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$error$x(o, v);
+      o.set$entry(v);
     },
     $isFunction: true
   },
   main_closure254: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$eval$x(o, v);
+      J.set$error$x(o, v);
     },
     $isFunction: true
   },
   main_closure255: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$exception$x(o, v);
+      J.set$eval$x(o, v);
     },
     $isFunction: true
   },
   main_closure256: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$expand$ax(o, v);
+      J.set$exception$x(o, v);
     },
     $isFunction: true
   },
   main_closure257: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$expanded$x(o, v);
+      J.set$expand$ax(o, v);
     },
     $isFunction: true
   },
   main_closure258: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$expr$x(o, v);
+      J.set$expanded$x(o, v);
     },
     $isFunction: true
   },
   main_closure259: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$field$x(o, v);
+      J.set$expr$x(o, v);
     },
     $isFunction: true
   },
   main_closure260: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$file$x(o, v);
+      J.set$field$x(o, v);
     },
     $isFunction: true
   },
   main_closure261: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$firstTokenPos(v);
+      J.set$file$x(o, v);
     },
     $isFunction: true
   },
   main_closure262: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$flag$x(o, v);
+      o.set$firstTokenPos(v);
     },
     $isFunction: true
   },
   main_closure263: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$flagList$x(o, v);
+      J.set$flag$x(o, v);
     },
     $isFunction: true
   },
   main_closure264: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$fragmentation$x(o, v);
+      J.set$flagList$x(o, v);
     },
     $isFunction: true
   },
   main_closure265: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$frame$x(o, v);
+      J.set$fragmentation$x(o, v);
     },
     $isFunction: true
   },
   main_closure266: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$$function$x(o, v);
+      J.set$frame$x(o, v);
     },
     $isFunction: true
   },
   main_closure267: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$hasClass$x(o, v);
+      J.set$$function$x(o, v);
     },
     $isFunction: true
   },
   main_closure268: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$hasParent$x(o, v);
+      J.set$hasClass$x(o, v);
     },
     $isFunction: true
   },
   main_closure269: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$hashLinkWorkaround$x(o, v);
+      J.set$hasParent$x(o, v);
     },
     $isFunction: true
   },
   main_closure270: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$hideTagsChecked$x(o, v);
+      J.set$hashLinkWorkaround$x(o, v);
     },
     $isFunction: true
   },
   main_closure271: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$httpServer$x(o, v);
+      J.set$hideTagsChecked$x(o, v);
     },
     $isFunction: true
   },
   main_closure272: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$imp(v);
+      J.set$httpServer$x(o, v);
     },
     $isFunction: true
   },
   main_closure273: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$instance$x(o, v);
+      o.set$imp(v);
     },
     $isFunction: true
   },
   main_closure274: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$$interface(v);
+      J.set$instance$x(o, v);
     },
     $isFunction: true
   },
   main_closure275: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$internal$x(o, v);
+      J.set$instances$x(o, v);
     },
     $isFunction: true
   },
   main_closure276: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$io$x(o, v);
+      o.set$$interface(v);
     },
     $isFunction: true
   },
   main_closure277: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$isDart$x(o, v);
+      J.set$internal$x(o, v);
     },
     $isFunction: true
   },
   main_closure278: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$isolate$x(o, v);
+      J.set$io$x(o, v);
     },
     $isFunction: true
   },
   main_closure279: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$kind$x(o, v);
+      J.set$isDart$x(o, v);
     },
     $isFunction: true
   },
   main_closure280: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$label$x(o, v);
+      J.set$isolate$x(o, v);
     },
     $isFunction: true
   },
   main_closure281: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$last$ax(o, v);
+      J.set$kind$x(o, v);
     },
     $isFunction: true
   },
   main_closure282: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$lastAccumulatorReset$x(o, v);
+      J.set$label$x(o, v);
     },
     $isFunction: true
   },
   main_closure283: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$lastServiceGC$x(o, v);
+      J.set$last$ax(o, v);
     },
     $isFunction: true
   },
   main_closure284: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$lastTokenPos(v);
+      J.set$lastAccumulatorReset$x(o, v);
     },
     $isFunction: true
   },
   main_closure285: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$lib(v);
+      J.set$lastServiceGC$x(o, v);
     },
     $isFunction: true
   },
   main_closure286: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$library$x(o, v);
+      o.set$lastTokenPos(v);
     },
     $isFunction: true
   },
   main_closure287: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$lineMode$x(o, v);
+      o.set$lib(v);
     },
     $isFunction: true
   },
   main_closure288: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$lines$x(o, v);
+      J.set$library$x(o, v);
     },
     $isFunction: true
   },
   main_closure289: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$link$x(o, v);
+      J.set$lineMode$x(o, v);
     },
     $isFunction: true
   },
   main_closure290: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$list$x(o, v);
+      J.set$lines$x(o, v);
     },
     $isFunction: true
   },
   main_closure291: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$map$ax(o, v);
+      J.set$link$x(o, v);
     },
     $isFunction: true
   },
   main_closure292: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$mapAsString$x(o, v);
+      J.set$list$x(o, v);
     },
     $isFunction: true
   },
   main_closure293: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$msg$x(o, v);
+      J.set$map$ax(o, v);
     },
     $isFunction: true
   },
   main_closure294: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$name$x(o, v);
+      J.set$mapAsString$x(o, v);
     },
     $isFunction: true
   },
   main_closure295: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$object$x(o, v);
+      J.set$msg$x(o, v);
     },
     $isFunction: true
   },
   main_closure296: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$objectPool(v);
+      J.set$name$x(o, v);
     },
     $isFunction: true
   },
   main_closure297: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$pad$x(o, v);
+      J.set$object$x(o, v);
     },
     $isFunction: true
   },
   main_closure298: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$path$x(o, v);
+      o.set$objectPool(v);
     },
     $isFunction: true
   },
   main_closure299: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$pause$x(o, v);
+      J.set$pad$x(o, v);
     },
     $isFunction: true
   },
   main_closure300: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$pos$x(o, v);
+      J.set$path$x(o, v);
     },
     $isFunction: true
   },
   main_closure301: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$process$x(o, v);
+      J.set$pause$x(o, v);
     },
     $isFunction: true
   },
   main_closure302: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$profile$x(o, v);
+      J.set$pos$x(o, v);
     },
     $isFunction: true
   },
   main_closure303: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$qualified$x(o, v);
+      J.set$process$x(o, v);
     },
     $isFunction: true
   },
   main_closure304: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$qualifiedName$x(o, v);
+      J.set$profile$x(o, v);
     },
     $isFunction: true
   },
   main_closure305: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$ref$x(o, v);
+      J.set$qualified$x(o, v);
     },
     $isFunction: true
   },
   main_closure306: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$refresh$x(o, v);
+      J.set$qualifiedName$x(o, v);
     },
     $isFunction: true
   },
   main_closure307: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$refreshCoverage$x(o, v);
+      J.set$reachable$x(o, v);
     },
     $isFunction: true
   },
   main_closure308: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$refreshGC$x(o, v);
+      J.set$ref$x(o, v);
     },
     $isFunction: true
   },
   main_closure309: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$refreshTime$x(o, v);
+      J.set$refresh$x(o, v);
     },
     $isFunction: true
   },
   main_closure310: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$resetAccumulator$x(o, v);
+      J.set$refreshCoverage$x(o, v);
     },
     $isFunction: true
   },
   main_closure311: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$result$x(o, v);
+      J.set$refreshGC$x(o, v);
     },
     $isFunction: true
   },
   main_closure312: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$results$x(o, v);
+      J.set$refreshTime$x(o, v);
     },
     $isFunction: true
   },
   main_closure313: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$resume$x(o, v);
+      J.set$resetAccumulator$x(o, v);
     },
     $isFunction: true
   },
   main_closure314: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$retainedBytes$x(o, v);
+      J.set$result$x(o, v);
     },
     $isFunction: true
   },
   main_closure315: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$retainedSize$x(o, v);
+      J.set$results$x(o, v);
     },
     $isFunction: true
   },
   main_closure316: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$retainingPath$x(o, v);
+      J.set$resume$x(o, v);
     },
     $isFunction: true
   },
   main_closure317: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$rootLib(v);
+      J.set$retainedBytes$x(o, v);
     },
     $isFunction: true
   },
   main_closure318: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$sampleCount$x(o, v);
+      J.set$retainedSize$x(o, v);
     },
     $isFunction: true
   },
   main_closure319: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$sampleDepth$x(o, v);
+      J.set$retainingPath$x(o, v);
     },
     $isFunction: true
   },
   main_closure320: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$sampleRate$x(o, v);
+      o.set$rootLib(v);
     },
     $isFunction: true
   },
   main_closure321: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$script$x(o, v);
+      J.set$sampleCount$x(o, v);
     },
     $isFunction: true
   },
   main_closure322: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$small$x(o, v);
+      J.set$sampleDepth$x(o, v);
     },
     $isFunction: true
   },
   main_closure323: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$socket$x(o, v);
+      J.set$sampleRate$x(o, v);
     },
     $isFunction: true
   },
   main_closure324: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$socketOwner(v);
+      J.set$script$x(o, v);
     },
     $isFunction: true
   },
   main_closure325: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$startLine$x(o, v);
+      J.set$small$x(o, v);
     },
     $isFunction: true
   },
   main_closure326: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$status$x(o, v);
+      J.set$socket$x(o, v);
     },
     $isFunction: true
   },
   main_closure327: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$subclass(v);
+      o.set$socketOwner(v);
     },
     $isFunction: true
   },
   main_closure328: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$superClass(v);
+      J.set$startLine$x(o, v);
     },
     $isFunction: true
   },
   main_closure329: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$tagSelector$x(o, v);
+      J.set$status$x(o, v);
     },
     $isFunction: true
   },
   main_closure330: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$text$x(o, v);
+      o.set$subclass(v);
     },
     $isFunction: true
   },
   main_closure331: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$timeSpan$x(o, v);
+      o.set$superClass(v);
     },
     $isFunction: true
   },
   main_closure332: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      o.set$tokenPos(v);
+      J.set$tagSelector$x(o, v);
     },
     $isFunction: true
   },
   main_closure333: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$trace$x(o, v);
+      J.set$text$x(o, v);
     },
     $isFunction: true
   },
   main_closure334: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$uncheckedText$x(o, v);
+      J.set$timeSpan$x(o, v);
     },
     $isFunction: true
   },
   main_closure335: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$vm$x(o, v);
+      o.set$tokenPos(v);
     },
     $isFunction: true
   },
   main_closure336: {
     "^": "Closure:75;",
     call$2: function(o, v) {
-      J.set$webSocket$x(o, v);
+      J.set$trace$x(o, v);
     },
     $isFunction: true
   },
   main_closure337: {
+    "^": "Closure:75;",
+    call$2: function(o, v) {
+      J.set$uncheckedText$x(o, v);
+    },
+    $isFunction: true
+  },
+  main_closure338: {
+    "^": "Closure:75;",
+    call$2: function(o, v) {
+      J.set$vm$x(o, v);
+    },
+    $isFunction: true
+  },
+  main_closure339: {
+    "^": "Closure:75;",
+    call$2: function(o, v) {
+      J.set$webSocket$x(o, v);
+    },
+    $isFunction: true
+  },
+  main_closure340: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("curly-block", C.Type_cop);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure338: {
+  main_closure341: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("observatory-element", C.Type_sRP);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure339: {
+  main_closure342: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("service-ref", C.Type_UJT);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure340: {
+  main_closure343: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("instance-ref", C.Type_EVD);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure341: {
+  main_closure344: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("action-link", C.Type_kA7);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure342: {
+  main_closure345: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("nav-bar", C.Type_nV5);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure343: {
+  main_closure346: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("nav-menu", C.Type_KMd);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure344: {
+  main_closure347: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("nav-menu-item", C.Type_AD4);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure345: {
+  main_closure348: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("nav-refresh", C.Type_Sxn);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure346: {
+  main_closure349: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("nav-control", C.Type_9ur);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure347: {
+  main_closure350: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("top-nav-menu", C.Type_C7R);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure348: {
+  main_closure351: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-nav-menu", C.Type_wsa);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure349: {
+  main_closure352: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("library-nav-menu", C.Type_s2l);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure350: {
+  main_closure353: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("class-nav-menu", C.Type_JFX);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure351: {
+  main_closure354: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("breakpoint-list", C.Type_ON8);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure352: {
+  main_closure355: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("class-ref", C.Type_ql8);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure353: {
+  main_closure356: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("class-tree", C.Type_dRp);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure354: {
+  main_closure357: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("eval-box", C.Type_8eb);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure355: {
+  main_closure358: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("eval-link", C.Type_p2P);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure356: {
+  main_closure359: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("field-ref", C.Type_ohY);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure357: {
+  main_closure360: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("function-ref", C.Type_wgH);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure358: {
+  main_closure361: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("library-ref", C.Type_mpV);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure359: {
+  main_closure362: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("script-ref", C.Type_wBh);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure360: {
+  main_closure363: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("class-view", C.Type_O5a);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure361: {
+  main_closure364: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("code-ref", C.Type_2jN);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure362: {
+  main_closure365: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("code-view", C.Type_Aym);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure363: {
+  main_closure366: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("error-view", C.Type_Npb);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure364: {
+  main_closure367: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("field-view", C.Type_4IJ);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure365: {
+  main_closure368: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("stack-frame", C.Type_Jcu);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure366: {
+  main_closure369: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("flag-list", C.Type_f1j);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure367: {
+  main_closure370: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("flag-item", C.Type_7g3);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure368: {
+  main_closure371: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("script-inset", C.Type_a1Y);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure369: {
+  main_closure372: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("function-view", C.Type_bDN);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure370: {
+  main_closure373: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("heap-map", C.Type_SoB);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure371: {
+  main_closure374: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-view", C.Type_TEn);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure372: {
+  main_closure375: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-ref", C.Type_JmU);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure373: {
+  main_closure376: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-http-server-list-view", C.Type_yvP);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure374: {
+  main_closure377: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-http-server-ref", C.Type_i7j);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure375: {
+  main_closure378: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-http-server-view", C.Type_M6L);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure376: {
+  main_closure379: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-http-server-connection-view", C.Type_L9j);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure377: {
+  main_closure380: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-http-server-connection-ref", C.Type_uIL);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure378: {
+  main_closure381: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-socket-ref", C.Type_B8J);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure379: {
+  main_closure382: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-socket-list-view", C.Type_4m4);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure380: {
+  main_closure383: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-socket-view", C.Type_61d);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure381: {
+  main_closure384: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-web-socket-ref", C.Type_MUU);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure382: {
+  main_closure385: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-web-socket-list-view", C.Type_gg4);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure383: {
+  main_closure386: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-web-socket-view", C.Type_AyI);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure384: {
+  main_closure387: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-random-access-file-list-view", C.Type_IuH);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure385: {
+  main_closure388: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-random-access-file-ref", C.Type_mWg);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure386: {
+  main_closure389: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-random-access-file-view", C.Type_8cK);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure387: {
+  main_closure390: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-process-list-view", C.Type_8KD);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure388: {
+  main_closure391: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-process-ref", C.Type_qMZ);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure389: {
+  main_closure392: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("io-process-view", C.Type_AHF);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure390: {
+  main_closure393: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-ref", C.Type_ES1);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure391: {
+  main_closure394: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-summary", C.Type_iL9);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure392: {
+  main_closure395: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-run-state", C.Type_aAD);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure393: {
+  main_closure396: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-location", C.Type_ECh);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure394: {
+  main_closure397: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-shared-summary", C.Type_8Gl);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure395: {
+  main_closure398: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-counter-chart", C.Type_wT1);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure396: {
+  main_closure399: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-view", C.Type_ZKG);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure397: {
+  main_closure400: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("instance-view", C.Type_gqS);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure398: {
+  main_closure401: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("json-view", C.Type_Kyy);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure399: {
+  main_closure402: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("library-view", C.Type_qph);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure400: {
+  main_closure403: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("heap-profile", C.Type_LV6);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure401: {
+  main_closure404: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("sliding-checkbox", C.Type_kuc);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure402: {
+  main_closure405: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("isolate-profile", C.Type_cOY);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure403: {
+  main_closure406: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("script-view", C.Type_0e9);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure404: {
+  main_closure407: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("stack-trace", C.Type_nVV);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure405: {
+  main_closure408: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("vm-view", C.Type_E0k);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure406: {
+  main_closure409: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("service-view", C.Type_Mu6);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure407: {
+  main_closure410: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("observatory-application", C.Type_YgH);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure408: {
+  main_closure411: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("service-exception-view", C.Type_y1j);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure409: {
+  main_closure412: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("service-error-view", C.Type_FKd);
     }, "call$0", null, 0, 0, null, "call"],
     $isFunction: true
   },
-  main_closure410: {
+  main_closure413: {
     "^": "Closure:69;",
     call$0: [function() {
       return A.Polymer_register("vm-ref", C.Type_Eue);
@@ -7984,12 +8005,18 @@ var $$ = {};
 ["class_view_element", "package:observatory/src/elements/class_view.dart", , Z, {
   "^": "",
   ClassViewElement: {
-    "^": "ObservatoryElement_ChangeNotifier2;_class_view_element$__$cls,_class_view_element$__$retainedBytes,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_change_notifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_change_notifier$_records,polymer$Polymer$_polymer$_element,polymer$Polymer$_namedObservers,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$_readied,polymer$Polymer$_jsElem,polymer$Polymer$_hasBeenAttached,polymer$Polymer$shadowRoots,polymer$Polymer$$",
+    "^": "ObservatoryElement_ChangeNotifier2;_class_view_element$__$cls,_class_view_element$__$instances,_class_view_element$__$retainedBytes,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_change_notifier$_records,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_change_notifier$_records,polymer$Polymer$_polymer$_element,polymer$Polymer$_namedObservers,polymer$Polymer$_observers,polymer$Polymer$_unbound,polymer$Polymer$_unbindAllJob,polymer$Polymer$_propertyObserver,polymer$Polymer$_readied,polymer$Polymer$_jsElem,polymer$Polymer$_hasBeenAttached,polymer$Polymer$shadowRoots,polymer$Polymer$$",
     get$cls: function(receiver) {
       return receiver._class_view_element$__$cls;
     },
     set$cls: function(receiver, value) {
       receiver._class_view_element$__$cls = this.notifyPropertyChange$3(receiver, C.Symbol_cls, receiver._class_view_element$__$cls, value);
+    },
+    get$instances: function(receiver) {
+      return receiver._class_view_element$__$instances;
+    },
+    set$instances: function(receiver, value) {
+      receiver._class_view_element$__$instances = this.notifyPropertyChange$3(receiver, C.Symbol_instances, receiver._class_view_element$__$instances, value);
     },
     get$retainedBytes: function(receiver) {
       return receiver._class_view_element$__$retainedBytes;
@@ -8000,10 +8027,15 @@ var $$ = {};
     eval$1: [function(receiver, text) {
       return receiver._class_view_element$__$cls.get$1("eval?expr=" + P.Uri__uriEncode(C.List_KIf, text, C.Utf8Codec_false, false));
     }, "call$1", "get$eval", 2, 0, 96, 97],
+    reachable$1: [function(receiver, limit) {
+      return receiver._class_view_element$__$cls.get$1("instances?limit=" + H.S(limit)).then$1(new Z.ClassViewElement_reachable_closure(receiver));
+    }, "call$1", "get$reachable", 2, 0, 98, 99],
     retainedSize$1: [function(receiver, dummy) {
       return receiver._class_view_element$__$cls.get$1("retained").then$1(new Z.ClassViewElement_retainedSize_closure(receiver));
-    }, "call$1", "get$retainedSize", 2, 0, 98, 99],
+    }, "call$1", "get$retainedSize", 2, 0, 98, 100],
     refresh$1: [function(receiver, done) {
+      receiver._class_view_element$__$instances = this.notifyPropertyChange$3(receiver, C.Symbol_instances, receiver._class_view_element$__$instances, null);
+      receiver._class_view_element$__$retainedBytes = this.notifyPropertyChange$3(receiver, C.Symbol_retainedBytes, receiver._class_view_element$__$retainedBytes, null);
       J.reload$0$x(receiver._class_view_element$__$cls).whenComplete$1(done);
     }, "call$1", "get$refresh", 2, 0, 20, 89],
     static: {ClassViewElement$created: function(receiver) {
@@ -8025,8 +8057,16 @@ var $$ = {};
     "^": "ObservatoryElement+ChangeNotifier;",
     $isObservable: true
   },
+  ClassViewElement_reachable_closure: {
+    "^": "Closure:101;this_0",
+    call$1: [function(obj) {
+      var t1 = this.this_0;
+      t1._class_view_element$__$instances = J.notifyPropertyChange$3$x(t1, C.Symbol_instances, t1._class_view_element$__$instances, obj);
+    }, "call$1", null, 2, 0, null, 81, "call"],
+    $isFunction: true
+  },
   ClassViewElement_retainedSize_closure: {
-    "^": "Closure:100;this_0",
+    "^": "Closure:101;this_0",
     call$1: [function(obj) {
       var t1, t2;
       t1 = this.this_0;
@@ -8101,13 +8141,13 @@ var $$ = {};
       if (jt == null)
         return;
       J.get$classes$x(jt).add$1(0, "highlight");
-    }, "call$3", "get$mouseOver", 6, 0, 101, 1, 93, 94],
+    }, "call$3", "get$mouseOver", 6, 0, 102, 1, 93, 94],
     mouseOut$3: [function(receiver, e, detail, target) {
       var jt = this._findJumpTarget$1(receiver, target);
       if (jt == null)
         return;
       J.get$classes$x(jt).remove$1(0, "highlight");
-    }, "call$3", "get$mouseOut", 6, 0, 101, 1, 93, 94],
+    }, "call$3", "get$mouseOut", 6, 0, 102, 1, 93, 94],
     static: {CodeViewElement$created: function(receiver) {
         var t1, t2;
         t1 = P.LinkedHashMap_LinkedHashMap(null, null, null, P.String, W.ShadowRoot);
@@ -8128,7 +8168,7 @@ var $$ = {};
     $isObservable: true
   },
   CodeViewElement_attached_closure: {
-    "^": "Closure:102;",
+    "^": "Closure:103;",
     call$1: [function(c) {
       c.loadScript$0();
     }, "call$1", null, 2, 0, null, 80, "call"],
@@ -9443,14 +9483,14 @@ var $$ = {};
       return H.computeSignature(function(T) {
         return {func: "void__T", void: true, args: [T]};
       }, this.$receiver, "_BroadcastStreamController");
-    }, 103],
+    }, 104],
     addError$2: [function(error, stackTrace) {
       if (this._state >= 4)
         throw H.wrapException(this._addEventError$0());
       this._sendError$2(error, stackTrace);
     }, function(error) {
       return this.addError$2(error, null);
-    }, "addError$1", "call$2", "call$1", "get$addError", 2, 2, 104, 23, 24, 25],
+    }, "addError$1", "call$2", "call$1", "get$addError", 2, 2, 105, 23, 24, 25],
     close$0: function(_) {
       var t1, doneFuture;
       t1 = this._state;
@@ -9638,11 +9678,11 @@ var $$ = {};
         }
       else if (t3 === 0 && !this.eagerError_1)
         t1.completer_0.completeError$2(t1.error_3, t1.stackTrace_4);
-    }, "call$2", null, 4, 0, null, 105, 106, "call"],
+    }, "call$2", null, 4, 0, null, 106, 107, "call"],
     $isFunction: true
   },
   Future_wait_closure: {
-    "^": "Closure:107;box_0,eagerError_2,pos_3",
+    "^": "Closure:108;box_0,eagerError_2,pos_3",
     call$1: [function(value) {
       var t1, t2, t3, t4;
       t1 = this.box_0;
@@ -9681,7 +9721,7 @@ var $$ = {};
       t1._asyncComplete$1(value);
     }, function($receiver) {
       return this.complete$1($receiver, null);
-    }, "complete$0", "call$1", "call$0", "get$complete", 0, 2, 108, 23, 21],
+    }, "complete$0", "call$1", "call$0", "get$complete", 0, 2, 109, 23, 21],
     completeError$2: [function(error, stackTrace) {
       var t1;
       if (error == null)
@@ -9692,7 +9732,7 @@ var $$ = {};
       t1._asyncCompleteError$2(error, stackTrace);
     }, function(error) {
       return this.completeError$2(error, null);
-    }, "completeError$1", "call$2", "call$1", "get$completeError", 2, 2, 104, 23, 24, 25]
+    }, "completeError$1", "call$2", "call$1", "get$completeError", 2, 2, 105, 23, 24, 25]
   },
   _Future: {
     "^": "Object;_state,_zone<,_resultOrListeners,_nextListener@,_onValueCallback,_errorTestCallback,_onErrorCallback,_whenCompleteActionCallback",
@@ -9978,7 +10018,7 @@ var $$ = {};
     $isFunction: true
   },
   _Future__chainForeignFuture_closure0: {
-    "^": "Closure:109;target_1",
+    "^": "Closure:110;target_1",
     call$2: [function(error, stackTrace) {
       this.target_1._completeError$2(error, stackTrace);
     }, function(error) {
@@ -10008,7 +10048,7 @@ var $$ = {};
     $isFunction: true
   },
   _Future__propagateToListeners_handleValueCallback: {
-    "^": "Closure:110;box_1,listener_3,sourceValue_4,zone_5",
+    "^": "Closure:111;box_1,listener_3,sourceValue_4,zone_5",
     call$0: function() {
       var e, s, exception, t1;
       try {
@@ -10123,11 +10163,11 @@ var $$ = {};
     "^": "Closure:13;box_2,listener_11",
     call$1: [function(ignored) {
       P._Future__propagateToListeners(this.box_2.source_4, this.listener_11);
-    }, "call$1", null, 2, 0, null, 111, "call"],
+    }, "call$1", null, 2, 0, null, 112, "call"],
     $isFunction: true
   },
   _Future__propagateToListeners_handleWhenCompleteCallback_closure0: {
-    "^": "Closure:109;box_0,listener_12",
+    "^": "Closure:110;box_0,listener_12",
     call$2: [function(error, stackTrace) {
       var t1, completeResult;
       t1 = this.box_0;
@@ -10156,14 +10196,14 @@ var $$ = {};
       return H.computeSignature(function(T) {
         return {func: "Stream__dynamic__T", ret: P.Stream, args: [{func: "dynamic__T", args: [T]}]};
       }, this.$receiver, "Stream");
-    }, 112],
+    }, 113],
     expand$1: [function(_, convert) {
       return H.setRuntimeTypeInfo(new P._ExpandStream(convert, this), [H.getRuntimeTypeArgument(this, "Stream", 0), null]);
     }, "call$1", "get$expand", 2, 0, function() {
       return H.computeSignature(function(T) {
         return {func: "Stream__Iterable__T", ret: P.Stream, args: [{func: "Iterable__T", ret: P.Iterable, args: [T]}]};
       }, this.$receiver, "Stream");
-    }, 112],
+    }, 113],
     contains$1: function(_, needle) {
       var t1, future;
       t1 = {};
@@ -10230,7 +10270,7 @@ var $$ = {};
       t1 = this.box_0;
       t2 = this.future_3;
       P._runUserCode(new P.Stream_contains__closure(this.needle_2, element), new P.Stream_contains__closure0(t1, t2), P._cancelAndErrorClosure(t1.subscription_0, t2));
-    }, "call$1", null, 2, 0, null, 113, "call"],
+    }, "call$1", null, 2, 0, null, 114, "call"],
     $isFunction: true,
     $signature: function() {
       return H.computeSignature(function(T) {
@@ -10246,7 +10286,7 @@ var $$ = {};
     $isFunction: true
   },
   Stream_contains__closure0: {
-    "^": "Closure:114;box_0,future_6",
+    "^": "Closure:115;box_0,future_6",
     call$1: function(isMatch) {
       if (isMatch === true)
         P._cancelAndValue(this.box_0.subscription_0, this.future_6, true);
@@ -10264,7 +10304,7 @@ var $$ = {};
     "^": "Closure;box_0,this_1,action_2,future_3",
     call$1: [function(element) {
       P._runUserCode(new P.Stream_forEach__closure(this.action_2, element), new P.Stream_forEach__closure0(), P._cancelAndErrorClosure(this.box_0.subscription_0, this.future_3));
-    }, "call$1", null, 2, 0, null, 113, "call"],
+    }, "call$1", null, 2, 0, null, 114, "call"],
     $isFunction: true,
     $signature: function() {
       return H.computeSignature(function(T) {
@@ -10299,7 +10339,7 @@ var $$ = {};
       t1 = this.box_0;
       t2 = this.future_3;
       P._runUserCode(new P.Stream_any__closure(this.test_2, element), new P.Stream_any__closure0(t1, t2), P._cancelAndErrorClosure(t1.subscription_0, t2));
-    }, "call$1", null, 2, 0, null, 113, "call"],
+    }, "call$1", null, 2, 0, null, 114, "call"],
     $isFunction: true,
     $signature: function() {
       return H.computeSignature(function(T) {
@@ -10315,7 +10355,7 @@ var $$ = {};
     $isFunction: true
   },
   Stream_any__closure0: {
-    "^": "Closure:114;box_0,future_6",
+    "^": "Closure:115;box_0,future_6",
     call$1: function(isMatch) {
       if (isMatch === true)
         P._cancelAndValue(this.box_0.subscription_0, this.future_6, true);
@@ -10678,7 +10718,7 @@ var $$ = {};
         this._guardCallback$1(this.get$_onPause());
     }, function($receiver) {
       return this.pause$1($receiver, null);
-    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 115, 23, 116],
+    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 116, 23, 117],
     resume$0: [function(_) {
       var t1 = this._state;
       if ((t1 & 8) !== 0)
@@ -11041,7 +11081,7 @@ var $$ = {};
         resumeSignal.whenComplete$1(this.get$resume(this));
     }, function($receiver) {
       return this.pause$1($receiver, null);
-    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 115, 23, 116],
+    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 116, 23, 117],
     resume$0: [function(_) {
       var t1 = this._state;
       if (t1 >= 4) {
@@ -11075,7 +11115,7 @@ var $$ = {};
     $isFunction: true
   },
   _cancelAndErrorClosure_closure: {
-    "^": "Closure:117;subscription_0,future_1",
+    "^": "Closure:118;subscription_0,future_1",
     call$2: function(error, stackTrace) {
       return P._cancelAndError(this.subscription_0, this.future_1, error, stackTrace);
     },
@@ -11155,10 +11195,10 @@ var $$ = {};
       return H.computeSignature(function(S, T) {
         return {func: "void__S", void: true, args: [S]};
       }, this.$receiver, "_ForwardingStreamSubscription");
-    }, 103],
+    }, 104],
     _handleError$2: [function(error, stackTrace) {
       this._addError$2(error, stackTrace);
-    }, "call$2", "get$_handleError", 4, 0, 118, 24, 25],
+    }, "call$2", "get$_handleError", 4, 0, 119, 24, 25],
     _handleDone$0: [function() {
       this._close$0();
     }, "call$0", "get$_handleDone", 0, 0, 18],
@@ -12119,7 +12159,7 @@ var $$ = {};
     "^": "Closure:13;this_0",
     call$1: [function(each) {
       return this.this_0.$index(0, each);
-    }, "call$1", null, 2, 0, null, 119, "call"],
+    }, "call$1", null, 2, 0, null, 120, "call"],
     $isFunction: true
   },
   _HashMap_addAll_closure: {
@@ -12497,7 +12537,7 @@ var $$ = {};
     "^": "Closure:13;this_0",
     call$1: [function(each) {
       return this.this_0.$index(0, each);
-    }, "call$1", null, 2, 0, null, 119, "call"],
+    }, "call$1", null, 2, 0, null, 120, "call"],
     $isFunction: true
   },
   _LinkedHashMap_addAll_closure: {
@@ -14628,7 +14668,7 @@ var $$ = {};
     $isFunction: true
   },
   NoSuchMethodError_toString_closure: {
-    "^": "Closure:120;box_0",
+    "^": "Closure:121;box_0",
     call$2: function(key, value) {
       var t1 = this.box_0;
       if (t1.i_1 > 0)
@@ -14778,7 +14818,7 @@ var $$ = {};
       }}
   },
   DateTime_parse_parseIntOrZero: {
-    "^": "Closure:121;",
+    "^": "Closure:122;",
     call$1: function(matched) {
       if (matched == null)
         return 0;
@@ -14787,7 +14827,7 @@ var $$ = {};
     $isFunction: true
   },
   DateTime_parse_parseDoubleOrZero: {
-    "^": "Closure:122;",
+    "^": "Closure:123;",
     call$1: function(matched) {
       if (matched == null)
         return 0;
@@ -15870,7 +15910,7 @@ var $$ = {};
       }}
   },
   Uri_parse_isRegName: {
-    "^": "Closure:123;",
+    "^": "Closure:124;",
     call$1: function(ch) {
       var t1;
       if (ch < 128) {
@@ -15885,7 +15925,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri_parse_ipV6Address: {
-    "^": "Closure:124;uri_0",
+    "^": "Closure:125;uri_0",
     call$1: function(index) {
       index = J.indexOf$2$asx(this.uri_0, "]", index);
       if (index === -1)
@@ -15895,7 +15935,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri__makeScheme_isSchemeLowerCharacter: {
-    "^": "Closure:123;",
+    "^": "Closure:124;",
     call$1: function(ch) {
       var t1;
       if (ch < 128) {
@@ -15932,7 +15972,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri__normalize_isNormalizedHexDigit: {
-    "^": "Closure:123;",
+    "^": "Closure:124;",
     call$1: function(digit) {
       var t1;
       if (!(48 <= digit && digit <= 57))
@@ -15944,14 +15984,14 @@ var $$ = {};
     $isFunction: true
   },
   Uri__normalize_isLowerCaseHexDigit: {
-    "^": "Closure:123;",
+    "^": "Closure:124;",
     call$1: function(digit) {
       return 97 <= digit && digit <= 102;
     },
     $isFunction: true
   },
   Uri__normalize_isUnreserved: {
-    "^": "Closure:123;",
+    "^": "Closure:124;",
     call$1: function(ch) {
       var t1;
       if (ch < 128) {
@@ -15966,7 +16006,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri__normalize_normalizeHexDigit: {
-    "^": "Closure:124;component_1,isNormalizedHexDigit_2,isLowerCaseHexDigit_3",
+    "^": "Closure:125;component_1,isNormalizedHexDigit_2,isLowerCaseHexDigit_3",
     call$1: function(index) {
       var t1, codeUnit;
       t1 = this.component_1;
@@ -15981,7 +16021,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri__normalize_decodeHexDigitPair: {
-    "^": "Closure:124;component_4",
+    "^": "Closure:125;component_4",
     call$1: function(index) {
       var t1, t2, $byte, i, codeUnit;
       for (t1 = this.component_4, t2 = J.getInterceptor$s(t1), $byte = 0, i = 0; i < 2; ++i) {
@@ -16017,7 +16057,7 @@ var $$ = {};
     $isFunction: true
   },
   Uri_hashCode_combine: {
-    "^": "Closure:125;",
+    "^": "Closure:126;",
     call$2: function(part, current) {
       var t1 = J.get$hashCode$(part);
       if (typeof t1 !== "number")
@@ -16042,7 +16082,7 @@ var $$ = {};
       if (t1.$lt($byte, 0) || t1.$gt($byte, 255))
         this.error_0.call$1("each part must be in the range of `0..255`");
       return $byte;
-    }, "call$1", null, 2, 0, null, 126, "call"],
+    }, "call$1", null, 2, 0, null, 127, "call"],
     $isFunction: true
   },
   Uri_parseIPv6Address_error: {
@@ -17950,7 +17990,7 @@ var $$ = {};
         resumeSignal.whenComplete$1(this.get$resume(this));
     }, function($receiver) {
       return this.pause$1($receiver, null);
-    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 115, 23, 116],
+    }, "pause$0", "call$1", "call$0", "get$pause", 0, 2, 116, 23, 117],
     get$isPaused: function() {
       return this._pauseCount > 0;
     },
@@ -19588,7 +19628,7 @@ var $$ = {};
         t1 = J.replaceAll$2$s(receiver._eval_box_element$__$text, "\n", " ");
         receiver._eval_box_element$__$text = this.notifyPropertyChange$3(receiver, C.Symbol_text, receiver._eval_box_element$__$text, t1);
       }
-    }, "call$3", "get$updateLineMode", 6, 0, 101, 1, 93, 94],
+    }, "call$3", "get$updateLineMode", 6, 0, 102, 1, 93, 94],
     eval$3: [function(receiver, e, detail, target) {
       var expr, t1, map;
       J.preventDefault$0$x(e);
@@ -19601,11 +19641,11 @@ var $$ = {};
         J.insert$2$ax(receiver._eval_box_element$__$results, 0, map);
         this.callback$1(receiver, expr).then$1(new L.EvalBoxElement_eval_closure(map));
       }
-    }, "call$3", "get$eval", 6, 0, 101, 1, 93, 94],
+    }, "call$3", "get$eval", 6, 0, 102, 1, 93, 94],
     selectExpr$1: [function(receiver, e) {
       var t1 = J.getAttribute$1$x(J.get$target$x(e), "expr");
       receiver._eval_box_element$__$text = this.notifyPropertyChange$3(receiver, C.Symbol_text, receiver._eval_box_element$__$text, t1);
-    }, "call$1", "get$selectExpr", 2, 0, 127, 1],
+    }, "call$1", "get$selectExpr", 2, 0, 128, 1],
     static: {EvalBoxElement$created: function(receiver) {
         var t1, t2, t3;
         t1 = R._toObservableDeep([]);
@@ -19632,7 +19672,7 @@ var $$ = {};
     "^": "Closure:13;map_0",
     call$1: [function(result) {
       J.$indexSet$ax(this.map_0, "value", result);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   }
 }],
@@ -19711,7 +19751,7 @@ var $$ = {};
     $isObservable: true
   },
   EvalLinkElement_evalNow_closure: {
-    "^": "Closure:129;this_0",
+    "^": "Closure:130;this_0",
     call$1: [function(obj) {
       var t1 = this.this_0;
       t1._eval_link_element$__$result = J.notifyPropertyChange$3$x(t1, C.Symbol_result, t1._eval_link_element$__$result, obj);
@@ -20033,7 +20073,7 @@ var $$ = {};
     "^": "Object;_data,_dataIndex",
     next$0: [function() {
       return new O.PixelReference(this._data, this._dataIndex + 4);
-    }, "call$0", "get$next", 0, 0, 130],
+    }, "call$0", "get$next", 0, 0, 131],
     get$index: function(_) {
       return C.JSNumber_methods._tdivFast$1(this._dataIndex, 4);
     },
@@ -20179,11 +20219,11 @@ var $$ = {};
       className = receiver._classIdToName.$index(0, receiver._colorToClassId.$index(0, this._packColor$1(receiver, C.NativeUint8ClampedList_methods.getRange$2(J.get$data$x(t1._data), t2, t2 + 4))));
       t1 = J.$eq(className, "") ? "-" : H.S(className) + " " + addressString;
       receiver._heap_map_element$__$status = this.notifyPropertyChange$3(receiver, C.Symbol_status, receiver._heap_map_element$__$status, t1);
-    }, "call$1", "get$_handleMouseMove", 2, 0, 127, 2],
+    }, "call$1", "get$_handleMouseMove", 2, 0, 128, 2],
     _handleClick$1: [function(receiver, $event) {
       var address = J.toRadixString$1$n(this._objectAt$1(receiver, J.get$offset$x($event)).address, 16);
       window.location.hash = "/" + H.S(J.get$link$x(J.get$isolate$x(receiver._heap_map_element$__$fragmentation))) + "/address/" + address;
-    }, "call$1", "get$_handleClick", 2, 0, 127, 2],
+    }, "call$1", "get$_handleClick", 2, 0, 128, 2],
     _updateFragmentationData$0: function(receiver) {
       var t1, pages, width, t2, height;
       t1 = receiver._heap_map_element$__$fragmentation;
@@ -20322,18 +20362,18 @@ var $$ = {};
     $isFunction: true
   },
   HeapMapElement_refresh_closure: {
-    "^": "Closure:100;this_0",
+    "^": "Closure:101;this_0",
     call$1: [function(response) {
       var t1 = this.this_0;
       t1._heap_map_element$__$fragmentation = J.notifyPropertyChange$3$x(t1, C.Symbol_fragmentation, t1._heap_map_element$__$fragmentation, response);
-    }, "call$1", null, 2, 0, null, 131, "call"],
+    }, "call$1", null, 2, 0, null, 132, "call"],
     $isFunction: true
   },
   HeapMapElement_refresh_closure0: {
     "^": "Closure:75;",
     call$2: [function(e, st) {
       N.Logger_Logger("").info$1(H.S(e) + " " + H.S(st));
-    }, "call$2", null, 4, 0, null, 1, 132, "call"],
+    }, "call$2", null, 4, 0, null, 1, 133, "call"],
     $isFunction: true
   },
   HeapMapElement_fragmentationChanged_closure: {
@@ -20540,7 +20580,7 @@ var $$ = {};
     }, "call$1", "get$resetAccumulator", 2, 0, 20, 89],
     _heap_profile_element$_update$1: [function(receiver, newProfile) {
       receiver._heap_profile_element$__$profile = this.notifyPropertyChange$3(receiver, C.Symbol_profile, receiver._heap_profile_element$__$profile, newProfile);
-    }, "call$1", "get$_heap_profile_element$_update", 2, 0, 133, 134],
+    }, "call$1", "get$_heap_profile_element$_update", 2, 0, 134, 135],
     profileChanged$1: [function(receiver, oldValue) {
       var t1, millis, isolate, t2, t3;
       t1 = receiver._heap_profile_element$__$profile;
@@ -20618,7 +20658,7 @@ var $$ = {};
       t2 = J.getInterceptor$x(t1);
       heap = newSpace === true ? t2.get$isolate(t1).get$newSpace() : t2.get$isolate(t1).get$oldSpace();
       return C.JSNumber_methods.toStringAsFixed$1(J.$div$n(J.$mul$ns(heap.get$totalCollectionTimeInSeconds(), 1000), heap.get$collections()), 2) + " ms";
-    }, "call$1", "get$formattedAverage", 2, 0, 135, 136],
+    }, "call$1", "get$formattedAverage", 2, 0, 136, 137],
     formattedCollections$1: [function(receiver, newSpace) {
       var t1, t2;
       t1 = receiver._heap_profile_element$__$profile;
@@ -20626,7 +20666,7 @@ var $$ = {};
         return "";
       t2 = J.getInterceptor$x(t1);
       return J.toString$0((newSpace === true ? t2.get$isolate(t1).get$newSpace() : t2.get$isolate(t1).get$oldSpace()).get$collections());
-    }, "call$1", "get$formattedCollections", 2, 0, 135, 136],
+    }, "call$1", "get$formattedCollections", 2, 0, 136, 137],
     formattedTotalCollectionTime$1: [function(receiver, newSpace) {
       var t1, t2;
       t1 = receiver._heap_profile_element$__$profile;
@@ -20634,7 +20674,7 @@ var $$ = {};
         return "";
       t2 = J.getInterceptor$x(t1);
       return J.toStringAsFixed$1$n((newSpace === true ? t2.get$isolate(t1).get$newSpace() : t2.get$isolate(t1).get$oldSpace()).get$totalCollectionTimeInSeconds(), 2) + " secs";
-    }, "call$1", "get$formattedTotalCollectionTime", 2, 0, 135, 136],
+    }, "call$1", "get$formattedTotalCollectionTime", 2, 0, 136, 137],
     HeapProfileElement$created$0: function(receiver) {
       var t1 = P.JsObject_JsObject(J.$index$asx($.GoogleChart__api, "DataTable"), null);
       receiver._newPieDataTable = new G.DataTable(t1);
@@ -20733,7 +20773,7 @@ var $$ = {};
     $isFunction: true
   },
   _convertDartToNative_PrepareForStructuredClone_readSlot: {
-    "^": "Closure:137;copies_3",
+    "^": "Closure:138;copies_3",
     call$1: function(i) {
       var t1 = this.copies_3;
       if (i >= t1.length)
@@ -20743,7 +20783,7 @@ var $$ = {};
     $isFunction: true
   },
   _convertDartToNative_PrepareForStructuredClone_writeSlot: {
-    "^": "Closure:138;copies_4",
+    "^": "Closure:139;copies_4",
     call$2: function(i, x) {
       var t1 = this.copies_4;
       if (i >= t1.length)
@@ -20848,7 +20888,7 @@ var $$ = {};
     $isFunction: true
   },
   convertNativeToDart_AcceptStructuredClone_readSlot: {
-    "^": "Closure:137;copies_2",
+    "^": "Closure:138;copies_2",
     call$1: function(i) {
       var t1 = this.copies_2;
       if (i >= t1.length)
@@ -20858,7 +20898,7 @@ var $$ = {};
     $isFunction: true
   },
   convertNativeToDart_AcceptStructuredClone_writeSlot: {
-    "^": "Closure:138;copies_3",
+    "^": "Closure:139;copies_3",
     call$2: function(i, x) {
       var t1 = this.copies_3;
       if (i >= t1.length)
@@ -20942,7 +20982,7 @@ var $$ = {};
     map$1: [function(_, f) {
       var t1 = this.readClasses$0();
       return H.setRuntimeTypeInfo(new H.EfficientLengthMappedIterable(t1, f), [H.getTypeArgumentByIndex(t1, 0), null]);
-    }, "call$1", "get$map", 2, 0, 139, 31],
+    }, "call$1", "get$map", 2, 0, 140, 31],
     where$1: function(_, f) {
       var t1 = this.readClasses$0();
       return H.setRuntimeTypeInfo(new H.WhereIterable(t1, f), [H.getTypeArgumentByIndex(t1, 0)]);
@@ -20950,7 +20990,7 @@ var $$ = {};
     expand$1: [function(_, f) {
       var t1 = this.readClasses$0();
       return H.setRuntimeTypeInfo(new H.ExpandIterable(t1, f), [H.getTypeArgumentByIndex(t1, 0), null]);
-    }, "call$1", "get$expand", 2, 0, 140, 31],
+    }, "call$1", "get$expand", 2, 0, 141, 31],
     any$1: function(_, f) {
       return this.readClasses$0().any$1(0, f);
     },
@@ -21014,21 +21054,21 @@ var $$ = {};
     "^": "Closure:13;value_0",
     call$1: [function(s) {
       return J.add$1$ax(s, this.value_0);
-    }, "call$1", null, 2, 0, null, 141, "call"],
+    }, "call$1", null, 2, 0, null, 142, "call"],
     $isFunction: true
   },
   CssClassSetImpl_addAll_closure: {
     "^": "Closure:13;iterable_0",
     call$1: [function(s) {
       return J.addAll$1$ax(s, this.iterable_0);
-    }, "call$1", null, 2, 0, null, 141, "call"],
+    }, "call$1", null, 2, 0, null, 142, "call"],
     $isFunction: true
   },
   CssClassSetImpl_clear_closure: {
     "^": "Closure:13;",
     call$1: [function(s) {
       return J.clear$0$ax(s);
-    }, "call$1", null, 2, 0, null, 141, "call"],
+    }, "call$1", null, 2, 0, null, 142, "call"],
     $isFunction: true
   },
   FilteredElementList: {
@@ -21163,7 +21203,7 @@ var $$ = {};
         t2.$indexSet(t1, "elements", null);
         done.call$0();
       }
-    }, "call$2", "get$expandEvent", 4, 0, 142, 143, 89],
+    }, "call$2", "get$expandEvent", 4, 0, 143, 144, 89],
     static: {InstanceRefElement$created: function(receiver) {
         var t1, t2;
         t1 = P.LinkedHashMap_LinkedHashMap(null, null, null, P.String, W.ShadowRoot);
@@ -21193,7 +21233,7 @@ var $$ = {};
       t2 = J.getInterceptor$x(t1);
       t1._service_ref_element$__$ref = t2.notifyPropertyChange$3(t1, C.Symbol_ref, t1._service_ref_element$__$ref, result);
       t2.notifyPropertyChange$3(t1, C.Symbol_ref, 0, 1);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   }
 }],
@@ -21224,7 +21264,7 @@ var $$ = {};
     }, "call$1", "get$eval", 2, 0, 96, 97],
     retainedSize$1: [function(receiver, dummy) {
       return J.get$isolate$x(receiver._instance_view_element$__$instance).get$1(J.$add$ns(J.get$id$x(receiver._instance_view_element$__$instance), "/retained")).then$1(new Z.InstanceViewElement_retainedSize_closure(receiver));
-    }, "call$1", "get$retainedSize", 2, 0, 98, 99],
+    }, "call$1", "get$retainedSize", 2, 0, 98, 100],
     retainingPath$1: [function(receiver, arg) {
       return J.get$isolate$x(receiver._instance_view_element$__$instance).get$1(J.$add$ns(J.get$id$x(receiver._instance_view_element$__$instance), "/retaining_path?limit=" + H.S(arg))).then$1(new Z.InstanceViewElement_retainingPath_closure(receiver));
     }, "call$1", "get$retainingPath", 2, 0, 98, 33],
@@ -21252,7 +21292,7 @@ var $$ = {};
     $isObservable: true
   },
   InstanceViewElement_retainedSize_closure: {
-    "^": "Closure:100;this_0",
+    "^": "Closure:101;this_0",
     call$1: [function(obj) {
       var t1, t2;
       t1 = this.this_0;
@@ -21262,7 +21302,7 @@ var $$ = {};
     $isFunction: true
   },
   InstanceViewElement_retainingPath_closure: {
-    "^": "Closure:129;this_0",
+    "^": "Closure:130;this_0",
     call$1: [function(obj) {
       var t1 = this.this_0;
       t1._instance_view_element$__$path = J.notifyPropertyChange$3$x(t1, C.Symbol_path, t1._instance_view_element$__$path, obj);
@@ -22117,11 +22157,11 @@ var $$ = {};
     $isObservable: true
   },
   IsolateProfileElement_refresh_closure: {
-    "^": "Closure:100;this_0",
+    "^": "Closure:101;this_0",
     call$1: [function(m) {
       var t1 = this.this_0;
       t1._isolate_profile_element$__$profile = J.notifyPropertyChange$3$x(t1, C.Symbol_profile, t1._isolate_profile_element$__$profile, m);
-    }, "call$1", null, 2, 0, null, 144, "call"],
+    }, "call$1", null, 2, 0, null, 145, "call"],
     $isFunction: true
   }
 }],
@@ -22185,10 +22225,10 @@ var $$ = {};
     },
     pause$1: [function(receiver, _) {
       return receiver._isolate_summary_element$__$isolate.get$1("debug/pause").then$1(new D.IsolateRunStateElement_pause_closure(receiver));
-    }, "call$1", "get$pause", 2, 0, 145, 14],
+    }, "call$1", "get$pause", 2, 0, 146, 14],
     resume$1: [function(receiver, _) {
       return receiver._isolate_summary_element$__$isolate.get$1("debug/resume").then$1(new D.IsolateRunStateElement_resume_closure(receiver));
-    }, "call$1", "get$resume", 2, 0, 145, 14],
+    }, "call$1", "get$resume", 2, 0, 146, 14],
     static: {IsolateRunStateElement$created: function(receiver) {
         var t1, t2;
         t1 = P.LinkedHashMap_LinkedHashMap(null, null, null, P.String, W.ShadowRoot);
@@ -22212,14 +22252,14 @@ var $$ = {};
     "^": "Closure:13;this_0",
     call$1: [function(result) {
       return J.reload$0$x(this.this_0._isolate_summary_element$__$isolate);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   },
   IsolateRunStateElement_resume_closure: {
     "^": "Closure:13;this_0",
     call$1: [function(result) {
       return J.reload$0$x(this.this_0._isolate_summary_element$__$isolate);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   },
   IsolateLocationElement: {
@@ -22462,10 +22502,10 @@ var $$ = {};
     }, "call$1", "get$refresh", 2, 0, 20, 89],
     pause$1: [function(receiver, _) {
       return receiver._isolate_view_element$__$isolate.get$1("debug/pause").then$1(new L.IsolateViewElement_pause_closure(receiver));
-    }, "call$1", "get$pause", 2, 0, 145, 14],
+    }, "call$1", "get$pause", 2, 0, 146, 14],
     resume$1: [function(receiver, _) {
       return receiver._isolate_view_element$__$isolate.get$1("resume").then$1(new L.IsolateViewElement_resume_closure(receiver));
-    }, "call$1", "get$resume", 2, 0, 145, 14],
+    }, "call$1", "get$resume", 2, 0, 146, 14],
     static: {IsolateViewElement$created: function(receiver) {
         var t1, t2, t3;
         t1 = P.JsObject_JsObject(J.$index$asx($.GoogleChart__api, "DataTable"), null);
@@ -22509,21 +22549,21 @@ var $$ = {};
       }
       if (t1._isolate_view_element$_updateTimer != null)
         t1._isolate_view_element$_updateTimer = P.Timer_Timer(P.Duration$(0, 0, 0, 0, 0, 1), J.get$_updateTagProfile$x(t1));
-    }, "call$1", null, 2, 0, null, 146, "call"],
+    }, "call$1", null, 2, 0, null, 147, "call"],
     $isFunction: true
   },
   IsolateViewElement_pause_closure: {
     "^": "Closure:13;this_0",
     call$1: [function(result) {
       return J.reload$0$x(this.this_0._isolate_view_element$__$isolate);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   },
   IsolateViewElement_resume_closure: {
     "^": "Closure:13;this_0",
     call$1: [function(result) {
       return J.reload$0$x(this.this_0._isolate_view_element$__$isolate);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   }
 }],
@@ -22906,16 +22946,16 @@ var $$ = {};
   main: function() {
     var t1, t2;
     N.Logger_Logger("").set$level(C.Level_INFO_800);
-    N.Logger_Logger("").get$onRecord().listen$1(new F.main_closure411());
+    N.Logger_Logger("").get$onRecord().listen$1(new F.main_closure414());
     N.Logger_Logger("").info$1("Starting Observatory");
     N.Logger_Logger("").info$1("Loading Google Charts API");
     t1 = J.$index$asx($.get$context(), "google");
     t2 = $.get$GoogleChart__completer();
     t1.callMethod$2("load", ["visualization", "1", P.JsObject_JsObject$jsify(P.LinkedHashMap_LinkedHashMap$_literal(["packages", ["corechart", "table"], "callback", P.JsFunction_JsFunction$withThis(t2.get$complete(t2))], null, null))]);
-    $.get$GoogleChart__completer().future.then$1(G.GoogleChart__initOnceOnComplete$closure()).then$1(new F.main_closure412());
+    $.get$GoogleChart__completer().future.then$1(G.GoogleChart__initOnceOnComplete$closure()).then$1(new F.main_closure415());
   },
-  main_closure411: {
-    "^": "Closure:148;",
+  main_closure414: {
+    "^": "Closure:149;",
     call$1: [function(rec) {
       var t1;
       if (J.$eq(rec.get$level(), C.Level_WARNING_900)) {
@@ -22929,10 +22969,10 @@ var $$ = {};
       if (t1)
         return;
       P.print(rec.get$level().name + ": " + rec.get$time().toString$0(0) + ": " + H.S(J.get$message$x(rec)));
-    }, "call$1", null, 2, 0, null, 147, "call"],
+    }, "call$1", null, 2, 0, null, 148, "call"],
     $isFunction: true
   },
-  main_closure412: {
+  main_closure415: {
     "^": "Closure:13;",
     call$1: [function(_) {
       N.Logger_Logger("").info$1("Initializing Polymer");
@@ -23081,7 +23121,7 @@ var $$ = {};
       receiver._nav_bar_element$__$active = this.notifyPropertyChange$3(receiver, C.Symbol_active, t1, true);
       if (receiver._nav_bar_element$__$callback != null)
         this.callback$1(receiver, this.get$refreshDone(receiver));
-    }, "call$3", "get$buttonClick", 6, 0, 101, 1, 93, 94],
+    }, "call$3", "get$buttonClick", 6, 0, 102, 1, 93, 94],
     refreshDone$0: [function(receiver) {
       receiver._nav_bar_element$__$active = this.notifyPropertyChange$3(receiver, C.Symbol_active, receiver._nav_bar_element$__$active, false);
     }, "call$0", "get$refreshDone", 0, 0, 18],
@@ -23336,49 +23376,49 @@ var $$ = {};
     },
     goto$3: [function(receiver, $event, detail, target) {
       $.location.onGoto$3($event, detail, target);
-    }, "call$3", "get$$goto", 6, 0, 149, 2, 93, 94],
+    }, "call$3", "get$$goto", 6, 0, 150, 2, 93, 94],
     gotoLink$1: [function(receiver, url) {
       $.location.toString;
       return "#" + H.S(url);
-    }, "call$1", "get$gotoLink", 2, 0, 150, 151],
+    }, "call$1", "get$gotoLink", 2, 0, 151, 152],
     formatTime$1: [function(receiver, time) {
       return G.Utils_formatTime(time);
-    }, "call$1", "get$formatTime", 2, 0, 152, 153],
+    }, "call$1", "get$formatTime", 2, 0, 153, 154],
     formatSize$1: [function(receiver, bytes) {
       return G.Utils_formatSize(bytes);
     }, "call$1", "get$formatSize", 2, 0, 15, 16],
     isNull$1: [function(receiver, type) {
       return J.$eq(type, "Null");
-    }, "call$1", "get$isNull", 2, 0, 154, 155],
+    }, "call$1", "get$isNull", 2, 0, 155, 156],
     isError$1: [function(receiver, type) {
       return J.$eq(type, "Error");
-    }, "call$1", "get$isError", 2, 0, 154, 155],
+    }, "call$1", "get$isError", 2, 0, 155, 156],
     isInt$1: [function(receiver, type) {
       var t1 = J.getInterceptor(type);
       return t1.$eq(type, "Smi") || t1.$eq(type, "Mint") || t1.$eq(type, "Bigint");
-    }, "call$1", "get$isInt", 2, 0, 154, 155],
+    }, "call$1", "get$isInt", 2, 0, 155, 156],
     isBool$1: [function(receiver, type) {
       return J.$eq(type, "Bool");
-    }, "call$1", "get$isBool", 2, 0, 154, 155],
+    }, "call$1", "get$isBool", 2, 0, 155, 156],
     isString$1: [function(receiver, type) {
       return J.$eq(type, "String");
-    }, "call$1", "get$isString", 2, 0, 154, 155],
+    }, "call$1", "get$isString", 2, 0, 155, 156],
     isInstance$1: [function(receiver, type) {
       return J.$eq(type, "Instance");
-    }, "call$1", "get$isInstance", 2, 0, 154, 155],
+    }, "call$1", "get$isInstance", 2, 0, 155, 156],
     isDouble$1: [function(receiver, type) {
       return J.$eq(type, "Double");
-    }, "call$1", "get$isDouble", 2, 0, 154, 155],
+    }, "call$1", "get$isDouble", 2, 0, 155, 156],
     isList$1: [function(receiver, type) {
       var t1 = J.getInterceptor(type);
       return t1.$eq(type, "GrowableObjectArray") || t1.$eq(type, "Array");
-    }, "call$1", "get$isList", 2, 0, 154, 155],
+    }, "call$1", "get$isList", 2, 0, 155, 156],
     isType$1: [function(receiver, type) {
       return J.$eq(type, "Type");
-    }, "call$1", "get$isType", 2, 0, 154, 155],
+    }, "call$1", "get$isType", 2, 0, 155, 156],
     isUnexpected$1: [function(receiver, type) {
       return !C.JSArray_methods.contains$1(["Null", "Smi", "Mint", "Bigint", "Bool", "String", "Double", "Instance", "GrowableObjectArray", "Array", "Type", "Error"], type);
-    }, "call$1", "get$isUnexpected", 2, 0, 154, 155],
+    }, "call$1", "get$isUnexpected", 2, 0, 155, 156],
     static: {ObservatoryElement$created: function(receiver) {
         var t1, t2;
         t1 = P.LinkedHashMap_LinkedHashMap(null, null, null, P.String, W.ShadowRoot);
@@ -23436,7 +23476,7 @@ var $$ = {};
         return true;
       }
       return false;
-    }, "call$0", "get$deliverChanges", 0, 0, 110],
+    }, "call$0", "get$deliverChanges", 0, 0, 111],
     get$hasObservers: function(receiver) {
       var t1, t2;
       t1 = receiver.change_notifier$ChangeNotifier$_changes;
@@ -23527,7 +23567,7 @@ var $$ = {};
     return new P._ZoneSpecification(null, null, null, null, new O.dirtyCheckZoneSpec_wrapCallback(t1), new O.dirtyCheckZoneSpec_wrapUnaryCallback(t1), null, null, null, null, null, null);
   },
   dirtyCheckZoneSpec_enqueueDirtyCheck: {
-    "^": "Closure:156;box_0",
+    "^": "Closure:157;box_0",
     call$2: function($parent, zone) {
       var t1 = this.box_0;
       if (t1.pending_0)
@@ -23563,7 +23603,7 @@ var $$ = {};
     $isFunction: true
   },
   dirtyCheckZoneSpec_wrapUnaryCallback: {
-    "^": "Closure:157;enqueueDirtyCheck_6",
+    "^": "Closure:158;enqueueDirtyCheck_6",
     call$4: [function($self, $parent, zone, f) {
       if (f == null)
         return f;
@@ -24401,7 +24441,7 @@ var $$ = {};
         return true;
       }
       return false;
-    }, "call$0", "get$deliverListChanges", 0, 0, 110],
+    }, "call$0", "get$deliverListChanges", 0, 0, 111],
     $isObservableList: true,
     static: {ObservableList$: function($length, $E) {
         var t1 = H.setRuntimeTypeInfo([], [$E]);
@@ -24933,7 +24973,7 @@ var $$ = {};
     "^": "Closure:13;",
     call$1: [function(s) {
       return !!J.getInterceptor(s).$isSymbol ? $.get$symbolConverter()._names.$index(0, s) : s;
-    }, "call$1", null, 2, 0, null, 141, "call"],
+    }, "call$1", null, 2, 0, null, 142, "call"],
     $isFunction: true
   },
   _InvalidPropertyPath: {
@@ -25159,7 +25199,7 @@ var $$ = {};
         this._observeStream$1(obj.get$listChanges());
       if (!!t1.$isObservable)
         this._observeStream$1(t1.get$changes(obj));
-    }, "call$1", "get$observe", 2, 0, 158, 81],
+    }, "call$1", "get$observe", 2, 0, 159, 81],
     _observeStream$1: function(stream) {
       var t1, sub;
       if (this._objects == null)
@@ -25198,7 +25238,7 @@ var $$ = {};
       }
       this._resetNeeded = true;
       P.scheduleMicrotask(this.get$reset(this));
-    }, "call$1", "get$_path_observer$_callback", 2, 0, 20, 159],
+    }, "call$1", "get$_path_observer$_callback", 2, 0, 20, 160],
     static: {"^": "_ObservedSet__lastSet", _ObservedSet__ObservedSet: function(observer, rootObj) {
         var t1, t2;
         t1 = $._ObservedSet__lastSet;
@@ -25621,7 +25661,7 @@ var $$ = {};
     $isFunction: true
   },
   PolymerDeclaration__lowerCaseMap_closure: {
-    "^": "Closure:160;map_0",
+    "^": "Closure:161;map_0",
     call$2: function(path, value) {
       this.map_0.$indexSet(0, H.S(path).toLowerCase(), value);
     },
@@ -25695,7 +25735,7 @@ var $$ = {};
     $isFunction: true
   },
   PolymerEventBindings_prepareEventBinding_closure: {
-    "^": "Closure:164;box_0,this_1,path_2",
+    "^": "Closure:165;box_0,this_1,path_2",
     call$3: [function(model, node, oneTime) {
       var t1, handler, t2, sub;
       t1 = this.path_2;
@@ -25706,7 +25746,7 @@ var $$ = {};
       if (oneTime === true)
         return;
       return new A._EventBindable(sub, t1);
-    }, "call$3", null, 6, 0, null, 161, 162, 163, "call"],
+    }, "call$3", null, 6, 0, null, 162, 163, 164, "call"],
     $isFunction: true
   },
   _EventBindable: {
@@ -25914,7 +25954,7 @@ var $$ = {};
         t1 = t1.get$name(decl);
         $.get$objectAccessor().write$3(receiver, t1, newValue);
       }
-    }, "call$2", "get$attributeToProperty", 4, 0, 165],
+    }, "call$2", "get$attributeToProperty", 4, 0, 166],
     propertyForAttribute$1: function(receiver, $name) {
       var publishLC = receiver.polymer$Polymer$_polymer$_element.get$_publishLC();
       if (publishLC == null)
@@ -26040,7 +26080,7 @@ var $$ = {};
     },
     notifyPropertyChanges$3: [function(receiver, newValues, oldValues, paths) {
       J.forEach$1$ax(oldValues, new A.Polymer_notifyPropertyChanges_closure(receiver, newValues, oldValues, paths, J.get$_observe$x(receiver.polymer$Polymer$_polymer$_element), P.HashSet_HashSet(null, null, null, null)));
-    }, "call$3", "get$notifyPropertyChanges", 6, 0, 166],
+    }, "call$3", "get$notifyPropertyChanges", 6, 0, 167],
     _propertyChange$1: [function(receiver, records) {
       var t1, record, t2, $name, reflect;
       for (t1 = J.get$iterator$ax(records); t1.moveNext$0();) {
@@ -26053,7 +26093,7 @@ var $$ = {};
         if (reflect != null && reflect.contains$1(0, $name))
           this.reflectPropertyToAttribute$1(receiver, $name);
       }
-    }, "call$1", "get$_propertyChange", 2, 0, 167, 159],
+    }, "call$1", "get$_propertyChange", 2, 0, 168, 160],
     observeArrayValue$3: function(receiver, $name, value, old) {
       var observe, callbacks, t1, subscription, t2;
       observe = J.get$_observe$x(receiver.polymer$Polymer$_polymer$_element);
@@ -26092,7 +26132,7 @@ var $$ = {};
         if (o != null)
           J.close$0$x(o);
       }
-    }, "call$1", "get$closeObserverList", 2, 0, 168],
+    }, "call$1", "get$closeObserverList", 2, 0, 169],
     closeNamedObserver$1: function(receiver, $name) {
       var sub = receiver.polymer$Polymer$_namedObservers.remove$1(0, $name);
       if (sub == null)
@@ -26227,7 +26267,7 @@ var $$ = {};
         callback = t1.get$current();
         $.get$objectAccessor().invoke$5$adjust$namedArgs(t2, callback, [t3], true, null);
       }
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   Polymer_addHostListeners_closure: {
@@ -26260,7 +26300,7 @@ var $$ = {};
           return;
         }
       }
-    }, "call$1", "get$_propertyValueChanged", 2, 0, 167, 159],
+    }, "call$1", "get$_propertyValueChanged", 2, 0, 168, 160],
     open$1: function(_, callback) {
       return J.open$1$x(this._polymer$_bindable, callback);
     },
@@ -26340,13 +26380,13 @@ var $$ = {};
     $isFunction: true
   },
   _hookJsPolymer_registerDart: {
-    "^": "Closure:172;zone_0,originalRegister_1",
+    "^": "Closure:173;zone_0,originalRegister_1",
     call$3: [function(jsElem, $name, extendee) {
       var type = $.get$_typesByName().$index(0, $name);
       if (type != null)
         return this.zone_0.run$1(new A._hookJsPolymer_registerDart_closure(jsElem, $name, type, $.get$_declarations().$index(0, extendee)));
       return this.originalRegister_1.apply$2$thisArg([$name, extendee], jsElem);
-    }, "call$3", null, 6, 0, null, 170, 56, 171, "call"],
+    }, "call$3", null, 6, 0, null, 171, 56, 172, "call"],
     $isFunction: true
   },
   _hookJsPolymer_registerDart_closure: {
@@ -26662,7 +26702,7 @@ var $$ = {};
     "^": "Closure:13;v_0",
     call$1: [function(k) {
       return H.S(k) + ": " + H.S(this.v_0.$index(0, k));
-    }, "call$1", null, 2, 0, null, 173, "call"],
+    }, "call$1", null, 2, 0, null, 174, "call"],
     $isFunction: true
   },
   PolymerExpressions0: {
@@ -26770,7 +26810,7 @@ var $$ = {};
       }}
   },
   PolymerExpressions_prepareBinding_closure: {
-    "^": "Closure:174;this_1,identifier_2,bindExpr_3",
+    "^": "Closure:175;this_1,identifier_2,bindExpr_3",
     call$3: [function(model, node, oneTime) {
       var t1, scope;
       t1 = this.this_1;
@@ -26779,11 +26819,11 @@ var $$ = {};
       t1._scopes.$indexSet(0, node, scope);
       t1 = T._identity$closure();
       return new T._Binding(scope, t1, this.bindExpr_3, null, null, null, null);
-    }, "call$3", null, 6, 0, null, 161, 162, 163, "call"],
+    }, "call$3", null, 6, 0, null, 162, 163, 164, "call"],
     $isFunction: true
   },
   PolymerExpressions_prepareBinding_closure0: {
-    "^": "Closure:174;this_4,expr_5",
+    "^": "Closure:175;this_4,expr_5",
     call$3: [function(model, node, oneTime) {
       var t1, scope;
       t1 = this.this_4;
@@ -26793,11 +26833,11 @@ var $$ = {};
         return T._Binding__oneTime(this.expr_5, scope, null);
       t1 = T._identity$closure();
       return new T._Binding(scope, t1, this.expr_5, null, null, null, null);
-    }, "call$3", null, 6, 0, null, 161, 162, 163, "call"],
+    }, "call$3", null, 6, 0, null, 162, 163, 164, "call"],
     $isFunction: true
   },
   PolymerExpressions_prepareBinding_closure1: {
-    "^": "Closure:174;box_0,this_6,expr_7",
+    "^": "Closure:175;box_0,this_6,expr_7",
     call$3: [function(model, node, oneTime) {
       var scope, t1;
       scope = this.this_6._getScopeForModel$2(node, model);
@@ -26807,7 +26847,7 @@ var $$ = {};
       if (t1 == null)
         t1 = T._identity$closure();
       return new T._Binding(scope, t1, this.expr_7, null, null, null, null);
-    }, "call$3", null, 6, 0, null, 161, 162, 163, "call"],
+    }, "call$3", null, 6, 0, null, 162, 163, 164, "call"],
     $isFunction: true
   },
   PolymerExpressions_prepareInstanceModel_closure: {
@@ -26823,7 +26863,7 @@ var $$ = {};
         return K.Scope_Scope(model, t1.globals);
       } else
         return t1._getScopeForModel$2(t2, model);
-    }, "call$1", null, 2, 0, null, 161, "call"],
+    }, "call$1", null, 2, 0, null, 162, "call"],
     $isFunction: true
   },
   PolymerExpressions_prepareInstanceModel_closure0: {
@@ -26838,7 +26878,7 @@ var $$ = {};
         return existingScope.childScope$2(t3, model);
       else
         return t1._getParentScope$1(t2).childScope$2(t3, model);
-    }, "call$1", null, 2, 0, null, 161, "call"],
+    }, "call$1", null, 2, 0, null, 162, "call"],
     $isFunction: true
   },
   _Binding: {
@@ -26858,7 +26898,7 @@ var $$ = {};
         this._polymer_expressions$_callback$1(this._polymer_expressions$_value);
     }, function(v) {
       return this._polymer_expressions$_check$2$skipChanges(v, false);
-    }, "_polymer_expressions$_check$1", "call$2$skipChanges", "call$1", "get$_polymer_expressions$_check", 2, 3, 175, 176, 64, 177],
+    }, "_polymer_expressions$_check$1", "call$2$skipChanges", "call$1", "get$_polymer_expressions$_check", 2, 3, 176, 177, 64, 178],
     get$value: function(_) {
       if (this._polymer_expressions$_callback != null)
         return this._polymer_expressions$_value;
@@ -26936,7 +26976,7 @@ var $$ = {};
     "^": "Closure:75;this_0",
     call$2: [function(e, s) {
       H.setRuntimeTypeInfo(new P._AsyncCompleter(P._Future$(null)), [null]).completeError$2("Error evaluating expression '" + H.S(this.this_0._observer) + "': " + H.S(e), s);
-    }, "call$2", null, 4, 0, null, 1, 141, "call"],
+    }, "call$2", null, 4, 0, null, 1, 142, "call"],
     $isFunction: true
   },
   ScopeFactory: {
@@ -27666,7 +27706,7 @@ var $$ = {};
     call$1: [function(changes) {
       if (J.any$1$ax(changes, new K.IdentifierObserver__updateSelf__closure(this.symbol_2)) === true)
         this.this_0._invalidate$1(this.scope_1);
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   IdentifierObserver__updateSelf__closure: {
@@ -27798,7 +27838,7 @@ var $$ = {};
     call$1: [function(changes) {
       if (J.any$1$ax(changes, new K.GetterObserver__updateSelf__closure(this.symbol_2)) === true)
         this.this_0._invalidate$1(this.scope_1);
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   GetterObserver__updateSelf__closure: {
@@ -27839,7 +27879,7 @@ var $$ = {};
     call$1: [function(changes) {
       if (J.any$1$ax(changes, new K.IndexObserver__updateSelf__closure0(this.key_2)) === true)
         this.this_0._invalidate$1(this.scope_1);
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   IndexObserver__updateSelf__closure0: {
@@ -27854,7 +27894,7 @@ var $$ = {};
     call$1: [function(changes) {
       if (J.any$1$ax(changes, new K.IndexObserver__updateSelf__closure(this.key_6)) === true)
         this.this_4._invalidate$1(this.scope_5);
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   IndexObserver__updateSelf__closure: {
@@ -27910,11 +27950,11 @@ var $$ = {};
     $isFunction: true
   },
   InvokeObserver__updateSelf_closure0: {
-    "^": "Closure:178;this_0,scope_1,symbol_2",
+    "^": "Closure:179;this_0,scope_1,symbol_2",
     call$1: [function(changes) {
       if (J.any$1$ax(changes, new K.InvokeObserver__updateSelf__closure(this.symbol_2)) === true)
         this.this_0._invalidate$1(this.scope_1);
-    }, "call$1", null, 2, 0, null, 169, "call"],
+    }, "call$1", null, 2, 0, null, 170, "call"],
     $isFunction: true
   },
   InvokeObserver__updateSelf__closure: {
@@ -27976,7 +28016,7 @@ var $$ = {};
     "^": "Object;",
     index$2: [function(_, e, a) {
       return new U.Index(e, a);
-    }, "call$2", "get$index", 4, 0, 179, 1, 46]
+    }, "call$2", "get$index", 4, 0, 180, 1, 46]
   },
   Expression: {
     "^": "Object;",
@@ -28950,7 +28990,7 @@ var $$ = {};
     "^": "Object;",
     visit$1: [function(s) {
       return J.accept$1$x(s, this);
-    }, "call$1", "get$visit", 2, 0, 180, 141]
+    }, "call$1", "get$visit", 2, 0, 181, 142]
   },
   RecursiveVisitor: {
     "^": "Visitor;",
@@ -29088,7 +29128,7 @@ var $$ = {};
       else if (J.$eq(hits, 0))
         return "min-width:32px; background-color:red";
       return "min-width:32px; background-color:green";
-    }, "call$1", "get$styleForHits", 2, 0, 15, 181],
+    }, "call$1", "get$styleForHits", 2, 0, 15, 182],
     _updateLines$0: function(receiver) {
       var t1, t2, i;
       if (receiver._updateFuture != null)
@@ -29514,7 +29554,7 @@ var $$ = {};
     $isServiceObject: true
   },
   ServiceObject_reload_closure: {
-    "^": "Closure:183;this_0",
+    "^": "Closure:184;this_0",
     call$1: [function(map) {
       var mapType, t1;
       mapType = J.$index$asx(map, "type");
@@ -29526,7 +29566,7 @@ var $$ = {};
         return D.ServiceObject_ServiceObject$_fromMap(t1._owner, map);
       t1.update$1(map);
       return t1;
-    }, "call$1", null, 2, 0, null, 182, "call"],
+    }, "call$1", null, 2, 0, null, 183, "call"],
     $isFunction: true
   },
   ServiceObject_reload_closure0: {
@@ -29556,7 +29596,7 @@ var $$ = {};
     },
     relativeLink$1: [function(id) {
       return H.S(id);
-    }, "call$1", "get$relativeLink", 2, 0, 150, 184],
+    }, "call$1", "get$relativeLink", 2, 0, 151, 185],
     get$version: function(_) {
       return this._service$__$version;
     },
@@ -29720,7 +29760,7 @@ var $$ = {};
       if (!J.getInterceptor(result).$isVM)
         return;
       return this.this_0._isolateCache.$index(0, this.isolateId_1);
-    }, "call$1", null, 2, 0, null, 128, "call"],
+    }, "call$1", null, 2, 0, null, 129, "call"],
     $isFunction: true
   },
   VM_get_closure: {
@@ -29738,7 +29778,7 @@ var $$ = {};
     $isFunction: true
   },
   VM_get_closure0: {
-    "^": "Closure:183;this_2,id_3",
+    "^": "Closure:184;this_2,id_3",
     call$1: [function(map) {
       var t1, obj;
       t1 = this.this_2;
@@ -29746,7 +29786,7 @@ var $$ = {};
       if (obj.get$canCache())
         t1._cache.putIfAbsent$2(this.id_3, new D.VM_get__closure(obj));
       return obj;
-    }, "call$1", null, 2, 0, null, 182, "call"],
+    }, "call$1", null, 2, 0, null, 183, "call"],
     $isFunction: true
   },
   VM_get__closure: {
@@ -29773,7 +29813,7 @@ var $$ = {};
       }
 
       return this.this_0._processMap$1(map);
-    }, "call$1", null, 2, 0, null, 131, "call"],
+    }, "call$1", null, 2, 0, null, 132, "call"],
     $isFunction: true
   },
   VM_getAsMap_closure0: {
@@ -29983,7 +30023,7 @@ var $$ = {};
     },
     relativeLink$1: [function(id) {
       return "/" + H.S(this._id) + "/" + H.S(id);
-    }, "call$1", "get$relativeLink", 2, 0, 150, 184],
+    }, "call$1", "get$relativeLink", 2, 0, 151, 185],
     processProfile$1: function(profile) {
       var codeTable, t1, t2, exclusiveTrie;
       codeTable = H.setRuntimeTypeInfo([], [D.Code]);
@@ -30012,10 +30052,10 @@ var $$ = {};
     },
     refreshCoverage$0: [function(_) {
       return this.get$1("coverage").then$1(this.get$_processCoverage());
-    }, "call$0", "get$refreshCoverage", 0, 0, 185],
+    }, "call$0", "get$refreshCoverage", 0, 0, 186],
     _processCoverage$1: [function(coverage) {
       J.forEach$1$ax(J.$index$asx(coverage, "coverage"), new D.Isolate__processCoverage_closure(this));
-    }, "call$1", "get$_processCoverage", 2, 0, 133, 186],
+    }, "call$1", "get$_processCoverage", 2, 0, 134, 187],
     getClassHierarchy$0: function() {
       return this.get$1("classes").then$1(this.get$_loadClasses()).then$1(this.get$_buildClassHierarchy());
     },
@@ -30029,7 +30069,7 @@ var $$ = {};
           futureClasses.push(t2.load$0(cls));
       }
       return P.Future_wait(futureClasses, false);
-    }, "call$1", "get$_loadClasses", 2, 0, 187, 188],
+    }, "call$1", "get$_loadClasses", 2, 0, 188, 189],
     _buildClassHierarchy$1: [function(classes) {
       var t1, t2, cls, t3;
       t1 = this.rootClasses;
@@ -30050,7 +30090,7 @@ var $$ = {};
         }
       }
       return P._Future$immediate(this._service$__$objectClass, null);
-    }, "call$1", "get$_buildClassHierarchy", 2, 0, 189, 190],
+    }, "call$1", "get$_buildClassHierarchy", 2, 0, 190, 191],
     getFromMap$1: function(map) {
       var id, t1, obj;
       if (map == null)
@@ -30313,11 +30353,11 @@ var $$ = {};
     call$1: [function(scriptCoverage) {
       var t1 = J.getInterceptor$asx(scriptCoverage);
       t1.$index(scriptCoverage, "script")._processHits$1(t1.$index(scriptCoverage, "hits"));
-    }, "call$1", null, 2, 0, null, 191, "call"],
+    }, "call$1", null, 2, 0, null, 192, "call"],
     $isFunction: true
   },
   Isolate_get_closure: {
-    "^": "Closure:183;this_0,id_1",
+    "^": "Closure:184;this_0,id_1",
     call$1: [function(map) {
       var t1, obj;
       t1 = this.this_0;
@@ -30325,7 +30365,7 @@ var $$ = {};
       if (obj.get$canCache())
         t1._cache.putIfAbsent$2(this.id_1, new D.Isolate_get__closure(obj));
       return obj;
-    }, "call$1", null, 2, 0, null, 182, "call"],
+    }, "call$1", null, 2, 0, null, 183, "call"],
     $isFunction: true
   },
   Isolate_get__closure: {
@@ -30340,7 +30380,7 @@ var $$ = {};
     call$1: [function(timer) {
       var t1 = J.getInterceptor$asx(timer);
       this.timerMap_0.$indexSet(0, t1.$index(timer, "name"), t1.$index(timer, "time"));
-    }, "call$1", null, 2, 0, null, 192, "call"],
+    }, "call$1", null, 2, 0, null, 193, "call"],
     $isFunction: true
   },
   Isolate__update_closure0: {
@@ -30351,7 +30391,7 @@ var $$ = {};
     $isFunction: true
   },
   Isolate_updateTagProfile_closure: {
-    "^": "Closure:183;this_0",
+    "^": "Closure:184;this_0",
     call$1: [function(m) {
       var t1, t2;
       t1 = Date.now();
@@ -30359,7 +30399,7 @@ var $$ = {};
       t2 = this.this_0.tagProfile;
       t2._processTagProfile$2(t1 / 1000, m);
       return t2;
-    }, "call$1", null, 2, 0, null, 144, "call"],
+    }, "call$1", null, 2, 0, null, 145, "call"],
     $isFunction: true
   },
   ServiceMap: {
@@ -30424,7 +30464,7 @@ var $$ = {};
     deliverChanges$0: [function(_) {
       var t1 = this._service$_map;
       return t1.deliverChanges$0(t1);
-    }, "call$0", "get$deliverChanges", 0, 0, 110],
+    }, "call$0", "get$deliverChanges", 0, 0, 111],
     notifyChange$1: function(_, record) {
       var t1 = this._service$_map;
       return t1.notifyChange$1(t1, record);
@@ -30629,8 +30669,11 @@ var $$ = {};
   },
   AllocationCount: {
     "^": "ChangeNotifier;_service$__$instances,_service$__$bytes,change_notifier$ChangeNotifier$_changes,change_notifier$ChangeNotifier$_change_notifier$_records",
-    get$instances: function() {
+    get$instances: function(_) {
       return this._service$__$instances;
+    },
+    set$instances: function(_, value) {
+      this._service$__$instances = F.notifyPropertyChangeHelper(this, C.Symbol_instances, this._service$__$instances, value);
     },
     get$bytes: function() {
       return this._service$__$bytes;
@@ -30931,18 +30974,20 @@ var $$ = {};
       }
     },
     _processHits$1: function(scriptHits) {
-      var t1, t2, i, t3;
-      t1 = this._hits;
-      t1.clear$0(0);
-      t2 = J.getInterceptor$asx(scriptHits);
+      var t1, t2, i, t3, line, hit, oldHits;
+      t1 = J.getInterceptor$asx(scriptHits);
+      t2 = this._hits;
       i = 0;
       while (true) {
-        t3 = t2.get$length(scriptHits);
+        t3 = t1.get$length(scriptHits);
         if (typeof t3 !== "number")
           return H.iae(t3);
         if (!(i < t3))
           break;
-        t1.$indexSet(0, t2.$index(scriptHits, i), t2.$index(scriptHits, i + 1));
+        line = t1.$index(scriptHits, i);
+        hit = t1.$index(scriptHits, i + 1);
+        oldHits = t2.$index(0, line);
+        t2.$indexSet(0, line, oldHits != null ? J.$add$ns(hit, oldHits) : hit);
         i += 2;
       }
       this._applyHitsToLines$0();
@@ -31003,7 +31048,7 @@ var $$ = {};
       if (t2.$eq(t1, -1))
         return "N/A";
       return t2.toString$0(t1);
-    }, "call$0", "get$formattedDeoptId", 0, 0, 193],
+    }, "call$0", "get$formattedDeoptId", 0, 0, 194],
     processScript$1: function(script) {
       var t1, line;
       this._service$__$script = F.notifyPropertyChangeHelper(this, C.Symbol_script, this._service$__$script, null);
@@ -31037,7 +31082,7 @@ var $$ = {};
       if (t2.$eq(t1, 0))
         return "";
       return "0x" + t2.toRadixString$1(t1, 16);
-    }, "call$0", "get$formattedAddress", 0, 0, 193],
+    }, "call$0", "get$formattedAddress", 0, 0, 194],
     formattedInclusive$1: [function(code) {
       var tick;
       if (code == null)
@@ -31048,7 +31093,7 @@ var $$ = {};
       if (J.$eq(tick.get$inclusiveTicks(), tick.get$exclusiveTicks()))
         return "";
       return D.CodeInstruction_formatPercent(tick.get$inclusiveTicks(), code.get$totalSamplesInProfile()) + " (" + H.S(tick.get$inclusiveTicks()) + ")";
-    }, "call$1", "get$formattedInclusive", 2, 0, 194, 71],
+    }, "call$1", "get$formattedInclusive", 2, 0, 195, 71],
     formattedExclusive$1: [function(code) {
       var tick;
       if (code == null)
@@ -31057,7 +31102,7 @@ var $$ = {};
       if (tick == null)
         return "";
       return D.CodeInstruction_formatPercent(tick.get$exclusiveTicks(), code.get$totalSamplesInProfile()) + " (" + H.S(tick.get$exclusiveTicks()) + ")";
-    }, "call$1", "get$formattedExclusive", 2, 0, 194, 71],
+    }, "call$1", "get$formattedExclusive", 2, 0, 195, 71],
     _getJumpAddress$0: function() {
       var address, chunks, t1, exception;
       chunks = J.split$1$s(this.human, " ");
@@ -31188,7 +31233,7 @@ var $$ = {};
       for (t1 = this.instructions, t1 = t1.get$iterator(t1); t1.moveNext$0();)
         for (t2 = t1._current.get$descriptors(), t2 = t2.get$iterator(t2); t2.moveNext$0();)
           t2._current.processScript$1(script);
-    }, "call$1", "get$_updateDescriptors", 2, 0, 195, 196],
+    }, "call$1", "get$_updateDescriptors", 2, 0, 196, 197],
     loadScript$0: function() {
       if (this._service$__$script != null)
         return;
@@ -31362,7 +31407,7 @@ var $$ = {};
       if (script == null)
         return;
       J.load$0$x(script).then$1(t1.get$_updateDescriptors());
-    }, "call$1", null, 2, 0, null, 197, "call"],
+    }, "call$1", null, 2, 0, null, 198, "call"],
     $isFunction: true
   },
   Code__resolveCalls_closure: {
@@ -31571,10 +31616,10 @@ var $$ = {};
     }
   },
   HttpVM_getString_closure: {
-    "^": "Closure:199;",
+    "^": "Closure:200;",
     call$1: [function(request) {
       return J.get$responseText$x(request);
-    }, "call$1", null, 2, 0, null, 198, "call"],
+    }, "call$1", null, 2, 0, null, 199, "call"],
     $isFunction: true
   },
   HttpVM_getString_closure0: {
@@ -31918,7 +31963,7 @@ var $$ = {};
     change$3: [function(receiver, e, details, target) {
       var t1 = J.get$checked$x((receiver.shadowRoot || receiver.webkitShadowRoot).querySelector("#slide-switch"));
       receiver._sliding_checkbox_element$__$checked = this.notifyPropertyChange$3(receiver, C.Symbol_checked, receiver._sliding_checkbox_element$__$checked, t1);
-    }, "call$3", "get$change", 6, 0, 101, 1, 200, 94],
+    }, "call$3", "get$change", 6, 0, 102, 1, 201, 94],
     static: {SlidingCheckboxElement$created: function(receiver) {
         var t1, t2;
         t1 = P.LinkedHashMap_LinkedHashMap(null, null, null, P.String, W.ShadowRoot);
@@ -33326,7 +33371,7 @@ var $$ = {};
       var t1 = this.this_0;
       J.get$attributes$x(t1._node)._html$_element.setAttribute("ref", ref);
       t1._refChanged$0();
-    }, "call$1", null, 2, 0, null, 201, "call"],
+    }, "call$1", null, 2, 0, null, 202, "call"],
     $isFunction: true
   },
   TemplateBindExtension_bootstrap__bootstrap: {
@@ -33341,7 +33386,7 @@ var $$ = {};
     "^": "Closure:13;",
     call$1: [function(k) {
       return H.S(k) + "[template]";
-    }, "call$1", null, 2, 0, null, 173, "call"],
+    }, "call$1", null, 2, 0, null, 174, "call"],
     $isFunction: true
   },
   closure8: {
@@ -33350,7 +33395,7 @@ var $$ = {};
       var t1;
       for (t1 = J.get$iterator$ax(records); t1.moveNext$0();)
         M.nodeBindFallback(J.get$target$x(t1.get$current()))._refChanged$0();
-    }, "call$2", null, 4, 0, null, 159, 14, "call"],
+    }, "call$2", null, 4, 0, null, 160, 14, "call"],
     $isFunction: true
   },
   closure9: {
@@ -33610,7 +33655,7 @@ var $$ = {};
       }
       for (t1 = instanceCache.get$values(instanceCache), t1 = H.setRuntimeTypeInfo(new H.MappedIterator(null, J.get$iterator$ax(t1._iterable), t1._f), [H.getTypeArgumentByIndex(t1, 0), H.getTypeArgumentByIndex(t1, 1)]); t1.moveNext$0();)
         this._closeInstanceBindings$1(t1._current);
-    }, "call$1", "get$_handleSplices", 2, 0, 202, 203],
+    }, "call$1", "get$_handleSplices", 2, 0, 203, 204],
     _closeInstanceBindings$1: [function(instance) {
       var t1, values, bindings;
       t1 = $.get$_instanceExtension();
@@ -33621,7 +33666,7 @@ var $$ = {};
       t1.$builtinTypeInfo = [H.getTypeArgumentByIndex(bindings, 0)];
       for (; t1.moveNext$0();)
         J.close$0$x(t1._current);
-    }, "call$1", "get$_closeInstanceBindings", 2, 0, 204],
+    }, "call$1", "get$_closeInstanceBindings", 2, 0, 205],
     _unobserve$0: function() {
       var t1 = this._listSub;
       if (t1 == null)
@@ -33755,7 +33800,7 @@ var $$ = {};
       if (t4 >= t3)
         return H.ioore(t1, t4);
       return t2 + H.S(t1[t4]);
-    }, "call$1", "get$_singleCombinator", 2, 0, 205, 21],
+    }, "call$1", "get$_singleCombinator", 2, 0, 206, 21],
     _listCombinator$1: [function(values) {
       var t1, newValue, len, t2, i, value, t3, str;
       t1 = this._mustache_tokens$_tokens;
@@ -33775,7 +33820,7 @@ var $$ = {};
         newValue._contents += typeof str === "string" ? str : H.S(str);
       }
       return newValue._contents;
-    }, "call$1", "get$_listCombinator", 2, 0, 206, 207],
+    }, "call$1", "get$_listCombinator", 2, 0, 207, 208],
     MustacheTokens$_$2: function(_tokens, onlyOneTime) {
       this._combinator = this._mustache_tokens$_tokens.length === 5 ? this.get$_singleCombinator() : this.get$_listCombinator();
     },
@@ -34610,6 +34655,9 @@ J.get$index$x = function(receiver) {
 J.get$instance$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$instance(receiver);
 };
+J.get$instances$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$instances(receiver);
+};
 J.get$internal$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$internal(receiver);
 };
@@ -34813,6 +34861,9 @@ J.get$qualified$x = function(receiver) {
 };
 J.get$qualifiedName$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$qualifiedName(receiver);
+};
+J.get$reachable$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$reachable(receiver);
 };
 J.get$ref$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$ref(receiver);
@@ -35192,6 +35243,9 @@ J.set$httpServer$x = function(receiver, value) {
 J.set$instance$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$instance(receiver, value);
 };
+J.set$instances$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$instances(receiver, value);
+};
 J.set$internal$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$internal(receiver, value);
 };
@@ -35275,6 +35329,9 @@ J.set$qualified$x = function(receiver, value) {
 };
 J.set$qualifiedName$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$qualifiedName(receiver, value);
+};
+J.set$reachable$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$reachable(receiver, value);
 };
 J.set$ref$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$ref(receiver, value);
@@ -35711,6 +35768,8 @@ C.Symbol_posChanged = new H.Symbol0("posChanged");
 C.Declaration_owq = new A.Declaration(C.Symbol_posChanged, C.DeclarationKind_2, false, C.Type_EjN, false, C.List_empty);
 C.Symbol_small = new H.Symbol0("small");
 C.Declaration_pPA = new A.Declaration(C.Symbol_small, C.DeclarationKind_1, false, C.Type_EsU, false, C.List_bTJ);
+C.Symbol_instances = new H.Symbol0("instances");
+C.Declaration_qr9 = new A.Declaration(C.Symbol_instances, C.DeclarationKind_1, false, C.Type_bAc, false, C.List_Reflectable_ObservableProperty);
 C.Declaration_qrv = new A.Declaration(C.Symbol_cls, C.DeclarationKind_1, false, C.Type_bAc, false, C.List_bTJ);
 C.Symbol_checked = new H.Symbol0("checked");
 C.Declaration_siO = new A.Declaration(C.Symbol_checked, C.DeclarationKind_1, false, C.Type_EsU, false, C.List_bTJ);
@@ -35988,7 +36047,6 @@ C.Symbol_human = new H.Symbol0("human");
 C.Symbol_idle = new H.Symbol0("idle");
 C.Symbol_imp = new H.Symbol0("imp");
 C.Symbol_imports = new H.Symbol0("imports");
-C.Symbol_instances = new H.Symbol0("instances");
 C.Symbol_instruction = new H.Symbol0("instruction");
 C.Symbol_instructions = new H.Symbol0("instructions");
 C.Symbol_interface = new H.Symbol0("interface");
@@ -36042,6 +36100,7 @@ C.Symbol_pause = new H.Symbol0("pause");
 C.Symbol_pauseEvent = new H.Symbol0("pauseEvent");
 C.Symbol_pid = new H.Symbol0("pid");
 C.Symbol_protocol = new H.Symbol0("protocol");
+C.Symbol_reachable = new H.Symbol0("reachable");
 C.Symbol_readClosed = new H.Symbol0("readClosed");
 C.Symbol_refresh = new H.Symbol0("refresh");
 C.Symbol_refreshCoverage = new H.Symbol0("refreshCoverage");
@@ -36484,7 +36543,7 @@ Isolate.$lazy($, "_expando", "_expando", "get$_expando", function() {
 });
 // Native classes
 
-init.functionAliases = {evalType: 208};
+init.functionAliases = {evalType: 209};
 ;
 init.metadata = ["sender",
 "e",
@@ -36585,6 +36644,7 @@ init.metadata = ["sender",
 {func: "Future__String", ret: [P.Future, D.ServiceObject], args: [P.String]},
 "text",
 {func: "Future__dynamic", ret: [P.Future, D.ServiceObject], args: [null]},
+"limit",
 "dummy",
 {func: "dynamic__ServiceMap", args: [D.ServiceMap]},
 {func: "void__Event_dynamic_Node", void: true, args: [W.Event, null, W.Node]},
