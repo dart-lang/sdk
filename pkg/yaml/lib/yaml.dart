@@ -72,5 +72,5 @@ YamlList loadYamlStream(String yaml, {String sourceName}) {
   var nodes = pair.first
       .map((doc) => new Constructor(new Composer(doc).compose()).construct())
       .toList();
-  return new YamlList(nodes, pair.last);
+  return new YamlList.internal(nodes, pair.last);
 }

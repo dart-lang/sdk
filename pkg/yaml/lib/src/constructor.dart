@@ -26,14 +26,14 @@ class Constructor extends Visitor {
 
   /// Returns the value of a scalar.
   YamlScalar visitScalar(ScalarNode scalar) =>
-      new YamlScalar(scalar.value, scalar.span);
+      new YamlScalar.internal(scalar.value, scalar.span);
 
   /// Converts a sequence into a List of Dart objects.
   YamlList visitSequence(SequenceNode seq) {
     var anchor = getAnchor(seq);
     if (anchor != null) return anchor;
     var nodes = [];
-    var dartSeq = setAnchor(seq, new YamlList(nodes, seq.span));
+    var dartSeq = setAnchor(seq, new YamlList.internal(nodes, seq.span));
     nodes.addAll(super.visitSequence(seq));
     return dartSeq;
   }
@@ -43,7 +43,7 @@ class Constructor extends Visitor {
     var anchor = getAnchor(map);
     if (anchor != null) return anchor;
     var nodes = deepEqualsMap();
-    var dartMap = setAnchor(map, new YamlMap(nodes, map.span));
+    var dartMap = setAnchor(map, new YamlMap.internal(nodes, map.span));
     super.visitMapping(map).forEach((k, v) => nodes[k] = v);
     return dartMap;
   }
@@ -57,10 +57,14 @@ class Constructor extends Visitor {
 
     // Re-wrap [value]'s contents so that it's associated with the span of the
     // anchor rather than its original definition.
-    if (value is YamlMap) return new YamlMap(value.nodes, anchored.span);
-    if (value is YamlList) return new YamlList(value.nodes, anchored.span);
-    assert(value is YamlScalar);
-    return new YamlScalar(value.value, anchored.span);
+    if (value is YamlMap) {
+      return new YamlMap.internal(value.nodes, anchored.span);
+    } else if (value is YamlList) {
+      return new YamlList.internal(value.nodes, anchored.span);
+    } else {
+      assert(value is YamlScalar);
+      return new YamlScalar.internal(value.value, anchored.span);
+    }
   }
 
   /// Records that [value] is the Dart object representing [anchored].

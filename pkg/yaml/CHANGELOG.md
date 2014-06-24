@@ -1,5 +1,9 @@
 ## 1.1.0
 
+* Add new publicly-accessible constructors for `YamlNode` subclasses. These
+  constructors make it possible to use the same API to access non-YAML data as
+  YAML data.
+
 * Make `YamlException` inherit from source_map's [`SpanFormatException`][]. This
   improves the error formatting and allows callers access to source range
   information.

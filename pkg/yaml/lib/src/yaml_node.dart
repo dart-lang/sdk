@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library yaml.map;
+library yaml.yaml_node;
 
 import 'dart:collection' as collection;
 
 import 'package:collection/collection.dart';
 import 'package:source_maps/source_maps.dart';
+
+import 'null_span.dart';
+import 'yaml_node_wrapper.dart';
 
 /// An interface for parsed nodes from a YAML source tree.
 ///
@@ -37,14 +40,40 @@ abstract class YamlNode {
 class YamlMap extends YamlNode with collection.MapMixin, UnmodifiableMapMixin  {
   final Span span;
 
+  /// A view of [this] where the keys and values are guaranteed to be
+  /// [YamlNode]s.
+  ///
+  /// The key type is `dynamic` to allow values to be accessed using
+  /// non-[YamlNode] keys, but [Map.keys] and [Map.forEach] will always expose
+  /// them as [YamlNode]s. For example, for `{"foo": [1, 2, 3]}` [nodes] will be
+  /// a map from a [YamlScalar] to a [YamlList], but since the key type is
+  /// `dynamic` `map.nodes["foo"]` will still work.
   final Map<dynamic, YamlNode> nodes;
 
   Map get value => this;
 
   Iterable get keys => nodes.keys.map((node) => node.value);
 
-  /// Users of the library should not construct [YamlMap]s manually.
-  YamlMap(Map<dynamic, YamlNode> nodes, this.span)
+  /// Creates an empty YamlMap.
+  ///
+  /// This map's [span] won't have useful location information. However, it will
+  /// have a reasonable implementation of [Span.getLocationMessage]. If
+  /// [sourceName] is passed, it's used as the [Span.sourceUrl].
+  factory YamlMap({String sourceName}) =>
+      new YamlMapWrapper(const {}, sourceName);
+
+  /// Wraps a Dart map so that it can be accessed (recursively) like a
+  /// [YamlMap].
+  ///
+  /// Any [Span]s returned by this map or its children will be dummies without
+  /// useful location information. However, they will have a reasonable
+  /// implementation of [Span.getLocationMessage]. If [sourceName] is passed,
+  /// it's used as the [Span.sourceUrl].
+  factory YamlMap.wrap(Map dartMap, {String sourceName}) =>
+      new YamlMapWrapper(dartMap, sourceName);
+
+  /// Users of the library should not use this constructor.
+  YamlMap.internal(Map<dynamic, YamlNode> nodes, this.span)
       : nodes = new UnmodifiableMapView<dynamic, YamlNode>(nodes);
 
   operator [](key) {
@@ -68,8 +97,26 @@ class YamlList extends YamlNode with collection.ListMixin {
     throw new UnsupportedError("Cannot modify an unmodifiable List");
   }
 
-  /// Users of the library should not construct [YamlList]s manually.
-  YamlList(List<YamlNode> nodes, this.span)
+  /// Creates an empty YamlList.
+  ///
+  /// This list's [span] won't have useful location information. However, it
+  /// will have a reasonable implementation of [Span.getLocationMessage]. If
+  /// [sourceName] is passed, it's used as the [Span.sourceUrl].
+  factory YamlList({String sourceName}) =>
+      new YamlListWrapper(const [], sourceName);
+
+  /// Wraps a Dart list so that it can be accessed (recursively) like a
+  /// [YamlList].
+  ///
+  /// Any [Span]s returned by this list or its children will be dummies without
+  /// useful location information. However, they will have a reasonable
+  /// implementation of [Span.getLocationMessage]. If [sourceName] is passed,
+  /// it's used as the [Span.sourceUrl].
+  factory YamlList.wrap(List dartList, {String sourceName}) =>
+      new YamlListWrapper(dartList, sourceName);
+
+  /// Users of the library should not use this constructor.
+  YamlList.internal(List<YamlNode> nodes, this.span)
       : nodes = new UnmodifiableListView<YamlNode>(nodes);
 
   operator [](int index) => nodes[index].value;
@@ -85,8 +132,16 @@ class YamlScalar extends YamlNode {
 
   final value;
 
-  /// Users of the library should not construct [YamlScalar]s manually.
-  YamlScalar(this.value, this.span);
+  /// Wraps a Dart value in a [YamlScalar].
+  ///
+  /// This scalar's [span] won't have useful location information. However, it
+  /// will have a reasonable implementation of [Span.getLocationMessage]. If
+  /// [sourceName] is passed, it's used as the [Span.sourceUrl].
+  YamlScalar.wrap(this.value, {String sourceName})
+      : span = new NullSpan(sourceName);
+
+  /// Users of the library should not use this constructor.
+  YamlScalar.internal(this.value, this.span);
 
   String toString() => value.toString();
 }
