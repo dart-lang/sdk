@@ -102,6 +102,7 @@
     'counters.h',
     'coverage.cc',
     'coverage.h',
+    'coverage_test.cc',
     'cpu.h',
     'cpu_arm.cc',
     'cpu_arm64.cc',

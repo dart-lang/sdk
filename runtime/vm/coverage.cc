@@ -57,13 +57,11 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       // TODO(iposva): This can arise if we attempt to compile an inner function
       // before we have compiled its enclosing function or if the enclosing
       // function failed to compile.
-      OS::Print("### Coverage skipped compiling: %s\n", function.ToCString());
       return;
     }
     const Error& err = Error::Handle(
         isolate, Compiler::CompileFunction(isolate, function));
     if (!err.IsNull()) {
-      OS::Print("### Coverage failed compiling:\n%s\n", err.ToErrorCString());
       return;
     }
   }
@@ -77,6 +75,10 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       code.pc_descriptors());
 
+  const intptr_t begin_pos = function.token_pos();
+  const intptr_t end_pos = function.end_token_pos();
+  intptr_t last_line = -1;
+  intptr_t last_count = 0;
   for (int j = 0; j < descriptors.Length(); j++) {
     HANDLESCOPE(isolate);
     PcDescriptors::Kind kind = descriptors.DescriptorKind(j);
@@ -87,6 +89,11 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       const ICData* ic_data= (*ic_data_array)[deopt_id];
       if (!ic_data->IsNull()) {
         intptr_t token_pos = descriptors.TokenPos(j);
+        // Filter out descriptors that do not map to tokens in the source code.
+        if (token_pos < begin_pos ||
+            token_pos > end_pos) {
+          continue;
+        }
         intptr_t line = pos_to_line[token_pos];
 #if defined(DEBUG)
         const Script& script = Script::Handle(function.script());
@@ -94,16 +101,35 @@ void CodeCoverage::CompileAndAdd(const Function& function,
         script.GetTokenLocation(token_pos, &test_line, NULL);
         ASSERT(test_line == line);
 #endif
-        hits_arr.AddValue(line);
-        hits_arr.AddValue(ic_data->AggregateCount());
+        // Merge hit data where possible.
+        if (last_line == line) {
+          last_count += ic_data->AggregateCount();
+        } else {
+          if (last_line != -1) {
+            hits_arr.AddValue(last_line);
+            hits_arr.AddValue(last_count);
+          }
+          last_count = ic_data->AggregateCount();
+          last_line = line;
+        }
       }
     }
+  }
+  // Write last hit value if needed.
+  if (last_line != -1) {
+    hits_arr.AddValue(last_line);
+    hits_arr.AddValue(last_count);
   }
 }
 
 
 void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
   Isolate* isolate = Isolate::Current();
+  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+    // Only classes that have been finalized do have a meaningful list of
+    // functions.
+    return;
+  }
   Array& functions = Array::Handle(cls.functions());
   ASSERT(!functions.IsNull());
   Function& function = Function::Handle();
@@ -225,11 +251,7 @@ void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
       ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
       while (it.HasNext()) {
         cls = it.GetNextClass();
-        if (cls.EnsureIsFinalized(isolate) == Error::null()) {
-          // Only classes that have been finalized do have a meaningful list of
-          // functions.
-          PrintClass(cls, jsarr);
-        }
+        PrintClass(cls, jsarr);
       }
     }
   }
