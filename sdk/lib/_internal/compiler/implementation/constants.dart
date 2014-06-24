@@ -342,7 +342,7 @@ class StringConstant extends PrimitiveConstant {
   accept(ConstantVisitor visitor) => visitor.visitString(this);
 
   String toString() {
-    return 'StringConstant(${Error.safeToString(value.slowToString())})';
+    return 'StringConstant("${value.slowToString()}")';
   }
 }
 
@@ -378,7 +378,7 @@ class TypeConstant extends ObjectConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitType(this);
 
-  String toString() => 'TypeConstant(${Error.safeToString(representedType)})';
+  String toString() => 'TypeConstant(${representedType})';
 }
 
 class ListConstant extends ObjectConstant {
@@ -428,7 +428,7 @@ class ListConstant extends ObjectConstant {
     sb.write('ListConstant([');
     for (int i = 0 ; i < entries.length ; i++) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(entries[i]));
+      sb.write(entries[i]);
     }
     sb.write('])');
     return sb.toString();
@@ -515,9 +515,9 @@ class MapConstant extends ObjectConstant {
     sb.write('MapConstant({');
     for (int i = 0 ; i < keys.entries.length ; i++) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(keys.entries[i]));
+      sb.write(keys.entries[i]);
       sb.write(':');
-      sb.write(Error.safeToString(values[i]));
+      sb.write(values[i]);
     }
     sb.write('})');
     return sb.toString();
@@ -650,9 +650,9 @@ class ConstructedConstant extends ObjectConstant {
     int i = 0;
     fieldElements.forEach((Element field, Constant value) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(field.name));
+      sb.write(field.name);
       sb.write('=');
-      sb.write(Error.safeToString(value));
+      sb.write(value);
       i++;
     });
     sb.write('))');
