@@ -3,7 +3,7 @@
 This file contains highlights of what changes on each version of the
 template_binding package.
 
-#### Pub version 0.11.0-dev
+#### Pub version 0.11.0
   * Ported up to commit [TemplateBinding#1cee02][5b9a3b] and
     [NodeBind#c47bc1][c47bc1].
 

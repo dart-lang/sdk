@@ -4,13 +4,14 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
-#### Pub version 0.11.0-dev
-  * **breaking change**: Event bindings with `@` are no longer supported.
-  * **breaking change**: enteredView/leftView were renamed to attached/detached
-  * **breaking change**: polymer.html is not required in entrypoints, but it is
-    required from files that use `<polymer-element>`.
+#### Pub version 0.11.0
   * **breaking change**: platform.js and dart_support.js must be specified in
     your entry points at the beginning of `<head>`.
+  * **breaking change**: polymer.html is not required in entrypoints, but it is
+    required from files that use `<polymer-element>`.
+  * **breaking change**: enteredView/leftView were renamed to attached/detached.
+    The old lifecycle methods will not be invoked.
+  * **breaking change**: Event bindings with `@` are no longer supported.
 
 #### Pub version 0.10.1
   * Reduce the analyzer work by mocking a small subset of the core libraries.
