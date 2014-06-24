@@ -36,14 +36,18 @@ void main() {
                                    [],
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    lookupLibrary(name) {
+      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+    }
+
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     var backend = compiler.backend;
     var classes = backend.emitter.neededClasses;
-    var lib1 = compiler.libraries["memory:lib1.dart"];
-    var lib2 = compiler.libraries["memory:lib2.dart"];
+    var lib1 = lookupLibrary("memory:lib1.dart");
+    var lib2 = lookupLibrary("memory:lib2.dart");
     var foo1 = lib1.find("foo1");
     var foo2 = lib2.find("foo2");
 

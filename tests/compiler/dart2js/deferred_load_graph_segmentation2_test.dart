@@ -38,7 +38,8 @@ void main() {
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var lib = compiler.libraries["memory:lib.dart"];
+    var lib =
+        compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var f1 = lib.find("f1");
     var f2 = lib.find("f2");
     Expect.notEquals(mainOutputUnit, outputUnitForElement(f1));

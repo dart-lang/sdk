@@ -162,7 +162,7 @@ class DartBackend extends Backend {
     // however as of today there are problems with names of some core library
     // interfaces, most probably for interfaces of literals.
     final fixedMemberNames = new Set<String>();
-    for (final library in compiler.libraries.values) {
+    for (final library in compiler.libraryLoader.libraries) {
       if (!library.isPlatformLibrary) continue;
       library.implementation.forEachLocalMember((Element element) {
         if (element.isClass) {
@@ -446,7 +446,7 @@ class DartBackend extends Backend {
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
     Iterable<LibraryElement> referencedLibraries =
-        compiler.libraries.values.where(isUserLibrary);
+        compiler.libraryLoader.libraries.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {
