@@ -54,7 +54,7 @@ void test(List<Uri> entryPoints, Map<String, bool> expectedResults) {
   }
   asyncTest(() => compiler.run(mainUri).then((_) {
     expectedResults.forEach((String uri, bool expectedResult) {
-      var element = compiler.libraryLoader.lookupLibrary(Uri.parse(uri));
+      var element = compiler.libraries[uri];
       Expect.isNotNull(element, "Unknown library '$uri'.");
       Expect.equals(expectedResult, compiler.inUserCode(element),
           expectedResult ? "Library '$uri' expected to be in user code"

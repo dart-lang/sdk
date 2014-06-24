@@ -284,7 +284,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     if (_filteredLibraries == null) {
       var filteredLibs = new Map<Uri, LibraryMirror>();
       _libraryMap = new Map<LibraryElement, Dart2JsLibraryMirror>();
-      compiler.libraryLoader.libraries.forEach((LibraryElement v) {
+      compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(mirrorSystem, v);
         if (_includeLibrary(mirror)) {
           filteredLibs[mirror.uri] = mirror;

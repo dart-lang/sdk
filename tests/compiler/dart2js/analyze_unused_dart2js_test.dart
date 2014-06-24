@@ -56,6 +56,6 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
       }
     }
   }
-  compiler.libraryLoader.lookupLibrary(helperUri).forEachLocalMember(checkLive);
+  compiler.libraries['$helperUri'].forEachLocalMember(checkLive);
   return handler.checkResults();
 }

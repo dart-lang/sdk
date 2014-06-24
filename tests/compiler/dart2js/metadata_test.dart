@@ -163,7 +163,7 @@ void testLibraryTags() {
 
     asyncTest(() => compiler.runCompiler(uri).then((_) {
       compiler.enqueuer.resolution.queueIsClosed = false;
-      LibraryElement element = compiler.libraryLoader.lookupLibrary(uri);
+      LibraryElement element = compiler.libraries['$uri'];
       Expect.isNotNull(element, 'Cannot find $uri');
 
       Link<MetadataAnnotation> metadata = extractMetadata(element);

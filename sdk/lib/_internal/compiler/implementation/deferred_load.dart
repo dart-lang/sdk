@@ -686,7 +686,7 @@ class DeferredLoadTask extends CompilerTask {
     Setlet<String> usedPrefixes = new Setlet<String>();
     // The last deferred import we saw with a given prefix (if any).
     Map<String, Import> prefixDeferredImport = new Map<String, Import>();
-    for (LibraryElement library in compiler.libraryLoader.libraries) {
+    for (LibraryElement library in compiler.libraries.values) {
       compiler.withCurrentElement(library, () {
         prefixDeferredImport.clear();
         usedPrefixes.clear();

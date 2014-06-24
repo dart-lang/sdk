@@ -164,18 +164,21 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                                    options,
                                    {});
   if (cachedCompiler != null) {
-    compiler.coreLibrary =
-        cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
+    compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
     compiler.types = cachedCompiler.types.copy(compiler);
     Map copiedLibraries = {};
-    cachedCompiler.libraryLoader.libraries.forEach((library) {
+    cachedCompiler.libraries.forEach((String uri, library) {
       if (library.isPlatformLibrary) {
-        compiler.libraryLoader.mapLibrary(library);
         compiler.onLibraryCreated(library);
+        compiler.libraries[uri] = library;
+        // TODO(johnniwinther): Assert that no libraries are created lazily from
+        // this call.
         compiler.onLibraryScanned(library, null);
         if (library.isPatched) {
           var patchLibrary = library.patch;
           compiler.onLibraryCreated(patchLibrary);
+          // TODO(johnniwinther): Assert that no libraries are created lazily
+          // from this call.
           compiler.onLibraryScanned(patchLibrary, null);
         }
         copiedLibraries[library.canonicalUri] = library;

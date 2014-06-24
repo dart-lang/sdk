@@ -94,7 +94,7 @@ void main() {
         ..addAll(backend.emitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
-    for (var library in compiler.libraryLoader.libraries) {
+    for (var library in compiler.libraries.values) {
       library.forEachLocalMember((member) {
         if (library == compiler.mainApp && member.name == 'Foo') {
           Expect.isTrue(

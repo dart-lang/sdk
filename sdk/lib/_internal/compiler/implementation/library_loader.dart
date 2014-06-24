@@ -123,26 +123,24 @@ import 'util/util.dart' show Link, LinkBuilder;
 abstract class LibraryLoaderTask implements CompilerTask {
   factory LibraryLoaderTask(Compiler compiler) = _LibraryLoaderTask;
 
-  /// Returns all libraries that have been loaded.
-  Iterable<LibraryElement> get libraries;
-
-  /// Looks up the library with the [canonicalUri].
-  LibraryElement lookupLibrary(Uri canonicalUri);
-
-  /// Loads the library specified by the [resolvedUri] and returns its
-  /// [LibraryElement].
-  ///
-  /// If the library is not already loaded, the method creates the
-  /// [LibraryElement] for the library and computes the import/export scope,
-  /// loading and computing the import/export scopes of all required libraries
-  /// in the process. The method handles cyclic dependency between libraries.
+  /**
+   * Loads the library specified by the [resolvedUri] and returns its
+   * [LibraryElement].
+   *
+   * If the library is not already loaded, the method creates the
+   * [LibraryElement] for the library and computes the import/export scope,
+   * loading and computing the import/export scopes of all required libraries in
+   * the process. The method handles cyclic dependency between libraries.
+   */
   Future<LibraryElement> loadLibrary(Uri resolvedUri);
 
-  /// Reset the library loader task to prepare for compilation. If provided,
-  /// libraries matching [reuseLibrary] are reused.
-  ///
-  /// This method is used for incremental compilation.
-  void reset({bool reuseLibrary(LibraryElement library)});
+  /// Reset the library loader task to prepare for compilation. This is used
+  /// for incremental compilation.
+  void reset();
+
+  /// Reuse [library] from a previous compilation. This is used for incremental
+  /// compilation.
+  void reuseLibrary(LibraryElement library);
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -248,8 +246,6 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   _LibraryLoaderTask(Compiler compiler) : super(compiler);
   String get name => 'LibraryLoader';
 
-  final Map<Uri, LibraryElement> libraryCanonicalUriMap =
-      new Map<Uri, LibraryElement>();
   final Map<Uri, LibraryElement> libraryResourceUriMap =
       new Map<Uri, LibraryElement>();
   final Map<String, LibraryElement> libraryNames =
@@ -257,34 +253,16 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   LibraryDependencyHandler currentHandler;
 
-  Iterable<LibraryElement> get libraries => libraryCanonicalUriMap.values;
-
-  LibraryElement lookupLibrary(Uri canonicalUri) {
-    return libraryCanonicalUriMap[canonicalUri];
-  }
-
-  void reset({bool reuseLibrary(LibraryElement library)}) {
+  void reset() {
     assert(currentHandler == null);
-    Iterable<LibraryElement> libraries =
-        new List.from(libraryCanonicalUriMap.values);
-
-    libraryCanonicalUriMap.clear();
     libraryResourceUriMap.clear();
     libraryNames.clear();
-
-    if (reuseLibrary == null) return;
-
-    libraries.where(reuseLibrary).forEach(mapLibrary);
   }
 
-  /// Insert [library] in the internal maps. Used for compiler reuse.
-  void mapLibrary(LibraryElement library) {
-    libraryCanonicalUriMap[library.canonicalUri] = library;
-
+  void reuseLibrary(LibraryElement library) {
+    String name = library.getLibraryOrScriptName();
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     libraryResourceUriMap[resourceUri] = library;
-
-    String name = library.getLibraryOrScriptName();
     libraryNames[name] = library;
   }
 
@@ -510,7 +488,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
     if (readableUri == null) return new Future.value();
-    LibraryElement library = libraryCanonicalUriMap[resolvedUri];
+    LibraryElement library = compiler.libraries[resolvedUri.toString()];
     if (library != null) {
       return new Future.value(library);
     }
@@ -522,7 +500,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             compiler.withCurrentElement(element, () {
               handler.registerNewLibrary(element);
               native.maybeEnableNative(compiler, element);
-              libraryCanonicalUriMap[resolvedUri] = element;
+              compiler.libraries[resolvedUri.toString()] = element;
               compiler.scanner.scanLibrary(element);
             });
             return processLibraryTags(handler, element).then((_) {

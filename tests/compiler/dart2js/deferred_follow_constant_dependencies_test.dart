@@ -37,8 +37,7 @@ void main() {
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var outputUnitForConstant = compiler.deferredLoadTask.outputUnitForConstant;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-    var lib =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
+    var lib = compiler.libraries["memory:lib.dart"];
     var backend = compiler.backend;
     List<Constant> allConstants = [];
 

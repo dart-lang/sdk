@@ -508,6 +508,10 @@ abstract class Compiler implements DiagnosticListener {
   static final Uri DART_INTERNAL = new Uri(scheme: 'dart', path: '_internal');
   static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
 
+  // TODO(johnniwinther): Move this to [LibraryLoaderTask] and hange to map from
+  // [Uri] to [LibraryElement].
+  final Map<String, LibraryElement> libraries =
+    new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
   World world;
@@ -1312,9 +1316,9 @@ abstract class Compiler implements DiagnosticListener {
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
-      libraryLoader.libraries.forEach((LibraryElement library) {
-        log('Enqueuing ${library.canonicalUri}');
-        fullyEnqueueLibrary(library, enqueuer.resolution);
+      libraries.forEach((uri, lib) {
+        log('Enqueuing $uri');
+        fullyEnqueueLibrary(lib, enqueuer.resolution);
       });
     } else if (analyzeMain && mainApp != null) {
       fullyEnqueueLibrary(mainApp, enqueuer.resolution);
@@ -1384,9 +1388,8 @@ abstract class Compiler implements DiagnosticListener {
       backend.enableNoSuchMethod(enqueuer.codegen);
     }
     if (compileAll) {
-      libraryLoader.libraries.forEach((LibraryElement library) {
-        fullyEnqueueLibrary(library, enqueuer.codegen);
-      });
+      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib,
+          enqueuer.codegen));
     }
     processQueue(enqueuer.codegen, main);
     enqueuer.codegen.logSummary(log);
@@ -1428,7 +1431,7 @@ abstract class Compiler implements DiagnosticListener {
   // resolve metadata classes referenced only from metadata on library tags.
   // TODO(ahe): Figure out how to do this lazily.
   void resolveLibraryMetadata() {
-    for (LibraryElement library in libraryLoader.libraries) {
+    for (LibraryElement library in libraries.values) {
       if (library.metadata != null) {
         for (MetadataAnnotation metadata in library.metadata) {
           metadata.ensureResolved(this);
@@ -1438,7 +1441,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void processQueue(Enqueuer world, Element main) {
-    world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
+    world.nativeEnqueuer.processNativeClasses(libraries.values);
     if (main != null) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
@@ -1796,7 +1799,7 @@ abstract class Compiler implements DiagnosticListener {
         }
       }
     }
-    libraryLoader.libraries.forEach((LibraryElement library) {
+    libraries.forEach((_, library) {
       // TODO(ahe): Implement better heuristics to discover entry points of
       // packages and use that to discover unused implementation details in
       // packages.

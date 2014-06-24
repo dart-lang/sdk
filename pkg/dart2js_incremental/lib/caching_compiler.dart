@@ -130,9 +130,15 @@ Compiler reuseCompiler(
     backend
         ..preMirrorsMethodCount = 0;
 
-    compiler.libraryLoader.reset(reuseLibrary: (LibraryElement library) {
-      return library.isPlatformLibrary ||
-             (packagesAreImmutable && library.isPackageLibrary);
+    Map libraries = new Map.from(compiler.libraries);
+    compiler.libraries.clear();
+    compiler.libraryLoader.reset();
+    libraries.forEach((String uri, LibraryElement library) {
+      if (library.isPlatformLibrary ||
+          (packagesAreImmutable && library.isPackageLibrary)) {
+        compiler.libraries[uri] = library;
+        compiler.libraryLoader.reuseLibrary(library);
+      }
     });
   }
   oldTag.makeCurrent();

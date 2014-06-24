@@ -20,17 +20,13 @@ runTest(String mainScript, test) {
 
 void main() {
   runTest('memory:main.dart', (compiler) {
-    lookupLibrary(name) {
-      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
-    }
-
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
 
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var lib = lookupLibrary("memory:lib.dart");
+    var lib = compiler.libraries["memory:lib.dart"];
     var a = lib.find("a");
     var b = lib.find("b");
     var c = lib.find("c");
