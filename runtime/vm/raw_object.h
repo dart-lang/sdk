@@ -906,8 +906,16 @@ class RawPcDescriptors : public RawObject {
 
   intptr_t length_;  // Number of descriptors.
 
+  struct PcDescriptorRec {
+    uword pc;
+    int32_t deopt_id;
+    int32_t token_pos;  // Or deopt reason.
+    int16_t try_index;  // Or deopt index.
+    int8_t kind;
+  };
+
   // Variable length data follows here.
-  intptr_t* data() { OPEN_ARRAY_START(intptr_t, intptr_t); }
+  PcDescriptorRec* data() { OPEN_ARRAY_START(PcDescriptorRec, intptr_t); }
 
   friend class Object;
 };
@@ -947,10 +955,10 @@ class RawLocalVarDescriptors : public RawObject {
 
   struct VarInfo {
     intptr_t index;      // Slot index on stack or in context.
-    int8_t   kind;       // Entry kind of type VarInfoKind.
-    int16_t  scope_id;   // Scope to which the variable belongs.
     intptr_t begin_pos;  // Token position of scope start.
     intptr_t end_pos;    // Token position of scope end.
+    int16_t  scope_id;   // Scope to which the variable belongs.
+    int8_t   kind;       // Entry kind of type VarInfoKind.
   };
 
  private:

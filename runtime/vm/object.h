@@ -2974,19 +2974,6 @@ class LocalVarDescriptors : public Object {
 
 
 class PcDescriptors : public Object {
- private:
-  // Describes the layout of PC descriptor data.
-  enum {
-    kPcEntry = 0,      // PC value of the descriptor, unique.
-    kKindEntry = 1,
-    kDeoptIdEntry = 2,      // Deopt id.
-    kTokenPosEntry = 3,     // Token position in source.
-    kTryIndexEntry = 4,     // Try block index.
-    // We would potentially be adding other objects here like
-    // pointer maps for optimized functions, local variables information  etc.
-    kNumberOfEntries = 5,
-  };
-
  public:
   enum Kind {
     kDeopt,            // Deoptimization continuation point.
@@ -3001,27 +2988,47 @@ class PcDescriptors : public Object {
 
   intptr_t Length() const;
 
-  uword PC(intptr_t index) const;
-  PcDescriptors::Kind DescriptorKind(intptr_t index) const;
+  uword PC(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].pc;
+  }
+  PcDescriptors::Kind DescriptorKind(intptr_t index) const {
+    ASSERT(index < Length());
+    return static_cast<PcDescriptors::Kind>(raw_ptr()->data()[index].kind);
+  }
+  intptr_t DeoptId(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].deopt_id;
+  }
+  intptr_t TokenPos(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].token_pos;
+  }
+  intptr_t TryIndex(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].try_index;
+  }
   const char* KindAsStr(intptr_t index) const;
-  intptr_t DeoptId(intptr_t index) const;
-  intptr_t TokenPos(intptr_t index) const;
-  intptr_t TryIndex(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,
                      PcDescriptors::Kind kind,
-                     intptr_t deopt_id,
-                     intptr_t token_pos,  // Or deopt reason.
+                     int64_t deopt_id,
+                     int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
-    SetPC(index, pc);
-    SetKind(index, kind);
-    SetDeoptId(index, deopt_id);
-    SetTokenPos(index, token_pos);
-    SetTryIndex(index, try_index);
+    RawPcDescriptors::PcDescriptorRec* rec = &raw_ptr()->data()[index];
+    rec->pc = pc;
+    rec->kind = kind;
+    ASSERT(Utils::IsInt(32, deopt_id));
+    rec->deopt_id = deopt_id;
+    ASSERT(Utils::IsInt(32, token_pos));
+    rec->token_pos = token_pos;
+    ASSERT(Utils::IsInt(16, try_index));
+    rec->try_index = try_index;
   }
 
-  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
+  static const intptr_t kBytesPerElement =
+      sizeof(RawPcDescriptors::PcDescriptorRec);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
@@ -3051,22 +3058,7 @@ class PcDescriptors : public Object {
   // pc descriptors table to visit objects if any in the table.
 
  private:
-  void SetPC(intptr_t index, uword value) const;
-  void SetKind(intptr_t index, PcDescriptors::Kind kind) const;
-  void SetDeoptId(intptr_t index, intptr_t value) const;
-  void SetTokenPos(intptr_t index, intptr_t value) const;
-  void SetTryIndex(intptr_t index, intptr_t value) const;
-
   void SetLength(intptr_t value) const;
-
-  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
-    ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data()[data_index];
-  }
-  RawSmi** SmiAddr(intptr_t index, intptr_t entry_offset) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
-  }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;

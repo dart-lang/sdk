@@ -10208,56 +10208,6 @@ void PcDescriptors::SetLength(intptr_t value) const {
 }
 
 
-uword PcDescriptors::PC(intptr_t index) const {
-  return static_cast<uword>(*(EntryAddr(index, kPcEntry)));
-}
-
-
-void PcDescriptors::SetPC(intptr_t index, uword value) const {
-  *(EntryAddr(index, kPcEntry)) = static_cast<intptr_t>(value);
-}
-
-
-PcDescriptors::Kind PcDescriptors::DescriptorKind(intptr_t index) const {
-  return static_cast<PcDescriptors::Kind>(*(EntryAddr(index, kKindEntry)));
-}
-
-
-void PcDescriptors::SetKind(intptr_t index, PcDescriptors::Kind value) const {
-  *(EntryAddr(index, kKindEntry)) = value;
-}
-
-
-intptr_t PcDescriptors::DeoptId(intptr_t index) const {
-  return *(EntryAddr(index, kDeoptIdEntry));
-}
-
-
-void PcDescriptors::SetDeoptId(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kDeoptIdEntry)) = value;
-}
-
-
-intptr_t PcDescriptors::TokenPos(intptr_t index) const {
-  return *(EntryAddr(index, kTokenPosEntry));
-}
-
-
-void PcDescriptors::SetTokenPos(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kTokenPosEntry)) = value;
-}
-
-
-intptr_t PcDescriptors::TryIndex(intptr_t index) const {
-  return *(EntryAddr(index, kTryIndexEntry));
-}
-
-
-void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kTryIndexEntry)) = value;
-}
-
-
 RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   if (num_descriptors < 0 || num_descriptors > kMaxElements) {
