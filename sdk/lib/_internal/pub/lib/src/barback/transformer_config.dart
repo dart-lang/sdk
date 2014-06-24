@@ -4,7 +4,9 @@
 
 library pub.barback.transformer_config;
 
-import '../utils.dart';
+import 'package:source_maps/source_maps.dart';
+import 'package:yaml/yaml.dart';
+
 import 'transformer_id.dart';
 
 /// The configuration for a transformer.
@@ -22,6 +24,9 @@ class TransformerConfig {
   /// been stripped out of this and handled separately. This will be an empty
   /// map if no configuration was provided.
   final Map configuration;
+
+  /// The source span from which this configuration was parsed.
+  final Span span;
 
   /// The primary input inclusions.
   ///
@@ -48,65 +53,68 @@ class TransformerConfig {
   /// processed.
   bool get hasExclusions => includes != null || excludes != null;
 
-  /// Parses [identifier] as a [TransformerId].
-  factory TransformerConfig.parse(String identifier, Map configuration) =>
-      new TransformerConfig(new TransformerId.parse(identifier), configuration);
+  /// Parses [identifier] as a [TransformerId] with [configuration].
+  ///
+  /// [identifierSpan] is the source span for [identifier].
+  factory TransformerConfig.parse(String identifier, Span identifierSpan,
+        YamlMap configuration) =>
+      new TransformerConfig(new TransformerId.parse(identifier, identifierSpan),
+          configuration);
 
-  factory TransformerConfig(TransformerId id, Map configuration) {
+  factory TransformerConfig(TransformerId id, YamlMap configurationNode) {
     parseField(key) {
-      if (!configuration.containsKey(key)) return null;
-      var field = configuration.remove(key);
+      if (!configurationNode.containsKey(key)) return null;
+      var fieldNode = configurationNode.nodes[key];
+      var field = fieldNode.value;
 
-      if (field is String) return new Set<String>.from([field]);
+      if (field is String) return new Set.from([field]);
 
       if (field is List) {
-        var nonstrings = field
-            .where((element) => element is! String)
-            .map((element) => '"$element"');
-
-        if (nonstrings.isNotEmpty) {
-          throw new FormatException(
-              '"$key" list field may only contain strings, but contained '
-              '${toSentence(nonstrings)}.');
+        for (var node in field.nodes) {
+          if (node.value is String) continue;
+          throw new SpanFormatException(
+              '"$key" field may contain only strings.', node.span);
         }
 
-        return new Set<String>.from(field);
+        return new Set.from(field);
       } else {
-        throw new FormatException(
-            '"$key" field must be a string or list, but was "$field".');
+        throw new SpanFormatException(
+            '"$key" field must be a string or list.', fieldNode.span);
       }
     }
 
     var includes = null;
     var excludes = null;
 
-    if (configuration == null) {
+    var configuration;
+    var span;
+    if (configurationNode == null) {
       configuration = {};
+      span = id.span;
     } else {
       // Don't write to the immutable YAML map.
-      configuration = new Map.from(configuration);
+      configuration = new Map.from(configurationNode);
+      span = configurationNode.span;
 
       // Pull out the exclusions/inclusions.
       includes = parseField("\$include");
+      configuration.remove("\$include");
       excludes = parseField("\$exclude");
+      configuration.remove("\$exclude");
 
       // All other keys starting with "$" are unexpected.
-      var reservedKeys = configuration.keys
-          .where((key) => key is String && key.startsWith(r'$'))
-          .map((key) => '"$key"');
-
-      if (reservedKeys.isNotEmpty) {
-        throw new FormatException(
-            'Unknown reserved ${pluralize('field', reservedKeys.length)} '
-            '${toSentence(reservedKeys)}.');
+      for (var key in configuration.keys) {
+        if (key is! String || !key.startsWith(r'$')) continue;
+        throw new SpanFormatException(
+            'Unknown reserved field.', configurationNode.nodes[key].span);
       }
     }
 
-    return new TransformerConfig._(id, configuration, includes, excludes);
+    return new TransformerConfig._(id, configuration, span, includes, excludes);
   }
 
   TransformerConfig._(
-      this.id, this.configuration, this.includes, this.excludes);
+      this.id, this.configuration, this.span, this.includes, this.excludes);
 
   String toString() => id.toString();
 

@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
+import 'package:source_maps/source_maps.dart';
 
 import '../io.dart';
 import '../utils.dart';
@@ -33,6 +34,9 @@ class TransformerId {
   /// otherwise.
   final String path;
 
+  /// The source span from which this id was parsed.
+  final Span span;
+
   /// Whether this ID points to a built-in transformer exposed by pub.
   bool get isBuiltInTransformer => package.startsWith('\$');
 
@@ -43,23 +47,24 @@ class TransformerId {
   /// it just has a package name, it expands to lib/transformer.dart if that
   /// exists, or lib/${package}.dart otherwise. Otherwise, it expands to
   /// lib/${path}.dart. In either case it's located in the given package.
-  factory TransformerId.parse(String identifier) {
+  factory TransformerId.parse(String identifier, Span span) {
     if (identifier.isEmpty) {
       throw new FormatException('Invalid library identifier: "".');
     }
 
     var parts = split1(identifier, "/");
     if (parts.length == 1) {
-      return new TransformerId(parts.single, null);
+      return new TransformerId(parts.single, null, span);
     }
 
-    return new TransformerId(parts.first, parts.last);
+    return new TransformerId(parts.first, parts.last, span);
   }
 
-  TransformerId(this.package, this.path) {
+  TransformerId(this.package, this.path, this.span) {
     if (!package.startsWith('\$')) return;
     if (_BUILT_IN_TRANSFORMERS.contains(package)) return;
-    throw new FormatException('Unsupported built-in transformer $package.');
+    throw new SpanFormatException('Unsupported built-in transformer $package.',
+        span);
   }
 
   bool operator==(other) =>

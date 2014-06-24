@@ -6,6 +6,7 @@ library pub_tests;
 
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -22,11 +23,8 @@ main() {
       ]).create();
 
       var pub = startPubServe();
-      // Ignore the line containing the path to the pubspec.
-      pub.stderr.expect(anything);
-      pub.stderr.expect('"transformers.foo" refers to a package that\'s not a '
-          'dependency.');
-      pub.shouldExit(1);
+      pub.stderr.expect(contains('"foo" is not a dependency.'));
+      pub.shouldExit(exit_codes.DATA);
     });
   });
 }

@@ -251,13 +251,13 @@ dependencies:
     test("throws if a transformer isn't a string or map", () {
       expectPubspecException('transformers: [12]',
           (pubspec) => pubspec.transformers,
-          '"transformers" field must be a string or map');
+          'A transformer must be a string or map.');
     });
 
     test("throws if a transformer's configuration isn't a map", () {
       expectPubspecException('transformers: [{pkg: 12}]',
           (pubspec) => pubspec.transformers,
-          '"transformers.pkg" field must be a map');
+          "A transformer's configuration must be a map.");
     });
 
     test("throws if a transformer's configuration contains an unknown "
@@ -266,8 +266,7 @@ dependencies:
 name: pkg
 transformers: [{pkg: {\$key: "value"}}]''',
           (pubspec) => pubspec.transformers,
-          'Invalid transformer configuration for "transformers.pkg": '
-          'Unknown reserved field "\$key"');
+          'Invalid transformer config: Unknown reserved field.');
     });
 
     test("doesn't throw if a transformer's configuration contains a "
@@ -288,8 +287,8 @@ name: pkg
 transformers:
 - pkg: {\$include: 123}''',
           (pubspec) => pubspec.transformers,
-          'Invalid transformer configuration for "transformers.pkg": '
-          '"\$include" field must be a string or list, but was "123"');
+          'Invalid transformer config: "\$include" field must be a string or '
+            'list.');
     });
 
     test("throws if the \$include list contains a non-string", () {
@@ -298,9 +297,8 @@ name: pkg
 transformers:
 - pkg: {\$include: ["ok", 123, "alright", null]}''',
         (pubspec) => pubspec.transformers,
-        'Invalid transformer configuration for "transformers.pkg": '
-        '"\$include" list field may only contain strings, but contained '
-        '"123" and "null"');
+        'Invalid transformer config: "\$include" field may contain only '
+          'strings.');
     });
 
     test("throws if the \$exclude value is not a string or list", () {
@@ -309,8 +307,8 @@ name: pkg
 transformers:
 - pkg: {\$exclude: 123}''',
         (pubspec) => pubspec.transformers,
-        'Invalid transformer configuration for "transformers.pkg": '
-        '"\$exclude" field must be a string or list, but was "123"');
+        'Invalid transformer config: "\$exclude" field must be a string or '
+          'list.');
     });
 
     test("throws if the \$exclude list contains a non-string", () {
@@ -319,9 +317,8 @@ name: pkg
 transformers:
 - pkg: {\$exclude: ["ok", 123, "alright", null]}''',
         (pubspec) => pubspec.transformers,
-        'Invalid transformer configuration for "transformers.pkg": '
-        '"\$exclude" list field may only contain strings, but contained '
-        '"123" and "null"');
+        'Invalid transformer config: "\$exclude" field may contain only '
+          'strings.');
     });
 
     test("throws if a transformer is not from a dependency", () {
@@ -330,7 +327,7 @@ name: pkg
 transformers: [foo]
 ''',
         (pubspec) => pubspec.transformers,
-        '"transformers.foo" refers to a package that\'s not a dependency.');
+        '"foo" is not a dependency.');
     });
 
     test("allows a transformer from a normal dependency", () {

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../lib/src/command.dart';
@@ -86,8 +87,11 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
       captureStackChains: captureStackChains).catchError((error, Chain chain) {
     // This is basically the top-level exception handler so that we don't
     // spew a stack trace on our users.
-    var message = getErrorMessage(error);
-    log.error(message);
+    if (error is SpanException) {
+      log.error(error.toString(useColors: canUseSpecialChars));
+    } else {
+      log.error(getErrorMessage(error));
+    }
     log.fine("Exception type: ${error.runtimeType}");
 
     if (log.json.enabled) {

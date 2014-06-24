@@ -344,9 +344,11 @@ void forBothPubGetAndUpgrade(void callback(RunCommand command)) {
 /// [warning] to stderr. If [error] is given, it expects the command to *only*
 /// print [error] to stderr. [output], [error], and [warning] may be strings,
 /// [RegExp]s, or [Matcher]s.
+///
+/// If [exitCode] is given, expects the command to exit with that code.
 // TODO(rnystrom): Clean up other tests to call this when possible.
 void pubCommand(RunCommand command,
-    {Iterable<String> args, output, error, warning}) {
+    {Iterable<String> args, output, error, warning, int exitCode}) {
   if (error != null && warning != null) {
     throw new ArgumentError("Cannot pass both 'error' and 'warning'.");
   }
@@ -356,8 +358,7 @@ void pubCommand(RunCommand command,
 
   if (output == null) output = command.success;
 
-  var exitCode = null;
-  if (error != null) exitCode = 1;
+  if (error != null && exitCode == null) exitCode = 1;
 
   // No success output on an error.
   if (error != null) output = null;
@@ -366,14 +367,14 @@ void pubCommand(RunCommand command,
   schedulePub(args: allArgs, output: output, error: error, exitCode: exitCode);
 }
 
-void pubGet({Iterable<String> args, output, error, warning}) {
+void pubGet({Iterable<String> args, output, error, warning, int exitCode}) {
   pubCommand(RunCommand.get, args: args, output: output, error: error,
-      warning: warning);
+      warning: warning, exitCode: exitCode);
 }
 
-void pubUpgrade({Iterable<String> args, output, error, warning}) {
+void pubUpgrade({Iterable<String> args, output, error, warning, int exitCode}) {
   pubCommand(RunCommand.upgrade, args: args, output: output, error: error,
-      warning: warning);
+      warning: warning, exitCode: exitCode);
 }
 
 /// Defines an integration test.

@@ -17,6 +17,7 @@ import "package:crypto/crypto.dart";
 import "package:http/http.dart" as http;
 import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
+import "package:yaml/yaml.dart";
 
 import '../../asset/dart/serialize.dart';
 
@@ -682,19 +683,21 @@ String libraryPath(String libraryName) {
   return path.fromUri(lib.uri);
 }
 
+/// Whether "special" strings such as Unicode characters or color escapes are
+/// safe to use.
+///
+/// On Windows or when not printing to a terminal, only printable ASCII
+/// characters should be used.
+bool get canUseSpecialChars => !runningAsTest &&
+    Platform.operatingSystem != 'windows' &&
+    stdioType(stdout) == StdioType.TERMINAL;
+
 /// Gets a "special" string (ANSI escape or Unicode).
 ///
 /// On Windows or when not printing to a terminal, returns something else since
 /// those aren't supported.
-String getSpecial(String color, [String onWindows = '']) {
-  // No ANSI escapes on windows or when running tests.
-  if (runningAsTest || Platform.operatingSystem == 'windows' ||
-      stdioType(stdout) != StdioType.TERMINAL) {
-    return onWindows;
-  } else {
-    return color;
-  }
-}
+String getSpecial(String special, [String onWindows = '']) =>
+    canUseSpecialChars ? special : onWindows;
 
 /// Prepends each line in [text] with [prefix].
 ///
@@ -894,5 +897,6 @@ bool isUserFacingException(error) {
     error is ProcessException ||
     error is TimeoutException ||
     error is SocketException ||
-    error is WebSocketException;
+    error is WebSocketException ||
+    error is YamlException;
 }
