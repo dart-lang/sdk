@@ -9,18 +9,18 @@ import 'package:polymer/polymer.dart';
 import 'package:template_binding/template_binding.dart';
 
 /**
- * The `d-auto-binding` element extends the template element. It provides a
+ * The `auto-binding-dart` element extends the template element. It provides a
  * quick and easy way to do data binding without the need to setup a binding
  * delegate or use the [templateBind] call. Both data and event handlers can be
  * bound using the [model].
  *
- * The `d-auto-binding` element acts just like a template that is bound to
+ * The `auto-binding-dart` element acts just like a template that is bound to
  * a model. It stamps its content in the dom adjacent to itself. When the
  * content is stamped, the `template-bound` event is fired.
  *
  * Example:
  *
- *     <template is="d-auto-binding">
+ *     <template is="auto-binding-dart">
  *       <div>Say something: <input value="{{value}}"></div>
  *       <div>You said: {{value}}</div>
  *       <button on-tap="{{buttonTap}}">Tap me!</button>
@@ -41,7 +41,7 @@ import 'package:template_binding/template_binding.dart';
  *     </script>
  *
  */
-// Dart note: renamed to d-auto-binding to avoid conflict with JS auto-binding.
+// Dart note: renamed to avoid conflict with JS auto-binding.
 class AutoBindingElement extends TemplateElement with Polymer, Observable
     implements TemplateBindExtension {
 

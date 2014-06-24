@@ -61,7 +61,7 @@ void startPolymer(List<Function> initializers, [bool deployMode = true]) {
         'is correct. If you are using pub-serve, you may need to restart it.';
   }
 
-  Polymer.registerSync('d-auto-binding', AutoBindingElement,
+  Polymer.registerSync('auto-binding-dart', AutoBindingElement,
       extendsTag: 'template');
 
   for (var initializer in initializers) {
