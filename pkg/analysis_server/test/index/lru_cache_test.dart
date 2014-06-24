@@ -12,7 +12,7 @@ import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  group('FixedStringCodecTest', () {
+  group('LRUCache', () {
     runReflectiveTests(_LRUCacheTest);
   });
 }

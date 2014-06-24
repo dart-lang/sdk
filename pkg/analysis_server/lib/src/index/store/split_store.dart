@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.split.store;
+library index.split_store;
 
 import 'dart:async';
 import 'dart:collection';
@@ -590,6 +590,7 @@ class SplitIndexStore implements IndexStore {
 
   @override
   void clear() {
+    _contextNodeRelations.clear();
     _nodeManager.clear();
     _nameToNodeNames.clear();
   }
@@ -834,10 +835,19 @@ class SplitIndexStore implements IndexStore {
     int libraryNameIndex = _stringCodec.encode(libraryName);
     int unitNameIndex = _stringCodec.encode(unitName);
     String nodeName = '${libraryNameIndex}_${unitNameIndex}.index';
+    int nodeNameId = _stringCodec.encode(nodeName);
     _nodeManager.removeNode(nodeName);
     // remove source
     _sources.remove(library);
     _sources.remove(unit);
+    // remove universe relations
+    {
+      int contextId = _contextCodec.encode(context);
+      Map<int, Object> nodeRelations = _contextNodeRelations[contextId];
+      if (nodeRelations != null) {
+        nodeRelations.remove(nodeNameId);
+      }
+    }
   }
 
   /**

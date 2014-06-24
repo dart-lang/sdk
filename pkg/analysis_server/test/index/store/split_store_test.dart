@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.split.store;
+library test.index.split_store;
 
 import 'dart:async';
 import 'dart:collection';
@@ -17,6 +17,7 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import 'single_source_container.dart';
 import 'typed_mocks.dart';
 
 
@@ -541,12 +542,6 @@ class _RelationKeyDataTest {
 }
 
 
-class _SingleSourceContainer implements SourceContainer {
-  final Source _source;
-  _SingleSourceContainer(this._source);
-  @override
-  bool contains(Source source) => source == _source;
-}
 
 
 @ReflectiveTestCase()
@@ -635,10 +630,12 @@ class _SplitIndexStoreTest {
     when(libraryElement.source).thenReturn(librarySource);
     when(libraryElement.definingCompilationUnit).thenReturn(libraryUnitElement);
   }
+
   void test_aboutToIndexDart_disposedContext() {
     when(contextA.isDisposed).thenReturn(true);
     expect(store.aboutToIndexDart(contextA, unitElementA), isFalse);
   }
+
   void test_aboutToIndexDart_disposedContext_wrapped() {
     when(contextA.isDisposed).thenReturn(true);
     InstrumentedAnalysisContextImpl instrumentedContext =
@@ -951,7 +948,7 @@ class _SplitIndexStoreTest {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "librarySource"
-      store.removeSources(contextA, new _SingleSourceContainer(librarySource));
+      store.removeSources(contextA, new SingleSourceContainer(librarySource));
       return store.getRelationshipsAsync(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, []);
@@ -988,7 +985,7 @@ class _SplitIndexStoreTest {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
-      store.removeSources(contextA, new _SingleSourceContainer(sourceA));
+      store.removeSources(contextA, new SingleSourceContainer(sourceA));
       store.removeSource(contextA, sourceA);
       return store.getRelationshipsAsync(elementA, relationship).then(
           (List<Location> locations) {
@@ -1055,6 +1052,66 @@ class _SplitIndexStoreTest {
       return store.getRelationshipsAsync(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
+      });
+    });
+  }
+
+  test_universe_removeSource() {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextA, unitElementB);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationB);
+      store.doneIndex();
+    }
+    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
+      assertLocations(locations, [locationA, locationB]);
+    }).then((_) {
+      // remove "sourceA"
+      store.removeSource(contextA, sourceA);
+      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+          relationship).then((List<Location> locations) {
+        assertLocations(locations, [locationB]);
+      });
+    });
+  }
+
+  test_universe_clear() {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextA, unitElementB);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationB);
+      store.doneIndex();
+    }
+    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
+      assertLocations(locations, [locationA, locationB]);
+    }).then((_) {
+      // clear
+      store.clear();
+      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+          relationship).then((List<Location> locations) {
+        expect(locations, isEmpty);
       });
     });
   }

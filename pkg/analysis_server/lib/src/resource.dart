@@ -459,3 +459,49 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 }
+
+
+/**
+ * A [UriResolver] for [Resource]s.
+ */
+class ResourceUriResolver extends UriResolver {
+  /**
+   * The name of the `file` scheme.
+   */
+  static String _FILE_SCHEME = "file";
+
+  final ResourceProvider _provider;
+
+  ResourceUriResolver(this._provider);
+
+  @override
+  Source fromEncoding(UriKind kind, Uri uri) {
+    if (kind == UriKind.FILE_URI) {
+      Resource resource = _provider.getResource(uri.path);
+      if (resource is File) {
+        return resource.createSource(kind);
+      }
+    }
+    return null;
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    if (!_isFileUri(uri)) {
+      return null;
+    }
+    Resource resource = _provider.getResource(uri.path);
+    if (resource is File) {
+      return resource.createSource(UriKind.FILE_URI);
+    }
+    return null;
+  }
+
+  /**
+   * Return `true` if the given URI is a `file` URI.
+   *
+   * @param uri the URI being tested
+   * @return `true` if the given URI is a `file` URI
+   */
+  static bool _isFileUri(Uri uri) => uri.scheme == _FILE_SCHEME;
+}
