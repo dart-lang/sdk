@@ -21,7 +21,7 @@ main() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider());
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
     handler = new ServerDomainHandler(server);
   });
 

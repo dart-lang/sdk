@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analyzer/src/generated/index.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running
@@ -214,6 +215,10 @@ class MockServerOperation implements PerformAnalysisOperation {
   @override
   void sendNotices(AnalysisServer server, List<ChangeNotice> notices) {
   }
+
+  @override
+  void updateIndex(Index index, List<ChangeNotice> notices) {
+  }
 }
 
 
@@ -304,7 +309,7 @@ class MockSdk implements DartSdk {
 
   MockSdk() {
     // TODO(paulberry): Add to this as needed.
-    const Map<String, String> pathToSource = const {
+    const Map<String, String> pathToContent = const {
       "/lib/core/core.dart": '''
           library dart.core;
           class Object {}
@@ -354,8 +359,8 @@ class MockSdk implements DartSdk {
           '''
     };
 
-    pathToSource.forEach((String path, String source) {
-      provider.newFile(path, source);
+    pathToContent.forEach((String path, String content) {
+      provider.newFile(path, content);
     });
   }
 
@@ -365,8 +370,11 @@ class MockSdk implements DartSdk {
 
   @override
   Source fromEncoding(UriKind kind, Uri uri) {
-    // Not used
-    throw unimplemented;
+    resource.Resource file = provider.getResource(uri.path);
+    if (file is resource.File) {
+      return file.createSource(kind);
+    }
+    return null;
   }
 
   UnimplementedError get unimplemented => new UnimplementedError();

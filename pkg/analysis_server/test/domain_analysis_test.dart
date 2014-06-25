@@ -33,7 +33,7 @@ main() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider());
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
   });
@@ -211,7 +211,7 @@ class AnalysisTestHelper {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider());
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

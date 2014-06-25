@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/index.dart';
 
 
 /**
@@ -81,6 +82,11 @@ class AnalysisServer {
    * be sent.
    */
   final ServerCommunicationChannel channel;
+
+  /**
+   * The [Index] for this server.
+   */
+  final Index index;
 
   /**
    * [ContextDirectoryManager] which handles the mapping from analysis roots
@@ -155,7 +161,7 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      this.packageMapProvider, {this.rethrowExceptions: true}) {
+      this.packageMapProvider, this.index, {this.rethrowExceptions: true}) {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -263,6 +269,7 @@ class AnalysisServer {
    * The socket from which requests are being read has been closed.
    */
   void done() {
+    index.stop();
     running = false;
   }
 
@@ -594,7 +601,7 @@ class ContextDirectory {
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
     List<UriResolver> resolvers = <UriResolver>[new DartUriResolver(sdk),
-        new FileUriResolver(),
+        new ResourceUriResolver(_resourceProvider),
     ];
     if (packageMap != null) {
       resolvers.add(new PackageMapUriResolver(_resourceProvider, packageMap));

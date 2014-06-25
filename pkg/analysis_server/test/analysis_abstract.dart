@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'package:analyzer/src/generated/index.dart';
 
 
 /**
@@ -45,8 +46,9 @@ class AbstractAnalysisTest {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
+    Index index = createIndex();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, packageMapProvider);
+        serverChannel, resourceProvider, packageMapProvider, index);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -54,6 +56,10 @@ class AbstractAnalysisTest {
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });
+  }
+
+  Index createIndex() {
+    return null;
   }
 
   void addAnalysisSubscription(AnalysisService service, String file) {

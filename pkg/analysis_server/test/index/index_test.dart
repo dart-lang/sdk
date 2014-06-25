@@ -21,12 +21,13 @@ import 'package:unittest/unittest.dart';
 import '../mocks.dart';
 import '../reflective_tests.dart';
 import 'store/single_source_container.dart';
+import 'store/memory_node_manager.dart';
 
 
 main() {
   groupSep = ' | ';
-  group('ServerIndex', () {
-    runReflectiveTests(_LocalSplitIndexTest);
+  group('LocalIndex', () {
+    runReflectiveTests(LocalIndexTest);
   });
 }
 
@@ -42,11 +43,11 @@ Iterable<String> _toElementNames(List<Location> locations) {
 
 
 @ReflectiveTestCase()
-class _LocalSplitIndexTest {
+class LocalIndexTest {
   static final DartSdk SDK = new MockSdk();
 
   AnalysisContext context;
-  LocalSplitIndex index;
+  LocalIndex index;
   Directory indexDirectory;
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
@@ -54,7 +55,7 @@ class _LocalSplitIndexTest {
     // prepare Index
     indexDirectory = Directory.systemTemp.createTempSync(
         'AnalysisServer_index');
-    index = new LocalSplitIndex(indexDirectory);
+    index = new LocalIndex(new MemoryNodeManager());
     // prepare AnalysisContext
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = new SourceFactory(<UriResolver>[new DartUriResolver(

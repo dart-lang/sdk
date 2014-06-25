@@ -4,17 +4,27 @@
 
 library test.domain.search;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_search.dart';
+import 'package:analysis_server/src/index/index.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/index.dart';
 import 'package:unittest/unittest.dart';
 
+import 'analysis_abstract.dart';
+import 'index/store/memory_node_manager.dart';
 import 'mocks.dart';
+import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  group('SearchDomainHandler', () {
+    runReflectiveTests(SearchDomainTest);
+  });
 
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
@@ -25,7 +35,7 @@ main() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider());
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
     server.defaultSdk = new MockSdk();
     handler = new SearchDomainHandler(server);
   });
@@ -64,4 +74,48 @@ main() {
       //expect(response, isNull);
     });
   });
+}
+
+@ReflectiveTestCase()
+class SearchDomainTest extends AbstractAnalysisTest {
+  LocalIndex index;
+
+  @override
+  Index createIndex() {
+    return new LocalIndex(new MemoryNodeManager());
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    index = server.index;
+    createProject();
+  }
+
+  Future test_findTopLevelDeclarations() {
+    // TODO(scheglov) replace this temporary Index test with an actual
+    // SearchEngine and SearchDomainHandler test.
+    addTestFile('''
+class AAA {
+  AAA() {}
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return index.getRelationshipsAsync(UniverseElement.INSTANCE,
+          IndexConstants.DEFINES_CLASS).then((List<Location> locations) {
+        bool hasClassFunction = false;
+        bool hasClassAAA = false;
+        for (var location in locations) {
+          if (location.element.name == 'Function') {
+            hasClassFunction = true;
+          }
+          if (location.element.name == 'AAA') {
+            hasClassAAA = true;
+          }
+        }
+        expect(hasClassFunction, isTrue, reason: locations.toString());
+        expect(hasClassAAA, isTrue, reason: locations.toString());
+      });
+    });
+  }
 }

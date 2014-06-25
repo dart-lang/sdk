@@ -18,18 +18,23 @@ import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
+Index createLocalFileSplitIndex(Directory directory) {
+  var fileManager = new SeparateFileManager(directory);
+  var stringCodec = new StringCodec();
+  var nodeManager = new FileNodeManager(fileManager,
+      AnalysisEngine.instance.logger, stringCodec, new ContextCodec(),
+      new ElementCodec(stringCodec), new RelationshipCodec(stringCodec));
+  return new LocalIndex(nodeManager);
+}
+
+
 /**
- * An implementation of [Index] with [SplitIndexStore].
+ * A local implementation of [Index].
  */
-class LocalSplitIndex extends Index {
+class LocalIndex extends Index {
   SplitIndexStore _store;
 
-  LocalSplitIndex(Directory directory) {
-    var fileManager = new SeparateFileManager(directory);
-    var stringCodec = new StringCodec();
-    var nodeManager = new FileNodeManager(fileManager,
-        AnalysisEngine.instance.logger, stringCodec, new ContextCodec(),
-        new ElementCodec(stringCodec), new RelationshipCodec(stringCodec));
+  LocalIndex(NodeManager nodeManager) {
     _store = new SplitIndexStore(nodeManager);
   }
 

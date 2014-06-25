@@ -4,18 +4,77 @@
 
 library operation.analysis;
 
-import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/html.dart';
+import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+
+Map<String, Object> errorToJson(AnalysisError analysisError) {
+  // TODO(paulberry): move this function into the AnalysisError class.
+  ErrorCode errorCode = analysisError.errorCode;
+  Map<String, Object> result = {
+    FILE: analysisError.source.fullName,
+    // TODO(scheglov) add Enum.fullName ?
+    ERROR_CODE: '${errorCode.runtimeType}.${(errorCode as Enum).name}',
+    OFFSET: analysisError.offset,
+    LENGTH: analysisError.length,
+    MESSAGE: analysisError.message
+  };
+  if (analysisError.correction != null) {
+    result[CORRECTION] = analysisError.correction;
+  }
+  return result;
+}
+
+
+void sendAnalysisNotificationErrors(AnalysisServer server, String file,
+    List<AnalysisError> errors) {
+  Notification notification = new Notification(ANALYSIS_ERRORS);
+  notification.setParameter(FILE, file);
+  notification.setParameter(ERRORS, errors.map(errorToJson).toList());
+  server.sendNotification(notification);
+}
+
+
+void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
+    CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_HIGHLIGHTS);
+  notification.setParameter(FILE, file);
+  notification.setParameter(REGIONS, new DartUnitHighlightsComputer(
+      dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+
+void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
+    CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_NAVIGATION);
+  notification.setParameter(FILE, file);
+  notification.setParameter(REGIONS, new DartUnitNavigationComputer(
+      dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+
+void sendAnalysisNotificationOutline(AnalysisServer server, String file,
+    CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_OUTLINE);
+  notification.setParameter(FILE, file);
+  notification.setParameter(OUTLINE, new DartUnitOutlineComputer(
+      dartUnit).compute());
+  server.sendNotification(notification);
+}
 
 
 /**
@@ -52,10 +111,9 @@ class PerformAnalysisOperation extends ServerOperation {
     if (notices == null) {
       return;
     }
-    // TODO(scheglov) remember known sources
-    // TODO(scheglov) index units
-    // TODO(scheglov) schedule notifications
+    // process results
     sendNotices(server, notices);
+    updateIndex(server.index, notices);
     // continue analysis
     server.addOperation(new PerformAnalysisOperation(context, true));
   }
@@ -86,64 +144,26 @@ class PerformAnalysisOperation extends ServerOperation {
       }
     }
   }
-}
 
-
-void sendAnalysisNotificationErrors(AnalysisServer server,
-                                    String file, List<AnalysisError> errors) {
-  Notification notification = new Notification(ANALYSIS_ERRORS);
-  notification.setParameter(FILE, file);
-  notification.setParameter(ERRORS, errors.map(errorToJson).toList());
-  server.sendNotification(notification);
-}
-
-
-void sendAnalysisNotificationHighlights(AnalysisServer server,
-                                        String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_HIGHLIGHTS);
-  notification.setParameter(FILE, file);
-  notification.setParameter(
-      REGIONS,
-      new DartUnitHighlightsComputer(dartUnit).compute());
-  server.sendNotification(notification);
-}
-
-
-void sendAnalysisNotificationNavigation(AnalysisServer server,
-                                        String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_NAVIGATION);
-  notification.setParameter(FILE, file);
-  notification.setParameter(
-      REGIONS,
-      new DartUnitNavigationComputer(dartUnit).compute());
-  server.sendNotification(notification);
-}
-
-
-void sendAnalysisNotificationOutline(AnalysisServer server,
-                                        String file, CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_OUTLINE);
-  notification.setParameter(FILE, file);
-  notification.setParameter(
-      OUTLINE,
-      new DartUnitOutlineComputer(dartUnit).compute());
-  server.sendNotification(notification);
-}
-
-
-Map<String, Object> errorToJson(AnalysisError analysisError) {
-  // TODO(paulberry): move this function into the AnalysisError class.
-  ErrorCode errorCode = analysisError.errorCode;
-  Map<String, Object> result = {
-    'file': analysisError.source.fullName,
-    // TODO(scheglov) add Enum.fullName ?
-    'errorCode': '${errorCode.runtimeType}.${(errorCode as Enum).name}',
-    'offset': analysisError.offset,
-    'length': analysisError.length,
-    'message': analysisError.message
-  };
-  if (analysisError.correction != null) {
-    result['correction'] = analysisError.correction;
+  void updateIndex(Index index, List<ChangeNotice> notices) {
+    if (index == null) {
+      return;
+    }
+    for (ChangeNotice notice in notices) {
+      // Dart
+      {
+        CompilationUnit dartUnit = notice.compilationUnit;
+        if (dartUnit != null) {
+          index.indexUnit(context, dartUnit);
+        }
+      }
+      // HTML
+      {
+        HtmlUnit htmlUnit = notice.htmlUnit;
+        if (htmlUnit != null) {
+          index.indexHtmlUnit(context, htmlUnit);
+        }
+      }
+    }
   }
-  return result;
 }

@@ -5,7 +5,6 @@
 library test.index.split_store;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/src/index/store/codec.dart';
 import 'package:analysis_server/src/index/store/split_store.dart';
@@ -17,6 +16,7 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import 'memory_node_manager.dart';
 import 'single_source_container.dart';
 import 'typed_mocks.dart';
 
@@ -402,90 +402,6 @@ class _LocationEqualsWrapper {
 }
 
 
-class _MemoryNodeManager implements NodeManager {
-  ContextCodec _contextCodec = new ContextCodec();
-  ElementCodec _elementCodec;
-  int _locationCount = 0;
-  final Map<String, int> _nodeLocationCounts = new HashMap<String, int>();
-  final Map<String, IndexNode> _nodes = new HashMap<String, IndexNode>();
-  RelationshipCodec _relationshipCodec;
-  StringCodec _stringCodec = new StringCodec();
-
-  _MemoryNodeManager() {
-    _elementCodec = new ElementCodec(_stringCodec);
-    _relationshipCodec = new RelationshipCodec(_stringCodec);
-  }
-
-  @override
-  ContextCodec get contextCodec {
-    return _contextCodec;
-  }
-
-  @override
-  ElementCodec get elementCodec {
-    return _elementCodec;
-  }
-
-  @override
-  int get locationCount {
-    return _locationCount;
-  }
-
-  @override
-  StringCodec get stringCodec {
-    return _stringCodec;
-  }
-
-  @override
-  void clear() {
-    _nodes.clear();
-  }
-
-  int getLocationCount(String name) {
-    int locationCount = _nodeLocationCounts[name];
-    return locationCount != null ? locationCount : 0;
-  }
-
-  @override
-  Future<IndexNode> getNode(String name) {
-    return new Future.value(_nodes[name]);
-  }
-
-  bool isEmpty() {
-    for (IndexNode node in _nodes.values) {
-      Map<RelationKeyData, List<LocationData>> relations = node.relations;
-      if (!relations.isEmpty) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  IndexNode newNode(AnalysisContext context) {
-    return new IndexNode(context, elementCodec, _relationshipCodec);
-  }
-
-  @override
-  void putNode(String name, IndexNode node) {
-    // update location count
-    {
-      _locationCount -= getLocationCount(name);
-      int nodeLocationCount = node.locationCount;
-      _nodeLocationCounts[name] = nodeLocationCount;
-      _locationCount += nodeLocationCount;
-    }
-    // remember the node
-    _nodes[name] = node;
-  }
-
-  @override
-  void removeNode(String name) {
-    _nodes.remove(name);
-  }
-}
-
-
 class _MockFileManager extends TypedMock implements FileManager {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -570,7 +486,7 @@ class _SplitIndexStoreTest {
   LibraryElement libraryElement = new MockLibraryElement();
   Source librarySource = new MockSource('librarySource');
   CompilationUnitElement libraryUnitElement = new MockCompilationUnitElement();
-  _MemoryNodeManager nodeManager = new _MemoryNodeManager();
+  MemoryNodeManager nodeManager = new MemoryNodeManager();
   Relationship relationship = Relationship.getRelationship('test-relationship');
   Source sourceA = new MockSource('sourceA');
   Source sourceB = new MockSource('sourceB');
@@ -1026,6 +942,36 @@ class _SplitIndexStoreTest {
     });
   }
 
+  test_universe_clear() {
+    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
+    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
+    {
+      store.aboutToIndexDart(contextA, unitElementA);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationA);
+      store.doneIndex();
+    }
+    {
+      store.aboutToIndexDart(contextA, unitElementB);
+      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+          locationB);
+      store.doneIndex();
+    }
+    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
+      assertLocations(locations, [locationA, locationB]);
+    }).then((_) {
+      // clear
+      store.clear();
+      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+          relationship).then((List<Location> locations) {
+        expect(locations, isEmpty);
+      });
+    });
+  }
+
   test_universe_removeContext() {
     when(contextA.getElement(elementLocationA)).thenReturn(elementA);
     when(contextB.getElement(elementLocationB)).thenReturn(elementB);
@@ -1082,36 +1028,6 @@ class _SplitIndexStoreTest {
       return store.getRelationshipsAsync(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
-      });
-    });
-  }
-
-  test_universe_clear() {
-    when(contextA.getElement(elementLocationA)).thenReturn(elementA);
-    when(contextB.getElement(elementLocationB)).thenReturn(elementB);
-    Location locationA = mockLocation(elementA);
-    Location locationB = mockLocation(elementB);
-    {
-      store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
-          locationA);
-      store.doneIndex();
-    }
-    {
-      store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
-          locationB);
-      store.doneIndex();
-    }
-    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
-      assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
-      // clear
-      store.clear();
-      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-          relationship).then((List<Location> locations) {
-        expect(locations, isEmpty);
       });
     });
   }
