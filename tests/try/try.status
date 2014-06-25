@@ -9,5 +9,8 @@
 [ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff) ]
 *: Skip
 
+[ $compiler == dart2js && $runtime == chrome ]
+end_to_end_test: Pass, Slow
+
 [ $csp ]
 end_to_end_test: Fail, OK # http://dartbug.com/17935
