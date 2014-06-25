@@ -89,29 +89,19 @@ class AutoBindingElement extends TemplateElement with Polymer, Observable
 
   DocumentFragment createInstance([model, BindingDelegate delegate]) =>
       _self.createInstance(model, delegate);
+
+  @override
+  dispatchMethod(obj, method, args) {
+    // Dart note: make sure we dispatch to the model, not ourselves.
+    if (identical(obj, this)) obj = model;
+    return super.dispatchMethod(obj, method, args);
+  }
 }
 
 // Dart note: this is implemented a little differently to keep it in classic
-// OOP style. Instead of monkeypatching findController, we override
-// getEventHandler to do the right thing.
+// OOP style. Instead of monkeypatching findController, override it.
 class _AutoBindingSyntax extends PolymerExpressions {
   final AutoBindingElement _node;
-
   _AutoBindingSyntax(this._node) : super();
-
-  EventListener getEventHandler(controller, target, String method) => (e) {
-    if (controller == null || controller is! Polymer) controller = _node;
-
-    if (controller is Polymer) {
-      var args = [e, e.detail, e.currentTarget];
-
-      // Dart note: make sure we dispatch to the model, not the
-      // AutoBindingElement instance.
-      var obj = controller == _node ? _node.model : controller;
-      controller.dispatchMethod(obj, method, args);
-    } else {
-      throw new StateError('controller $controller is not a '
-          'Dart polymer-element.');
-    }
-  };
+  @override findController(_) => _node;
 }
