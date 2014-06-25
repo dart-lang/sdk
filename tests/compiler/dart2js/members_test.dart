@@ -19,6 +19,7 @@ void main() {
   testInterfaceMembers();
   testClassVsInterfaceMembers();
   testMixinMembers();
+  testMixinMembersWithoutImplements();
 }
 
 MemberSignature getMember(InterfaceType cls, String name,
@@ -679,5 +680,30 @@ void testMixinMembers() {
     // C interface: method4(U a) -- inherited from A.
     checkMember(C_this, 'method4', checkType: ALSO_CLASS_MEMBER,
                 inheritedFrom: A_U);
+  }));
+}
+
+void testMixinMembersWithoutImplements() {
+  asyncTest(() => TypeEnvironment.create(r"""
+    abstract class A {
+      m();
+    }
+    abstract class B implements A {
+    }
+    abstract class C extends Object with B {}
+    """).then((env) {
+
+    DynamicType dynamic_ = env['dynamic'];
+    VoidType void_ = env['void'];
+    InterfaceType num_ = env['num'];
+    InterfaceType int_ = env['int'];
+
+    InterfaceType A = env['A'];
+    InterfaceType B = env['B'];
+    InterfaceType C = env['C'];
+
+    checkMember(C, 'm', checkType: NO_CLASS_MEMBER,
+                inheritedFrom: A,
+                functionType: env.functionType(dynamic_ , []));
   }));
 }
