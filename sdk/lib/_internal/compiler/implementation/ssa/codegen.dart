@@ -755,12 +755,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
 
-    // Assert that the block we inserted to avoid critical edges satisfies
-    // basic assumptions.
-    assert(!condition.end.successors.last.isEmpty);
-    assert(condition.end.successors.last.first is HGoto);
-    assert(condition.end.successors.last.first.next == null);
-
     js.Loop loop;
 
     switch (info.kind) {

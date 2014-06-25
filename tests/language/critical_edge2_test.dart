@@ -4,6 +4,8 @@
 
 // This test broke dart2js.
 // A compiler must not construct a critical edge on this program.
+//
+// See critical_edge_test.dart for a description of the problem.
 
 import "package:expect/expect.dart";
 
