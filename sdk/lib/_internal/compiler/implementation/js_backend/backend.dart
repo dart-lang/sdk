@@ -1122,10 +1122,10 @@ class JavaScriptBackend extends Backend {
       registerBackendInstantiation(e, registry);
     }
 
-    enqueue(MapConstant.DART_CLASS);
-    enqueue(MapConstant.DART_PROTO_CLASS);
-    enqueue(MapConstant.DART_STRING_CLASS);
-    enqueue(MapConstant.DART_GENERAL_CLASS);
+    enqueue(JavaScriptMapConstant.DART_CLASS);
+    enqueue(JavaScriptMapConstant.DART_PROTO_CLASS);
+    enqueue(JavaScriptMapConstant.DART_STRING_CLASS);
+    enqueue(JavaScriptMapConstant.DART_GENERAL_CLASS);
   }
 
   void codegen(CodegenWorkItem work) {

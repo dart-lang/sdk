@@ -237,12 +237,12 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
     return namer.elementAccess(element);
   }
 
-  jsAst.Expression visitMap(MapConstant constant) {
+  jsAst.Expression visitMap(JavaScriptMapConstant constant) {
     jsAst.Expression jsMap() {
       List<jsAst.Property> properties = <jsAst.Property>[];
-      for (int i = 0; i < constant.keys.entries.length; i++) {
-        StringConstant key = constant.keys.entries[i];
-        if (key.value == MapConstant.PROTO_PROPERTY) continue;
+      for (int i = 0; i < constant.length; i++) {
+        StringConstant key = constant.keys[i];
+        if (key.value == JavaScriptMapConstant.PROTO_PROPERTY) continue;
 
         // Keys in literal maps must be emitted in place.
         jsAst.Literal keyExpression = _visit(key);
@@ -255,9 +255,9 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
 
     jsAst.Expression jsGeneralMap() {
       List<jsAst.Expression> data = <jsAst.Expression>[];
-      for (int i = 0; i < constant.keys.entries.length; i++) {
+      for (int i = 0; i < constant.keys.length; i++) {
         jsAst.Expression keyExpression =
-            constantEmitter.reference(constant.keys.entries[i]);
+            constantEmitter.reference(constant.keys[i]);
         jsAst.Expression valueExpression =
             constantEmitter.reference(constant.values[i]);
         data.add(keyExpression);
@@ -276,17 +276,17 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
     int emittedArgumentCount = 0;
     classElement.implementation.forEachInstanceField(
         (ClassElement enclosing, Element field) {
-          if (field.name == MapConstant.LENGTH_NAME) {
+          if (field.name == JavaScriptMapConstant.LENGTH_NAME) {
             arguments.add(
-                new jsAst.LiteralNumber('${constant.keys.entries.length}'));
-          } else if (field.name == MapConstant.JS_OBJECT_NAME) {
+                new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
+          } else if (field.name == JavaScriptMapConstant.JS_OBJECT_NAME) {
             arguments.add(jsMap());
-          } else if (field.name == MapConstant.KEYS_NAME) {
-            arguments.add(constantEmitter.reference(constant.keys));
-          } else if (field.name == MapConstant.PROTO_VALUE) {
+          } else if (field.name == JavaScriptMapConstant.KEYS_NAME) {
+            arguments.add(constantEmitter.reference(constant.keyList));
+          } else if (field.name == JavaScriptMapConstant.PROTO_VALUE) {
             assert(constant.protoValue != null);
             arguments.add(constantEmitter.reference(constant.protoValue));
-          } else if (field.name == MapConstant.JS_DATA_NAME) {
+          } else if (field.name == JavaScriptMapConstant.JS_DATA_NAME) {
             arguments.add(jsGeneralMap());
           } else {
             compiler.internalError(field,
@@ -296,11 +296,11 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
           emittedArgumentCount++;
         },
         includeSuperAndInjectedMembers: true);
-    if ((className == MapConstant.DART_STRING_CLASS &&
+    if ((className == JavaScriptMapConstant.DART_STRING_CLASS &&
          emittedArgumentCount != 3) ||
-        (className == MapConstant.DART_PROTO_CLASS &&
+        (className == JavaScriptMapConstant.DART_PROTO_CLASS &&
          emittedArgumentCount != 4) ||
-        (className == MapConstant.DART_GENERAL_CLASS &&
+        (className == JavaScriptMapConstant.DART_GENERAL_CLASS &&
          emittedArgumentCount != 1)) {
       compiler.internalError(classElement,
           "Compiler and ${className} disagree on number of fields.");

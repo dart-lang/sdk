@@ -3117,7 +3117,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void checkConstMapKeysDontOverrideEquals(Spannable spannable,
                                            MapConstant map) {
-    for (Constant key in map.keys.entries) {
+    for (Constant key in map.keys) {
       if (!key.isObject) continue;
       ObjectConstant objectConstant = key;
       DartType keyType = objectConstant.type;

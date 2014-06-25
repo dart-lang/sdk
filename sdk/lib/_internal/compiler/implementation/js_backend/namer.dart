@@ -1127,7 +1127,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     }
   }
 
-  visitMap(MapConstant constant) {
+  visitMap(JavaScriptMapConstant constant) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('Map');
     if (constant.length == 0) {
@@ -1135,7 +1135,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     } else {
       // Using some bits from the keys hash tag groups the names Maps with the
       // same structure.
-      add(getHashTag(constant.keys, 2) + getHashTag(constant, 3));
+      add(getHashTag(constant.keyList, 2) + getHashTag(constant, 3));
     }
   }
 
@@ -1220,7 +1220,7 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   }
 
   int visitMap(MapConstant constant) {
-    int hash = _visit(constant.keys);
+    int hash = _hashList(constant.length, constant.keys);
     return _hashList(hash, constant.values);
   }
 

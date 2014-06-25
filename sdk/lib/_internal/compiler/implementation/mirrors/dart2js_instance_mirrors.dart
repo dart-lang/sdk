@@ -172,9 +172,9 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
 
   List<String> get _list {
     if (_listCache == null) {
-      _listCache = new List<String>(_constant.keys.entries.length);
+      _listCache = new List<String>(_constant.length);
       int index = 0;
-      for (StringConstant keyConstant in _constant.keys.entries) {
+      for (StringConstant keyConstant in _constant.keys) {
         _listCache[index] = keyConstant.value.slowToString();
         index++;
       }
