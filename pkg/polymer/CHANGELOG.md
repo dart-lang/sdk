@@ -4,6 +4,10 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.11.0+1
+  * Added a workaround for bug in HTML imports (issue
+    [19650](https://code.google.com/p/dart/issues/detail?id=19650)).
+
 #### Pub version 0.11.0
   * **breaking change**: platform.js and dart_support.js must be specified in
     your entry points at the beginning of `<head>`.
