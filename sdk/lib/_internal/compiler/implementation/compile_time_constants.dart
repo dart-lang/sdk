@@ -105,17 +105,11 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       Constant result = initialVariableValues[element.declaration];
       return result;
     }
-    Element currentElement = element;
-    if (element.isParameter ||
-        element.isFieldParameter ||
-        element.isVariable) {
-      currentElement = element.enclosingElement;
-    }
+    AstElement currentElement = element.analyzableElement;
     return compiler.withCurrentElement(currentElement, () {
-      TreeElements definitions =
-          compiler.analyzeElement(currentElement.declaration);
+      compiler.analyzeElement(currentElement.declaration);
       Constant constant = compileVariableWithDefinitions(
-          element, definitions, isConst: isConst);
+          element, currentElement.resolvedAst.elements, isConst: isConst);
       return constant;
     });
   }

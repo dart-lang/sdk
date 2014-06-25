@@ -48,10 +48,10 @@ class IrBuilderTask extends CompilerTask {
   void buildNodes() {
     if (!irEnabled()) return;
     measure(() {
-      Map<Element, TreeElements> resolved =
-          compiler.enqueuer.resolution.resolvedElements;
-      resolved.forEach((Element element, TreeElements elementsMapping) {
+      Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
+      resolved.forEach((AstElement element) {
         if (canBuild(element)) {
+          TreeElements elementsMapping = element.resolvedAst.elements;
           element = element.implementation;
 
           SourceFile sourceFile = elementSourceFile(element);

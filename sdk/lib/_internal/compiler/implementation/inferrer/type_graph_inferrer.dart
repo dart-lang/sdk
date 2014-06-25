@@ -1014,8 +1014,11 @@ class TypeGraphInferrerEngine
   Iterable<Element> sortResolvedElements() {
     int max = 0;
     Map<int, Setlet<Element>> methodSizes = new Map<int, Setlet<Element>>();
-    compiler.enqueuer.resolution.resolvedElements.forEach(
-      (Element element, TreeElementMapping mapping) {
+    compiler.enqueuer.resolution.resolvedElements.forEach((AstElement element) {
+        // TODO(ngeoffray): Not sure why the resolver would put a null
+        // mapping.
+        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
+        TreeElementMapping mapping = element.resolvedAst.elements;
         element = element.implementation;
         if (element.impliesType) return;
         assert(invariant(element,
@@ -1025,9 +1028,6 @@ class TypeGraphInferrerEngine
             element.isGetter ||
             element.isSetter,
             message: 'Unexpected element kind: ${element.kind}'));
-        // TODO(ngeoffray): Not sure why the resolver would put a null
-        // mapping.
-        if (mapping == null) return;
         if (element.isAbstract) return;
         // Put the other operators in buckets by length, later to be added in
         // length order.

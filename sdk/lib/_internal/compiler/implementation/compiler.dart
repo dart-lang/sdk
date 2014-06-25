@@ -24,7 +24,7 @@ abstract class WorkItem {
    *
    * Invariant: [element] must be a declaration element.
    */
-  final Element element;
+  final AstElement element;
   TreeElements resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
@@ -36,12 +36,13 @@ abstract class WorkItem {
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
-  ResolutionWorkItem(Element element,
+  ResolutionWorkItem(AstElement element,
                      ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
   void run(Compiler compiler, ResolutionEnqueuer world) {
-    resolutionTree = compiler.analyze(this, world);
+    compiler.analyze(this, world);
+    resolutionTree = element.resolvedAst.elements;
   }
 
   bool isAnalyzed() => resolutionTree != null;
@@ -162,14 +163,13 @@ class CodegenRegistry extends Registry {
 class CodegenWorkItem extends WorkItem {
   Registry registry;
 
-  CodegenWorkItem(Element element,
+  CodegenWorkItem(AstElement element,
                   ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
-    resolutionTree =
-        compiler.enqueuer.resolution.getCachedElements(element);
+    resolutionTree = element.resolvedAst.elements;
     assert(invariant(element, resolutionTree != null,
         message: 'Resolution tree is null for $element in codegen work item'));
     registry = new CodegenRegistry(compiler, resolutionTree);
@@ -1476,7 +1476,7 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements);
     for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
@@ -1508,7 +1508,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  TreeElements analyzeElement(Element element) {
+  void analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1521,23 +1521,23 @@ abstract class Compiler implements DiagnosticListener {
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
-    TreeElements elements = world.getCachedElements(element);
-    if (elements != null) return elements;
+    if (world.hasBeenResolved(element)) return;
     assert(parser != null);
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     if (tree != null) validator.validate(tree);
-    elements = resolver.resolve(element);
-    if (tree != null && elements != null && !analyzeSignaturesOnly &&
-        !suppressWarnings) {
-      // Only analyze nodes with a corresponding [TreeElements].
-      checker.check(elements);
+    TreeElements elements = resolver.resolve(element);
+    if (elements != null) {
+      if (tree != null && !analyzeSignaturesOnly &&
+          !suppressWarnings) {
+        // Only analyze nodes with a corresponding [TreeElements].
+        checker.check(elements);
+      }
+      world.registerResolvedElement(element);
     }
-    world.resolvedElements[element] = elements;
-    return elements;
   }
 
-  TreeElements analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+  void analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed(),
         message: 'Element ${work.element} has already been analyzed'));
@@ -1550,12 +1550,10 @@ abstract class Compiler implements DiagnosticListener {
         progress.reset();
       }
     }
-    Element element = work.element;
-    TreeElements result = world.getCachedElements(element);
-    if (result != null) return result;
-    result = analyzeElement(element);
-    backend.onElementResolved(element, result);
-    return result;
+    AstElement element = work.element;
+    if (world.hasBeenResolved(element)) return;
+    analyzeElement(element);
+    backend.onElementResolved(element, element.resolvedAst.elements);
   }
 
   void codegen(CodegenWorkItem work, CodegenEnqueuer world) {

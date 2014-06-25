@@ -10,7 +10,10 @@ import "dart_types.dart";
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
-import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
+import "elements/modelx.dart"
+    show ElementX,
+         BaseFunctionElementX,
+         ClassElementX;
 import "elements/visitor.dart" show ElementVisitor;
 
 class ClosureNamer {
@@ -80,14 +83,22 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   final TypedElement variableElement;
 
   ClosureFieldElement(String name,
-                      this.variableElement,
-                      ClassElement enclosing)
+                     this.variableElement,
+                     ClosureClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
+
+  ClosureClassElement get closureClass => enclosingElement;
 
   Node get node {
     throw new SpannableAssertionFailure(
         variableElement,
         'Should not access node of ClosureFieldElement.');
+  }
+
+  bool get hasResolvedAst => hasTreeElements;
+
+  ResolvedAst get resolvedAst {
+    return new ResolvedAst(this, null, treeElements);
   }
 
   Expression get initializer {
@@ -108,6 +119,8 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   String toString() => "ClosureFieldElement($name)";
 
   accept(ElementVisitor visitor) => visitor.visitClosureFieldElement(this);
+
+  Element get analyzableElement => closureClass.methodElement.analyzableElement;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -218,20 +231,28 @@ class ThisElement extends ElementX implements TypedElement {
 }
 
 /// Call method of a closure class.
-class SynthesizedCallMethodElementX extends FunctionElementX {
+class SynthesizedCallMethodElementX extends BaseFunctionElementX {
   final FunctionElement expression;
 
   SynthesizedCallMethodElementX(String name,
-                                FunctionElementX other,
-                                Element enclosing)
+                                BaseFunctionElementX other,
+                                ClosureClassElement enclosing)
       : expression = other,
         super(name, other.kind, other.modifiers, enclosing, false) {
     functionSignatureCache = other.functionSignature;
   }
 
+  ClosureClassElement get closureClass => enclosingElement;
+
   FunctionExpression get node => expression.node;
 
   FunctionExpression parseNode(DiagnosticListener listener) => node;
+
+  ResolvedAst get resolvedAst {
+    return new ResolvedAst(this, node, treeElements);
+  }
+
+  Element get analyzableElement => closureClass.methodElement.analyzableElement;
 }
 
 // The box-element for a scope, and the captured variables that need to be
@@ -255,7 +276,7 @@ class ClosureClassMap {
   final Element closureElement;
   // The closureClassElement will be null for methods that are not local
   // closures.
-  final ClassElement closureClassElement;
+  final ClosureClassElement closureClassElement;
   // The callElement will be null for methods that are not local closures.
   final FunctionElement callElement;
   // The [thisElement] makes handling 'this' easier by treating it like any
@@ -736,7 +757,7 @@ class ClosureTranslator extends Visitor {
   ClosureClassMap globalizeClosure(FunctionExpression node,
                                    TypedElement element) {
     String closureName = computeClosureName(element);
-    ClassElement globalizedElement = new ClosureClassElement(
+    ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element, element.compilationUnit);
     FunctionElement callElement =
         new SynthesizedCallMethodElementX(Compiler.CALL_OPERATOR_NAME,

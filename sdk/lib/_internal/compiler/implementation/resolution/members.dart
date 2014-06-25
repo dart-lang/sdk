@@ -442,15 +442,13 @@ class ResolverTask extends CompilerTask {
     return compiler.withCurrentElement(element, () {
       bool isConstructor =
           identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR);
-      TreeElements elements =
-          compiler.enqueuer.resolution.getCachedElements(element);
-      if (elements != null) {
+      if (compiler.enqueuer.resolution.hasBeenResolved(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return elements;
+        return element.resolvedAst.elements;
       }
       if (element.isSynthesized) {
         if (isConstructor) {
@@ -908,7 +906,7 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
-    mixin.forEachLocalMember((Element member) {
+    mixin.forEachLocalMember((AstElement member) {
       if (member.isGenerativeConstructor && !member.isSynthesized) {
         compiler.reportError(member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
       } else {
@@ -918,10 +916,12 @@ class ResolverTask extends CompilerTask {
         // mixin application has been performed.
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
-        checkMixinSuperUses(
-            compiler.enqueuer.resolution.resolvedElements[member],
-            mixinApplication,
-            mixin);
+        if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
+          checkMixinSuperUses(
+              member.resolvedAst.elements,
+              mixinApplication,
+              mixin);
+        }
       }
     });
   }
@@ -2308,7 +2308,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    FunctionElementX function = new LocalFunctionElementX(
+    LocalFunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
     function.functionSignatureCache =

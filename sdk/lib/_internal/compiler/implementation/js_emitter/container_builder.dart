@@ -79,9 +79,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    TreeElements elements =
-        compiler.enqueuer.resolution.getCachedElements(member);
-
     int parameterIndex = 0;
     parameters.orderedForEachParameter((Element element) {
       String jsName = backend.namer.safeName(element.name);

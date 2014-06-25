@@ -1576,7 +1576,7 @@ class SsaBuilder extends ResolvedVisitor {
     }
     assert(argumentIndex == compiledArguments.length);
 
-    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    elements = function.resolvedAst.elements;
     assert(elements != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
@@ -1714,9 +1714,10 @@ class SsaBuilder extends ResolvedVisitor {
 
       // Build the initializers in the context of the new constructor.
       TreeElements oldElements = elements;
-      elements = compiler.enqueuer.resolution.getCachedElements(callee);
+      ResolvedAst resolvedAst = callee.resolvedAst;
+      elements = resolvedAst.elements;
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = callee.node;
+      ast.Node node = resolvedAst.node;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               callee, node, elements);
@@ -2057,9 +2058,9 @@ class SsaBuilder extends ResolvedVisitor {
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      TreeElements elements =
-          compiler.enqueuer.resolution.getCachedElements(constructor);
-      ast.Node node = constructor.node;
+      ResolvedAst resolvedAst = constructor.resolvedAst;
+      TreeElements elements = resolvedAst.elements;
+      ast.Node node = resolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 

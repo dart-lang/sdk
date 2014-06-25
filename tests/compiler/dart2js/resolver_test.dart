@@ -964,8 +964,8 @@ checkMemberResolved(compiler, className, memberName) {
   ClassElement cls = findElement(compiler, className);
   Element memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
-  Expect.isNotNull(
-      compiler.enqueuer.resolution.getCachedElements(memberElement));
+  Expect.isTrue(
+      compiler.enqueuer.resolution.hasBeenResolved(memberElement));
 }
 
 testToString() {

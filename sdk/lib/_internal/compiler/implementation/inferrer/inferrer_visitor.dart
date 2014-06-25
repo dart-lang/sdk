@@ -630,7 +630,7 @@ abstract class InferrerVisitor
                   [LocalsHandler<T> handler])
     : this.analyzedElement = analyzedElement,
       this.locals = handler,
-      super(compiler.enqueuer.resolution.getCachedElements(analyzedElement),
+      super(analyzedElement.resolvedAst.elements,
             compiler) {
     if (handler != null) return;
     Node node = analyzedElement.node;

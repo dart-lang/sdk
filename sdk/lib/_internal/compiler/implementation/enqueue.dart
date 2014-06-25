@@ -565,7 +565,7 @@ class ResolutionEnqueuer extends Enqueuer {
    *
    * Invariant: Key elements are declaration elements.
    */
-  final Map<Element, TreeElements> resolvedElements;
+  final Set<AstElement> resolvedElements;
 
   final Queue<ResolutionWorkItem> queue;
 
@@ -578,41 +578,35 @@ class ResolutionEnqueuer extends Enqueuer {
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
-        resolvedElements = new Map<Element, TreeElements>(),
+        resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
         deferredTaskQueue = new Queue<DeferredTask>();
 
   bool get isResolutionQueue => true;
 
-  bool isProcessed(Element member) => resolvedElements.containsKey(member);
+  bool isProcessed(Element member) => resolvedElements.contains(member);
+
+  /// Returns `true` if [element] has been processed by the resolution enqueuer.
+  bool hasBeenResolved(Element element) {
+    return resolvedElements.contains(element.analyzableElement.declaration);
+  }
+
+  /// Registers [element] as resolved for the resolution enqueuer.
+  void registerResolvedElement(AstElement element) {
+    resolvedElements.add(element);
+  }
 
   /// Returns [:true:] if [element] has actually been used.
   bool isLive(Element element) {
     if (seenClasses.contains(element)) return true;
-    if (getCachedElements(element) != null) return true;
+    if (hasBeenResolved(element)) return true;
     return false;
-  }
-
-  TreeElements getCachedElements(Element element) {
-    // TODO(ngeoffray): Get rid of this check.
-    if (element.enclosingElement.isClosure) {
-      closureMapping.ClosureClassElement cls = element.enclosingElement;
-      element = cls.methodElement;
-    } else if (element.isGenerativeConstructorBody) {
-      ConstructorBodyElement body = element;
-      element = body.constructor;
-    }
-    Element owner = element.outermostEnclosingMemberOrTopLevel;
-    if (owner == null) {
-      owner = element;
-    }
-    return resolvedElements[owner.declaration];
   }
 
   void internalAddToWorkList(Element element) {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
-    if (getCachedElements(element) != null) return;
+    if (hasBeenResolved(element)) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. Trying to add $element.");

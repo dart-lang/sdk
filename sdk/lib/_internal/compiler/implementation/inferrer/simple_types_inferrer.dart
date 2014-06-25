@@ -352,13 +352,13 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   void updateSelectorInTree(
-      Element owner, Spannable node, Selector selector) {
+      AstElement owner, Spannable node, Selector selector) {
     if (node is ir.Node) {
       // TODO(lry): update selector for IrInvokeDynamic.
       throw "updateSelector for IR node $node";
     }
     ast.Node astNode = node;
-    var elements = compiler.enqueuer.resolution.getCachedElements(owner);
+    TreeElements elements = owner.resolvedAst.elements;
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
         elements.setSelector(node, selector);

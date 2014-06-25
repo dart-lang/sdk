@@ -200,12 +200,11 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
-    Map cachedTreeElements =
+    Iterable cachedTreeElements =
         cachedCompiler.enqueuer.resolution.resolvedElements;
-    cachedTreeElements.forEach((element, treeElements) {
+    cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.resolvedElements[element] =
-            treeElements;
+        compiler.enqueuer.resolution.registerResolvedElement(element);
       }
     });
 

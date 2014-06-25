@@ -457,9 +457,7 @@ class DynoMap implements Map<Element, ElementAst> {
   final compiler;
   DynoMap(this.compiler);
 
-  get resolvedElements => compiler.enqueuer.resolution.resolvedElements;
-  ElementAst operator[](Element element) =>
-      new ElementAst(element.parseNode(compiler), resolvedElements[element]);
+  ElementAst operator[](Element element) => new ElementAst(element);
 
   noSuchMethod(Invocation invocation) => throw 'unimplemented method';
 }

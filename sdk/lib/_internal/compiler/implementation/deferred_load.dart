@@ -33,7 +33,8 @@ import 'elements/elements.dart' show
     PrefixElement,
     ClosureContainer,
     VoidElement,
-    TypedefElement;
+    TypedefElement,
+    AstElement;
 
 import 'util/util.dart' show
     Link;
@@ -312,13 +313,21 @@ class DeferredLoadTask extends CompilerTask {
     /// The collected dependent elements and constants are are added to
     /// [elements] and [constants] respectively.
     void collectDependencies(Element element) {
-      TreeElements treeElements = element is TypedefElement
-          ? element.treeElements
-          : compiler.enqueuer.resolution.getCachedElements(element);
+      // TODO(johnniwinther): Remove this when [AbstractFieldElement] has been
+      // removed.
+      if (element is! AstElement) return;
+      AstElement astElement = element;
 
       // TODO(sigurdm): We want to be more specific about this - need a better
       // way to query "liveness".
-      if (treeElements == null) return;
+      if (astElement is! TypedefElement &&
+          !compiler.enqueuer.resolution.hasBeenResolved(astElement)) {
+        return;
+      }
+
+      TreeElements treeElements = astElement.resolvedAst.elements;
+
+      assert(treeElements != null);
 
       for (Element dependency in treeElements.allElements) {
         if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
