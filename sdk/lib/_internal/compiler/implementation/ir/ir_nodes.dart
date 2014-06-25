@@ -211,6 +211,18 @@ class InvokeConstructor extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
+class AsCast extends Expression {
+  final Reference receiver;
+  final DartType type;
+  final Reference continuation;
+
+  AsCast(Primitive receiver, this.type, Continuation cont)
+      : this.receiver = new Reference(receiver),
+        this.continuation = new Reference(cont);
+
+  accept(Visitor visitor) => visitor.visitAsCast(this);
+}
+
 class InvokeConstConstructor extends Primitive {
   final GenericType type;
   final FunctionElement constructor;
@@ -345,6 +357,18 @@ class LiteralMap extends Primitive {
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 }
 
+class IsCheck extends Primitive {
+  final Reference receiver;
+  final DartType type;
+
+  dart2js.Constant get constant => null;
+
+  IsCheck(Primitive receiver, this.type)
+      : this.receiver = new Reference(receiver);
+
+  accept(Visitor visitor) => visitor.visitIsCheck(this);
+}
+
 class Parameter extends Primitive {
   Parameter(Element element) {
     super.element = element;
@@ -409,10 +433,12 @@ abstract class Visitor<T> {
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
+  T visitAsCast(AsCast node) => visitExpression(node);
 
   // Definitions.
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
   T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
+  T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
   T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
@@ -631,6 +657,10 @@ class RegisterAllocator extends Visitor {
     node.arguments.forEach(visitReference);
   }
 
+  void visitAsCast(AsCast node) {
+    visitReference(node.receiver);
+  }
+
   void visitInvokeContinuation(InvokeContinuation node) {
     node.arguments.forEach(visitReference);
   }
@@ -665,6 +695,10 @@ class RegisterAllocator extends Visitor {
       visitReference(node.keys[i]);
       visitReference(node.values[i]);
     }
+  }
+
+  void visitIsCheck(IsCheck node) {
+    visitReference(node.receiver);
   }
 
   void visitConstant(Constant node) {

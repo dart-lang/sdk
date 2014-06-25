@@ -357,6 +357,12 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                           typeArguments: typeArguments);
   }
 
+  Expression visitTypeOperator(tree.TypeOperator exp) {
+    return new TypeOperator(visitExpression(exp.receiver),
+                            exp.operator,
+                            emitType(exp.type));
+  }
+
   List<Argument> emitArguments(tree.Invoke exp) {
     List<tree.Expression> args = exp.arguments;
     int positionalArgumentCount = exp.selector.positionalArgumentCount;

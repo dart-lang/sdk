@@ -66,6 +66,7 @@ class BlockCollector extends Visitor {
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
   visitNot(Not node) {}
+  visitTypeOperator(TypeOperator node) {}
 
   visitLabeledStatement(LabeledStatement node) {
     Block target = new Block(node.label);
@@ -365,6 +366,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       right = "($right)";
     }
     return "$left ${node.operator} $right";
+  }
+
+  String visitTypeOperator(TypeOperator node) {
+    String receiver = visitExpression(node.receiver);
+    String type = "${node.type}";
+    return "TypeOperator $receiver ${node.operator} $type";
   }
 
   String visitNot(Not node) {

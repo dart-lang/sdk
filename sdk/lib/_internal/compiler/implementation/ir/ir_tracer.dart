@@ -156,6 +156,20 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
+  visitIsCheck(ir.IsCheck node) {
+    String dummy = names.name(node);
+    List<String> entries = new List<String>();
+    String receiver = formatReference(node.receiver);
+    printStmt(dummy, "IsCheck ($receiver ${node.type})");
+  }
+
+  visitAsCast(ir.AsCast node) {
+    String dummy = names.name(node);
+    List<String> entries = new List<String>();
+    String receiver = formatReference(node.receiver);
+    printStmt(dummy, "AsCast ($receiver ${node.type})");
+  }
+
   visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
     String dummy = names.name(node);
     String values = node.arguments.map(formatReference).join(', ');

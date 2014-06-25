@@ -1087,6 +1087,24 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       assert(node.arguments.tail.isEmpty);
       return buildNegation(visitDynamicSend(node));
     }
+    if (op.source == "is") {
+      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+      if (type.isMalformed) return giveup(node, "Malformed type for is");
+      ir.Primitive receiver = visit(node.receiver);
+      ir.IsCheck isCheck = new ir.IsCheck(receiver, type);
+      add(new ir.LetPrim(isCheck));
+      return node.isIsNotCheck ? buildNegation(isCheck) : isCheck;
+    }
+    if (op.source == "as") {
+      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+      if (type.isMalformed) return giveup(node, "Malformed type for as");
+      ir.Primitive receiver = visit(node.receiver);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      ir.AsCast asCast = new ir.AsCast(receiver, type, k);
+      add(new ir.LetCont(k, asCast));
+      return v;
+    }
     return giveup(node);
   }
 

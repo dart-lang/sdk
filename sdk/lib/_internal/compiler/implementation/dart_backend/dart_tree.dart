@@ -199,6 +199,16 @@ class LiteralMap extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
 }
 
+class TypeOperator extends Expression {
+  Expression receiver;
+  final DartType type;
+  final String operator;
+
+  TypeOperator(this.receiver, this.type, this.operator) ;
+
+  accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -431,6 +441,7 @@ abstract class ExpressionVisitor<E> {
   E visitNot(Not node);
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
+  E visitTypeOperator(TypeOperator node);
 }
 
 abstract class StatementVisitor<S> {
@@ -733,6 +744,20 @@ class Builder extends ir.Visitor<Node> {
     }
   }
 
+  Statement visitAsCast(ir.AsCast node) {
+    Expression receiver = getVariableReference(node.receiver);
+    Expression concat = new TypeOperator(receiver, node.type, "as");
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(concat);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildContinuationAssignment(cont.parameters.single, concat,
+          () => visit(cont.body));
+    }
+  }
+
   Statement visitInvokeConstructor(ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke =
@@ -830,6 +855,12 @@ class Builder extends ir.Visitor<Node> {
         translateArguments(node.keys),
         translateArguments(node.values),
         node.constant);
+  }
+
+  Expression visitIsCheck(ir.IsCheck node) {
+    return new TypeOperator(getVariableReference(node.receiver),
+                            node.type,
+                            "is");
   }
 
   Expression visitParameter(ir.Parameter node) {
@@ -1182,6 +1213,11 @@ class StatementRewriter extends Visitor<Statement, Expression> {
       node.values[i] = visitExpression(node.values[i]);
       node.keys[i] = visitExpression(node.keys[i]);
     }
+    return node;
+  }
+
+  Expression visitTypeOperator(TypeOperator node) {
+    node.receiver = visitExpression(node.receiver);
     return node;
   }
 
@@ -1673,6 +1709,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   Expression visitLiteralMap(LiteralMap node) {
     _rewriteList(node.keys);
     _rewriteList(node.values);
+    return node;
+  }
+
+  Expression visitTypeOperator(TypeOperator node) {
+    node.receiver = visitExpression(node.receiver);
     return node;
   }
 
