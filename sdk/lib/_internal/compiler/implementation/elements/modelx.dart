@@ -107,6 +107,8 @@ abstract class ElementX extends Element {
 
   bool get isDeclaration => true;
 
+  bool get isInjected => !isPatch && implementationLibrary.isPatch;
+
   Element get implementation => this;
 
   Element get declaration => this;

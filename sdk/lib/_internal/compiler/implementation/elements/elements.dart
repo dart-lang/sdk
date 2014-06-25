@@ -293,6 +293,10 @@ abstract class Element implements Spannable {
   bool get isNative;
   bool get isDeferredLoaderGetter;
 
+  /// True if the element is declared in a patch library but has no
+  /// corresponding declaration in the origin library.
+  bool get isInjected;
+
   /// `true` if this element is a constructor, top level or local variable,
   /// or static field that is declared `const`.
   bool get isConst;
