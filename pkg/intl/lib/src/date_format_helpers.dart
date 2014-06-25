@@ -36,22 +36,9 @@ class _DateBuilder {
    * Return a date built using our values. If no date portion is set,
    * use the "Epoch" of January 1, 1970.
    */
-  DateTime asDate() {
+  DateTime asDate({retry: true}) {
     // TODO(alanknight): Validate the date, especially for things which
     // can crash the VM, e.g. large month values.
-    if (debugLogDateCreation) {
-      debugDateCreationLog
-        ..write("  Creating Date from\n")
-        ..write("    UTC: $utc\n")
-        ..write("    year: $year\n")
-        ..write("    month: $month\n")
-        ..write("    day: $day\n")
-        ..write("    pm: $pm\n")
-        ..write("    hour: $hour\n")
-        ..write("    minute: $minute\n")
-        ..write("    second: $second\n")
-        ..write("    fractionalSecond: $fractionalSecond\n");
-    }
     var result;
     if (utc) {
       result = new DateTime.utc(
@@ -71,10 +58,12 @@ class _DateBuilder {
           minute,
           second,
           fractionalSecond);
-    }
-    if (debugLogDateCreation) {
-      debugDateCreationLog
-        ..write("Created $result");
+      // TODO(alanknight): Issue 15560 means non-UTC dates occasionally come
+      // out in UTC. If that happens, retry once. This will always happen if 
+      // the local time zone is UTC, but that's ok.
+      if (result.toUtc() == result) {
+        result = asDate(retry: false);
+      }
     }
     return result;
   }
