@@ -124,7 +124,7 @@ disassemble_test: Pass, Fail # Issue 18122
 closure7_test: Skip # Times out. Issue 19127
 abstract_exact_selector_test/01: Skip # Times out. Issue 19127
 function_subtype_local1_test: Skip # Times out. Issue 19127
-mixin_type_parameters_errors_test/02: Skip # Times out. Issue 19127
+mixin_type_parameters_errors_test/02: Timeout # Times out. Do not skip, or more tests fail. Issue 19127
 
 [ $compiler == none && $runtime == vm && $arch == mips && $checked ]
 generic_instanceof3_test: Pass, Crash # Issue 17440.
