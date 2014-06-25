@@ -23,6 +23,31 @@ class HTTPRequestDataReader implements LocaleDataReader {
     // TODO(alanknight): Remove this once it's not necessary for Chrome.
     // Without it, the tests will be flaky on Chrome. Issue 11834.
     var someNumber = new DateTime.now().millisecondsSinceEpoch;
-    return HttpRequest.getString('$url$locale.json?cacheBlocker=$someNumber');
+    var request = new HttpRequest();
+    request.timeout = 5000;
+    return _getString('$url$locale.json?cacheBlocker=$someNumber', request)
+      .then((r) => r.responseText);
+  }
+  
+  /// Read a string with the given request. This is a stripped down copy
+  /// of HttpRequest getString, but was the simplest way I could find to 
+  /// issue a request with a timeout.
+  Future<HttpRequest> _getString(String url, HttpRequest xhr) {
+    var completer = new Completer<HttpRequest>();
+    xhr.open('GET', url, async: true);
+    xhr.onLoad.listen((e) {
+      // Note: file:// URIs have status of 0.
+      if ((xhr.status >= 200 && xhr.status < 300) ||
+          xhr.status == 0 || xhr.status == 304) {
+        completer.complete(xhr);
+      } else {
+        completer.completeError(e);
+      }
+    });
+
+    xhr.onError.listen(completer.completeError);
+    xhr.send();
+
+    return completer.future;
   }
 }
