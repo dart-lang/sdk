@@ -41,6 +41,12 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
 }
 
 
+static inline void PrintJSONPreamble(JSONObject* jsobj) {
+  jsobj->AddProperty("type", "CodeCoverage");
+  jsobj->AddProperty("id", "coverage");
+}
+
+
 void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_arr,
                                  const GrowableArray<intptr_t>& pos_to_line) {
@@ -123,7 +129,9 @@ void CodeCoverage::CompileAndAdd(const Function& function,
 }
 
 
-void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
+void CodeCoverage::PrintClass(const Class& cls,
+                              const JSONArray& jsarr,
+                              const Script& script_filter) {
   Isolate* isolate = Isolate::Current();
   if (cls.EnsureIsFinalized(isolate) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
@@ -141,10 +149,14 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
   while (i < functions.Length()) {
     HANDLESCOPE(isolate);
     function ^= functions.At(i);
-    JSONObject jsobj(&jsarr);
     script = function.script();
-    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+      i++;
+      continue;
+    }
     saved_url = script.url();
+    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    JSONObject jsobj(&jsarr);
     jsobj.AddProperty("source", saved_url.ToCString());
     jsobj.AddProperty("script", script);
     JSONArray hits_arr(&jsobj, "hits");
@@ -178,10 +190,14 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
     while (i < closures.Length()) {
       HANDLESCOPE(isolate);
       function ^= closures.At(i);
-      JSONObject jsobj(&jsarr);
       script = function.script();
-      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+      if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+        i++;
+        continue;
+      }
       saved_url = script.url();
+      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+      JSONObject jsobj(&jsarr);
       jsobj.AddProperty("source", saved_url.ToCString());
       jsobj.AddProperty("script", script);
       JSONArray hits_arr(&jsobj, "hits");
@@ -201,6 +217,44 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       }
     }
   }
+}
+
+
+void CodeCoverage::PrintJSONForClass(const Class& cls,
+                                     JSONStream* stream) {
+  JSONObject coverage(stream);
+  PrintJSONPreamble(&coverage);
+  {
+    JSONArray jsarr(&coverage, "coverage");
+    PrintClass(cls, jsarr, Script::Handle());
+  }
+}
+
+
+void CodeCoverage::PrintJSONForLibrary(const Library& lib,
+                                       const Script& script_filter,
+                                       JSONStream* stream) {
+  Class& cls = Class::Handle();
+  JSONObject coverage(stream);
+  PrintJSONPreamble(&coverage);
+  {
+    JSONArray jsarr(&coverage, "coverage");
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      ASSERT(!cls.IsNull());
+      PrintClass(cls, jsarr, script_filter);
+    }
+  }
+}
+
+
+void CodeCoverage::PrintJSONForScript(const Script& script,
+                                      JSONStream* stream) {
+  Library& lib = Library::Handle();
+  lib = script.FindLibrary();
+  ASSERT(!lib.IsNull());
+  PrintJSONForLibrary(lib, script, stream);
 }
 
 
@@ -251,7 +305,8 @@ void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
       ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
       while (it.HasNext()) {
         cls = it.GetNextClass();
-        PrintClass(cls, jsarr);
+        ASSERT(!cls.IsNull());
+        PrintClass(cls, jsarr, Script::Handle());
       }
     }
   }

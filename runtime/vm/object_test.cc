@@ -2213,6 +2213,22 @@ TEST_CASE(Script) {
   EXPECT_EQ('T', str.CharAt(0));
   EXPECT_EQ('n', str.CharAt(10));
   EXPECT_EQ('.', str.CharAt(21));
+
+  const char* kScript = "main() {}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  Script& script2 = Script::Handle(
+      Script::FindByUrl(String::Handle(String::New("test-lib"))));
+  EXPECT(!script2.IsNull());
+  const Library& lib2 = Library::Handle(script2.FindLibrary());
+  EXPECT_EQ(lib2.raw(), lib.raw());
+  script2 = Script::FindByUrl(String::Handle(String::New("non-there.dart")));
+  EXPECT(script2.IsNull());
 }
 
 

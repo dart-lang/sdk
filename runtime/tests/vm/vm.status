@@ -51,6 +51,7 @@ cc/Service_Profile: Skip
 
 [ $arch == simmips || $arch == mips ]
 cc/Coverage_MainWithClass: Skip # Dart bug 16250
+cc/Service_ClassesCoverage: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
 dart/mirrored_compilation_error_test: Skip # VM-specific flag

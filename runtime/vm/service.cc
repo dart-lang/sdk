@@ -1204,6 +1204,14 @@ static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesCoverage(Isolate* isolate,
+                                  const Class& cls,
+                                  JSONStream* stream) {
+  CodeCoverage::PrintJSONForClass(cls, stream);
+  return true;
+}
+
+
 static bool HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
@@ -1246,6 +1254,8 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
       return HandleClassesRetained(isolate, cls, js);
     } else if (strcmp(second, "instances") == 0) {
       return HandleClassesInstances(isolate, cls, js);
+    } else if (strcmp(second, "coverage") == 0) {
+      return HandleClassesCoverage(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1277,6 +1287,14 @@ static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
 }
 
 
+static bool HandleLibrariesCoverage(Isolate* isolate,
+                                    const Library& lib,
+                                    JSONStream* js) {
+  CodeCoverage::PrintJSONForLibrary(lib, Script::Handle(), js);
+  return true;
+}
+
+
 static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): Support fields and functions on libraries.
   REQUIRE_COLLECTION_ID("libraries");
@@ -1296,6 +1314,8 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
     const char* second = js->GetArgument(2);
     if (strcmp(second, "eval") == 0) {
       return HandleLibrariesEval(isolate, lib, js);
+    } else if (strcmp(second, "coverage") == 0) {
+      return HandleLibrariesCoverage(isolate, lib, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
       return true;
@@ -1467,36 +1487,16 @@ static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleScriptsFetch(Isolate* isolate, JSONStream* js) {
-  const GrowableObjectArray& libs =
-    GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  int num_libs = libs.Length();
-  Library &lib = Library::Handle();
-  Script& script = Script::Handle();
-  String& url = String::Handle();
-  const String& id = String::Handle(String::New(js->GetArgument(1)));
-  ASSERT(!id.IsNull());
-  // The id is the url of the script % encoded, decode it.
-  String& requested_url = String::Handle(String::DecodeURI(id));
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    ASSERT(Smi::IsValid(lib.index()));
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    intptr_t num_scripts = loaded_scripts.Length();
-    for (intptr_t i = 0; i < num_scripts; i++) {
-      script ^= loaded_scripts.At(i);
-      ASSERT(!script.IsNull());
-      url ^= script.url();
-      if (url.Equals(requested_url)) {
-        script.PrintJSON(js, false);
-        return true;
-      }
-    }
-  }
-  PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
-                     requested_url.ToCString());
+static bool HandleScriptsFetch(
+    Isolate* isolate, const Script& script, JSONStream* js) {
+  script.PrintJSON(js, false);
+  return true;
+}
+
+
+static bool HandleScriptsCoverage(
+    Isolate* isolate, const Script& script, JSONStream* js) {
+  CodeCoverage::PrintJSONForScript(script, js);
   return true;
 }
 
@@ -1505,9 +1505,29 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     // Enumerate all scripts.
     return HandleScriptsEnumerate(isolate, js);
-  } else if (js->num_arguments() == 2) {
-    // Fetch specific script.
-    return HandleScriptsFetch(isolate, js);
+  }
+  // Subcommands of scripts require a valid script id.
+  const String& id = String::Handle(String::New(js->GetArgument(1)));
+  ASSERT(!id.IsNull());
+  // The id is the url of the script % encoded, decode it.
+  String& requested_url = String::Handle(String::DecodeURI(id));
+  Script& script = Script::Handle();
+  script = Script::FindByUrl(requested_url);
+  if (script.IsNull()) {
+    PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
+                       requested_url.ToCString());
+    return true;
+  }
+  if (js->num_arguments() == 2) {
+    // If no subcommand is given, just fetch the script.
+    return HandleScriptsFetch(isolate, script, js);
+  } else if (js->num_arguments() == 3) {
+    const char* arg = js->GetArgument(2);
+    if (strcmp(arg, "coverage") == 0) {
+      return HandleScriptsCoverage(isolate, script, js);
+    }
+    PrintError(js, "Unrecognized subcommand '%s'", arg);
+    return true;
   } else {
     PrintError(js, "Command too long");
     return true;
