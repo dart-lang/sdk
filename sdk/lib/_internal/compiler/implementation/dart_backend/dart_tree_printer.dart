@@ -492,6 +492,12 @@ class TreePrinter {
       result = new tree.LiteralSymbol(
           hash,
           makeList('.', exp.id.split('.').map(makeIdentifier)));
+    } else if (exp is LiteralType) {
+      precedence = TYPE_LITERAL;
+      result = new tree.Send(
+          makeStaticReceiver(exp.element),
+          makeIdentifier(exp.name));
+      setElement(result, exp.element, exp);
     } else if (exp is StringConcat) {
       precedence = PRIMARY;
       result = unparseStringLiteral(exp);

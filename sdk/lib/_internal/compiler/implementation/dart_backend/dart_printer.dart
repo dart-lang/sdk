@@ -384,6 +384,17 @@ class LiteralSymbol extends Expression {
   LiteralSymbol(this.id);
 }
 
+/// A type literal. This is distinct from [Identifier] since the unparser
+/// needs to this distinguish a static invocation from a method invocation
+/// on a type literal.
+class LiteralType extends Expression {
+  final String name;
+
+  elements.TypeDeclarationElement element;
+
+  LiteralType(this.name);
+}
+
 /// StringConcat is used in place of string interpolation and juxtaposition.
 /// Semantically, each subexpression is evaluated and converted to a string
 /// by `toString()`. These string are then concatenated and returned.
@@ -583,6 +594,7 @@ const int ADDITIVE = 12;
 const int MULTIPLICATIVE = 13;
 const int UNARY = 14;
 const int POSTFIX_INCREMENT = 15;
+const int TYPE_LITERAL = 19;
 const int PRIMARY = 20;
 
 /// Precedence level required for the callee in a [FunctionCall].
@@ -850,6 +862,10 @@ class Unparser {
     } else if (e is LiteralSymbol) {
       write('#');
       write(e.id); // TODO(asgerf): Do we need to escape something here?
+    } else if (e is LiteralType) {
+      withPrecedence(TYPE_LITERAL, () {
+        write(e.name);
+      });
     } else if (e is StringConcat) {
       writeStringLiteral(e);
     } else if (e is UnaryOperator) {

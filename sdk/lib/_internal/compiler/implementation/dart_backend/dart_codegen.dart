@@ -514,7 +514,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                  ..element = constant.element;
     } else if (constant is dart2js.TypeConstant) {
       GenericType type = constant.representedType;
-      return new Identifier(type.name)
+      return new LiteralType(type.name)
                  ..element = type.element;
     } else {
       throw "Unsupported constant: $constant";
