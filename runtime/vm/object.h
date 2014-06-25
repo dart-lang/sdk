@@ -6781,7 +6781,9 @@ class Stacktrace : public Instance {
                           const Array& pc_offset_array) const;
   void set_expand_inlined(bool value) const;
 
-  void Append(const Array& code_list, const Array& pc_offset_list) const;
+  void Append(const Array& code_list,
+              const Array& pc_offset_list,
+              const intptr_t start_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));

@@ -18596,13 +18596,20 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
 
 
 void Stacktrace::Append(const Array& code_list,
-                        const Array& pc_offset_list) const {
-  intptr_t old_length = Length();
-  intptr_t new_length = old_length + pc_offset_list.Length();
+                        const Array& pc_offset_list,
+                        const intptr_t start_index) const {
+  ASSERT(start_index <= code_list.Length());
   ASSERT(pc_offset_list.Length() == code_list.Length());
+  intptr_t old_length = Length();
+  intptr_t new_length = old_length + pc_offset_list.Length() - start_index;
+  if (new_length == old_length) {
+    // Nothing to append. Avoid work and an assert that growing arrays always
+    // increases their size.
+    return;
+  }
 
-  // Grow the arrays for function, code and pc_offset triplet to accommodate
-  // the new stack frames.
+  // Grow the arrays for code, pc_offset pairs to accommodate the new stack
+  // frames.
   Array& code_array = Array::Handle(raw_ptr()->code_array_);
   Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   code_array = Array::Grow(code_array, new_length);
@@ -18610,7 +18617,7 @@ void Stacktrace::Append(const Array& code_list,
   set_code_array(code_array);
   set_pc_offset_array(pc_offset_array);
   // Now append the new function and code list to the existing arrays.
-  intptr_t j = 0;
+  intptr_t j = start_index;
   Object& obj = Object::Handle();
   for (intptr_t i = old_length; i < new_length; i++, j++) {
     obj = code_list.At(j);

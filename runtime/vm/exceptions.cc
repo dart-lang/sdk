@@ -375,7 +375,8 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
 
 static void ThrowExceptionHelper(Isolate* isolate,
                                  const Instance& incoming_exception,
-                                 const Instance& existing_stacktrace) {
+                                 const Instance& existing_stacktrace,
+                                 const bool is_rethrow) {
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
   if (exception.IsNull()) {
@@ -437,9 +438,13 @@ static void ThrowExceptionHelper(Isolate* isolate,
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(code_array, pc_offset_array);
     } else {
+      ASSERT(is_rethrow);
       stacktrace ^= existing_stacktrace.raw();
       if (pc_offset_array.Length() != 0) {
-        stacktrace.Append(code_array, pc_offset_array);
+        // Skip the first frame during a rethrow. This is the catch clause with
+        // the rethrow statement, which is not part of the original trace a
+        // rethrow is supposed to preserve.
+        stacktrace.Append(code_array, pc_offset_array, 1);
       }
       // Since we are re throwing and appending to the existing stack trace
       // we clear out the catch trace collected in the existing stack trace
@@ -574,7 +579,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
   isolate->debugger()->SignalExceptionThrown(exception);
   // Null object is a valid exception object.
-  ThrowExceptionHelper(isolate, exception, Instance::Handle(isolate));
+  ThrowExceptionHelper(isolate, exception, Instance::Handle(isolate), false);
 }
 
 
@@ -582,7 +587,7 @@ void Exceptions::ReThrow(Isolate* isolate,
                          const Instance& exception,
                          const Instance& stacktrace) {
   // Null object is a valid exception object.
-  ThrowExceptionHelper(isolate, exception, stacktrace);
+  ThrowExceptionHelper(isolate, exception, stacktrace, true);
 }
 
 

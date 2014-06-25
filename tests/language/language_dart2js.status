@@ -10,6 +10,8 @@ full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 stacktrace_test: Pass, RuntimeError # # Issue 12698
+stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
+stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
 illegal_invocation_test/01: CompileTimeError # Issue 13630
 instantiate_type_variable_test/01: CompileTimeError # Issue 13631
 library_ambiguous_test/00: CompileTimeError # Issue 13632
