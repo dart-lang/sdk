@@ -838,8 +838,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // by default supports 1 thing being bound.
     events.forEach((type, methodName) {
       // Dart note: the getEventHandler method is on our PolymerExpressions.
-      var handler = element.syntax.getEventHandler(this, this, methodName);
-      addEventListener(type, handler);
+      on[type].listen(element.syntax.getEventHandler(this, this, methodName));
     });
   }
 

@@ -4,6 +4,10 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.11.0+2
+  * bug fix: event listeners were not in the dirty-checking zone
+  * bug fix: dispatch event in auto-binding
+
 #### Pub version 0.11.0+1
   * Added a workaround for bug in HTML imports (issue
     [19650](https://code.google.com/p/dart/issues/detail?id=19650)).
