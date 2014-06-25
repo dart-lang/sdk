@@ -9,7 +9,7 @@
 [ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff) ]
 *: Skip
 
-[ $compiler == dart2js && $runtime == chrome ]
+[ $compiler == dart2js && $runtime == drt ]
 end_to_end_test: Pass, Slow
 
 [ $csp ]
