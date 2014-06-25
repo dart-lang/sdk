@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:path/path.dart' as path;
 
+import '../exceptions.dart';
 import '../io.dart';
 import '../package.dart';
 import '../pubspec.dart';

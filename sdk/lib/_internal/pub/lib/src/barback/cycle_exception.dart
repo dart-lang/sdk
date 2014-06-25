@@ -4,9 +4,7 @@
 
 library pub.barback.cycle_exception;
 
-import 'package:stack_trace/stack_trace.dart';
-
-import '../utils.dart';
+import '../exceptions.dart';
 
 /// An exception thrown when a transformer dependency cycle is detected.
 ///
@@ -18,9 +16,6 @@ import '../utils.dart';
 /// Each call's individual message is called a "step". A [CycleException] is
 /// represented internally as a linked list of steps.
 class CycleException implements ApplicationException {
-  final innerError = null;
-  final Trace innerTrace = null;
-
   /// The step for this exception.
   final String _step;
 

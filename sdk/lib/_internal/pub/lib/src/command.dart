@@ -23,6 +23,7 @@ import 'command/upgrade.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
+import 'exceptions.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'system_cache.dart';

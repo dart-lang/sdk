@@ -46,8 +46,7 @@ class GitSource extends CachedSource {
     var revisionCachePath;
 
     if (!git.isInstalled) {
-      throw new ApplicationException(
-          "Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
+      fail("Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
           "Please ensure Git is correctly installed.");
     }
 

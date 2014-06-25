@@ -12,6 +12,7 @@ import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../lib/src/command.dart';
+import '../lib/src/exceptions.dart';
 import '../lib/src/exit_codes.dart' as exit_codes;
 import '../lib/src/http.dart';
 import '../lib/src/io.dart';
@@ -109,9 +110,9 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
       log.fine(chain.terse);
     }
 
-    if (error is ApplicationException && error.innerError != null) {
+    if (error is WrappedException && error.innerError != null) {
       var message = "Wrapped exception: ${error.innerError}";
-      if (error.innerTrace != null) message = "$message\n${error.innerTrace}";
+      if (error.innerChain != null) message = "$message\n${error.innerChain}";
       log.fine(message);
     }
 

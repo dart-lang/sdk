@@ -220,8 +220,7 @@ class _TransformerLoader {
         }
 
         var users = toSentence(ordered(_transformerUsers[config.id]));
-        throw new ApplicationException(
-            "$message were defined in $location,\n"
+        fail("$message were defined in $location,\n"
             "required by $users.");
       });
     } else if (config.id.package != '\$dart2js') {

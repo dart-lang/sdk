@@ -8,18 +8,14 @@ library pub.utils;
 import 'dart:async';
 import "dart:convert";
 import 'dart:io';
-import 'dart:isolate';
 @MirrorsUsed(targets: 'pub.io')
 import 'dart:mirrors';
 
-import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
-import "package:http/http.dart" as http;
 import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
-import "package:yaml/yaml.dart";
 
-import '../../asset/dart/serialize.dart';
+import 'exceptions.dart';
 
 export '../../asset/dart/utils.dart';
 
@@ -806,97 +802,11 @@ String yamlToString(data) {
   return buffer.toString();
 }
 
-/// An exception class for exceptions that are intended to be seen by the user.
-///
-/// These exceptions won't have any debugging information printed when they're
-/// thrown.
-class ApplicationException implements Exception {
-  final String message;
-
-  /// The underlying exception that [this] is wrapping, if any.
-  final innerError;
-
-  /// The stack trace for [innerError] if it exists.
-  final Trace innerTrace;
-
-  ApplicationException(this.message, [this.innerError, StackTrace innerTrace])
-      : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
-
-  String toString() => message;
-}
-
-/// A class for command usage exceptions.
-class UsageException extends ApplicationException {
-  /// The command usage information.
-  final String usage;
-
-  UsageException(String message, this.usage)
-      : super(message);
-
-  String toString() => "$message\n\n$usage";
-}
-
-/// A class for errors in a command's input data.
-///
-/// This corresponds to the [exit_codes.DATA] exit code.
-class DataException extends ApplicationException {
-  DataException(String message)
-      : super(message);
-}
-
-/// An class for exceptions where a package could not be found in a [Source].
-///
-/// The source is responsible for wrapping its internal exceptions in this so
-/// that other code in pub can use this to show a more detailed explanation of
-/// why the package was being requested.
-class PackageNotFoundException extends ApplicationException {
-  PackageNotFoundException(String message, [innerError, StackTrace innerTrace])
-      : super(message, innerError, innerTrace);
-}
-
 /// Throw a [ApplicationException] with [message].
 void fail(String message, [innerError, StackTrace innerTrace]) {
-  throw new ApplicationException(message, innerError, innerTrace);
-}
-
-/// All the names of user-facing exceptions.
-final _userFacingExceptions = new Set<String>.from([
-  'ApplicationException',
-  // This refers to http.ClientException.
-  'ClientException',
-  // Errors coming from the Dart analyzer are probably caused by syntax errors
-  // in user code, so they're user-facing.
-  'AnalyzerError', 'AnalyzerErrorGroup',
-  // An error spawning an isolate probably indicates a transformer with an
-  // invalid import.
-  'IsolateSpawnException',
-  // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
-  'FileSystemException', 'HttpException', 'OSError',
-  'ProcessException', 'SocketException', 'TimeoutException',
-  'WebSocketException'
-]);
-
-/// Returns whether [error] is a user-facing error object.
-///
-/// This includes both [ApplicationException] and any dart:io errors.
-bool isUserFacingException(error) {
-  if (error is CrossIsolateException) {
-    return _userFacingExceptions.contains(error.type);
+  if (innerError != null) {
+    throw new WrappedException(message, innerError, innerTrace);
+  } else {
+    throw new ApplicationException(message);
   }
-
-  // TODO(nweiz): unify this list with _userFacingExceptions when issue 5897 is
-  // fixed.
-  return error is ApplicationException ||
-    error is AnalyzerError ||
-    error is AnalyzerErrorGroup ||
-    error is IsolateSpawnException ||
-    error is FileSystemException ||
-    error is HttpException ||
-    error is http.ClientException ||
-    error is OSError ||
-    error is ProcessException ||
-    error is TimeoutException ||
-    error is SocketException ||
-    error is WebSocketException ||
-    error is YamlException;
 }

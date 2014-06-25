@@ -9,6 +9,7 @@ import "dart:convert";
 
 import 'package:stack_trace/stack_trace.dart';
 
+import '../exceptions.dart';
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
@@ -296,9 +297,6 @@ abstract class SolveFailure implements ApplicationException {
   ///
   /// Will be an empty collection if the failure is not specific to one package.
   final Iterable<Dependency> dependencies;
-
-  final innerError = null;
-  final innerTrace = null;
 
   String get message => toString();
 

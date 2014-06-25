@@ -39,6 +39,7 @@ import 'dart:async';
 import 'dart:collection' show Queue;
 
 import '../barback.dart' as barback;
+import '../exceptions.dart';
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';

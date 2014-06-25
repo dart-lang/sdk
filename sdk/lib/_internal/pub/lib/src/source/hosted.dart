@@ -11,6 +11,7 @@ import "dart:convert";
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
+import '../exceptions.dart';
 import '../http.dart';
 import '../io.dart';
 import '../log.dart' as log;

@@ -45,8 +45,7 @@ bool _isInstalledCache;
 Future<List<String>> run(List<String> args,
     {String workingDir, Map<String, String> environment}) {
   if (!isInstalled) {
-    throw new ApplicationException(
-        "Cannot find a Git executable.\n"
+    fail("Cannot find a Git executable.\n"
         "Please ensure Git is correctly installed.");
   }
 
@@ -61,8 +60,7 @@ Future<List<String>> run(List<String> args,
 List<String> runSync(List<String> args, {String workingDir,
     Map<String, String> environment}) {
   if (!isInstalled) {
-    throw new ApplicationException(
-        "Cannot find a Git executable.\n"
+    fail("Cannot find a Git executable.\n"
         "Please ensure Git is correctly installed.");
   }
 

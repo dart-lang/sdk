@@ -9,6 +9,7 @@ import 'package:source_maps/source_maps.dart';
 import 'package:yaml/yaml.dart';
 
 import 'barback/transformer_config.dart';
+import 'exceptions.dart';
 import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
@@ -474,9 +475,6 @@ class PubspecEnvironment {
 /// These exceptions are often thrown lazily while accessing pubspec properties.
 class PubspecException extends SpanFormatException
     implements ApplicationException {
-  final innerError = null;
-  final innerTrace = null;
-
   PubspecException(String message, Span span)
       : super(message, span);
 }
