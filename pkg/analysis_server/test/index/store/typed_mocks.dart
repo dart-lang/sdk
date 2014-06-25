@@ -20,13 +20,30 @@ class MockAnalysisContext extends TypedMock implements AnalysisContext {
 }
 
 
+class MockClassElement extends TypedMock implements ClassElement {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
 class MockCompilationUnitElement extends TypedMock implements
     CompilationUnitElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 
+class MockConstructorElement extends TypedMock implements
+    ConstructorElement {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
 class MockContextCodec extends TypedMock implements ContextCodec {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+class MockDartType extends StringTypedMock implements DartType {
+  MockDartType([String toString]) : super(toString);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -40,6 +57,11 @@ class MockElement extends TypedMock implements Element {
 
 
 class MockElementCodec extends TypedMock implements ElementCodec {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+class MockFieldElement extends TypedMock implements FieldElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -70,6 +92,23 @@ class MockLogger extends TypedMock implements Logger {
 }
 
 
+class MockMethodElement extends TypedMock implements MethodElement {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+class MockParameterElement extends StringTypedMock implements ParameterElement {
+  MockParameterElement([String toString]) : super(toString);
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+class MockPropertyAccessorElement extends TypedMock implements
+    PropertyAccessorElement {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
 class MockRelationshipCodec extends TypedMock implements RelationshipCodec {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -80,4 +119,21 @@ class MockSource extends TypedMock implements Source {
   MockSource(this._name);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   String toString() => _name;
+}
+
+
+class StringTypedMock extends TypedMock {
+  String _toString;
+
+  StringTypedMock(this._toString);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    if (_toString != null) {
+      return _toString;
+    }
+    return super.toString();
+  }
 }

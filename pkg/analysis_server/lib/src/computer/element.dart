@@ -5,6 +5,8 @@
 library computer.element;
 
 import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer/src/generated/element.dart' as engine;
+import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
 
 /**
@@ -13,12 +15,12 @@ import 'package:analysis_server/src/constants.dart';
 class Element {
   static const List<Element> EMPTY_ARRAY = const <Element>[];
 
-  static const int _FLAG_ABSTRACT = 0x01;
-  static const int _FLAG_CONST = 0x02;
-  static const int _FLAG_DEPRECATED = 0x20;
-  static const int _FLAG_FINAL = 0x04;
-  static const int _FLAG_PRIVATE = 0x10;
-  static const int _FLAG_STATIC = 0x08;
+  static const int FLAG_ABSTRACT = 0x01;
+  static const int FLAG_CONST = 0x02;
+  static const int FLAG_DEPRECATED = 0x20;
+  static const int FLAG_FINAL = 0x04;
+  static const int FLAG_PRIVATE = 0x10;
+  static const int FLAG_STATIC = 0x08;
 
   final bool isAbstract;
   final bool isConst;
@@ -65,24 +67,36 @@ class Element {
       this.isDeprecated, {this.parameters, this.returnType, this.isAbstract: false,
       this.isConst: false, this.isFinal: false, this.isStatic: false});
 
+  factory Element.fromEngine(engine.Element element) {
+    String name = element.displayName;
+    int nameLength = name != null ? name.length : 0;
+    String elementParameters = _getParametersString(element);
+    String elementReturnType = _getReturnTypeString(element);
+    return new Element(ElementKind.valueOfEngine(element.kind), name,
+        element.nameOffset, nameLength, element.isPrivate, element.isDeprecated,
+        parameters: elementParameters, returnType: elementReturnType, isAbstract:
+        _isAbstract(element), isConst: _isConst(element), isFinal: _isFinal(element),
+        isStatic: _isStatic(element));
+  }
+
   factory Element.fromJson(Map<String, Object> map) {
     ElementKind kind = ElementKind.valueOf(map[KIND]);
     int flags = map[FLAGS];
     return new Element(kind, map[NAME], map[OFFSET], map[LENGTH], _hasFlag(
-        flags, _FLAG_PRIVATE), _hasFlag(flags, _FLAG_DEPRECATED), parameters:
+        flags, FLAG_PRIVATE), _hasFlag(flags, FLAG_DEPRECATED), parameters:
         map[PARAMETERS], returnType: map[RETURN_TYPE], isAbstract: _hasFlag(flags,
-        _FLAG_ABSTRACT), isConst: _hasFlag(flags, _FLAG_CONST), isFinal: _hasFlag(flags,
-        _FLAG_FINAL), isStatic: _hasFlag(flags, _FLAG_STATIC));
+        FLAG_ABSTRACT), isConst: _hasFlag(flags, FLAG_CONST), isFinal: _hasFlag(flags,
+        FLAG_FINAL), isStatic: _hasFlag(flags, FLAG_STATIC));
   }
 
   int get flags {
     int flags = 0;
-    if (isAbstract) flags |= _FLAG_ABSTRACT;
-    if (isConst) flags |= _FLAG_CONST;
-    if (isFinal) flags |= _FLAG_FINAL;
-    if (isStatic) flags |= _FLAG_STATIC;
-    if (isPrivate) flags |= _FLAG_PRIVATE;
-    if (isDeprecated) flags |= _FLAG_DEPRECATED;
+    if (isAbstract) flags |= FLAG_ABSTRACT;
+    if (isConst) flags |= FLAG_CONST;
+    if (isFinal) flags |= FLAG_FINAL;
+    if (isStatic) flags |= FLAG_STATIC;
+    if (isPrivate) flags |= FLAG_PRIVATE;
+    if (isDeprecated) flags |= FLAG_DEPRECATED;
     return flags;
   }
 
@@ -103,7 +117,87 @@ class Element {
     return json;
   }
 
+  static String _getParametersString(engine.Element element) {
+    // TODO(scheglov) expose the corresponding feature from ExecutableElement
+    if (element is engine.ExecutableElement) {
+      var sb = new StringBuffer();
+      String closeOptionalString = '';
+      for (var parameter in element.parameters) {
+        if (sb.isNotEmpty) {
+          sb.write(', ');
+        }
+        if (closeOptionalString.isEmpty) {
+          if (parameter.kind == engine.ParameterKind.NAMED) {
+            sb.write('{');
+            closeOptionalString = '}';
+          }
+          if (parameter.kind == engine.ParameterKind.POSITIONAL) {
+            sb.write('[');
+            closeOptionalString = ']';
+          }
+        }
+        sb.write(parameter.toString());
+      }
+      sb.write(closeOptionalString);
+      return '(' + sb.toString() + ')';
+    } else {
+      return null;
+    }
+  }
+
+  static String _getReturnTypeString(engine.Element element) {
+    if ((element is engine.ExecutableElement)) {
+      return element.returnType.toString();
+    } else {
+      return null;
+    }
+  }
+
   static bool _hasFlag(int flags, int flag) => (flags & flag) != 0;
+
+  static bool _isAbstract(engine.Element element) {
+    // TODO(scheglov) add isAbstract to Element API
+    if (element is engine.ClassElement) {
+      return element.isAbstract;
+    }
+    if (element is engine.MethodElement) {
+      return element.isAbstract;
+    }
+    if (element is engine.PropertyAccessorElement) {
+      return element.isAbstract;
+    }
+    return false;
+  }
+
+  static bool _isConst(engine.Element element) {
+    // TODO(scheglov) add isConst to Element API
+    if (element is engine.ConstructorElement) {
+      return element.isConst;
+    }
+    if (element is engine.VariableElement) {
+      return element.isConst;
+    }
+    return false;
+  }
+
+  static bool _isFinal(engine.Element element) {
+    // TODO(scheglov) add isFinal to Element API
+    if (element is engine.VariableElement) {
+      return element.isFinal;
+    }
+    return false;
+  }
+
+  static bool _isStatic(engine.Element element) {
+    // TODO(scheglov) add isStatic to Element API
+    if (element is engine.ExecutableElement) {
+      return element.isStatic;
+    }
+    if (element is engine.PropertyInducingElement) {
+      return element.isStatic;
+    }
+    return false;
+  }
 }
 
 
@@ -131,6 +225,9 @@ class ElementKind {
 
   const ElementKind(this.name);
 
+  @override
+  String toString() => name;
+
   static ElementKind valueOf(String name) {
     if (CLASS.name == name) return CLASS;
     if (CLASS_TYPE_ALIAS.name == name) return CLASS_TYPE_ALIAS;
@@ -148,5 +245,42 @@ class ElementKind {
     if (UNIT_TEST_GROUP.name == name) return UNIT_TEST_GROUP;
     if (UNKNOWN.name == name) return UNKNOWN;
     throw new ArgumentError('Unknown ElementKind: $name');
+  }
+
+  static ElementKind valueOfEngine(engine.ElementKind kind) {
+    if (kind == engine.ElementKind.CLASS) {
+      return CLASS;
+    }
+    if (kind == engine.ElementKind.COMPILATION_UNIT) {
+      return COMPILATION_UNIT;
+    }
+    if (kind == engine.ElementKind.CONSTRUCTOR) {
+      return CONSTRUCTOR;
+    }
+    if (kind == engine.ElementKind.FIELD) {
+      return FIELD;
+    }
+    if (kind == engine.ElementKind.FUNCTION) {
+      return FUNCTION;
+    }
+    if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
+      return FUNCTION_TYPE_ALIAS;
+    }
+    if (kind == engine.ElementKind.GETTER) {
+      return GETTER;
+    }
+    if (kind == engine.ElementKind.LIBRARY) {
+      return LIBRARY;
+    }
+    if (kind == engine.ElementKind.METHOD) {
+      return METHOD;
+    }
+    if (kind == engine.ElementKind.SETTER) {
+      return SETTER;
+    }
+    if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
+      return TOP_LEVEL_VARIABLE;
+    }
+    return UNKNOWN;
   }
 }
