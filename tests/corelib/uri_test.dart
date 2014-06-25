@@ -352,17 +352,6 @@ void testNormalization() {
   Expect.equals("file:///y", uri.toString());
   uri = new Uri(scheme: "file", path: "y");
   Expect.equals("file:///y", uri.toString());
-
-  // Empty host/query/fragment ensures the delimiter is there.
-  // Different from not being there.
-  Expect.equals("scheme:/", Uri.parse("scheme:/").toString());
-  Expect.equals("scheme:/",
-                new Uri(scheme: "scheme", path: "/").toString());
-
-  Expect.equals("scheme:///?#", Uri.parse("scheme:///?#").toString());
-  Expect.equals("scheme:///?#",
-                new Uri(scheme: "scheme", host: "", path: "/",
-                        query: "", fragment: "").toString());
 }
 
 main() {
@@ -381,7 +370,7 @@ main() {
                           path: "/a/b/c",
                           query: "query",
                           fragment: "fragment").toString());
-  Expect.stringEquals("/a/b/c/",
+  Expect.stringEquals("//null@null/a/b/c/",
                       new Uri(
                           scheme: null,
                           userInfo: null,

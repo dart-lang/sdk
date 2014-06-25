@@ -16,14 +16,8 @@ part of dart.core;
  * [libtour]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
  */
 class Uri {
-  // The host name of the URI.
-  // Set to `null` if there is no authority in a URI.
   final String _host;
-  // The port. Set to null if there is no port. Normalized to null if
-  // the port is the default port for the scheme.
-  // Set to the value of the default port if an empty port was supplied.
   int _port;
-  // The path. Always non-null.
   String _path;
 
   /**
@@ -31,8 +25,6 @@ class Uri {
    *
    * Returns the empty string if there is no scheme component.
    */
-  // We represent the missing scheme as an empty string.
-  // A valid scheme cannot be empty.
   final String scheme;
 
   /**
@@ -51,20 +43,12 @@ class Uri {
   }
 
   /**
-   * The user-info part of the authority.
-   *
-   * Does not distinguish between an empty user-info and an absent one.
-   * The value is always non-null.
-   */
-  final String _userInfo;
-
-  /**
    * Returns the user info part of the authority component.
    *
    * Returns the empty string if there is no user info in the
    * authority component.
    */
-  String get userInfo => _userInfo;
+  final String userInfo;
 
   /**
    * Returns the host part of the authority component.
@@ -76,8 +60,7 @@ class Uri {
    * removed.
    */
   String get host {
-    if (_host == null) return "";
-    if (_host.startsWith('[')) {
+    if (_host != null && _host.startsWith('[')) {
       return _host.substring(1, _host.length - 1);
     }
     return _host;
@@ -86,19 +69,14 @@ class Uri {
   /**
    * Returns the port part of the authority component.
    *
-   * Returns the defualt port if there is no port number in the authority
-   * component. That's 80 for http, 443 for https, and 0 for everything else.
+   * Returns 0 if there is no port in the authority component.
    */
   int get port {
-    if (_port == null) return _defaultPort(scheme);
+    if (_port == 0) {
+      if (scheme == "http") return 80;
+      if (scheme == "https") return 443;
+    }
     return _port;
-  }
-
-  // The default port for the scheme of this Uri..
-  static int _defaultPort(String scheme) {
-    if (scheme == "http") return 80;
-    if (scheme == "https") return 443;
-    return 0;
   }
 
   /**
@@ -111,19 +89,13 @@ class Uri {
    */
   String get path => _path;
 
-  // The query content, or null if there is no query.
-  final String _query;
-
   /**
    * Returns the query component. The returned query is encoded. To get
    * direct access to the decoded query use [queryParameters].
    *
    * Returns the empty string if there is no query component.
    */
-  String get query => (_query == null) ? "" : _query;
-
-  // The fragment content, or null if there is no fragment.
-  final String _fragment;
+  final String query;
 
   /**
    * Returns the fragment identifier component.
@@ -131,7 +103,7 @@ class Uri {
    * Returns the empty string if there is no fragment identifier
    * component.
    */
-  String get fragment => (_fragment == null) ? "" : _fragment;
+  final String fragment;
 
   /**
    * Cache the computed return value of [pathSegements].
@@ -210,12 +182,12 @@ class Uri {
     const int EOI = -1;
 
     String scheme = "";
+    String path;
     String userinfo = "";
-    String host = null;
-    int port = null;
-    String path = null;
-    String query = null;
-    String fragment = null;
+    String host = "";
+    int port = 0;
+    String query = "";
+    String fragment = "";
 
     int index = 0;
     int pathStart = 0;
@@ -262,16 +234,13 @@ class Uri {
         hostStart = lastAt + 1;
       }
       if (lastColon >= 0) {
-        int portNumber;
-        if (lastColon + 1 < index) {
-          portNumber = 0;
-          for (int i = lastColon + 1; i < index; i++) {
-            int digit = uri.codeUnitAt(i);
-            if (_ZERO > digit || _NINE < digit) {
-              _fail(uri, i, "Invalid port number");
-            }
-            portNumber = portNumber * 10 + (digit - _ZERO);
+        int portNumber = 0;
+        for (int i = lastColon + 1; i < index; i++) {
+          int digit = uri.codeUnitAt(i);
+          if (_ZERO > digit || _NINE < digit) {
+            _fail(uri, i, "Invalid port number");
           }
+          portNumber = portNumber * 10 + (digit - _ZERO);
         }
         port = _makePort(portNumber, scheme);
         hostEnd = lastColon;
@@ -371,7 +340,7 @@ class Uri {
     }
 
     assert(state == NOT_IN_PATH);
-    bool ensureLeadingSlash = (host != null || scheme == "file");
+    bool ensureLeadingSlash = (host != "" || scheme == "file");
     path = _makePath(uri, pathStart, index, null, ensureLeadingSlash);
 
     if (char == _QUESTION) {
@@ -428,27 +397,27 @@ class Uri {
 
   /// Internal non-verifying constructor. Only call with validated arguments.
   Uri._internal(this.scheme,
-                this._userInfo,
+                this.userInfo,
                 this._host,
                 this._port,
                 this._path,
-                this._query,
-                this._fragment);
+                this.query,
+                this.fragment);
 
   /**
    * Creates a new URI from its components.
    *
    * Each component is set through a named argument. Any number of
-   * components can be provided. The [path] and [query] components can be set
-   * using either of two different named arguments.
+   * components can be provided. The default value for the components
+   * not provided is the empry string, except for [port] which has a
+   * default value of 0. The [path] and [query] components can be set
+   * using two different named arguments.
    *
    * The scheme component is set through [scheme]. The scheme is
-   * normalized to all lowercase letters. If the scheme is omitted or empty,
-   * the URI will not have a scheme part.
+   * normalized to all lowercase letters.
    *
    * The user info part of the authority component is set through
-   * [userInfo]. It defaults to the empty string, which will be omitted
-   * from the string representation of the URI.
+   * [userInfo].
    *
    * The host part of the authority component is set through
    * [host]. The host can either be a hostname, an IPv4 address or an
@@ -457,22 +426,14 @@ class Uri {
    * The host is normalized to all lowercase letters.
    *
    * The port part of the authority component is set through
-   * [port].
-   * If [port] is omitted or `null`, it implies the default port for
-   * the URI's scheme, and is equivalent to passing that port explicitly.
-   * The recognized schemes, and their default ports, are "http" (80) and
-   * "https" (443). All other schemes are considered as having zero as the
-   * default port.
-   *
-   * If any of `userInfo`, `host` or `port` are provided,
-   * the URI will have an autority according to [hasAuthority].
+   * [port]. The port is normalized for scheme http and https where
+   * port 80 and port 443 respectively is set.
    *
    * The path component is set through either [path] or
-   * [pathSegments]. When [path] is used, it should be a valid URI path,
-   * but invalid characters, except the general delimiters ':/@[]?#',
-   * will be escaped if necessary.
-   * When [pathSegments] is used, each of the provided segments
-   * is first percent-encoded and then joined using the forward slash
+   * [pathSegments]. When [path] is used, the provided string is
+   * expected to be fully percent-encoded, and is used in its literal
+   * form. When [pathSegments] is used, each of the provided segments
+   * is percent-encoded and joined using the forward slash
    * separator. The percent-encoding of the path segments encodes all
    * characters except for the unreserved characters and the following
    * list of characters: `!$&'()*+,;=:@`. If the other components
@@ -480,43 +441,32 @@ class Uri {
    * not already there.
    *
    * The query component is set through either [query] or
-   * [queryParameters]. When [query] is used the provided string should
-   * be a valid URI query, but invalid characters other than general delimiters,
-   * will be escaped if necessary.
-   * When [queryParameters] is used the query is built from the
+   * [queryParameters]. When [query] is used the provided string is
+   * expected to be fully percent-encoded and is used in its literal
+   * form. When [queryParameters] is used the query is built from the
    * provided map. Each key and value in the map is percent-encoded
    * and joined using equal and ampersand characters. The
    * percent-encoding of the keys and values encodes all characters
    * except for the unreserved characters.
-   * If both `query` and `queryParameters` are omitted or `null`, the
-   * URI will have no query part.
    *
    * The fragment component is set through [fragment].
-   * It should be a valid URI fragment, but invalid characters other than
-   * general delimiters, will be escaped if necessary.
-   * If `fragment` is omitted or `null`, the URI will have no fragment part.
    */
-  factory Uri({String scheme : "",
-               String userInfo : "",
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, String> queryParameters,
-               fragment}) {
+  factory Uri({String scheme,
+       String userInfo: "",
+       String host: "",
+       port: 0,
+       String path,
+       Iterable<String> pathSegments,
+       String query,
+       Map<String, String> queryParameters,
+       fragment: ""}) {
     scheme = _makeScheme(scheme, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
     query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
     fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
     port = _makePort(port, scheme);
-    bool isFile = (scheme == "file");
-    if (host == null &&
-        (userInfo.isNotEmpty || port != null || isFile)) {
-      host = "";
-    }
-    bool ensureLeadingSlash = (host != null || isFile);
+    bool ensureLeadingSlash = (host != "" || scheme == "file");
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                      ensureLeadingSlash);
 
@@ -546,9 +496,7 @@ class Uri {
    * The `scheme` is always set to `http`.
    *
    * The `userInfo`, `host` and `port` components are set from the
-   * [authority] argument. If `authority` is `null` or empty,
-   * the created `Uri` will have no authority, and will not be directly usable
-   * as an HTTP URL, which must have a non-empty host.
+   * [authority] argument.
    *
    * The `path` component is set from the [unencodedPath]
    * argument. The path passed must not be encoded as this constructor
@@ -579,51 +527,50 @@ class Uri {
                           String authority,
                           String unencodedPath,
                           Map<String, String> queryParameters) {
-    var userInfo = null;
-    var host = null;
-    var port = null;
+    var userInfo = "";
+    var host = "";
+    var port = 0;
 
-    if (authority != null && authority.isNotEmpty) {
-      var hostStart = 0;
-      // Split off the user info.
-      bool hasUserInfo = false;
-      for (int i = 0; i < authority.length; i++) {
-        if (authority.codeUnitAt(i) == _AT_SIGN) {
-          hasUserInfo = true;
-          userInfo = authority.substring(0, i);
-          hostStart = i + 1;
-          break;
-        }
+    var hostStart = 0;
+    // Split off the user info.
+    bool hasUserInfo = false;
+    for (int i = 0; i < authority.length; i++) {
+      if (authority.codeUnitAt(i) == _AT_SIGN) {
+        hasUserInfo = true;
+        userInfo = authority.substring(0, i);
+        hostStart = i + 1;
+        break;
       }
-      var hostEnd = hostStart;
-      if (hostStart < authority.length &&
-          authority.codeUnitAt(hostStart) == _LEFT_BRACKET) {
-        // IPv6 host.
-        for (; hostEnd < authority.length; hostEnd++) {
-          if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
-        }
-        if (hostEnd == authority.length) {
-          throw new FormatException("Invalid IPv6 host entry.");
-        }
-        parseIPv6Address(authority, hostStart + 1, hostEnd);
-        hostEnd++;  // Skip the closing bracket.
-        if (hostEnd != authority.length &&
-            authority.codeUnitAt(hostEnd) != _COLON) {
-          throw new FormatException("Invalid end of authority");
-        }
-      }
-      // Split host and port.
-      bool hasPort = false;
-      for (; hostEnd < authority.length; hostEnd++) {
-        if (authority.codeUnitAt(hostEnd) == _COLON) {
-          var portString = authority.substring(hostEnd + 1);
-          // We allow the empty port - falling back to initial value.
-          if (portString.isNotEmpty) port = int.parse(portString);
-          break;
-        }
-      }
-      host = authority.substring(hostStart, hostEnd);
     }
+    var hostEnd = hostStart;
+    if (hostStart < authority.length &&
+        authority.codeUnitAt(hostStart) == _LEFT_BRACKET) {
+      // IPv6 host.
+      for (; hostEnd < authority.length; hostEnd++) {
+        if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
+      }
+      if (hostEnd == authority.length) {
+        throw new FormatException("Invalid IPv6 host entry.");
+      }
+      parseIPv6Address(authority, hostStart + 1, hostEnd);
+      hostEnd++;  // Skip the closing bracket.
+      if (hostEnd != authority.length &&
+          authority.codeUnitAt(hostEnd) != _COLON) {
+        throw new FormatException("Invalid end of authority");
+      }
+    }
+    // Split host and port.
+    bool hasPort = false;
+    for (; hostEnd < authority.length; hostEnd++) {
+      if (authority.codeUnitAt(hostEnd) == _COLON) {
+        var portString = authority.substring(hostEnd + 1);
+        // We allow the empty port - falling back to initial value.
+        if (portString.isNotEmpty) port = int.parse(portString);
+        break;
+      }
+    }
+    host = authority.substring(hostStart, hostEnd);
+
     return new Uri(scheme: scheme,
                    userInfo: userInfo,
                    host: host,
@@ -774,7 +721,7 @@ class Uri {
 
   static _makeFileUri(String path) {
     String sep = "/";
-  if (path.startsWith(sep)) {
+    if (path.length > 0 && path[0] == sep) {
       // Absolute file:// URI.
       return new Uri(scheme: "file", pathSegments: path.split(sep));
     } else {
@@ -883,7 +830,12 @@ class Uri {
 
   static int _makePort(int port, String scheme) {
     // Perform scheme specific normalization.
-    if (port != null && port == _defaultPort(scheme)) return null;
+    if (port == 80 && scheme == "http") {
+      return 0;
+    }
+    if (port == 443 && scheme == "https") {
+      return 0;
+    }
     return port;
   }
 
@@ -900,6 +852,7 @@ class Uri {
    */
   static String _makeHost(String host, int start, int end, bool strictIPv6) {
     // TODO(lrn): Should we normalize IPv6 addresses according to RFC 5952?
+
     if (host == null) return null;
     if (start == end) return "";
     // Host is an IPv6 address if it starts with '[' or contains a colon.
@@ -1032,7 +985,7 @@ class Uri {
   }
 
   static String _makeUserInfo(String userInfo, int start, int end) {
-    if (userInfo == null) return "";
+    if (userInfo == null) return "null";
     return _normalize(userInfo, start, end, _userinfoTable);
   }
 
@@ -1057,7 +1010,7 @@ class Uri {
 
   static String _makeQuery(String query, int start, int end,
                            Map<String, String> queryParameters) {
-    if (query == null && queryParameters == null) return null;
+    if (query == null && queryParameters == null) return "";
     if (query != null && queryParameters != null) {
       throw new ArgumentError('Both query and queryParameters specified');
     }
@@ -1080,7 +1033,7 @@ class Uri {
   }
 
   static String _makeFragment(String fragment, int start, int end) {
-    if (fragment == null) return null;
+    if (fragment == null) return "";
     return _normalize(fragment, start, end, _queryCharTable);
   }
 
@@ -1325,81 +1278,55 @@ class Uri {
     int targetPort;
     String targetPath;
     String targetQuery;
-    if (reference.scheme.isNotEmpty) {
+    if (reference.scheme != "") {
       targetScheme = reference.scheme;
-      if (reference.hasAuthority) {
-        targetUserInfo = reference.userInfo;
-        targetHost = reference.host;
-        targetPort = reference.hasPort ? reference.port : null;
-      }
+      targetUserInfo = reference.userInfo;
+      targetHost = reference.host;
+      targetPort = reference.port;
       targetPath = _removeDotSegments(reference.path);
-      if (reference.hasQuery) {
-        targetQuery = reference.query;
-      }
+      targetQuery = reference.query;
     } else {
-      targetScheme = this.scheme;
       if (reference.hasAuthority) {
         targetUserInfo = reference.userInfo;
         targetHost = reference.host;
-        targetPort = _makePort(reference.hasPort ? reference.port : null,
-                               targetScheme);
+        targetPort = reference.port;
         targetPath = _removeDotSegments(reference.path);
-        if (reference.hasQuery) targetQuery = reference.query;
+        targetQuery = reference.query;
       } else {
         if (reference.path == "") {
-          targetPath = this._path;
-          if (reference.hasQuery) {
+          targetPath = this.path;
+          if (reference.query != "") {
             targetQuery = reference.query;
           } else {
-            targetQuery = this._query;
+            targetQuery = this.query;
           }
         } else {
           if (reference.path.startsWith("/")) {
             targetPath = _removeDotSegments(reference.path);
           } else {
-            targetPath = _removeDotSegments(_merge(this._path, reference.path));
+            targetPath = _removeDotSegments(_merge(this.path, reference.path));
           }
-          if (reference.hasQuery) targetQuery = reference.query;
+          targetQuery = reference.query;
         }
-        targetUserInfo = this._userInfo;
-        targetHost = this._host;
-        targetPort = this._port;
+        targetUserInfo = this.userInfo;
+        targetHost = this.host;
+        targetPort = this.port;
       }
+      targetScheme = this.scheme;
     }
-    String fragment = reference.hasFragment ? reference.fragment : null;
-    return new Uri._internal(targetScheme,
-                             targetUserInfo,
-                             targetHost,
-                             targetPort,
-                             targetPath,
-                             targetQuery,
-                             fragment);
+    return new Uri(scheme: targetScheme,
+                   userInfo: targetUserInfo,
+                   host: targetHost,
+                   port: targetPort,
+                   path: targetPath,
+                   query: targetQuery,
+                   fragment: reference.fragment);
   }
 
   /**
    * Returns whether the URI has an [authority] component.
    */
-  bool get hasAuthority => _host != null;
-
-  /**
-   * Returns whether the URI has an explicit port.
-   *
-   * If the port number is the default port number
-   * (zero for unrecognized schemes, with http (80) and https (443) being
-   * recognized),
-   * then the port is made implicit and omitted from the URI.
-   */
-  bool get hasPort => _port != null;
-
-  /**
-   * Returns whether the URI has a query part.
-   */
-  bool get hasQuery => _query != null;
-
-  /**
-   * Returns whether the URI has a fragment part.
-   */
-  bool get hasFragment => _fragment != null;
+  bool get hasAuthority => host != "";
 
   /**
    * Returns the origin of the URI in the form scheme://host:port for the
@@ -1417,7 +1344,7 @@ class Uri {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
     }
-    if (_port == null) return "$scheme://$_host";
+    if (_port == 0) return "$scheme://$_host";
     return "$scheme://$_host:$_port";
   }
 
@@ -1544,14 +1471,11 @@ class Uri {
   }
 
   void _writeAuthority(StringSink ss) {
-    if (_userInfo.isNotEmpty) {
-      ss.write(_userInfo);
-      ss.write("@");
-    }
-    if (_host != null) ss.write(_host);
-    if (_port != null) {
+    _addIfNonEmpty(ss, userInfo, userInfo, "@");
+    ss.write(_host == null ? "null" : _host);
+    if (_port != 0) {
       ss.write(":");
-      ss.write(_port);
+      ss.write(_port.toString());
     }
   }
 
@@ -1565,8 +1489,8 @@ class Uri {
       _writeAuthority(sb);
     }
     sb.write(path);
-    if (_query != null) { sb..write("?")..write(_query); }
-    if (_fragment != null) { sb..write("#")..write(_fragment); }
+    _addIfNonEmpty(sb, query, "?", query);
+    _addIfNonEmpty(sb, fragment, "#", fragment);
     return sb.toString();
   }
 
