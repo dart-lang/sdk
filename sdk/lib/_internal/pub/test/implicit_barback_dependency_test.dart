@@ -10,11 +10,15 @@ import '../lib/src/version.dart';
 main() {
   initConfig();
 
-  var current = barback.supportedVersions.min.toString();
-  var previous = new Version(barback.supportedVersions.min.major,
-      barback.supportedVersions.min.minor - 1, 0).toString();
-  var nextPatch = barback.supportedVersions.min.nextPatch.toString();
-  var max = barback.supportedVersions.max.toString();
+  var constraint = barback.pubConstraints["barback"];
+  var current = constraint.min.toString();
+  var previous = new Version(constraint.min.major, constraint.min.minor - 1, 0)
+      .toString();
+  var nextPatch = constraint.min.nextPatch.toString();
+  var max = constraint.max.toString();
+
+  var sourceMapsVersion = barback.pubConstraints["source_maps"].min.toString();
+  var stackTraceVersion = barback.pubConstraints["stack_trace"].min.toString();
 
   forBothPubGetAndUpgrade((command) {
     integration("implicitly constrains barback to versions pub supports", () {
@@ -22,7 +26,9 @@ main() {
         packageMap("barback", previous),
         packageMap("barback", current),
         packageMap("barback", nextPatch),
-        packageMap("barback", max)
+        packageMap("barback", max),
+        packageMap("source_maps", sourceMapsVersion),
+        packageMap("stack_trace", stackTraceVersion)
       ]);
 
       d.appDir({
@@ -32,7 +38,7 @@ main() {
       pubCommand(command);
 
       d.packagesDir({
-        "barback": barback.supportedVersions.min.nextPatch.toString()
+        "barback": nextPatch
       }).validate();
     });
 
@@ -41,7 +47,9 @@ main() {
         packageMap("barback", previous),
         packageMap("barback", current),
         packageMap("barback", nextPatch),
-        packageMap("barback", max)
+        packageMap("barback", max),
+        packageMap("source_maps", sourceMapsVersion),
+        packageMap("stack_trace", stackTraceVersion)
       ]);
 
       d.dir("foo", [
@@ -64,15 +72,23 @@ main() {
     });
 
     integration("pub's implicit constraint uses the same source and "
-        "description as the explicit one", () {
+        "description as a dependency override", () {
+      servePackages([
+        packageMap("source_maps", sourceMapsVersion),
+        packageMap("stack_trace", stackTraceVersion)
+      ]);
+
       d.dir('barback', [
         d.libDir('barback', 'barback $current'),
-        d.libPubspec('barback', current)
+        d.libPubspec('barback', current),
       ]).create();
 
       d.dir(appPath, [
-        d.appPubspec({
-          "barback": {"path": "../barback"}
+        d.pubspec({
+          "name": "myapp",
+          "dependency_overrides": {
+            "barback": {"path": "../barback"}
+          }
         })
       ]).create();
 
@@ -87,7 +103,9 @@ main() {
   integration("unlock if the locked version doesn't meet pub's constraint", () {
     servePackages([
       packageMap("barback", previous),
-      packageMap("barback", current)
+      packageMap("barback", current),
+      packageMap("source_maps", sourceMapsVersion),
+      packageMap("stack_trace", stackTraceVersion)
     ]);
 
     d.appDir({"barback": "any"}).create();
@@ -108,13 +126,15 @@ main() {
   integration("includes pub in the error if a solve failed because there "
       "is no version available", () {
     servePackages([
-      packageMap("barback", previous)
+      packageMap("barback", previous),
+      packageMap("source_maps", sourceMapsVersion),
+      packageMap("stack_trace", stackTraceVersion)
     ]);
 
     d.appDir({"barback": "any"}).create();
 
     pubGet(error: """
-Package barback has no versions that match >=$current <$max derived from:
+Package barback 0.12.0 does not match >=$current <$max derived from:
 - myapp 0.0.0 depends on version any
 - pub itself depends on version >=$current <$max""");
   });
@@ -122,7 +142,10 @@ Package barback has no versions that match >=$current <$max derived from:
   integration("includes pub in the error if a solve failed because there "
       "is a disjoint constraint", () {
     servePackages([
-      packageMap("barback", current)
+      packageMap("barback", previous),
+      packageMap("barback", current),
+      packageMap("source_maps", sourceMapsVersion),
+      packageMap("stack_trace", stackTraceVersion)
     ]);
 
     d.appDir({"barback": previous}).create();
