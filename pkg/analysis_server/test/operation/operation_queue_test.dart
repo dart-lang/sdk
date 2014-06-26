@@ -54,8 +54,7 @@ main() {
       });
 
       test('use operation priorities', () {
-        // TODO(scheglov) update 'typed_mock' to make 'any*' fields dynamic
-        when(server.isPriorityContext(anyObject as dynamic)).thenReturn(false);
+        when(server.isPriorityContext(anyObject)).thenReturn(false);
         var analysisContext = new AnalysisContextMock();
         var operationA = mockOperation(ServerOperationPriority.SEARCH);
         var operationB = mockOperation(ServerOperationPriority.REFACTORING);
@@ -70,8 +69,7 @@ main() {
       });
 
       test('continue analysis first', () {
-        // TODO(scheglov) update 'typed_mock' to make 'any*' fields dynamic
-        when(server.isPriorityContext(anyObject as dynamic)).thenReturn(false);
+        when(server.isPriorityContext(anyObject)).thenReturn(false);
         var analysisContext = new AnalysisContextMock();
         var operationA = new PerformAnalysisOperation(analysisContext, false);
         var operationB = new PerformAnalysisOperation(analysisContext, true);

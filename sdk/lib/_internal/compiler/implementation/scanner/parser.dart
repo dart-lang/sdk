@@ -825,13 +825,14 @@ class Parser {
       token = parseVariableInitializerOpt(token);
       ++fieldCount;
     }
-    expectSemicolon(token);
+    Token semicolon = token;
+    token = expectSemicolon(token);
     if (isTopLevel) {
-      listener.endTopLevelFields(fieldCount, start, token);
+      listener.endTopLevelFields(fieldCount, start, semicolon);
     } else {
-      listener.endFields(fieldCount, start, token);
+      listener.endFields(fieldCount, start, semicolon);
     }
-    return token.next;
+    return token;
   }
 
   Token parseTopLevelMethod(Token start,

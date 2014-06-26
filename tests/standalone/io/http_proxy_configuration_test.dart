@@ -43,26 +43,26 @@ main() {
          {"http_proxy": "www.proxy.com:8080",
           "https_proxy": "www.proxys.com:8080"});
 
-  expect("PROXY [::FFFF:1]:1080",
+  expect("PROXY [::ffff:1]:1080",
          "http://www.google.com",
-         {"http_proxy": "[::FFFF:1]"});
-  expect("PROXY [::FFFF:2]:1080",
+         {"http_proxy": "[::ffff:1]"});
+  expect("PROXY [::ffff:2]:1080",
          "https://www.google.com",
-         {"https_proxy": "[::FFFF:2]"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"https_proxy": "[::ffff:2]"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "[::FFFF:1]:8080"});
-  expect("PROXY [::FFFF:2]:8080",
+         {"http_proxy": "[::ffff:1]:8080"});
+  expect("PROXY [::ffff:2]:8080",
          "https://www.google.com",
-         {"https_proxy": "[::FFFF:2]:8080"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"https_proxy": "[::ffff:2]:8080"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "[::FFFF:1]:8080",
-          "https_proxy": "[::FFFF:2]:8080"});
-  expect("PROXY [::FFFF:2]:8080",
+         {"http_proxy": "[::ffff:1]:8080",
+          "https_proxy": "[::ffff:2]:8080"});
+  expect("PROXY [::ffff:2]:8080",
          "https://www.google.com",
-         {"http_proxy": "[::FFFF:1]:8080",
-          "https_proxy": "[::FFFF:2]:8080"});
+         {"http_proxy": "[::ffff:1]:8080",
+          "https_proxy": "[::ffff:2]:8080"});
 
   expect("PROXY www.proxy.com:1080",
          "http://www.google.com",
@@ -93,34 +93,34 @@ main() {
          {"http_proxy": "http://www.proxy.com:8080/",
           "https_proxy": "http://www.proxys.com:8080/index.html"});
 
-  expect("PROXY [::FFFF:1]:1080",
+  expect("PROXY [::ffff:1]:1080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]"});
-  expect("PROXY [::FFFF:1]:1080",
+         {"http_proxy": "http://[::ffff:1]"});
+  expect("PROXY [::ffff:1]:1080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]/"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"http_proxy": "http://[::ffff:1]/"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"http_proxy": "http://[::ffff:1]:8080/"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/index.html"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"http_proxy": "http://[::ffff:1]:8080/index.html"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/",
-          "https_proxy": "http://[::FFFF:1]:8080/"});
-  expect("PROXY [::FFFF:2]:8080",
+         {"http_proxy": "http://[::ffff:1]:8080/",
+          "https_proxy": "http://[::ffff:1]:8080/"});
+  expect("PROXY [::ffff:2]:8080",
          "https://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/",
-          "https_proxy": "http://[::FFFF:2]:8080/"});
-  expect("PROXY [::FFFF:1]:8080",
+         {"http_proxy": "http://[::ffff:1]:8080/",
+          "https_proxy": "http://[::ffff:2]:8080/"});
+  expect("PROXY [::ffff:1]:8080",
          "http://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/",
-          "https_proxy": "http://[::FFFF:1]:8080/index.html"});
-  expect("PROXY [::FFFF:2]:8080",
+         {"http_proxy": "http://[::ffff:1]:8080/",
+          "https_proxy": "http://[::ffff:1]:8080/index.html"});
+  expect("PROXY [::ffff:2]:8080",
          "https://www.google.com",
-         {"http_proxy": "http://[::FFFF:1]:8080/",
-          "https_proxy": "http://[::FFFF:2]:8080/index.html"});
+         {"http_proxy": "http://[::ffff:1]:8080/",
+          "https_proxy": "http://[::ffff:2]:8080/index.html"});
 
   expectDirect("http://www.google.com",
                {"http_proxy": "www.proxy.com:8080",
@@ -141,18 +141,18 @@ main() {
                {"https_proxy": "www.proxy.com:8080"});
 
   expect("PROXY www.proxy.com:8080",
-         "http://[::FFFF:1]",
+         "http://[::ffff:1]",
          {"http_proxy": "www.proxy.com:8080",
           "no_proxy": "["});
   expect("PROXY www.proxy.com:8080",
-         "http://[::FFFF:1]",
+         "http://[::ffff:1]",
          {"http_proxy": "www.proxy.com:8080",
           "no_proxy": "[]"});
 
-  expectDirect("http://[::FFFF:1]",
+  expectDirect("http://[::ffff:1]",
                {"http_proxy": "www.proxy.com:8080",
-                "no_proxy": "[::FFFF:1]"});
-  expectDirect("http://[::FFFF:1]",
+                "no_proxy": "[::ffff:1]"});
+  expectDirect("http://[::ffff:1]",
                {"http_proxy": "www.proxy.com:8080",
-                "no_proxy": ",,  , www.google.edu,,[::FFFF:1]    "});
+                "no_proxy": ",,  , www.google.edu,,[::ffff:1]    "});
 }

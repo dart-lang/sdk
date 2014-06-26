@@ -24,7 +24,7 @@ abstract class WorkItem {
    *
    * Invariant: [element] must be a declaration element.
    */
-  final Element element;
+  final AstElement element;
   TreeElements resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
@@ -36,12 +36,13 @@ abstract class WorkItem {
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
-  ResolutionWorkItem(Element element,
+  ResolutionWorkItem(AstElement element,
                      ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
   void run(Compiler compiler, ResolutionEnqueuer world) {
-    resolutionTree = compiler.analyze(this, world);
+    compiler.analyze(this, world);
+    resolutionTree = element.resolvedAst.elements;
   }
 
   bool isAnalyzed() => resolutionTree != null;
@@ -54,6 +55,8 @@ class CodegenRegistry extends Registry {
   final TreeElements treeElements;
 
   CodegenRegistry(this.compiler, this.treeElements);
+
+  bool get isForResolution => false;
 
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
@@ -104,6 +107,7 @@ class CodegenRegistry extends Registry {
 
   void registerIsCheck(DartType type) {
     world.registerIsCheck(type, this);
+    backend.registerIsCheckForCodegen(type, world, this);
   }
 
   void registerCompileTimeConstant(Constant constant) {
@@ -133,7 +137,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerConstSymbol(String name) {
-    world.registerConstSymbol(name, this);
+    backend.registerConstSymbol(name, this);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -147,20 +151,25 @@ class CodegenRegistry extends Registry {
   void registerTypeConstant(ClassElement element) {
     backend.customElementsAnalysis.registerTypeConstant(element, world);
   }
+
+  void registerStaticInvocation(Element element) =>
+      throw new UnsupportedError('registerStaticInvocation not supported');
+
+  void registerInstantiation(ClassElement element) =>
+      throw new UnsupportedError('registerStaticInvocation not supported');
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
   Registry registry;
 
-  CodegenWorkItem(Element element,
+  CodegenWorkItem(AstElement element,
                   ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
-    resolutionTree =
-        compiler.enqueuer.resolution.getCachedElements(element);
+    resolutionTree = element.resolvedAst.elements;
     assert(invariant(element, resolutionTree != null,
         message: 'Resolution tree is null for $element in codegen work item'));
     registry = new CodegenRegistry(compiler, resolutionTree);
@@ -184,6 +193,12 @@ abstract class Registry {
   Iterable<Element> get otherDependencies;
 
   void registerDependency(Element element);
+
+  bool get isForResolution;
+
+  void registerStaticInvocation(Element element);
+
+  void registerInstantiation(ClassElement element);
 }
 
 abstract class Backend {
@@ -248,44 +263,42 @@ abstract class Backend {
 
   /// Called during resolution to notify to the backend that the
   /// program uses string interpolation.
-  void registerStringInterpolation(Registry registry) {}
+  void onStringInterpolation(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement.
-  void registerCatchStatement(Enqueuer enqueuer,
-                              Registry registry) {}
+  void onCatchStatement(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program explicitly throws an exception.
-  void registerThrowExpression(Registry registry) {}
+  void onThrowExpression(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a global variable with a lazy initializer.
-  void registerLazyField(Registry registry) {}
+  void onLazyField(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type variable as an expression.
-  void registerTypeVariableExpression(Registry registry) {}
+  void onTypeVariableExpression(Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.
-  void registerTypeLiteral(DartType type,
-                           Enqueuer enqueuer,
-                           Registry registry) {}
+  void onTypeLiteral(DartType type, Registry registry) {}
 
   /// Called during resolution to notify to the backend that the
   /// program has a catch statement with a stack trace.
-  void registerStackTraceInCatch(Registry registry) {}
+  void onStackTraceInCatch(Registry registry) {}
 
   /// Register an is check to the backend.
-  void registerIsCheck(DartType type,
-                       Enqueuer enqueuer,
-                       Registry registry) {}
+  void registerIsCheckForCodegen(DartType type,
+                                 Enqueuer enqueuer,
+                                 Registry registry) {}
+
+  /// Register an is check to the backend.
+  void onIsCheck(DartType type, Registry registry) {}
 
   /// Register an as check to the backend.
-  void registerAsCheck(DartType type,
-                       Enqueuer enqueuer,
-                       Registry registry) {}
+  void onAsCheck(DartType type, Registry registry) {}
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
@@ -293,27 +306,27 @@ abstract class Backend {
                                               DartType bound) {}
 
   /// Registers that a type variable bounds check might occur at runtime.
-  void registerTypeVariableBoundCheck(Registry registry) {}
+  void onTypeVariableBoundCheck(Registry registry) {}
 
   /// Register that the application may throw a [NoSuchMethodError].
-  void registerThrowNoSuchMethod(Registry registry) {}
+  void onThrowNoSuchMethod(Registry registry) {}
 
   /// Register that the application may throw a [RuntimeError].
-  void registerThrowRuntimeError(Registry registry) {}
+  void onThrowRuntimeError(Registry registry) {}
 
   /// Register that the application may throw an
   /// [AbstractClassInstantiationError].
-  void registerAbstractClassInstantiation(Registry registry) {}
+  void onAbstractClassInstantiation(Registry registry) {}
 
   /// Register that the application may throw a [FallThroughError].
-  void registerFallThroughError(Registry registry) {}
+  void onFallThroughError(Registry registry) {}
 
   /// Register that a super call will end up calling
   /// [: super.noSuchMethod :].
-  void registerSuperNoSuchMethod(Registry registry) {}
+  void onSuperNoSuchMethod(Registry registry) {}
 
   /// Register that the application creates a constant map.
-  void registerConstantMap(Registry registry) {}
+  void onConstantMap(Registry registry) {}
 
   /**
    * Call this to register that an instantiated generic class has a call
@@ -347,8 +360,9 @@ abstract class Backend {
 
   void registerConstSymbol(String name, Registry registry) {}
   void registerNewSymbol(Registry registry) {}
+
   /// Called when resolving the `Symbol` constructor.
-  void registerSymbolConstructor(Registry registry) {}
+  void onSymbolConstructor(Registry registry) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -383,7 +397,29 @@ abstract class Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
+  /// This method is called immediately after the [LibraryElement] [library] has
+  /// been created.
+  void onLibraryCreated(LibraryElement library) {}
+
+  /// This method is called immediately after the [library] and its parts have
+  /// been scanned.
+  Future onLibraryScanned(LibraryElement library,
+                          LibraryLoader loader) {
+    // TODO(johnniwinther): Move this to the JavaScript backend.
+    if (library.isPlatformLibrary && !library.isPatched) {
+      // Apply patch, if any.
+      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
+      if (patchUri != null) {
+        return compiler.patchParser.patchLibrary(loader, patchUri, library);
+      }
+    }
+    return new Future.value();
+  }
+
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
     return new Future.value();
   }
 
@@ -413,6 +449,9 @@ abstract class Backend {
   // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
   // node. [elements] is currently unused by the implementation.
   void onElementResolved(Element element, TreeElements elements) {}
+
+  // Does this element belong in the output
+  bool shouldOutput(Element element) => true;
 }
 
 /**
@@ -455,6 +494,22 @@ class TokenMap {
 }
 
 abstract class Compiler implements DiagnosticListener {
+  static final Uri DART_CORE = new Uri(scheme: 'dart', path: 'core');
+  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
+  static final Uri DART_INTERCEPTORS =
+      new Uri(scheme: 'dart', path: '_interceptors');
+  static final Uri DART_FOREIGN_HELPER =
+      new Uri(scheme: 'dart', path: '_foreign_helper');
+  static final Uri DART_ISOLATE_HELPER =
+      new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri DART_MIRRORS = new Uri(scheme: 'dart', path: 'mirrors');
+  static final Uri DART_NATIVE_TYPED_DATA =
+      new Uri(scheme: 'dart', path: '_native_typed_data');
+  static final Uri DART_INTERNAL = new Uri(scheme: 'dart', path: '_internal');
+  static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
+
+  // TODO(johnniwinther): Move this to [LibraryLoaderTask] and hange to map from
+  // [Uri] to [LibraryElement].
   final Map<String, LibraryElement> libraries =
     new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();
@@ -462,6 +517,8 @@ abstract class Compiler implements DiagnosticListener {
   World world;
   String assembledCode;
   Types types;
+
+  final CacheStrategy cacheStrategy;
 
   /**
    * Map from token to the first preceeding comment token.
@@ -505,6 +562,10 @@ abstract class Compiler implements DiagnosticListener {
   final int maxConcreteTypeSize;
   final bool analyzeAllFlag;
   final bool analyzeOnly;
+
+  /// If true, disable tree-shaking for the main script.
+  final bool analyzeMain;
+
   /**
    * If true, skip analysis of method bodies and field initializers. Implies
    * [analyzeOnly].
@@ -553,6 +614,10 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool suppressWarnings;
 
+  /// If `true`, some values are cached for reuse in incremental compilation.
+  /// Incremental compilation is basically calling [run] more than once.
+  final bool hasIncrementalSupport;
+
   api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -570,6 +635,8 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement coreLibrary;
   LibraryElement isolateLibrary;
   LibraryElement isolateHelperLibrary;
+  // TODO(johnniwinther): Move JavaScript specific libraries to the JavaScript
+  // backend.
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
@@ -602,6 +669,9 @@ abstract class Compiler implements DiagnosticListener {
 
   /// The constant for the [proxy] variable defined in dart:core.
   Constant proxyConstant;
+
+  /// The constant for the [patch] variable defined in dart:_js_helper.
+  Constant patchConstant;
 
   // Initialized after symbolClass has been resolved.
   FunctionElement symbolConstructor;
@@ -692,7 +762,7 @@ abstract class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   PatchParserTask patchParser;
-  LibraryLoader libraryLoader;
+  LibraryLoaderTask libraryLoader;
   TreeValidatorTask validator;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
@@ -767,7 +837,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
-            this.disableTypeInferenceFlag: false,
+            bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
@@ -775,6 +845,7 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool analyzeAllFlag: false,
             bool analyzeOnly: false,
+            this.analyzeMain: false,
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.verbose: false,
@@ -786,16 +857,22 @@ abstract class Compiler implements DiagnosticListener {
             this.showPackageWarnings: false,
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
+            bool hasIncrementalSupport: false,
             outputProvider,
             List<String> strips: const []})
-      : this.analyzeOnly =
+      : this.disableTypeInferenceFlag =
+          disableTypeInferenceFlag || !emitJavaScript,
+        this.analyzeOnly =
             analyzeOnly || analyzeSignaturesOnly || analyzeAllFlag,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.analyzeAllFlag = analyzeAllFlag,
+        this.hasIncrementalSupport = hasIncrementalSupport,
+        cacheStrategy = new CacheStrategy(hasIncrementalSupport),
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
     world = new World(this);
+    types = new Types(this);
     tracer = new Tracer(this.outputProvider);
 
     closureMapping.ClosureNamer closureNamer;
@@ -954,35 +1031,95 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasIsolateSupport() => isolateLibrary != null;
 
-  /**
-   * This method is called before [library] import and export scopes have been
-   * set up.
-   */
-  Future onLibraryLoaded(LibraryElement library, Uri uri) {
-    if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
-      mirrorsLibrary = library;
-      mirrorSystemClass =
-          findRequiredElement(library, 'MirrorSystem');
-      mirrorsUsedClass =
-          findRequiredElement(library, 'MirrorsUsed');
-    } else if (uri == new Uri(scheme: 'dart', path: '_native_typed_data')) {
-      typedDataLibrary = library;
-      typedDataClass =
-          findRequiredElement(library, 'NativeTypedData');
-    } else if (uri == new Uri(scheme: 'dart', path: '_internal')) {
-      symbolImplementationClass =
-          findRequiredElement(library, 'Symbol');
-    } else if (uri == new Uri(scheme: 'dart', path: 'async')) {
-      deferredLibraryClass =
-          findRequiredElement(library, 'DeferredLibrary');
-    } else if (isolateHelperLibrary == null
-	       && (uri == new Uri(scheme: 'dart', path: '_isolate_helper'))) {
-      isolateHelperLibrary = library;
-    } else if (foreignLibrary == null
-	       && (uri == new Uri(scheme: 'dart', path: '_foreign_helper'))) {
+  /// This method is called immediately after the [LibraryElement] [library] has
+  /// been created.
+  ///
+  /// Use this callback method to store references to specific libraries.
+  /// Note that [library] has not been scanned yet, nor has its imports/exports
+  /// been resolved.
+  void onLibraryCreated(LibraryElement library) {
+    Uri uri = library.canonicalUri;
+    if (uri == DART_CORE) {
+      coreLibrary = library;
+    } else if (uri == DART_JS_HELPER) {
+      jsHelperLibrary = library;
+    } else if (uri == DART_INTERCEPTORS) {
+      interceptorsLibrary = library;
+    } else if (uri == DART_FOREIGN_HELPER) {
       foreignLibrary = library;
+    } else if (uri == DART_ISOLATE_HELPER) {
+      isolateHelperLibrary = library;
+    } else if (uri == DART_NATIVE_TYPED_DATA) {
+      typedDataLibrary = library;
+    } else if (uri == DART_MIRRORS) {
+      mirrorsLibrary = library;
     }
-    return backend.onLibraryLoaded(library, uri);
+    backend.onLibraryCreated(library);
+  }
+
+  /// This method is called immediately after the [library] and its parts have
+  /// been scanned.
+  ///
+  /// Use this callback method to store references to specific member declared
+  /// in certain libraries. Note that [library] has not been patched yet, nor
+  /// has its imports/exports been resolved.
+  ///
+  /// Use [loader] to register the creation and scanning of a patch library
+  /// for [library].
+  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
+    Uri uri = library.canonicalUri;
+    if (uri == DART_CORE) {
+      initializeCoreClasses();
+      identicalFunction = coreLibrary.find('identical');
+    } else if (uri == DART_JS_HELPER) {
+      initializeHelperClasses();
+      assertMethod = jsHelperLibrary.find('assertHelper');
+    } else if (uri == DART_INTERNAL) {
+      symbolImplementationClass = findRequiredElement(library, 'Symbol');
+    } else if (uri == DART_MIRRORS) {
+      mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
+      mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
+    } else if (uri == DART_ASYNC) {
+      deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
+    } else if (uri == DART_NATIVE_TYPED_DATA) {
+      typedDataClass = findRequiredElement(library, 'NativeTypedData');
+    }
+    return backend.onLibraryScanned(library, loader);
+  }
+
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
+  ///
+  /// [loadedLibraries] contains the newly loaded libraries.
+  ///
+  /// The method returns a [Future] allowing for the loading of additional
+  /// libraries.
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    return new Future.sync(() {
+      if (!loadedLibraries.containsKey(DART_CORE)) return new Future.value();
+
+      functionClass.ensureResolved(this);
+      functionApplyMethod = functionClass.lookupLocalMember('apply');
+
+      proxyConstant =
+          resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+
+      patchConstant = resolver.constantCompiler.compileConstant(
+          jsHelperLibrary.find('patch'));
+
+      if (jsInvocationMirrorClass != null) {
+        jsInvocationMirrorClass.ensureResolved(this);
+        invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+      }
+
+      if (preserveComments) {
+        return libraryLoader.loadLibrary(DART_MIRRORS)
+            .then((LibraryElement libraryElement) {
+          documentClass = libraryElement.find('Comment');
+        });
+      }
+    }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -1016,9 +1153,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  Future<LibraryElement> scanBuiltinLibrary(String filename);
-
-  void initializeSpecialClasses() {
+  void initializeCoreClasses() {
     final List missingCoreClasses = [];
     ClassElement lookupCoreClass(String name) {
       ClassElement result = coreLibrary.find(name);
@@ -1049,7 +1184,9 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): It is possible that we have to require the presence
     // of Symbol as we change how we implement noSuchMethod.
     symbolClass = lookupCoreClass('Symbol');
+  }
 
+  void initializeHelperClasses() {
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
       ClassElement result = jsHelperLibrary.find(name);
@@ -1066,14 +1203,6 @@ abstract class Compiler implements DiagnosticListener {
           'dart:_js_helper library does not contain required classes: '
           '$missingHelperClasses');
     }
-
-    if (types == null) {
-      types = new Types(this);
-    }
-    backend.initializeHelperClasses();
-
-    proxyConstant =
-        resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
   }
 
   Element _unnamedListConstructor;
@@ -1094,40 +1223,6 @@ abstract class Compiler implements DiagnosticListener {
         listClass.lookupConstructor(callConstructor);
   }
 
-  Future scanBuiltinLibraries() {
-    return scanBuiltinLibrary('_js_helper').then((LibraryElement library) {
-      jsHelperLibrary = library;
-      return scanBuiltinLibrary('_interceptors');
-    }).then((LibraryElement library) {
-      interceptorsLibrary = library;
-
-      assertMethod = jsHelperLibrary.find('assertHelper');
-      identicalFunction = coreLibrary.find('identical');
-
-      initializeSpecialClasses();
-
-      functionClass.ensureResolved(this);
-      functionApplyMethod =
-          functionClass.lookupLocalMember('apply');
-      jsInvocationMirrorClass.ensureResolved(this);
-      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
-
-      if (preserveComments) {
-        var uri = new Uri(scheme: 'dart', path: 'mirrors');
-        return libraryLoader.loadLibrary(uri, null, uri).then(
-            (LibraryElement libraryElement) {
-          documentClass = libraryElement.find('Comment');
-        });
-      }
-    });
-  }
-
-  void importHelperLibrary(LibraryElement library) {
-    if (jsHelperLibrary != null) {
-      libraryLoader.importLibrary(library, jsHelperLibrary, null);
-    }
-  }
-
   /**
    * Get an [Uri] pointing to a patch for the dart: library with
    * the given path. Returns null if there is no patch.
@@ -1144,11 +1239,11 @@ abstract class Compiler implements DiagnosticListener {
     TypedSelector.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly);
-    return scanBuiltinLibraries().then((_) {
+    return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
           log('Analyzing $libraryUri ($buildId)');
-          return libraryLoader.loadLibrary(libraryUri, null, libraryUri);
+          return libraryLoader.loadLibrary(libraryUri);
         });
       }
     }).then((_) {
@@ -1158,13 +1253,16 @@ abstract class Compiler implements DiagnosticListener {
         } else {
           log('Compiling $uri ($buildId)');
         }
-        return libraryLoader.loadLibrary(uri, null, uri)
-            .then((LibraryElement library) {
+        return libraryLoader.loadLibrary(uri).then((LibraryElement library) {
           mainApp = library;
         });
       }
     }).then((_) {
-      compileLoadedLibraries();
+      if (!compilationFailed) {
+        // TODO(johnniwinther): Reenable analysis of programs with load failures
+        // when these are handled as erroneous libraries/compilation units.
+        compileLoadedLibraries();
+      }
     });
   }
 
@@ -1188,7 +1286,7 @@ abstract class Compiler implements DiagnosticListener {
                        "library."});
         }
       } else {
-        if (main.isErroneous) {
+        if (main.isErroneous && main.isSynthesized) {
           reportFatalError(main, MessageKind.GENERIC,
               {'text': "Cannot determine which '$MAIN' to use."});
         } else if (!main.isFunction) {
@@ -1222,6 +1320,8 @@ abstract class Compiler implements DiagnosticListener {
         log('Enqueuing $uri');
         fullyEnqueueLibrary(lib, enqueuer.resolution);
       });
+    } else if (analyzeMain && mainApp != null) {
+      fullyEnqueueLibrary(mainApp, enqueuer.resolution);
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
@@ -1376,7 +1476,7 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
+    var resolved = new Set.from(enqueuer.resolution.resolvedElements);
     for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
@@ -1408,7 +1508,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  TreeElements analyzeElement(Element element) {
+  void analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1421,23 +1521,23 @@ abstract class Compiler implements DiagnosticListener {
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
-    TreeElements elements = world.getCachedElements(element);
-    if (elements != null) return elements;
+    if (world.hasBeenResolved(element)) return;
     assert(parser != null);
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     if (tree != null) validator.validate(tree);
-    elements = resolver.resolve(element);
-    if (tree != null && elements != null && !analyzeSignaturesOnly &&
-        !suppressWarnings) {
-      // Only analyze nodes with a corresponding [TreeElements].
-      checker.check(elements);
+    TreeElements elements = resolver.resolve(element);
+    if (elements != null) {
+      if (tree != null && !analyzeSignaturesOnly &&
+          !suppressWarnings) {
+        // Only analyze nodes with a corresponding [TreeElements].
+        checker.check(elements);
+      }
+      world.registerResolvedElement(element);
     }
-    world.resolvedElements[element] = elements;
-    return elements;
   }
 
-  TreeElements analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+  void analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed(),
         message: 'Element ${work.element} has already been analyzed'));
@@ -1450,12 +1550,10 @@ abstract class Compiler implements DiagnosticListener {
         progress.reset();
       }
     }
-    Element element = work.element;
-    TreeElements result = world.getCachedElements(element);
-    if (result != null) return result;
-    result = analyzeElement(element);
-    backend.onElementResolved(element, result);
-    return result;
+    AstElement element = work.element;
+    if (world.hasBeenResolved(element)) return;
+    analyzeElement(element);
+    backend.onElementResolved(element, element.resolvedAst.elements);
   }
 
   void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
@@ -1574,10 +1672,11 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromElement(Element element) {
-    if (Elements.isErroneousElement(element)) {
+    while (element != null && element.isSynthesized) {
       element = element.enclosingElement;
     }
-    if (element.position == null &&
+    if (element != null &&
+        element.position == null &&
         !element.isLibrary &&
         !element.isCompilationUnit) {
       // Sometimes, the backend fakes up elements that have no
@@ -1794,6 +1893,7 @@ abstract class Compiler implements DiagnosticListener {
 class CompilerTask {
   final Compiler compiler;
   final Stopwatch watch;
+  UserTag profilerTag;
 
   CompilerTask(Compiler compiler)
       : this.compiler = compiler,
@@ -1802,17 +1902,25 @@ class CompilerTask {
   String get name => 'Unknown task';
   int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
 
+  UserTag getProfilerTag() {
+    if (profilerTag == null) profilerTag = new UserTag(name);
+    return profilerTag;
+  }
+
   measure(action()) {
+    // In verbose mode when watch != null.
     if (watch == null) return action();
     CompilerTask previous = compiler.measuredTask;
     if (identical(this, previous)) return action();
     compiler.measuredTask = this;
     if (previous != null) previous.watch.stop();
     watch.start();
+    UserTag oldTag = getProfilerTag().makeCurrent();
     try {
       return action();
     } finally {
       watch.stop();
+      oldTag.makeCurrent();
       if (previous != null) previous.watch.start();
       compiler.measuredTask = previous;
     }

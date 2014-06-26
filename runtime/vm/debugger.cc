@@ -914,7 +914,6 @@ static bool IsSafeDescKind(PcDescriptors::Kind kind) {
           (kind == PcDescriptors::kOptStaticCall) ||
           (kind == PcDescriptors::kUnoptStaticCall) ||
           (kind == PcDescriptors::kClosureCall) ||
-          (kind == PcDescriptors::kReturn) ||
           (kind == PcDescriptors::kRuntimeCall));
 }
 

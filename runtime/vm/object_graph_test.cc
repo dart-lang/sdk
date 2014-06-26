@@ -8,11 +8,11 @@
 
 namespace dart {
 
-class Counter : public ObjectGraph::Visitor {
+class CounterVisitor : public ObjectGraph::Visitor {
  public:
   // Records the number of objects and total size visited, excluding 'skip'
   // and any objects only reachable through 'skip'.
-  Counter(RawObject* skip, RawObject* expected_parent)
+  CounterVisitor(RawObject* skip, RawObject* expected_parent)
       : count_(0), size_(0), skip_(skip), expected_parent_(expected_parent) { }
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
@@ -68,9 +68,9 @@ TEST_CASE(ObjectGraph) {
     ObjectGraph graph(isolate);
     {
       // Compare count and size when 'b' is/isn't skipped.
-      Counter with(Object::null(), Object::null());
+      CounterVisitor with(Object::null(), Object::null());
       graph.IterateObjectsFrom(a, &with);
-      Counter without(b_raw, a.raw());
+      CounterVisitor without(b_raw, a.raw());
       graph.IterateObjectsFrom(a, &without);
       // Only 'b' and 'c' were cut off.
       EXPECT_EQ(2, with.count() - without.count());
@@ -80,9 +80,9 @@ TEST_CASE(ObjectGraph) {
     {
       // Like above, but iterate over the entire isolate. The counts and sizes
       // are thus larger, but the difference should still be just 'b' and 'c'.
-      Counter with(Object::null(), Object::null());
+      CounterVisitor with(Object::null(), Object::null());
       graph.IterateObjects(&with);
-      Counter without(b_raw, a.raw());
+      CounterVisitor without(b_raw, a.raw());
       graph.IterateObjects(&without);
       EXPECT_EQ(2, with.count() - without.count());
       EXPECT_EQ(b_size + c_size,

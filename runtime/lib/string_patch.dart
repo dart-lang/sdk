@@ -54,11 +54,11 @@ class _StringBase {
   static String createFromCharCodes(Iterable<int> charCodes) {
     if (charCodes != null) {
       // TODO(srdjan): Also skip copying of wide typed arrays.
-      final ccid = charCodes._cid;
+      final ccid = ClassID.getID(charCodes);
       bool isOneByteString = false;
-      if ((ccid != _List._classId) &&
-          (ccid != _GrowableList._classId) &&
-          (ccid != _ImmutableList._classId)) {
+      if ((ccid != ClassID.cidArray) &&
+          (ccid != ClassID.cidGrowableObjectArray) &&
+          (ccid != ClassID.cidImmutableArray)) {
         if ((charCodes is Uint8List) || (charCodes is Int8List)) {
           isOneByteString = true;
         } else {
@@ -510,7 +510,7 @@ class _StringBase {
     int totalLength = 0;
     for (int i = 0; i < numValues; i++) {
       var s = values[i].toString();
-      if (isOneByteString && (s._cid == _OneByteString._classId)) {
+      if (isOneByteString && (ClassID.getID(s) == ClassID.cidOneByteString)) {
         totalLength += s.length;
       } else {
         isOneByteString = false;
@@ -625,7 +625,6 @@ class _StringBase {
 
 
 class _OneByteString extends _StringBase implements String {
-  static final int _classId = "A"._cid;
 
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -649,7 +648,8 @@ class _OneByteString extends _StringBase implements String {
       native "OneByteString_splitWithCharCode";
 
   List<String> split(Pattern pattern) {
-    if ((pattern._cid == _OneByteString._classId) && (pattern.length == 1)) {
+    if ((ClassID.getID(pattern) == ClassID.cidOneByteString) &&
+        (pattern.length == 1)) {
       return _splitWithCharCode(pattern.codeUnitAt(0));
     }
     return super.split(pattern);
@@ -677,10 +677,10 @@ class _OneByteString extends _StringBase implements String {
 
   int indexOf(Pattern pattern, [int start = 0]) {
     // Specialize for single character pattern.
-    final pCid = pattern._cid;
-    if ((pCid == _OneByteString._classId) ||
-        (pCid == _TwoByteString._classId) ||
-        (pCid == _ExternalOneByteString._classId)) {
+    final pCid = ClassID.getID(pattern);
+    if ((pCid == ClassID.cidOneByteString) ||
+        (pCid == ClassID.cidTwoByteString) ||
+        (pCid == ClassID.cidExternalOneByteString)) {
       final len = this.length;
       if ((pattern.length == 1) && (start >= 0) && (start < len)) {
         final patternCu0 = pattern.codeUnitAt(0);
@@ -699,10 +699,10 @@ class _OneByteString extends _StringBase implements String {
   }
 
   bool contains(Pattern pattern, [int start = 0]) {
-    final pCid = pattern._cid;
-    if ((pCid == _OneByteString._classId) ||
-        (pCid == _TwoByteString._classId) ||
-        (pCid == _ExternalOneByteString._classId)) {
+    final pCid = ClassID.getID(pattern);
+    if ((pCid == ClassID.cidOneByteString) ||
+        (pCid == ClassID.cidTwoByteString) ||
+        (pCid == ClassID.cidExternalOneByteString)) {
       final len = this.length;
       if ((pattern.length == 1) && (start >= 0) && (start < len)) {
         final patternCu0 = pattern.codeUnitAt(0);
@@ -736,9 +736,9 @@ class _OneByteString extends _StringBase implements String {
   }
 
   String padLeft(int width, [String padding = ' ']) {
-    int padCid = padding._cid;
-    if (padCid != _OneByteString._classId &&
-        padCid != _ExternalOneByteString._classId) {
+    int padCid = ClassID.getID(padding);
+    if ((padCid != ClassID.cidOneByteString) &&
+        (padCid != ClassID.cidExternalOneByteString)) {
       return super.padLeft(width, padding);
     }
     int length = this.length;
@@ -767,9 +767,9 @@ class _OneByteString extends _StringBase implements String {
   }
 
   String padRight(int width, [String padding = ' ']) {
-    int padCid = padding._cid;
-    if (padCid != _OneByteString._classId &&
-        padCid != _ExternalOneByteString._classId) {
+    int padCid = ClassID.getID(padding);
+    if ((padCid != ClassID.cidOneByteString) &&
+        (padCid != ClassID.cidExternalOneByteString)) {
       return super.padRight(width, padding);
     }
     int length = this.length;
@@ -906,8 +906,6 @@ class _OneByteString extends _StringBase implements String {
 
 
 class _TwoByteString extends _StringBase implements String {
-  static final int _classId = "\u{FFFF}"._cid;
-
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
@@ -924,8 +922,6 @@ class _TwoByteString extends _StringBase implements String {
 
 
 class _ExternalOneByteString extends _StringBase implements String {
-  static final int _classId = _getCid();
-
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");

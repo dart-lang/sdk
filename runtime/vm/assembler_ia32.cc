@@ -2656,6 +2656,19 @@ void Assembler::CompareClassId(Register object,
 }
 
 
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  testl(object, Immediate(kSmiTagMask));
+  Label not_smi, done;
+  j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  movl(result, Immediate(Smi::RawValue(kSmiCid)));
+  jmp(&done, Assembler::kNearJump);
+  Bind(&not_smi);
+  LoadClassId(result, object);
+  SmiTag(result);
+  Bind(&done);
+}
+
+
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
 };

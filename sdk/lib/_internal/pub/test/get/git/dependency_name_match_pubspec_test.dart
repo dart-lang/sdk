@@ -4,6 +4,9 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
+
+import '../../../lib/src/exit_codes.dart' as exit_codes;
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
@@ -24,7 +27,7 @@ main() {
       })
     ]).create();
 
-    pubGet(error: new RegExp(r'"name" field "foo" doesn' "'" r't match '
-        r'expected name "weirdname"\.'));
+    pubGet(error: contains('"name" field doesn\'t match expected name '
+        '"weirdname".'), exitCode: exit_codes.DATA);
   });
 }

@@ -4,13 +4,7 @@
 
 library http.test.html_utils;
 
-import 'dart:async';
-import 'dart:convert';
 import 'dart:html';
-
-import 'package:http/http.dart';
-import 'package:http/src/utils.dart';
-import 'package:unittest/unittest.dart';
 
 export '../utils.dart';
 

@@ -14,6 +14,7 @@
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
@@ -21,8 +22,12 @@
 
 namespace dart {
 
-  DEFINE_FLAG(int, early_tenuring_threshold, 66, "Skip TO space when promoting"
-                                                 " above this percentage.");
+DEFINE_FLAG(int, early_tenuring_threshold, 66,
+            "When more than this percentage of promotion candidates survive, "
+            "promote all survivors of next scavenge.");
+DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
+            "Grow new gen when less than this percentage is garbage.");
+DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -285,7 +290,8 @@ class ScavengerWeakVisitor : public HandleVisitor {
 // StoreBuffers.
 class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
  public:
-  VerifyStoreBufferPointerVisitor(Isolate* isolate, MemoryRegion* to)
+  VerifyStoreBufferPointerVisitor(Isolate* isolate,
+                                  const SemiSpace* to)
       : ObjectPointerVisitor(isolate), to_(to) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
@@ -298,16 +304,94 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  MemoryRegion* to_;
+  const SemiSpace* to_;
 
   DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
 };
 
 
+SemiSpace::SemiSpace(VirtualMemory* reserved)
+    : reserved_(reserved), region_(NULL, 0) {
+  if (reserved != NULL) {
+    region_ = MemoryRegion(reserved_->address(), reserved_->size());
+  }
+}
+
+
+SemiSpace::~SemiSpace() {
+  if (reserved_ != NULL) {
+#if defined(DEBUG)
+    memset(reserved_->address(), 0xf3, size_in_words() << kWordSizeLog2);
+#endif  // defined(DEBUG)
+    delete reserved_;
+  }
+}
+
+
+Mutex* SemiSpace::mutex_ = NULL;
+SemiSpace* SemiSpace::cache_ = NULL;
+
+
+void SemiSpace::InitOnce() {
+  ASSERT(mutex_ == NULL);
+  mutex_ = new Mutex();
+  ASSERT(mutex_ != NULL);
+}
+
+
+SemiSpace* SemiSpace::New(intptr_t size_in_words) {
+  {
+    MutexLocker locker(mutex_);
+    // TODO(koda): Cache one entry per size.
+    if (cache_ != NULL && cache_->size_in_words() == size_in_words) {
+      SemiSpace* result = cache_;
+      cache_ = NULL;
+      return result;
+    }
+  }
+  if (size_in_words == 0) {
+    return new SemiSpace(NULL);
+  } else {
+    intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
+    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
+    if ((reserved == NULL) || !reserved->Commit(VirtualMemory::kReadWrite)) {
+      // TODO(koda): If cache_ is not empty, we could try to delete it.
+      delete reserved;
+      return NULL;
+    }
+#if defined(DEBUG)
+    memset(reserved->address(), 0xf3, size_in_bytes);
+#endif  // defined(DEBUG)
+    return new SemiSpace(reserved);
+  }
+}
+
+
+void SemiSpace::Delete() {
+  SemiSpace* old_cache = NULL;
+  {
+    MutexLocker locker(mutex_);
+    old_cache = cache_;
+    cache_ = this;
+  }
+  delete old_cache;
+}
+
+
+void SemiSpace::WriteProtect(bool read_only) {
+  if (reserved_ != NULL) {
+    bool success = reserved_->Protect(
+        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+    ASSERT(success);
+  }
+}
+
+
 Scavenger::Scavenger(Heap* heap,
-                     intptr_t max_capacity_in_words,
+                     intptr_t max_semi_capacity_in_words,
                      uword object_alignment)
     : heap_(heap),
+      max_semi_capacity_in_words_(max_semi_capacity_in_words),
       object_alignment_(object_alignment),
       scavenging_(false),
       gc_time_micros_(0),
@@ -317,31 +401,14 @@ Scavenger::Scavenger(Heap* heap,
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
 
-  if (max_capacity_in_words == 0) {
-    space_ = NULL;
-    to_ = new MemoryRegion(NULL, 0);
-    from_ = new MemoryRegion(NULL, 0);
-  } else {
-    // Allocate the virtual memory for this scavenge heap.
-    space_ = VirtualMemory::Reserve(max_capacity_in_words << kWordSizeLog2);
-    if (space_ == NULL) {
-      FATAL("Out of memory.\n");
-    }
-
-    // Allocate the entire space at the beginning.
-    space_->Commit(false);
-
-    // Setup the semi spaces.
-    uword semi_space_size = space_->size() / 2;
-    ASSERT((semi_space_size & (VirtualMemory::PageSize() - 1)) == 0);
-    to_ = new MemoryRegion(space_->address(), semi_space_size);
-    uword middle = space_->start() + semi_space_size;
-    from_ = new MemoryRegion(reinterpret_cast<void*>(middle), semi_space_size);
+  // Set initial size resulting in a total of three different levels.
+  const intptr_t initial_semi_capacity_in_words = max_semi_capacity_in_words /
+      (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
+  to_ = SemiSpace::New(initial_semi_capacity_in_words);
+  if (to_ == NULL) {
+    FATAL("Out of memory.\n");
   }
-
-  // Make sure that the two semi-spaces are aligned properly.
-  ASSERT(Utils::IsAligned(to_->start(), kObjectAlignment));
-  ASSERT(Utils::IsAligned(from_->start(), kObjectAlignment));
+  from_ = NULL;
 
   // Setup local fields.
   top_ = FirstObjectStart();
@@ -349,18 +416,27 @@ Scavenger::Scavenger(Heap* heap,
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
-
-#if defined(DEBUG)
-  memset(to_->pointer(), 0xf3, to_->size());
-  memset(from_->pointer(), 0xf3, from_->size());
-#endif  // defined(DEBUG)
 }
 
 
 Scavenger::~Scavenger() {
-  delete to_;
-  delete from_;
-  delete space_;
+  ASSERT(!scavenging_);
+  ASSERT(from_ == NULL);
+  to_->Delete();
+}
+
+
+intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
+  if (stats_history_.Size() == 0) {
+    return old_size_in_words;
+  }
+  double garbage = stats_history_.Get(0).GarbageFraction();
+  if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+    return Utils::Minimum(max_semi_capacity_in_words_,
+                          old_size_in_words * FLAG_new_gen_growth_factor);
+  } else {
+    return old_size_in_words;
+  }
 }
 
 
@@ -370,9 +446,13 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   }
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
-  MemoryRegion* temp = from_;
   from_ = to_;
-  to_ = temp;
+  to_ = SemiSpace::New(NewSizeInWords(from_->size_in_words()));
+  if (to_ == NULL) {
+    // TODO(koda): We could try to recover (collect old space, wait for another
+    // isolate to finish scavenge, etc.).
+    FATAL("Out of memory.\n");
+  }
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
@@ -384,24 +464,27 @@ void Scavenger::Epilogue(Isolate* isolate,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
-  int promotion_ratio = static_cast<int>(
-      (static_cast<double>(visitor->bytes_promoted()) /
-       static_cast<double>(to_->size())) * 100.0);
-  if (promotion_ratio < FLAG_early_tenuring_threshold) {
+  double avg_frac = stats_history_.Get(0).PromoCandidatesSuccessFraction();
+  if (stats_history_.Size() >= 2) {
+    // Previous scavenge is only given half as much weight.
+    avg_frac += 0.5 * stats_history_.Get(1).PromoCandidatesSuccessFraction();
+    avg_frac /= 1.0 + 0.5;  // Normalize.
+  }
+  if (avg_frac < (FLAG_early_tenuring_threshold / 100.0)) {
     // Remember the limit to which objects have been copied.
     survivor_end_ = top_;
   } else {
     // Move survivor end to the end of the to_ space, making all surviving
-    // objects candidates for promotion.
+    // objects candidates for promotion next time.
     survivor_end_ = end_;
   }
 
 #if defined(DEBUG)
   VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
   heap_->IterateOldPointers(&verify_store_buffer_visitor);
-
-  memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
+  from_->Delete();
+  from_ = NULL;
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
@@ -708,6 +791,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
+  SpaceUsage usage_before = GetCurrentUsage();
+  intptr_t promo_candidate_words =
+      (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
   const bool prologue_weak_are_strong = !invoke_api_callbacks;
   IterateRoots(isolate, &visitor, prologue_weak_are_strong);
@@ -724,6 +810,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
+  stats_history_.Add(ScavengeStats(start, end,
+                                   usage_before, GetCurrentUsage(),
+                                   promo_candidate_words,
+                                   visitor.bytes_promoted() >> kWordSizeLog2));
   Epilogue(isolate, &visitor, invoke_api_callbacks);
 
   if (FLAG_verify_after_gc) {
@@ -739,10 +829,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
 
 void Scavenger::WriteProtect(bool read_only) {
-  if (space_ != NULL) {
-    space_->Protect(
-        read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
-  }
+  ASSERT(!scavenging_);
+  ASSERT(from_ == NULL);
+  to_->WriteProtect(read_only);
 }
 
 

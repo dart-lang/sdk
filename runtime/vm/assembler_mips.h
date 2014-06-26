@@ -1183,18 +1183,29 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
+  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,  // Value we are storing.
                        bool can_value_be_smi = true);
+  void StoreIntoObjectOffset(Register object,
+                             int32_t offset,
+                             Register value,
+                             bool can_value_be_smi = true);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreIntoObjectNoBarrierOffset(Register object,
+                                      int32_t offset,
+                                      const Object& value);
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 

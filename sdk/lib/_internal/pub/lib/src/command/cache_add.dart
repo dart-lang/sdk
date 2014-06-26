@@ -63,8 +63,7 @@ class CacheAddCommand extends PubCommand {
 
       if (versions.isEmpty) {
         // TODO(rnystrom): Show most recent unmatching version?
-        throw new ApplicationException(
-            "Package $package has no versions that match $constraint.");
+        fail("Package $package has no versions that match $constraint.");
       }
 
       downloadVersion(Version version) {

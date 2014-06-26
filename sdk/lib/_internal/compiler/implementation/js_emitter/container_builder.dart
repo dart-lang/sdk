@@ -79,9 +79,6 @@ class ContainerBuilder extends CodeEmitterHelper {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    TreeElements elements =
-        compiler.enqueuer.resolution.getCachedElements(member);
-
     int parameterIndex = 0;
     parameters.orderedForEachParameter((Element element) {
       String jsName = backend.namer.safeName(element.name);
@@ -514,9 +511,8 @@ class ContainerBuilder extends CodeEmitterHelper {
         expressions.add(
             js.number(task.metadataEmitter.reifyName(parameter.name)));
         if (backend.mustRetainMetadata) {
-          List<MetadataAnnotation> annotations = parameter.metadata.toList();
           Iterable<int> metadataIndices =
-              annotations.map((MetadataAnnotation annotation) {
+              parameter.metadata.map((MetadataAnnotation annotation) {
             Constant constant =
                 backend.constants.getConstantForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);

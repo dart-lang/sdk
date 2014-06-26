@@ -19,6 +19,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/parser.h"
+#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -32,10 +33,10 @@ DEFINE_FLAG(bool, deoptimize_alot, false,
     " native entries.");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(int, optimization_counter_threshold, 15000,
+DEFINE_FLAG(int, optimization_counter_threshold, 30000,
     "Function's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
-DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
+DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
     "Debugging: stops program if deoptimizing same function too often");
@@ -574,10 +575,10 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   String& dst_type_name = String::Handle();
   LanguageError& error = LanguageError::Handle(dst_type.error());
   ASSERT(!error.IsNull());
-  if (error.kind() == LanguageError::kMalformedType) {
+  if (error.kind() == Report::kMalformedType) {
     dst_type_name = Symbols::Malformed().raw();
   } else {
-    ASSERT(error.kind() == LanguageError::kMalboundedType);
+    ASSERT(error.kind() == Report::kMalboundedType);
     dst_type_name = Symbols::Malbounded().raw();
   }
   const String& error_message = String::ZoneHandle(
@@ -589,15 +590,18 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
 
 
 DEFINE_RUNTIME_ENTRY(Throw, 1) {
-  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
-  Exceptions::Throw(exception);
+  const Instance& exception =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+  Exceptions::Throw(isolate, exception);
 }
 
 
 DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
-  const Instance& exception = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& stacktrace = Instance::CheckedHandle(arguments.ArgAt(1));
-  Exceptions::ReThrow(exception, stacktrace);
+  const Instance& exception =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(0));
+  const Instance& stacktrace =
+      Instance::CheckedHandle(isolate, arguments.ArgAt(1));
+  Exceptions::ReThrow(isolate, exception, stacktrace);
 }
 
 
@@ -803,18 +807,6 @@ static RawFunction* InlineCacheMissHandler(
 }
 
 
-static void JSWarning(const ICData& ic_data, const char* msg) {
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  // Report warning only if not already reported at this location.
-  if (!ic_data.IssuedJSWarning()) {
-    ic_data.SetIssuedJSWarning();
-    Exceptions::JSWarning(caller_frame, "%s", msg);
-  }
-}
-
-
 // Handles inline cache misses by updating the IC data array of the call site.
 //   Arg0: Receiver object.
 //   Arg1: IC data object.
@@ -830,9 +822,10 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
         String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
       const double value = Double::Cast(receiver).value();
       if (floor(value) == value) {
-        JSWarning(ic_data,
-                  "string representation of an integral value of type "
-                  "'double' has no decimal mark and no fractional part");
+        Report::JSWarningFromIC(ic_data,
+                                "string representation of an integral value "
+                                "of type 'double' has no decimal mark and "
+                                "no fractional part");
       }
     }
   }
@@ -1064,7 +1057,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // into dart code.
     const Instance& exception =
         Instance::Handle(isolate->object_store()->stack_overflow());
-    Exceptions::Throw(exception);
+    Exceptions::Throw(isolate, exception);
     UNREACHABLE();
   }
 

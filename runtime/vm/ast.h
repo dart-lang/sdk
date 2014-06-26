@@ -98,6 +98,7 @@ class AstNode : public ZoneAllocated {
       : token_pos_(token_pos) {
     ASSERT(token_pos_ >= 0);
   }
+  virtual ~AstNode() { }
 
   intptr_t token_pos() const { return token_pos_; }
 

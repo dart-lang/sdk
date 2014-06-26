@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST = r"""
@@ -17,10 +18,12 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST, entry: 'foo', enableTypeAssertions: true);
-  Expect.isTrue(!generated.contains('eqB'));
+  asyncTest(() => compile(TEST, entry: 'foo', enableTypeAssertions: true,
+      check: (String generated) {
+    Expect.isTrue(!generated.contains('eqB'));
 
-  RegExp regexp = new RegExp('==');
-  Iterator<Match> matches = regexp.allMatches(generated).iterator;
-  checkNumberOfMatches(matches, 4);
+    RegExp regexp = new RegExp('==');
+    Iterator<Match> matches = regexp.allMatches(generated).iterator;
+    checkNumberOfMatches(matches, 4);
+  }));
 }

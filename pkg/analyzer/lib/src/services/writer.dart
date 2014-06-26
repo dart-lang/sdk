@@ -33,6 +33,10 @@ class Line {
     tokens.add(token);
   }
 
+  void clear() {
+    tokens.clear();
+  }
+
   bool isEmpty() => tokens.isEmpty;
 
   bool isWhitespace() => tokens.every(
@@ -346,8 +350,18 @@ class SourceWriter {
     }
   }
 
-  void write(x) {
-    _addToken(new LineToken(x));
+  void write(String string) {
+    var lines = string.split(lineSeparator);
+    var length = lines.length;
+    for (int i = 0; i < length; i++) {
+      var line = lines[i];
+      _addToken(new LineToken(line));
+      if (i != length - 1) {
+        newline();
+        // no indentation for multi-line strings
+        currentLine.clear();
+      }
+    }
   }
 
   void writeln(String s) {

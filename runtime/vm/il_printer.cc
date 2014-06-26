@@ -283,7 +283,7 @@ void Range::PrintTo(BufferFormatter* f) const {
 }
 
 
-const char* Range::ToCString(Range* range) {
+const char* Range::ToCString(const Range* range) {
   if (range == NULL) return "[_|_, _|_]";
 
   char buffer[256];
@@ -296,18 +296,18 @@ const char* Range::ToCString(Range* range) {
 void RangeBoundary::PrintTo(BufferFormatter* f) const {
   switch (kind_) {
     case kSymbol:
-      f->Print("v%" Pd,
+      f->Print("v%" Pd "",
                reinterpret_cast<Definition*>(value_)->ssa_temp_index());
-      if (offset_ != 0) f->Print("%+" Pd, offset_);
+      if (offset_ != 0) f->Print("%+" Pd64 "", offset_);
+      break;
+    case kNegativeInfinity:
+      f->Print("-inf");
+      break;
+    case kPositiveInfinity:
+      f->Print("+inf");
       break;
     case kConstant:
-      if (value_ == kMinusInfinity) {
-        f->Print("-inf");
-      } else if (value_ == kPlusInfinity) {
-        f->Print("+inf");
-      } else {
-        f->Print("%" Pd, value_);
-      }
+      f->Print("%" Pd64 "", value_);
       break;
     case kUnknown:
       f->Print("_|_");
@@ -592,7 +592,7 @@ void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');
-  f->Print(" %ct", is_truncating() ? '+' : '-');
+  f->Print(" %ct", IsTruncating() ? '+' : '-');
 }
 
 

@@ -18,8 +18,8 @@ import '../../../compiler/implementation/filenames.dart'
 
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
-import 'utils.dart';
 
+import 'utils.dart';
 /// Interface to communicate with dart2js.
 ///
 /// This is basically an amalgamation of dart2js's
@@ -120,6 +120,22 @@ bool isEntrypoint(CompilationUnit dart) {
     return node is FunctionDeclaration && node.name.name == "main" &&
         node.functionExpression.parameters.parameters.length <= 2;
   });
+}
+
+/// Efficiently parses the import and export directives in [contents].
+///
+/// If [name] is passed, it's used as the filename for error reporting.
+List<UriBasedDirective> parseImportsAndExports(String contents, {String name}) {
+  var collector = new _DirectiveCollector();
+  parseDirectives(contents, name: name).accept(collector);
+  return collector.directives;
+}
+
+/// A simple visitor that collects import and export nodes.
+class _DirectiveCollector extends GeneralizingAstVisitor {
+  final directives = <UriBasedDirective>[];
+
+  visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
 }
 
 /// Runs [code] in an isolate.

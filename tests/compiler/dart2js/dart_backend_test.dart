@@ -6,11 +6,11 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' as leg;
-import '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+import 'package:compiler/compiler.dart';
+import 'package:compiler/implementation/dart2jslib.dart' as leg;
+import 'package:compiler/implementation/dart_backend/dart_backend.dart';
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 const coreLib = r'''
 library corelib;
@@ -44,6 +44,13 @@ identical(a, b) => true;
 const proxy = 0;
 ''';
 
+const corePatch = r'''
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_isolate_helper';
+import 'dart:_foreign_helper';
+''';
+
 const ioLib = r'''
 library io;
 class Platform {
@@ -67,6 +74,9 @@ const helperLib = r'''
 library js_helper;
 class JSInvocationMirror {}
 assertHelper(a) {}
+class Closure {}
+class BoundClosure {}
+const patch = 0;
 ''';
 
 const foreignLib = r'''
@@ -107,7 +117,9 @@ testDart2DartWithLibrary(
     }
     if (uri.path.endsWith('/core.dart')) {
       return new Future.value(coreLib);
-    } else  if (uri.path.endsWith('/io.dart')) {
+    } else if (uri.path.endsWith('/core_patch.dart')) {
+      return new Future.value(corePatch);
+    } else if (uri.path.endsWith('/io.dart')) {
       return new Future.value(ioLib);
     } else if (uri.path.endsWith('/js_helper.dart')) {
       return new Future.value(helperLib);
@@ -208,7 +220,7 @@ testGetSet() {
 }
 
 testAbstractClass() {
-  testDart2Dart('main(){A.foo;}abstract class A{final static num foo=0;}');
+  testDart2Dart('main(){A.foo;}abstract class A{static final num foo=0;}');
 }
 
 testConflictSendsRename() {
@@ -445,9 +457,7 @@ class DynoMap implements Map<Element, ElementAst> {
   final compiler;
   DynoMap(this.compiler);
 
-  get resolvedElements => compiler.enqueuer.resolution.resolvedElements;
-  ElementAst operator[](Element element) =>
-      new ElementAst(element.parseNode(compiler), resolvedElements[element]);
+  ElementAst operator[](Element element) => new ElementAst(element);
 
   noSuchMethod(Invocation invocation) => throw 'unimplemented method';
 }
@@ -463,19 +473,21 @@ main() {
   localfoo();
 }
 ''';
-  MockCompiler compiler = new MockCompiler(emitJavaScript: false);
-  assert(compiler.backend is DartBackend);
-  compiler.parseScript(src);
-  FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
-  compiler.processQueue(compiler.enqueuer.resolution, mainElement);
-  PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
-  FunctionExpression mainNode = mainElement.parseNode(compiler);
-  Block body = mainNode.body;
-  FunctionDeclaration functionDeclaration = body.statements.nodes.head;
-  FunctionExpression fooNode = functionDeclaration.function;
-  LocalPlaceholder fooPlaceholder =
-      collector.functionScopes[mainElement].localPlaceholders.first;
-  Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
+  MockCompiler compiler = new MockCompiler.internal(emitJavaScript: false);
+  asyncTest(() => compiler.init().then((_) {
+    assert(compiler.backend is DartBackend);
+    compiler.parseScript(src);
+    FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
+    compiler.processQueue(compiler.enqueuer.resolution, mainElement);
+    PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
+    FunctionExpression mainNode = mainElement.parseNode(compiler);
+    Block body = mainNode.body;
+    FunctionDeclaration functionDeclaration = body.statements.nodes.head;
+    FunctionExpression fooNode = functionDeclaration.function;
+    LocalPlaceholder fooPlaceholder =
+        collector.functionScopes[mainElement].localPlaceholders.first;
+    Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
+  }));
 }
 
 testTypeVariablesAreRenamed() {

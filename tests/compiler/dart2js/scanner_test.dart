@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/characters.dart';
+import 'package:compiler/implementation/scanner/scannerlib.dart';
+import 'package:compiler/implementation/util/characters.dart';
 import 'dart:typed_data';
 
 Token scan(List<int> bytes) => new Utf8BytesScanner.fromBytes(bytes).tokenize();

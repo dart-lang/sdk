@@ -13,15 +13,15 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'utils.dart';
 
 void main() {
-  var server;
-  setUp(() => server = new json_rpc.Server());
+  var controller;
+  setUp(() => controller = new ServerController());
 
   test("calls a registered method with the given name", () {
-    server.registerMethod('foo', (params) {
+    controller.server.registerMethod('foo', (params) {
       return {'params': params.value};
     });
 
-    expect(server.handleRequest({
+    expect(controller.handleRequest({
       'jsonrpc': '2.0',
       'method': 'foo',
       'params': {'param': 'value'},
@@ -34,9 +34,9 @@ void main() {
   });
 
   test("calls a method that takes no parameters", () {
-    server.registerMethod('foo', () => 'foo');
+    controller.server.registerMethod('foo', () => 'foo');
 
-    expect(server.handleRequest({
+    expect(controller.handleRequest({
       'jsonrpc': '2.0',
       'method': 'foo',
       'id': 1234
@@ -48,9 +48,9 @@ void main() {
   });
 
   test("a method that takes no parameters rejects parameters", () {
-    server.registerMethod('foo', () => 'foo');
+    controller.server.registerMethod('foo', () => 'foo');
 
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '2.0',
       'method': 'foo',
       'params': {},
@@ -61,9 +61,9 @@ void main() {
   });
 
   test("an unexpected error in a method is captured", () {
-    server.registerMethod('foo', () => throw new FormatException('bad format'));
+    controller.server.registerMethod('foo', () => throw new FormatException('bad format'));
 
-    expect(server.handleRequest({
+    expect(controller.handleRequest({
       'jsonrpc': '2.0',
       'method': 'foo',
       'id': 1234
@@ -83,9 +83,9 @@ void main() {
   });
 
   test("doesn't return a result for a notification", () {
-    server.registerMethod('foo', (args) => 'result');
+    controller.server.registerMethod('foo', (args) => 'result');
 
-    expect(server.handleRequest({
+    expect(controller.handleRequest({
       'jsonrpc': '2.0',
       'method': 'foo',
       'params': {}
@@ -93,11 +93,11 @@ void main() {
   });
 
   test("includes the error data in the response", () {
-    server.registerMethod('foo', (params) {
+    controller.server.registerMethod('foo', (params) {
       throw new json_rpc.RpcException(5, 'Error message.', data: 'data value');
     });
 
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '2.0',
       'method': 'foo',
       'params': {},
@@ -108,58 +108,28 @@ void main() {
         data: 'data value');
   });
 
-  group("JSON", () {
-    test("handles a request parsed from JSON", () {
-      server.registerMethod('foo', (params) {
-        return {'params': params.value};
-      });
-
-      expect(server.parseRequest(JSON.encode({
+  test("a JSON parse error is rejected", () {
+    return controller.handleJsonRequest('invalid json {').then((result) {
+      expect(JSON.decode(result), {
         'jsonrpc': '2.0',
-        'method': 'foo',
-        'params': {'param': 'value'},
-        'id': 1234
-      })), completion(equals(JSON.encode({
-        'jsonrpc': '2.0',
-        'result': {'params': {'param': 'value'}},
-        'id': 1234
-      }))));
-    });
-
-    test("handles a notification parsed from JSON", () {
-      server.registerMethod('foo', (params) {
-        return {'params': params};
-      });
-
-      expect(server.parseRequest(JSON.encode({
-        'jsonrpc': '2.0',
-        'method': 'foo',
-        'params': {'param': 'value'}
-      })), completion(isNull));
-    });
-
-    test("a JSON parse error is rejected", () {
-      return server.parseRequest('invalid json {').then((result) {
-        expect(JSON.decode(result), {
-          'jsonrpc': '2.0',
-          'error': {
-            'code': error_code.PARSE_ERROR,
-            'message': startsWith("Invalid JSON: "),
-            'data': {'request': 'invalid json {'}
-          },
-          'id': null
-        });
+        'error': {
+          'code': error_code.PARSE_ERROR,
+          'message': startsWith("Invalid JSON: "),
+          'data': {'request': 'invalid json {'}
+        },
+        'id': null
       });
     });
   });
 
   group("fallbacks", () {
     test("calls a fallback if no method matches", () {
-      server.registerMethod('foo', () => 'foo');
-      server.registerMethod('bar', () => 'foo');
-      server.registerFallback((params) => {'fallback': params.value});
+      controller.server
+          ..registerMethod('foo', () => 'foo')
+          ..registerMethod('bar', () => 'foo')
+          ..registerFallback((params) => {'fallback': params.value});
 
-      expect(server.handleRequest({
+      expect(controller.handleRequest({
         'jsonrpc': '2.0',
         'method': 'baz',
         'params': {'param': 'value'},
@@ -172,13 +142,13 @@ void main() {
     });
 
     test("calls the first matching fallback", () {
-      server.registerFallback((params) =>
-          throw new json_rpc.RpcException.methodNotFound(params.method));
+      controller.server
+          ..registerFallback((params) =>
+              throw new json_rpc.RpcException.methodNotFound(params.method))
+          ..registerFallback((params) => 'fallback 2')
+          ..registerFallback((params) => 'fallback 3');
 
-      server.registerFallback((params) => 'fallback 2');
-      server.registerFallback((params) => 'fallback 3');
-
-      expect(server.handleRequest({
+      expect(controller.handleRequest({
         'jsonrpc': '2.0',
         'method': 'fallback 2',
         'id': 1234
@@ -190,9 +160,10 @@ void main() {
     });
 
     test("an unexpected error in a fallback is captured", () {
-      server.registerFallback((_) => throw new FormatException('bad format'));
+      controller.server.registerFallback((_) =>
+          throw new FormatException('bad format'));
 
-      expect(server.handleRequest({
+      expect(controller.handleRequest({
         'jsonrpc': '2.0',
         'method': 'foo',
         'id': 1234
@@ -213,7 +184,8 @@ void main() {
   });
 
   test("disallows multiple methods with the same name", () {
-    server.registerMethod('foo', () => null);
-    expect(() => server.registerMethod('foo', () => null), throwsArgumentError);
+    controller.server.registerMethod('foo', () => null);
+    expect(() => controller.server.registerMethod('foo', () => null),
+        throwsArgumentError);
   });
 }

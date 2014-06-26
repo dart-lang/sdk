@@ -85,6 +85,7 @@ abstract class Enqueuer {
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
+  bool get queueIsEmpty => queue.isEmpty;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
@@ -128,11 +129,6 @@ abstract class Enqueuer {
   void registerInstantiatedClass(ClassElement cls, Registry registry) {
     cls.ensureResolved(compiler);
     registerInstantiatedType(cls.rawType, registry);
-  }
-
-  void registerTypeLiteral(DartType type, Registry registry) {
-    registerInstantiatedClass(compiler.typeClass, registry);
-    compiler.backend.registerTypeLiteral(type, this, registry);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -312,11 +308,6 @@ abstract class Enqueuer {
     });
   }
 
-  /// Called when [:const Symbol(name):] is seen.
-  void registerConstSymbol(String name, Registry registry) {
-    compiler.backend.registerConstSymbol(name, registry);
-  }
-
   void pretendElementWasUsed(Element element, Registry registry) {
     if (!compiler.backend.isNeededForReflection(element)) return;
     if (Elements.isUnresolved(element)) {
@@ -346,11 +337,6 @@ abstract class Enqueuer {
         registerInvokedSetter(selector);
       }
     }
-  }
-
-  /// Called when [:new Symbol(...):] is seen.
-  void registerNewSymbol(Registry registry) {
-    compiler.backend.registerNewSymbol(registry);
   }
 
   void enqueueEverything() {
@@ -455,8 +441,11 @@ abstract class Enqueuer {
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
-    registerInstantiatedClass(compiler.closureClass,
-                              compiler.globalDependencies);
+    if (compiler.closureClass != null) {
+      // TODO(johnniwinther): Move this to the JavaScript backend.
+      registerInstantiatedClass(compiler.closureClass,
+                                compiler.globalDependencies);
+    }
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
@@ -502,7 +491,6 @@ abstract class Enqueuer {
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef);
-    compiler.backend.registerIsCheck(type, this, registry);
   }
 
   /**
@@ -512,11 +500,6 @@ abstract class Enqueuer {
    */
   void registerFactoryWithTypeArguments(Registry registry) {
     universe.usingFactoryWithTypeArguments = true;
-  }
-
-  void registerAsCheck(DartType type, Registry registry) {
-    registerIsCheck(type, registry);
-    compiler.backend.registerAsCheck(type, this, registry);
   }
 
   void registerGenericCallMethod(Element element, Registry registry) {
@@ -582,7 +565,7 @@ class ResolutionEnqueuer extends Enqueuer {
    *
    * Invariant: Key elements are declaration elements.
    */
-  final Map<Element, TreeElements> resolvedElements;
+  final Set<AstElement> resolvedElements;
 
   final Queue<ResolutionWorkItem> queue;
 
@@ -595,41 +578,35 @@ class ResolutionEnqueuer extends Enqueuer {
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
-        resolvedElements = new Map<Element, TreeElements>(),
+        resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
         deferredTaskQueue = new Queue<DeferredTask>();
 
   bool get isResolutionQueue => true;
 
-  bool isProcessed(Element member) => resolvedElements.containsKey(member);
+  bool isProcessed(Element member) => resolvedElements.contains(member);
+
+  /// Returns `true` if [element] has been processed by the resolution enqueuer.
+  bool hasBeenResolved(Element element) {
+    return resolvedElements.contains(element.analyzableElement.declaration);
+  }
+
+  /// Registers [element] as resolved for the resolution enqueuer.
+  void registerResolvedElement(AstElement element) {
+    resolvedElements.add(element);
+  }
 
   /// Returns [:true:] if [element] has actually been used.
   bool isLive(Element element) {
     if (seenClasses.contains(element)) return true;
-    if (getCachedElements(element) != null) return true;
+    if (hasBeenResolved(element)) return true;
     return false;
-  }
-
-  TreeElements getCachedElements(Element element) {
-    // TODO(ngeoffray): Get rid of this check.
-    if (element.enclosingElement.isClosure) {
-      closureMapping.ClosureClassElement cls = element.enclosingElement;
-      element = cls.methodElement;
-    } else if (element.isGenerativeConstructorBody) {
-      ConstructorBodyElement body = element;
-      element = body.constructor;
-    }
-    Element owner = element.outermostEnclosingMemberOrTopLevel;
-    if (owner == null) {
-      owner = element;
-    }
-    return resolvedElements[owner.declaration];
   }
 
   void internalAddToWorkList(Element element) {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
-    if (getCachedElements(element) != null) return;
+    if (hasBeenResolved(element)) return;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. Trying to add $element.");
@@ -739,15 +716,21 @@ class CodegenEnqueuer extends Enqueuer {
   final Map<Element, js.Expression> generatedCode =
       new Map<Element, js.Expression>();
 
+  final Set<Element> newlyEnqueuedElements;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
-      : super('codegen enqueuer', compiler, itemCompilationContextCreator),
-        queue = new Queue<CodegenWorkItem>();
+      : queue = new Queue<CodegenWorkItem>(),
+        newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
+        super('codegen enqueuer', compiler, itemCompilationContextCreator);
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
 
   void internalAddToWorkList(Element element) {
+    if (compiler.hasIncrementalSupport) {
+      newlyEnqueuedElements.add(element);
+    }
     // Don't generate code for foreign elements.
     if (element.isForeign(compiler)) return;
 

@@ -7,63 +7,50 @@ library test.domain.analysis.notification.navigation;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
-import 'analysis_abstract_test.dart';
+import 'analysis_abstract.dart';
 import 'reflective_tests.dart';
 
 
+main() {
+  group('notification.navigation', () {
+    runReflectiveTests(_AnalysisNotificationNavigationTest);
+  });
+}
+
+
 @ReflectiveTestCase()
-class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
-  List<Map<String, Object>> regions;
-  Map<String, Object> testRegion;
-  List<Map<String, Object>> testTargets;
-
-  void processNotification(Notification notification) {
-    if (notification.event == NOTIFICATION_NAVIGATION) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        regions = notification.getParameter(REGIONS);
-      }
-    }
-  }
-
-  Future prepareNavigation(then()) {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
-    return waitForTasksFinished().then((_) {
-      then();
-    });
-  }
+class _AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
+  List<_NavigationRegion> regions;
+  _NavigationRegion testRegion;
+  List<_NavigationTarget> testTargets;
+  _NavigationTarget testTarget;
 
   /**
-   * Finds the navigation region with the given [offset] and [length].
-   * If [length] is `-1`, then it is ignored.
-   *
-   * If [exists] is `true`, then fails if such region does not exist.
-   * Otherwise remembers this it into [testRegion].
-   * Also fills [testTargets] with its targets.
-   *
-   * If [exists] is `false`, then fails if such region exists.
+   * Validates that there is a target in [testTargets]  with [file], at [offset]
+   * and with the given [length].
    */
-  void findRegion(int offset, int length, [bool exists]) {
-    for (Map<String, Object> region in regions) {
-      if (region['offset'] == offset &&
-          (length == -1 || region['length'] == length)) {
-        if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-               '${regions.join('\n')}');
-        }
-        testRegion = region;
-        testTargets = region['targets'];
+  void assertHasFileTarget(String file, int offset, int length) {
+    for (_NavigationTarget target in testTargets) {
+      if (target.file == file && target.offset == offset && target.length ==
+          length) {
+        testTarget = target;
         return;
       }
     }
-    if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-           '${regions.join('\n')}');
-    }
+    fail(
+        'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
+        '${testRegion} in\n' '${regions.join('\n')}');
+  }
+
+  void assertHasOperatorRegion(String regionSearch, int regionLength,
+      String targetSearch, int targetLength) {
+    assertHasRegion(regionSearch, regionLength);
+    assertHasTarget(targetSearch, targetLength);
   }
 
   /**
@@ -90,6 +77,15 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   }
 
   /**
+   * Validates that there is an identifier region at [regionSearch] with target
+   * at [targetSearch].
+   */
+  void assertHasRegionTarget(String regionSearch, String targetSearch) {
+    assertHasRegion(regionSearch);
+    assertHasTarget(targetSearch);
+  }
+
+  /**
    * Validates that there is a target in [testTargets]  with [testFile], at the
    * offset of [search] in [testFile], and with the given [length] or the length
    * of an leading identifier in [search].
@@ -99,48 +95,7 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     if (length == -1) {
       length = findIdentifierLength(search);
     }
-    for (Map<String, Object> target in testTargets) {
-      if (target['file'] == testFile &&
-          target['offset'] == offset &&
-          target['length'] == length) {
-        return;
-      }
-    }
-    fail('Expected to find target (offset=$offset; length=$length) in\n'
-         '${testRegion} in\n'
-         '${regions.join('\n')}');
-  }
-
-  /**
-   * Validates that there is a target in [testTargets]  with [file], at [offset]
-   * and with the given [length].
-   */
-  void assertHasFileTarget(String file, int offset, int length) {
-    for (Map<String, Object> target in testTargets) {
-      if (target['file'] == file &&
-          target['offset'] == offset &&
-          target['length'] == length) {
-        return;
-      }
-    }
-    fail('Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-         '${testRegion} in\n'
-         '${regions.join('\n')}');
-  }
-
-  /**
-   * Validates that there is an identifier region at [regionSearch] with target
-   * at [targetSearch].
-   */
-  void assertHasRegionTarget(String regionSearch, String targetSearch) {
-    assertHasRegion(regionSearch);
-    assertHasTarget(targetSearch);
-  }
-
-  void assertHasOperatorRegion(String regionSearch, int regionLength,
-                               String targetSearch, int targetLength) {
-    assertHasRegion(regionSearch, regionLength);
-    assertHasTarget(targetSearch, targetLength);
+    assertHasFileTarget(testFile, offset, length);
   }
 
   /**
@@ -167,6 +122,87 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     int offset = findOffset(search);
     int length = search.length;
     findRegion(offset, length, false);
+  }
+
+  /**
+   * Finds the navigation region with the given [offset] and [length].
+   * If [length] is `-1`, then it is ignored.
+   *
+   * If [exists] is `true`, then fails if such region does not exist.
+   * Otherwise remembers this it into [testRegion].
+   * Also fills [testTargets] with its targets.
+   *
+   * If [exists] is `false`, then fails if such region exists.
+   */
+  void findRegion(int offset, int length, [bool exists]) {
+    for (_NavigationRegion region in regions) {
+      if (region.offset == offset && (length == -1 || region.length == length))
+          {
+        if (exists == false) {
+          fail('Not expected to find (offset=$offset; length=$length) in\n'
+              '${regions.join('\n')}');
+        }
+        testRegion = region;
+        testTargets = region.targets;
+        return;
+      }
+    }
+    if (exists == true) {
+      fail('Expected to find (offset=$offset; length=$length) in\n'
+          '${regions.join('\n')}');
+    }
+  }
+
+  Future prepareNavigation(then()) {
+    addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
+    return waitForTasksFinished().then((_) {
+      then();
+    });
+  }
+
+  void processNotification(Notification notification) {
+    if (notification.event == ANALYSIS_NAVIGATION) {
+      String file = notification.getParameter(FILE);
+      if (file == testFile) {
+        regions = [];
+        List<Map<String, Object>> regionsJson = notification.getParameter(
+            REGIONS);
+        for (Map<String, Object> regionJson in regionsJson) {
+          var regionOffset = regionJson[OFFSET];
+          var regionLength = regionJson[LENGTH];
+          List<_NavigationTarget> targets = [];
+          for (Map<String, Object> targetJson in regionJson[TARGETS]) {
+            var targetFile = targetJson[FILE];
+            var targetOffset = targetJson[OFFSET];
+            var targetLength = targetJson[LENGTH];
+            var elementJson = targetJson[ELEMENT];
+            targets.add(new _NavigationTarget(targetFile, targetOffset,
+                targetLength, new Element.fromJson(elementJson)));
+          }
+          var region = new _NavigationRegion(regionOffset, regionLength,
+              targets);
+          regions.add(region);
+        }
+      }
+    }
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    createProject();
+  }
+
+  test_afterAnalysis() {
+    addTestFile('''
+class AAA {}
+AAA aaa;
+''');
+    return waitForTasksFinished().then((_) {
+      return prepareNavigation(() {
+        assertHasRegionTarget('AAA aaa;', 'AAA {}');
+      });
+    });
   }
 
   test_constructor_named() {
@@ -239,6 +275,20 @@ main() {
 ''');
     return prepareNavigation(() {
       assertNoRegionString('vvv');
+    });
+  }
+
+  test_instanceCreation_implicit() {
+    addTestFile('''
+class A {
+}
+main() {
+  new A();
+}
+''');
+    return prepareNavigation(() {
+      assertHasRegionString('new A');
+      assertHasTarget('A {');
     });
   }
 
@@ -410,11 +460,41 @@ part "test_unit.dart";
 //      assertNoRegionString('part "test_unit.dart"');
 //    });
   }
+
+  test_targetElement() {
+    addTestFile('''
+class AAA {}
+main() {
+  AAA aaa = null;
+}
+''');
+    return prepareNavigation(() {
+      assertHasRegionTarget('AAA aaa', 'AAA {}');
+      Element element = testTarget.element;
+      expect(element.kind, ElementKind.CLASS);
+      expect(element.name, 'AAA');
+      expect(element.isAbstract, false);
+      expect(element.parameters, isNull);
+      expect(element.returnType, isNull);
+    });
+  }
 }
 
 
-main() {
-  group('notification.navigation', () {
-    runReflectiveTests(AnalysisNotificationNavigationTest);
-  });
+class _NavigationRegion {
+  final int offset;
+  final int length;
+  final List<_NavigationTarget> targets;
+
+  _NavigationRegion(this.offset, this.length, this.targets);
+}
+
+
+class _NavigationTarget {
+  final String file;
+  final int offset;
+  final int length;
+  final Element element;
+
+  _NavigationTarget(this.file, this.offset, this.length, this.element);
 }

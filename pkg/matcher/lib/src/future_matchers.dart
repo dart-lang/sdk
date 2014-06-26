@@ -2,31 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.future_matchers;
 
-/**
- * Matches a [Future] that completes successfully with a value. Note that this
- * creates an asynchronous expectation. The call to `expect()` that includes
- * this will return immediately and execution will continue. Later, when the
- * future completes, the actual expectation will run.
- *
- * To test that a Future completes with an exception, you can use [throws] and
- * [throwsA].
- */
+import 'dart:async';
+
+import 'core_matchers.dart';
+import 'expect.dart';
+import 'interfaces.dart';
+
+/// Matches a [Future] that completes successfully with a value. Note that this
+/// creates an asynchronous expectation. The call to `expect()` that includes
+/// this will return immediately and execution will continue. Later, when the
+/// future completes, the actual expectation will run.
+///
+/// To test that a Future completes with an exception, you can use [throws] and
+/// [throwsA].
 final Matcher completes = const _Completes(null, '');
 
-/**
- * Matches a [Future] that completes succesfully with a value that matches
- * [matcher]. Note that this creates an asynchronous expectation. The call to
- * `expect()` that includes this will return immediately and execution will
- * continue. Later, when the future completes, the actual expectation will run.
- *
- * To test that a Future completes with an exception, you can use [throws] and
- * [throwsA].
- *
- * [id] is an optional tag that can be used to identify the completion matcher
- * in error messages.
- */
+/// Matches a [Future] that completes succesfully with a value that matches
+/// [matcher]. Note that this creates an asynchronous expectation. The call to
+/// `expect()` that includes this will return immediately and execution will
+/// continue. Later, when the future completes, the actual expectation will run.
+///
+/// To test that a Future completes with an exception, you can use [throws] and
+/// [throwsA].
+///
+/// [id] is an optional tag that can be used to identify the completion matcher
+/// in error messages.
 Matcher completion(matcher, [String id = '']) =>
     new _Completes(wrapMatcher(matcher), id);
 

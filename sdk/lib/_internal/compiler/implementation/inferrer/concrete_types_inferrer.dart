@@ -509,7 +509,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
 
   @override
   Selector newTypedSelector(ConcreteType receiver, Selector selector) {
-    return new TypedSelector(concreteTypeToTypeMask(receiver), selector);
+    return new TypedSelector(concreteTypeToTypeMask(receiver), selector,
+        compiler);
   }
 
   @override

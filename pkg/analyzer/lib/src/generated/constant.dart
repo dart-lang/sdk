@@ -7,6 +7,7 @@
 
 library engine.constant;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart' show ObjectUtilities;
 import 'source.dart' show Source;
@@ -229,12 +230,12 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */
-  final Map<VariableElement, VariableDeclaration> variableMap = new Map<VariableElement, VariableDeclaration>();
+  final HashMap<VariableElement, VariableDeclaration> variableMap = new HashMap<VariableElement, VariableDeclaration>();
 
   /**
    * A table mapping constant constructors to the declarations of those constructors.
    */
-  final Map<ConstructorElement, ConstructorDeclaration> constructorMap = new Map<ConstructorElement, ConstructorDeclaration>();
+  final HashMap<ConstructorElement, ConstructorDeclaration> constructorMap = new HashMap<ConstructorElement, ConstructorDeclaration>();
 
   /**
    * A collection of constant constructor invocations.
@@ -305,12 +306,12 @@ class ConstantValueComputer {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  Map<VariableElement, VariableDeclaration> _variableDeclarationMap;
+  HashMap<VariableElement, VariableDeclaration> _variableDeclarationMap;
 
   /**
    * A table mapping constant constructors to the declarations of those constructors.
    */
-  Map<ConstructorElement, ConstructorDeclaration> constructorDeclarationMap;
+  HashMap<ConstructorElement, ConstructorDeclaration> constructorDeclarationMap;
 
   /**
    * A collection of constant constructor invocations.
@@ -491,7 +492,7 @@ class ConstantValueComputer {
   ValidResult _evaluateConstructorCall(NodeList<Expression> arguments, ConstructorElement constructor, ConstantVisitor constantVisitor) {
     int argumentCount = arguments.length;
     List<DartObjectImpl> argumentValues = new List<DartObjectImpl>(argumentCount);
-    Map<String, DartObjectImpl> namedArgumentValues = new Map<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
@@ -534,8 +535,8 @@ class ConstantValueComputer {
       // been reported, so consider it an unknown value to suppress further errors.
       return constantVisitor._validWithUnknownValue(definingClass);
     }
-    Map<String, DartObjectImpl> fieldMap = new Map<String, DartObjectImpl>();
-    Map<String, DartObjectImpl> parameterMap = new Map<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
+    HashMap<String, DartObjectImpl> parameterMap = new HashMap<String, DartObjectImpl>();
     List<ParameterElement> parameters = constructorBase.parameters;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
@@ -610,7 +611,7 @@ class ConstantValueComputer {
     return constantVisitor._valid(definingClass, new GenericState(fieldMap));
   }
 
-  void _evaluateSuperConstructorCall(Map<String, DartObjectImpl> fieldMap, ConstructorElement superConstructor, NodeList<Expression> superArguments, ConstantVisitor initializerVisitor) {
+  void _evaluateSuperConstructorCall(HashMap<String, DartObjectImpl> fieldMap, ConstructorElement superConstructor, NodeList<Expression> superArguments, ConstantVisitor initializerVisitor) {
     if (superConstructor != null && superConstructor.isConst) {
       ValidResult evaluationResult = _evaluateConstructorCall(superArguments, superConstructor, initializerVisitor);
       fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult.value;
@@ -627,7 +628,7 @@ class ConstantValueComputer {
    *         constructor will be returned.
    */
   ConstructorElement _followConstantRedirectionChain(ConstructorElement constructor) {
-    Set<ConstructorElement> constructorsVisited = new Set<ConstructorElement>();
+    HashSet<ConstructorElement> constructorsVisited = new HashSet<ConstructorElement>();
     while (constructor.isFactory) {
       if (identical(constructor.enclosingElement.type, typeProvider.symbolType)) {
         // The dart:core.Symbol has a const factory constructor that redirects to
@@ -758,7 +759,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    */
   DartObjectImpl _nullObject;
 
-  Map<String, DartObjectImpl> _lexicalEnvironment;
+  HashMap<String, DartObjectImpl> _lexicalEnvironment;
 
   /**
    * Initialize a newly created constant visitor.
@@ -778,7 +779,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
    * @param lexicalEnvironment values which should override simpleIdentifiers, or null if no
    *          overriding is necessary.
    */
-  ConstantVisitor.con2(this._typeProvider, Map<String, DartObjectImpl> lexicalEnvironment) {
+  ConstantVisitor.con2(this._typeProvider, HashMap<String, DartObjectImpl> lexicalEnvironment) {
     this._lexicalEnvironment = lexicalEnvironment;
   }
 
@@ -946,7 +947,7 @@ class ConstantVisitor extends UnifyingAstVisitor<EvaluationResultImpl> {
       return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
     }
     ErrorResult result = null;
-    Map<DartObjectImpl, DartObjectImpl> map = new Map<DartObjectImpl, DartObjectImpl>();
+    HashMap<DartObjectImpl, DartObjectImpl> map = new HashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry in node.entries) {
       EvaluationResultImpl keyResult = entry.key.accept(this);
       EvaluationResultImpl valueResult = entry.value.accept(this);
@@ -1439,7 +1440,7 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
-  Map<String, DartObjectImpl> get fields => _state.fields;
+  HashMap<String, DartObjectImpl> get fields => _state.fields;
 
   @override
   int get intValue {
@@ -1729,7 +1730,7 @@ class DeclaredVariables {
   /**
    * A table mapping the names of declared variables to their values.
    */
-  Map<String, String> _declaredVariables = new Map<String, String>();
+  HashMap<String, String> _declaredVariables = new HashMap<String, String>();
 
   /**
    * Define a variable with the given name to have the given value.
@@ -2821,7 +2822,7 @@ class GenericState extends InstanceState {
   /**
    * The values of the fields of this instance.
    */
-  final Map<String, DartObjectImpl> _fieldMap;
+  final HashMap<String, DartObjectImpl> _fieldMap;
 
   /**
    * Pseudo-field that we use to represent fields in the superclass.
@@ -2831,7 +2832,7 @@ class GenericState extends InstanceState {
   /**
    * A state that can be used to represent an object whose state is not known.
    */
-  static GenericState UNKNOWN_VALUE = new GenericState(new Map<String, DartObjectImpl>());
+  static GenericState UNKNOWN_VALUE = new GenericState(new HashMap<String, DartObjectImpl>());
 
   /**
    * Initialize a newly created state to represent a newly created object.
@@ -2858,7 +2859,7 @@ class GenericState extends InstanceState {
       return false;
     }
     GenericState state = object as GenericState;
-    Set<String> otherFields = new Set<String>.from(state._fieldMap.keys.toSet());
+    HashSet<String> otherFields = new HashSet<String>.from(state._fieldMap.keys.toSet());
     for (String fieldName in _fieldMap.keys.toSet()) {
       if (_fieldMap[fieldName] != state._fieldMap[fieldName]) {
         return false;
@@ -2874,7 +2875,7 @@ class GenericState extends InstanceState {
   }
 
   @override
-  Map<String, DartObjectImpl> get fields => _fieldMap;
+  HashMap<String, DartObjectImpl> get fields => _fieldMap;
 
   @override
   String get typeName => "user defined type";
@@ -3014,7 +3015,7 @@ abstract class InstanceState {
    * If this represents a generic dart object, return a map from its fieldnames to their values.
    * Otherwise return null.
    */
-  Map<String, DartObjectImpl> get fields => null;
+  HashMap<String, DartObjectImpl> get fields => null;
 
   /**
    * Return the name of the type of this value.
@@ -3842,7 +3843,7 @@ class MapState extends InstanceState {
   /**
    * The entries in the map.
    */
-  final Map<DartObjectImpl, DartObjectImpl> _entries;
+  final HashMap<DartObjectImpl, DartObjectImpl> _entries;
 
   /**
    * Initialize a newly created state to represent a map with the given entries.
@@ -3868,7 +3869,7 @@ class MapState extends InstanceState {
     if (object is! MapState) {
       return false;
     }
-    Map<DartObjectImpl, DartObjectImpl> otherElements = (object as MapState)._entries;
+    HashMap<DartObjectImpl, DartObjectImpl> otherElements = (object as MapState)._entries;
     int count = _entries.length;
     if (otherElements.length != count) {
       return false;
@@ -3891,7 +3892,7 @@ class MapState extends InstanceState {
 
   @override
   Map<Object, Object> get value {
-    Map<Object, Object> result = new Map<Object, Object>();
+    HashMap<Object, Object> result = new HashMap<Object, Object>();
     for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
       DartObjectImpl key = entry.getKey();
       DartObjectImpl value = entry.getValue();
@@ -4103,12 +4104,12 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
-  final Map<VariableElement, VariableDeclaration> _variableDeclarationMap;
+  final HashMap<VariableElement, VariableDeclaration> _variableDeclarationMap;
 
   /**
    * A table mapping constant constructors to the declarations of those constructors.
    */
-  final Map<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
+  final HashMap<ConstructorElement, ConstructorDeclaration> _constructorDeclarationMap;
 
   /**
    * Initialize a newly created reference finder to find references from the given variable to other

@@ -298,15 +298,6 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  String constructorNameForDiagnostics(String className,
-                                       String constructorName) {
-    String classNameString = className;
-    String constructorNameString = constructorName;
-    return (constructorName == '')
-        ? classNameString
-        : "$classNameString.$constructorNameString";
-   }
-
   void resolveRedirectingConstructor(InitializerResolver resolver,
                                      Node node,
                                      FunctionElement constructor,
@@ -451,15 +442,13 @@ class ResolverTask extends CompilerTask {
     return compiler.withCurrentElement(element, () {
       bool isConstructor =
           identical(element.kind, ElementKind.GENERATIVE_CONSTRUCTOR);
-      TreeElements elements =
-          compiler.enqueuer.resolution.getCachedElements(element);
-      if (elements != null) {
+      if (compiler.enqueuer.resolution.hasBeenResolved(element)) {
         // TODO(karlklose): Remove the check for [isConstructor]. [elememts]
         // should never be non-null, not even for constructors.
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return elements;
+        return element.resolvedAst.elements;
       }
       if (element.isSynthesized) {
         if (isConstructor) {
@@ -917,7 +906,7 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
-    mixin.forEachLocalMember((Element member) {
+    mixin.forEachLocalMember((AstElement member) {
       if (member.isGenerativeConstructor && !member.isSynthesized) {
         compiler.reportError(member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
       } else {
@@ -927,10 +916,12 @@ class ResolverTask extends CompilerTask {
         // mixin application has been performed.
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
-        checkMixinSuperUses(
-            compiler.enqueuer.resolution.resolvedElements[member],
-            mixinApplication,
-            mixin);
+        if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
+          checkMixinSuperUses(
+              member.resolvedAst.elements,
+              mixinApplication,
+              mixin);
+        }
       }
     });
   }
@@ -1425,8 +1416,7 @@ class InitializerResolver {
       Selector constructorSelector) {
     if (lookedupConstructor == null
         || !lookedupConstructor.isGenerativeConstructor) {
-      var fullConstructorName =
-          visitor.compiler.resolver.constructorNameForDiagnostics(
+      String fullConstructorName = Elements.constructorNameForDiagnostics(
               className,
               constructorSelector.name);
       MessageKind kind = isImplicitSuperCall
@@ -2318,7 +2308,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    FunctionElementX function = new LocalFunctionElementX(
+    LocalFunctionElementX function = new LocalFunctionElementX(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
     function.functionSignatureCache =
@@ -2695,7 +2685,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // class or typedef literal. We do not need to register this call as a
         // dynamic invocation, because we statically know what the target is.
       } else if (!selector.applies(target, compiler)) {
-        warnArgumentMismatch(node, target);
+        registry.registerThrowNoSuchMethod();
         if (node.isSuperCall) {
           // Similar to what we do when we can't find super via selector
           // in [resolveSend] above, we still need to register the invocation,
@@ -2727,14 +2717,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       registry.registerGetOfStaticFunction(target.declaration);
     }
     return node.isPropertyAccess ? target : null;
-  }
-
-  void warnArgumentMismatch(Send node, Element target) {
-    registry.registerThrowNoSuchMethod();
-    // TODO(karlklose): we can be more precise about the reason of the
-    // mismatch.
-    warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
-            {'methodName': target.name});
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
@@ -3077,7 +3059,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     registry.useElement(node.send, constructor);
     if (Elements.isUnresolved(constructor)) return constructor;
     if (!callSelector.applies(constructor, compiler)) {
-      warnArgumentMismatch(node.send, constructor);
       registry.registerThrowNoSuchMethod();
     }
 
@@ -3136,7 +3117,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void checkConstMapKeysDontOverrideEquals(Spannable spannable,
                                            MapConstant map) {
-    for (Constant key in map.keys.entries) {
+    for (Constant key in map.keys) {
       if (!key.isObject) continue;
       ObjectConstant objectConstant = key;
       DartType keyType = objectConstant.type;
@@ -4064,7 +4045,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     } else if (mixinType.isTypeVariable) {
       compiler.reportError(mixinNode, MessageKind.CLASS_NAME_EXPECTED);
     } else if (mixinType.isMalformed) {
-      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED);
+      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED,
+          {'className': element.name, 'malformedType': mixinType});
     }
     return mixinType;
   }
@@ -4243,7 +4225,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     DartType supertype = resolveType(superclass);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
-        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED);
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED,
+            {'className': element.name, 'malformedType': supertype});
         return objectType;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
         compiler.reportError(superclass.typeName,
@@ -4266,7 +4249,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (interfaceType != null) {
         if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
           compiler.reportError(superclass,
-              MessageKind.CANNOT_IMPLEMENT_MALFORMED);
+              MessageKind.CANNOT_IMPLEMENT_MALFORMED,
+              {'className': element.name, 'malformedType': interfaceType});
         } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;
@@ -4561,8 +4545,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     Selector selector = createConstructorSelector(constructorName);
     Element result = cls.lookupConstructor(selector);
     if (result == null) {
-      String fullConstructorName =
-          resolver.compiler.resolver.constructorNameForDiagnostics(
+      String fullConstructorName = Elements.constructorNameForDiagnostics(
               cls.name,
               constructorName);
       return failOrReturnErroneousElement(

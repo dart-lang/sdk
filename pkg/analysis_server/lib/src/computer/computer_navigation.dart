@@ -4,10 +4,13 @@
 
 library computer.navigation;
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+import 'element.dart' as computer;
 
 
 /**
@@ -16,7 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  List<Map<String, Object>> _regions = <Map<String, Object>>[];
+  final List<Map<String, Object>> _regions = <Map<String, Object>>[];
 
   DartUnitNavigationComputer(this._unit);
 
@@ -34,10 +37,22 @@ class DartUnitNavigationComputer {
       return;
     }
     _regions.add({
-      'offset': offset,
-      'length': length,
-      'targets': [target]
+      OFFSET: offset,
+      LENGTH: length,
+      TARGETS: [target]
     });
+  }
+
+  void _addRegionForNode(AstNode node, Element element) {
+    int offset = node.offset;
+    int length = node.length;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForToken(Token token, Element element) {
+    int offset = token.offset;
+    int length = token.length;
+    _addRegion(offset, length, element);
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
@@ -55,18 +70,6 @@ class DartUnitNavigationComputer {
   void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
     int offset = a.offset;
     int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForNode(AstNode node, Element element) {
-    int offset = node.offset;
-    int length = node.length;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForToken(Token token, Element element) {
-    int offset = token.offset;
-    int length = token.length;
     _addRegion(offset, length, element);
   }
 
@@ -94,10 +97,10 @@ class DartUnitNavigationComputer {
     }
     // return as JSON
     return {
-      'file': source.fullName,
-      'offset': offset,
-      'length': length,
-      'elementId': element.location.encoding
+      FILE: source.fullName,
+      OFFSET: offset,
+      LENGTH: length,
+      ELEMENT: new computer.Element.fromEngine(element).toJson()
     };
   }
 }
@@ -131,7 +134,8 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
         lastNode = firstNode;
       }
       if (firstNode != null && lastNode != null) {
-        computer._addRegion_nodeStart_nodeEnd(firstNode, lastNode, node.element);
+        computer._addRegion_nodeStart_nodeEnd(firstNode, lastNode,
+            node.element);
       }
     }
     return super.visitConstructorDeclaration(node);
@@ -175,13 +179,15 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, node.element);
+    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri,
+        node.element);
     return super.visitPartDirective(node);
   }
 
   @override
   visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.libraryName, node.element);
+    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.libraryName,
+        node.element);
     return super.visitPartOfDirective(node);
   }
 

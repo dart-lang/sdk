@@ -1256,7 +1256,7 @@ class DartLibrary():
       items.sort()
       for (idl_name, dart_name) in items:
         map_emitter.Emit(
-          "  '$IDL_NAME': $DART_NAME,\n",
+          "  '$IDL_NAME': () => $DART_NAME,\n",
           IDL_NAME=idl_name,
           DART_NAME=dart_name)
       

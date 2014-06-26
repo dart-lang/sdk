@@ -772,7 +772,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             initialization = null;
           }
         }
+
+        // We inserted a basic block to avoid critical edges. This block is
+        // part of the LoopBlockInformation and must therefore be handled here.
+        js.Block oldContainer = currentContainer;
+        js.Block avoidContainer = new js.Block.empty();
+        currentContainer = avoidContainer;
+        assignPhisOfSuccessors(condition.end.successors.last);
+        bool hasPhiUpdates = !avoidContainer.statements.isEmpty;
+        currentContainer = oldContainer;
+
         if (isConditionExpression &&
+            !hasPhiUpdates &&
             info.updates != null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
@@ -828,7 +839,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // subgraph.
           // TODO(lrn): Remove this extra labeling when handling all loops
           // using subgraphs.
-          js.Block oldContainer = currentContainer;
+          oldContainer = currentContainer;
           js.Statement body = new js.Block.empty();
           currentContainer = body;
           visitBodyIgnoreLabels(info);
@@ -844,7 +855,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           js.Expression jsCondition;
           js.Block oldContainer = currentContainer;
           js.Statement body = new js.Block.empty();
-          if (isConditionExpression) {
+          if (isConditionExpression && !hasPhiUpdates) {
             jsCondition = generateExpression(condition);
             currentContainer = body;
           } else {
@@ -853,8 +864,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             generateStatements(condition);
             use(condition.conditionExpression);
             js.Expression ifTest = new js.Prefix("!", pop());
-            js.Break jsBreak = new js.Break(null);
-            pushStatement(new js.If.noElse(ifTest, jsBreak));
+            js.Statement jsBreak = new js.Break(null);
+            js.Statement exitLoop;
+            if (avoidContainer.statements.isEmpty) {
+              exitLoop = jsBreak;
+            } else {
+              avoidContainer.statements.add(jsBreak);
+              exitLoop = avoidContainer;
+            }
+            pushStatement(new js.If.noElse(ifTest, exitLoop));
           }
           if (info.updates != null) {
             wrapLoopBodyForContinue(info);
@@ -871,7 +889,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (info.initializer != null) {
           generateStatements(info.initializer);
         }
+        // We inserted a basic block to avoid critical edges. This block is
+        // part of the LoopBlockInformation and must therefore be handled here.
         js.Block oldContainer = currentContainer;
+        js.Block exitAvoidContainer = new js.Block.empty();
+        currentContainer = exitAvoidContainer;
+        assignPhisOfSuccessors(condition.end.successors.last);
+        bool hasExitPhiUpdates = !exitAvoidContainer.statements.isEmpty;
+        currentContainer = oldContainer;
+
+
+        oldContainer = currentContainer;
         js.Block body = new js.Block.empty();
         // If there are phi copies in the block that jumps to the
         // loop entry, we must emit the condition like this:
@@ -907,10 +935,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // at the end of the loop anyway.
           loop = new js.While(newLiteralBool(true), unwrapStatement(body));
         } else {
-          if (hasPhiUpdates) {
+          if (hasPhiUpdates || hasExitPhiUpdates) {
             updateBody.statements.add(new js.Continue(null));
+            js.Statement jsBreak = new js.Break(null);
+            js.Statement exitLoop;
+            if (exitAvoidContainer.statements.isEmpty) {
+              exitLoop = jsBreak;
+            } else {
+              exitAvoidContainer.statements.add(jsBreak);
+              exitLoop = exitAvoidContainer;
+            }
             body.statements.add(
-                new js.If(jsCondition, updateBody, new js.Break(null)));
+                new js.If(jsCondition, updateBody, exitLoop));
             jsCondition = newLiteralBool(true);
           }
           loop = new js.Do(unwrapStatement(body), jsCondition);
@@ -1542,7 +1578,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
       TypeMask receiverType = new TypeMask.nonNullExact(enclosing.declaration);
-      return new TypedSelector(receiverType, selector);
+      return new TypedSelector(receiverType, selector, compiler);
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
@@ -1640,7 +1676,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // [world]. The emitter needs to know if it needs to emit a
         // bound closure for a method.
         TypeMask receiverType = new TypeMask.nonNullExact(superClass);
-        selector = new TypedSelector(receiverType, selector);
+        selector = new TypedSelector(receiverType, selector, compiler);
         // TODO(floitsch): we know the target. We shouldn't register a
         // dynamic getter.
         registry.registerDynamicGetter(selector);

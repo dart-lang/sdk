@@ -16,7 +16,7 @@ namespace dart {
 
 
 ASSEMBLER_TEST_GENERATE(ReadArgument, assembler) {
-  __ pushq(RDI);  // First argument is passed in register rdi.
+  __ pushq(CallingConventions::kArg1Reg);
   __ movq(RAX, Address(RSP, 0));
   __ popq(RDX);
   __ ret();
@@ -1296,7 +1296,7 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
   __ addq(RSP, Immediate(space));
   space = ComputeStackSpaceReservation(0, 8);
   __ subq(RSP, Immediate(space));
-  __ movl(RDI, RAX);
+  __ movl(CallingConventions::kArg1Reg, RAX);
   __ call(&call2);
   __ addq(RSP, Immediate(space));
   __ ret();
@@ -2724,10 +2724,11 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ pushq(CTX);
-  __ movq(CTX, RDI);
-  __ StoreIntoObject(RDX,
-                     FieldAddress(RDX, GrowableObjectArray::data_offset()),
-                     RSI);
+  __ movq(CTX, CallingConventions::kArg1Reg);
+  __ StoreIntoObject(CallingConventions::kArg3Reg,
+                     FieldAddress(CallingConventions::kArg3Reg,
+                                  GrowableObjectArray::data_offset()),
+                     CallingConventions::kArg2Reg);
   __ popq(CTX);
   __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
@@ -2808,7 +2809,7 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
 
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
-  __ pushq(RDI);
+  __ pushq(CallingConventions::kArg1Reg);
   __ fildl(Address(RSP, 0));
   __ fstpl(Address(RSP, 0));
   __ movsd(XMM0, Address(RSP, 0));
@@ -2896,10 +2897,11 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
-  // Save incoming arguments.
-  __ pushq(RDI);  // Arg0, from.
-  __ pushq(RSI);  // Arg1, to.
-  __ pushq(RDX);  // Arg2, count.
+  __ pushq(RSI);
+  __ pushq(RDI);
+  __ pushq(CallingConventions::kArg1Reg);  // from.
+  __ pushq(CallingConventions::kArg2Reg);  // to.
+  __ pushq(CallingConventions::kArg3Reg);  // count.
   __ movq(RSI, Address(RSP, 2 * kWordSize));  // from.
   __ movq(RDI, Address(RSP, 1 * kWordSize));  // to.
   __ movq(RCX, Address(RSP, 0 * kWordSize));  // count.
@@ -2908,6 +2910,8 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);
+  __ popq(RDI);
+  __ popq(RSI);
   __ ret();
 }
 
@@ -2926,11 +2930,9 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
 
 
 ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
-  // RDI: Arg0.
-  // RSI: Arg1.
+  __ cmpq(CallingConventions::kArg1Reg, CallingConventions::kArg2Reg);
   __ movq(RDX, Immediate(1));  // Greater equal.
   __ movq(RCX, Immediate(-1));  // Less
-  __ cmpq(RDI, RSI);
   __ cmovlessq(RAX, RCX);
   __ cmovgeq(RAX, RDX);
   __ ret();

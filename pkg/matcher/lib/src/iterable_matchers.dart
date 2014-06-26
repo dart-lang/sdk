@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.iterable_matchers;
 
-/**
- * Returns a matcher which matches [Iterable]s in which all elements
- * match the given [matcher].
- */
+import 'core_matchers.dart';
+import 'description.dart';
+import 'expect.dart';
+import 'interfaces.dart';
+
+/// Returns a matcher which matches [Iterable]s in which all elements
+/// match the given [matcher].
 Matcher everyElement(matcher) => new _EveryElement(wrapMatcher(matcher));
 
 class _EveryElement extends _IterableMatcher {
-  Matcher _matcher;
+  final Matcher _matcher;
 
   _EveryElement(Matcher this._matcher);
 
@@ -41,10 +44,10 @@ class _EveryElement extends _IterableMatcher {
       mismatchDescription.add('has value ').addDescriptionOf(element).
           add(' which ');
       var subDescription = new StringDescription();
-      _matcher.describeMismatch(element, subDescription,
-            matchState['state'], verbose);
+      _matcher.describeMismatch(element, subDescription, matchState['state'],
+          verbose);
       if (subDescription.length > 0) {
-        mismatchDescription.add(subDescription);
+        mismatchDescription.add(subDescription.toString());
       } else {
         mismatchDescription.add("doesn't match ");
         _matcher.describe(mismatchDescription);
@@ -57,14 +60,12 @@ class _EveryElement extends _IterableMatcher {
   }
 }
 
-/**
- * Returns a matcher which matches [Iterable]s in which at least one
- * element matches the given [matcher].
- */
+/// Returns a matcher which matches [Iterable]s in which at least one
+/// element matches the given [matcher].
 Matcher anyElement(matcher) => new _AnyElement(wrapMatcher(matcher));
 
 class _AnyElement extends _IterableMatcher {
-  Matcher _matcher;
+  final Matcher _matcher;
 
   _AnyElement(this._matcher);
 
@@ -76,11 +77,9 @@ class _AnyElement extends _IterableMatcher {
       description.add('some element ').addDescriptionOf(_matcher);
 }
 
-/**
- * Returns a matcher which matches [Iterable]s that have the same
- * length and the same elements as [expected], and in the same order.
- * This is equivalent to equals but does not recurse.
- */
+/// Returns a matcher which matches [Iterable]s that have the same
+/// length and the same elements as [expected], and in the same order.
+/// This is equivalent to equals but does not recurse.
 
 Matcher orderedEquals(Iterable expected) => new _OrderedEquals(expected);
 
@@ -109,12 +108,10 @@ class _OrderedEquals extends Matcher {
   }
 }
 
-/**
- * Returns a matcher which matches [Iterable]s that have the same
- * length and the same elements as [expected], but not necessarily in
- * the same order. Note that this is O(n^2) so should only be used on
- * small objects.
- */
+/// Returns a matcher which matches [Iterable]s that have the same
+/// length and the same elements as [expected], but not necessarily in
+/// the same order. Note that this is O(n^2) so should only be used on
+/// small objects.
 Matcher unorderedEquals(Iterable expected) => new _UnorderedEquals(expected);
 
 class _UnorderedEquals extends _UnorderedMatches {
@@ -131,10 +128,8 @@ class _UnorderedEquals extends _UnorderedMatches {
         .add(' unordered');
 }
 
-/**
- * Iterable matchers match against [Iterable]s. We add this intermediate
- * class to give better mismatch error messages than the base Matcher class.
- */
+/// Iterable matchers match against [Iterable]s. We add this intermediate
+/// class to give better mismatch error messages than the base Matcher class.
 abstract class _IterableMatcher extends Matcher {
   const _IterableMatcher();
   Description describeMismatch(item, Description mismatchDescription,
@@ -150,12 +145,10 @@ abstract class _IterableMatcher extends Matcher {
   }
 }
 
-/**
- * Returns a matcher which matches [Iterable]s whose elements match the matchers
- * in [expected], but not necessarily in the same order.
- *
- *  Note that this is `O(n^2)` and so should only be used on small objects.
- */
+/// Returns a matcher which matches [Iterable]s whose elements match the
+/// matchers in [expected], but not necessarily in the same order.
+///
+///  Note that this is `O(n^2)` and so should only be used on small objects.
 Matcher unorderedMatches(Iterable expected) => new _UnorderedMatches(expected);
 
 class _UnorderedMatches extends Matcher {
@@ -216,20 +209,20 @@ class _UnorderedMatches extends Matcher {
       mismatchDescription.add(_test(item));
 }
 
-/**
- * A pairwise matcher for iterable. You can pass an arbitrary [comparator]
- * function that takes an expected and actual argument which will be applied
- * to each pair in order. [description]  should be a meaningful name for
- * the comparator.
- */
-Matcher pairwiseCompare(Iterable expected, Function comparator,
+/// A pairwise matcher for iterable. You can pass an arbitrary [comparator]
+/// function that takes an expected and actual argument which will be applied
+/// to each pair in order. [description]  should be a meaningful name for
+/// the comparator.
+Matcher pairwiseCompare(Iterable expected, bool comparator(a, b),
     String description) =>
         new _PairwiseCompare(expected, comparator, description);
 
+typedef bool _Comparator(a, b);
+
 class _PairwiseCompare extends _IterableMatcher {
-  Iterable _expected;
-  Function _comparator;
-  String _description;
+  final Iterable _expected;
+  final _Comparator _comparator;
+  final String _description;
 
   _PairwiseCompare(this._expected, this._comparator, this._description);
 
@@ -270,4 +263,3 @@ class _PairwiseCompare extends _IterableMatcher {
     }
   }
 }
-

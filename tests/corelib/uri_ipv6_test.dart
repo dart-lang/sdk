@@ -19,36 +19,36 @@ void testValidIpv6Uri() {
   path = 'http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:8080/index.html';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('FEDC:BA98:7654:3210:FEDC:BA98:7654:3210', uri.host);
+  Expect.equals('fedc:ba98:7654:3210:fedc:ba98:7654:3210', uri.host);
   Expect.equals(8080, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals(path, uri.toString());
+  Expect.equals(path.toLowerCase(), uri.toString());
 
   path = 'http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('FEDC:BA98:7654:3210:FEDC:BA98:7654:3210', uri.host);
+  Expect.equals('fedc:ba98:7654:3210:fedc:ba98:7654:3210', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]/index.html',
+  Expect.equals('http://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
                 uri.toString());
 
   path = 'https://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:443/index.html';
   uri = Uri.parse(path);
   Expect.equals('https', uri.scheme);
-  Expect.equals('FEDC:BA98:7654:3210:FEDC:BA98:7654:3210', uri.host);
+  Expect.equals('fedc:ba98:7654:3210:fedc:ba98:7654:3210', uri.host);
   Expect.equals(443, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('https://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]/index.html',
+  Expect.equals('https://[fedc:ba98:7654:3210:fedc:ba98:7654:3210]/index.html',
                 uri.toString());
 
   path = 'http://[1080:0:0:0:8:800:200C:417A]/index.html';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('1080:0:0:0:8:800:200C:417A', uri.host);
+  Expect.equals('1080:0:0:0:8:800:200c:417a', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals(path, uri.toString());
+  Expect.equals(path.toLowerCase(), uri.toString());
 
   path = 'http://[3ffe:2a00:100:7031::1]';
   uri = Uri.parse(path);
@@ -61,10 +61,10 @@ void testValidIpv6Uri() {
   path = 'http://[1080::8:800:200C:417A]/foo';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('1080::8:800:200C:417A', uri.host);
+  Expect.equals('1080::8:800:200c:417a', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('/foo', uri.path);
-  Expect.equals(path, uri.toString());
+  Expect.equals(path.toLowerCase(), uri.toString());
 
   path = 'http://[::192.9.5.5]/ipng';
   uri = Uri.parse(path);
@@ -77,34 +77,34 @@ void testValidIpv6Uri() {
   path = 'http://[::FFFF:129.144.52.38]:8080/index.html';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('::FFFF:129.144.52.38', uri.host);
+  Expect.equals('::ffff:129.144.52.38', uri.host);
   Expect.equals(8080, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals(path, uri.toString());
+  Expect.equals(path.toLowerCase(), uri.toString());
 
   path = 'http://[::FFFF:129.144.52.38]:80/index.html';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('::FFFF:129.144.52.38', uri.host);
+  Expect.equals('::ffff:129.144.52.38', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('http://[::FFFF:129.144.52.38]/index.html', uri.toString());
+  Expect.equals('http://[::ffff:129.144.52.38]/index.html', uri.toString());
 
   path = 'https://[::FFFF:129.144.52.38]:443/index.html';
   uri = Uri.parse(path);
   Expect.equals('https', uri.scheme);
-  Expect.equals('::FFFF:129.144.52.38', uri.host);
+  Expect.equals('::ffff:129.144.52.38', uri.host);
   Expect.equals(443, uri.port);
   Expect.equals('/index.html', uri.path);
-  Expect.equals('https://[::FFFF:129.144.52.38]/index.html', uri.toString());
+  Expect.equals('https://[::ffff:129.144.52.38]/index.html', uri.toString());
 
   path = 'http://[2010:836B:4179::836B:4179]';
   uri = Uri.parse(path);
   Expect.equals('http', uri.scheme);
-  Expect.equals('2010:836B:4179::836B:4179', uri.host);
+  Expect.equals('2010:836b:4179::836b:4179', uri.host);
   Expect.equals(80, uri.port);
   Expect.equals('', uri.path);
-  Expect.equals(path, uri.toString());
+  Expect.equals(path.toLowerCase(), uri.toString());
 }
 
 

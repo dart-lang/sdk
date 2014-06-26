@@ -9,21 +9,20 @@ library service.interfaces;
 
 import 'package:analyzer/src/generated/java_core.dart' show Enum, StringUtils;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analysis_services/src/generated/change.dart' show SourceChange;
 
-/**
- * The interface `AssistsConsumer` defines the behavior of objects that consume assists
- * [SourceChange]s.
- */
-abstract class AssistsConsumer implements Consumer {
-  /**
-   * A set of [SourceChange]s that have been computed.
-   *
-   * @param proposals an array of computed [SourceChange]s
-   * @param isLastResult is `true` if this is the last set of results
-   */
-  void computedSourceChanges(List<SourceChange> sourceChanges, bool isLastResult);
-}
+///**
+// * The interface `AssistsConsumer` defines the behavior of objects that consume assists
+// * [SourceChange]s.
+// */
+//abstract class AssistsConsumer implements Consumer {
+//  /**
+//   * A set of [SourceChange]s that have been computed.
+//   *
+//   * @param proposals an array of computed [SourceChange]s
+//   * @param isLastResult is `true` if this is the last set of results
+//   */
+//  void computedSourceChanges(List<SourceChange> sourceChanges, bool isLastResult);
+//}
 
 /**
  * The interface `CompletionSuggestion` defines the behavior of objects representing a

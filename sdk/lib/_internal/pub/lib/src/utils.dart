@@ -6,20 +6,16 @@
 library pub.utils;
 
 import 'dart:async';
-import "dart:collection";
 import "dart:convert";
 import 'dart:io';
-import 'dart:isolate';
 @MirrorsUsed(targets: 'pub.io')
 import 'dart:mirrors';
 
-import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
-import "package:http/http.dart" as http;
 import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
 
-import '../../asset/dart/serialize.dart';
+import 'exceptions.dart';
 
 export '../../asset/dart/utils.dart';
 
@@ -190,6 +186,10 @@ String quoteRegExp(String string) {
 ///
 /// Handles properly formatting IPv6 addresses.
 Uri baseUrlForAddress(InternetAddress address, int port) {
+  if (address.isLoopback) {
+    return new Uri(scheme: "http", host: "localhost", port: port);
+  }
+
   // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
   // URL ambiguity with the ":" in the address.
   if (address.type == InternetAddressType.IP_V6) {
@@ -197,6 +197,27 @@ Uri baseUrlForAddress(InternetAddress address, int port) {
   }
 
   return new Uri(scheme: "http", host: address.address, port: port);
+}
+
+/// Returns whether [host] is a host for a localhost or loopback URL.
+///
+/// Unlike [InternetAddress.isLoopback], this hostnames from URLs as well as
+/// from [InternetAddress]es, including "localhost".
+bool isLoopback(String host) {
+  if (host == 'localhost') return true;
+
+  // IPv6 hosts in URLs are surrounded by square brackets.
+  if (host.startsWith("[") && host.endsWith("]")) {
+    host = host.substring(1, host.length - 1);
+  }
+
+  try {
+    return new InternetAddress(host).isLoopback;
+  } on ArgumentError catch (_) {
+    // The host isn't an IP address and isn't "localhost', so it's almost
+    // certainly not a loopback host.
+    return false;
+  }
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only
@@ -259,93 +280,72 @@ Iterable<Pair> pairs(Iterable iter) {
   });
 }
 
-/// Creates a map from [iter], using the return values of [keyFn] as the keys
-/// and the return values of [valueFn] as the values.
-Map listToMap(Iterable iter, keyFn(element), valueFn(element)) {
-  var map = new Map();
-  for (var element in iter) {
-    map[keyFn(element)] = valueFn(element);
-  }
-  return map;
-}
-
 /// Creates a new map from [map] with new keys and values.
 ///
-/// The return values of [keyFn] are used as the keys and the return values of
-/// [valueFn] are used as the values for the new map.
-Map mapMap(Map map, keyFn(key, value), valueFn(key, value)) =>
-  listToMap(map.keys,
-      (key) => keyFn(key, map[key]),
-      (key) => valueFn(key, map[key]));
-
-/// Creates a new map from [map] with the same keys.
+/// The return values of [key] are used as the keys and the return values of
+/// [value] are used as the values for the new map.
 ///
-/// The return values of [valueFn] are used as the values for the new map.
-Map mapMapValues(Map map, fn(key, value)) => mapMap(map, (key, _) => key, fn);
+/// [key] defaults to returning the original key and [value] defaults to
+/// returning the original value.
+Map mapMap(Map map, {key(key, value), value(key, value)}) {
+  if (key == null) key = (key, _) => key;
+  if (value == null) value = (_, value) => value;
 
-/// Returns the shortest path from [start] to [end] in [graph].
-///
-/// The graph is represented by a map where each key is a vertex and the value
-/// is the set of other vertices directly reachable from the key. [start] and
-/// [end] must be vertices in this graph.
-List shortestPath(Map<dynamic, Iterable> graph, start, end) {
-  assert(graph.containsKey(start));
-  assert(graph.containsKey(end));
-
-  // Dijkstra's algorithm.
-  var infinity = graph.length;
-  var distance = mapMapValues(graph, (_1, _2) => infinity);
-
-  // A map from each node to the node that came before it on the shortest path
-  // from it back to [start].
-  var previous = {};
-
-  distance[start] = 0;
-  var remaining = graph.keys.toSet();
-  while (!remaining.isEmpty) {
-    var current = minBy(remaining, (node) => distance[node]);
-    remaining.remove(current);
-
-    // If there's no remaining node that's reachable from [start], then there's
-    // no path from [start] to [end].
-    if (distance[current] == infinity) return null;
-
-    // If we've reached [end], we've found the shortest path to it and we just
-    // need to reconstruct that path.
-    if (current == end) break;
-
-    for (var neighbor in graph[current]) {
-      if (!remaining.contains(neighbor)) continue;
-      var newDistance = distance[current] + 1;
-      if (newDistance >= distance[neighbor]) continue;
-      distance[neighbor] = newDistance;
-      previous[neighbor] = current;
-    }
-  }
-
-  var path = new Queue();
-  var current = end;
-  while (current != null) {
-    path.addFirst(current);
-    current = previous[current];
-  }
-
-  return path.toList();
-}
-
-/// Returns a copy of [graph] with all the edges reversed.
-///
-/// The graph is represented by a map where each key is a vertex and the value
-/// is the set of other vertices directly reachable from the key.
-Map<dynamic, Set> reverseGraph(Map<dynamic, Set> graph) {
-  var reversed = new Map.fromIterable(graph.keys, value: (_) => new Set());
-  graph.forEach((vertex, edges) {
-    for (var edge in edges) {
-      reversed[edge].add(vertex);
-    }
+  var result = {};
+  map.forEach((mapKey, mapValue) {
+    result[key(mapKey, mapValue)] = value(mapKey, mapValue);
   });
-  return reversed;
+  return result;
 }
+
+/// Like [Map.fromIterable], but [key] and [value] may return [Future]s.
+Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
+    value(element)}) {
+  if (key == null) key = (element) => element;
+  if (value == null) value = (element) => element;
+
+  var map = new Map();
+  return Future.wait(iter.map((element) {
+    return Future.wait([
+      syncFuture(() => key(element)),
+      syncFuture(() => value(element))
+    ]).then((results) {
+      map[results[0]] = results[1];
+    });
+  })).then((_) => map);
+}
+
+/// Given a list of filenames, returns a set of patterns that can be used to
+/// filter for those filenames.
+///
+/// For a given path, that path ends with some string in the returned set if
+/// and only if that path's basename is in [files].
+Set<String> createFileFilter(Iterable<String> files) {
+  return files.expand((file) {
+    var result = ["/$file"];
+    if (Platform.operatingSystem == 'windows') result.add("\\$file");
+    return result;
+  }).toSet();
+}
+
+/// Given a blacklist of directory names, returns a set of patterns that can
+/// be used to filter for those directory names.
+///
+/// For a given path, that path contains some string in the returned set if
+/// and only if one of that path's components is in [dirs].
+Set<String> createDirectoryFilter(Iterable<String> dirs) {
+  return dirs.expand((dir) {
+    var result = ["/$dir/"];
+    if (Platform.operatingSystem == 'windows') {
+      result..add("/$dir\\")..add("\\$dir/")..add("\\$dir\\");
+    }
+    return result;
+  }).toSet();
+}
+
+/// Returns the maximum value in [iter].
+int maxAll(Iterable<int> iter) =>
+    iter.reduce((max, element) => element > max ? element : max);
 
 /// Replace each instance of [matcher] in [source] with the return value of
 /// [fn].
@@ -427,6 +427,7 @@ Future<Stream> validateStream(Stream stream) {
 
 // TODO(nweiz): remove this when issue 7964 is fixed.
 /// Returns a [Future] that will complete to the first element of [stream].
+///
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
 Future streamFirst(Stream stream) {
   var completer = new Completer();
@@ -456,8 +457,10 @@ Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
 
 // TODO(nweiz): remove this when issue 7787 is fixed.
 /// Creates two single-subscription [Stream]s that each emit all values and
-/// errors from [stream]. This is useful if [stream] is single-subscription but
-/// multiple subscribers are necessary.
+/// errors from [stream].
+///
+/// This is useful if [stream] is single-subscription but multiple subscribers
+/// are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
   var controller1 = new StreamController(sync: true);
   var controller2 = new StreamController(sync: true);
@@ -503,6 +506,7 @@ List<String> splitLines(String text) =>
   text.split("\n").map((line) => line.replaceFirst(_trailingCR, "")).toList();
 
 /// Converts a stream of arbitrarily chunked strings into a line-by-line stream.
+///
 /// The lines don't include line termination characters. A single trailing
 /// newline is ignored.
 Stream<String> streamToLines(Stream<String> stream) {
@@ -544,7 +548,8 @@ Future<Iterable> futureWhere(Iterable iter, test(value)) {
 // pkg/http.
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
-/// This will always return an array of two elements or fewer.
+///
+/// This always returns an array of two elements or fewer.
 List<String> split1(String toSplit, String pattern) {
   if (toSplit.isEmpty) return <String>[];
 
@@ -596,8 +601,10 @@ Set unionAll(Iterable<Set> sets) =>
   sets.fold(new Set(), (union, set) => union.union(set));
 
 // TODO(nweiz): remove this when issue 9068 has been fixed.
-/// Whether [uri1] and [uri2] are equal. This consider HTTP URIs to default to
-/// port 80, and HTTPs URIs to default to port 443.
+/// Whether [uri1] and [uri2] are equal.
+///
+/// This consider HTTP URIs to default to port 80, and HTTPs URIs to default to
+/// port 443.
 bool urisEqual(Uri uri1, Uri uri2) =>
   canonicalizeUri(uri1) == canonicalizeUri(uri2);
 
@@ -620,14 +627,26 @@ String nicePath(String inputPath) {
   return relative;
 }
 
-/// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
-/// replacing `+` with ` `.
+/// Returns a human-friendly representation of [duration].
+String niceDuration(Duration duration) {
+  var result = duration.inMinutes > 0 ? "${duration.inMinutes}:" : "";
+
+  var s = duration.inSeconds % 59;
+  var ms = (duration.inMilliseconds % 1000) ~/ 100;
+  return result + "$s.${ms}s";
+}
+
+/// Decodes a URL-encoded string.
+///
+/// Unlike [Uri.decodeComponent], this includes replacing `+` with ` `.
 String urlDecode(String encoded) =>
   Uri.decodeComponent(encoded.replaceAll("+", " "));
 
 /// Takes a simple data structure (composed of [Map]s, [Iterable]s, scalar
 /// objects, and [Future]s) and recursively resolves all the [Future]s contained
-/// within. Completes with the fully resolved structure.
+/// within.
+///
+/// Completes with the fully resolved structure.
 Future awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(awaitObject);
@@ -660,22 +679,25 @@ String libraryPath(String libraryName) {
   return path.fromUri(lib.uri);
 }
 
+/// Whether "special" strings such as Unicode characters or color escapes are
+/// safe to use.
+///
+/// On Windows or when not printing to a terminal, only printable ASCII
+/// characters should be used.
+bool get canUseSpecialChars => !runningAsTest &&
+    Platform.operatingSystem != 'windows' &&
+    stdioType(stdout) == StdioType.TERMINAL;
+
 /// Gets a "special" string (ANSI escape or Unicode).
 ///
 /// On Windows or when not printing to a terminal, returns something else since
 /// those aren't supported.
-String getSpecial(String color, [String onWindows = '']) {
-  // No ANSI escapes on windows or when running tests.
-  if (runningAsTest || Platform.operatingSystem == 'windows' ||
-      stdioType(stdout) != StdioType.TERMINAL) {
-    return onWindows;
-  } else {
-    return color;
-  }
-}
+String getSpecial(String special, [String onWindows = '']) =>
+    canUseSpecialChars ? special : onWindows;
 
-/// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
-/// first line is prefixed with that instead.
+/// Prepends each line in [text] with [prefix].
+///
+/// If [firstPrefix] is passed, the first line is prefixed with that instead.
 String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
   var lines = text.split('\n');
   if (firstPrefix == null) {
@@ -717,9 +739,10 @@ Future resetStack(fn()) {
   return completer.future;
 }
 
-/// The subset of strings that don't need quoting in YAML. This pattern does
-/// not strictly follow the plain scalar grammar of YAML, which means some
-/// strings may be unnecessarily quoted, but it's much simpler.
+/// The subset of strings that don't need quoting in YAML.
+///
+/// This pattern does not strictly follow the plain scalar grammar of YAML,
+/// which means some strings may be unnecessarily quoted, but it's much simpler.
 final _unquotableYamlString = new RegExp(r"^[a-zA-Z_-][a-zA-Z_0-9-]*$");
 
 /// Converts [data], which is a parsed YAML object, to a pretty-printed string,
@@ -779,92 +802,11 @@ String yamlToString(data) {
   return buffer.toString();
 }
 
-/// An exception class for exceptions that are intended to be seen by the user.
-/// These exceptions won't have any debugging information printed when they're
-/// thrown.
-class ApplicationException implements Exception {
-  final String message;
-
-  /// The underlying exception that [this] is wrapping, if any.
-  final innerError;
-
-  /// The stack trace for [innerError] if it exists.
-  final Trace innerTrace;
-
-  ApplicationException(this.message, [this.innerError, StackTrace innerTrace])
-      : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
-
-  String toString() => message;
-}
-
-/// A class for command usage exceptions.
-class UsageException extends ApplicationException {
-  /// The command usage information.
-  final String usage;
-
-  UsageException(String message, this.usage)
-      : super(message);
-
-  String toString() => "$message\n\n$usage";
-}
-
-/// A class for errors in a command's input data.
-///
-/// This corresponds to the [exit_codes.DATA] exit code.
-class DataException extends ApplicationException {
-  DataException(String message)
-      : super(message);
-}
-
-/// An class for exceptions where a package could not be found in a [Source].
-///
-/// The source is responsible for wrapping its internal exceptions in this so
-/// that other code in pub can use this to show a more detailed explanation of
-/// why the package was being requested.
-class PackageNotFoundException extends ApplicationException {
-  PackageNotFoundException(String message, [innerError, StackTrace innerTrace])
-      : super(message, innerError, innerTrace);
-}
-
 /// Throw a [ApplicationException] with [message].
 void fail(String message, [innerError, StackTrace innerTrace]) {
-  throw new ApplicationException(message, innerError, innerTrace);
-}
-
-/// All the names of user-facing exceptions.
-final _userFacingExceptions = new Set<String>.from([
-  'ApplicationException',
-  // This refers to http.ClientException.
-  'ClientException',
-  // Errors coming from the Dart analyzer are probably caused by syntax errors
-  // in user code, so they're user-facing.
-  'AnalyzerError', 'AnalyzerErrorGroup',
-  // An error spawning an isolate probably indicates a transformer with an
-  // invalid import.
-  'IsolateSpawnException',
-  // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
-  'FileSystemException', 'HttpException', 'OSError',
-  'ProcessException', 'SocketException', 'WebSocketException'
-]);
-
-/// Returns whether [error] is a user-facing error object. This includes both
-/// [ApplicationException] and any dart:io errors.
-bool isUserFacingException(error) {
-  if (error is CrossIsolateException) {
-    return _userFacingExceptions.contains(error.type);
+  if (innerError != null) {
+    throw new WrappedException(message, innerError, innerTrace);
+  } else {
+    throw new ApplicationException(message);
   }
-
-  // TODO(nweiz): unify this list with _userFacingExceptions when issue 5897 is
-  // fixed.
-  return error is ApplicationException ||
-    error is AnalyzerError ||
-    error is AnalyzerErrorGroup ||
-    error is IsolateSpawnException ||
-    error is FileSystemException ||
-    error is HttpException ||
-    error is http.ClientException ||
-    error is OSError ||
-    error is ProcessException ||
-    error is SocketException ||
-    error is WebSocketException;
 }

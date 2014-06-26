@@ -19,6 +19,7 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
   class double {}
   class String {}
   class Function {}
+  class Null {}
   class Type {}
   class Map {}
   class StackTrace {}
@@ -29,10 +30,11 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
 main() {
   asyncTest(() => compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).
       then((generated) {
-    MockCompiler compiler = new MockCompiler();
-    var backend = compiler.backend;
+    return MockCompiler.create((MockCompiler compiler) {
+      var backend = compiler.backend;
 
-    // Make sure no class is emitted.
-    Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
+      // Make sure no class is emitted.
+      Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
+    });
   }));
 }

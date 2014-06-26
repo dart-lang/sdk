@@ -32,13 +32,23 @@
     D.prototype.inc = function() { this.x = counter++; };
     D.prototype.createdCallback = function() { this.inc(); };
 
+    var E = { prototype: Object.create(D.prototype) };
+    E.prototype.inc2 = function() {
+      this.y = counter++;
+    };
+    E.prototype.createdCallback = function() {
+      D.prototype.createdCallback.call(this);
+      this.inc2();
+    };
+
     document.registerElement('x-a', A);
     document.registerElement('x-b', B);
     document.registerElement('x-d', D);
+    document.registerElement('x-e', E);
 
     function registerC() {
       var proto = Object.create(HTMLElement.prototype, {
-        inc: { value: function() { this.x = counter++; } }, 
+        inc: { value: function() { this.x = counter++; } },
         createdCallback: {
           value: function() { this.inc(); },
           configurable: true},
@@ -56,6 +66,9 @@
     }
     function addD() {
       document.body.appendChild(document.createElement('x-d'));
+    }
+    function addE() {
+      document.body.appendChild(document.createElement('x-e'));
     }
   </script>
   <x-a id="i1"></x-a>

@@ -15,19 +15,31 @@ DECLARE_FLAG(charp, coverage_dir);
 // Forward declarations.
 class Class;
 class Function;
+template <typename T> class GrowableArray;
 class Isolate;
 class JSONArray;
 class JSONStream;
+class Library;
+class Script;
+class String;
 
 class CodeCoverage : public AllStatic {
  public:
   static void Write(Isolate* isolate);
   static void PrintJSON(Isolate* isolate, JSONStream* stream);
 
+  static void PrintJSONForScript(const Script& script, JSONStream* stream);
+  static void PrintJSONForLibrary(
+      const Library& lib, const Script& script_filter, JSONStream* stream);
+  static void PrintJSONForClass(const Class& lib, JSONStream* stream);
+
  private:
-  static void PrintClass(const Class& cls, const JSONArray& arr);
+  static void PrintClass(const Class& cls,
+                         const JSONArray& arr,
+                         const Script& script_filter);
   static void CompileAndAdd(const Function& function,
-                            const JSONArray& hits_arr);
+                            const JSONArray& hits_arr,
+                            const GrowableArray<intptr_t>& pos_to_line);
 };
 
 }  // namespace dart

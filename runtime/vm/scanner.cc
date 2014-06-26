@@ -19,6 +19,34 @@ namespace dart {
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
 
+// Quick access to the locally defined isolate() method.
+#define I (isolate())
+
+
+class ScanContext : public ZoneAllocated {
+ public:
+  explicit ScanContext(Scanner* scanner)
+      :  next_(scanner->saved_context_),
+         string_delimiter_(scanner->string_delimiter_),
+         string_is_multiline_(scanner->string_is_multiline_),
+         brace_level_(scanner->brace_level_) {}
+
+  void CopyTo(Scanner* scanner) {
+    scanner->string_delimiter_ = string_delimiter_;
+    scanner->string_is_multiline_ = string_is_multiline_;
+    scanner->brace_level_ = brace_level_;
+  }
+
+  ScanContext* next() const { return next_; }
+
+ private:
+  ScanContext* next_;
+  const char string_delimiter_;
+  const bool string_is_multiline_;
+  const int brace_level_;
+};
+
+
 Scanner::KeywordTable Scanner::keywords_[Token::kNumKeywords];
 int Scanner::keywords_char_offset_[Scanner::kNumLowercaseChars];
 
@@ -40,11 +68,7 @@ void Scanner::Reset() {
   c0_ = '\0';
   newline_seen_ = false;
   prev_token_line_ = 1;
-  while (saved_context_ != NULL) {
-    ScanContext* ctx = saved_context_;
-    saved_context_ = ctx->next;
-    delete ctx;
-  }
+  saved_context_ = NULL;
   string_delimiter_ = '\0';
   string_is_multiline_ = false;
   brace_level_ = 0;
@@ -58,22 +82,19 @@ Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
       saved_context_(NULL),
-      private_key_(String::ZoneHandle(private_key.raw())) {
+      private_key_(String::ZoneHandle(private_key.raw())),
+      char_at_func_(src.CharAtFunc()),
+      isolate_(Isolate::Current()) {
   Reset();
 }
 
-Scanner::~Scanner() {
-  while (saved_context_ != NULL) {
-    ScanContext* ctx = saved_context_;
-    saved_context_ = ctx->next;
-    delete ctx;
-  }
-}
+
+Scanner::~Scanner() {}
 
 
 void Scanner::ErrorMsg(const char* msg) {
   current_token_.kind = Token::kERROR;
-  current_token_.literal = &String::ZoneHandle(Symbols::New(msg));
+  current_token_.literal = &String::ZoneHandle(I, Symbols::New(msg));
   current_token_.position = c0_pos_;
   token_start_ = lookahead_pos_;
   current_token_.offset = lookahead_pos_;
@@ -81,12 +102,8 @@ void Scanner::ErrorMsg(const char* msg) {
 
 
 void Scanner::PushContext() {
-  ScanContext* ctx = new ScanContext;
-  ctx->next = saved_context_;
+  ScanContext* ctx = new(I) ScanContext(this);
   saved_context_ = ctx;
-  ctx->string_delimiter = string_delimiter_;
-  ctx->string_is_multiline = string_is_multiline_;
-  ctx->brace_level = brace_level_;
   string_delimiter_ = '\0';
   string_is_multiline_ = false;
   brace_level_ = 1;  // Account for the opening ${ token.
@@ -98,12 +115,9 @@ void Scanner::PopContext() {
   ASSERT(brace_level_ == 0);
   ASSERT(string_delimiter_ == '\0');
   ScanContext* ctx = saved_context_;
-  saved_context_ = ctx->next;
-  string_delimiter_ = ctx->string_delimiter;
+  ctx->CopyTo(this);
+  saved_context_ = ctx->next();
   ASSERT(string_delimiter_ != '\0');
-  string_is_multiline_ = ctx->string_is_multiline;
-  brace_level_ = ctx->brace_level;
-  delete ctx;
 }
 
 
@@ -154,11 +168,11 @@ bool Scanner::IsIdent(const String& str) {
   if (!str.IsOneByteString()) {
     return false;
   }
-  if (str.Length() == 0 || !IsIdentStartChar(str.CharAt(0))) {
+  if (str.Length() == 0 || !IsIdentStartChar(CallCharAt()(str, 0))) {
     return false;
   }
   for (int i =  1; i < str.Length(); i++) {
-    if (!IsIdentChar(str.CharAt(i))) {
+    if (!IsIdentChar(CallCharAt()(str, i))) {
       return false;
     }
   }
@@ -202,7 +216,7 @@ void Scanner::ReadChar() {
       newline_seen_ = true;
       c0_pos_.line++;
       c0_pos_.column = 0;
-      if (source_.CharAt(lookahead_pos_) == '\r') {
+      if (CallCharAt()(source_, lookahead_pos_) == '\r') {
         // Replace a sequence of '\r' '\n' with a single '\n'.
         if (LookaheadChar(1) == '\n') {
           lookahead_pos_++;
@@ -227,7 +241,7 @@ int32_t Scanner::LookaheadChar(int how_many) {
   ASSERT(how_many >= 0);
   int32_t lookahead_char = '\0';
   if (lookahead_pos_ + how_many < source_length_) {
-    lookahead_char = source_.CharAt(lookahead_pos_ + how_many);
+    lookahead_char = CallCharAt()(source_, lookahead_pos_ + how_many);
   }
   return lookahead_char;
 }
@@ -282,7 +296,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   ASSERT(allow_dollar || (c0_ != '$'));
   int ident_length = 0;
   int ident_pos = lookahead_pos_;
-  int32_t ident_char0 = source_.CharAt(ident_pos);
+  int32_t ident_char0 = CallCharAt()(source_, ident_pos);
   while (IsIdentChar(c0_) && (allow_dollar || (c0_ != '$'))) {
     ReadChar();
     ident_length++;
@@ -292,13 +306,14 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   // Note, can't use strcmp since token_chars is not null-terminated.
   if (('a' <= ident_char0) && (ident_char0 <= 'z')) {
     int i = keywords_char_offset_[ident_char0 - 'a'];
-    while (i < Token::kNumKeywords &&
-           keywords_[i].keyword_chars[0] <= ident_char0) {
+    while ((i < Token::kNumKeywords) &&
+           (keywords_[i].keyword_chars[0] <= ident_char0)) {
       if (keywords_[i].keyword_len == ident_length) {
         const char* keyword = keywords_[i].keyword_chars;
         int char_pos = 1;
         while ((char_pos < ident_length) &&
-               (keyword[char_pos] == source_.CharAt(ident_pos + char_pos))) {
+               (keyword[char_pos] ==
+                   CallCharAt()(source_, ident_pos + char_pos))) {
           char_pos++;
         }
         if (char_pos == ident_length) {
@@ -314,7 +329,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   // We did not read a keyword.
   current_token_.kind = Token::kIDENT;
   String& literal =
-      String::ZoneHandle(Symbols::New(source_, ident_pos, ident_length));
+      String::ZoneHandle(I, Symbols::New(source_, ident_pos, ident_length));
   if (ident_char0 == Library::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
     literal = String::Concat(literal, private_key_);
@@ -372,7 +387,7 @@ void Scanner::ScanNumber(bool dec_point_seen) {
   }
   if (current_token_.kind != Token::kILLEGAL) {
     intptr_t len = lookahead_pos_ - token_start_;
-    String& str = String::ZoneHandle(
+    String& str = String::ZoneHandle(I,
         String::SubString(source_, token_start_, len, Heap::kOld));
     str = Symbols::New(str);
     current_token_.literal = &str;
@@ -527,7 +542,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
       // Scanned a string piece.
       ASSERT(string_chars.data() != NULL);
       // Strings are canonicalized: Allocate a symbol.
-      current_token_.literal = &String::ZoneHandle(
+      current_token_.literal = &String::ZoneHandle(I,
           Symbols::FromUTF32(string_chars.data(), string_chars.length()));
       // Preserve error tokens.
       if (current_token_.kind != Token::kERROR) {
@@ -550,7 +565,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw, bool remove_whitespace) {
           Recognize(Token::kSTRING);
           ASSERT(string_chars.data() != NULL);
           // Strings are canonicalized: Allocate a symbol.
-          current_token_.literal = &String::ZoneHandle(
+          current_token_.literal = &String::ZoneHandle(I,
               Symbols::FromUTF32(string_chars.data(), string_chars.length()));
         }
         EndStringLiteral();
@@ -915,7 +930,7 @@ void Scanner::ScanTo(intptr_t token_index) {
 
 
 const Scanner::GrowableTokenStream& Scanner::GetStream() {
-  GrowableTokenStream* ts = new GrowableTokenStream(128);
+  GrowableTokenStream* ts = new(I) GrowableTokenStream(128);
   ScanAll(ts);
   if (FLAG_print_tokens) {
     Scanner::PrintTokens(*ts);

@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.map_matchers;
 
-/**
- * Returns a matcher which matches maps containing the given [value].
- */
+import 'expect.dart';
+import 'interfaces.dart';
+
+/// Returns a matcher which matches maps containing the given [value].
 Matcher containsValue(value) => new _ContainsValue(value);
 
 class _ContainsValue extends Matcher {
@@ -19,10 +20,8 @@ class _ContainsValue extends Matcher {
       description.add('contains value ').addDescriptionOf(_value);
 }
 
-/**
- * Returns a matcher which matches maps containing the key-value pair
- * with [key] => [value].
- */
+/// Returns a matcher which matches maps containing the key-value pair
+/// with [key] => [value].
 Matcher containsPair(key, value) =>
     new _ContainsMapping(key, wrapMatcher(value));
 

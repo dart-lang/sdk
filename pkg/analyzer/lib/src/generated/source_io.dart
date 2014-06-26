@@ -370,7 +370,7 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.PACKAGE_SELF_URI || kind == UriKind.PACKAGE_URI) {
+    if (kind == UriKind.PACKAGE_URI) {
       return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
     }
     return null;
@@ -407,7 +407,7 @@ class PackageUriResolver extends UriResolver {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
-        UriKind uriKind = _isSelfReference(packagesDirectory, canonicalFile) ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
+        UriKind uriKind = _isSelfReference(packagesDirectory, canonicalFile) ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
         return new FileBasedSource.con2(canonicalFile, uriKind);
       }
     }

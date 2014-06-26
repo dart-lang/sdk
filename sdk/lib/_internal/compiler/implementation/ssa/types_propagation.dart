@@ -321,7 +321,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction receiver = instruction.getDartReceiver(compiler);
     TypeMask receiverType = receiver.instructionType;
-    Selector selector = new TypedSelector(receiverType, instruction.selector);
+    Selector selector = new TypedSelector(receiverType, instruction.selector,
+        compiler);
     instruction.selector = selector;
 
     // Try to specialize the receiver after this call.

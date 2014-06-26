@@ -61,6 +61,9 @@ class HeapMapElement extends ObservatoryElement {
   static final _freeColor = [255, 255, 255, 255];
   static final _pageSeparationColor = [0, 0, 0, 255];
   static const _PAGE_SEPARATION_HEIGHT = 4;
+  // Many browsers will not display a very tall canvas.
+  // TODO(koda): Improve interface for huge heaps.
+  static const _MAX_CANVAS_HEIGHT = 6000;
 
   @observable String status;
   @published ServiceMap fragmentation;
@@ -68,8 +71,9 @@ class HeapMapElement extends ObservatoryElement {
   HeapMapElement.created() : super.created() {
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     _fragmentationCanvas = shadowRoot.querySelector("#fragmentation");
     _fragmentationCanvas.onMouseMove.listen(_handleMouseMove);
     _fragmentationCanvas.onMouseDown.listen(_handleClick);
@@ -92,13 +96,13 @@ class HeapMapElement extends ObservatoryElement {
 
   void _updateClassList(classList, int freeClassId) {
     for (var member in classList['members']) {
-      if (member['type'] != '@Class') {
+      if (member is! Class) {
         Logger.root.info('$member');
         continue;
       }
-      var classId = int.parse(member['id'].split('/').last);
+      var classId = int.parse(member.id.split('/').last);
       var color = _classIdToRGBA(classId);
-      _addClass(classId, member['name'], color);
+      _addClass(classId, member.name, color);
     }
     _addClass(freeClassId, 'Free', _freeColor);
     _addClass(0, '', _pageSeparationColor);
@@ -148,7 +152,7 @@ class HeapMapElement extends ObservatoryElement {
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';
   }
-  
+
   void _handleClick(MouseEvent event) {
     var address = _objectAt(event.offset).address.toRadixString(16);
     window.location.hash = "/${fragmentation.isolate.link}/address/$address";
@@ -165,7 +169,7 @@ class HeapMapElement extends ObservatoryElement {
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
         fragmentation['page_size_bytes'] ~/
         fragmentation['unit_size_bytes'] ~/ width;
-    var height = _pageHeight * pages.length;
+    var height = min(_pageHeight * pages.length, _MAX_CANVAS_HEIGHT);
     _fragmentationData =
         _fragmentationCanvas.context2D.createImageData(width, height);
     _fragmentationCanvas.width = _fragmentationData.width;
@@ -178,10 +182,11 @@ class HeapMapElement extends ObservatoryElement {
   void _renderPages(int startPage) {
     var pages = fragmentation['pages'];
     status = 'Loaded $startPage of ${pages.length} pages';
-    if (startPage >= pages.length) {
+    var startY = startPage * _pageHeight;
+    var endY = startY + _pageHeight;
+    if (startPage >= pages.length || endY > _fragmentationData.height) {
       return;
     }
-    var startY = startPage * _pageHeight;
     var pixel = new PixelReference(_fragmentationData, new Point(0, startY));
     var objects = pages[startPage]['objects'];
     for (var i = 0; i < objects.length; i += 2) {
@@ -193,7 +198,6 @@ class HeapMapElement extends ObservatoryElement {
         pixel = pixel.next();
       }
     }
-    var endY = startY + _pageHeight;
     while (pixel.point.y < endY) {
       pixel.color = _pageSeparationColor;
       pixel = pixel.next();
@@ -219,7 +223,7 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   void fragmentationChanged(oldValue) {
-    // Async, in case enteredView has not yet run (observed in JS version).
+    // Async, in case attached has not yet run (observed in JS version).
     new Future(() {
       _updateFragmentationData();
     });

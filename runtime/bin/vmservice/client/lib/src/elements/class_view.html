@@ -1,32 +1,33 @@
-<head>
-  <link rel="import" href="curly_block.html">
-  <link rel="import" href="eval_box.html">
-  <link rel="import" href="eval_link.html">
-  <link rel="import" href="field_ref.html">
-  <link rel="import" href="function_ref.html">
-  <link rel="import" href="instance_ref.html">
-  <link rel="import" href="library_ref.html">
-  <link rel="import" href="nav_bar.html">
-  <link rel="import" href="observatory_element.html">
-  <link rel="import" href="script_ref.html">
-</head>
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="curly_block.html">
+<link rel="import" href="eval_box.html">
+<link rel="import" href="eval_link.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="library_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_ref.html">
+
 <polymer-element name="class-view" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
-      <library-nav-menu library="{{ cls['library'] }}"></library-nav-menu>
+      <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
     </nav-bar>
 
     <div class="content">
       <h1>
-        <template if="{{ cls['abstract'] }}">
+        <template if="{{ cls.isAbstract }}">
           abstract
         </template>
-        <template if="{{ cls['patch'] }}">
+        <template if="{{ cls.isPatch }}">
           patch
         </template>
         class {{ cls.name }}
@@ -35,32 +36,32 @@
         <div class="memberItem">
           <div class="memberName">library</div>
           <div class="memberValue">
-            <library-ref ref="{{ cls['library'] }}"></library-ref>
+            <library-ref ref="{{ cls.library }}"></library-ref>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ cls['script'] }}" pos="{{ cls['tokenPos'] }}">
+            <script-ref ref="{{ cls.script }}" pos="{{ cls.tokenPos }}">
             </script-ref>
           </div>
         </div>
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['super'] != null }}">
+        <template if="{{ cls.superClass != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
-              <class-ref ref="{{ cls['super'] }}"></class-ref>
+              <class-ref ref="{{ cls.superClass }}"></class-ref>
             </div>
           </div>
         </template>
-        <template if="{{ cls['subclasses'].length > 0 }}">
+        <template if="{{ cls.subClasses.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">extended by</div>
             <div class="memberValue">
-              <template repeat="{{ subclass in cls['subclasses'] }}">
+              <template repeat="{{ subclass in cls.subClasses }}">
                 <class-ref ref="{{ subclass }}"></class-ref>
               </template>
             </div>
@@ -69,11 +70,11 @@
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls['interfaces'].length > 0 }}">
+        <template if="{{ cls.interfaces.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">implements</div>
             <div class="memberValue">
-              <template repeat="{{ interface in cls['interfaces'] }}">
+              <template repeat="{{ interface in cls.interfaces }}">
                 <class-ref ref="{{ interface }}"></class-ref>
               </template>
             </div>
@@ -85,28 +86,22 @@
             <div class="memberValue">{{ cls.vmName }}</div>
           </div>
         </template>
-        <div class="memberItem">
-          <div class="memberName">retained size<br>(all instances)</div>
-          <div class="memberValue">
-            <eval-link callback="{{ retainedSize }}"></eval-link>
-          </div>
-        </div>
       </div>
     </div>
 
-    <template if="{{ cls['error'] != null }}">
+    <template if="{{ cls.error != null }}">
       <!-- TODO(turnidge): Don't use instance-ref for error display here -->
-      <instance-ref ref="{{ cls['error'] }}"></instance-ref>
+      <instance-ref ref="{{ cls.error }}"></instance-ref>
     </template>
 
     <hr>
 
     <div class="content">
-      <template if="{{ cls['fields'].isNotEmpty }}">
+      <template if="{{ cls.fields.isNotEmpty }}">
         fields ({{ cls['fields'].length }})
-        <curly-block expand="{{ cls['fields'].length <= 8 }}">
+        <curly-block expand="{{ cls.fields.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ field in cls['fields'] }}">
+            <template repeat="{{ field in cls.fields }}">
               <div class="memberItem">
                 <div class="memberName">
                   <field-ref ref="{{ field }}"></field-ref>
@@ -122,11 +117,11 @@
         </curly-block><br><br>
       </template>
 
-      <template if="{{ cls['functions'].isNotEmpty }}">
-        functions ({{ cls['functions'].length }})
-        <curly-block expand="{{ cls['functions'].length <= 8 }}">
+      <template if="{{ cls.functions.isNotEmpty }}">
+        functions ({{ cls.functions.length }})
+        <curly-block expand="{{ cls.functions.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ function in cls['functions'] }}">
+            <template repeat="{{ function in cls.functions }}">
               <div class="memberItem">
                 <div class="memberValue">
                   <function-ref ref="{{ function }}" qualified="{{ false }}">
@@ -137,6 +132,52 @@
           </div>
         </curly-block><br><br>
       </template>
+      
+      <template if="{{ !cls.hasNoAllocations }}">
+        instances
+          <div class="memberItem">
+            <div class="memberName">currently allocated</div>
+            <div class="memberValue">
+              count {{ cls.newSpace.current.instances + cls.oldSpace.current.instances }}
+              (shallow size {{ cls.newSpace.current.bytes + cls.oldSpace.current.bytes | formatSize }})
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">strongly reachable</div>
+            <div class="memberValue">
+              <template if="{{ instances == null }}">
+                <eval-link callback="{{ reachable }}"
+                           label="[find]"
+                           expr="100">
+                </eval-link>
+              </template>
+              <template if="{{ instances != null }}">
+                sample
+                <instance-ref ref="{{ instances['sample'] }}"></instance-ref>
+                <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
+                  <eval-link callback="{{ reachable }}"
+                           label="[more]"
+                           expr="{{ instances['sampleCount'] * 2 }}">
+                  </eval-link>
+                </template>
+                of total {{ instances['totalCount'] }}
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">retained size</div>
+            <div class="memberValue">
+              <template if="{{ retainedBytes == null }}">
+                <eval-link callback="{{ retainedSize }}"
+                           label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ retainedBytes != null }}">
+                {{ retainedBytes | formatSize }}
+              </template>
+            </div>
+          </div>
+        </template>
     </div>
 
     <hr>
@@ -147,5 +188,6 @@
     <br><br><br><br>
     <br><br><br><br>
   </template>
-  <script type="application/dart" src="class_view.dart"></script>
 </polymer-element>
+
+<script type="application/dart" src="class_view.dart"></script>

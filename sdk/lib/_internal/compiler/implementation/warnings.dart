@@ -400,8 +400,9 @@ main() => new C();"""]);
   static const MessageKind DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       "Cannot have more than one super initializer.");
 
-  static const MessageKind INVALID_ARGUMENTS = const MessageKind(
-      "Arguments do not match the expected parameters of '#{methodName}'.");
+  static const MessageKind INVALID_CONSTRUCTOR_ARGUMENTS = const MessageKind(
+      "Arguments do not match the expected parameters of constructor "
+      "'#{constructorName}'.");
 
   static const MessageKind NO_MATCHING_CONSTRUCTOR = const MessageKind(
       "'super' call arguments and constructor parameters do not match.");
@@ -758,8 +759,10 @@ main() { F f = null; }"""]);
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "'#{type}' cannot be implemented.");
 
+  // TODO(johnnwinther): Split messages into reasons for malformedness.
   static const MessageKind CANNOT_EXTEND_MALFORMED = const MessageKind(
-      "A class can't extend a malformed type.",
+      "Class '#{className}' can't extend the type '#{malformedType}' because "
+      "it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "'extends' clause.",
       examples: const ["""
@@ -767,7 +770,8 @@ class A extends Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_IMPLEMENT_MALFORMED = const MessageKind(
-      "A class can't implement a malformed type.",
+      "Class '#{className}' can't implement the type '#{malformedType}' "
+      "because it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'implements' clause.",
       examples: const ["""
@@ -775,7 +779,8 @@ class A implements Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_MIXIN_MALFORMED = const MessageKind(
-      "A class can't mixin a malformed type.",
+      "Class '#{className}' can't mixin the type '#{malformedType}' because it "
+      "is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'with' clause.",
       examples: const ["""
@@ -1832,6 +1837,24 @@ main() {
 }
 /*"""]);
 
+  static const MessageKind MISSING_TOKEN_BEFORE_THIS = const MessageKind(
+      "Expected '#{token}' before this.",
+      // Consider the second example below: the parser expects a ')' before
+      // 'y', but a ',' would also have worked. We don't have enough
+      // information to give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+          "main() => true ? 1;",
+          "main() => foo(x: 1 y: 2);",
+        ]);
+
+  static const MessageKind MISSING_TOKEN_AFTER_THIS = const MessageKind(
+      "Expected '#{token}' after this.",
+      // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information to
+      // give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["main(x) {x}"]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 
@@ -2026,7 +2049,7 @@ class Message {
     if (message == null) {
       message = kind.template;
       arguments.forEach((key, value) {
-        message = message.replaceAll('#{${key}}', value.toString());
+        message = message.replaceAll('#{${key}}', convertToString(value));
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -2036,7 +2059,7 @@ class Message {
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
-          howToFix = howToFix.replaceAll('#{${key}}', value.toString());
+          howToFix = howToFix.replaceAll('#{${key}}', convertToString(value));
         });
         message = '$message\n$howToFix';
       }
@@ -2054,4 +2077,14 @@ class Message {
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');
+
+  static String convertToString(value) {
+    if (value is ErrorToken) {
+      // Shouldn't happen.
+      return value.assertionMessage;
+    } else if (value is Token) {
+      value = value.value;
+    }
+    return '$value';
+  }
 }

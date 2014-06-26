@@ -10,11 +10,13 @@
 #include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
+#include "vm/trace_buffer.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -29,6 +31,7 @@ class CodeIndexTable;
 class Debugger;
 class DeoptContext;
 class Error;
+class ExceptionHandlers;
 class Field;
 class Function;
 class GrowableObjectArray;
@@ -48,6 +51,7 @@ class Object;
 class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
+class PcDescriptors;
 class RawInstance;
 class RawArray;
 class RawContext;
@@ -87,12 +91,14 @@ class IsolateVisitor {
   V(Class)                                                                     \
   V(Code)                                                                      \
   V(Error)                                                                     \
+  V(ExceptionHandlers)                                                         \
   V(Field)                                                                     \
   V(Function)                                                                  \
   V(GrowableObjectArray)                                                       \
   V(Instance)                                                                  \
   V(Library)                                                                   \
   V(Object)                                                                    \
+  V(PcDescriptors)                                                             \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \
@@ -446,6 +452,13 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  void set_trace_buffer(TraceBuffer* buffer) {
+    trace_buffer_ = buffer;
+  }
+  TraceBuffer* trace_buffer() {
+    return trace_buffer_;
+  }
+
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -454,7 +467,7 @@ class Isolate : public BaseIsolate {
 
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
-      OS::GetCurrentTimeMillis();
+        OS::GetCurrentTimeMillis();
   }
 
   int64_t last_allocationprofile_accumulator_reset_timestamp() const {
@@ -551,6 +564,8 @@ class Isolate : public BaseIsolate {
 
   static void VisitIsolates(IsolateVisitor* visitor);
 
+  Counters* counters() { return &counters_; }
+
  private:
   Isolate();
 
@@ -618,6 +633,9 @@ class Isolate : public BaseIsolate {
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
 
+  // Trace buffer support.
+  TraceBuffer* trace_buffer_;
+
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
   InterruptableThreadState* thread_state_;
@@ -626,6 +644,8 @@ class Isolate : public BaseIsolate {
   uword user_tag_;
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
+
+  Counters counters_;
 
   // Isolate list next pointer.
   Isolate* next_;

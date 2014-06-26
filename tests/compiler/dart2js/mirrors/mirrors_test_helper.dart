@@ -5,9 +5,9 @@
 import 'dart:io';
 import 'dart:async';
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart' as source_mirrors;
-import '../../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
+import 'package:compiler/implementation/mirrors/source_mirrors.dart';
+import 'package:compiler/implementation/mirrors/analyze.dart' as source_mirrors;
+import 'package:compiler/implementation/source_file_provider.dart';
 
 TypeMirror createInstantiation(TypeSourceMirror type,
                                List<TypeMirror> typeArguments) {
@@ -24,7 +24,8 @@ Future<MirrorSystem> analyze(String test) {
 Future<MirrorSystem> analyzeUri(Uri testUri) {
   Uri repository = Platform.script.resolve('../../../../');
   Uri libraryRoot = repository.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
+  Uri packageRoot = Uri.base.resolveUri(
+      new Uri.file('${Platform.packageRoot}/'));
   var provider = new CompilerSourceFileProvider();
   var handler = new FormattingDiagnosticHandler(provider);
   return source_mirrors.analyze(

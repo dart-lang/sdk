@@ -17,7 +17,7 @@ $endif
 $!GENERATED_DART_FILES
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
-const web_audioBlinkMap = const {
+final web_audioBlinkMap = {
 $!TYPE_MAP
 };
 $endif

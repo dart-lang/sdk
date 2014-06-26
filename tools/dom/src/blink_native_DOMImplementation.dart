@@ -5,54 +5,64 @@
 part of _blink;
 
 // _Utils native entry points
-Native_Utils_window() native "Utils_window";
+class Blink_Utils {
+  static window() native "Utils_window";
 
-Native_Utils_forwardingPrint(message) native "Utils_forwardingPrint";
+  static forwardingPrint(message) native "Utils_forwardingPrint";
 
-Native_Utils_spawnDomUri(uri) native "Utils_spawnDomUri";
+  static spawnDomUri(uri) native "Utils_spawnDomUri";
 
-Native_Utils_register(document, tag, customType, extendsTagName) native "Utils_register";
+  static register(document, tag, customType, extendsTagName) native "Utils_register";
 
-Native_Utils_createElement(document, tagName) native "Utils_createElement";
+  static createElement(document, tagName) native "Utils_createElement";
 
-Native_Utils_initializeCustomElement(element) native "Utils_initializeCustomElement";
+  static initializeCustomElement(element) native "Utils_initializeCustomElement";
 
-Native_Utils_changeElementWrapper(element, type) native "Utils_changeElementWrapper";
+  static changeElementWrapper(element, type) native "Utils_changeElementWrapper";
+}
 
-// FIXME: Return to using explicit cross frame entry points after roll to M35
-Native_DOMWindowCrossFrame_get_history(_DOMWindowCrossFrame) native "Window_history_cross_frame_Getter";
+class Blink_DOMWindowCrossFrame {
+  // FIXME: Return to using explicit cross frame entry points after roll to M35
+  static get_history(_DOMWindowCrossFrame) native "Window_history_cross_frame_Getter";
 
-Native_DOMWindowCrossFrame_get_location(_DOMWindowCrossFrame) native "Window_location_cross_frame_Getter";
+  static get_location(_DOMWindowCrossFrame) native "Window_location_cross_frame_Getter";
 
-Native_DOMWindowCrossFrame_get_closed(_DOMWindowCrossFrame) native "Window_closed_Getter";
+  static get_closed(_DOMWindowCrossFrame) native "Window_closed_Getter";
 
-Native_DOMWindowCrossFrame_get_opener(_DOMWindowCrossFrame) native "Window_opener_Getter";
+  static get_opener(_DOMWindowCrossFrame) native "Window_opener_Getter";
 
-Native_DOMWindowCrossFrame_get_parent(_DOMWindowCrossFrame) native "Window_parent_Getter";
+  static get_parent(_DOMWindowCrossFrame) native "Window_parent_Getter";
 
-Native_DOMWindowCrossFrame_get_top(_DOMWindowCrossFrame) native "Window_top_Getter";
+  static get_top(_DOMWindowCrossFrame) native "Window_top_Getter";
 
-Native_DOMWindowCrossFrame_close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
+  static close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
 
-Native_DOMWindowCrossFrame_postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
+  static postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
+}
 
-// _HistoryCrossFrame native entry points
-Native_HistoryCrossFrame_back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";
+class Blink_HistoryCrossFrame {
+  // _HistoryCrossFrame native entry points
+  static back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";
 
-Native_HistoryCrossFrame_forward(_HistoryCrossFrame) native "History_forward_Callback_RESOLVER_STRING_0_";
+  static forward(_HistoryCrossFrame) native "History_forward_Callback_RESOLVER_STRING_0_";
 
-Native_HistoryCrossFrame_go(_HistoryCrossFrame, distance) native "History_go_Callback_RESOLVER_STRING_1_long";
+  static go(_HistoryCrossFrame, distance) native "History_go_Callback_RESOLVER_STRING_1_long";
+}
 
-// _LocationCrossFrame native entry points
-Native_LocationCrossFrame_set_href(_LocationCrossFrame, h) native "Location_href_Setter";
+class Blink_LocationCrossFrame {
+  // _LocationCrossFrame native entry points
+  static set_href(_LocationCrossFrame, h) native "Location_href_Setter";
+}
 
-// _DOMStringMap native entry  points
-Native_DOMStringMap_containsKey(_DOMStringMap, key) native "DOMStringMap_containsKey_Callback";
+class Blink_DOMStringMap {
+  // _DOMStringMap native entry  points
+  static containsKey(_DOMStringMap, key) native "DOMStringMap_containsKey_Callback";
 
-Native_DOMStringMap_item(_DOMStringMap, key) native "DOMStringMap_item_Callback";
+  static item(_DOMStringMap, key) native "DOMStringMap_item_Callback";
 
-Native_DOMStringMap_setItem(_DOMStringMap, key, value) native "DOMStringMap_setItem_Callback";
+  static setItem(_DOMStringMap, key, value) native "DOMStringMap_setItem_Callback";
 
-Native_DOMStringMap_remove(_DOMStringMap, key) native "DOMStringMap_remove_Callback";
+  static remove(_DOMStringMap, key) native "DOMStringMap_remove_Callback";
 
-Native_DOMStringMap_get_keys(_DOMStringMap) native "DOMStringMap_getKeys_Callback";
+  static get_keys(_DOMStringMap) native "DOMStringMap_getKeys_Callback";
+}

@@ -293,6 +293,10 @@ abstract class Element implements Spannable {
   bool get isNative;
   bool get isDeferredLoaderGetter;
 
+  /// True if the element is declared in a patch library but has no
+  /// corresponding declaration in the origin library.
+  bool get isInjected;
+
   /// `true` if this element is a constructor, top level or local variable,
   /// or static field that is declared `const`.
   bool get isConst;
@@ -525,6 +529,15 @@ class Elements {
     } else {
       return '$className\$${element.name}';
     }
+  }
+
+  static String constructorNameForDiagnostics(String className,
+                                              String constructorName) {
+    String classNameString = className;
+    String constructorNameString = constructorName;
+    return (constructorName == '')
+        ? classNameString
+        : "$classNameString.$constructorNameString";
   }
 
   /// Returns `true` if [name] is the name of an operator method.
@@ -1240,6 +1253,10 @@ abstract class FunctionTypedElement extends Element {
 
 /// An [Element] that holds a [TreeElements] mapping.
 abstract class AnalyzableElement extends Element {
+  /// Return `true` if [treeElements] have been (partially) computed for this
+  /// element.
+  bool get hasTreeElements;
+
   /// Returns the [TreeElements] that hold the resolution information for the
   /// AST nodes of this element.
   TreeElements get treeElements;
@@ -1249,7 +1266,22 @@ abstract class AnalyzableElement extends Element {
 ///
 /// Synthesized elements may return `null` from [node].
 abstract class AstElement extends AnalyzableElement {
+  /// The AST node of this element.
   Node get node;
+
+  bool get hasResolvedAst;
+
+  /// The defining AST node of this element with is corresponding
+  /// [TreeElements]. This is not available if [hasResolvedAst] is `false`.
+  ResolvedAst get resolvedAst;
+}
+
+class ResolvedAst {
+  final Element element;
+  final Node node;
+  final TreeElements elements;
+
+  ResolvedAst(this.element, this.node, this.elements);
 }
 
 /// A [MemberSignature] is a member of an interface.

@@ -4,12 +4,41 @@
 
 library socket.server;
 
+import 'dart:io' as io;
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_edit.dart';
+import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/index/index.dart';
+import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/index.dart';
+import 'package:path/path.dart' as pathos;
+
+
+/**
+ * Creates and runs an [Index].
+ */
+Index _createIndex() {
+  String tempPath = io.Directory.systemTemp.path;
+  String indexPath = pathos.join(tempPath, 'AnalysisServer_index');
+  io.Directory indexDirectory = new io.Directory(indexPath);
+  if (indexDirectory.existsSync()) {
+    indexDirectory.deleteSync(recursive: true);
+  }
+  if (!indexDirectory.existsSync()) {
+    indexDirectory.createSync();
+  }
+  Index index = createLocalFileSplitIndex(indexDirectory);
+  index.run();
+  return index;
+}
+
 
 /**
  * Instances of the class [SocketServer] implement the common parts of
@@ -37,9 +66,12 @@ class SocketServer {
       });
       return;
     }
+    PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
     analysisServer = new AnalysisServer(
         serverChannel,
-        PhysicalResourceProvider.INSTANCE,
+        resourceProvider,
+        new PubPackageMapProvider(resourceProvider),
+        _createIndex(),
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }
@@ -51,7 +83,9 @@ class SocketServer {
     server.handlers = [
         new ServerDomainHandler(server),
         new AnalysisDomainHandler(server),
+        new EditDomainHandler(server),
+        new SearchDomainHandler(server),
+        new CompletionDomainHandler(server),
     ];
   }
-
 }

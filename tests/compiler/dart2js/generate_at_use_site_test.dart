@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String FIB = r"""
@@ -49,16 +51,17 @@ foo(a) {
 """;
 
 main() {
-  // Make sure we don't introduce a new variable.
-  RegExp regexp = new RegExp("var $anyIdentifier =");
-  compileAndDoNotMatch(FIB, 'fib', regexp);
+  asyncTest(() => Future.wait([
+    // Make sure we don't introduce a new variable.
+    compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier =")),
 
-  regexp = new RegExp("isLeaf");
-  compileAndDoNotMatch(BAR, 'bar', regexp);
+    compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf")),
 
-  String generated = compile(TEST, entry: 'foo');
-  Expect.isFalse(generated.contains('else'));
-  // Regression check to ensure that there is no floating variable
-  // expression.
-  Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+    compile(TEST, entry: 'foo', check: (String generated) {
+      Expect.isFalse(generated.contains('else'));
+      // Regression check to ensure that there is no floating variable
+      // expression.
+      Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+    }),
+  ]));
 }

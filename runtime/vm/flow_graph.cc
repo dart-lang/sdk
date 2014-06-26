@@ -7,15 +7,14 @@
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/intermediate_language.h"
-#include "vm/longjump.h"
 #include "vm/growable_array.h"
+#include "vm/report.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
-DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
 
 
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
@@ -181,9 +180,7 @@ void FlowGraph::DiscoverBlocks() {
 }
 
 
-#ifdef DEBUG
 // Debugging code to verify the construction of use lists.
-
 static intptr_t MembershipCount(Value* use, Value* list) {
   intptr_t count = 0;
   while (list != NULL) {
@@ -281,7 +278,6 @@ bool FlowGraph::VerifyUseLists() {
   }
   return true;  // Return true so we can ASSERT validation.
 }
-#endif  // DEBUG
 
 
 LivenessAnalysis::LivenessAnalysis(
@@ -718,9 +714,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
   GraphEntryInstr* entry = graph_entry();
-  if (!FLAG_optimize_try_catch && (entry->SuccessorCount() > 1)) {
-    Bailout("Catch-entry support in SSA.");
-  }
 
   // Initial renaming environment.
   GrowableArray<Definition*> env(variable_count());
@@ -1000,6 +993,35 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
 
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
+  // Augment live_phis with those that have implicit real used at
+  // potentially throwing instructions if there is a try-catch in this graph.
+  if (graph_entry()->SuccessorCount() > 1) {
+    for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
+      JoinEntryInstr* join = it.Current()->AsJoinEntry();
+      if (join == NULL) continue;
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* phi = phi_it.Current();
+        if (phi == NULL ||
+            phi->is_alive() ||
+            (phi->input_use_list() != NULL) ||
+            (phi->env_use_list() == NULL)) {
+          continue;
+        }
+        for (Value::Iterator it(phi->env_use_list());
+             !it.Done();
+             it.Advance()) {
+          Value* use = it.Current();
+          if (use->instruction()->MayThrow() &&
+              use->instruction()->GetBlock()->InsideTryBlock()) {
+            live_phis->Add(phi);
+            phi->mark_alive();
+            break;
+          }
+        }
+      }
+    }
+  }
+
   while (!live_phis->is_empty()) {
     PhiInstr* phi = live_phis->RemoveLast();
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
@@ -1014,7 +1036,7 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
 
   for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
     JoinEntryInstr* join = it.Current()->AsJoinEntry();
-    if (join != NULL) join->RemoveDeadPhis(constant_null());
+    if (join != NULL) join->RemoveDeadPhis(constant_dead());
   }
 }
 
@@ -1113,21 +1135,6 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
     }
   }
   return loop_headers;
-}
-
-
-void FlowGraph::Bailout(const char* reason) const {
-  const Function& function = parsed_function_.function();
-  const Error& error = Error::Handle(
-      LanguageError::NewFormatted(Error::Handle(),  // No previous error.
-                                  Script::Handle(function.script()),
-                                  function.token_pos(),
-                                  LanguageError::kError,
-                                  Heap::kNew,
-                                  "FlowGraph Bailout: %s %s",
-                                  String::Handle(function.name()).ToCString(),
-                                  reason));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
 }
 
 

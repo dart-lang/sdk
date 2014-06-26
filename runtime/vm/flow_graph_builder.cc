@@ -16,11 +16,11 @@
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/isolate.h"
-#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -37,14 +37,11 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
-            "Warn on incompatibilities between vm and dart2js.");
 
 DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, silent_warnings);
-DECLARE_FLAG(bool, warning_as_error);
+DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
@@ -236,31 +233,32 @@ JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
 }
 
 
-FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
-                                   const Array& ic_data_array,
-                                   InlineExitCollector* exit_collector,
-                                   intptr_t osr_id,
-                                   bool is_optimizing)
-  : parsed_function_(parsed_function),
-    ic_data_array_(ic_data_array),
-    num_copied_params_(parsed_function->num_copied_params()),
-    // All parameters are copied if any parameter is.
-    num_non_copied_params_((num_copied_params_ == 0)
-        ? parsed_function->function().num_fixed_parameters()
-        : 0),
-    num_stack_locals_(parsed_function->num_stack_locals()),
-    exit_collector_(exit_collector),
-    guarded_fields_(new ZoneGrowableArray<const Field*>()),
-    last_used_block_id_(0),  // 0 is used for the graph entry.
-    try_index_(CatchClauseNode::kInvalidTryIndex),
-    catch_try_index_(CatchClauseNode::kInvalidTryIndex),
-    loop_depth_(0),
-    graph_entry_(NULL),
-    temp_count_(0),
-    args_pushed_(0),
-    nesting_stack_(NULL),
-    osr_id_(osr_id),
-    is_optimizing_(is_optimizing) { }
+FlowGraphBuilder::FlowGraphBuilder(
+    ParsedFunction* parsed_function,
+    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    InlineExitCollector* exit_collector,
+    intptr_t osr_id,
+    bool is_optimizing) :
+        parsed_function_(parsed_function),
+        ic_data_array_(ic_data_array),
+        num_copied_params_(parsed_function->num_copied_params()),
+        // All parameters are copied if any parameter is.
+        num_non_copied_params_((num_copied_params_ == 0)
+            ? parsed_function->function().num_fixed_parameters()
+            : 0),
+        num_stack_locals_(parsed_function->num_stack_locals()),
+        exit_collector_(exit_collector),
+        guarded_fields_(new ZoneGrowableArray<const Field*>()),
+        last_used_block_id_(0),  // 0 is used for the graph entry.
+        try_index_(CatchClauseNode::kInvalidTryIndex),
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
+        loop_depth_(0),
+        graph_entry_(NULL),
+        temp_count_(0),
+        args_pushed_(0),
+        nesting_stack_(NULL),
+        osr_id_(osr_id),
+        is_optimizing_(is_optimizing) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -1012,7 +1010,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if ((node->token_pos() != Scanner::kNoSourcePos) &&
       !function.is_native() && FLAG_enable_debugger) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
-                                           PcDescriptors::kReturn));
+                                           PcDescriptors::kRuntimeCall));
   }
 
   if (FLAG_enable_type_checks) {
@@ -1416,16 +1414,10 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 }
 
 
-void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
+bool FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
     AstNode* node, const AbstractType& type) const {
-  if (is_optimizing()) {
-    // Warnings for constants are issued when the graph is built for the first
-    // time only, i.e. just before generating unoptimized code.
-    // They should not be repeated when generating optimized code.
-    return;
-  }
   if (!(node->IsLiteralNode() && (type.IsIntType() || type.IsDoubleType()))) {
-    return;
+    return false;
   }
   const Instance& instance = node->AsLiteralNode()->literal();
   if (type.IsIntType()) {
@@ -1433,19 +1425,16 @@ void FlowGraphBuilder::WarnOnJSIntegralNumTypeTest(
       const Double& double_instance = Double::Cast(instance);
       double value = double_instance.value();
       if (floor(value) == value) {
-        Warning(node->token_pos(),
-                "javascript compatibility warning: integral value of type "
-                "'double' is also considered to be of type 'int'");
+        return true;
       }
     }
   } else {
     ASSERT(type.IsDoubleType());
     if (instance.IsInteger()) {
-      Warning(node->token_pos(),
-              "javascript compatibility warning: integer value is also "
-              "considered to be of type 'double'");
+      return true;
     }
   }
+  return false;
 }
 
 
@@ -1464,12 +1453,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
     ReturnDefinition(new ConstantInstr(Bool::Get(!negate_result)));
     return;
   }
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
-  }
-
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -1514,12 +1497,6 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    owner()->WarnOnJSIntegralNumTypeTest(node->left(), type);
-  }
-
   ValueGraphVisitor for_value(owner());
   node->left()->Visit(&for_value);
   Append(for_value);
@@ -1529,8 +1506,13 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
                        for_value.value(),
                        type,
                        dst_name)) {
-    ReturnValue(for_value.value());
-    return;
+    // Check for javascript compatibility.
+    // Do not skip type check if javascript compatibility warning is required.
+    if (!FLAG_warn_on_javascript_compatibility ||
+        !owner()->WarnOnJSIntegralNumTypeTest(node->left(), type)) {
+      ReturnValue(for_value.value());
+      return;
+    }
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
   PushArgumentInstr* push_instantiator = NULL;
@@ -3065,10 +3047,11 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
-      case MethodRecognizer::kObjectCid:
-      case MethodRecognizer::kTypedListBaseCid: {
-        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
-        LoadClassIdInstr* load = new LoadClassIdInstr(receiver);
+      case MethodRecognizer::kClassIDgetID: {
+        LocalVariable* value_var =
+            node->scope()->LookupVariable(Symbols::Value(), true);
+        Value* value = Bind(new LoadLocalInstr(*value_var));
+        LoadClassIdInstr* load = new LoadClassIdInstr(value);
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kGrowableArrayCapacity: {
@@ -3941,12 +3924,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   ASSERT(!for_effect.is_open());
 
   // When compiling for OSR, use a depth first search to prune instructions
-  // unreachable from the OSR entry.  Catch entries are not (yet) properly
-  // recognized as reachable.
+  // unreachable from the OSR entry. Catch entries are always considered
+  // reachable, even if they become unreachable after OSR.
   if (osr_id_ != Isolate::kNoDeoptId) {
-    if (graph_entry_->SuccessorCount() > 1) {
-      Bailout("try/catch when compiling for OSR");
-    }
     PruneUnreachable();
   }
 
@@ -3964,43 +3944,14 @@ void FlowGraphBuilder::PruneUnreachable() {
 }
 
 
-void FlowGraphBuilder::Warning(intptr_t token_pos,
-                               const char* format, ...) const {
-  if (FLAG_silent_warnings) return;
-  const Function& function = parsed_function_->function();
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(
-      I,
-      LanguageError::NewFormattedV(
-          Error::Handle(I, Error::null()),  // No previous error.
-          Script::Handle(I, function.script()),
-          token_pos, LanguageError::kWarning,
-          Heap::kNew, format, args));
-  va_end(args);
-  if (FLAG_warning_as_error) {
-    I->long_jump_base()->Jump(1, error);
-    UNREACHABLE();
-  } else {
-    OS::Print("%s", error.ToErrorCString());
-  }
-}
-
-
 void FlowGraphBuilder::Bailout(const char* reason) const {
   const Function& function = parsed_function_->function();
-  const Error& error = Error::Handle(
-      I,
-      LanguageError::NewFormatted(
-          Error::Handle(I, Error::null()),  // No previous error.
-          Script::Handle(I, function.script()),
-          function.token_pos(),
-          LanguageError::kBailout,
-          Heap::kNew,
-          "FlowGraphBuilder Bailout: %s %s",
-          String::Handle(I, function.name()).ToCString(),
-          reason));
-  I->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function.script()),
+                   function.token_pos(),
+                   "FlowGraphBuilder Bailout: %s %s",
+                   String::Handle(function.name()).ToCString(),
+                   reason);
   UNREACHABLE();
 }
 

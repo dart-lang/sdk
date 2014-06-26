@@ -69,9 +69,19 @@ info!"""));
       pub.stderr.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt with input myapp|web/foo.foo]:
 Warning!
-[Rewrite on myapp|web/foo.txt]:
-http://fake.com/not_real.dart:2:1: ERROR!
-Build failed."""));
+[Rewrite on myapp|web/foo.txt]:"""));
+
+      // The details of the analyzer's error message change pretty frequently,
+      // so instead of validating the entire line, just look for a couple of
+      // salient bits of information.
+      pub.stderr.expect(allOf([
+        contains("2"),                              // The line number.
+        contains("1"),                              // The column number.
+        contains("http://fake.com/not_real.dart"),  // The library.
+        contains("ERROR"),                          // That it's an error.
+      ]));
+
+      pub.stderr.expect("Build failed.");
 
       pub.shouldExit(exit_codes.DATA);
     });

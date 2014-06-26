@@ -183,6 +183,14 @@ main() {
     });
   });
 
+  test('resetInteractions', () {
+    TestInterfaceMock obj = new TestInterfaceMock();
+    obj.testProperty;
+    obj.testMethod0();
+    resetInteractions(obj);
+    verifyZeroInteractions(obj);
+  });
+
   group('verify', () {
     TestInterfaceMock obj;
     setUp(() {

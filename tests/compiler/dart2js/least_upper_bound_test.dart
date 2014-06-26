@@ -7,10 +7,10 @@ library subtype_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+import 'package:compiler/implementation/dart_types.dart';
+import "package:compiler/implementation/elements/elements.dart"
        show Element, ClassElement;
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
+import 'package:compiler/implementation/util/util.dart'
        show Link;
 
 void main() {

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const int REMOVED = 0;
@@ -345,53 +347,61 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   class JSUInt31 extends JSUInt32 {}
   getInterceptor(x) {}''';
 
-expect(String code, int kind) {
-  String generated = compile(
+Future expect(String code, int kind) {
+  return compile(
       code,
       coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE,
-      interceptorsSource: INTERCEPTORSLIB_WITH_MEMBERS);
-  switch (kind) {
-    case REMOVED:
-      Expect.isTrue(!generated.contains('ioore'));
-      break;
+      interceptorsSource: INTERCEPTORSLIB_WITH_MEMBERS,
+      check: (String generated) {
+    switch (kind) {
+      case REMOVED:
+        Expect.isTrue(!generated.contains('ioore'));
+        break;
 
-    case ABOVE_ZERO:
-      Expect.isTrue(!generated.contains('< 0'));
-      Expect.isTrue(generated.contains('ioore'));
-      break;
+      case ABOVE_ZERO:
+        Expect.isTrue(!generated.contains('< 0'));
+        Expect.isTrue(generated.contains('ioore'));
+        break;
 
-    case BELOW_ZERO_CHECK:
-      Expect.isTrue(generated.contains('< 0'));
-      Expect.isTrue(!generated.contains('||'));
-      Expect.isTrue(generated.contains('ioore'));
-      break;
+      case BELOW_ZERO_CHECK:
+        Expect.isTrue(generated.contains('< 0'));
+        Expect.isTrue(!generated.contains('||'));
+        Expect.isTrue(generated.contains('ioore'));
+        break;
 
-    case BELOW_LENGTH:
-      Expect.isTrue(!generated.contains('||'));
-      Expect.isTrue(generated.contains('ioore'));
-      break;
+      case BELOW_LENGTH:
+        Expect.isTrue(!generated.contains('||'));
+        Expect.isTrue(generated.contains('ioore'));
+        break;
 
-    case KEPT:
-      Expect.isTrue(generated.contains('ioore'));
-      break;
+      case KEPT:
+        Expect.isTrue(generated.contains('ioore'));
+        break;
 
-    case ONE_CHECK:
-      RegExp regexp = new RegExp('ioore');
-      Iterator matches = regexp.allMatches(generated).iterator;
-      checkNumberOfMatches(matches, 1);
-      break;
+      case ONE_CHECK:
+        RegExp regexp = new RegExp('ioore');
+        Iterator matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 1);
+        break;
 
-    case ONE_ZERO_CHECK:
-      RegExp regexp = new RegExp('< 0|>>> 0 !==');
-      Iterator matches = regexp.allMatches(generated).iterator;
-      checkNumberOfMatches(matches, 1);
-      break;
-  }
+      case ONE_ZERO_CHECK:
+        RegExp regexp = new RegExp('< 0|>>> 0 !==');
+        Iterator matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 1);
+        break;
+    }
+  });
 }
 
 
 main() {
-  for (int i = 0; i < TESTS.length;  i += 2) {
-    expect(TESTS[i], TESTS[i + 1]);
+  int i = 0;
+  Future testNext() {
+    return expect(TESTS[i], TESTS[i + 1]).then((_) {
+      i += 2;
+      if (i < TESTS.length) return testNext();
+    });
   }
+
+  asyncTest(() => testNext());
 }

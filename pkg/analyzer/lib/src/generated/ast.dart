@@ -2221,7 +2221,7 @@ abstract class AstNode {
       }
     } else {
       if (_propertyMap == null) {
-        _propertyMap = new Map<String, Object>();
+        _propertyMap = new HashMap<String, Object>();
       }
       _propertyMap[propertyName] = propertyValue;
     }
@@ -4554,7 +4554,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitMapLiteral(MapLiteral node) {
-    Map<String, Object> map = new Map<String, Object>();
+    HashMap<String, Object> map = new HashMap<String, Object>();
     for (MapLiteralEntry entry in node.entries) {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
@@ -5819,6 +5819,9 @@ class ElementLocator {
  */
 class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
+  Element visitAnnotation(Annotation node) => node.element;
+
+  @override
   Element visitAssignmentExpression(AssignmentExpression node) => node.bestElement;
 
   @override
@@ -5839,6 +5842,13 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element visitIdentifier(Identifier node) {
     AstNode parent = node.parent;
+    // Type name in Annotation
+    if (parent is Annotation) {
+      Annotation annotation = parent;
+      if (identical(annotation.name, node) && annotation.constructorName == null) {
+        return annotation.element;
+      }
+    }
     // Type name in InstanceCreationExpression
     {
       AstNode typeNameCandidate = parent;
@@ -14508,7 +14518,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
 
   AstNode _immediateChild;
 
-  Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
+  Map<String, SimpleIdentifier> _locals = new HashMap<String, SimpleIdentifier>();
 
   final int _position;
 
@@ -15110,7 +15120,10 @@ class SimpleFormalParameter extends NormalFormalParameter {
 
   @override
   Token get beginToken {
-    if (keyword != null) {
+    NodeList<Annotation> metadata = this.metadata;
+    if (!metadata.isEmpty) {
+      return metadata.beginToken;
+    } else if (keyword != null) {
       return keyword;
     } else if (_type != null) {
       return _type.beginToken;
@@ -18305,7 +18318,7 @@ abstract class UriBasedDirective extends Directive {
   }
 
   /**
-   * Validate the given directive, but do not check for existance.
+   * Validate the given directive, but do not check for existence.
    *
    * @return a code indicating the problem if there is one, or `null` no problem
    */
@@ -18588,6 +18601,7 @@ class VariableDeclarationList extends AnnotatedNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     _variables.accept(visitor);
   }

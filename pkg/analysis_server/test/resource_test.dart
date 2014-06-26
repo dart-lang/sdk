@@ -6,14 +6,20 @@ library test.resource;
 
 import 'dart:async';
 
-import 'mocks.dart';
-
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
+
+import 'mocks.dart';
+
+
+var _isFile = new isInstanceOf<File>();
+var _isFolder = new isInstanceOf<Folder>();
+var _isMemoryResourceException = new isInstanceOf<MemoryResourceException>();
+
 
 main() {
   groupSep = ' | ';
@@ -114,21 +120,15 @@ main() {
 
     group('newFolder', () {
       test('empty path', () {
-        expect(
-          () {
-            provider.newFolder('');
-          },
-          throwsA(new isInstanceOf<ArgumentError>())
-        );
+        expect(() {
+          provider.newFolder('');
+        }, throwsA(new isInstanceOf<ArgumentError>()));
       });
 
       test('not absolute', () {
-        expect(
-          () {
-            provider.newFolder('not/absolute');
-          },
-          throwsA(new isInstanceOf<ArgumentError>())
-        );
+        expect(() {
+          provider.newFolder('not/absolute');
+        }, throwsA(new isInstanceOf<ArgumentError>()));
       });
 
       group('already exists', () {
@@ -140,12 +140,9 @@ main() {
 
         test('as file', () {
           File file = provider.newFile('/my/file', 'qwerty');
-          expect(
-            () {
+          expect(() {
             provider.newFolder('/my/file');
-            },
-            throwsA(new isInstanceOf<ArgumentError>())
-          );
+          }, throwsA(new isInstanceOf<ArgumentError>()));
         });
       });
     });
@@ -153,8 +150,9 @@ main() {
     group('modifyFile', () {
       test('nonexistent', () {
         String path = '/my/file';
-        expect(() { provider.modifyFile(path, 'contents'); },
-            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(() {
+          provider.modifyFile(path, 'contents');
+        }, throwsA(new isInstanceOf<ArgumentError>()));
         Resource file = provider.getResource(path);
         expect(file, isNotNull);
         expect(file.exists, isFalse);
@@ -163,8 +161,9 @@ main() {
       test('is folder', () {
         String path = '/my/file';
         provider.newFolder(path);
-        expect(() { provider.modifyFile(path, 'contents'); },
-            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(() {
+          provider.modifyFile(path, 'contents');
+        }, throwsA(new isInstanceOf<ArgumentError>()));
         expect(provider.getResource(path), new isInstanceOf<Folder>());
       });
 
@@ -183,8 +182,9 @@ main() {
     group('deleteFile', () {
       test('nonexistent', () {
         String path = '/my/file';
-        expect(() { provider.deleteFile(path); },
-            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(() {
+          provider.deleteFile(path);
+        }, throwsA(new isInstanceOf<ArgumentError>()));
         Resource file = provider.getResource(path);
         expect(file, isNotNull);
         expect(file.exists, isFalse);
@@ -193,8 +193,9 @@ main() {
       test('is folder', () {
         String path = '/my/file';
         provider.newFolder(path);
-        expect(() { provider.deleteFile(path); },
-            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(() {
+          provider.deleteFile(path);
+        }, throwsA(new isInstanceOf<ArgumentError>()));
         expect(provider.getResource(path), new isInstanceOf<Folder>());
       });
 
@@ -392,12 +393,9 @@ main() {
         });
 
         test('contents', () {
-          expect(
-            () {
-              source.contents;
-            },
-            throwsA(_isMemoryResourceException)
-          );
+          expect(() {
+            source.contents;
+          }, throwsA(_isMemoryResourceException));
         });
 
         test('encoding', () {
@@ -423,8 +421,57 @@ main() {
       });
     });
   });
+
+  group('ResourceUriResolver', testResourceResourceUriResolver);
 }
 
-var _isFile = new isInstanceOf<File>();
-var _isFolder = new isInstanceOf<Folder>();
-var _isMemoryResourceException = new isInstanceOf<MemoryResourceException>();
+
+void testResourceResourceUriResolver() {
+  MemoryResourceProvider provider;
+  ResourceUriResolver resolver;
+
+  setUp(() {
+    provider = new MemoryResourceProvider();
+    resolver = new ResourceUriResolver(provider);
+    provider.newFile('/test.dart', '');
+    provider.newFolder('/folder');
+  });
+
+  group('fromEncoding', () {
+    test('file', () {
+      var uri = new Uri(path: '/test.dart');
+      Source source = resolver.fromEncoding(UriKind.FILE_URI, uri);
+      expect(source, isNotNull);
+      expect(source.exists(), isTrue);
+      expect(source.fullName, '/test.dart');
+    });
+
+    test('not a UriKind.FILE_URI', () {
+      var uri = new Uri(path: '/test.dart');
+      Source source = resolver.fromEncoding(UriKind.DART_URI, uri);
+      expect(source, isNull);
+    });
+  });
+
+  group('resolveAbsolute', () {
+    test('file', () {
+      var uri = new Uri(scheme: 'file', path: '/test.dart');
+      Source source = resolver.resolveAbsolute(uri);
+      expect(source, isNotNull);
+      expect(source.exists(), isTrue);
+      expect(source.fullName, '/test.dart');
+    });
+
+    test('folder', () {
+      var uri = new Uri(scheme: 'file', path: '/folder');
+      Source source = resolver.resolveAbsolute(uri);
+      expect(source, isNull);
+    });
+
+    test('not a file URI', () {
+      var uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+      Source source = resolver.resolveAbsolute(uri);
+      expect(source, isNull);
+    });
+  });
+}

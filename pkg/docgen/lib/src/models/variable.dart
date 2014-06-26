@@ -24,7 +24,7 @@ class Variable extends OwnedIndexable<VariableMirror> {
   final String name;
 
   factory Variable(String name, VariableMirror mirror, Indexable owner) {
-    var variable = getDocgenObject(mirror);
+    var variable = getDocgenObject(mirror, owner);
     if (variable is DummyMirror) {
       return new Variable._(name, mirror, owner);
     }

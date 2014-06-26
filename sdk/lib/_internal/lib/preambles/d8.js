@@ -4,14 +4,34 @@
 
 // Javascript preamble, that lets the output of dart2js run on V8's d8 shell.
 
-var setTimeout;
-var clearTimeout;
-var setInterval;
-var clearInterval;
-var dartMainRunner;
-var scheduleImmediate;
+// Node wraps files and provides them with a different `this`. The global
+// `this` can be accessed through `global`.
 
-(function() {
+var self = this;
+if (typeof global != "undefined") self = global;  // Node.js.
+
+(function(self) {
+  // Using strict mode to avoid accidentally defining global variables.
+  "use strict"; // Should be first statement of this function.
+
+  // Location (Uri.base)
+
+  var workingDirectory;
+  // TODO(sgjesse): This does not work on Windows.
+  if (typeof os == "object" && "system" in os) {
+    // V8.
+    workingDirectory = os.system("pwd");
+    var length = workingDirectory.length;
+    if (workingDirectory[length - 1] == '\n') {
+      workingDirectory = workingDirectory.substring(0, length - 1);
+    }
+  } else if (typeof process != "undefined" &&
+             typeof process.cwd == "function") {
+    // Node.js.
+    workingDirectory = process.cwd();
+  }
+  self.location = { href: "file://" + workingDirectory + "/" };
+
   // Event loop.
 
   // Task queue as cyclic list queue.
@@ -247,14 +267,17 @@ var scheduleImmediate;
     }
   }
 
-  dartMainRunner = function(main, args) {
+  // Global properties. "self" refers to the global object, so adding a
+  // property to "self" defines a global variable.
+  self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }
     eventLoop(action);
   };
-  setTimeout = addTimer;
-  clearTimeout = cancelTimer;
-  setInterval = addInterval;
-  clearInterval = cancelTimer;
-  scheduleImmediate = addTask;
-})();
+  self.setTimeout = addTimer;
+  self.clearTimeout = cancelTimer;
+  self.setInterval = addInterval;
+  self.clearInterval = cancelTimer;
+  self.scheduleImmediate = addTask;
+  self.self = self;
+})(self);

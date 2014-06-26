@@ -6,7 +6,9 @@ part of js_backend;
 
 class NativeEmitter {
 
-  CodeEmitterTask emitter;
+  final Map<Element, ClassBuilder> cachedBuilders;
+
+  final CodeEmitterTask emitter;
   CodeBuffer nativeBuffer;
 
   // Native classes found in the application.
@@ -26,11 +28,13 @@ class NativeEmitter {
   // it finds any native class that needs noSuchMethod handling.
   bool handleNoSuchMethod = false;
 
-  NativeEmitter(this.emitter)
-      : subtypes = new Map<ClassElement, List<ClassElement>>(),
+  NativeEmitter(CodeEmitterTask emitter)
+      : this.emitter = emitter,
+        subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         nativeMethods = new Set<FunctionElement>(),
-        nativeBuffer = new CodeBuffer();
+        nativeBuffer = new CodeBuffer(),
+        cachedBuilders = emitter.compiler.cacheStrategy.newMap();
 
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
@@ -279,6 +283,16 @@ class NativeEmitter {
   }
 
   ClassBuilder generateNativeClass(ClassElement classElement) {
+    ClassBuilder builder;
+    if (compiler.hasIncrementalSupport) {
+      builder = cachedBuilders[classElement];
+      if (builder != null) return builder;
+      builder = new ClassBuilder(backend.namer);
+      cachedBuilders[classElement] = builder;
+    } else {
+      builder = new ClassBuilder(backend.namer);
+    }
+
     // TODO(sra): Issue #13731- this is commented out as part of custom element
     // constructor work.
     //assert(!classElement.hasBackendMembers);
@@ -294,7 +308,6 @@ class NativeEmitter {
 
     String superName = backend.namer.getNameOfClass(superclass);
 
-    ClassBuilder builder = new ClassBuilder(backend.namer);
     emitter.classEmitter.emitClassConstructor(classElement, builder);
     bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);

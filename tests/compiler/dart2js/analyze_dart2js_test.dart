@@ -5,7 +5,7 @@
 library analyze_dart2js;
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
+import 'package:compiler/implementation/filenames.dart';
 import 'analyze_helper.dart';
 import "package:async_helper/async_helper.dart";
 

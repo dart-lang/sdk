@@ -33,22 +33,73 @@ main() {
       ]).create();
       expectNoValidationError(compiledDartdoc);
     });
+
+    integration('contains compiled dartdoc in a hidden directory', () {
+      ensureGit();
+
+      d.dir(appPath, [
+        d.dir(".doc-out", [
+          d.file('nav.json', ''),
+          d.file('index.html', ''),
+          d.file('styles.css', ''),
+          d.file('dart-logo-small.png', ''),
+          d.file('client-live-nav.js', '')
+        ])
+      ]).create();
+      expectNoValidationError(compiledDartdoc);
+    });
+
+    integration('contains compiled dartdoc in a gitignored directory', () {
+      ensureGit();
+
+      d.git(appPath, [
+        d.dir("doc-out", [
+          d.file('nav.json', ''),
+          d.file('index.html', ''),
+          d.file('styles.css', ''),
+          d.file('dart-logo-small.png', ''),
+          d.file('client-live-nav.js', '')
+        ]),
+        d.file(".gitignore", "/doc-out")
+      ]).create();
+      expectNoValidationError(compiledDartdoc);
+    });
   });
 
-  integration('should consider a package invalid if it contains compiled '
-      'dartdoc', () {
-    d.validPackage.create();
+  group("should consider a package invalid if it", () {
+    integration('contains compiled dartdoc', () {
+      d.validPackage.create();
 
-    d.dir(appPath, [
-      d.dir('doc-out', [
-        d.file('nav.json', ''),
-        d.file('index.html', ''),
-        d.file('styles.css', ''),
-        d.file('dart-logo-small.png', ''),
-        d.file('client-live-nav.js', '')
-      ])
-    ]).create();
+      d.dir(appPath, [
+        d.dir('doc-out', [
+          d.file('nav.json', ''),
+          d.file('index.html', ''),
+          d.file('styles.css', ''),
+          d.file('dart-logo-small.png', ''),
+          d.file('client-live-nav.js', '')
+        ])
+      ]).create();
 
-    expectValidationWarning(compiledDartdoc);
+      expectValidationWarning(compiledDartdoc);
+    });
+
+    integration('contains compiled dartdoc in a non-gitignored hidden '
+        'directory', () {
+      ensureGit();
+
+      d.validPackage.create();
+
+      d.git(appPath, [
+        d.dir('.doc-out', [
+          d.file('nav.json', ''),
+          d.file('index.html', ''),
+          d.file('styles.css', ''),
+          d.file('dart-logo-small.png', ''),
+          d.file('client-live-nav.js', '')
+        ])
+      ]).create();
+
+      expectValidationWarning(compiledDartdoc);
+    });
   });
 }

@@ -181,6 +181,11 @@ class BaseReader {
     return static_cast<intptr_t>(value);
   }
 
+  intptr_t ReadRawPointerValue() {
+    int64_t value = Read<int64_t>();
+    return static_cast<intptr_t>(value);
+  }
+
   void ReadBytes(uint8_t* addr, intptr_t len) {
     stream_.ReadBytes(addr, len);
   }
@@ -191,6 +196,11 @@ class BaseReader {
     return result;
   }
 
+  intptr_t ReadTags() {
+    const intptr_t tags = static_cast<intptr_t>(Read<int8_t>()) & 0xff;
+    ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
+    return tags;
+  }
 
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
@@ -293,7 +303,7 @@ class SnapshotReader : public BaseReader {
   RawStacktrace* NewStacktrace();
 
  private:
-  class BackRefNode : public ZoneAllocated {
+  class BackRefNode : public ValueObject {
    public:
     BackRefNode(Object* reference, DeserializeState state)
         : reference_(reference), state_(state) {}
@@ -301,11 +311,15 @@ class SnapshotReader : public BaseReader {
     bool is_deserialized() const { return state_ == kIsDeserialized; }
     void set_state(DeserializeState state) { state_ = state; }
 
+    BackRefNode& operator=(const BackRefNode& other) {
+      reference_ = other.reference_;
+      state_ = other.state_;
+      return *this;
+    }
+
    private:
     Object* reference_;
     DeserializeState state_;
-
-    DISALLOW_COPY_AND_ASSIGN(BackRefNode);
   };
 
   // Allocate uninitialized objects, this is used when reading a full snapshot.
@@ -345,7 +359,7 @@ class SnapshotReader : public BaseReader {
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
   UnhandledException& error_;  // Error handle.
-  GrowableArray<BackRefNode*> backward_references_;
+  GrowableArray<BackRefNode> backward_references_;
 
   friend class ApiError;
   friend class Array;
@@ -395,6 +409,11 @@ class BaseWriter {
 
   // Writes an intptr_t type value out.
   void WriteIntptrValue(intptr_t value) {
+    ASSERT((value >= kMinInt32) && (value <= kMaxInt32));
+    Write<int64_t>(value);
+  }
+
+  void WriteRawPointerValue(intptr_t value) {
     Write<int64_t>(value);
   }
 
@@ -424,6 +443,12 @@ class BaseWriter {
     value = SerializedHeaderTag::update(kInlined, value);
     value = SerializedHeaderData::update(id, value);
     WriteIntptrValue(value);
+  }
+
+  void WriteTags(intptr_t tags) {
+    ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
+    const intptr_t flags = tags & 0xff;
+    Write<int8_t>(static_cast<int8_t>(flags));
   }
 
   // Write out a buffer of bytes.

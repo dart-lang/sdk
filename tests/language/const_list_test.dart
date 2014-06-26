@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class ConstListTest {
 
-  static testMain() {
+  static testConstructors() {
     List fixedList = new List(4);
     List fixedList2 = new List(4);
     List growableList = new List();
@@ -28,6 +28,9 @@ class ConstListTest {
     Expect.equals(false, fixedList == growableList);
     fixedList[3] = 0;
     Expect.equals(false, fixedList == growableList);
+  }
+
+  static testLiterals() {
     var a = [1, 2, 3.1];
     var b = [1, 2, 3.1];
     Expect.equals(false, a == b);
@@ -44,5 +47,6 @@ class ConstListTest {
 }
 
 main() {
-  ConstListTest.testMain();
+  ConstListTest.testConstructors();
+  ConstListTest.testLiterals();
 }

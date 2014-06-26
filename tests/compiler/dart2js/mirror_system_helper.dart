@@ -5,19 +5,19 @@
 library mirror_system_helper;
 
 import 'dart:async';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart';
+import 'package:compiler/implementation/mirrors/source_mirrors.dart';
+import 'package:compiler/implementation/mirrors/dart2js_mirrors.dart';
 import 'mock_compiler.dart';
 
-export '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
-export '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+export 'package:compiler/implementation/mirrors/source_mirrors.dart';
+export 'package:compiler/implementation/mirrors/mirrors_util.dart';
 
 const String SOURCE = 'source';
 final Uri SOURCE_URI = new Uri(scheme: SOURCE, path: SOURCE);
 
 // TODO(johnniwinther): Move this to a mirrors helper library.
 Future<MirrorSystem> createMirrorSystem(String source) {
-  MockCompiler compiler = new MockCompiler(
+  MockCompiler compiler = new MockCompiler.internal(
       analyzeOnly: true,
       analyzeAll: true,
       preserveComments: true);

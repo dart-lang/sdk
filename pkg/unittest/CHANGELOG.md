@@ -1,4 +1,8 @@
-##0.11.1+1
+##0.11.0+2
+
+*  Removed unused files from tests and standardized remaining test file names.
+
+##0.11.0+1
 
 * Widen the version constraint for `stack_trace`.
 
@@ -55,5 +59,3 @@ and `protectAsync2`
 * `runTests`, `tearDown`, `setUp`, `test`, `group`, `solo_test`, and
   `solo_group` now throw a `StateError` if called while tests are running.
 * `rerunTests` has been removed.
-
-##0.9.3 - 2014-01-13

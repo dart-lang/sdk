@@ -87,6 +87,21 @@ class PubHttpClient extends http.BaseClient {
              "Upgrade pub to the latest version and try again.");
       }
 
+      if (status == 500 &&
+          (request.url.host == "pub.dartlang.org" ||
+          request.url.host == "storage.googleapis.com")) {
+        var message = "HTTP error 500: Internal Server Error at "
+            "${request.url}.";
+
+        if (request.url.host == "pub.dartlang.org" ||
+            request.url.host == "storage.googleapis.com") {
+          message += "\nThis is likely a transient error. Please try again "
+              "later.";
+        }
+
+        fail(message);
+      }
+
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
@@ -110,7 +125,8 @@ class PubHttpClient extends http.BaseClient {
     });
 
     if (timeoutLength == null) return future;
-    return timeout(future, timeoutLength, 'fetching URL "${request.url}"');
+    return timeout(future, timeoutLength, request.url,
+        'fetching URL "${request.url}"');
   }
 
   /// Logs the fact that [request] was sent, and information about it.
@@ -208,8 +224,10 @@ void handleJsonError(http.Response response) {
   fail(errorMap['error']['message']);
 }
 
-/// Parses a response body, assuming it's JSON-formatted. Throws a user-friendly
-/// error if the response body is invalid JSON, or if it's not a map.
+/// Parses a response body, assuming it's JSON-formatted.
+///
+/// Throws a user-friendly error if the response body is invalid JSON, or if
+/// it's not a map.
 Map parseJsonResponse(http.Response response) {
   var value;
   try {

@@ -44,6 +44,16 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     names = null;
   }
 
+  int countUses(ir.Definition definition) {
+    int count = 0;
+    ir.Reference ref = definition.firstRef;
+    while (ref != null) {
+      ++count;
+      ref = ref.nextRef;
+    }
+    return count;
+  }
+
   printNode(Block block) {
     tag("block", () {
       printProperty("name", block.name);
@@ -57,11 +67,13 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         tag("locals", () {
           printProperty("size", 0);
           printProperty("method", "None");
-          // We could print parameters here,
-          // but does the hydra tool actually use this info??
         });
       });
       tag("HIR", () {
+        for (ir.Parameter param in block.parameters) {
+          String name = names.name(param);
+          printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
+        }
         visit(block.body);
       });
     });
@@ -144,6 +156,31 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
+  visitIsCheck(ir.IsCheck node) {
+    String dummy = names.name(node);
+    List<String> entries = new List<String>();
+    String receiver = formatReference(node.receiver);
+    printStmt(dummy, "IsCheck ($receiver ${node.type})");
+  }
+
+  visitAsCast(ir.AsCast node) {
+    String dummy = names.name(node);
+    List<String> entries = new List<String>();
+    String receiver = formatReference(node.receiver);
+    printStmt(dummy, "AsCast ($receiver ${node.type})");
+  }
+
+  visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
+    String dummy = names.name(node);
+    String values = node.arguments.map(formatReference).join(', ');
+    printStmt(dummy, "ConstConstruction ($values)");
+  }
+
+  visitThis(ir.This node) {
+    String dummy = names.name(node);
+    printStmt(dummy, "This");
+  }
+
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
@@ -183,7 +220,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   }
 
   visitIsTrue(ir.IsTrue node) {
-    return "IsTrue(${names.name(node)})";
+    return "IsTrue(${names.name(node.value.definition)})";
   }
 
   visitCondition(ir.Condition c) {}

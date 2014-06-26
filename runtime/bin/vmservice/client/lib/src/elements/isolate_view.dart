@@ -92,21 +92,26 @@ class IsolateViewElement extends ObservatoryElement {
     isolate.updateTagProfile().then((tagProfile) {
       tagProfileChart.update(tagProfile);
       _drawTagProfileChart();
-      // Start the timer again.
-      _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
+      if (_updateTimer != null) {
+        // Start the timer again.
+        _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
+      }
     });
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     // Start a timer to update the isolate summary once a second.
     _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void detached() {
+    super.detached();
     if (_updateTimer != null) {
       _updateTimer.cancel();
+      _updateTimer = null;
     }
   }
 

@@ -21,7 +21,7 @@ adb uninstall org.chromium.content_shell_apk
 adb install -r $1
 ./build/android/adb_reverse_forwarder.py 8081 8081 8082 8082 \
                                          8083 8083 8084 8084 &
-FORWARDER_PID = $!
+FORWARDER_PID=$!
 sleep 15
 ./dart/tools/test.py -m release -a arm --progress=line --report --time \
     --failure-summary --write-debug-log --local_ip=localhost \

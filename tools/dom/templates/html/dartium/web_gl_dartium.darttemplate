@@ -19,7 +19,7 @@ part '$AUXILIARY_DIR/WebGLConstants.dart';
 $!GENERATED_DART_FILES
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
-const web_glBlinkMap = const {
+final web_glBlinkMap = {
 $!TYPE_MAP
 };
 $endif

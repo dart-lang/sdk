@@ -28,8 +28,12 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Variables to be hoisted at the top of the current function.
   List<VariableDeclaration> variables;
 
-  /// Set of variables that have had their declaration inserted in [variables].
-  Set<tree.Variable> seenVariables;
+  /// Maps variables to their name.
+  /// These variables have had their declaration inserted in [variables].
+  Map<tree.Variable, String> variableNames;
+
+  /// Variable names that have already been used. Used to avoid name clashes.
+  Set<String> usedVariableNames;
 
   /// Statements emitted by the most recent call to [visitStatement].
   List<Statement> statementBuffer;
@@ -53,8 +57,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     functionElement = element;
     variables = <VariableDeclaration>[];
     statementBuffer = <Statement>[];
-    seenVariables = new Set<tree.Variable>();
-    tree.Variable.counter = 0;
+    variableNames = <tree.Variable, String>{};
+    usedVariableNames = new Set<String>();
     variableList = new modelx.VariableList(tree.Modifiers.EMPTY);
     fallthrough = null;
     usedLabels = new Set<tree.Label>();
@@ -74,7 +78,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     statementBuffer = null;
     functionElement = null;
     variableList = null;
-    seenVariables = null;
+    variableNames = null;
+    usedVariableNames = null;
     usedLabels = null;
 
     return new FunctionExpression(
@@ -96,12 +101,28 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
+  Parameter emitParameterFromElement(ParameterElement element, [String name]) {
+    if (name == null) {
+      name = element.name;
+    }
+    if (element.functionSignature != null) {
+      FunctionSignature signature = element.functionSignature;
+      TypeAnnotation returnType = emitOptionalType(signature.type.returnType);
+      Parameters innerParameters = new Parameters(
+          signature.requiredParameters.mapToList(emitParameterFromElement),
+          signature.optionalParameters.mapToList(emitParameterFromElement),
+          signature.optionalParametersAreNamed);
+      return new Parameter.function(name, returnType, innerParameters)
+                 ..element = element;
+    } else {
+      TypeAnnotation type = emitOptionalType(element.type);
+      return new Parameter(name, type:type)
+                 ..element = element;
+    }
+  }
+
   Parameter emitParameter(tree.Variable param) {
-    seenVariables.add(param);
-    ParameterElement element = param.element;
-    TypeAnnotation type = emitOptionalType(element.type);
-    return new Parameter(element.name, type:type)
-               ..element = element;
+    return emitParameterFromElement(param.element, getVariableName(param));
   }
 
   Parameters emitParameters(List<tree.Variable> params) {
@@ -174,20 +195,40 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(stmt.next);
   }
 
-  void visitAssign(tree.Assign stmt) {
-    // Synthesize an element for the variable, if necessary.
-    if (stmt.variable.element == null) {
-      stmt.variable.element = new modelx.VariableElementX(
-          stmt.variable.name,
+  /// Generates a name for the given variable and synthesizes an element for it,
+  /// if necessary.
+  String getVariableName(tree.Variable variable) {
+    String name = variableNames[variable];
+    if (name != null) {
+      return name;
+    }
+    String prefix = variable.element == null ? 'v' : variable.element.name;
+    int counter = 0;
+    name = variable.element == null ? '$prefix$counter' : variable.element.name;
+    while (!usedVariableNames.add(name)) {
+      ++counter;
+      name = '$prefix$counter';
+    }
+    variableNames[variable] = name;
+
+    // Synthesize an element for the variable
+    if (variable.element == null || name != variable.element.name) {
+      variable.element = new modelx.VariableElementX(
+          name,
           ElementKind.VARIABLE,
           functionElement,
           variableList,
           null);
     }
-    if (seenVariables.add(stmt.variable)) {
-      variables.add(new VariableDeclaration(stmt.variable.name)
-                            ..element = stmt.variable.element);
+    if (variable.element is! ParameterElement) {
+      variables.add(new VariableDeclaration(name)
+                        ..element = variable.element);
     }
+    return name;
+  }
+
+  void visitAssign(tree.Assign stmt) {
+    String name = getVariableName(stmt.variable);
     statementBuffer.add(new ExpressionStatement(makeAssignment(
         visitVariable(stmt.variable),
         visitExpression(stmt.definition))));
@@ -212,7 +253,15 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   void visitContinue(tree.Continue stmt) {
-    statementBuffer.add(new Continue(stmt.target.name));
+    tree.Statement fall = fallthrough;
+    if (stmt.target.binding == fall) {
+      // Fall through to continue target
+    } else if (fall is tree.Continue && fall.target == stmt.target) {
+      // Fall through to equivalent continue
+    } else {
+      usedLabels.add(stmt.target);
+      statementBuffer.add(new Continue(stmt.target.name));
+    }
   }
 
   void visitIf(tree.If stmt) {
@@ -227,28 +276,72 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     statementBuffer = savedBuffer;
   }
 
-  void visitWhile(tree.While stmt) {
-    Expression condition = new Literal(new dart2js.BoolConstant(true));
+  void visitWhileTrue(tree.WhileTrue stmt) {
+    List<Expression> updates = stmt.updates.reversed
+                                           .map(visitExpression)
+                                           .toList(growable:false);
+
     List<Statement> savedBuffer = statementBuffer;
-    statementBuffer = <Statement>[];
     tree.Statement savedFallthrough = fallthrough;
-    fallthrough = stmt.body;
+    statementBuffer = <Statement>[];
+    fallthrough = stmt;
+
     visitStatement(stmt.body);
-    savedBuffer.add(
-        new LabeledStatement(
-            stmt.label.name,
-            new While(condition, new Block(statementBuffer))));
+    Statement body = new Block(statementBuffer);
+    Statement statement = new For(null, null, updates, body);
+    if (usedLabels.remove(stmt.label.name)) {
+      statement = new LabeledStatement(stmt.label.name, statement);
+    }
+    savedBuffer.add(statement);
+
     statementBuffer = savedBuffer;
     fallthrough = savedFallthrough;
+  }
+
+  void visitWhileCondition(tree.WhileCondition stmt) {
+    Expression condition = visitExpression(stmt.condition);
+    List<Expression> updates = stmt.updates.reversed
+                                           .map(visitExpression)
+                                           .toList(growable:false);
+
+    List<Statement> savedBuffer = statementBuffer;
+    tree.Statement savedFallthrough = fallthrough;
+    statementBuffer = <Statement>[];
+    fallthrough = stmt;
+
+    visitStatement(stmt.body);
+    Statement body = new Block(statementBuffer);
+    Statement statement;
+    if (updates.isEmpty) {
+      // while(E) is the same as for(;E;), but the former is nicer
+      statement = new While(condition, body);
+    } else {
+      statement = new For(null, condition, updates, body);
+    }
+    if (usedLabels.remove(stmt.label.name)) {
+      statement = new LabeledStatement(stmt.label.name, statement);
+    }
+    savedBuffer.add(statement);
+
+    statementBuffer = savedBuffer;
+    fallthrough = savedFallthrough;
+
+    visitStatement(stmt.next);
   }
 
   Expression visitConstant(tree.Constant exp) {
     return emitConstant(exp.value);
   }
 
+  Expression visitThis(tree.This exp) {
+    return new This();
+  }
+
   Expression visitLiteralList(tree.LiteralList exp) {
     return new LiteralList(
-        exp.values.map(visitExpression).toList(growable: false));
+        exp.values.map(visitExpression).toList(growable: false),
+        isConst: exp.constant != null,
+        typeArgument: emitOptionalType(exp.type.typeArguments.single));
   }
 
   Expression visitLiteralMap(tree.LiteralMap exp) {
@@ -256,7 +349,18 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
         exp.values.length,
         (i) => new LiteralMapEntry(visitExpression(exp.keys[i]),
                                    visitExpression(exp.values[i])));
-    return new LiteralMap(entries);
+    List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
+        ? null
+        : exp.type.typeArguments.mapToList(emitType);
+    return new LiteralMap(entries,
+                          isConst: exp.constant != null,
+                          typeArguments: typeArguments);
+  }
+
+  Expression visitTypeOperator(tree.TypeOperator exp) {
+    return new TypeOperator(visitExpression(exp.receiver),
+                            exp.operator,
+                            emitType(exp.type));
   }
 
   List<Argument> emitArguments(tree.Invoke exp) {
@@ -272,9 +376,23 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitInvokeStatic(tree.InvokeStatic exp) {
-    List<Argument> args = emitArguments(exp);
-    return new CallStatic(null, exp.target.name, args)
-               ..element = exp.target;
+    switch (exp.selector.kind) {
+      case SelectorKind.GETTER:
+        return new Identifier(exp.target.name)..element = exp.target;
+
+      case SelectorKind.SETTER:
+        return new Assignment(
+            new Identifier(exp.target.name)..element = exp.target,
+            '=',
+            visitExpression(exp.arguments[0]));
+
+      case SelectorKind.CALL:
+        return new CallStatic(null, exp.target.name, emitArguments(exp))
+                   ..element = exp.target;
+
+      default:
+        throw "Unexpected selector kind: ${exp.selector.kind}";
+    }
   }
 
   Expression visitInvokeMethod(tree.InvokeMethod exp) {
@@ -321,7 +439,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List args = emitArguments(exp);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(emitType(exp.type), args, constructorName: name)
+    return new CallNew(emitType(exp.type),
+                       args,
+                       constructorName: name,
+                       isConst: exp.constant != null)
                ..constructor = constructor
                ..dartType = exp.type;
   }
@@ -349,7 +470,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitVariable(tree.Variable exp) {
-    return new Identifier(exp.name)
+    return new Identifier(getVariableName(exp))
                ..element = exp.element;
   }
 
@@ -357,8 +478,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (type is GenericType) { // TODO(asgerf): faster Link.map
       return new TypeAnnotation(
           type.element.name,
-          type.typeArguments.toList(growable:false)
-              .map(emitType).toList(growable:false))
+          type.typeArguments.mapToList(emitType, growable:false))
           ..dartType = type;
     } else if (type is VoidType) {
       return new TypeAnnotation('void')
@@ -366,6 +486,13 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     } else if (type is TypeVariableType) {
       return new TypeAnnotation(type.name)
           ..dartType = type;
+    } else if (type is DynamicType) {
+      return new TypeAnnotation("dynamic")
+          ..dartType = type;
+    } else if (type is MalformedType) {
+      // treat malformed types as dynamic
+      return new TypeAnnotation("dynamic")
+          ..dartType = const DynamicType();
     } else {
       throw "Unsupported type annotation: $type";
     }
@@ -373,7 +500,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   /// Like [emitType] except the dynamic type is converted to null.
   TypeAnnotation emitOptionalType(DartType type) {
-    if (type.isDynamic) {
+    if (type.treatAsDynamic) {
       return null;
     } else {
       return emitType(type);
@@ -383,18 +510,18 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   Expression emitConstant(dart2js.Constant constant) {
     if (constant is dart2js.PrimitiveConstant) {
       return new Literal(constant);
-    } else if (constant is dart2js.ListConstant) {
-      return new LiteralList(
-          constant.entries.map(emitConstant).toList(growable: false),
-          isConst: true);
-    } else if (constant is dart2js.MapConstant) {
-      List<LiteralMapEntry> entries = <LiteralMapEntry>[];
-      for (var i = 0; i < constant.keys.length; i++) {
-        entries.add(new LiteralMapEntry(
-            emitConstant(constant.keys.entries[i]),
-            emitConstant(constant.values[i])));
-      }
-      return new LiteralMap(entries, isConst: true);
+    } else if (constant is dart2js.ConstructedConstant &&
+               constant.isLiteralSymbol) {
+      dart2js.StringConstant nameConstant = constant.fields[0];
+      String nameString = nameConstant.value.slowToString();
+      return new LiteralSymbol(nameString);
+    } else if (constant is dart2js.FunctionConstant) {
+      return new Identifier(constant.element.name)
+                 ..element = constant.element;
+    } else if (constant is dart2js.TypeConstant) {
+      GenericType type = constant.representedType;
+      return new LiteralType(type.name)
+                 ..element = type.element;
     } else {
       throw "Unsupported constant: $constant";
     }

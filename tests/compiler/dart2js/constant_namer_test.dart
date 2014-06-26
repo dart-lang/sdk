@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
@@ -26,11 +27,11 @@ main() {
     Expect.isTrue(generated.contains(text), text);
   }
 
-  var generated = compile(TEST_ONE, entry: 'test');
-
-  check(generated, '.List_12_53.');
-  check(generated, '.Token_start_null.');
-  check(generated, '.Token_end_null.');
-  check(generated, '.Token_yes_12.');
-  check(generated, '.Token_true_false.');
+  asyncTest(() => compile(TEST_ONE, entry: 'test').then((String generated) {
+    check(generated, '.List_12_53.');
+    check(generated, '.Token_start_null.');
+    check(generated, '.Token_end_null.');
+    check(generated, '.Token_yes_12.');
+    check(generated, '.Token_true_false.');
+  }));
 }

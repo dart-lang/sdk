@@ -12,10 +12,12 @@
 namespace dart {
 
 class JSONStream;
+class Script;
 
 struct TraceBufferEntry {
   int64_t micros;
   char* message;
+  bool message_is_escaped;
   bool empty() const {
     return message == NULL;
   }
@@ -25,25 +27,32 @@ class TraceBuffer {
  public:
   static const intptr_t kDefaultCapacity = 1024;
 
-  explicit TraceBuffer(intptr_t capacity = kDefaultCapacity);
+  static void Init(Isolate* isolate, intptr_t capacity = kDefaultCapacity);
+
   ~TraceBuffer();
 
   void Clear();
 
   // Internally message is copied.
-  void Trace(int64_t micros, const char* message);
+  void Trace(int64_t micros, const char* msg, bool msg_is_escaped = false);
   // Internally message is copied.
-  void Trace(const char* message);
+  void Trace(const char* msg, bool msg_is_escaped = false);
   void TraceF(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
   void PrintToJSONStream(JSONStream* stream) const;
 
- private:
-  void Init();
-  void Cleanup();
-  void Fill(TraceBufferEntry* entry, int64_t micros, char* msg);
-  void AppendTrace(int64_t micros, char* message);
+  // Accessors for testing.
+  TraceBufferEntry* At(intptr_t i) const { return &ring_[RingIndex(i)]; }
+  intptr_t Length() const { return ring_cursor_; }
 
+ private:
+  TraceBuffer(Isolate* isolate, intptr_t capacity);
+  void Cleanup();
+  void Fill(TraceBufferEntry* entry, int64_t micros,
+            char* msg, bool msg_is_escaped = false);
+  void AppendTrace(int64_t micros, char* msg, bool msg_is_escaped = false);
+
+  Isolate* isolate_;
   TraceBufferEntry* ring_;
   const intptr_t ring_capacity_;
   intptr_t ring_cursor_;

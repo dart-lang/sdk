@@ -128,10 +128,10 @@ class _Future<T> implements Future<T> {
   // If we store the type of a closure in the state field (where there are
   // still bits left), we can just store two closures instead of using 4
   // fields of which 2 are always null.
-  final _FutureOnValue _onValueCallback;
-  final _FutureErrorTest _errorTestCallback;
-  final Function _onErrorCallback;
-  final _FutureAction _whenCompleteActionCallback;
+  _FutureOnValue _onValueCallback;
+  _FutureErrorTest _errorTestCallback;
+  Function _onErrorCallback;
+  _FutureAction _whenCompleteActionCallback;
 
   _FutureOnValue get _onValue => _isChained ? null : _onValueCallback;
   _FutureErrorTest get _errorTest => _isChained ? null : _errorTestCallback;
@@ -578,6 +578,10 @@ class _Future<T> implements Future<T> {
         }
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
+        listener._onValueCallback = null;
+        listener._errorTestCallback = null;
+        listener._onErrorCallback = null;
+        listener._whenCompleteActionCallback = null;
 
         if (isPropagationAborted) return;
         // If the listener's value is a future we need to chain it. Note that

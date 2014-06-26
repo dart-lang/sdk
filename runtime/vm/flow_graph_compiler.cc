@@ -27,6 +27,7 @@ namespace dart {
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
+DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
@@ -107,6 +108,23 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       entry_patch_pc_offset_(Code::kInvalidPc),
       patch_code_pc_offset_(Code::kInvalidPc),
       lazy_deopt_pc_offset_(Code::kInvalidPc) {
+  if (!is_optimizing) {
+    const intptr_t len = isolate()->deopt_id();
+    deopt_id_to_ic_data_ = new(isolate()) ZoneGrowableArray<const ICData*>(len);
+    deopt_id_to_ic_data_->SetLength(len);
+    for (intptr_t i = 0; i < len; i++) {
+      (*deopt_id_to_ic_data_)[i] = NULL;
+    }
+    const Array& old_saved_icdata = Array::Handle(isolate(),
+        flow_graph->parsed_function().function().ic_data_array());
+    const intptr_t saved_len =
+        old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
+    for (intptr_t i = 0; i < saved_len; i++) {
+      ICData& icd = ICData::ZoneHandle(isolate());
+      icd ^= old_saved_icdata.At(i);
+      (*deopt_id_to_ic_data_)[icd.deopt_id()] = &icd;
+    }
+  }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 }
@@ -336,16 +354,12 @@ void FlowGraphCompiler::VisitBlocks() {
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   const Function& function = parsed_function_.function();
-  const Error& error = Error::Handle(
-      LanguageError::NewFormatted(Error::Handle(),  // No previous error.
-                                  Script::Handle(function.script()),
-                                  function.token_pos(),
-                                  LanguageError::kBailout,
-                                  Heap::kNew,
-                                  "FlowGraphCompiler Bailout: %s %s",
-                                  String::Handle(function.name()).ToCString(),
-                                  reason));
-  isolate()->long_jump_base()->Jump(1, error);
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function.script()),
+                   function.token_pos(),
+                   "FlowGraphCompiler Bailout: %s %s",
+                   String::Handle(function.name()).ToCString(),
+                   reason);
   UNREACHABLE();
 }
 
@@ -888,16 +902,31 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
-                                           LocationSummary* locs) {
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
-                                                 argument_names));
-  if (is_optimizing()) {
-    EmitOptimizedStaticCall(function, arguments_descriptor, argument_count,
-                            deopt_id, token_pos, locs);
+                                           LocationSummary* locs,
+                                           const ICData& ic_data) {
+  const Array& arguments_descriptor = Array::ZoneHandle(
+      ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
+                                                  argument_names)
+                       : ic_data.arguments_descriptor());
+  // Proper reporting of Javascript incompatibilities requires icdata and
+  // may therefore prevent the optimization of some static calls.
+  if (is_optimizing() &&
+      !(FLAG_warn_on_javascript_compatibility &&
+        (MethodRecognizer::RecognizeKind(function) ==
+         MethodRecognizer::kObjectIdentical))) {
+    EmitOptimizedStaticCall(function, arguments_descriptor,
+                            argument_count, deopt_id, token_pos, locs);
   } else {
-    EmitUnoptimizedStaticCall(function, arguments_descriptor, argument_count,
-                              deopt_id, token_pos, locs);
+    ICData& call_ic_data = ICData::ZoneHandle(ic_data.raw());
+    if (call_ic_data.IsNull()) {
+      const intptr_t kNumArgsChecked = 0;
+      call_ic_data = GetOrAddStaticCallICData(deopt_id,
+                                              function,
+                                              arguments_descriptor,
+                                              kNumArgsChecked)->raw();
+    }
+    EmitUnoptimizedStaticCall(argument_count, deopt_id, token_pos, locs,
+                              call_ic_data);
   }
 }
 
@@ -953,6 +982,15 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
+}
+
+
+bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
+  // Only emit an edge counter if there is not goto at the end of the block,
+  // except for the entry block.
+  return (FLAG_emit_edge_counters
+      && (!block->last_instruction()->IsGoto()
+          || (block == flow_graph().graph_entry()->normal_entry())));
 }
 
 
@@ -1211,12 +1249,14 @@ bool ParallelMoveResolver::IsScratchLocation(Location loc) {
 }
 
 
-intptr_t ParallelMoveResolver::AllocateScratchRegister(Location::Kind kind,
-                                                       intptr_t blocked,
-                                                       intptr_t register_count,
-                                                       bool* spilled) {
+intptr_t ParallelMoveResolver::AllocateScratchRegister(
+    Location::Kind kind,
+    intptr_t blocked,
+    intptr_t first_free_register,
+    intptr_t last_free_register,
+    bool* spilled) {
   intptr_t scratch = -1;
-  for (intptr_t reg = 0; reg < register_count; reg++) {
+  for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
     if ((blocked != reg) &&
         IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
       scratch = reg;
@@ -1226,9 +1266,10 @@ intptr_t ParallelMoveResolver::AllocateScratchRegister(Location::Kind kind,
 
   if (scratch == -1) {
     *spilled = true;
-    for (intptr_t reg = 0; reg < register_count; reg++) {
+    for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
       if (blocked != reg) {
         scratch = reg;
+        break;
       }
     }
   } else {
@@ -1247,7 +1288,8 @@ ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
   reg_ = static_cast<FpuRegister>(
       resolver_->AllocateScratchRegister(Location::kFpuRegister,
                                          blocked,
-                                         kNumberOfFpuRegisters,
+                                         0,
+                                         kNumberOfFpuRegisters - 1,
                                          &spilled_));
 
   if (spilled_) {
@@ -1271,7 +1313,8 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked,
-                                         kNumberOfCpuRegisters,
+                                         kFirstFreeCpuRegister,
+                                         kLastFreeCpuRegister,
                                          &spilled_));
 
   if (spilled_) {
@@ -1307,6 +1350,49 @@ void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
                           ic_data.GetCountAt(i)));
   }
   sorted->Sort(HighestCountFirst);
+}
+
+
+const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
+    intptr_t deopt_id,
+    const String& target_name,
+    const Array& arguments_descriptor,
+    intptr_t num_args_tested) {
+  if ((deopt_id_to_ic_data_ != NULL) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+    const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
+    ASSERT(res->deopt_id() == deopt_id);
+    ASSERT(res->target_name() == target_name.raw());
+    ASSERT(res->NumArgsTested() == num_args_tested);
+    return res;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
+      parsed_function().function(), target_name,
+      arguments_descriptor, deopt_id, num_args_tested));
+  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  return &ic_data;
+}
+
+
+const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
+    intptr_t deopt_id,
+    const Function& target,
+    const Array& arguments_descriptor,
+    intptr_t num_args_tested) {
+  if ((deopt_id_to_ic_data_ != NULL) &&
+      ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
+    const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
+    ASSERT(res->deopt_id() == deopt_id);
+    ASSERT(res->target_name() == target.name());
+    ASSERT(res->NumArgsTested() == num_args_tested);
+    return res;
+  }
+  const ICData& ic_data = ICData::ZoneHandle(isolate(), ICData::New(
+      parsed_function().function(), String::Handle(isolate(), target.name()),
+      arguments_descriptor, deopt_id, num_args_tested));
+  ic_data.AddTarget(target);
+  (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
+  return &ic_data;
 }
 
 }  // namespace dart

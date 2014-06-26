@@ -221,11 +221,11 @@ class Socket {
 
   static bool Initialize();
   static intptr_t Available(intptr_t fd);
-  static int Read(intptr_t fd, void* buffer, intptr_t num_bytes);
-  static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
-  static int SendTo(
+  static intptr_t Read(intptr_t fd, void* buffer, intptr_t num_bytes);
+  static intptr_t Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  static intptr_t SendTo(
       intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr);
-  static int RecvFrom(
+  static intptr_t RecvFrom(
       intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr);
   static intptr_t Create(RawAddr addr);
   static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port);

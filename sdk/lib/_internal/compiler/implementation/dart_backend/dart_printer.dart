@@ -330,6 +330,10 @@ class Conditional extends Expression {
 /// The unparser does not concern itself with scoping rules, and it is the
 /// responsibility of the AST creator to ensure that the identifier resolves
 /// to the proper definition.
+/// For the time being, this class is also used to reference static fields and
+/// top-level variables that are qualified with a class and/or library name,
+/// assuming the [element] is set. This is likely to change when the old backend
+/// is replaced.
 class Identifier extends Expression {
   final String name;
 
@@ -378,6 +382,17 @@ class LiteralSymbol extends Expression {
 
   /// [id] should not include the # symbol
   LiteralSymbol(this.id);
+}
+
+/// A type literal. This is distinct from [Identifier] since the unparser
+/// needs to this distinguish a static invocation from a method invocation
+/// on a type literal.
+class LiteralType extends Expression {
+  final String name;
+
+  elements.TypeDeclarationElement element;
+
+  LiteralType(this.name);
 }
 
 /// StringConcat is used in place of string interpolation and juxtaposition.
@@ -455,7 +470,7 @@ class CallStatic extends Expression {
   final String methodName;
   final List<Argument> arguments;
 
-  elements.FunctionElement element;
+  elements.Element element;
 
   CallStatic(this.className, this.methodName, this.arguments);
 }
@@ -579,6 +594,7 @@ const int ADDITIVE = 12;
 const int MULTIPLICATIVE = 13;
 const int UNARY = 14;
 const int POSTFIX_INCREMENT = 15;
+const int TYPE_LITERAL = 19;
 const int PRIMARY = 20;
 
 /// Precedence level required for the callee in a [FunctionCall].
@@ -846,6 +862,10 @@ class Unparser {
     } else if (e is LiteralSymbol) {
       write('#');
       write(e.id); // TODO(asgerf): Do we need to escape something here?
+    } else if (e is LiteralType) {
+      withPrecedence(TYPE_LITERAL, () {
+        write(e.name);
+      });
     } else if (e is StringConcat) {
       writeStringLiteral(e);
     } else if (e is UnaryOperator) {
@@ -1235,6 +1255,17 @@ class Unparser {
     }
   }
 
+  /// A list of string quotings that the printer may use to quote strings.
+  // Ignore multiline quotings for now. Would need to make sure that no
+  // newline (potentially prefixed by whitespace) follows the quoting.
+  // TODO(asgerf): Include multiline quotation schemes.
+  static const _QUOTINGS = const <tree.StringQuoting>[
+      const tree.StringQuoting(characters.$DQ, raw: false, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$DQ, raw: true, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$SQ, raw: false, leftQuoteLength: 1),
+      const tree.StringQuoting(characters.$SQ, raw: true, leftQuoteLength: 1),
+  ];
+
   static StringLiteralOutput analyzeStringLiteral(Expression node) {
     // TODO(asgerf): This might be a bit too expensive. Benchmark.
     // Flatten the StringConcat tree.
@@ -1277,11 +1308,7 @@ class Unparser {
     List<int> nonRaws = <int>[];
     List<int> sqs = <int>[];
     List<int> dqs = <int>[];
-    for (tree.StringQuoting q in tree.StringQuoting.mapping) {
-      // Ignore multiline quotings for now. Encoding of line breaks is unclear.
-      // TODO(asgerf): Include multiline quotation schemes.
-      if (q.leftQuoteCharCount >= 3)
-        continue;
+    for (tree.StringQuoting q in _QUOTINGS) {
       OpenStringChunk chunk = new OpenStringChunk(null, q, getQuoteCost(q));
       int index = best.length;
       best.add(chunk);

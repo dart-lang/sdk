@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
@@ -37,22 +39,25 @@ const String TEST_4 = r"""
 """;
 
 main() {
-  void check(String test, String contained) {
-    var generated = compile(test, entry: 'foo');
-    Expect.isTrue(generated.contains(contained), contained);
+  Future check(String test, String contained) {
+    return compile(test, entry: 'foo').then((String generated) {
+      Expect.isTrue(generated.contains(contained), contained);
+    });
   }
 
-  // Full substitution.
-  check(TEST_1, r'"u120vhellow"');
+  asyncTest(() => Future.wait([
+    // Full substitution.
+    check(TEST_1, r'"u120vhellow"'),
 
-  // Adjacent string fragments get merged.
-  check(TEST_2, r'"xxxxxyyyyy"');
+    // Adjacent string fragments get merged.
+    check(TEST_2, r'"xxxxxyyyyy"'),
 
-  // 1. No merging of fragments that are multi-use.  Prevents exponential code
-  //    and keeps author's manual CSE.
-  // 2. Know string values require no stringification.
-  check(TEST_3, r'return b + "x" + b');
+    // 1. No merging of fragments that are multi-use.  Prevents exponential code
+    //    and keeps author's manual CSE.
+    // 2. Know string values require no stringification.
+    check(TEST_3, r'return b + "x" + b'),
 
-  // Known int value can be formatted directly.
-  check(TEST_4, r'return "" + b.length');
+    // Known int value can be formatted directly.
+    check(TEST_4, r'return "" + b.length'),
+  ]));
 }

@@ -88,10 +88,6 @@ compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 
-[ $compiler == dart2js || $compiler == dart2dart]
-symbol_operator_test/01: CompileTimeError # Issue 15653.
-symbol_operator_test/02: CompileTimeError # Issue 15653.
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -105,11 +101,8 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == safari || $runtime == safarimobilesim) ]
-string_trimlr_test/none: Fail # Bug in v8. Fixed in v8 r19222, 2014-02-10.
-
-[ $compiler == dart2js && ( $runtime == drt) ]
-string_case_test/02: Fail, OK  # Bug in our version of V8.
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
+string_trimlr_test/none: Fail
 
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
 string_case_test/01: Fail, OK  # Bug in IE.
@@ -163,3 +156,7 @@ list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 [ $runtime == ie9 || $runtime == ie10 ]
 num_parse_test: RuntimeError  # Issue 15316
 num_parse_test/01: RuntimeError  # Issue 15316
+
+[ $system == windows && $arch == x64 ]
+stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
+

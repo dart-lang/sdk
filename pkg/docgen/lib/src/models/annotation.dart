@@ -14,7 +14,7 @@ import 'library.dart';
 import 'mirror_based.dart';
 
 import 'dart:mirrors';
-import '../../../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 /// Holds the name of the annotation, and its parameters.
 class Annotation extends MirrorBased<ClassMirror> {

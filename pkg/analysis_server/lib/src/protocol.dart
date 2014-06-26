@@ -4,6 +4,7 @@
 
 library protocol;
 
+import 'dart:collection';
 import 'dart:convert' show JsonDecoder;
 
 /**
@@ -77,7 +78,7 @@ class Request {
   /**
    * A table mapping the names of request parameters to their values.
    */
-  final Map<String, Object> params = new Map<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * A decoder that can be used to decode strings into JSON objects.
@@ -137,8 +138,7 @@ class Request {
    * if there is no such parameter associated with this request.
    */
   RequestDatum getParameter(String name, defaultValue) {
-    Object value = params[name];
-    if (value == null) {
+    if (!params.containsKey(name)) {
       return new RequestDatum(this, "default for $name", defaultValue);
     }
     return new RequestDatum(this, name, params[name]);
@@ -150,11 +150,10 @@ class Request {
    * such parameter associated with this request.
    */
   RequestDatum getRequiredParameter(String name) {
-    Object value = params[name];
-    if (value == null) {
+    if (!params.containsKey(name)) {
       throw new RequestFailure(new Response.missingRequiredParameter(this, name));
     }
-    return new RequestDatum(this, name, value);
+    return new RequestDatum(this, name, params[name]);
   }
 
   /**
@@ -212,26 +211,19 @@ class RequestDatum {
    * a [RequestDatum] containing the corresponding value.
    */
   RequestDatum operator [](String key) {
-    if (datum is! Map) {
-      throw new RequestFailure(new Response.invalidParameter(request, path,
-          "be a map"));
-    }
-    if (!datum.containsKey(key)) {
+    Map<String, Object> map = _asMap();
+    if (!map.containsKey(key)) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "contain key '$key'"));
     }
-    return new RequestDatum(request, "$path.$key", datum[key]);
+    return new RequestDatum(request, "$path.$key", map[key]);
   }
 
   /**
    * Return `true` if the datum is a Map containing the given [key].
    */
   bool hasKey(String key) {
-    if (datum is! Map) {
-      throw new RequestFailure(new Response.invalidParameter(request, path,
-          "be a map"));
-    }
-    return datum.containsKey(key);
+    return _asMap().containsKey(key);
   }
 
   /**
@@ -239,11 +231,7 @@ class RequestDatum {
    * each key/value pair in the map.
    */
   void forEachMap(void f(String key, RequestDatum value)) {
-    if (datum is! Map) {
-      throw new RequestFailure(new Response.invalidParameter(request, path,
-          "be a map"));
-    }
-    datum.forEach((String key, value) {
+    _asMap().forEach((String key, value) {
       f(key, new RequestDatum(request, "$path.$key", value));
     });
   }
@@ -285,6 +273,42 @@ class RequestDatum {
   }
 
   /**
+   * Determine if the datum is a list.  Note: null is considered a synonym for
+   * the empty list.
+   */
+  bool get isList {
+    return datum == null || datum is List;
+  }
+
+  /**
+   * Validate that the datum is a list, and return it in raw form.
+   */
+  List _asList() {
+    if (!isList) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a list"));
+    }
+    if (datum == null) {
+      return [];
+    } else {
+      return datum;
+    }
+  }
+
+  /**
+   * Validate that the datum is a list, and return a list where each element in
+   * the datum has been converted using the provided function.
+   */
+  List asList(elementConverter(RequestDatum datum)) {
+    List result = [];
+    List list = _asList();
+    for (int i = 0; i < list.length; i++) {
+      result.add(elementConverter(new RequestDatum(request, "$path.$i", list[i])));
+    }
+    return result;
+  }
+
+  /**
    * Validate that the datum is a string, and return it.
    */
   String asString() {
@@ -296,13 +320,14 @@ class RequestDatum {
   }
 
   /**
-   * Determine if the datum is a list of strings.
+   * Determine if the datum is a list of strings.  Note: null is considered a
+   * synonym for the empty list.
    */
   bool get isStringList {
-    if (datum is! List) {
+    if (!isList) {
       return false;
     }
-    for (var element in datum) {
+    for (var element in _asList()) {
       if (element is! String) {
         return false;
       }
@@ -311,14 +336,15 @@ class RequestDatum {
   }
 
   /**
-   * Validate that the datum is a list of strings, and return it.
+   * Validate that the datum is a list of strings, and return it.  Note: null
+   * is considered a synonym for the empty list.
    */
   List<String> asStringList() {
     if (!isStringList) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a list of strings"));
     }
-    return datum;
+    return _asList();
   }
 
   /**
@@ -338,16 +364,40 @@ class RequestDatum {
   }
 
   /**
-   * Determine if the datum is a map whose values are all strings.
+   * Determine if the datum is a map.  Note: null is considered a synonym for
+   * the empty map.
+   */
+  bool get isMap {
+    return datum == null || datum is Map;
+  }
+
+  /**
+   * Validate that the datum is a map, and return it in raw form.
+   */
+  Map<String, Object> _asMap() {
+    if (!isMap) {
+      throw new RequestFailure(new Response.invalidParameter(request, path,
+          "be a map"));
+    }
+    if (datum == null) {
+      return {};
+    } else {
+      return datum;
+    }
+  }
+
+  /**
+   * Determine if the datum is a map whose values are all strings.  Note: null
+   * is considered a synonym for the empty map.
    *
    * Note: we can safely assume that the keys are all strings, since JSON maps
    * cannot have any other key type.
    */
   bool get isStringMap {
-    if (datum is! Map) {
+    if (!isMap) {
       return false;
     }
-    for (var value in datum.values) {
+    for (var value in _asMap().values) {
       if (value is! String) {
         return false;
       }
@@ -363,20 +413,21 @@ class RequestDatum {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string map"));
     }
-    return datum;
+    return _asMap();
   }
 
   /**
-   * Determine if the datum is a map whose values are all string lists.
+   * Determine if the datum is a map whose values are all string lists.  Note:
+   * null is considered a synonym for the empty map.
    *
    * Note: we can safely assume that the keys are all strings, since JSON maps
    * cannot have any other key type.
    */
-  bool isStringListMap() {
-    if (datum is! Map) {
+  bool get isStringListMap {
+    if (!isMap) {
       return false;
     }
-    for (var value in datum.values) {
+    for (var value in _asMap().values) {
       if (value is! List) {
         return false;
       }
@@ -390,16 +441,18 @@ class RequestDatum {
   }
 
   /**
-   * Validate that the datum is a map from strings to string listss, and return
+   * Validate that the datum is a map from strings to string lists, and return
    * it.
    */
   Map<String, List<String>> asStringListMap() {
-    if (!isStringListMap()) {
+    if (!isStringListMap) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string list map"));
     }
-    return datum;
+    return _asMap();
   }
+
+  bool get isNull => datum == null;
 }
 
 /**
@@ -438,7 +491,7 @@ class Response {
    * A table mapping the names of result fields to their values. The table
    * should be empty if there was an error.
    */
-  final Map<String, Object> result = new Map<String, Object>();
+  final Map<String, Object> result = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created instance to represent a response to a request
@@ -507,6 +560,22 @@ class Response {
    */
   Response.unknownAnalysisService(Request request, String name)
     : this(request.id, new RequestError(-10, 'Unknown analysis service: "$name"'));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a `analysis.setPriorityFiles` [request] that includes one or more files
+   * that are not being analyzed.
+   */
+  Response.unanalyzedPriorityFiles(Request request, String fileNames)
+    : this(request.id, new RequestError(-11, "Unanalyzed files cannot be a priority: '$fileNames'"));
+
+  /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by a `analysis.updateOptions` [request] that includes an unknown analysis
+   * option.
+   */
+  Response.unknownOptionName(Request request, String optionName)
+    : this(request.id, new RequestError(-12, 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -646,7 +715,7 @@ class RequestError {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final Map<String, Object> data = new Map<String, Object>();
+  final Map<String, Object> data = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Error] to have the given [code] and [message].
@@ -765,7 +834,7 @@ class Notification {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final Map<String, Object> params = new Map<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.

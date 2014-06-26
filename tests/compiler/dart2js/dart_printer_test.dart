@@ -5,15 +5,15 @@
 library dart_printer_test;
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_printer.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart' show DartString;
+import 'package:compiler/implementation/dart_backend/dart_printer.dart';
+import 'package:compiler/implementation/scanner/scannerlib.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/tree/tree.dart' show DartString;
 import 'dart:mirrors';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart' as tree;
-import '../../../sdk/lib/_internal/compiler/implementation/string_validator.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_tree_printer.dart' show TreePrinter;
+import 'package:compiler/implementation/tree/tree.dart' as tree;
+import 'package:compiler/implementation/string_validator.dart';
+import 'package:compiler/implementation/dart_backend/dart_tree_printer.dart' show TreePrinter;
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].
 void show(x) {

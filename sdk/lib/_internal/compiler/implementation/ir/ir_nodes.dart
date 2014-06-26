@@ -6,11 +6,13 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant;
+import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant;
 import '../elements/elements.dart'
-    show FunctionElement, LibraryElement, ParameterElement, ClassElement;
+    show FunctionElement, LibraryElement, ParameterElement, ClassElement,
+    Element, VariableElement;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
+import '../helpers/helpers.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -47,7 +49,29 @@ abstract class Definition extends Node {
   }
 }
 
+/// A pure expression that cannot throw or diverge.
+/// All primitives are named using the identity of the [Primitive] object.
 abstract class Primitive extends Definition {
+  /// The [VariableElement] or [ParameterElement] from which the primitive
+  /// binding originated.
+  Element element;
+
+  /// Register in which the variable binding this primitive can be allocated.
+  /// Separate register spaces are used for primitives with different [element].
+  /// Assigned by [RegisterAllocator], is null before that phase.
+  int registerIndex;
+
+  /// If non-null, this primitive is a reference to the given constant.
+  dart2js.Constant get constant;
+
+  /// Use the given element as a hint for naming this primitive.
+  ///
+  /// Has no effect if this primitive already has a non-null [element].
+  void useElementAsHint(Element hint) {
+    if (element == null) {
+      element = hint;
+    }
+  }
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -105,9 +129,10 @@ abstract class Invoke {
   List<Reference> get arguments;
 }
 
-/// Invoke a static function in tail position.
+/// Invoke a static function or static field getter/setter.
 class InvokeStatic extends Expression implements Invoke {
-  final FunctionElement target;
+  /// [FunctionElement] or [FieldElement].
+  final Element target;
 
   /**
    * The selector encodes how the function is invoked: number of positional
@@ -123,7 +148,6 @@ class InvokeStatic extends Expression implements Invoke {
                List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(selector.kind == SelectorKind.CALL);
     assert(selector.name == target.name);
   }
 
@@ -185,6 +209,47 @@ class InvokeConstructor extends Expression implements Invoke {
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
+}
+
+class AsCast extends Expression {
+  final Reference receiver;
+  final DartType type;
+  final Reference continuation;
+
+  AsCast(Primitive receiver, this.type, Continuation cont)
+      : this.receiver = new Reference(receiver),
+        this.continuation = new Reference(cont);
+
+  accept(Visitor visitor) => visitor.visitAsCast(this);
+}
+
+class InvokeConstConstructor extends Primitive {
+  final GenericType type;
+  final FunctionElement constructor;
+  final List<Reference> arguments;
+  final Selector selector;
+
+  final dart2js.ConstructedConstant constant;
+
+  /// The class being instantiated. This is the same as `target.enclosingClass`
+  /// and `type.element`.
+  ClassElement get targetClass => constructor.enclosingElement;
+
+  /// True if this is an invocation of a factory constructor.
+  bool get isFactory => constructor.isFactoryConstructor;
+
+  InvokeConstConstructor(this.type,
+                    this.constructor,
+                    this.selector,
+                    List<Definition> args,
+                    this.constant)
+      : arguments = _referenceList(args) {
+    assert(constructor.isConstructor);
+    assert(type.element == constructor.enclosingElement);
+    assert(constant.type == type);
+  }
+
+  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
 }
 
 /// Invoke [toString] on each argument and concatenate the results.
@@ -249,33 +314,67 @@ class Constant extends Primitive {
 
   Constant(this.value);
 
+  dart2js.Constant get constant => value;
+
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
-class LiteralList extends Primitive {
-  List<Reference> values;
+class This extends Primitive {
+  This();
 
-  LiteralList(List<Primitive> values)
+  dart2js.Constant get constant => null;
+
+  accept(Visitor visitor) => visitor.visitThis(this);
+}
+
+class LiteralList extends Primitive {
+  /// The List type being created; this is not the type argument.
+  final GenericType type;
+  final List<Reference> values;
+
+  /// Set to null if this is not a const literal list.
+  final dart2js.Constant constant;
+
+  LiteralList(this.type, List<Primitive> values, [this.constant])
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 }
 
 class LiteralMap extends Primitive {
-  List<Reference> keys;
-  List<Reference> values;
+  final GenericType type;
+  final List<Reference> keys;
+  final List<Reference> values;
 
-  LiteralMap(List<Primitive> keys, List<Primitive> values)
+  /// Set to null if this is not a const literal map.
+  final dart2js.Constant constant;
+
+  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values,
+             [this.constant])
       : this.keys = _referenceList(keys),
         this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 }
 
-class Parameter extends Primitive {
-  final ParameterElement element;
+class IsCheck extends Primitive {
+  final Reference receiver;
+  final DartType type;
 
-  Parameter(this.element);
+  dart2js.Constant get constant => null;
+
+  IsCheck(Primitive receiver, this.type)
+      : this.receiver = new Reference(receiver);
+
+  accept(Visitor visitor) => visitor.visitIsCheck(this);
+}
+
+class Parameter extends Primitive {
+  Parameter(Element element) {
+    super.element = element;
+  }
+
+  dart2js.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -334,11 +433,15 @@ abstract class Visitor<T> {
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
+  T visitAsCast(AsCast node) => visitExpression(node);
 
   // Definitions.
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
   T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
+  T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
+  T visitThis(This node) => visitPrimitive(node);
+  T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 
@@ -474,4 +577,150 @@ class SExpressionStringifier extends Visitor<String> {
     String value = names[node.value.definition];
     return '(IsTrue $value)';
   }
+}
+
+/// Keeps track of currently unused register indices.
+class RegisterArray {
+  int nextIndex = 0;
+  final List<int> freeStack = <int>[];
+
+  int makeIndex() {
+    if (freeStack.isEmpty) {
+      return nextIndex++;
+    } else {
+      return freeStack.removeLast();
+    }
+  }
+
+  void releaseIndex(int index) {
+    freeStack.add(index);
+  }
+}
+
+/// Assigns indices to each primitive in the IR such that primitives that are
+/// live simultaneously never get assigned the same index.
+/// This information is used by the dart tree builder to generate fewer
+/// redundant variables.
+/// Currently, the liveness analysis is very simple and is often inadequate
+/// for removing all of the redundant variables.
+class RegisterAllocator extends Visitor {
+  /// Separate register spaces for each source-level variable/parameter.
+  /// Note that null is used as key for primitives without elements.
+  final Map<Element, RegisterArray> elementRegisters =
+      <Element, RegisterArray>{};
+
+  RegisterArray getRegisterArray(Element element) {
+    RegisterArray registers = elementRegisters[element];
+    if (registers == null) {
+      registers = new RegisterArray();
+      elementRegisters[element] = registers;
+    }
+    return registers;
+  }
+
+  void allocate(Primitive primitive) {
+    if (primitive.registerIndex == null) {
+      primitive.registerIndex = getRegisterArray(primitive.element).makeIndex();
+    }
+  }
+
+  void release(Primitive primitive) {
+    // Do not share indices for temporaries as this may obstruct inlining.
+    if (primitive.element == null) return;
+    if (primitive.registerIndex != null) {
+      getRegisterArray(primitive.element).releaseIndex(primitive.registerIndex);
+    }
+  }
+
+  void visitReference(Reference reference) {
+    allocate(reference.definition);
+  }
+
+  void visitFunctionDefinition(FunctionDefinition node) {
+    visit(node.body);
+    node.parameters.forEach(allocate); // Assign indices to unused parameters.
+    elementRegisters.clear();
+  }
+
+  void visitLetPrim(LetPrim node) {
+    visit(node.body);
+    release(node.primitive);
+    visit(node.primitive);
+  }
+
+  void visitLetCont(LetCont node) {
+    visit(node.continuation);
+    visit(node.body);
+  }
+
+  void visitInvokeStatic(InvokeStatic node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitAsCast(AsCast node) {
+    visitReference(node.receiver);
+  }
+
+  void visitInvokeContinuation(InvokeContinuation node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeMethod(InvokeMethod node) {
+    visitReference(node.receiver);
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeConstructor(InvokeConstructor node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitConcatenateStrings(ConcatenateStrings node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitBranch(Branch node) {
+    visit(node.condition);
+  }
+
+  void visitInvokeConstConstructor(InvokeConstConstructor node) {
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitLiteralList(LiteralList node) {
+    node.values.forEach(visitReference);
+  }
+
+  void visitLiteralMap(LiteralMap node) {
+    for (int i = 0; i < node.keys.length; ++i) {
+      visitReference(node.keys[i]);
+      visitReference(node.values[i]);
+    }
+  }
+
+  void visitIsCheck(IsCheck node) {
+    visitReference(node.receiver);
+  }
+
+  void visitConstant(Constant node) {
+  }
+
+  void visitParameter(Parameter node) {
+    throw "Parameters should not be visited by RegisterAllocator";
+  }
+
+  void visitContinuation(Continuation node) {
+    visit(node.body);
+
+    // Arguments get allocated left-to-right, so we release parameters
+    // right-to-left. This increases the likelihood that arguments can be
+    // transferred without intermediate assignments.
+    for (int i = node.parameters.length - 1; i >= 0; --i) {
+      release(node.parameters[i]);
+    }
+  }
+
+  void visitIsTrue(IsTrue node) {
+    visitReference(node.value);
+  }
+
 }

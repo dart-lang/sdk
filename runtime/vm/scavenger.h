@@ -11,6 +11,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
+#include "vm/ring_buffer.h"
 #include "vm/spaces.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
@@ -25,9 +26,94 @@ class ScavengerVisitor;
 
 DECLARE_FLAG(bool, gc_at_alloc);
 
+
+// Wrapper around VirtualMemory that adds caching and handles the empty case.
+class SemiSpace {
+ public:
+  static void InitOnce();
+
+  // Get a space of the given size. Returns NULL on out of memory. If size is 0,
+  // returns an empty space: pointer(), start() and end() all return NULL.
+  static SemiSpace* New(intptr_t size_in_words);
+
+  // Hand back an unused space.
+  void Delete();
+
+  void* pointer() const { return region_.pointer(); }
+  uword start() const { return region_.start(); }
+  uword end() const { return region_.end(); }
+  intptr_t size_in_words() const {
+    return static_cast<intptr_t>(region_.size()) >> kWordSizeLog2;
+  }
+  bool Contains(uword address) const { return region_.Contains(address); }
+
+  // Set write protection mode for this space. The space must not be protected
+  // when Delete is called.
+  // TODO(koda): Remember protection mode in VirtualMemory and assert this.
+  void WriteProtect(bool read_only);
+
+ private:
+  explicit SemiSpace(VirtualMemory* reserved);
+  ~SemiSpace();
+
+  VirtualMemory* reserved_;  // NULL for an emtpy space.
+  MemoryRegion region_;
+
+  static SemiSpace* cache_;
+  static Mutex* mutex_;
+};
+
+
+// Statistics for a particular scavenge.
+class ScavengeStats {
+ public:
+  ScavengeStats() {}
+  ScavengeStats(int64_t start_micros,
+                int64_t end_micros,
+                SpaceUsage before,
+                SpaceUsage after,
+                intptr_t promo_candidates_in_words,
+                intptr_t promoted_in_words) :
+      start_micros_(start_micros),
+      end_micros_(end_micros),
+      before_(before),
+      after_(after),
+      promo_candidates_in_words_(promo_candidates_in_words),
+      promoted_in_words_(promoted_in_words) {}
+
+  // Of all data before scavenge, what fraction was found to be garbage?
+  double GarbageFraction() const {
+    intptr_t survived = after_.used_in_words + promoted_in_words_;
+    return 1.0 - (survived / static_cast<double>(before_.used_in_words));
+  }
+
+  // Fraction of promotion candidates that survived and was thereby promoted.
+  // Returns zero if there were no promotion candidates.
+  double PromoCandidatesSuccessFraction() const {
+    return promo_candidates_in_words_ > 0 ?
+        promoted_in_words_ / static_cast<double>(promo_candidates_in_words_) :
+        0.0;
+  }
+
+  int64_t DurationMicros() const {
+    return end_micros_ - start_micros_;
+  }
+
+ private:
+  int64_t start_micros_;
+  int64_t end_micros_;
+  SpaceUsage before_;
+  SpaceUsage after_;
+  intptr_t promo_candidates_in_words_;
+  intptr_t promoted_in_words_;
+};
+
+
 class Scavenger {
  public:
-  Scavenger(Heap* heap, intptr_t max_capacity_in_words, uword object_alignment);
+  Scavenger(Heap* heap,
+            intptr_t max_semi_capacity_in_words,
+            uword object_alignment);
   ~Scavenger();
 
   // Check whether this Scavenger contains this address.
@@ -38,7 +124,7 @@ class Scavenger {
     // No reasonable algorithm should be checking for objects in from space. At
     // least unless it is debugging code. This might need to be relaxed later,
     // but currently it helps prevent dumb bugs.
-    ASSERT(!from_->Contains(addr));
+    ASSERT(from_ == NULL || !from_->Contains(addr));
     return to_->Contains(addr);
   }
 
@@ -79,7 +165,7 @@ class Scavenger {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
   intptr_t CapacityInWords() const {
-    return to_->size() >> kWordSizeLog2;
+    return to_->size_in_words();
   }
   intptr_t ExternalInWords() const {
     return external_size_ >> kWordSizeLog2;
@@ -183,9 +269,10 @@ class Scavenger {
 
   void ProcessWeakTables();
 
-  VirtualMemory* space_;
-  MemoryRegion* to_;
-  MemoryRegion* from_;
+  intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
+
+  SemiSpace* from_;
+  SemiSpace* to_;
 
   Heap* heap_;
 
@@ -201,6 +288,8 @@ class Scavenger {
   // Objects below this address have survived a scavenge.
   uword survivor_end_;
 
+  intptr_t max_semi_capacity_in_words_;
+
   // All object are aligned to this value.
   uword object_alignment_;
 
@@ -209,6 +298,8 @@ class Scavenger {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
+  static const int kStatsHistoryCapacity = 2;
+  RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
 
   // The total size of external data associated with objects in this scavenger.
   intptr_t external_size_;

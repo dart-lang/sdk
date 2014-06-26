@@ -1073,6 +1073,19 @@ void Assembler::CompareClassId(
 }
 
 
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  Label load, done;
+  tsti(object, kSmiTagMask);
+  b(&load, NE);
+  LoadImmediate(result, Smi::RawValue(kSmiCid), PP);
+  b(&done);
+  Bind(&load);
+  LoadClassId(result, object, PP);
+  SmiTag(result);
+  Bind(&done);
+}
+
+
 // Frame entry and exit.
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering

@@ -316,7 +316,7 @@ abstract class Future<T> {
    * immediately, but will be scheduled in a later microtask.
    *
    * If [onError] is provided, and this future completes with an error,
-   * the `onError` callback is called with that error its stack trace.
+   * the `onError` callback is called with that error and its stack trace.
    * The `onError` callback must accept either one argument or two arguments.
    * If `onError` accepts two arguments,
    * it is called with both the error and the stack trace,
@@ -337,7 +337,7 @@ abstract class Future<T> {
    *
    * If the callback returns a [Future],
    * the future returned by `then` will be completed with
-   * the same result of the future returned by the callback.
+   * the same result as the future returned by the callback.
    *
    * If [onError] is not given, and this future completes with an error,
    * the error is forwarded directly to the returned future.

@@ -208,6 +208,8 @@ abstract class Node extends TreeElementMixin implements Spannable {
   bool isValidContinueTarget() => false;
   bool isThis() => false;
   bool isSuper() => false;
+
+  bool get isErroneous => false;
 }
 
 class ClassNode extends Node {
@@ -319,12 +321,14 @@ abstract class Statement extends Node {
   bool isValidBreakTarget() => true;
 }
 
-/// Errorneous expression that behaves as a literal null.
+/// Erroneous expression that behaves as a literal null.
 class ErrorExpression extends LiteralNull {
   ErrorExpression(token)
       : super(token);
 
   ErrorExpression asErrorExpression() => this;
+
+  bool get isErroneous => true;
 }
 
 /**
@@ -415,10 +419,11 @@ class Send extends Expression {
       return null;
     }
     if (!isPostfix && argumentsNode != null) {
-      return argumentsNode.getEndToken();
+      Token token = argumentsNode.getEndToken();
+      if (token != null) return token;
     }
     if (selector != null) return selector.getEndToken();
-    return receiver.getBeginToken();
+    return getBeginToken();
   }
 
   Send copyWithReceiver(Node newReceiver) {
@@ -558,8 +563,11 @@ class NodeList extends Node {
       Link<Node> link = nodes;
       if (link.isEmpty) return beginToken;
       while (!link.tail.isEmpty) link = link.tail;
-      if (link.head.getEndToken() != null) return link.head.getEndToken();
-      if (link.head.getBeginToken() != null) return link.head.getBeginToken();
+      Node lastNode = link.head;
+      if (lastNode != null) {
+        if (lastNode.getEndToken() != null) return lastNode.getEndToken();
+        if (lastNode.getBeginToken() != null) return lastNode.getBeginToken();
+      }
     }
     return beginToken;
   }
@@ -826,71 +834,54 @@ class LiteralBool extends Literal<bool> {
 
 
 class StringQuoting {
-  static const StringQuoting SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 5);
-  static const StringQuoting SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 5);
 
-
-  static const List<StringQuoting> mapping = const <StringQuoting>[
-    SINGLELINE_DQ,
-    RAW_SINGLELINE_DQ,
-    MULTILINE_DQ,
-    RAW_MULTILINE_DQ,
-    MULTILINE_NL_DQ,
-    RAW_MULTILINE_NL_DQ,
-    MULTILINE_NL2_DQ,
-    RAW_MULTILINE_NL2_DQ,
-    SINGLELINE_SQ,
-    RAW_SINGLELINE_SQ,
-    MULTILINE_SQ,
-    RAW_MULTILINE_SQ,
-    MULTILINE_NL_SQ,
-    RAW_MULTILINE_NL_SQ,
-    MULTILINE_NL2_SQ,
-    RAW_MULTILINE_NL2_SQ
+  /// Cache of common quotings.
+  static const List<StringQuoting> _mapping = const <StringQuoting>[
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 1),
+    // No string quotes with 2 characters.
+    null,
+    null,
+    null,
+    null,
+    // Multiline quotings.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 3),
+    // Leading single whitespace or espaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 4),
+    // Other combinations of leading whitespace and/or escaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 6)
   ];
+
   final bool raw;
   final int leftQuoteCharCount;
   final int quote;
-  const StringQuoting(this.quote, {bool raw, int leftQuoteLength})
-      : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
+  const StringQuoting(this.quote, { this.raw, int leftQuoteLength })
+      : this.leftQuoteCharCount = leftQuoteLength;
   String get quoteChar => identical(quote, $DQ) ? '"' : "'";
 
   int get leftQuoteLength => (raw ? 1 : 0) + leftQuoteCharCount;
   int get rightQuoteLength => (leftQuoteCharCount > 2) ? 3 : 1;
-  static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
-    int index = quoteLength - 1;
-    if (quoteLength > 2) index -= 1;
-    return mapping[(raw ? 1 : 0) + index * 2 + (identical(quote, $SQ) ? 8 : 0)];
+  static StringQuoting getQuoting(int quote, bool raw, int leftQuoteLength) {
+    int quoteKindOffset = (quote == $DQ) ? 2 : 0;
+    int rawOffset = raw ? 1 : 0;
+    int index = (leftQuoteLength - 1) * 4 + rawOffset + quoteKindOffset;
+    if (index < _mapping.length) return _mapping[index];
+    return new StringQuoting(quote, raw: raw, leftQuoteLength: leftQuoteLength);
   }
 }
 
@@ -1003,6 +994,12 @@ class Identifier extends Expression {
 }
 
 class Operator extends Identifier {
+  static const COMPLEX_OPERATORS =
+      const ["--", "++", '+=', "-=", "*=", "/=", "%=", "&=", "|=", "~/=", "^=",
+             ">>=", "<<="];
+
+  static const INCREMENT_OPERATORS = const <String>["++", "--"];
+
   Operator(Token token) : super(token);
 
   Operator asOperator() => this;
@@ -2108,3 +2105,56 @@ class IsInterpolationVisitor extends Visitor<bool> {
       => node.isInterpolation;
 }
 
+/// Erroneous node used to recover from parser errors.  Implements various
+/// interfaces and provides bare minimum of implementation to avoid unnecessary
+/// messages.
+class ErrorNode
+    extends Node
+    implements FunctionExpression, VariableDefinitions, Typedef {
+  final Token token;
+  final String reason;
+  final Identifier name;
+  final NodeList definitions;
+
+  ErrorNode.internal(this.token, this.reason, this.name, this.definitions);
+
+  factory ErrorNode(Token token, String reason) {
+    Identifier name = new Identifier(token);
+    NodeList definitions = new NodeList(
+        null, const Link<Node>().prepend(name), null, null);
+    return new ErrorNode.internal(token, reason, name, definitions);
+  }
+
+  Token get beginToken => token;
+  Token get endToken => token;
+
+  Token getBeginToken() => token;
+
+  Token getEndToken() => token;
+
+  accept(Visitor visitor) {}
+
+  visitChildren(Visitor visitor) {}
+
+  bool get isErroneous => true;
+
+  // FunctionExpression.
+  get parameters => null;
+  get body => null;
+  get returnType => null;
+  get modifiers => Modifiers.EMPTY;
+  get initializers => null;
+  get getOrSet => null;
+  get isRedirectingFactory => false;
+  bool hasBody() => false;
+  bool hasEmptyBody() => false;
+
+  // VariableDefinitions.
+  get metadata => null;
+  get type => null;
+
+  // Typedef.
+  get typeParameters => null;
+  get formals => null;
+  get typedefKeyword => null;
+}

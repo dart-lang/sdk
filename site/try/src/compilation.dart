@@ -14,9 +14,6 @@ import 'dart:html' show
     Worker,
     window;
 
-import 'dart:async' show
-    Timer;
-
 import 'dart:isolate' show
     ReceivePort,
     SendPort;
@@ -30,21 +27,19 @@ import 'run.dart' show
 
 import 'ui.dart' show
     buildButton,
+    interaction,
     outputDiv,
     outputFrame;
 
 import 'settings.dart' show
     alwaysRunInWorker,
+    incrementalCompilation,
     minified,
     onlyAnalyze,
     verboseCompiler;
 
-@lazy import 'caching_compiler.dart' as cacheCompiler;
-
-@lazy import 'compiler_isolate.dart';
-
-// const lazy = const DeferredLibrary('compiler_isolate');
-const lazy = null;
+import 'iframe_error_handler.dart' show
+    errorStream;
 
 /**
  * Scheme for recognizing files stored in memory.
@@ -78,7 +73,7 @@ class CompilationProcess {
   final String source;
   final Element console;
   final ReceivePort receivePort = new ReceivePort();
-  bool isCleared = false;
+  final Set<String> seenMessages = new Set<String>();
   bool isDone = false;
   bool usesDartHtml = false;
   Worker worker;
@@ -95,12 +90,6 @@ class CompilationProcess {
     return true;
   }
 
-  void clear() {
-    if (verboseCompiler) return;
-    if (!isCleared) console.nodes.clear();
-    isCleared = true;
-  }
-
   void start() {
     if (!shouldStartCompilation()) {
       receivePort.close();
@@ -108,15 +97,18 @@ class CompilationProcess {
     }
     if (current != null) current.dispose();
     current = this;
-    console.nodes.clear();
-    var options = ['--disable-type-inference'];
+    var options = [
+        '--analyze-main',
+        '--no-source-maps',
+    ];
     if (verboseCompiler) options.add('--verbose');
     if (minified) options.add('--minify');
     if (onlyAnalyze) options.add('--analyze-only');
+    if (incrementalCompilation.value) {
+      options.addAll(['--incremental-support', '--disable-type-inference']);
+    }
+    interaction.compilationStarting();
     compilerPort.send([['options', options], receivePort.sendPort]);
-    console.appendHtml('<i class="icon-spinner icon-spin"></i>');
-    console.appendText(' Compiling Dart program...\n');
-    outputFrame.style.display = 'none';
     receivePort.listen(onMessage);
     compilerPort.send([source, receivePort.sendPort]);
   }
@@ -147,11 +139,12 @@ class CompilationProcess {
   }
 
   onFail(_) {
-    clear();
-    consolePrint('Compilation failed');
+    // TODO(ahe): Call interaction.onCompilationFailed().
+    interaction.consolePrintLine('Compilation failed');
   }
 
   onDone(_) {
+    interaction.onCompilationDone();
     isDone = true;
     receivePort.close();
   }
@@ -160,7 +153,6 @@ class CompilationProcess {
   // web worker.  For example, Chrome and Firefox 21.
   onUrl(String url) {
     objectUrls.add(url);
-    clear();
     String wrapper = '''
 // Fool isolate_helper.dart so it does not think this is an isolate.
 var window = self;
@@ -172,50 +164,25 @@ self.importScripts("$url");
     var wrapperUrl =
         Url.createObjectUrl(new Blob([wrapper], 'application/javascript'));
     objectUrls.add(wrapperUrl);
-    void retryInIframe(_) {
-      var frame = makeOutputFrame(url);
-      outputFrame.replaceWith(frame);
-      outputFrame = frame;
-      console.append(buildButton('Try in iframe', retryInIframe));
-    }
-    void onError(String errorMessage) {
-      console.appendText(errorMessage);
-      console.appendText(' ');
-      console.append(buildButton('Try in iframe', retryInIframe));
-      console.appendText('\n');
-    }
-    if (usesDartHtml && !alwaysRunInWorker) {
-      retryInIframe(null);
-    } else {
-      runInWorker(wrapperUrl, onError);
-    }
+
+    run(wrapperUrl, () => makeOutputFrame(url));
   }
 
   // This is called in browsers that do not support creating Object
   // URLs in a web worker.  For example, Safari and Firefox < 21.
   onCode(String code) {
-    clear();
-
-    void retryInIframe(_) {
+    IFrameElement makeIframe() {
       // The obvious thing would be to call [makeOutputFrame], but
       // Safari doesn't support access to Object URLs in an iframe.
 
-      var frame = new IFrameElement()
+      IFrameElement frame = new IFrameElement()
           ..src = 'iframe.html'
           ..style.width = '100%'
           ..style.height = '0px';
       frame.onLoad.listen((_) {
         frame.contentWindow.postMessage(['source', code], '*');
       });
-      outputFrame.replaceWith(frame);
-      outputFrame = frame;
-    }
-
-    void onError(String errorMessage) {
-      console.appendText(errorMessage);
-      console.appendText(' ');
-      console.append(buildButton('Try in iframe', retryInIframe));
-      console.appendText('\n');
+      return frame;
     }
 
     String codeWithPrint =
@@ -226,8 +193,29 @@ self.importScripts("$url");
             new Blob([codeWithPrint], 'application/javascript'));
     objectUrls.add(url);
 
+    run(url, makeIframe);
+  }
+
+  void run(String url, IFrameElement makeIframe()) {
+    void retryInIframe() {
+      var frame = makeIframe();
+      frame.style
+          ..visibility = 'hidden'
+          ..position = 'absolute';
+      outputFrame.parent.insertBefore(frame, outputFrame);
+      outputFrame = frame;
+      errorStream(frame).listen(interaction.onIframeError);
+    }
+    void onError(String errorMessage) {
+      console
+          ..appendText(errorMessage)
+          ..appendText(' ')
+          ..append(buildButton('Try in iframe', (_) => retryInIframe()))
+          ..appendText('\n');
+    }
+    interaction.aboutToRun();
     if (usesDartHtml && !alwaysRunInWorker) {
-      retryInIframe(null);
+      retryInIframe();
     } else {
       runInWorker(url, onError);
     }
@@ -236,7 +224,7 @@ self.importScripts("$url");
   void runInWorker(String url, void onError(String errorMessage)) {
     worker = new Worker(url)
         ..onMessage.listen((MessageEvent event) {
-          consolePrint(event.data);
+          interaction.consolePrintLine(event.data);
         })
         ..onError.listen((ErrorEvent event) {
           worker.terminate();
@@ -246,61 +234,28 @@ self.importScripts("$url");
   }
 
   onDiagnostic(Map<String, dynamic> diagnostic) {
+    if (currentSource != source) return;
     String kind = diagnostic['kind'];
     String message = diagnostic['message'];
     if (kind == 'verbose info') {
-      if (verboseCompiler) {
-        consolePrint(message);
-      } else {
-        console.appendText('.');
-      }
+      interaction.verboseCompilerMessage(message);
       return;
     }
     String uri = diagnostic['uri'];
-    if (uri == null) {
-      clear();
-      consolePrint(message);
+    if (uri != '${PRIVATE_SCHEME}:/main.dart') {
+      interaction.consolePrintLine('$uri: [$kind] $message');
       return;
     }
-    if (uri != '${PRIVATE_SCHEME}:/main.dart') return;
-    if (currentSource != source) return;
     int begin = diagnostic['begin'];
     int end = diagnostic['end'];
     if (begin == null) return;
-    addDiagnostic(kind, message, begin, end);
+    if (seenMessages.add('$begin:$end: [$kind] $message')) {
+      // Guard against duplicated messages.
+      addDiagnostic(kind, message, begin, end);
+    }
   }
 
   onCrash(data) {
-    consolePrint(data);
-  }
-
-  void consolePrint(message) {
-    if (window.parent != window) {
-      // Test support.
-      // TODO(ahe): Use '/' instead of '*' when Firefox is upgraded to version
-      // 30 across build bots.  Support for '/' was added in version 29, and we
-      // support the two most recent versions.
-      window.parent.postMessage('$message\n', '*');
-    }
-    console.appendText('$message\n');
-  }
-}
-
-void compilerIsolate(SendPort port) {
-  // TODO(ahe): Restore when restoring deferred loading.
-  // lazy.load().then((_) => port.listen(compile));
-  ReceivePort replyTo = new ReceivePort();
-  port.send(replyTo.sendPort);
-  replyTo.listen((message) {
-    List list = message as List;
-    try {
-      compile(list[0], list[1]);
-    } catch (exception, stack) {
-      port.send('$exception\n$stack');
-    }
-  });
-  var notTrue = false; // Confuse the analyzer.
-  if (notTrue) {
-    cacheCompiler.compilerFor(null);
+    interaction.consolePrintLine(data);
   }
 }

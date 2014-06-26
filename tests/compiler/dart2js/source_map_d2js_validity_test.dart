@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 
 import 'source_map_validator_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2js.dart' as entry;
+import 'package:compiler/implementation/dart2js.dart' as entry;
 
 void main() {
   asyncTest(() => createTempDir().then((Directory tmpDir) {

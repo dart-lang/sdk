@@ -40,7 +40,7 @@ Add the polymer.dart package to your pubspec.yaml file:
 
 ```yaml
 dependencies:
-  polymer: ">=0.10.0 <0.11.0"
+  polymer: ">=0.11.0 <0.12.0"
 ```
 
 Instead of using `any`, we recommend using version ranges to avoid getting your

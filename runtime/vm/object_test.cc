@@ -285,15 +285,18 @@ TEST_CASE(Smi) {
 
   EXPECT(Smi::IsValid(0));
   EXPECT(Smi::IsValid(-15));
+  EXPECT(Smi::IsValid(0xFFu));
   // Upper two bits must be either 00 or 11.
 #if defined(ARCH_IS_64_BIT)
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
-  EXPECT(Smi::IsValid(0xFFFFFFFFFFFFFFFF));
+  EXPECT(Smi::IsValid(-1));
+  EXPECT(!Smi::IsValid(0xFFFFFFFFFFFFFFFFu));
 #else
   EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));
-  EXPECT(Smi::IsValid(0xFFFFFFFF));
+  EXPECT(Smi::IsValid(-1));
+  EXPECT(!Smi::IsValid(0xFFFFFFFFu));
 #endif
 
   EXPECT_EQ(5, smi.AsInt64Value());
@@ -524,10 +527,19 @@ TEST_CASE(Double) {
     EXPECT(!dbl1.OperatorEquals(Smi::Handle(Smi::New(3))));
     EXPECT(!dbl1.OperatorEquals(Double::Handle()));
     const Double& nan0 = Double::Handle(Double::New(NAN));
+    EXPECT(isnan(nan0.value()));
     EXPECT(nan0.IsIdenticalTo(nan0));
     EXPECT(nan0.CanonicalizeEquals(nan0));
     EXPECT(!nan0.OperatorEquals(nan0));
-    // TODO(18738): Test bitwise different NaNs after agreement on spec.
+    const Double& nan1 = Double::Handle(
+        Double::New(bit_cast<double>(kMaxUint64 - 0)));
+    const Double& nan2 = Double::Handle(
+        Double::New(bit_cast<double>(kMaxUint64 - 1)));
+    EXPECT(isnan(nan1.value()));
+    EXPECT(isnan(nan2.value()));
+    EXPECT(!nan1.IsIdenticalTo(nan2));
+    EXPECT(!nan1.CanonicalizeEquals(nan2));
+    EXPECT(!nan1.OperatorEquals(nan2));
   }
   {
     const String& dbl_str0 = String::Handle(String::New("bla"));
@@ -2041,6 +2053,18 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT(obj.IsTypedData());
   left_over_array ^= obj.raw();
   EXPECT_EQ((6 * kWordSize), left_over_array.Length());
+
+  // 4. Verify that GC can handle the filler object for a large array.
+  array = GrowableObjectArray::New((1 * MB) >> kWordSizeLog2);
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 1; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  new_array = Array::MakeArray(array);
+  EXPECT_EQ(1, new_array.Length());
+  Isolate::Current()->heap()->CollectAllGarbage();
+  EXPECT_EQ(1, new_array.Length());
 }
 
 
@@ -2189,6 +2213,22 @@ TEST_CASE(Script) {
   EXPECT_EQ('T', str.CharAt(0));
   EXPECT_EQ('n', str.CharAt(10));
   EXPECT_EQ('.', str.CharAt(21));
+
+  const char* kScript = "main() {}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  Script& script2 = Script::Handle(
+      Script::FindByUrl(String::Handle(String::New("test-lib"))));
+  EXPECT(!script2.IsNull());
+  const Library& lib2 = Library::Handle(script2.FindLibrary());
+  EXPECT_EQ(lib2.raw(), lib.raw());
+  script2 = Script::FindByUrl(String::Handle(String::New("non-there.dart")));
+  EXPECT(script2.IsNull());
 }
 
 

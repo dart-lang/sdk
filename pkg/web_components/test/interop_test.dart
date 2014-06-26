@@ -120,6 +120,16 @@ main() {
     expect(c.x, 7);
     expect(c.wrapperCount, 6);
   });
+
+  test('element can extend another element', () {
+    registerDartType('x-e', XEWrapper);
+    context.callMethod('addE');
+
+    var e = document.querySelector('x-e');
+    expect(e is XEWrapper, isTrue);
+    expect(e.x, 8);
+    expect(e.y, 9);
+  });
 }
 int _count = 0;
 
@@ -144,4 +154,10 @@ class XCWrapper extends HtmlElement with Wrapper {
 
 class XDWrapper extends HtmlElement with Wrapper {
   XDWrapper.created() : super.created();
+}
+
+class XEWrapper extends HtmlElement with Wrapper {
+  XEWrapper.created() : super.created();
+
+  int get y => new JsObject.fromBrowserObject(this)['y'];
 }

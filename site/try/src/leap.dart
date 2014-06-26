@@ -11,6 +11,7 @@ import 'dart:html' show
     window;
 
 import 'dart:isolate' show
+    Isolate,
     ReceivePort,
     SendPort;
 
@@ -18,10 +19,6 @@ import 'compilation.dart' show
     compilerIsolate,
     compilerPort,
     currentSource;
-
-import 'isolate_legacy.dart' show
-    spawnDomFunction,
-    spawnFunction;
 
 import 'samples.dart' show
     EXAMPLE_HELLO;
@@ -36,19 +33,6 @@ import 'user_option.dart' show
 
 int count = 0;
 
-const String HAS_NON_DOM_HTTP_REQUEST = 'spawnFunction supports HttpRequest';
-const String NO_NON_DOM_HTTP_REQUEST =
-    'spawnFunction does not support HttpRequest';
-
-checkHttpRequest(SendPort replyTo) {
-  try {
-    new HttpRequest();
-    replyTo.send(HAS_NON_DOM_HTTP_REQUEST);
-  } catch (e, trace) {
-    replyTo.send(NO_NON_DOM_HTTP_REQUEST);
-  }
-}
-
 main() {
   UserOption.storage = window.localStorage;
   if (currentSource == null) {
@@ -56,13 +40,10 @@ main() {
   }
 
   buildUI();
-  spawnFunction(checkHttpRequest).first.then((reply) {
-    ReceivePort port;
-    if (reply == HAS_NON_DOM_HTTP_REQUEST) {
-      port = spawnFunction(compilerIsolate);
-    } else {
-      port = spawnDomFunction(compilerIsolate);
-    }
+  ReceivePort port = new ReceivePort();
+  Isolate.spawnUri(
+      Uri.base.resolve('compiler_isolate.dart.js'),
+      const <String>[], port.sendPort).then((Isolate isolate) {
     LinkElement link = querySelector('link[rel="dart-sdk"]');
     String sdk = link.href;
     print('Using Dart SDK: $sdk');

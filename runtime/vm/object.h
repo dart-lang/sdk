@@ -5,6 +5,7 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
+#include <limits>
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -17,6 +18,7 @@
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/report.h"
 #include "vm/scanner.h"
 #include "vm/tags.h"
 
@@ -1299,7 +1301,8 @@ class TypeArguments : public Object {
   intptr_t Length() const;
   RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
+    return OFFSET_OF_RETURNED_VALUE(
+        RawTypeArguments, types) + index * kWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
@@ -1426,12 +1429,13 @@ class TypeArguments : public Object {
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypeArguments) == OFFSET_OF(RawTypeArguments, types_));
+    ASSERT(sizeof(RawTypeArguments) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    // Ensure that the types_ is not adding to the object size, which includes
+    // Ensure that the types() is not adding to the object size, which includes
     // 2 fields: instantiations_ and length_.
     ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
@@ -1994,11 +1998,22 @@ class Function : public Object {
   // Return false and report an error if the fingerprint does not match.
   bool CheckSourceFingerprint(int32_t fp) const;
 
+  // Works with map [deopt-id] -> ICData.
+  void SaveICDataMap(
+      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
+  void RestoreICDataMap(
+      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
+
+  RawArray* ic_data_array() const;
+  void ClearICData() const;
+
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
  private:
+  void set_ic_data_array(const Array& value) const;
+
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 4,
@@ -2504,6 +2519,8 @@ class Script : public Object {
                         intptr_t* first_token_index,
                         intptr_t* last_token_index) const;
 
+  RawLibrary* FindLibrary() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -2511,6 +2528,8 @@ class Script : public Object {
   static RawScript* New(const String& url,
                         const String& source,
                         RawScript::Kind kind);
+
+  static RawScript* FindByUrl(const String& url);
 
  private:
   void set_url(const String& value) const;
@@ -2593,9 +2612,13 @@ class Library : public Object {
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == RawLibrary::kAllocated;
   }
+  bool LoadRequested() const {
+    return raw_ptr()->load_state_ == RawLibrary::kLoadRequested;
+  }
   bool LoadInProgress() const {
     return raw_ptr()->load_state_ == RawLibrary::kLoadInProgress;
   }
+  void SetLoadRequested() const;
   void SetLoadInProgress() const;
   bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
   void SetLoaded() const;
@@ -2873,7 +2896,8 @@ class Instructions : public Object {
                                          (2 * OS::kMaxPreferredCodeAlignment)));
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawInstructions) == OFFSET_OF(RawInstructions, data_));
+    ASSERT(sizeof(RawInstructions) ==
+           OFFSET_OF_RETURNED_VALUE(RawInstructions, data));
     return 0;
   }
 
@@ -2936,7 +2960,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
-        OFFSET_OF(RawLocalVarDescriptors, data_));
+        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -2954,19 +2978,6 @@ class LocalVarDescriptors : public Object {
 
 
 class PcDescriptors : public Object {
- private:
-  // Describes the layout of PC descriptor data.
-  enum {
-    kPcEntry = 0,      // PC value of the descriptor, unique.
-    kKindEntry = 1,
-    kDeoptIdEntry = 2,      // Deopt id.
-    kTokenPosEntry = 3,     // Token position in source.
-    kTryIndexEntry = 4,     // Try block index.
-    // We would potentially be adding other objects here like
-    // pointer maps for optimized functions, local variables information  etc.
-    kNumberOfEntries = 5,
-  };
-
  public:
   enum Kind {
     kDeopt,            // Deoptimization continuation point.
@@ -2975,38 +2986,58 @@ class PcDescriptors : public Object {
     kUnoptStaticCall,  // Call to a known target via a stub.
     kClosureCall,      // Closure call.
     kRuntimeCall,      // Runtime call.
-    kReturn,           // Return from function.
     kOsrEntry,         // OSR entry point in unoptimized code.
     kOther
   };
 
   intptr_t Length() const;
 
-  uword PC(intptr_t index) const;
-  PcDescriptors::Kind DescriptorKind(intptr_t index) const;
+  uword PC(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].pc;
+  }
+  PcDescriptors::Kind DescriptorKind(intptr_t index) const {
+    ASSERT(index < Length());
+    return static_cast<PcDescriptors::Kind>(raw_ptr()->data()[index].kind);
+  }
+  intptr_t DeoptId(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].deopt_id;
+  }
+  intptr_t TokenPos(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].token_pos;
+  }
+  intptr_t TryIndex(intptr_t index) const {
+    ASSERT(index < Length());
+    return raw_ptr()->data()[index].try_index;
+  }
   const char* KindAsStr(intptr_t index) const;
-  intptr_t DeoptId(intptr_t index) const;
-  intptr_t TokenPos(intptr_t index) const;
-  intptr_t TryIndex(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,
                      PcDescriptors::Kind kind,
-                     intptr_t deopt_id,
-                     intptr_t token_pos,  // Or deopt reason.
+                     int64_t deopt_id,
+                     int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
-    SetPC(index, pc);
-    SetKind(index, kind);
-    SetDeoptId(index, deopt_id);
-    SetTokenPos(index, token_pos);
-    SetTryIndex(index, try_index);
+    RawPcDescriptors::PcDescriptorRec* rec = &raw_ptr()->data()[index];
+    rec->pc = pc;
+    rec->kind = kind;
+    ASSERT(Utils::IsInt(32, deopt_id));
+    rec->deopt_id = deopt_id;
+    ASSERT(Utils::IsInt(32, token_pos));
+    rec->token_pos = token_pos;
+    ASSERT(Utils::IsInt(16, try_index));
+    rec->try_index = try_index;
   }
 
-  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
+  static const intptr_t kBytesPerElement =
+      sizeof(RawPcDescriptors::PcDescriptorRec);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawPcDescriptors) == OFFSET_OF(RawPcDescriptors, data_));
+    ASSERT(sizeof(RawPcDescriptors) ==
+           OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3031,22 +3062,7 @@ class PcDescriptors : public Object {
   // pc descriptors table to visit objects if any in the table.
 
  private:
-  void SetPC(intptr_t index, uword value) const;
-  void SetKind(intptr_t index, PcDescriptors::Kind kind) const;
-  void SetDeoptId(intptr_t index, intptr_t value) const;
-  void SetTokenPos(intptr_t index, intptr_t value) const;
-  void SetTryIndex(intptr_t index, intptr_t value) const;
-
   void SetLength(intptr_t value) const;
-
-  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
-    ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
-  }
-  RawSmi** SmiAddr(intptr_t index, intptr_t entry_offset) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
-  }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
@@ -3077,7 +3093,7 @@ class Stackmap : public Object {
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
+    ASSERT(sizeof(RawStackmap) == OFFSET_OF_RETURNED_VALUE(RawStackmap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
@@ -3127,8 +3143,8 @@ class ExceptionHandlers : public Object {
   bool HasCatchAll(intptr_t try_index) const;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
-                                                     data_));
+    ASSERT(sizeof(RawExceptionHandlers) ==
+           OFFSET_OF_RETURNED_VALUE(RawExceptionHandlers, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3197,7 +3213,8 @@ class DeoptInfo : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawDeoptInfo) == OFFSET_OF(RawDeoptInfo, data_));
+    ASSERT(sizeof(RawDeoptInfo) ==
+           OFFSET_OF_RETURNED_VALUE(RawDeoptInfo, data));
     return 0;
   }
 
@@ -3233,7 +3250,7 @@ class DeoptInfo : public Object {
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));
     intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
+    return &raw_ptr()->data()[data_index];
   }
 
   void SetLength(intptr_t value) const;
@@ -3624,10 +3641,11 @@ class Code : public Object {
   // embedded objects in the instructions using pointer_offsets.
 
   static const intptr_t kBytesPerElement =
-      sizeof(reinterpret_cast<RawCode*>(0)->data_[0]);
+      sizeof(reinterpret_cast<RawCode*>(0)->data()[0]);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawCode) == OFFSET_OF_RETURNED_VALUE(RawCode, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -3666,15 +3684,6 @@ class Code : public Object {
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
   bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
-
-  // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
-  // Returns the maximum id found.
-  intptr_t ExtractIcDataArraysAtCalls(
-      GrowableArray<intptr_t>* node_ids,
-      const GrowableObjectArray& ic_data_objs) const;
-
-  // Returns an array indexed by deopt id, containing the extracted ICData.
-  RawArray* ExtractTypeFeedbackArray() const;
 
   RawString* Name() const;
   RawString* PrettyName() const;
@@ -3755,7 +3764,7 @@ class Code : public Object {
     ASSERT(index >= 0);
     ASSERT(index < pointer_offsets_length());
     // TODO(iposva): Unit test is missing for this functionality.
-    return &raw_ptr()->data_[index];
+    return &raw_ptr()->data()[index];
   }
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
@@ -3807,11 +3816,12 @@ class Context : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t variable_offset(intptr_t context_index) {
-    return OFFSET_OF(RawContext, data_[context_index]);
+    return OFFSET_OF_RETURNED_VALUE(RawContext, data) +
+           (kWordSize * context_index);
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawContext) == OFFSET_OF(RawContext, data_));
+    ASSERT(sizeof(RawContext) == OFFSET_OF_RETURNED_VALUE(RawContext, data));
     return 0;
   }
 
@@ -3826,7 +3836,7 @@ class Context : public Object {
  private:
   RawInstance** InstanceAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
-    return &raw_ptr()->data_[context_index];
+    return &raw_ptr()->data()[context_index];
   }
 
   void set_isolate(Isolate* isolate) const {
@@ -3884,7 +3894,8 @@ class ContextScope : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawContextScope) == OFFSET_OF(RawContextScope, data_));
+    ASSERT(sizeof(RawContextScope) ==
+           OFFSET_OF_RETURNED_VALUE(RawContextScope, data));
     return 0;
   }
 
@@ -4046,15 +4057,9 @@ class ApiError : public Error {
 
 class LanguageError : public Error {
  public:
-  enum Kind {
-    kWarning,
-    kError,
-    kMalformedType,
-    kMalboundedType,
-    kBailout,
-  };
-
-  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
+  Report::Kind kind() const {
+    return static_cast<Report::Kind>(raw_ptr()->kind_);
+  }
 
   // Build, cache, and return formatted message.
   RawString* FormatMessage() const;
@@ -4067,7 +4072,7 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
                                         intptr_t token_pos,
-                                        Kind kind,
+                                        Report::Kind kind,
                                         Heap::Space space,
                                         const char* format, ...)
     PRINTF_ATTRIBUTE(6, 7);
@@ -4075,12 +4080,12 @@ class LanguageError : public Error {
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
                                          intptr_t token_pos,
-                                         Kind kind,
+                                         Report::Kind kind,
                                          Heap::Space space,
                                          const char* format, va_list args);
 
   static RawLanguageError* New(const String& formatted_message,
-                               Kind kind = kError,
+                               Report::Kind kind = Report::kError,
                                Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
@@ -4216,6 +4221,8 @@ class Instance : public Object {
   inline intptr_t GetNativeField(int index) const;
   inline void GetNativeFields(uint16_t num_fields,
                               intptr_t* field_values) const;
+  void SetNativeFields(uint16_t num_fields,
+                       const intptr_t* field_values) const;
 
   uint16_t NumNativeFields() const {
     return clazz()->ptr()->num_native_fields_;
@@ -4293,6 +4300,7 @@ class LibraryPrefix : public Instance {
 
   RawArray* imports() const { return raw_ptr()->imports_; }
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+  RawLibrary* importer() const { return raw_ptr()->importer_; }
 
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
@@ -4302,7 +4310,7 @@ class LibraryPrefix : public Instance {
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
   bool is_loaded() const { return raw_ptr()->is_loaded_; }
-  void LoadLibrary() const;
+  bool LoadLibrary() const;
 
   // Return the list of code objects that were compiled when this
   // prefix was not yet loaded. These code objects will be invalidated
@@ -4320,7 +4328,8 @@ class LibraryPrefix : public Instance {
 
   static RawLibraryPrefix* New(const String& name,
                                const Namespace& import,
-                               bool deferred_load);
+                               bool deferred_load,
+                               const Library& importer);
 
  private:
   static const int kInitialSize = 2;
@@ -4329,6 +4338,7 @@ class LibraryPrefix : public Instance {
   void set_name(const String& value) const;
   void set_imports(const Array& value) const;
   void set_num_imports(intptr_t value) const;
+  void set_importer(const Library& value) const;
   void set_is_loaded() const;
 
   static RawLibraryPrefix* New();
@@ -5013,12 +5023,18 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(intptr_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
-  }
+  template <typename T>
+  static bool IsValid(T value) {
+    COMPILE_ASSERT(sizeof(kMinValue) == sizeof(kMaxValue));
+    COMPILE_ASSERT(std::numeric_limits<T>::is_integer);
+    if (sizeof(value) < sizeof(kMinValue)) {
+      return true;
+    }
 
-  static bool IsValid64(int64_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
+    T min_value = std::numeric_limits<T>::is_signed
+        ? static_cast<T>(kMinValue) : 0;
+    return (value >= min_value)
+        && (value <= static_cast<T>(kMaxValue));
   }
 
   RawInteger* ShiftOp(Token::Kind kind,
@@ -5303,6 +5319,8 @@ class String : public Instance {
 
   int32_t CharAt(intptr_t index) const;
 
+  Scanner::CharAtFunc CharAtFunc() const;
+
   intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;
@@ -5530,10 +5548,13 @@ class OneByteString : public AllStatic {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
 
-  static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawOneByteString, data);
+  }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawOneByteString) == OFFSET_OF(RawOneByteString, data_));
+    ASSERT(sizeof(RawOneByteString) ==
+           OFFSET_OF_RETURNED_VALUE(RawOneByteString, data));
     return 0;
   }
 
@@ -5626,7 +5647,7 @@ class OneByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
     NoGCScope no_gc;
-    return &raw_ptr(str)->data_[index];
+    return &raw_ptr(str)->data()[index];
   }
 
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
@@ -5657,10 +5678,13 @@ class TwoByteString : public AllStatic {
   static const intptr_t kBytesPerElement = 2;
   static const intptr_t kMaxElements = String::kMaxElements;
 
-  static intptr_t data_offset() { return OFFSET_OF(RawTwoByteString, data_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data);
+  }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
+    ASSERT(sizeof(RawTwoByteString) ==
+           OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data));
     return 0;
   }
 
@@ -5724,7 +5748,7 @@ class TwoByteString : public AllStatic {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
     NoGCScope no_gc;
-    return &raw_ptr(str)->data_[index];
+    return &raw_ptr(str)->data()[index];
   }
 
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
@@ -5930,9 +5954,11 @@ class Array : public Instance {
     return Smi::Value(raw_ptr()->length_);
   }
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
-  static intptr_t data_offset() { return length_offset() + kWordSize; }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawArray, data);
+  }
   static intptr_t element_offset(intptr_t index) {
-    return data_offset() + kWordSize * index;
+    return OFFSET_OF_RETURNED_VALUE(RawArray, data) + kWordSize * index;
   }
 
   RawObject* At(intptr_t index) const {
@@ -6304,7 +6330,7 @@ class TypedData : public Instance {
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+    return reinterpret_cast<void*>(raw_ptr()->data() + byte_offset);
   }
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
@@ -6335,11 +6361,12 @@ class TypedData : public Instance {
   }
 
   static intptr_t data_offset() {
-    return OFFSET_OF(RawTypedData, data_);
+    return OFFSET_OF_RETURNED_VALUE(RawTypedData, data);
   }
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypedData) == OFFSET_OF(RawTypedData, data_));
+    ASSERT(sizeof(RawTypedData) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypedData, data));
     return 0;
   }
 
@@ -6754,7 +6781,9 @@ class Stacktrace : public Instance {
                           const Array& pc_offset_array) const;
   void set_expand_inlined(bool value) const;
 
-  void Append(const Array& code_list, const Array& pc_offset_list) const;
+  void Append(const Array& code_list,
+              const Array& pc_offset_list,
+              const intptr_t start_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
@@ -6835,7 +6864,7 @@ class JSRegExp : public Instance {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF(RawJSRegExp, data_));
+    ASSERT(sizeof(RawJSRegExp) == OFFSET_OF_RETURNED_VALUE(RawJSRegExp, data));
     return 0;
   }
 
@@ -7037,7 +7066,7 @@ intptr_t Instance::GetNativeField(int index) const {
   if (native_fields == TypedData::null()) {
     return 0;
   }
-  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data_)[index];
+  return reinterpret_cast<intptr_t*>(native_fields->ptr()->data())[index];
 }
 
 
@@ -7053,7 +7082,7 @@ void Instance::GetNativeFields(uint16_t num_fields,
       field_values[i] = 0;
     }
   }
-  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data_);
+  intptr_t* fields = reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
   for (intptr_t i = 0; i < num_fields; i++) {
     field_values[i] = fields[i];
   }

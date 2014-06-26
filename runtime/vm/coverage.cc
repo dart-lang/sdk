@@ -18,8 +18,38 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
             "Enable writing coverage data into specified directory.");
 
 
+// map[token_pos] -> line-number.
+static void ComputeTokenPosToLineNumberMap(const Script& script,
+                                           GrowableArray<intptr_t>* map) {
+  const TokenStream& tkns = TokenStream::Handle(script.tokens());
+  const intptr_t len = ExternalTypedData::Handle(tkns.GetStream()).Length();
+  map->SetLength(len);
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < len; i++) {
+    (*map)[i] = -1;
+  }
+#endif
+  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  intptr_t cur_line = script.line_offset() + 1;
+  while (tkit.CurrentTokenKind() != Token::kEOS) {
+    (*map)[tkit.CurrentPosition()] = cur_line;
+    if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+      cur_line++;
+    }
+    tkit.Advance();
+  }
+}
+
+
+static inline void PrintJSONPreamble(JSONObject* jsobj) {
+  jsobj->AddProperty("type", "CodeCoverage");
+  jsobj->AddProperty("id", "coverage");
+}
+
+
 void CodeCoverage::CompileAndAdd(const Function& function,
-                                 const JSONArray& hits_arr) {
+                                 const JSONArray& hits_arr,
+                                 const GrowableArray<intptr_t>& pos_to_line) {
   Isolate* isolate = Isolate::Current();
   if (!function.HasCode()) {
     // If the function should not be compiled or if the compilation failed,
@@ -33,26 +63,28 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       // TODO(iposva): This can arise if we attempt to compile an inner function
       // before we have compiled its enclosing function or if the enclosing
       // function failed to compile.
-      OS::Print("### Coverage skipped compiling: %s\n", function.ToCString());
       return;
     }
     const Error& err = Error::Handle(
         isolate, Compiler::CompileFunction(isolate, function));
     if (!err.IsNull()) {
-      OS::Print("### Coverage failed compiling:\n%s\n", err.ToErrorCString());
       return;
     }
   }
   ASSERT(function.HasCode());
 
   // Print the hit counts for all IC datas.
-  const Script& script = Script::Handle(function.script());
+  ZoneGrowableArray<const ICData*>* ic_data_array =
+      new(isolate) ZoneGrowableArray<const ICData*>();
+  function.RestoreICDataMap(ic_data_array);
   const Code& code = Code::Handle(function.unoptimized_code());
-  const Array& ic_array = Array::Handle(code.ExtractTypeFeedbackArray());
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       code.pc_descriptors());
-  ICData& ic_data = ICData::Handle();
 
+  const intptr_t begin_pos = function.token_pos();
+  const intptr_t end_pos = function.end_token_pos();
+  intptr_t last_line = -1;
+  intptr_t last_count = 0;
   for (int j = 0; j < descriptors.Length(); j++) {
     HANDLESCOPE(isolate);
     PcDescriptors::Kind kind = descriptors.DescriptorKind(j);
@@ -60,35 +92,71 @@ void CodeCoverage::CompileAndAdd(const Function& function,
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kUnoptStaticCall)) {
       intptr_t deopt_id = descriptors.DeoptId(j);
-      ic_data ^= ic_array.At(deopt_id);
-      if (!ic_data.IsNull()) {
+      const ICData* ic_data= (*ic_data_array)[deopt_id];
+      if (!ic_data->IsNull()) {
         intptr_t token_pos = descriptors.TokenPos(j);
-        intptr_t line = -1;
-        script.GetTokenLocation(token_pos, &line, NULL);
-        hits_arr.AddValue(line);
-        hits_arr.AddValue(ic_data.AggregateCount());
+        // Filter out descriptors that do not map to tokens in the source code.
+        if (token_pos < begin_pos ||
+            token_pos > end_pos) {
+          continue;
+        }
+        intptr_t line = pos_to_line[token_pos];
+#if defined(DEBUG)
+        const Script& script = Script::Handle(function.script());
+        intptr_t test_line = -1;
+        script.GetTokenLocation(token_pos, &test_line, NULL);
+        ASSERT(test_line == line);
+#endif
+        // Merge hit data where possible.
+        if (last_line == line) {
+          last_count += ic_data->AggregateCount();
+        } else {
+          if (last_line != -1) {
+            hits_arr.AddValue(last_line);
+            hits_arr.AddValue(last_count);
+          }
+          last_count = ic_data->AggregateCount();
+          last_line = line;
+        }
       }
     }
+  }
+  // Write last hit value if needed.
+  if (last_line != -1) {
+    hits_arr.AddValue(last_line);
+    hits_arr.AddValue(last_count);
   }
 }
 
 
-void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
+void CodeCoverage::PrintClass(const Class& cls,
+                              const JSONArray& jsarr,
+                              const Script& script_filter) {
   Isolate* isolate = Isolate::Current();
+  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+    // Only classes that have been finalized do have a meaningful list of
+    // functions.
+    return;
+  }
   Array& functions = Array::Handle(cls.functions());
   ASSERT(!functions.IsNull());
   Function& function = Function::Handle();
   Script& script = Script::Handle();
   String& saved_url = String::Handle();
   String& url = String::Handle();
-
+  GrowableArray<intptr_t> pos_to_line;
   int i = 0;
   while (i < functions.Length()) {
     HANDLESCOPE(isolate);
     function ^= functions.At(i);
-    JSONObject jsobj(&jsarr);
     script = function.script();
+    if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+      i++;
+      continue;
+    }
     saved_url = script.url();
+    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    JSONObject jsobj(&jsarr);
     jsobj.AddProperty("source", saved_url.ToCString());
     jsobj.AddProperty("script", script);
     JSONArray hits_arr(&jsobj, "hits");
@@ -100,12 +168,13 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       script = function.script();
       url = script.url();
       if (!url.Equals(saved_url)) {
+        pos_to_line.Clear();
         break;
       }
-      CompileAndAdd(function, hits_arr);
+      CompileAndAdd(function, hits_arr, pos_to_line);
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
-        CompileAndAdd(function, hits_arr);
+        CompileAndAdd(function, hits_arr, pos_to_line);
       }
       i++;
     }
@@ -115,14 +184,20 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       GrowableObjectArray::Handle(cls.closures());
   if (!closures.IsNull()) {
     i = 0;
+    pos_to_line.Clear();
     // We need to keep rechecking the length of the closures array, as handling
     // a closure potentially adds new entries to the end.
     while (i < closures.Length()) {
       HANDLESCOPE(isolate);
       function ^= closures.At(i);
-      JSONObject jsobj(&jsarr);
       script = function.script();
+      if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+        i++;
+        continue;
+      }
       saved_url = script.url();
+      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+      JSONObject jsobj(&jsarr);
       jsobj.AddProperty("source", saved_url.ToCString());
       jsobj.AddProperty("script", script);
       JSONArray hits_arr(&jsobj, "hits");
@@ -134,13 +209,52 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
         script = function.script();
         url = script.url();
         if (!url.Equals(saved_url)) {
+          pos_to_line.Clear();
           break;
         }
-        CompileAndAdd(function, hits_arr);
+        CompileAndAdd(function, hits_arr, pos_to_line);
         i++;
       }
     }
   }
+}
+
+
+void CodeCoverage::PrintJSONForClass(const Class& cls,
+                                     JSONStream* stream) {
+  JSONObject coverage(stream);
+  PrintJSONPreamble(&coverage);
+  {
+    JSONArray jsarr(&coverage, "coverage");
+    PrintClass(cls, jsarr, Script::Handle());
+  }
+}
+
+
+void CodeCoverage::PrintJSONForLibrary(const Library& lib,
+                                       const Script& script_filter,
+                                       JSONStream* stream) {
+  Class& cls = Class::Handle();
+  JSONObject coverage(stream);
+  PrintJSONPreamble(&coverage);
+  {
+    JSONArray jsarr(&coverage, "coverage");
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      ASSERT(!cls.IsNull());
+      PrintClass(cls, jsarr, script_filter);
+    }
+  }
+}
+
+
+void CodeCoverage::PrintJSONForScript(const Script& script,
+                                      JSONStream* stream) {
+  Library& lib = Library::Handle();
+  lib = script.FindLibrary();
+  ASSERT(!lib.IsNull());
+  PrintJSONForLibrary(lib, script, stream);
 }
 
 
@@ -191,11 +305,8 @@ void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
       ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
       while (it.HasNext()) {
         cls = it.GetNextClass();
-        if (cls.EnsureIsFinalized(isolate) == Error::null()) {
-          // Only classes that have been finalized do have a meaningful list of
-          // functions.
-          PrintClass(cls, jsarr);
-        }
+        ASSERT(!cls.IsNull());
+        PrintClass(cls, jsarr, Script::Handle());
       }
     }
   }

@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
+import 'package:http_multi_server/http_multi_server.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'exit_codes.dart' as exit_codes;
@@ -35,17 +36,22 @@ final _descriptorPool = new Pool(32);
 bool entryExists(String path) =>
   dirExists(path) || fileExists(path) || linkExists(path);
 
-/// Returns whether [link] exists on the file system. This will return `true`
-/// for any symlink, regardless of what it points at or whether it's broken.
+/// Returns whether [link] exists on the file system.
+///
+/// This returns `true` for any symlink, regardless of what it points at or
+/// whether it's broken.
 bool linkExists(String link) => new Link(link).existsSync();
 
-/// Returns whether [file] exists on the file system. This will return `true`
-/// for a symlink only if that symlink is unbroken and points to a file.
+/// Returns whether [file] exists on the file system.
+///
+/// This returns `true` for a symlink only if that symlink is unbroken and
+/// points to a file.
 bool fileExists(String file) => new File(file).existsSync();
 
-/// Returns the canonical path for [pathString]. This is the normalized,
-/// absolute path, with symlinks resolved. As in [transitiveTarget], broken or
-/// recursive symlinks will not be fully resolved.
+/// Returns the canonical path for [pathString].
+///
+/// This is the normalized, absolute path, with symlinks resolved. As in
+/// [transitiveTarget], broken or recursive symlinks will not be fully resolved.
 ///
 /// This doesn't require [pathString] to point to a path that exists on the
 /// filesystem; nonexistent or unreadable path entries are treated as normal
@@ -124,8 +130,10 @@ String canonicalize(String pathString) {
 }
 
 /// Returns the transitive target of [link] (if A links to B which links to C,
-/// this will return C). If [link] is part of a symlink loop (e.g. A links to B
-/// which links back to A), this returns the path to the first repeated link (so
+/// this will return C).
+///
+/// If [link] is part of a symlink loop (e.g. A links to B which links back to
+/// A), this returns the path to the first repeated link (so
 /// `transitiveTarget("A")` would return `"A"` and `transitiveTarget("A")` would
 /// return `"B"`).
 ///
@@ -177,8 +185,10 @@ String writeBinaryFile(String file, List<int> contents) {
   return file;
 }
 
-/// Writes [stream] to a new file at path [file]. Will replace any file already
-/// at that path. Completes when the file is done being written.
+/// Writes [stream] to a new file at path [file].
+///
+/// Replaces any file already at that path. Completes when the file is done
+/// being written.
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   // TODO(nweiz): remove extra logging when we figure out the windows bot issue.
   log.io("Creating $file from stream.");
@@ -191,9 +201,11 @@ Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   });
 }
 
-/// Copy all files in [files] to the directory [destination]. Their locations in
-/// [destination] will be determined by their relative location to [baseDir].
-/// Any existing files at those paths will be overwritten.
+/// Copies all files in [files] to the directory [destination].
+///
+/// Their locations in [destination] will be determined by their relative
+/// location to [baseDir]. Any existing files at those paths will be
+/// overwritten.
 void copyFiles(Iterable<String> files, String baseDir, String destination) {
   for (var file in files) {
     var newPath = path.join(destination, path.relative(file, from: baseDir));
@@ -202,7 +214,7 @@ void copyFiles(Iterable<String> files, String baseDir, String destination) {
   }
 }
 
-/// Copy a file from [source] to [destination].
+/// Copies a file from [source] to [destination].
 void copyFile(String source, String destination) {
   writeBinaryFile(destination, readBinaryFile(source));
 }
@@ -213,8 +225,9 @@ String createDir(String dir) {
   return dir;
 }
 
-/// Ensures that [dir] and all its parent directories exist. If they don't
-/// exist, creates them.
+/// Ensures that [dir] and all its parent directories exist.
+///
+/// If they don't exist, creates them.
 String ensureDir(String dir) {
   new Directory(dir).createSync(recursive: true);
   return dir;
@@ -222,6 +235,7 @@ String ensureDir(String dir) {
 
 /// Creates a temp directory in [dir], whose name will be [prefix] with
 /// characters appended to it to make a unique name.
+///
 /// Returns the path of the created directory.
 String createTempDir(String base, String prefix) {
   var tempDir = new Directory(base).createTempSync(prefix);
@@ -231,6 +245,7 @@ String createTempDir(String base, String prefix) {
 
 /// Creates a temp directory in the system temp directory, whose name will be
 /// 'pub_' with characters appended to it to make a unique name.
+///
 /// Returns the path of the created directory.
 String createSystemTempDir() {
   var tempDir = Directory.systemTemp.createTempSync('pub_');
@@ -238,9 +253,15 @@ String createSystemTempDir() {
   return tempDir.path;
 }
 
-/// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
-/// contents (defaults to `false`). If [includeHidden] is `true`, includes files
-/// and directories beginning with `.` (defaults to `false`).
+/// Lists the contents of [dir].
+///
+/// If [recursive] is `true`, lists subdirectory contents (defaults to `false`).
+/// If [includeHidden] is `true`, includes files and directories beginning with
+/// `.` (defaults to `false`). If [includeDirs] is `true`, includes directories
+/// as well as files (defaults to `true`).
+///
+/// [whiteList] is a list of hidden filenames to include even when
+/// [includeHidden] is `false`.
 ///
 /// Note that dart:io handles recursive symlinks in an unfortunate way. You
 /// end up with two copies of every entity that is within the recursive loop.
@@ -248,31 +269,105 @@ String createSystemTempDir() {
 /// had a noticeable performance impact. In the interest of speed, we'll just
 /// live with that annoying behavior.
 ///
-/// The returned paths are guaranteed to begin with [dir].
+/// The returned paths are guaranteed to begin with [dir]. Broken symlinks won't
+/// be returned.
 List<String> listDir(String dir, {bool recursive: false,
-    bool includeHidden: false}) {
-  var entities = new Directory(dir).listSync(recursive: recursive);
+    bool includeHidden: false, bool includeDirs: true,
+    Iterable<String> whitelist}) {
+  if (whitelist == null) whitelist = [];
+  var whitelistFilter = createFileFilter(whitelist);
 
-  isHidden(part) => part.startsWith(".") && part != "." && part != "..";
+  // This is used in some performance-sensitive paths and can list many, many
+  // files. As such, it leans more havily towards optimization as opposed to
+  // readability than most code in pub. In particular, it avoids using the path
+  // package, since re-parsing a path is very expensive relative to string
+  // operations.
+  return new Directory(dir).listSync(
+      recursive: recursive, followLinks: true).where((entity) {
+    if (!includeDirs && entity is Directory) return false;
+    if (entity is Link) return false;
+    if (includeHidden) return true;
 
-  if (!includeHidden) {
-    entities = entities.where((entity) {
-      assert(entity.path.startsWith(dir));
-      return !path.split(entity.path.substring(dir.length + 1)).any(isHidden);
-    });
-  }
+    assert(entity.path.startsWith(dir));
+    var pathInDir = entity.path.substring(dir.length);
 
-  return entities.map((entity) => entity.path).toList();
+    // If the basename is whitelisted, don't count its "/." as making the file
+    // hidden.
+    var whitelistedBasename = whitelistFilter.firstWhere(pathInDir.contains,
+        orElse: () => null);
+    if (whitelistedBasename != null) {
+      pathInDir = pathInDir.substring(
+          0, pathInDir.length - whitelistedBasename.length);
+    }
+
+    if (pathInDir.contains("/.")) return false;
+    if (Platform.operatingSystem != "windows") return true;
+    return !pathInDir.contains("\\.");
+  }).map((entity) => entity.path).toList();
 }
 
-/// Returns whether [dir] exists on the file system. This will return `true` for
-/// a symlink only if that symlink is unbroken and points to a directory.
+/// Returns whether [dir] exists on the file system.
+///
+/// This returns `true` for a symlink only if that symlink is unbroken and
+/// points to a directory.
 bool dirExists(String dir) => new Directory(dir).existsSync();
 
-/// Deletes whatever's at [path], whether it's a file, directory, or symlink. If
-/// it's a directory, it will be deleted recursively.
+/// Tries to resiliently perform [operation].
+///
+/// Some file system operations can intermittently fail on Windows because
+/// other processes are locking a file. We've seen this with virus scanners
+/// when we try to delete or move something while it's being scanned. To
+/// mitigate that, on Windows, this will retry the operation a few times if it
+/// fails.
+void _attempt(String description, void operation()) {
+  if (Platform.operatingSystem != 'windows') {
+    operation();
+    return;
+  }
+
+  getErrorReason(error) {
+    if (error.osError.errorCode == 5) {
+      return "access was denied";
+    }
+
+    if (error.osError.errorCode == 32) {
+      return "it was in use by another process";
+    }
+
+    return null;
+  }
+
+  for (var i = 0; i < 2; i++) {
+    try {
+      operation();
+      return;
+    } on FileSystemException catch (error) {
+      var reason = getErrorReason(error);
+      if (reason == null) rethrow;
+
+      log.io("Failed to $description because $reason. "
+          "Retrying in 50ms.");
+      sleep(new Duration(milliseconds: 50));
+    }
+  }
+
+  try {
+    operation();
+  } on FileSystemException catch (error) {
+    var reason = getErrorReason(error);
+    if (reason == null) rethrow;
+
+    fail("Failed to $description because $reason.\n"
+        "This may be caused by a virus scanner or having a file\n"
+        "in the directory open in another application.");
+  }
+}
+
+/// Deletes whatever's at [path], whether it's a file, directory, or symlink.
+///
+/// If it's a directory, it will be deleted recursively.
 void deleteEntry(String path) {
-  tryDeleteEntry() {
+  _attempt("delete entry", () {
     if (linkExists(path)) {
       log.io("Deleting link $path.");
       new Link(path).deleteSync();
@@ -283,39 +378,13 @@ void deleteEntry(String path) {
       log.io("Deleting file $path.");
       new File(path).deleteSync();
     }
-  }
-
-  if (Platform.operatingSystem != 'windows') {
-    tryDeleteEntry();
-    return;
-  }
-
-  // On Windows, we can fail to delete an entry if it's in use by another
-  // process. The only case where we know this to cause a problem is when
-  // testing "pub serve", since it can poll a file at the same time we try to
-  // delete it in the test process (issue 16129).
-  //
-  // TODO(nweiz): Once issue 14428 is fixed for Windows, remove this special
-  // handling.
-  for (var i = 0; i < 2; i++) {
-    try {
-      tryDeleteEntry();
-    } on FileSystemException catch (error) {
-      // Errno 32 indicates that the deletion failed because the file was in
-      // use.
-      if (error.osError.errorCode != 32) rethrow;
-
-      log.io("Failed to delete entry because it was in use by another process. "
-          "Retrying in 50ms.");
-      sleep(new Duration(milliseconds: 50));
-    }
-  }
-
-  tryDeleteEntry();
+  });
 }
 
-/// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
-/// new empty directory will be created.
+/// "Cleans" [dir].
+///
+/// If that directory already exists, it is deleted. Then a new empty directory
+/// is created.
 void cleanDir(String dir) {
   if (entryExists(dir)) deleteEntry(dir);
   ensureDir(dir);
@@ -323,18 +392,21 @@ void cleanDir(String dir) {
 
 /// Renames (i.e. moves) the directory [from] to [to].
 void renameDir(String from, String to) {
-  log.io("Renaming directory $from to $to.");
-  try {
-    new Directory(from).renameSync(to);
-  } on IOException catch (error) {
-    // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
-    if (entryExists(to)) deleteEntry(to);
-    rethrow;
-  }
+  _attempt("rename directory", () {
+    log.io("Renaming directory $from to $to.");
+    try {
+      new Directory(from).renameSync(to);
+    } on IOException catch (error) {
+      // Ensure that [to] isn't left in an inconsistent state. See issue 12436.
+      if (entryExists(to)) deleteEntry(to);
+      rethrow;
+    }
+  });
 }
 
-/// Creates a new symlink at path [symlink] that points to [target]. Returns a
-/// [Future] which completes to the path to the symlink file.
+/// Creates a new symlink at path [symlink] that points to [target].
+///
+/// Returns a [Future] which completes to the path to the symlink file.
 ///
 /// If [relative] is true, creates a symlink with a relative path from the
 /// symlink to the target. Otherwise, uses the [target] path unmodified.
@@ -350,8 +422,11 @@ void createSymlink(String target, String symlink,
     if (Platform.operatingSystem == 'windows') {
       target = path.normalize(path.absolute(target));
     } else {
-      target = path.normalize(
-          path.relative(target, from: path.dirname(symlink)));
+      // If the directory where we're creating the symlink was itself reached
+      // by traversing a symlink, we want the relative path to be relative to
+      // it's actual location, not the one we went through to get to it.
+      var symlinkDir = canonicalize(path.dirname(symlink));
+      target = path.normalize(path.relative(target, from: symlinkDir));
     }
   }
 
@@ -360,8 +435,10 @@ void createSymlink(String target, String symlink,
 }
 
 /// Creates a new symlink that creates an alias at [symlink] that points to the
-/// `lib` directory of package [target]. If [target] does not have a `lib`
-/// directory, this shows a warning if appropriate and then does nothing.
+/// `lib` directory of package [target].
+///
+/// If [target] does not have a `lib` directory, this shows a warning if
+/// appropriate and then does nothing.
 ///
 /// If [relative] is true, creates a symlink with a relative path from the
 /// symlink to the target. Otherwise, uses the [target] path unmodified.
@@ -391,8 +468,9 @@ String assetPath(String target) {
   }
 }
 
-/// Returns the path to the root of the Dart repository. This will throw a
-/// [StateError] if it's called when running pub from the SDK.
+/// Returns the path to the root of the Dart repository.
+///
+/// This throws a [StateError] if it's called when running pub from the SDK.
 String get repoRoot {
   if (runningFromSdk) {
     throw new StateError("Can't get the repo root from the SDK.");
@@ -405,9 +483,10 @@ String get repoRoot {
 final Stream<String> stdinLines = streamToLines(
     new ByteStream(Chain.track(stdin)).toStringStream());
 
-/// Displays a message and reads a yes/no confirmation from the user. Returns
-/// a [Future] that completes to `true` if the user confirms or `false` if they
-/// do not.
+/// Displays a message and reads a yes/no confirmation from the user.
+///
+/// Returns a [Future] that completes to `true` if the user confirms or `false`
+/// if they do not.
 ///
 /// This will automatically append " (y/n)?" to the message, so [message]
 /// should just be a fragment like, "Are you sure you want to proceed".
@@ -422,8 +501,9 @@ Future<bool> confirm(String message) {
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
 
-/// Reads and discards all output from [stream]. Returns a [Future] that
-/// completes when the stream is closed.
+/// Reads and discards all output from [stream].
+///
+/// Returns a [Future] that completes when the stream is closed.
 Future drainStream(Stream stream) {
   return stream.fold(null, (x, y) {});
 }
@@ -451,9 +531,10 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 }
 
 // TODO(nweiz): remove this when issue 7786 is fixed.
-/// Pipes all data and errors from [stream] into [sink]. When [stream] is done,
-/// the returned [Future] is completed and [sink] is closed if [closeSink] is
-/// true.
+/// Pipes all data and errors from [stream] into [sink].
+///
+/// When [stream] is done, the returned [Future] is completed and [sink] is
+/// closed if [closeSink] is true.
 ///
 /// When an error occurs on [stream], that error is passed to [sink]. If
 /// [cancelOnError] is true, [Future] will be completed successfully and no
@@ -477,6 +558,7 @@ Future store(Stream stream, EventSink sink,
 }
 
 /// Spawns and runs the process located at [executable], passing in [args].
+///
 /// Returns a [Future] that will complete with the results of the process after
 /// it has ended.
 ///
@@ -488,25 +570,18 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
   return _descriptorPool.withResource(() {
     return _doProcess(Process.run, executable, args, workingDir, environment)
         .then((result) {
-      // TODO(rnystrom): Remove this and change to returning one string.
-      List<String> toLines(String output) {
-        var lines = splitLines(output);
-        if (!lines.isEmpty && lines.last == "") lines.removeLast();
-        return lines;
-      }
-
-      var pubResult = new PubProcessResult(toLines(result.stdout),
-                                  toLines(result.stderr),
-                                  result.exitCode);
-
+      var pubResult = new PubProcessResult(
+          result.stdout, result.stderr, result.exitCode);
       log.processResult(executable, pubResult);
       return pubResult;
     });
   });
 }
 
-/// Spawns the process located at [executable], passing in [args]. Returns a
-/// [Future] that will complete with the [Process] once it's been started.
+/// Spawns the process located at [executable], passing in [args].
+///
+/// Returns a [Future] that will complete with the [Process] once it's been
+/// started.
 ///
 /// The spawned process will inherit its parent's environment variables. If
 /// [environment] is provided, that will be used to augment (not replace) the
@@ -521,6 +596,17 @@ Future<PubProcess> startProcess(String executable, List<String> args,
       return process;
     });
   });
+}
+
+/// Like [runProcess], but synchronous.
+PubProcessResult runProcessSync(String executable, List<String> args,
+        {String workingDir, Map<String, String> environment}) {
+  var result = _doProcess(
+      Process.runSync, executable, args, workingDir, environment);
+  var pubResult = new PubProcessResult(
+      result.stdout, result.stderr, result.exitCode);
+  log.processResult(executable, pubResult);
+  return pubResult;
 }
 
 /// A wrapper around [Process] that exposes `dart:async`-style APIs.
@@ -544,6 +630,7 @@ class PubProcess {
   Future<int> _exitCode;
 
   /// The sink used for passing data to the process's standard input stream.
+  ///
   /// Errors on this stream are surfaced through [stdinClosed], [stdout],
   /// [stderr], and [exitCode], which are all members of an [ErrorGroup].
   EventSink<List<int>> get stdin => _stdin;
@@ -607,10 +694,11 @@ class PubProcess {
     _process.kill(signal);
 }
 
-/// Calls [fn] with appropriately modified arguments. [fn] should have the same
-/// signature as [Process.start], except that the returned [Future] may have a
-/// type other than [Process].
-Future _doProcess(Function fn, String executable, List<String> args,
+/// Calls [fn] with appropriately modified arguments.
+///
+/// [fn] should have the same signature as [Process.start], except that the
+/// returned value may have any return type.
+_doProcess(Function fn, String executable, List<String> args,
     String workingDir, Map<String, String> environment) {
   // TODO(rnystrom): Should dart:io just handle this?
   // Spawning a process on Windows will not look for the executable in the
@@ -624,28 +712,39 @@ Future _doProcess(Function fn, String executable, List<String> args,
 
   log.process(executable, args, workingDir == null ? '.' : workingDir);
 
-  return Chain.track(fn(executable,
-      args,
+  return fn(executable, args,
       workingDirectory: workingDir,
-      environment: environment));
+      environment: environment);
 }
 
-/// Wraps [input] to provide a timeout. If [input] completes before
-/// [milliseconds] have passed, then the return value completes in the same way.
-/// However, if [milliseconds] pass before [input] has completed, it completes
-/// with a [TimeoutException] with [description] (which should be a fragment
-/// describing the action that timed out).
+/// Wraps [input], an asynchronous network operation to provide a timeout.
+///
+/// If [input] completes before [milliseconds] have passed, then the return
+/// value completes in the same way. However, if [milliseconds] pass before
+/// [input] has completed, it completes with a [TimeoutException] with
+/// [description] (which should be a fragment describing the action that timed
+/// out).
+///
+/// [url] is the URL being accessed asynchronously.
 ///
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
-Future timeout(Future input, int milliseconds, String description) {
+Future timeout(Future input, int milliseconds, Uri url, String description) {
   // TODO(nwiez): Replace this with [Future.timeout].
   var completer = new Completer();
   var duration = new Duration(milliseconds: milliseconds);
   var timer = new Timer(duration, () {
-    completer.completeError(new TimeoutException(
-        'Timed out while $description.', duration),
-        new Chain.current());
+    // Include the duration ourselves in the message instead of passing it to
+    // TimeoutException since we show nicer output.
+    var message = 'Timed out after ${niceDuration(duration)} while '
+                  '$description.';
+
+    if (url.host == "pub.dartlang.org" ||
+        url.host == "storage.googleapis.com") {
+      message += "\nThis is likely a transient error. Please try again later.";
+    }
+
+    completer.completeError(new TimeoutException(message), new Chain.current());
   });
   input.then((value) {
     if (completer.isCompleted) return;
@@ -659,10 +758,11 @@ Future timeout(Future input, int milliseconds, String description) {
   return completer.future;
 }
 
-/// Creates a temporary directory and passes its path to [fn]. Once the [Future]
-/// returned by [fn] completes, the temporary directory and all its contents
-/// will be deleted. [fn] can also return `null`, in which case the temporary
-/// directory is deleted immediately afterwards.
+/// Creates a temporary directory and passes its path to [fn].
+///
+/// Once the [Future] returned by [fn] completes, the temporary directory and
+/// all its contents are deleted. [fn] can also return `null`, in which case
+/// the temporary directory is deleted immediately afterwards.
 ///
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
@@ -674,8 +774,18 @@ Future withTempDir(Future fn(String path)) {
   });
 }
 
-/// Extracts a `.tar.gz` file from [stream] to [destination]. Returns whether
-/// or not the extraction was successful.
+/// Binds an [HttpServer] to [host] and [port].
+///
+/// If [host] is "localhost", this will automatically listen on both the IPv4
+/// and IPv6 loopback addresses.
+Future<HttpServer> bindServer(String host, int port) {
+  if (host == 'localhost') return HttpMultiServer.loopback(port);
+  return HttpServer.bind(host, port);
+}
+
+/// Extracts a `.tar.gz` file from [stream] to [destination].
+///
+/// Returns whether or not the extraction was successful.
 Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   log.fine("Extracting .tar.gz stream to $destination.");
 
@@ -756,10 +866,13 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
   });
 }
 
-/// Create a .tar.gz archive from a list of entries. Each entry can be a
-/// [String], [Directory], or [File] object. The root of the archive is
-/// considered to be [baseDir], which defaults to the current working directory.
-/// Returns a [ByteStream] that will emit the contents of the archive.
+/// Create a .tar.gz archive from a list of entries.
+///
+/// Each entry can be a [String], [Directory], or [File] object. The root of
+/// the archive is considered to be [baseDir], which defaults to the current
+/// working directory.
+///
+/// Returns a [ByteStream] that emits the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
   return new ByteStream(futureStream(syncFuture(() {
     var buffer = new StringBuffer();
@@ -822,7 +935,16 @@ class PubProcessResult {
   final List<String> stderr;
   final int exitCode;
 
-  const PubProcessResult(this.stdout, this.stderr, this.exitCode);
+  PubProcessResult(String stdout, String stderr, this.exitCode)
+      : this.stdout = _toLines(stdout),
+        this.stderr = _toLines(stderr);
+
+  // TODO(rnystrom): Remove this and change to returning one string.
+  static List<String> _toLines(String output) {
+    var lines = splitLines(output);
+    if (!lines.isEmpty && lines.last == "") lines.removeLast();
+    return lines;
+  }
 
   bool get success => exitCode == exit_codes.SUCCESS;
 }

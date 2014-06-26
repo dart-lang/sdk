@@ -174,6 +174,7 @@ class MemberListener extends NodeListener {
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
+    bool hasParseError = memberErrors.head;
     super.endFields(count, beginToken, endToken);
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
@@ -185,7 +186,8 @@ class MemberListener extends NodeListener {
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
                        enclosingElement,
-                       buildFieldElement, beginToken, endToken);
+                       buildFieldElement, beginToken, endToken,
+                       hasParseError);
   }
 
   void endInitializer(Token assignmentOperator) {

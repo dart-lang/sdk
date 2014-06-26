@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--package-root=sdk/lib/_internal/
-
 library trydart.internal_error_test;
 
 import 'dart:html';
 import 'dart:async';
 
-import '../../site/try/src/interaction_manager.dart' show
+import 'package:try/src/interaction_manager.dart' show
     InteractionManager,
     TRY_DART_NEW_DEFECT;
 
-import '../../site/try/src/ui.dart' show
+import 'package:try/src/ui.dart' show
     mainEditorPane,
     observer,
     outputDiv;
 
-import '../../site/try/src/user_option.dart' show
+import 'package:try/src/user_option.dart' show
     UserOption;
 
 import '../../pkg/expect/lib/expect.dart';

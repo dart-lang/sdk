@@ -39,7 +39,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    intptr_t class_id = reader->ReadIntptrValue();
+    int32_t class_id = reader->Read<int32_t>();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
@@ -60,14 +60,14 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // Set all non object fields.
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // Instance size of a VM defined class is already set up.
-      cls.set_instance_size_in_words(reader->ReadIntptrValue());
-      cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
+      cls.set_instance_size_in_words(reader->Read<int32_t>());
+      cls.set_next_field_offset_in_words(reader->Read<int32_t>());
     }
-    cls.set_type_arguments_field_offset_in_words(reader->ReadIntptrValue());
+    cls.set_type_arguments_field_offset_in_words(reader->Read<int32_t>());
     cls.set_num_type_arguments(reader->Read<int16_t>());
     cls.set_num_own_type_arguments(reader->Read<int16_t>());
     cls.set_num_native_fields(reader->Read<uint16_t>());
-    cls.set_token_pos(reader->ReadIntptrValue());
+    cls.set_token_pos(reader->Read<int32_t>());
     cls.set_state_bits(reader->Read<uint16_t>());
 
     // Set all the object fields.
@@ -97,24 +97,24 @@ void RawClass::WriteTo(SnapshotWriter* writer,
        !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)))) {
     // Write out the class and tags information.
     writer->WriteVMIsolateObject(kClassCid);
-    writer->WriteIntptrValue(writer->GetObjectTags(this));
+    writer->WriteTags(writer->GetObjectTags(this));
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
-    intptr_t class_id = ptr()->id_;
-    writer->WriteIntptrValue(class_id);
+    int32_t class_id = ptr()->id_;
+    writer->Write<int32_t>(class_id);
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
       // the class table.
-      writer->WriteIntptrValue(ptr()->instance_size_in_words_);
-      writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
+      writer->Write<int32_t>(ptr()->instance_size_in_words_);
+      writer->Write<int32_t>(ptr()->next_field_offset_in_words_);
     }
-    writer->WriteIntptrValue(ptr()->type_arguments_field_offset_in_words_);
+    writer->Write<int32_t>(ptr()->type_arguments_field_offset_in_words_);
     writer->Write<int16_t>(ptr()->num_type_arguments_);
     writer->Write<int16_t>(ptr()->num_own_type_arguments_);
     writer->Write<uint16_t>(ptr()->num_native_fields_);
-    writer->WriteIntptrValue(ptr()->token_pos_);
+    writer->Write<int32_t>(ptr()->token_pos_);
     writer->Write<uint16_t>(ptr()->state_bits_);
 
     // Write out all the object pointer fields.
@@ -141,7 +141,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   unresolved_class.set_tags(tags);
 
   // Set all non object fields.
-  unresolved_class.set_token_pos(reader->ReadIntptrValue());
+  unresolved_class.set_token_pos(reader->Read<int32_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -167,10 +167,10 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kUnresolvedClassCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -205,7 +205,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
-  type.set_token_pos(reader->ReadIntptrValue());
+  type.set_token_pos(reader->Read<int32_t>());
   type.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -253,10 +253,10 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kTypeCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields. Since we will be canonicalizing
@@ -305,7 +305,7 @@ void RawTypeRef::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kTypeRefCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -328,8 +328,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_tags(tags);
 
   // Set all non object fields.
-  type_parameter.set_index(reader->ReadIntptrValue());
-  type_parameter.set_token_pos(reader->ReadIntptrValue());
+  type_parameter.set_index(reader->Read<int32_t>());
+  type_parameter.set_token_pos(reader->Read<int32_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -360,11 +360,11 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kTypeParameterCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->index_);
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->index_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -412,7 +412,7 @@ void RawBoundedType::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kBoundedTypeCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -497,7 +497,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kTypeArgumentsCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -510,7 +510,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types_[i]);
+    writer->WriteObjectImpl(ptr()->types()[i]);
   }
 }
 
@@ -557,7 +557,7 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kPatchClassCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
@@ -606,7 +606,7 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kClosureDataCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Context scope.
   // We don't write the context scope in the snapshot.
@@ -666,7 +666,7 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kRedirectionDataCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -692,12 +692,12 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_tags(tags);
 
   // Set all the non object fields.
-  func.set_token_pos(reader->ReadIntptrValue());
-  func.set_end_token_pos(reader->ReadIntptrValue());
-  func.set_usage_counter(reader->ReadIntptrValue());
-  func.set_num_fixed_parameters(reader->ReadIntptrValue());
-  func.set_num_optional_parameters(reader->ReadIntptrValue());
-  func.set_deoptimization_counter(reader->ReadIntptrValue());
+  func.set_token_pos(reader->Read<int32_t>());
+  func.set_end_token_pos(reader->Read<int32_t>());
+  func.set_usage_counter(reader->Read<int32_t>());
+  func.set_num_fixed_parameters(reader->Read<int16_t>());
+  func.set_num_optional_parameters(reader->Read<int16_t>());
+  func.set_deoptimization_counter(reader->Read<int16_t>());
   func.set_kind_tag(reader->Read<uint16_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -705,14 +705,14 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
-  intptr_t num_flds = (func.raw()->to() - func.raw()->from());
+  intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
     *(func.raw()->from() + i) = reader->ReadObjectRef();
   }
 
-  // Set up code pointer with the lazy-compile-stub.
-  func.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
-
+  // Initialize all fields that are not part of the snapshot.
+  func.ClearCode();
+  func.set_ic_data_array(Array::Handle());
   return func.raw();
 }
 
@@ -730,26 +730,22 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kFunctionCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->end_token_pos_);
-  writer->WriteIntptrValue(ptr()->usage_counter_);
-  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
-  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
-  writer->WriteIntptrValue(ptr()->deoptimization_counter_);
+  writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->end_token_pos_);
+  writer->Write<int32_t>(ptr()->usage_counter_);
+  writer->Write<int16_t>(ptr()->num_fixed_parameters_);
+  writer->Write<int16_t>(ptr()->num_optional_parameters_);
+  writer->Write<int16_t>(ptr()->deoptimization_counter_);
   writer->Write<uint16_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to_no_code());
-
-  // Write null for the instructions and unoptimized code.
-  writer->WriteVMIsolateObject(kNullObject);
-  writer->WriteVMIsolateObject(kNullObject);
+  visitor.VisitPointers(from(), to_snapshot());
 }
 
 
@@ -770,9 +766,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_tags(tags);
 
   // Set all non object fields.
-  field.set_token_pos(reader->ReadIntptrValue());
-  field.set_guarded_cid(reader->ReadIntptrValue());
-  field.set_is_nullable(reader->ReadIntptrValue());
+  field.set_token_pos(reader->Read<int32_t>());
+  field.set_guarded_cid(reader->Read<int32_t>());
+  field.set_is_nullable(reader->Read<int32_t>());
   field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -802,12 +798,12 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kFieldCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->WriteIntptrValue(ptr()->guarded_cid_);
-  writer->WriteIntptrValue(ptr()->is_nullable_);
+  writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->guarded_cid_);
+  writer->Write<int32_t>(ptr()->is_nullable_);
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.
@@ -854,7 +850,7 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kLiteralTokenCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the kind field.
   writer->Write<intptr_t>(ptr()->kind_);
@@ -917,7 +913,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kTokenStreamCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the length field and the token stream.
   RawExternalTypedData* stream = ptr()->stream_;
@@ -981,7 +977,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kScriptCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   writer->WriteObjectImpl(ptr()->url_);
@@ -1016,9 +1012,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.set_tags(tags);
 
     // Set all non object fields.
-    library.raw_ptr()->index_ = reader->ReadIntptrValue();
-    library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
-    library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
+    library.raw_ptr()->index_ = reader->Read<int32_t>();
+    library.raw_ptr()->num_imports_ = reader->Read<int32_t>();
+    library.raw_ptr()->num_anonymous_ = reader->Read<int32_t>();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
     library.raw_ptr()->is_dart_scheme_ = reader->Read<bool>();
     library.raw_ptr()->debuggable_ = reader->Read<bool>();
@@ -1062,7 +1058,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kLibraryCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   if ((kind == Snapshot::kScript) &&
       RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
@@ -1071,9 +1067,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->WriteIntptrValue(ptr()->index_);
-    writer->WriteIntptrValue(ptr()->num_imports_);
-    writer->WriteIntptrValue(ptr()->num_anonymous_);
+    writer->Write<int32_t>(ptr()->index_);
+    writer->Write<int32_t>(ptr()->num_imports_);
+    writer->Write<int32_t>(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
@@ -1113,7 +1109,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.set_tags(tags);
 
   // Set all non object fields.
-  prefix.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
+  prefix.raw_ptr()->num_imports_ = reader->Read<int32_t>();
   prefix.raw_ptr()->is_deferred_load_ = reader->Read<bool>();
   prefix.raw_ptr()->is_loaded_ = reader->Read<bool>();
 
@@ -1142,10 +1138,10 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kLibraryPrefixCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->WriteIntptrValue(ptr()->num_imports_);
+  writer->Write<int32_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
   writer->Write<bool>(ptr()->is_loaded_);
 
@@ -1197,7 +1193,7 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kNamespaceCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -1365,7 +1361,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kContextCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
   writer->WriteIntptrValue(ptr()->num_variables_);
@@ -1496,7 +1492,7 @@ void RawApiError::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kApiErrorCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -1519,7 +1515,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   language_error.set_tags(tags);
 
   // Set all non object fields.
-  language_error.set_token_pos(reader->ReadIntptrValue());
+  language_error.set_token_pos(reader->Read<int32_t>());
   language_error.set_kind(reader->Read<uint8_t>());
 
   // Set all the object fields.
@@ -1547,10 +1543,10 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kLanguageErrorCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<uint8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.
@@ -1636,7 +1632,7 @@ void RawInstance::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kInstanceCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 }
 
 
@@ -1686,7 +1682,7 @@ void RawMint::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kMintCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the 64 bit value.
   writer->Write<int64_t>(ptr()->value_);
@@ -1744,7 +1740,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kBigintCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the bigint value as a HEXCstring.
   intptr_t length = ptr()->signed_length_;
@@ -1820,7 +1816,7 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kDoubleCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the double value.
   writer->WriteDouble(ptr()->value_);
@@ -1950,7 +1946,7 @@ static void StringWriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(class_id);
-  writer->WriteIntptrValue(tags);
+  writer->WriteTags(tags);
 
   // Write out the length field.
   writer->Write<RawObject*>(length);
@@ -1981,7 +1977,7 @@ void RawOneByteString::WriteTo(SnapshotWriter* writer,
                 writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->data_);
+                ptr()->data());
 }
 
 
@@ -1995,7 +1991,7 @@ void RawTwoByteString::WriteTo(SnapshotWriter* writer,
                 writer->GetObjectTags(this),
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->data_);
+                ptr()->data());
 }
 
 
@@ -2166,7 +2162,7 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kGrowableObjectArrayCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the used length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -2212,7 +2208,7 @@ void RawFloat32x4::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kFloat32x4Cid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the float values.
   writer->Write<float>(ptr()->value_[0]);
@@ -2258,7 +2254,7 @@ void RawInt32x4::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kInt32x4Cid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the mask values.
   writer->Write<uint32_t>(ptr()->value_[0]);
@@ -2302,7 +2298,7 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kFloat64x2Cid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the float values.
   writer->Write<double>(ptr()->value_[0]);
@@ -2381,13 +2377,13 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kFull);
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t length = reader->ReadSmiValue();
-  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadIntptrValue());
+  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadRawPointerValue());
   const ExternalTypedData& obj = ExternalTypedData::Handle(
       ExternalTypedData::New(cid, data, length));
-  void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());
+  void* peer = reinterpret_cast<void*>(reader->ReadRawPointerValue());
   Dart_WeakPersistentHandleFinalizer callback =
       reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
-          reader->ReadIntptrValue());
+          reader->ReadRawPointerValue());
   obj.AddFinalizer(peer, callback);
   return obj.raw();
 }
@@ -2395,7 +2391,7 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
 
 #define TYPED_DATA_WRITE(type)                                                 \
   {                                                                            \
-    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
+    type* data = reinterpret_cast<type*>(ptr()->data());                       \
     for (intptr_t i = 0; i < len; i++) {                                       \
       writer->Write(data[i]);                                                  \
     }                                                                          \
@@ -2415,7 +2411,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(cid);
-  writer->WriteIntptrValue(tags);
+  writer->WriteTags(tags);
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -2425,7 +2421,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid: {
-      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data_);
+      uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
       writer->WriteBytes(data, len);
       break;
     }
@@ -2459,11 +2455,20 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 }
 
 
+#define TYPED_EXT_DATA_WRITE(type)                                             \
+  {                                                                            \
+    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
+    for (intptr_t i = 0; i < len; i++) {                                       \
+      writer->Write(data[i]);                                                  \
+    }                                                                          \
+  }                                                                            \
+
+
 #define EXT_TYPED_DATA_WRITE(cid, type)                                        \
   writer->WriteIndexedObject(cid);                                             \
-  writer->WriteIntptrValue(RawObject::ClassIdTag::update(cid, tags));          \
+  writer->WriteTags(RawObject::ClassIdTag::update(cid, tags));                 \
   writer->Write<RawObject*>(ptr()->length_);                                   \
-  TYPED_DATA_WRITE(type)                                                       \
+  TYPED_EXT_DATA_WRITE(type)                                                   \
 
 
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
@@ -2579,7 +2584,7 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kSendPortCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   writer->Write(ptr()->id_);
 }
@@ -2631,7 +2636,7 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
 
     // Write out the class and tags information.
     writer->WriteIndexedObject(kStacktraceCid);
-    writer->WriteIntptrValue(writer->GetObjectTags(this));
+    writer->WriteTags(writer->GetObjectTags(this));
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
@@ -2689,7 +2694,7 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kJSRegExpCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the data length field.
   writer->Write<RawObject*>(ptr()->data_length_);
@@ -2736,7 +2741,7 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteIndexedObject(kWeakPropertyCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->key_);

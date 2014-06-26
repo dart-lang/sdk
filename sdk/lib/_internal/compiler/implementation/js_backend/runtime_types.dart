@@ -524,9 +524,9 @@ class RuntimeTypes {
     } else {
       List<String> parameters = const <String>[];
       if (contextClass != null) {
-        parameters = contextClass.typeVariables.toList().map((type) {
+        parameters = contextClass.typeVariables.mapToList((type) {
             return type.toString();
-        }).toList();
+        });
       }
       return js('function(#) { return # }', [parameters, encoding]);
     }
@@ -859,7 +859,7 @@ class Substitution {
     jsAst.Expression value =
         rti.getSubstitutionRepresentation(arguments, use);
     if (isFunction) {
-      Iterable<jsAst.Expression> formals = parameters.toList().map(declaration);
+      Iterable<jsAst.Expression> formals = parameters.map(declaration);
       return js('function(#) { return # }', [formals, value]);
     } else if (ensureIsFunction) {
       return js('function() { return # }', value);

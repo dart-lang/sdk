@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Synchronous errors in the [Chain.capture] callback are now handled correctly.
+
 ## 1.0.0
 
 * No API changes, just declared stable.

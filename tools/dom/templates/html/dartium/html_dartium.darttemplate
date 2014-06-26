@@ -142,18 +142,18 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 }
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
-const htmlBlinkMap = const {
-  '_HistoryCrossFrame': _HistoryCrossFrame,
-  '_LocationCrossFrame': _LocationCrossFrame,
-  '_DOMWindowCrossFrame': _DOMWindowCrossFrame,
+final htmlBlinkMap = {
+  '_HistoryCrossFrame': () => _HistoryCrossFrame,
+  '_LocationCrossFrame': () => _LocationCrossFrame,
+  '_DOMWindowCrossFrame': () => _DOMWindowCrossFrame,
   // FIXME: Move these to better locations.
-  'DateTime': DateTime,
-  'JsObject': js.JsObject,
-  'JsFunction': js.JsFunction,
-  'JsArray': js.JsArray,
+  'DateTime': () => DateTime,
+  'JsObject': () => js.JsObject,
+  'JsFunction': () => js.JsFunction,
+  'JsArray': () => js.JsArray,
 $!TYPE_MAP
   // FIXME: Temporary workaround.  The Blink name matches the Dart name
   // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
-  'DataTransfer': DataTransfer,
+  'DataTransfer': () => DataTransfer,
 };
 $endif

@@ -4,5 +4,5 @@
 
 library docgen.exports.source_mirrors;
 
-export '../../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart'
+export 'package:compiler/implementation/mirrors/source_mirrors.dart'
     hide SourceLocation;

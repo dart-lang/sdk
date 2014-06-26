@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'package:analyzer/src/generated/index.dart';
 
 
 /**
@@ -23,6 +24,7 @@ import 'mocks.dart';
 class AbstractAnalysisTest {
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
+  MockPackageMapProvider packageMapProvider;
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
@@ -43,15 +45,21 @@ class AbstractAnalysisTest {
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    packageMapProvider = new MockPackageMapProvider();
+    Index index = createIndex();
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, packageMapProvider, index);
+    server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       processNotification(notification);
     });
-    // create an empty project
-    _createEmptyProject();
+  }
+
+  Index createIndex() {
+    return null;
   }
 
   void addAnalysisSubscription(AnalysisService service, String file) {
@@ -63,7 +71,7 @@ class AbstractAnalysisTest {
     }
     files.add(file);
     // set subscriptions
-    Request request = new Request('0', METHOD_SET_ANALYSIS_SUBSCRIPTIONS);
+    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
   }
@@ -183,11 +191,11 @@ class AbstractAnalysisTest {
 //  }
 
   /**
-   * Creates an empty project `/project/`.
+   * Creates a project `/project`.
    */
-  void _createEmptyProject() {
+  void createProject() {
     resourceProvider.newFolder(projectPath);
-    Request request = new Request('0', METHOD_SET_ANALYSIS_ROOTS);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
     request.setParameter(INCLUDED, [projectPath]);
     request.setParameter(EXCLUDED, []);
     handleSuccessfulRequest(request);

@@ -38,6 +38,7 @@ EXECUTABLE_NAMES = {
     'content_shell': 'content_shell',
     'dart': 'dart',
     'editor': 'DartEditor',
+    'java': 'java',
     'eggplant': 'Eggplant',
     'firefox': 'firefox.exe',
     'git': 'git',
@@ -196,6 +197,8 @@ def KillDart():
 def KillEditor():
   status = Kill("editor")
   if os_name == "linux":
+    # it is important to kill java after editor on linux
+    status += Kill("java")
     status += Kill("eggplant")
   return status
 

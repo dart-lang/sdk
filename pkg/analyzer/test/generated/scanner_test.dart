@@ -1287,7 +1287,23 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_string_multi_unterminated() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string", [new StringToken(TokenType.STRING, "'''string", 0)]);
+  }
+
+  void test_string_multi_unterminated_interpolation_block() {
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''\${name", [
+        new StringToken(TokenType.STRING, "'''", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
+        new StringToken(TokenType.IDENTIFIER, "name", 5),
+        new StringToken(TokenType.STRING, "", 9)]);
+  }
+
+  void test_string_multi_unterminated_interpolation_identifier() {
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'''\$name", [
+        new StringToken(TokenType.STRING, "'''", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
+        new StringToken(TokenType.IDENTIFIER, "name", 4),
+        new StringToken(TokenType.STRING, "", 8)]);
   }
 
   void test_string_raw_multi_double() {
@@ -1299,7 +1315,8 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_string_raw_multi_unterminated() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "r'''string");
+    String source = "r'''string";
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_double() {
@@ -1311,11 +1328,13 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_string_raw_simple_unterminated_eof() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "r'string");
+    String source = "r'string";
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_raw_simple_unterminated_eol() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "r'string\n");
+    String source = "r'string";
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "${source}\n", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_double() {
@@ -1403,11 +1422,29 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_string_simple_unterminated_eof() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'string");
+    String source = "'string";
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, source, [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_eol() {
-    _assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'string\r");
+    String source = "'string";
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "${source}\r", [new StringToken(TokenType.STRING, source, 0)]);
+  }
+
+  void test_string_simple_unterminated_interpolation_block() {
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'\${name", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
+        new StringToken(TokenType.IDENTIFIER, "name", 3),
+        new StringToken(TokenType.STRING, "", 7)]);
+  }
+
+  void test_string_simple_unterminated_interpolation_identifier() {
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5, "'\$name", [
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
+        new StringToken(TokenType.IDENTIFIER, "name", 2),
+        new StringToken(TokenType.STRING, "", 6)]);
   }
 
   void test_tilde() {
@@ -1457,8 +1494,8 @@ class ScannerTest extends JUnitTestCase {
   /**
    * Assert that scanning the given source produces an error with the given code.
    *
-   * @param illegalCharacter
-   * @param i
+   * @param expectedError the error that should be produced
+   * @param expectedOffset the string offset that should be associated with the error
    * @param source the source to be scanned to produce the error
    */
   void _assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
@@ -2180,6 +2217,14 @@ class ScannerTest extends JUnitTestCase {
         final __test = new ScannerTest();
         runJUnitTest(__test, __test.test_string_multi_unterminated);
       });
+      _ut.test('test_string_multi_unterminated_interpolation_block', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_unterminated_interpolation_block);
+      });
+      _ut.test('test_string_multi_unterminated_interpolation_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_unterminated_interpolation_identifier);
+      });
       _ut.test('test_string_raw_multi_double', () {
         final __test = new ScannerTest();
         runJUnitTest(__test, __test.test_string_raw_multi_double);
@@ -2255,6 +2300,14 @@ class ScannerTest extends JUnitTestCase {
       _ut.test('test_string_simple_unterminated_eol', () {
         final __test = new ScannerTest();
         runJUnitTest(__test, __test.test_string_simple_unterminated_eol);
+      });
+      _ut.test('test_string_simple_unterminated_interpolation_block', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_unterminated_interpolation_block);
+      });
+      _ut.test('test_string_simple_unterminated_interpolation_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_unterminated_interpolation_identifier);
       });
       _ut.test('test_tilde', () {
         final __test = new ScannerTest();

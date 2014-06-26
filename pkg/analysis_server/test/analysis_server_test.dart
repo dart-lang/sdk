@@ -5,7 +5,6 @@
 library test.analysis_server;
 
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -26,6 +25,7 @@ class AnalysisServerTestHelper {
   AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
     server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
+        new MockPackageMapProvider(), null,
         rethrowExceptions: rethrowExceptions);
   }
 }
@@ -71,7 +71,7 @@ main() {
     test('shutdown', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
       helper.server.handlers = [new ServerDomainHandler(helper.server)];
-      var request = new Request('my28', METHOD_SHUTDOWN);
+      var request = new Request('my28', SERVER_SHUTDOWN);
       return helper.channel.sendRequest(request)
           .then((Response response) {
             expect(response.id, equals('my28'));

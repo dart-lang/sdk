@@ -158,7 +158,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) {
-    __ hlt(0);
+    __ brk(0);
   }
 
   ASSERT(deopt_env() != NULL);
@@ -664,7 +664,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                         3,
                         locs);
     // We should never return here.
-    __ hlt(0);
+    __ brk(0);
 
     __ Bind(&is_assignable);  // For a null object.
     // Restore instantiator (R2) and its type arguments (R1).
@@ -901,7 +901,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ LeaveDartFrame();  // The arguments are still on the stack.
     __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
-    __ hlt(0);
+    __ brk(0);
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
   }
@@ -974,7 +974,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
     intptr_t threshold = FLAG_optimization_counter_threshold;
     __ LoadFieldFromOffset(
-        R7, function_reg, Function::usage_counter_offset(), new_pp);
+        R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
@@ -982,7 +982,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     } else {
       __ add(R7, R7, Operand(1));
       __ StoreFieldToOffset(
-          R7, function_reg, Function::usage_counter_offset(), new_pp);
+          R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
     }
     __ CompareImmediate(R7, threshold, new_pp);
     ASSERT(function_reg == R6);
@@ -1073,7 +1073,7 @@ void FlowGraphCompiler::CompileGraph() {
         __ LeaveDartFrame();  // The arguments are still on the stack.
         __ BranchPatchable(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
-        __ hlt(0);
+        __ brk(0);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -1097,7 +1097,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   VisitBlocks();
 
-  __ hlt(0);
+  __ brk(0);
   GenerateDeferredCode();
 
   // Emit function patching code. This will be swapped with the first 3
@@ -1242,19 +1242,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize, PP);
-  __ tsti(R0, kSmiTagMask);
-  __ b(&not_smi, NE);
-  __ LoadImmediate(R0, Smi::RawValue(kSmiCid), PP);
-  __ b(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(R0, R0, PP);
-  __ SmiTag(R0);
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
   // R0: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(R1, cache, PP);
   __ LoadFieldFromOffset(R2, R1, MegamorphicCache::buckets_offset(), PP);
   __ LoadFieldFromOffset(R1, R1, MegamorphicCache::mask_offset(), PP);
@@ -1300,27 +1291,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
+    LocationSummary* locs,
+    const ICData& ic_data) {
   uword label_address = 0;
   if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();

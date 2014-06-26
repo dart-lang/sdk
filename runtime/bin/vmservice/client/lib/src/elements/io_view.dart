@@ -62,19 +62,62 @@ class IOHttpServerViewElement extends ObservatoryElement {
     });
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     // Start a timer to update the isolate summary once a second.
     _updateTimer = new Timer(new Duration(seconds: 1), _updateHttpServer);
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void detached() {
+    super.detached();
     if (_updateTimer != null) {
       _updateTimer.cancel();
       _updateTimer = null;
     }
   }
+}
+
+@CustomTag('io-http-server-connection-view')
+class IOHttpServerConnectionViewElement extends ObservatoryElement {
+  @published ServiceMap connection;
+  Timer _updateTimer;
+
+  IOHttpServerConnectionViewElement.created() : super.created();
+
+  void refresh(var done) {
+    connection.reload().whenComplete(done);
+  }
+
+  void _updateHttpServer() {
+    refresh(() {
+      if (_updateTimer != null) {
+        _updateTimer = new Timer(new Duration(seconds: 1), _updateHttpServer);
+      }
+    });
+  }
+
+  @override
+  void attached() {
+    super.attached();
+    // Start a timer to update the isolate summary once a second.
+    _updateTimer = new Timer(new Duration(seconds: 1), _updateHttpServer);
+  }
+
+  @override
+  void detached() {
+    super.detached();
+    if (_updateTimer != null) {
+      _updateTimer.cancel();
+      _updateTimer = null;
+    }
+  }
+}
+
+@CustomTag('io-http-server-connection-ref')
+class IOHttpServerConnectionRefElement extends ServiceRefElement {
+  IOHttpServerConnectionRefElement.created() : super.created();
 }
 
 @CustomTag('io-socket-ref')
@@ -167,14 +210,16 @@ class IORandomAccessFileViewElement extends ObservatoryElement {
     });
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     // Start a timer to update the isolate summary once a second.
     _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void detached() {
+    super.detached();
     if (_updateTimer != null) {
       _updateTimer.cancel();
       _updateTimer = null;
@@ -220,14 +265,16 @@ class IOProcessViewElement extends ObservatoryElement {
     });
   }
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     // Start a timer to update the isolate summary once a second.
     _updateTimer = new Timer(new Duration(seconds: 1), _updateFile);
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void detached() {
+    super.detached();
     if (_updateTimer != null) {
       _updateTimer.cancel();
       _updateTimer = null;

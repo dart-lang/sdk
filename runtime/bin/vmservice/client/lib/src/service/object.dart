@@ -29,11 +29,6 @@ abstract class ServiceObject extends Observable {
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
 
-  /// The complete service url of this object with a '#/' prefix.
-  // TODO(turnidge): Figure out why using a getter here messes up polymer.
-  @reflectable String get hashLink => '#/${link}';
-  @reflectable set hashLink(var o) { /* silence polymer */ }
-
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
   bool _loaded = false;
@@ -67,6 +62,9 @@ abstract class ServiceObject extends Observable {
     var obj = null;
     assert(type != 'VM');
     switch (type) {
+      case 'Class':
+        obj = new Class._empty(owner);
+        break;
       case 'Code':
         obj = new Code._empty(owner);
         break;
@@ -192,6 +190,8 @@ abstract class VM extends ServiceObjectOwner {
   @observable double uptime = 0.0;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
+  @observable String pid = '';
+  @observable DateTime lastUpdate;
 
   VM() : super._empty(null) {
     name = 'vm';
@@ -252,45 +252,39 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ServiceObject> get(String id) {
-    var parts = id.split('#');
-    assert(parts.length >= 1);
-    // We should never see more than two hashes.
-    assert(parts.length <= 2);
-    // The ID does not include anything after the # (or the # itself).
-    id = parts[0];
-    // I'm serious.
-    assert(!id.contains('#'));
+    assert(id.startsWith('/') == false);
     // Isolates are handled specially, since they can cache sub-objects.
     if (id.startsWith(_isolatesPrefix)) {
       String isolateId = _parseIsolateId(id);
       String objectId = _parseObjectId(id);
       return _getIsolate(isolateId).then((isolate) {
-          if (isolate == null) {
-            // The isolate does not exist.  Return the VM object instead.
-            //
-            // TODO(turnidge): Generate a service error?
-            return this;
-          }
-          if (objectId == null) {
-            return isolate.reload();
-          } else {
-            return isolate.get(objectId);
-          }
-        });
+        if (isolate == null) {
+          // The isolate does not exist.  Return the VM object instead.
+          //
+          // TODO(turnidge): Generate a service error?
+          return this;
+        }
+        if (objectId == null) {
+          return isolate.reload();
+        } else {
+          return isolate.get(objectId);
+        }
+      });
     }
 
     var obj = _cache[id];
     if (obj != null) {
       return obj.reload();
     }
+
     // Cache miss.  Get the object from the vm directly.
     return getAsMap(id).then((ObservableMap map) {
-        var obj = new ServiceObject._fromMap(this, map);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-        return obj;
-      });
+      var obj = new ServiceObject._fromMap(this, map);
+      if (obj.canCache) {
+        _cache.putIfAbsent(id, () => obj);
+      }
+      return obj;
+    });
   }
 
   dynamic _reviver(dynamic key, dynamic value) {
@@ -381,7 +375,10 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     architecture = map['architecture'];
     uptime = map['uptime'];
+    var dateInMillis = int.parse(map['date']);
+    lastUpdate = new DateTime.fromMillisecondsSinceEpoch(dateInMillis);
     assertsEnabled = map['assertsEnabled'];
+    pid = map['pid'];
     typeChecksEnabled = map['typeChecksEnabled'];
     _updateIsolates(map['isolates']);
   }
@@ -492,14 +489,29 @@ class TagProfile {
   }
 }
 
+class HeapSpace extends Observable {
+  @observable int used = 0;
+  @observable int capacity = 0;
+  @observable int external = 0;
+  @observable int collections = 0;
+  @observable double totalCollectionTimeInSeconds = 0.0;
+
+  void update(Map heapMap) {
+    used = heapMap['used'];
+    capacity = heapMap['capacity'];
+    external = heapMap['external'];
+    collections = heapMap['collections'];
+    totalCollectionTimeInSeconds = heapMap['time'];
+  }
+}
+
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable ObservableMap counters = new ObservableMap();
 
-  String get link => _id;
-  String get hashLink => '#/$_id';
+  String get link => '/${_id}';
 
   @observable ServiceMap pauseEvent = null;
   bool get _isPaused => pauseEvent != null;
@@ -517,9 +529,7 @@ class Isolate extends ServiceObjectOwner {
   }
 
   /// Creates a link to [id] relative to [this].
-  @reflectable String relativeLink(String id) => '${this.id}/$id';
-  /// Creates a relative link to [id] with a '#/' prefix.
-  @reflectable String relativeHashLink(String id) => '#/${relativeLink(id)}';
+  @reflectable String relativeLink(String id) => '/${this.id}/$id';
 
   static const TAG_ROOT_ID = 'code/tag-0';
 
@@ -585,6 +595,41 @@ class Isolate extends ServiceObjectOwner {
     script._processHits(scriptCoverage['hits']);
   }
 
+  /// Fetches and builds the class hierarchy for this isolate. Returns the
+  /// Object class object.
+  Future<Class> getClassHierarchy() {
+    return get('classes').then(_loadClasses).then(_buildClassHierarchy);
+  }
+
+  /// Given the class list, loads each class.
+  Future<List<Class>> _loadClasses(ServiceMap classList) {
+    assert(classList.serviceType == 'ClassList');
+    var futureClasses = [];
+    for (var cls in classList['members']) {
+      // Skip over non-class classes.
+      if (cls is Class) {
+        futureClasses.add(cls.load());
+      }
+    }
+    return Future.wait(futureClasses);
+  }
+
+  /// Builds the class hierarchy and returns the Object class.
+  Future<Class> _buildClassHierarchy(List<Class> classes) {
+    rootClasses.clear();
+    objectClass = null;
+    for (var cls in classes) {
+      if (cls.superClass == null) {
+        rootClasses.add(cls);
+      }
+      if ((cls.vmName == 'Object') && (cls.isPatch == false)) {
+        objectClass = cls;
+      }
+    }
+    assert(objectClass != null);
+    return new Future.value(objectClass);
+  }
+
   ServiceObject getFromMap(ObservableMap map) {
     if (map == null) {
       return null;
@@ -619,6 +664,9 @@ class Isolate extends ServiceObjectOwner {
       });
   }
 
+  @observable Class objectClass;
+  @observable final rootClasses = new ObservableList<Class>();
+
   @observable Library rootLib;
   @observable ObservableList<Library> libraries =
       new ObservableList<Library>();
@@ -632,14 +680,17 @@ class Isolate extends ServiceObjectOwner {
   @observable final Map<String, double> timers =
       toObservable(new Map<String, double>());
 
-  @observable int newHeapUsed = 0;
-  @observable int oldHeapUsed = 0;
-  @observable int newHeapCapacity = 0;
-  @observable int oldHeapCapacity = 0;
+  final HeapSpace newSpace = new HeapSpace();
+  final HeapSpace oldSpace = new HeapSpace();
 
   @observable String fileAndLine;
 
   @observable DartError error;
+
+  void updateHeapsFromMap(ObservableMap map) {
+    newSpace.update(map['new']);
+    oldSpace.update(map['old']);
+  }
 
   void _update(ObservableMap map, bool mapIsRef) {
     mainPort = map['mainPort'];
@@ -653,7 +704,7 @@ class Isolate extends ServiceObjectOwner {
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
-        map['heap'] == null) {
+        map['heaps'] == null) {
       Logger.root.severe("Malformed 'Isolate' response: $map");
       return;
     }
@@ -702,10 +753,7 @@ class Isolate extends ServiceObjectOwner {
                       timerMap['time_bootstrap']);
     timers['dart'] = timerMap['time_dart_execution'];
 
-    newHeapUsed = map['heap']['usedNew'];
-    oldHeapUsed = map['heap']['usedOld'];
-    newHeapCapacity = map['heap']['capacityNew'];
-    oldHeapCapacity = map['heap']['capacityOld'];
+    updateHeapsFromMap(map['heaps']);
 
     List features = map['features'];
     if (features != null) {
@@ -906,7 +954,7 @@ class Library extends ServiceObject {
   @observable String url;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
-  @reflectable final classes = new ObservableList<ServiceMap>();
+  @reflectable final classes = new ObservableList<Class>();
   @reflectable final variables = new ObservableList<ServiceMap>();
   @reflectable final functions = new ObservableList<ServiceMap>();
 
@@ -945,15 +993,152 @@ class Library extends ServiceObject {
   }
 }
 
-class ScriptLine {
-  @reflectable final int line;
-  @reflectable final String text;
+class AllocationCount extends Observable {
+  @observable int instances = 0;
+  @observable int bytes = 0;
+
+  void reset() {
+    instances = 0;
+    bytes = 0;
+  }
+
+  bool get empty => (instances == 0) && (bytes == 0);
+}
+
+class Allocations {
+  // Indexes into VM provided array. (see vm/class_table.h).
+  static const ALLOCATED_BEFORE_GC = 0;
+  static const ALLOCATED_BEFORE_GC_SIZE = 1;
+  static const LIVE_AFTER_GC = 2;
+  static const LIVE_AFTER_GC_SIZE = 3;
+  static const ALLOCATED_SINCE_GC = 4;
+  static const ALLOCATED_SINCE_GC_SIZE = 5;
+  static const ACCUMULATED = 6;
+  static const ACCUMULATED_SIZE = 7;
+
+  final AllocationCount accumulated = new AllocationCount();
+  final AllocationCount current = new AllocationCount();
+
+  void update(List stats) {
+    accumulated.instances = stats[ACCUMULATED];
+    accumulated.bytes = stats[ACCUMULATED_SIZE];
+    current.instances = stats[LIVE_AFTER_GC] + stats[ALLOCATED_SINCE_GC];
+    current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
+  }
+
+  bool get empty => accumulated.empty && current.empty;
+}
+
+class Class extends ServiceObject {
+  @observable Library library;
+  @observable Script script;
+  @observable Class superClass;
+
+  @observable bool isAbstract;
+  @observable bool isConst;
+  @observable bool isFinalized;
+  @observable bool isPatch;
+  @observable bool isImplemented;
+
+  @observable int tokenPos;
+
+  @observable ServiceMap error;
+
+  final Allocations newSpace = new Allocations();
+  final Allocations oldSpace = new Allocations();
+
+  bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
+
+  @reflectable final children = new ObservableList<Class>();
+  @reflectable final subClasses = new ObservableList<Class>();
+  @reflectable final fields = new ObservableList<ServiceMap>();
+  @reflectable final functions = new ObservableList<ServiceMap>();
+  @reflectable final interfaces = new ObservableList<Class>();
+
+  bool get canCache => true;
+  bool get immutable => false;
+
+  Class._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  String toString() {
+    return 'Service Class: $vmName';
+  }
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['user_name'];
+    vmName = map['name'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    // We are fully loaded.
+    _loaded = true;
+
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    // Some builtin classes aren't associated with a library.
+    if (map['library'] is Library) {
+      library = map['library'];
+    } else {
+      library = null;
+    }
+
+    script = map['script'];
+
+    isAbstract = map['abstract'];
+    isConst = map['const'];
+    isFinalized = map['finalized'];
+    isPatch = map['patch'];
+    isImplemented = map['implemented'];
+
+    tokenPos = map['tokenPos'];
+
+    subClasses.clear();
+    subClasses.addAll(map['subclasses']);
+
+    fields.clear();
+    fields.addAll(map['fields']);
+
+    functions.clear();
+    functions.addAll(map['functions']);
+
+    superClass = map['super'];
+    if (superClass != null) {
+      superClass._addToChildren(this);
+    }
+    error = map['error'];
+
+    var allocationStats = map['allocationStats'];
+    if (allocationStats != null) {
+      newSpace.update(allocationStats['new']);
+      oldSpace.update(allocationStats['old']);
+    }
+  }
+
+  void _addToChildren(Class cls) {
+    if (children.contains(cls)) {
+      return;
+    }
+    children.add(cls);
+  }
+
+  Future<ServiceObject> get(String command) {
+    return isolate.get(id + "/$command");
+  }
+}
+
+class ScriptLine extends Observable {
+  final int line;
+  final String text;
+  @observable int hits;
   ScriptLine(this.line, this.text);
 }
 
 class Script extends ServiceObject {
-  @reflectable final lines = new ObservableList<ScriptLine>();
-  @reflectable final hits = new ObservableMap<int, int>();
+  final lines = new ObservableList<ScriptLine>();
+  final _hits = new Map<int, int>();
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
@@ -1026,8 +1211,13 @@ class Script extends ServiceObject {
       var line = scriptHits[i];
       var hit = scriptHits[i + 1]; // hit status.
       assert(line >= 1); // Lines start at 1.
-      hits[line] = hit;
+      var oldHits = _hits[line];
+      if (oldHits != null) {
+        hit += oldHits;
+      }
+      _hits[line] = hit;
     }
+    _applyHitsToLines();
   }
 
   void _processSource(String source) {
@@ -1046,6 +1236,17 @@ class Script extends ServiceObject {
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
       lines.add(new ScriptLine(i + 1, sourceLines[i]));
+    }
+    _applyHitsToLines();
+  }
+
+  void _applyHitsToLines() {
+    if (lines.length == 0) {
+      return;
+    }
+    for (var line in lines) {
+      var hits = _hits[line.line];
+      line.hits = hits;
     }
   }
 }

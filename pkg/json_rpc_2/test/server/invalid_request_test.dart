@@ -13,23 +13,23 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'utils.dart';
 
 void main() {
-  var server;
-  setUp(() => server = new json_rpc.Server());
+  var controller;
+  setUp(() => controller = new ServerController());
 
   test("a non-Array/Object request is invalid", () {
-    expectErrorResponse(server, 'foo', error_code.INVALID_REQUEST,
+    expectErrorResponse(controller, 'foo', error_code.INVALID_REQUEST,
         'Request must be an Array or an Object.');
   });
 
   test("requests must have a jsonrpc key", () {
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'method': 'foo',
       'id': 1234
     }, error_code.INVALID_REQUEST, 'Request must contain a "jsonrpc" key.');
   });
 
   test("the jsonrpc version must be 2.0", () {
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '1.0',
       'method': 'foo',
       'id': 1234
@@ -38,14 +38,14 @@ void main() {
   });
 
   test("requests must have a method key", () {
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '2.0',
       'id': 1234
     }, error_code.INVALID_REQUEST, 'Request must contain a "method" key.');
   });
 
   test("request method must be a string", () {
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '2.0',
       'method': 1234,
       'id': 1234
@@ -54,7 +54,7 @@ void main() {
   });
 
   test("request params must be an Array or Object", () {
-    expectErrorResponse(server, {
+    expectErrorResponse(controller, {
       'jsonrpc': '2.0',
       'method': 'foo',
       'params': 1234,
@@ -64,7 +64,7 @@ void main() {
   });
 
   test("request id may not be an Array or Object", () {
-    expect(server.handleRequest({
+    expect(controller.handleRequest({
       'jsonrpc': '2.0',
       'method': 'foo',
       'id': {'bad': 'id'}

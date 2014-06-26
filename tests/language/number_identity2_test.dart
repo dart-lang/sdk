@@ -8,14 +8,31 @@
 // VMOptions=--optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
+import 'dart:typed_data';
 
-main() {
-  for (int i = 0; i < 20; i++) testNumberIdentity();
+double uint64toDouble(int i) {
+  var buffer = new Uint8List(8).buffer;
+  var bdata = new ByteData.view(buffer);
+  bdata.setUint64(0, i);
+  return bdata.getFloat64(0);
 }
-
 
 testNumberIdentity () {
   var a = double.NAN;
   var b = a + 0.0;
   Expect.isTrue(identical(a, b));
+
+  a = uint64toDouble((1 << 64) - 1);
+  b = uint64toDouble((1 << 64) - 2);
+  Expect.isFalse(identical(a, b));
+
+  a = 0.0/0.0;
+  b = 1.0/0.0;
+  Expect.isFalse(identical(a, b));
+}
+
+main() {
+  for (int i = 0; i < 20; i++) {
+    testNumberIdentity();
+  }
 }

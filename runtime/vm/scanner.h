@@ -18,6 +18,7 @@ namespace dart {
 class Array;
 class Library;
 class RawString;
+class ScanContext;
 class String;
 
 // A call to Scan() scans the source one token at at time.
@@ -25,6 +26,8 @@ class String;
 // GetStream() scans the entire source text and returns a stream of tokens.
 class Scanner : ValueObject {
  public:
+  typedef int32_t (*CharAtFunc)(const String& str, intptr_t index);
+
   // SourcePosition describes a text location in user friendly
   // terms of line number and column.
   struct SourcePosition {
@@ -75,7 +78,7 @@ class Scanner : ValueObject {
   static void InitOnce();
 
   // Return true if str is an identifier.
-  static bool IsIdent(const String& str);
+  bool IsIdent(const String& str);
 
   // Does the token stream contain a valid literal. This is used to implement
   // the Dart methods int.parse and double.parse.
@@ -85,14 +88,9 @@ class Scanner : ValueObject {
                              const String** value);
 
  private:
-  static const int kNumLowercaseChars = 26;
+  friend class ScanContext;
 
-  struct ScanContext {
-    ScanContext* next;
-    char string_delimiter;
-    bool string_is_multiline;
-    int  brace_level;
-  };
+  static const int kNumLowercaseChars = 26;
 
   struct KeywordTable {
     Token::Kind kind;
@@ -182,6 +180,10 @@ class Scanner : ValueObject {
 
   void ScanScriptTag();
 
+  CharAtFunc CallCharAt() const { return char_at_func_; }
+
+  Isolate* isolate() const { return isolate_; }
+
   static void PrintTokens(const GrowableTokenStream& ts);
 
   TokenDescriptor current_token_;  // Current token.
@@ -206,6 +208,10 @@ class Scanner : ValueObject {
   const String& private_key_;
 
   SourcePosition c0_pos_;      // Source position of lookahead character c0_.
+
+  const CharAtFunc char_at_func_;
+
+  Isolate* isolate_;
 
   static KeywordTable keywords_[Token::kNumKeywords];
   static int keywords_char_offset_[kNumLowercaseChars];

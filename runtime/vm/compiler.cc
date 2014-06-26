@@ -60,8 +60,6 @@ DEFINE_FLAG(bool, verify_compiler, false,
 
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_patching);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, warning_as_error);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -241,6 +239,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
+
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized,
@@ -276,21 +275,20 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphbuilder_timer,
                          isolate);
-        Array& ic_data_array = Array::Handle();
+        ZoneGrowableArray<const ICData*>* ic_data_array =
+            new(isolate) ZoneGrowableArray<const ICData*>();
         if (optimized) {
           ASSERT(function.HasCode());
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
                  FLAG_deoptimization_counter_threshold);
-          const Code& unoptimized_code =
-              Code::Handle(function.unoptimized_code());
-          ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
+          function.RestoreICDataMap(ic_data_array);
         }
 
         // Build the flow graph.
         FlowGraphBuilder builder(parsed_function,
-                                 ic_data_array,
+                                 *ic_data_array,
                                  NULL,  // NULL = not inlining.
                                  osr_id,
                                  optimized);
@@ -453,7 +451,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
-          optimizer.InferSmiRanges();
+          optimizer.InferIntRanges();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
@@ -479,6 +477,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.EliminateEnvironments();
 
         DeadCodeElimination::EliminateDeadPhis(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Attempt to sink allocations of temporary non-escaping objects to
         // the deoptimization path.
@@ -489,6 +488,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
         }
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Ensure that all phis inserted by optimization passes have consistent
         // representations.
@@ -574,7 +574,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
             const Field* field = (*flow_graph->guarded_fields())[i];
             field->RegisterDependentCode(code);
           }
-        } else {
+        } else {  // not optimized.
+          if (function.ic_data_array() == Array::null()) {
+            function.SaveICDataMap(graph_compiler.deopt_id_to_ic_data());
+          }
           function.set_unoptimized_code(code);
           function.AttachCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
@@ -608,14 +611,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           OS::Print("%s\n", error.ToErrorCString());
         }
         done = true;
-        ASSERT(optimized ||
-               (FLAG_warn_on_javascript_compatibility &&
-                FLAG_warning_as_error));
+        ASSERT(optimized);
       }
 
       // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
-          (LanguageError::Cast(error).kind() == LanguageError::kBailout)) {
+          (LanguageError::Cast(error).kind() == Report::kBailout)) {
         isolate->object_store()->clear_sticky_error();
       }
       is_compiled = false;
@@ -765,7 +766,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
-    ParsedFunction* parsed_function = new ParsedFunction(
+    ParsedFunction* parsed_function = new(isolate) ParsedFunction(
         isolate, Function::ZoneHandle(isolate, function.raw()));
     if (FLAG_trace_compiler) {
       OS::Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
@@ -796,14 +797,7 @@ static RawError* CompileFunctionHelper(const Function& function,
         function.SetIsOptimizable(false);
         return Error::null();
       }
-      // So far, the only possible real error is a JS warning reported as error.
-      ASSERT(FLAG_warn_on_javascript_compatibility && FLAG_warning_as_error);
-      Error& error = Error::Handle();
-      // We got an error during compilation.
-      error = isolate->object_store()->sticky_error();
-      ASSERT(!error.IsNull());
-      isolate->object_store()->clear_sticky_error();
-      return error.raw();
+      UNREACHABLE();
     }
 
     per_compile_timer.Stop();

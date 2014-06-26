@@ -5,6 +5,7 @@
 library analysis.server;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
@@ -14,6 +15,8 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -24,6 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/index.dart';
 
 
 /**
@@ -35,18 +39,36 @@ final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   final AnalysisServer analysisServer;
 
+  /**
+   * The default options used to create new analysis contexts.
+   */
+  AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+
   AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
       : super(resourceProvider);
 
-  void addContext(Folder folder, File pubspecFile) {
+  @override
+  void addContext(Folder folder) {
+    Map<String, List<Folder>> packageMap =
+        analysisServer.packageMapProvider.computePackageMap(folder);
     ContextDirectory contextDirectory = new ContextDirectory(
-        analysisServer.defaultSdk, folder, pubspecFile);
+        analysisServer.defaultSdk, resourceProvider, folder, packageMap);
     analysisServer.folderMap[folder] = contextDirectory;
-    analysisServer.schedulePerformAnalysisOperation(contextDirectory.context);
+    AnalysisContext context = contextDirectory.context;
+    context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
+    analysisServer.schedulePerformAnalysisOperation(context);
   }
 
+  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    analysisServer.folderMap[contextFolder].context.applyChanges(changeSet);
+    AnalysisContext context = analysisServer.folderMap[contextFolder].context;
+    context.applyChanges(changeSet);
+    analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  @override
+  void removeContext(Folder folder) {
+    analysisServer.folderMap.remove(folder);
   }
 }
 
@@ -62,10 +84,21 @@ class AnalysisServer {
   final ServerCommunicationChannel channel;
 
   /**
+   * The [Index] for this server.
+   */
+  final Index index;
+
+  /**
    * [ContextDirectoryManager] which handles the mapping from analysis roots
    * to context directories.
    */
   AnalysisServerContextDirectoryManager contextDirectoryManager;
+
+  /**
+   * Provider which is used to determine the mapping from package name to
+   * package folder.
+   */
+  final PackageMapProvider packageMapProvider;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -88,7 +121,8 @@ class AnalysisServer {
   /**
    * A table mapping [Folder]s to the [ContextDirectory]s associated with them.
    */
-  final Map<Folder, ContextDirectory> folderMap = <Folder, ContextDirectory>{};
+  final Map<Folder, ContextDirectory> folderMap =
+      new HashMap<Folder, ContextDirectory>();
 
   /**
    * A queue of the operations to perform in this server.
@@ -102,13 +136,14 @@ class AnalysisServer {
   /**
    * A set of the [ServerService]s to send notifications for.
    */
-  Set<ServerService> serverServices = new Set<ServerService>();
+  Set<ServerService> serverServices = new HashSet<ServerService>();
 
   /**
    * A table mapping [AnalysisService]s to the file paths for which these
    * notifications should be sent.
    */
-  Map<AnalysisService, Set<String>> analysisServices = <AnalysisService, Set<String>>{};
+  Map<AnalysisService, Set<String>> analysisServices =
+      new HashMap<AnalysisService, Set<String>>();
 
   /**
    * True if any exceptions thrown by analysis should be propagated up the call
@@ -126,21 +161,14 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      {this.rethrowExceptions: true}) {
+      this.packageMapProvider, this.index, {this.rethrowExceptions: true}) {
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(NOTIFICATION_CONNECTED);
+    Notification notification = new Notification(SERVER_CONNECTED);
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
-  }
-
-  /**
-   * Schedules analysis of the given context.
-   */
-  void schedulePerformAnalysisOperation(AnalysisContext context) {
-    scheduleOperation(new PerformAnalysisOperation(context, false));
   }
 
   /**
@@ -155,6 +183,81 @@ class AnalysisServer {
   }
 
   /**
+   * Schedules analysis of the given context.
+   */
+  void schedulePerformAnalysisOperation(AnalysisContext context) {
+    scheduleOperation(new PerformAnalysisOperation(context, false));
+  }
+
+  /**
+   * Send the given [notification] to the client.
+   */
+  void sendNotification(Notification notification) {
+    channel.sendNotification(notification);
+  }
+
+  /**
+   * Set the priority files to the given [files].
+   */
+  void setPriorityFiles(Request request, List<String> files) {
+    Map<AnalysisContext, List<Source>> sourceMap =
+        new HashMap<AnalysisContext, List<Source>>();
+    List<String> unanalyzed = new List<String>();
+    files.forEach((file) {
+      AnalysisContext analysisContext = _getAnalysisContext(file);
+      if (analysisContext == null) {
+        unanalyzed.add(file);
+      } else {
+        List<Source> sourceList = sourceMap[analysisContext];
+        if (sourceList == null) {
+          sourceList = <Source>[];
+          sourceMap[analysisContext] = sourceList;
+        }
+        sourceList.add(_getSource(file));
+      }
+    });
+    if (unanalyzed.isNotEmpty) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeAll(unanalyzed, ', ');
+      throw new RequestFailure(new Response.unanalyzedPriorityFiles(request,
+          buffer.toString()));
+    }
+    folderMap.forEach((Folder folder, ContextDirectory directory) {
+      AnalysisContext context = directory.context;
+      List<Source> sourceList = sourceMap[context];
+      if (sourceList == null) {
+        sourceList = Source.EMPTY_ARRAY;
+      }
+      context.analysisPriorityOrder = sourceList;
+    });
+  }
+
+  /**
+   * Use the given updaters to update the values of the options in every
+   * existing analysis context.
+   */
+  void updateOptions(List<OptionUpdater> optionUpdaters) {
+    //
+    // Update existing contexts.
+    //
+    folderMap.forEach((Folder folder, ContextDirectory directory) {
+      AnalysisContext context = directory.context;
+      AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(context.analysisOptions);
+      optionUpdaters.forEach((OptionUpdater optionUpdater) {
+        optionUpdater(options);
+      });
+      context.analysisOptions = options;
+    });
+    //
+    // Update the defaults used to create new contexts.
+    //
+    AnalysisOptionsImpl options = contextDirectoryManager.defaultOptions;
+    optionUpdaters.forEach((OptionUpdater optionUpdater) {
+      optionUpdater(options);
+    });
+  }
+
+  /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
    * operations execution.
    */
@@ -166,6 +269,7 @@ class AnalysisServer {
    * The socket from which requests are being read has been closed.
    */
   void done() {
+    index.stop();
     running = false;
   }
 
@@ -176,6 +280,23 @@ class AnalysisServer {
   void error(argument) {
     running = false;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -250,11 +371,7 @@ class AnalysisServer {
    * the current context being analyzed or `null` if analysis is complete.
    */
   void sendStatusNotification(String contextId) {
-//    if (contextId == lastStatusNotificationContextId) {
-//      return;
-//    }
-//    lastStatusNotificationContextId = contextId;
-    Notification notification = new Notification(NOTIFICATION_STATUS);
+    Notification notification = new Notification(SERVER_STATUS);
     Map<String, Object> analysis = new Map();
     if (contextId != null) {
       analysis['analyzing'] = true;
@@ -297,6 +414,10 @@ class AnalysisServer {
   void updateContent(Map<String, ContentChange> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = _getAnalysisContext(file);
+      // TODO(paulberry): handle the case where a file is referred to by more
+      // than one context (e.g package A depends on package B using a local
+      // path, user has both packages open for editing in separate contexts,
+      // and user modifies a file in package B).
       if (analysisContext != null) {
         Source source = _getSource(file);
         if (change.offset == null) {
@@ -325,10 +446,22 @@ class AnalysisServer {
           List<AnalysisError> errors = analysisContext.getErrors(source).errors;
           sendAnalysisNotificationErrors(this, file, errors);
         }
-        if (service == AnalysisService.HIGHLIGHTS) {
-          CompilationUnit dartUnit = test_getResolvedCompilationUnit(file);
+        // Dart unit notifications.
+        if (AnalysisEngine.isDartFileName(file)) {
+          CompilationUnit dartUnit = getResolvedCompilationUnitToResendNotification(file);
           if (dartUnit != null) {
-            sendAnalysisNotificationHighlights(this, file, dartUnit);
+            switch (service) {
+              case AnalysisService.HIGHLIGHTS:
+                sendAnalysisNotificationHighlights(this, file, dartUnit);
+                break;
+              case AnalysisService.NAVIGATION:
+                // TODO(scheglov) consider support for one unit in 2+ libraries
+                sendAnalysisNotificationNavigation(this, file, dartUnit);
+                break;
+              case AnalysisService.OUTLINE:
+                sendAnalysisNotificationOutline(this, file, dartUnit);
+                break;
+            }
           }
         }
       }
@@ -359,6 +492,33 @@ class AnalysisServer {
   }
 
   /**
+   * Returns the [CompilationUnit] of the Dart file with the given [path] that
+   * should be used to resend notifications for already resolved unit.
+   * Returns `null` if the file is not a part of any context, library has not
+   * been yet resolved, or any problem happened.
+   */
+  CompilationUnit getResolvedCompilationUnitToResendNotification(String path) {
+    // prepare AnalysisContext
+    AnalysisContext context = _getAnalysisContext(path);
+    if (context == null) {
+      return null;
+    }
+    // prepare sources
+    Source unitSource = _getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (librarySources.isEmpty) {
+      return null;
+    }
+    // if library has not been resolved yet, the unit will be resolved later
+    Source librarySource = librarySources[0];
+    if (context.getLibraryElement(librarySource) == null) {
+      return null;
+    }
+    // if library has been already resolved, resolve unit
+    return context.resolveCompilationUnit2(unitSource, librarySource);
+  }
+
+  /**
    * Return the [CompilationUnit] of the Dart file with the given [path].
    * Return `null` if the file is not a part of any context.
    */
@@ -383,13 +543,6 @@ class AnalysisServer {
    */
   bool test_areOperationsFinished() {
     return operationQueue.isEmpty;
-  }
-
-  /**
-   * Send the given [notification] to the client.
-   */
-  void sendNotification(Notification notification) {
-    channel.sendNotification(notification);
   }
 
   /**
@@ -428,30 +581,32 @@ class AnalysisService extends Enum2<AnalysisService> {
  */
 class ContextDirectory {
   /**
+   * The root [ResourceProvider] of this [ContextDirectory].
+   */
+  final ResourceProvider _resourceProvider;
+
+  /**
    * The root [Folder] of this [ContextDirectory].
    */
   final Folder _folder;
-
-  /**
-   * The `pubspec.yaml` file in [_folder], or null if there isn't one.
-   */
-  File _pubspecFile;
 
   /**
    * The [AnalysisContext] of this [_folder].
    */
   AnalysisContext _context;
 
-  ContextDirectory(DartSdk sdk, this._folder, this._pubspecFile) {
+  ContextDirectory(DartSdk sdk, this._resourceProvider, this._folder,
+      Map<String, List<Folder>> packageMap) {
     // create AnalysisContext
     _context = AnalysisEngine.instance.createAnalysisContext();
     // TODO(scheglov) replace FileUriResolver with an Resource based resolver
-    // TODO(scheglov) create packages resolver
-    _context.sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new FileUriResolver(),
-      // new PackageUriResolver(),
-    ]);
+    List<UriResolver> resolvers = <UriResolver>[new DartUriResolver(sdk),
+        new ResourceUriResolver(_resourceProvider),
+    ];
+    if (packageMap != null) {
+      resolvers.add(new PackageMapUriResolver(_resourceProvider, packageMap));
+    }
+    _context.sourceFactory = new SourceFactory(resolvers);
   }
 
   /**
@@ -460,6 +615,7 @@ class ContextDirectory {
   AnalysisContext get context => _context;
 }
 
+typedef void OptionUpdater(AnalysisOptionsImpl options);
 
 /**
  * An enumeration of the services provided by the server domain.

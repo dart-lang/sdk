@@ -16,6 +16,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../library_loader.dart' show LibraryLoader;
 import '../native_handler.dart' as native;
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';

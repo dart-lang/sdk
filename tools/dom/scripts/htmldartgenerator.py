@@ -438,7 +438,7 @@ class HtmlDartGenerator(object):
       return is_optional(operations[signature_index], argument)
 
     emitter = \
-        self._native_library_emitter if self._dart_use_blink \
+        self._native_class_emitter if self._dart_use_blink \
         else self._members_emitter
 
     self._GenerateOverloadDispatcher(
@@ -548,9 +548,7 @@ class HtmlDartGenerator(object):
           version, signature_index, argument_count):
         name = emitter.Format('_create_$VERSION', VERSION=version)
         if self._dart_use_blink:
-            qualified_name = \
-                "_".join(["Native",self._interface.id,
-                          name + 'constructorCallback'])
+            qualified_name = self.DeriveNativeName(name + 'constructorCallback')
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -577,11 +575,11 @@ class HtmlDartGenerator(object):
           PARAMS=constructor_info.ParametersAsDeclaration(self._DartType))
 
       if self._dart_use_blink:
-          overload_emitter = self._native_library_emitter
+          overload_emitter = self._native_class_emitter
           mname = constructor_full_name.replace(".", "_")
-          blink_name = \
-              "_".join(["Native",self._interface.id, mname])
-          qual_name = self._native_library_name + "." + blink_name
+          blink_name = "$mk" + mname
+          qual_name = self.DeriveQualifiedBlinkName(
+              self._interface.id, blink_name)
           actuals_s = constructor_info.ParametersAsStringOfVariables()
           self._members_emitter.Emit(
             '\n'
@@ -591,7 +589,7 @@ class HtmlDartGenerator(object):
             ACTUALS=actuals_s)
           overload_declaration = emitter.Format(
               '// Generated overload resolver\n'
-              '$CTOR($PARAMS)',
+              '  static $CTOR($PARAMS)',
               CTOR=blink_name,
               PARAMS=actuals_s)
 

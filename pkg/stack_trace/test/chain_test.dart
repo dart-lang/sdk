@@ -14,6 +14,15 @@ import 'utils.dart';
 
 void main() {
   group('capture() with onError catches exceptions', () {
+    test('thrown synchronously', () {
+      return captureFuture(() => throw 'error')
+          .then((chain) {
+        expect(chain.traces, hasLength(1));
+        expect(chain.traces.single.frames.first,
+            frameMember(startsWith('main')));
+      });
+    });
+
     test('thrown in a microtask', () {
       return captureFuture(() => inMicrotask(() => throw 'error'))
           .then((chain) {

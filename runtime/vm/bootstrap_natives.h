@@ -21,7 +21,6 @@ namespace dart {
   V(Object_runtimeType, 1)                                                     \
   V(Object_instanceOf, 5)                                                      \
   V(Object_as, 4)                                                              \
-  V(Object_cid, 1)                                                             \
   V(Function_apply, 2)                                                         \
   V(FunctionImpl_equals, 2)                                                    \
   V(FunctionImpl_hashCode, 1)                                                  \
@@ -352,11 +351,13 @@ namespace dart {
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(LibraryPrefix_load, 1)                                                     \
+  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
   V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
+  V(ClassID_getID, 1)                                                          \
 
 
 class BootstrapNatives : public AllStatic {

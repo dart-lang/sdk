@@ -5,7 +5,9 @@
 // Test that simple function subtype checks use predicates.
 
 library simple_function_subtype_test;
-import "package:expect/expect.dart";
+
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST = r"""
@@ -49,12 +51,13 @@ foo() {
 """;
 
 main() {
-  String generated = compile(TEST, entry: 'foo');
-  for (int i = 0 ; i <= 15  ; i++) {
-    String predicateCheck = '.\$is_args$i';
-    Expect.isTrue(generated.contains(predicateCheck),
-      'Expected predicate check $predicateCheck');
-  }
-  Expect.isFalse(generated.contains('checkFunctionSubtype'),
-    'Unexpected use of checkFunctionSubtype');
+  asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
+    for (int i = 0 ; i <= 15  ; i++) {
+      String predicateCheck = '.\$is_args$i';
+      Expect.isTrue(generated.contains(predicateCheck),
+        'Expected predicate check $predicateCheck');
+    }
+    Expect.isFalse(generated.contains('checkFunctionSubtype'),
+      'Unexpected use of checkFunctionSubtype');
+  }));
 }

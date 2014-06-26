@@ -43,6 +43,7 @@ import 'ui.dart' show
     mainEditorPane,
     observer,
     outputDiv,
+    outputFrame,
     statusDiv;
 
 import 'decoration.dart' show
@@ -75,15 +76,33 @@ import 'shadow_root.dart' show
     removeShadowRootPolyfill,
     setShadowRoot;
 
+import 'iframe_error_handler.dart' show
+    ErrorMessage;
+
 const String TRY_DART_NEW_DEFECT =
     'https://code.google.com/p/dart/issues/entry'
     '?template=Try+Dart+Internal+Error';
 
-const Duration HEARTBEAT_INTERVAL = const Duration(milliseconds: 500);
+/// How frequently [InteractionManager.onHeartbeat] is called.
+const Duration HEARTBEAT_INTERVAL = const Duration(milliseconds: 50);
 
+/// Determines how frequently "project" files are saved.  The time is measured
+/// from the time of last modification.
 const Duration SAVE_INTERVAL = const Duration(seconds: 5);
 
+/// Determines how frequently the compiler is invoked.  The time is measured
+/// from the time of last modification.
 const Duration COMPILE_INTERVAL = const Duration(seconds: 1);
+
+/// Determines how frequently the compiler is invoked in "live" mode.  The time
+/// is measured from the time of last modification.
+const Duration LIVE_COMPILE_INTERVAL = const Duration(seconds: 0);
+
+/// Determines if a compilation is slow.  The time is measured from the last
+/// compilation started.  If a compilation is slow, progress information is
+/// displayed to the user, but the console is untouched if the compilation
+/// finished quickly.  The purpose is to reduce flicker in the UI.
+const Duration SLOW_COMPILE = const Duration(seconds: 1);
 
 /**
  * UI interaction manager for the entire application.
@@ -107,6 +126,9 @@ abstract class InteractionManager {
 
   InteractionManager.internal();
 
+  // TODO(ahe): Remove this.
+  Set<AnchorElement> get oldDiagnostics;
+
   void onInput(Event event);
 
   // TODO(ahe): Rename to onKeyDown (as it is called in response to keydown
@@ -128,8 +150,30 @@ abstract class InteractionManager {
   /// Called when notified about a project file changed (on the server).
   void onProjectFileFsEvent(MessageEvent e);
 
-  /// Called every 500ms.
+  /// Called every [HEARTBEAT_INTERVAL].
   void onHeartbeat(Timer timer);
+
+  /// Called by [:window.onMessage.listen:].
+  void onWindowMessage(MessageEvent event);
+
+  void onCompilationFailed();
+
+  void onCompilationDone();
+
+  /// Called when a compilation is starting, but just before sending the
+  /// initiating message to the compiler isolate.
+  void compilationStarting();
+
+  // TODO(ahe): Remove this from InteractionManager, but not from InitialState.
+  void consolePrintLine(line);
+
+  /// Called just before running a freshly compiled program.
+  void aboutToRun();
+
+  /// Called when an error occurs when running user code in an iframe.
+  void onIframeError(ErrorMessage message);
+
+  void verboseCompilerMessage(String message);
 }
 
 /**
@@ -144,9 +188,14 @@ class InteractionContext extends InteractionManager {
 
   final Queue<CompilationUnit> unitsToSave = new Queue<CompilationUnit>();
 
+  /// Tracks time since last modification of a "project" file.
   final Stopwatch saveTimer = new Stopwatch();
 
+  /// Tracks time since last modification.
   final Stopwatch compileTimer = new Stopwatch();
+
+  /// Tracks elapsed time of current compilation.
+  final Stopwatch elapsedCompilationTime = new Stopwatch();
 
   CompilationUnit currentCompilationUnit =
       // TODO(ahe): Don't use a fake unit.
@@ -155,6 +204,18 @@ class InteractionContext extends InteractionManager {
   Timer heartbeat;
 
   Completer<String> completeSaveOperation;
+
+  bool shouldClearConsole = false;
+
+  Element compilerConsole;
+
+  bool isFirstCompile = true;
+
+  final Set<AnchorElement> oldDiagnostics = new Set<AnchorElement>();
+
+  final Duration compileInterval = settings.live.value
+      ? LIVE_COMPILE_INTERVAL
+      : COMPILE_INTERVAL;
 
   InteractionContext()
       : super.internal() {
@@ -213,10 +274,33 @@ class InteractionContext extends InteractionManager {
   }
 
   void onHeartbeat(Timer timer) => state.onHeartbeat(timer);
+
+  void onWindowMessage(MessageEvent event) => state.onWindowMessage(event);
+
+  void onCompilationFailed() => state.onCompilationFailed();
+
+  void onCompilationDone() => state.onCompilationDone();
+
+  void compilationStarting() => state.compilationStarting();
+
+  void consolePrintLine(line) => state.consolePrintLine(line);
+
+  void aboutToRun() => state.aboutToRun();
+
+  void onIframeError(ErrorMessage message) => state.onIframeError(message);
+
+  void verboseCompilerMessage(String message) {
+    return state.verboseCompilerMessage(message);
+  }
 }
 
 abstract class InteractionState implements InteractionManager {
   InteractionContext get context;
+
+  // TODO(ahe): Remove this.
+  Set<AnchorElement> get oldDiagnostics {
+    throw 'Use context.oldDiagnostics instead';
+  }
 
   void set state(InteractionState newState);
 
@@ -493,11 +577,17 @@ class InitialState extends InteractionState {
       saveUnits();
     }
     if (!settings.compilationPaused &&
-        context.compileTimer.elapsed > COMPILE_INTERVAL) {
+        context.compileTimer.elapsed > context.compileInterval) {
       if (startCompilation()) {
         context.compileTimer
             ..stop()
             ..reset();
+      }
+    }
+
+    if (context.elapsedCompilationTime.elapsed > SLOW_COMPILE) {
+      if (context.compilerConsole.parent == null) {
+        outputDiv.append(context.compilerConsole);
       }
     }
   }
@@ -526,6 +616,132 @@ class InitialState extends InteractionState {
       });
     }
     setupCompleter();
+  }
+
+  void onWindowMessage(MessageEvent event) {
+    if (event.source is! WindowBase || event.source == window) {
+      return onBadMessage(event);
+    }
+    if (event.data is List) {
+      List message = event.data;
+      if (message.length > 0) {
+        switch (message[0]) {
+          case 'scrollHeight':
+            return onScrollHeightMessage(message[1]);
+        }
+      }
+      return onBadMessage(event);
+    } else {
+      return consolePrintLine(event.data);
+    }
+  }
+
+  /// Called when an exception occurs in an iframe.
+  void onErrorMessage(ErrorMessage message) {
+    outputDiv.appendText('$message\n');
+  }
+
+  /// Called when an iframe is modified.
+  void onScrollHeightMessage(int scrollHeight) {
+    window.console.log('scrollHeight = $scrollHeight');
+    if (scrollHeight > 8) {
+      outputFrame.style
+          ..height = '${scrollHeight}px'
+          ..visibility = ''
+          ..position = '';
+      while (outputFrame.nextNode is IFrameElement) {
+        outputFrame.nextNode.remove();
+      }
+    }
+  }
+
+  void onBadMessage(MessageEvent event) {
+    window.console
+        ..groupCollapsed('Bad message')
+        ..dir(event)
+        ..log(event.source.runtimeType)
+        ..groupEnd();
+  }
+
+  void consolePrintLine(line) {
+    if (context.shouldClearConsole) {
+      context.shouldClearConsole = false;
+      outputDiv.nodes.clear();
+    }
+    if (window.parent != window) {
+      // Test support.
+      // TODO(ahe): Use '/' instead of '*' when Firefox is upgraded to version
+      // 30 across build bots.  Support for '/' was added in version 29, and we
+      // support the two most recent versions.
+      window.parent.postMessage('$line\n', '*');
+    }
+    outputDiv.appendText('$line\n');
+  }
+
+  void onCompilationFailed() {
+  }
+
+  void onCompilationDone() {
+    context.isFirstCompile = false;
+    context.elapsedCompilationTime.stop();
+    Duration compilationDuration = context.elapsedCompilationTime.elapsed;
+    context.elapsedCompilationTime.reset();
+    print('Compilation took $compilationDuration.');
+    if (context.compilerConsole.parent != null) {
+      context.compilerConsole.remove();
+    }
+    for (AnchorElement diagnostic in context.oldDiagnostics) {
+      if (diagnostic.parent != null) {
+        // Problem fixed, remove the diagnostic.
+        diagnostic.replaceWith(new Text(getText(diagnostic)));
+      }
+    }
+    context.oldDiagnostics.clear();
+    observer.takeRecords(); // Discard mutations.
+  }
+
+  void compilationStarting() {
+    var progress = new SpanElement()
+        ..appendHtml('<i class="icon-spinner icon-spin"></i>')
+        ..appendText(' Compiling Dart program.');
+    if (settings.verboseCompiler) {
+      progress.appendText('..');
+    }
+    context.compilerConsole = new SpanElement()
+        ..append(progress)
+        ..appendText('\n');
+    context.shouldClearConsole = true;
+    context.elapsedCompilationTime
+        ..start()
+        ..reset();
+    if (context.isFirstCompile) {
+      outputDiv.append(context.compilerConsole);
+    }
+    context.oldDiagnostics
+        ..clear()
+        ..addAll(mainEditorPane.querySelectorAll('a.diagnostic'));
+  }
+
+  void aboutToRun() {
+    context.shouldClearConsole = true;
+  }
+
+  void onIframeError(ErrorMessage message) {
+    // TODO(ahe): Consider replacing object URLs with something like <a
+    // href='...'>out.js</a>.
+    // TODO(ahe): Use source maps to translate stack traces.
+    consolePrintLine(message);
+  }
+
+  void verboseCompilerMessage(String message) {
+    if (settings.verboseCompiler) {
+      context.compilerConsole.appendText('$message\n');
+    } else {
+      if (isCompilerStageMarker(message)) {
+        Element progress = context.compilerConsole.firstChild;
+        progress.appendText('.');
+      }
+    }
   }
 }
 
@@ -975,4 +1191,15 @@ void removeCodeCompletion() {
   for (Element element in highlighting) {
     element.remove();
   }
+}
+
+bool isCompilerStageMarker(String message) {
+  return
+      message.startsWith('Package root is ') ||
+      message.startsWith('Compiling ') ||
+      message == "Resolving..." ||
+      message.startsWith('Resolved ') ||
+      message == "Inferring types..." ||
+      message == "Compiling..." ||
+      message.startsWith('Compiled ');
 }

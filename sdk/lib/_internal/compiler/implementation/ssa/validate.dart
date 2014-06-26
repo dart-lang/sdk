@@ -36,7 +36,16 @@ class HValidator extends HInstructionVisitor {
       markInvalid("If node without two successors");
     }
     if (block.last is HConditionalBranch && block.successors.length != 2) {
-      markInvalid("Conditional node without two successors");
+        markInvalid("Conditional node without two successors");
+      }
+    if (block.last is HLoopBranch) {
+      // Assert that the block we inserted to avoid critical edges satisfies
+      // our assumptions. That is, it must not contain any instructions
+      // (although it may contain phi-updates).
+      HBasicBlock avoidCriticalEdgeBlock = block.successors.last;
+      if (avoidCriticalEdgeBlock.first is! HGoto) {
+        markInvalid("Critical edge block contains instructions");
+      }
     }
     if (block.last is HGoto && block.successors.length != 1) {
       markInvalid("Goto node with not exactly one successor");
@@ -65,6 +74,17 @@ class HValidator extends HInstructionVisitor {
       if (successor.id == null) markInvalid("successor without id");
       if (successor.id <= block.id && !successor.isLoopHeader()) {
         markInvalid("successor with lower id, but not a loop-header");
+      }
+    }
+    // Make sure we don't have a critical edge.
+    if (isValid && block.successors.length > 1 &&
+        block.last is! HTry && block.last is! HExitTry &&
+        block.last is! HSwitch) {
+      for (HBasicBlock successor in block.successors) {
+        if (!isValid) break;
+        if (successor.predecessors.length >= 2) {
+          markInvalid("SSA graph contains critical edge.");
+        }
       }
     }
 

@@ -73,22 +73,23 @@ class Utils {
   }
 
   static String formatSize(int bytes) {
+    const int digits = 1;
     const int bytesPerKB = 1024;
-      const int bytesPerMB = 1024 * bytesPerKB;
-      const int bytesPerGB = 1024 * bytesPerMB;
-      const int bytesPerTB = 1024 * bytesPerGB;
+    const int bytesPerMB = 1024 * bytesPerKB;
+    const int bytesPerGB = 1024 * bytesPerMB;
+    const int bytesPerTB = 1024 * bytesPerGB;
 
-      if (bytes < bytesPerKB) {
-        return "${bytes}B";
-      } else if (bytes < bytesPerMB) {
-        return "${(bytes / bytesPerKB).round()}KB";
-      } else if (bytes < bytesPerGB) {
-        return "${(bytes / bytesPerMB).round()}MB";
-      } else if (bytes < bytesPerTB) {
-        return "${(bytes / bytesPerGB).round()}GB";
-      } else {
-        return "${(bytes / bytesPerTB).round()}TB";
-      }
+    if (bytes < bytesPerKB) {
+      return "${bytes}B";
+    } else if (bytes < bytesPerMB) {
+      return "${(bytes / bytesPerKB).toStringAsFixed(digits)}KB";
+    } else if (bytes < bytesPerGB) {
+      return "${(bytes / bytesPerMB).toStringAsFixed(digits)}MB";
+    } else if (bytes < bytesPerTB) {
+      return "${(bytes / bytesPerGB).toStringAsFixed(digits)}GB";
+    } else {
+      return "${(bytes / bytesPerTB).toStringAsFixed(digits)}TB";
+    }
   }
 
   static String formatTime(double time) {

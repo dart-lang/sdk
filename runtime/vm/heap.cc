@@ -33,7 +33,7 @@ DEFINE_FLAG(int, new_gen_ext_limit, 64,
             "maximum total external size (MB) in new gen before triggering GC");
 
 Heap::Heap(Isolate* isolate,
-           intptr_t max_new_gen_words,
+           intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
     : isolate_(isolate), read_only_(false), gc_in_progress_(false) {
   for (int sel = 0;
@@ -43,7 +43,7 @@ Heap::Heap(Isolate* isolate,
     old_weak_tables_[sel] = new WeakTable();
   }
   new_space_ = new Scavenger(this,
-                             max_new_gen_words,
+                             max_new_gen_semi_words,
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, max_old_gen_words);
   stats_.num_ = 0;
@@ -92,6 +92,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 }
 
 void Heap::AllocateExternal(intptr_t size, Space space) {
+  ASSERT(isolate()->no_gc_scope_depth() == 0);
   if (space == kNew) {
     new_space_->AllocateExternal(size);
     if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {

@@ -7,6 +7,7 @@
 
 library engine.source;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, TimestampedData;
@@ -20,13 +21,13 @@ class ContentCache {
    * A table mapping sources to the contents of those sources. This is used to override the default
    * contents of a source.
    */
-  Map<Source, String> _contentMap = new Map<Source, String>();
+  HashMap<Source, String> _contentMap = new HashMap<Source, String>();
 
   /**
    * A table mapping sources to the modification stamps of those sources. This is used when the
    * default contents of a source has been overridden.
    */
-  Map<Source, int> _stampMap = new Map<Source, int>();
+  HashMap<Source, int> _stampMap = new HashMap<Source, int>();
 
   /**
    * Return the contents of the given source, or `null` if this cache does not override the
@@ -787,16 +788,11 @@ class UriKind extends Enum<UriKind> {
   static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
 
   /**
-   * A 'package:' URI referencing source package itself.
-   */
-  static const UriKind PACKAGE_SELF_URI = const UriKind('PACKAGE_SELF_URI', 2, 0x73);
-
-  /**
    * A 'package:' URI.
    */
-  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 3, 0x70);
+  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 2, 0x70);
 
-  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
+  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
    * Return the URI kind represented by the given encoding, or `null` if there is no kind with
@@ -811,8 +807,6 @@ class UriKind extends Enum<UriKind> {
         return DART_URI;
       } else if (encoding == 0x66) {
         return FILE_URI;
-      } else if (encoding == 0x73) {
-        return PACKAGE_SELF_URI;
       } else if (encoding == 0x70) {
         return PACKAGE_URI;
       }

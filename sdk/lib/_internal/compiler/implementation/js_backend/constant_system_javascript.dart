@@ -239,4 +239,102 @@ class JavaScriptConstantSystem extends ConstantSystem {
     }
     return compiler.types.isSubtype(s, t);
   }
+
+  MapConstant createMap(Compiler compiler,
+                        InterfaceType sourceType,
+                        List<Constant> keys,
+                        List<Constant> values) {
+    bool onlyStringKeys = true;
+    Constant protoValue = null;
+    for (int i = 0; i < keys.length ; i++) {
+      var key = keys[i];
+      if (key.isString) {
+        if (key.value == JavaScriptMapConstant.PROTO_PROPERTY) {
+          protoValue = values[i];
+        }
+      } else {
+        onlyStringKeys = false;
+        // Don't handle __proto__ values specially in the general map case.
+        protoValue = null;
+        break;
+      }
+    }
+
+    bool hasProtoKey = (protoValue != null);
+    DartType keysType;
+    if (sourceType.treatAsRaw) {
+      keysType = compiler.listClass.rawType;
+    } else {
+      Link<DartType> arguments =
+          new Link<DartType>.fromList([sourceType.typeArguments.head]);
+      keysType = new InterfaceType(compiler.listClass, arguments);
+    }
+    ListConstant keysList = new ListConstant(keysType, keys);
+    String className = onlyStringKeys
+        ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
+                       : JavaScriptMapConstant.DART_STRING_CLASS)
+        : JavaScriptMapConstant.DART_GENERAL_CLASS;
+    ClassElement classElement = compiler.jsHelperLibrary.find(className);
+    classElement.ensureResolved(compiler);
+    Link<DartType> typeArgument = sourceType.typeArguments;
+    InterfaceType type;
+    if (sourceType.treatAsRaw) {
+      type = classElement.rawType;
+    } else {
+      type = new InterfaceType(classElement, typeArgument);
+    }
+    return new JavaScriptMapConstant(
+        type, keysList, values, protoValue, onlyStringKeys);
+
+  }
+}
+
+class JavaScriptMapConstant extends MapConstant {
+  /**
+   * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
+   * object. It would change the prototype chain.
+   */
+  static const LiteralDartString PROTO_PROPERTY =
+      const LiteralDartString("__proto__");
+
+  /** The dart class implementing constant map literals. */
+  static const String DART_CLASS = "ConstantMap";
+  static const String DART_STRING_CLASS = "ConstantStringMap";
+  static const String DART_PROTO_CLASS = "ConstantProtoMap";
+  static const String DART_GENERAL_CLASS = "GeneralConstantMap";
+  static const String LENGTH_NAME = "length";
+  static const String JS_OBJECT_NAME = "_jsObject";
+  static const String KEYS_NAME = "_keys";
+  static const String PROTO_VALUE = "_protoValue";
+  static const String JS_DATA_NAME = "_jsData";
+
+  final ListConstant keyList;
+  final Constant protoValue;
+  final bool onlyStringKeys;
+
+  JavaScriptMapConstant(DartType type,
+                        ListConstant keyList,
+                        List<Constant> values,
+                        this.protoValue,
+                        this.onlyStringKeys)
+      : this.keyList = keyList,
+        super(type, keyList.entries, values);
+  bool get isMap => true;
+
+  TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.constMapType;
+  }
+
+  List<Constant> getDependencies() {
+    List<Constant> result = <Constant>[];
+    if (onlyStringKeys) {
+      result.add(keyList);
+    } else {
+      // Add the keys individually to avoid generating an unused list constant
+      // for the keys.
+      result.addAll(keys);
+    }
+    result.addAll(values);
+    return result;
+  }
 }

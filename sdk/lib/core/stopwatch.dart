@@ -11,7 +11,7 @@ class Stopwatch {
   /**
    * Frequency of the elapsed counter in Hz.
    */
-  final int frequency = _frequency();
+  int get frequency => _frequency;
 
   // The _start and _stop fields capture the time when [start] and [stop]
   // are called respectively.
@@ -29,7 +29,9 @@ class Stopwatch {
    *
    *     Stopwatch stopwatch = new Stopwatch()..start();
    */
-  Stopwatch();
+  Stopwatch() {
+    _initTicker();
+  }
 
   /**
    * Starts the [Stopwatch].
@@ -127,6 +129,15 @@ class Stopwatch {
    */
   bool get isRunning => _start != null && _stop == null;
 
-  external static int _frequency();
+  /**
+   * Cached frequency of the system. Must be initialized in [_initTicker];
+   */
+  static int _frequency;
+
+  /**
+   * Initializes the time-measuring system. *Must* initialize the [_frequency]
+   * variable.
+   */
+  external static void _initTicker();
   external static int _now();
 }

@@ -7,6 +7,7 @@
 
 library engine.parser;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -6064,7 +6065,7 @@ class Parser {
     bool wasInSwitch = _inSwitch;
     _inSwitch = true;
     try {
-      Set<String> definedLabels = new Set<String>();
+      HashSet<String> definedLabels = new HashSet<String>();
       Token keyword = _expectKeyword(Keyword.SWITCH);
       Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
       Expression expression = parseExpression2();
@@ -6570,7 +6571,17 @@ class Parser {
    * Skips a block with all containing blocks.
    */
   void _skipBlock() {
-    _currentToken = (_currentToken as BeginToken).endToken.next;
+    Token endToken = (_currentToken as BeginToken).endToken;
+    if (endToken == null) {
+      endToken = _currentToken.next;
+      while (!identical(endToken, _currentToken)) {
+        _currentToken = endToken;
+        endToken = _currentToken.next;
+      }
+      _reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, ["}"]);
+    } else {
+      _currentToken = endToken.next;
+    }
   }
 
   /**
@@ -7884,6 +7895,9 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+
+  @override
+  String get uniqueName => "${runtimeType.toString()}.${name}";
 }
 
 /**

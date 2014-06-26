@@ -32,7 +32,7 @@ def get_options():
       default='')
   return result.parse_args()
 
-def make_link(source, target):
+def make_link(source, target, orig_source):
   if os.path.islink(target):
     print 'Removing %s' % target
     sys.stdout.flush()
@@ -43,13 +43,19 @@ def make_link(source, target):
     sys.stdout.flush()
     os.rmdir(target)
 
-  print 'Creating link from %s to %s' % (source, target)
-  sys.stdout.flush()
-
-  if utils.GuessOS() == 'win32':
-    return subprocess.call(['mklink', '/j', target, source], shell=True)
+  if os.path.isfile(orig_source):
+    print 'Copying file from %s to %s' % (orig_source, target)
+    sys.stdout.flush()
+    shutil.copyfile(orig_source, target)
+    return 0
   else:
-    return subprocess.call(['ln', '-s', source, target])
+    print 'Creating link from %s to %s' % (source, target)
+    sys.stdout.flush()
+
+    if utils.GuessOS() == 'win32':
+      return subprocess.call(['mklink', '/j', target, source], shell=True)
+    else:
+      return subprocess.call(['ln', '-s', source, target])
 
 def create_timestamp_file(options):
   if options.timestamp_file != '':
@@ -67,12 +73,13 @@ def main(argv):
     # it. This is necessary, otherwise we can end up having links in there
     # pointing to directories which no longer exist (on incremental builds).
     for link in os.listdir(target):
-      if utils.GuessOS() == 'win32':
-        # It seems like python on windows is treating pseudo symlinks to
+      full_link = os.path.join(target, link)
+      if os.path.isdir(full_link) and utils.IsWindows():
+        # It seems like python on Windows is treating pseudo symlinks to
         # directories as directories.
-        os.rmdir(os.path.join(target, link))
+        os.rmdir(full_link)
       else:
-        os.remove(os.path.join(target, link))
+        os.remove(full_link)
   else:
     os.makedirs(target)
   for source in args[1:]:
@@ -82,11 +89,12 @@ def main(argv):
       name = source
     # Remove any addtional path components preceding NAME.
     (path, name) = os.path.split(name)
+    orig_source = source
     if utils.GuessOS() == 'win32':
       source = os.path.relpath(source)
     else:
       source = os.path.relpath(source, start=target)
-    exit_code = make_link(source, os.path.join(target, name))
+    exit_code = make_link(source, os.path.join(target, name), orig_source)
     if exit_code != 0:
       return exit_code
   create_timestamp_file(options)

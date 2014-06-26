@@ -71,7 +71,7 @@ class _Platform {
           result[str.substring(0, equalsIndex)] =
               str.substring(equalsIndex + 1);
         }
-        _environmentCache = new UnmodifiableMapView(result);
+        _environmentCache = new UnmodifiableMapView<String, String>(result);
       } else {
         _environmentCache = env;
       }
@@ -90,16 +90,7 @@ class _Platform {
 // Environment variables are case-insensitive on Windows. In order
 // to reflect that we use a case-insensitive string map on Windows.
 class _CaseInsensitiveStringMap<V> implements Map<String, V> {
-  Map<String, V> _map;
-
-  _CaseInsensitiveStringMap() : _map = new Map<String, V>();
-
-  _CaseInsensitiveStringMap.from(Map<String, V> other)
-      : _map = new Map<String, V>() {
-    other.forEach((String key, V value) {
-      _map[key.toUpperCase()] = value;
-    });
-  }
+  final Map<String, V> _map = new Map<String, V>();
 
   bool containsKey(String key) => _map.containsKey(key.toUpperCase());
   bool containsValue(Object value) => _map.containsValue(value);
@@ -121,4 +112,5 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
+  String toString() => _map.toString();
 }

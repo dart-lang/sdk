@@ -8,24 +8,24 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:collection';
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/resolution/resolution.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/tree/tree.dart';
+import 'package:compiler/implementation/util/util.dart';
 import 'parser_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
+import 'package:compiler/implementation/elements/modelx.dart'
     show ElementX,
          LibraryElementX,
          ErroneousElementX,
          FunctionElementX;
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
 
-import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
+import 'package:compiler/implementation/deferred_load.dart'
     show DeferredLoadTask,
          OutputUnit;
 
@@ -38,6 +38,7 @@ class WarningMessage {
 }
 
 const String DEFAULT_HELPERLIB = r'''
+  const patch = 0;
   wrapException(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
@@ -59,12 +60,6 @@ const String DEFAULT_HELPERLIB = r'''
     var receiver;
   }
   class Closure implements Function {}
-  class Null {}
-  class Dynamic_ {}
-  class LinkedHashMap {
-    factory LinkedHashMap._empty() => null;
-    factory LinkedHashMap._literal(elements) => null;
-  }
   class ConstantMap {}
   class ConstantStringMap {}
   class TypeImpl {}
@@ -218,6 +213,7 @@ const String DEFAULT_CORELIB = r'''
     String toString() { return null; }
     noSuchMethod(im) { throw im; }
   }
+  class Null {}
   abstract class StackTrace {}
   class Type {}
   class Function {}
@@ -234,6 +230,10 @@ const String DEFAULT_CORELIB = r'''
     E singleWhere(f) => null;
   }
   abstract class Map<K,V> {}
+  class LinkedHashMap {
+    factory LinkedHashMap._empty() => null;
+    factory LinkedHashMap._literal(elements) => null;
+  }
   class DateTime {
     DateTime(year);
     DateTime.utc(year);
@@ -242,11 +242,25 @@ const String DEFAULT_CORELIB = r'''
   bool identical(Object a, Object b) { return true; }
   const proxy = 0;''';
 
+final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
+
+const String PATCH_CORE_SOURCE = r'''
+import 'dart:_js_helper';
+import 'dart:_interceptors';
+import 'dart:_isolate_helper';
+''';
+
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
   var startRootIsolate;
   var _currentIsolate;
   var _callInIsolate;
   class _WorkerBase {}''';
+
+const String DEFAULT_MIRRORS = r'''
+class Comment {}
+class MirrorSystem {}
+class MirrorsUsed {}
+''';
 
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
@@ -263,24 +277,23 @@ class MockCompiler extends Compiler {
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
-  MockCompiler({String coreSource: DEFAULT_CORELIB,
-                String helperSource: DEFAULT_HELPERLIB,
-                String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
-                String isolateHelperSource: DEFAULT_ISOLATE_HELPERLIB,
-                bool enableTypeAssertions: false,
-                bool enableMinification: false,
-                bool enableConcreteTypeInference: false,
-                int maxConcreteTypeSize: 5,
-                bool disableTypeInference: false,
-                bool analyzeAll: false,
-                bool analyzeOnly: false,
-                bool emitJavaScript: true,
-                bool preserveComments: false,
-                // Our unit tests check code generation output that is
-                // affected by inlining support.
-                bool disableInlining: true,
-                int this.expectedWarnings,
-                int this.expectedErrors})
+  MockCompiler.internal(
+      {String coreSource: DEFAULT_CORELIB,
+       String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+       bool enableTypeAssertions: false,
+       bool enableMinification: false,
+       bool enableConcreteTypeInference: false,
+       int maxConcreteTypeSize: 5,
+       bool disableTypeInference: false,
+       bool analyzeAll: false,
+       bool analyzeOnly: false,
+       bool emitJavaScript: true,
+       bool preserveComments: false,
+       // Our unit tests check code generation output that is
+       // affected by inlining support.
+       bool disableInlining: true,
+       int this.expectedWarnings,
+       int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
@@ -292,41 +305,41 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               showPackageWarnings: true) {
-    clearMessages();
-    coreLibrary = createLibrary("core", coreSource);
-
-    // We need to set the assert method to avoid calls with a 'null'
-    // target being interpreted as a call to assert.
-    jsHelperLibrary = createLibrary("helper", helperSource);
-    foreignLibrary = createLibrary("foreign", FOREIGN_LIBRARY);
-    interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
-    isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
-
-    // Set up the library imports.
-    importHelperLibrary(coreLibrary);
-    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(foreignLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
-    libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
-
-    assertMethod = jsHelperLibrary.find('assertHelper');
-    identicalFunction = coreLibrary.find('identical');
-
-    mainApp = mockLibrary(this, "");
-    initializeSpecialClasses();
-    // We need to make sure the Object class is resolved. When registering a
-    // dynamic invocation the ArgumentTypesRegistry eventually iterates over
-    // the interfaces of the Object class which would be 'null' if the class
-    // wasn't resolved.
-    objectClass.ensureResolved(this);
-
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
+
+    clearMessages();
+
+    registerSource(Compiler.DART_CORE, coreSource);
+    registerSource(PATCH_CORE, PATCH_CORE_SOURCE);
+
+    registerSource(Compiler.DART_JS_HELPER, DEFAULT_HELPERLIB);
+    registerSource(Compiler.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
+    registerSource(Compiler.DART_INTERCEPTORS, interceptorsSource);
+    registerSource(Compiler.DART_ISOLATE_HELPER, DEFAULT_ISOLATE_HELPERLIB);
+    registerSource(Compiler.DART_MIRRORS, DEFAULT_MIRRORS);
+  }
+
+  /// Initialize the mock compiler with an empty main library.
+  Future init([String mainSource = ""]) {
+    Uri uri = new Uri(scheme: "mock");
+    registerSource(uri, mainSource);
+    return libraryLoader.loadLibrary(uri)
+        .then((LibraryElement library) {
+      mainApp = library;
+      // We need to make sure the Object class is resolved. When registering a
+      // dynamic invocation the ArgumentTypesRegistry eventually iterates over
+      // the interfaces of the Object class which would be 'null' if the class
+      // wasn't resolved.
+      objectClass.ensureResolved(this);
+    });
   }
 
   Future runCompiler(Uri uri) {
-    return super.runCompiler(uri).then((result) {
+    return init().then((_) {
+      return super.runCompiler(uri);
+    }).then((result) {
       if (expectedErrors != null &&
           expectedErrors != errors.length) {
         throw "unexpected error during compilation ${errors}";
@@ -345,22 +358,6 @@ class MockCompiler extends Compiler {
    */
   void registerSource(Uri uri, String source) {
     sourceFiles[uri.toString()] = new MockFile(source);
-  }
-
-  /**
-   * Used internally to create a library from a source text. The created library
-   * is fixed to export its top-level declarations.
-   */
-  LibraryElement createLibrary(String name, String source) {
-    Uri uri = new Uri(scheme: "dart", path: name);
-    var script = new Script(uri, uri, new MockFile(source));
-    var library = new LibraryElementX(script);
-    library.libraryTag = new LibraryName(null, null, null);
-    parseScript(source, library);
-    library.setExports(library.localScope.values.toList());
-    registerSource(uri, source);
-    libraries.putIfAbsent(uri.toString(), () => library);
-    return library;
   }
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
@@ -460,7 +457,12 @@ class MockCompiler extends Compiler {
                            Uri resolvedUri, Node node) => resolvedUri;
 
   // The mock library doesn't need any patches.
-  Uri resolvePatchUri(String dartLibraryName) => null;
+  Uri resolvePatchUri(String dartLibraryName) {
+    if (dartLibraryName == 'core') {
+      return PATCH_CORE;
+    }
+    return null;
+  }
 
   Future<Script> readScript(Spannable node, Uri uri) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
@@ -473,6 +475,12 @@ class MockCompiler extends Compiler {
     return element != null
         ? element
         : new ErroneousElementX(null, null, name, container);
+  }
+
+  /// Create a new [MockCompiler] and apply it asynchronously to [f].
+  static Future create(f(MockCompiler compiler)) {
+    MockCompiler compiler = new MockCompiler.internal();
+    return compiler.init().then((_) => f(compiler));
   }
 }
 
@@ -541,23 +549,6 @@ void compareMessageKinds(String text,
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }
-}
-
-void importLibrary(LibraryElement target, LibraryElementX imported,
-                   Compiler compiler) {
-  for (var element in imported.localMembers) {
-    compiler.withCurrentElement(element, () {
-      target.addToScope(element, compiler);
-    });
-  }
-}
-
-LibraryElement mockLibrary(Compiler compiler, String source) {
-  Uri uri = new Uri(scheme: "source");
-  var library = new LibraryElementX(new Script(uri, uri, new MockFile(source)));
-  importLibrary(library, compiler.coreLibrary, compiler);
-  library.setExports(<Element>[]);
-  return library;
 }
 
 class CollectingTreeElements extends TreeElementMapping {

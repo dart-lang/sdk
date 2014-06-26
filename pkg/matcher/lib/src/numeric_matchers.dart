@@ -2,73 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of matcher;
+library matcher.numeric_matchers;
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than the given [value].
- */
+import 'interfaces.dart';
+
+/// Returns a matcher which matches if the match argument is greater
+/// than the given [value].
 Matcher greaterThan(value) =>
   new _OrderingComparison(value, false, false, true, 'a value greater than');
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than or equal to the given [value].
- */
+/// Returns a matcher which matches if the match argument is greater
+/// than or equal to the given [value].
 Matcher greaterThanOrEqualTo(value) =>
   new _OrderingComparison(value, true, false, true,
       'a value greater than or equal to');
 
-/**
- * Returns a matcher which matches if the match argument is less
- * than the given [value].
- */
+/// Returns a matcher which matches if the match argument is less
+/// than the given [value].
 Matcher lessThan(value) =>
   new _OrderingComparison(value, false, true, false, 'a value less than');
 
-/**
- * Returns a matcher which matches if the match argument is less
- * than or equal to the given [value].
- */
+/// Returns a matcher which matches if the match argument is less
+/// than or equal to the given [value].
 Matcher lessThanOrEqualTo(value) =>
   new _OrderingComparison(value, true, true, false,
       'a value less than or equal to');
 
-/**
- * A matcher which matches if the match argument is zero.
- */
+/// A matcher which matches if the match argument is zero.
 const Matcher isZero =
   const _OrderingComparison(0, true, false, false, 'a value equal to');
 
 
-/**
- * A matcher which matches if the match argument is non-zero.
- */
+/// A matcher which matches if the match argument is non-zero.
 const Matcher isNonZero =
   const _OrderingComparison(0, false, true, true, 'a value not equal to');
 
-/**
- * A matcher which matches if the match argument is positive.
- */
+/// A matcher which matches if the match argument is positive.
 const Matcher isPositive =
   const _OrderingComparison(0, false, false, true, 'a positive value', false);
 
-/**
- * A matcher which matches if the match argument is zero or negative.
- */
+/// A matcher which matches if the match argument is zero or negative.
 const Matcher isNonPositive =
   const _OrderingComparison(0, true, true, false,
       'a non-positive value', false);
 
-/**
- * A matcher which matches if the match argument is negative.
- */
+/// A matcher which matches if the match argument is negative.
 const Matcher isNegative =
   const _OrderingComparison(0, false, true, false, 'a negative value', false);
 
-/**
- * A matcher which matches if the match argument is zero or positive.
- */
+/// A matcher which matches if the match argument is zero or positive.
 const Matcher isNonNegative =
   const _OrderingComparison(0, true, false, true,
       'a non-negative value', false);
@@ -77,18 +59,20 @@ bool _isNumeric(value) {
   return value is num;
 }
 
+// TODO(kevmoo) Note that matchers that use _OrderingComparison only use
+// `==` and `<` operators to evaluate the match. Or change the matcher.
 class _OrderingComparison extends Matcher {
-  /** Expected value. */
+  /// Expected value.
   final _value;
-  /** What to return if actual == expected */
+  /// What to return if actual == expected
   final bool _equalValue;
-  /** What to return if actual < expected */
+  /// What to return if actual < expected
   final bool _lessThanValue;
-  /** What to return if actual > expected */
+  /// What to return if actual > expected
   final bool _greaterThanValue;
-  /** Textual name of the inequality */
+  /// Textual name of the inequality
   final String _comparisonDescription;
-  /** Whether to include the expected value in the description */
+  /// Whether to include the expected value in the description
   final bool _valueInDescription;
 
   const _OrderingComparison(
@@ -97,7 +81,7 @@ class _OrderingComparison extends Matcher {
     this._lessThanValue,
     this._greaterThanValue,
     this._comparisonDescription,
-    [valueInDescription = true]) :
+    [bool valueInDescription = true]) :
       this._valueInDescription = valueInDescription;
 
   bool matches(item, Map matchState) {
@@ -126,12 +110,10 @@ class _OrderingComparison extends Matcher {
   }
 }
 
-/**
- * Returns a matcher which matches if the match argument is within [delta]
- * of some [value]; i.e. if the match argument is greater than
- * than or equal [value]-[delta] and less than or equal to [value]+[delta].
- */
-Matcher closeTo(value, delta) => new _IsCloseTo(value, delta);
+/// Returns a matcher which matches if the match argument is within [delta]
+/// of some [value]; i.e. if the match argument is greater than
+/// than or equal [value]-[delta] and less than or equal to [value]+[delta].
+Matcher closeTo(num value, num delta) => new _IsCloseTo(value, delta);
 
 class _IsCloseTo extends Matcher {
   final num _value, _delta;
@@ -167,29 +149,25 @@ class _IsCloseTo extends Matcher {
   }
 }
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than or equal to [low] and less than or equal to [high].
- */
-Matcher inInclusiveRange(low, high) => new _InRange(low, high, true, true);
+/// Returns a matcher which matches if the match argument is greater
+/// than or equal to [low] and less than or equal to [high].
+Matcher inInclusiveRange(num low, num high) =>
+    new _InRange(low, high, true, true);
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than [low] and less than [high].
- */
-Matcher inExclusiveRange(low, high) => new _InRange(low, high, false, false);
+/// Returns a matcher which matches if the match argument is greater
+/// than [low] and less than [high].
+Matcher inExclusiveRange(num low, num high) =>
+    new _InRange(low, high, false, false);
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than [low] and less than or equal to [high].
- */
-Matcher inOpenClosedRange(low, high) => new _InRange(low, high, false, true);
+/// Returns a matcher which matches if the match argument is greater
+/// than [low] and less than or equal to [high].
+Matcher inOpenClosedRange(num low, num high) =>
+    new _InRange(low, high, false, true);
 
-/**
- * Returns a matcher which matches if the match argument is greater
- * than or equal to a [low] and less than [high].
- */
-Matcher inClosedOpenRange(low, high) => new _InRange(low, high, true, false);
+/// Returns a matcher which matches if the match argument is greater
+/// than or equal to a [low] and less than [high].
+Matcher inClosedOpenRange(num low, num high) =>
+    new _InRange(low, high, true, false);
 
 class _InRange extends Matcher {
   final num _low, _high;
@@ -231,4 +209,3 @@ class _InRange extends Matcher {
     }
   }
 }
-

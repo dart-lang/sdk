@@ -29,7 +29,17 @@ void registerDartType(String tagName, Type dartType, {String extendsTag}) {
 
   var upgrader = document.createElementUpgrader(
       dartType, extendsTag: extendsTag);
-  _doc.callMethod('_registerDartTypeUpgrader', [tagName, upgrader.upgrade]);
+
+  // Unfortunately the dart:html upgrader will throw on an already-upgraded
+  // element, so we need to duplicate the type check to prevent that.
+  // An element can be upgraded twice if it extends another element and calls
+  // createdCallback on the superclass. Since that's a valid use case we must
+  // wrap at both levels, and guard against it here.
+  upgradeElement(e) {
+    if (e.runtimeType != dartType) upgrader.upgrade(e);
+  }
+
+  _doc.callMethod('_registerDartTypeUpgrader', [tagName, upgradeElement]);
 }
 
 /// This function is mainly used to save resources. By default, we save a log of

@@ -223,6 +223,12 @@ CLASS_LIST_TYPED_DATA(V)
     SNAPSHOT_WRITER_SUPPORT()                                                  \
     HEAP_PROFILER_SUPPORT()                                                    \
 
+#define OPEN_ARRAY_START(type, align)                                          \
+  do {                                                                         \
+    const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
+    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
+    return reinterpret_cast<type*>(result);                                    \
+  } while (0)
 
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
@@ -510,11 +516,11 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t id_;  // Class Id, also index in the class table.
-  intptr_t token_pos_;
-  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
-  intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
-  intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
+  int32_t id_;  // Class Id, also index in the class table.
+  int32_t token_pos_;
+  int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
+  int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
+  int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;  // Number of native fields in class.
@@ -539,7 +545,7 @@ class RawUnresolvedClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
-  intptr_t token_pos_;
+  int32_t token_pos_;
 };
 
 
@@ -558,9 +564,11 @@ class RawTypeArguments : public RawObject {
   RawSmi* length_;
 
   // Variable length data follows here.
-  RawAbstractType* types_[0];
+  RawAbstractType** types() {
+    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  }
   RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->types_[length - 1]);
+    return reinterpret_cast<RawObject**>(&ptr()->types()[length - 1]);
   }
 
   friend class SnapshotReader;
@@ -616,18 +624,23 @@ class RawFunction : public RawObject {
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawObject* data_;  // Additional data specific to the function kind.
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
+  // Fields below are not part of the snapshot.
+  RawArray* ic_data_array_;  // ICData of unoptimized code.
+  RawObject** to_no_code() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
+  }
   RawInstructions* instructions_;  // Instructions of currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
   }
-  RawObject** to_no_code() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
-  }
 
-  intptr_t token_pos_;
-  intptr_t end_token_pos_;
-  intptr_t usage_counter_;  // Incremented while function is running.
+  int32_t token_pos_;
+  int32_t end_token_pos_;
+  int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
@@ -685,10 +698,10 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
-  intptr_t token_pos_;
-  intptr_t guarded_cid_;
-  intptr_t is_nullable_;  // kNullCid if field can contain null value and
-                          // any other value otherwise.
+  int32_t token_pos_;
+  int32_t guarded_cid_;
+  int32_t is_nullable_;  // kNullCid if field can contain null value and
+                         // any other value otherwise.
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM, MIPS).
@@ -750,8 +763,8 @@ class RawScript : public RawObject {
   RawTokenStream* tokens_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->tokens_); }
 
-  intptr_t line_offset_;
-  intptr_t col_offset_;
+  int32_t line_offset_;
+  int32_t col_offset_;
   int8_t kind_;  // Of type Kind.
 };
 
@@ -759,6 +772,7 @@ class RawScript : public RawObject {
 class RawLibrary : public RawObject {
   enum LibraryState {
     kAllocated,       // Initial state.
+    kLoadRequested,   // Compiler or script requested load of library.
     kLoadInProgress,  // Library is in the process of being loaded.
     kLoaded,          // Library is loaded.
     kLoadError,       // Error occurred during load of the Library.
@@ -782,9 +796,9 @@ class RawLibrary : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
-  intptr_t index_;               // Library id number.
-  intptr_t num_imports_;         // Number of entries in imports_.
-  intptr_t num_anonymous_;       // Number of entries in anonymous_classes_.
+  int32_t index_;               // Library id number.
+  int32_t num_imports_;         // Number of entries in imports_.
+  int32_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   bool corelib_imported_;
@@ -850,7 +864,7 @@ class RawCode : public RawObject {
   intptr_t lazy_deopt_pc_offset_;
 
   // Variable length data follows here.
-  int32_t data_[0];
+  int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
 
   friend class StackFrame;
   friend class MarkingVisitor;
@@ -872,7 +886,7 @@ class RawInstructions : public RawObject {
   intptr_t size_;
 
   // Variable length data follows here.
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
@@ -892,8 +906,16 @@ class RawPcDescriptors : public RawObject {
 
   intptr_t length_;  // Number of descriptors.
 
+  struct PcDescriptorRec {
+    uword pc;
+    int32_t deopt_id;
+    int32_t token_pos;  // Or deopt reason.
+    int16_t try_index;  // Or deopt index.
+    int8_t kind;
+  };
+
   // Variable length data follows here.
-  intptr_t data_[0];
+  PcDescriptorRec* data() { OPEN_ARRAY_START(PcDescriptorRec, intptr_t); }
 
   friend class Object;
 };
@@ -917,7 +939,7 @@ class RawStackmap : public RawObject {
   uword pc_;  // PC corresponding to this stack map representation.
 
   // Variable length data follows here (bitmap of the stack layout).
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 
@@ -933,10 +955,10 @@ class RawLocalVarDescriptors : public RawObject {
 
   struct VarInfo {
     intptr_t index;      // Slot index on stack or in context.
-    int8_t   kind;       // Entry kind of type VarInfoKind.
-    int16_t  scope_id;   // Scope to which the variable belongs.
     intptr_t begin_pos;  // Token position of scope start.
     intptr_t end_pos;    // Token position of scope end.
+    int16_t  scope_id;   // Scope to which the variable belongs.
+    int8_t   kind;       // Entry kind of type VarInfoKind.
   };
 
  private:
@@ -944,7 +966,8 @@ class RawLocalVarDescriptors : public RawObject {
   intptr_t length_;  // Number of descriptors.
   RawArray* names_;  // Array of [length_] variable names.
 
-  VarInfo data_[0];   // Variable info with [length_] entries.
+  // Variable info with [length_] entries.
+  VarInfo* data() { OPEN_ARRAY_START(VarInfo, intptr_t); }
 };
 
 
@@ -958,6 +981,7 @@ class RawExceptionHandlers : public RawObject {
     int8_t needs_stacktrace;   // True if a stacktrace is needed.
     int8_t has_catch_all;      // Catches all exceptions.
   };
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
@@ -969,7 +993,7 @@ class RawExceptionHandlers : public RawObject {
   RawArray* handled_types_data_;
 
   // Exception handler info of length [length_].
-  HandlerInfo data_[0];
+  HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
 };
 
 
@@ -981,7 +1005,7 @@ class RawDeoptInfo : public RawObject {
   RawSmi* length_;  // Number of deoptimization commands
 
   // Variable length data follows here.
-  intptr_t data_[0];
+  intptr_t* data() { OPEN_ARRAY_START(intptr_t, intptr_t); }
 };
 
 
@@ -995,9 +1019,9 @@ class RawContext : public RawObject {
   RawContext* parent_;
 
   // Variable length data follows here.
-  RawInstance* data_[0];
+  RawInstance** data() { OPEN_ARRAY_START(RawInstance*, RawInstance*); }
   RawObject** to(intptr_t num_vars) {
-    return reinterpret_cast<RawObject**>(&ptr()->data_[num_vars - 1]);
+    return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
   }
 
   friend class SnapshotReader;
@@ -1024,12 +1048,14 @@ class RawContextScope : public RawObject {
 
   intptr_t num_variables_;
 
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->data()[0]);
+  }
   // Variable length data follows here.
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->data_[0]); }
-  RawObject* data_[0];
+  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
   RawObject** to(intptr_t num_vars) {
-    intptr_t data_length = num_vars * (sizeof(VariableDesc)/kWordSize);
-    return reinterpret_cast<RawObject**>(&ptr()->data_[data_length - 1]);
+    const intptr_t data_length = num_vars * (sizeof(VariableDesc)/kWordSize);
+    return reinterpret_cast<RawObject**>(&ptr()->data()[data_length - 1]);
   }
 };
 
@@ -1065,7 +1091,7 @@ class RawMegamorphicCache : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->mask_);
   }
 
-  intptr_t filled_entry_count_;
+  int32_t filled_entry_count_;
 };
 
 
@@ -1106,7 +1132,7 @@ class RawLanguageError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
-  intptr_t token_pos_;  // Source position in script_.
+  int32_t token_pos_;  // Source position in script_.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
 
@@ -1149,12 +1175,13 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
   RawArray* imports_;             // Libraries imported with this prefix.
+  RawLibrary* importer_;          // Library which declares this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
   }
-  intptr_t num_imports_;          // Number of library entries in libraries_.
+  int32_t num_imports_;          // Number of library entries in libraries_.
   bool is_deferred_load_;
   bool is_loaded_;
 };
@@ -1190,7 +1217,7 @@ class RawType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
-  intptr_t token_pos_;
+  int32_t token_pos_;
   int8_t type_state_;
 };
 
@@ -1220,8 +1247,8 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  intptr_t index_;
-  intptr_t token_pos_;
+  int32_t index_;
+  int32_t token_pos_;
   int8_t type_state_;
 };
 
@@ -1297,7 +1324,7 @@ class RawBigint : public RawInteger {
 
   // A sequence of Chunks (typedef in Bignum) representing bignum digits.
   // Bignum::Chunk chunks_[Utils::Abs(signed_length_)];
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class SnapshotReader;
 };
@@ -1328,7 +1355,7 @@ class RawOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(OneByteString);
 
   // Variable length data follows here.
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class ApiMessageReader;
   friend class SnapshotReader;
@@ -1339,7 +1366,7 @@ class RawTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TwoByteString);
 
   // Variable length data follows here.
-  uint16_t data_[0];
+  uint16_t* data() { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class SnapshotReader;
 };
@@ -1401,10 +1428,7 @@ class RawArray : public RawInstance {
   RawTypeArguments* type_arguments_;
   RawSmi* length_;
   // Variable length data follows here.
-  RawObject** data() {
-    uword address_of_length = reinterpret_cast<uword>(&length_);
-    return reinterpret_cast<RawObject**>(address_of_length + kWordSize);
-  }
+  RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
   RawObject** to(intptr_t length) {
     return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
   }
@@ -1501,10 +1525,9 @@ class RawTypedData : public RawInstance {
  protected:
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
   RawSmi* length_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
-
   // Variable length data follows here.
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
 
   friend class Api;
   friend class Object;
@@ -1595,7 +1618,7 @@ class RawJSRegExp : public RawInstance {
   intptr_t flags_;  // Represents global/local, case insensitive, multiline.
 
   // Variable length data follows here.
-  uint8_t data_[0];
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 

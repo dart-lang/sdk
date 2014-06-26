@@ -47,7 +47,8 @@ void Benchmark::RunBenchmark() {
   if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    OS::Print("%s(RunTime): %" Pd "\n", this->name(), this->score());
+    OS::Print("%s(%s): %" Pd "\n",
+              this->name(), this->score_kind(), this->score());
     run_matches++;
   } else if (run_filter == kList) {
     fprintf(stdout, "%s\n", this->name());

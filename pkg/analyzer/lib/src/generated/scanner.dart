@@ -1631,8 +1631,8 @@ class Scanner {
     while (next != -1) {
       if (next == 0x24) {
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
-        _beginToken();
         next = _tokenizeStringInterpolation(start);
+        _beginToken();
         start = _reader.offset;
         continue;
       }
@@ -1678,7 +1678,11 @@ class Scanner {
       }
     }
     _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    if (start == _reader.offset) {
+      _appendStringTokenWithOffset(TokenType.STRING, "", 1);
+    } else {
+      _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    }
     return _reader.advance();
   }
 
@@ -1750,7 +1754,7 @@ class Scanner {
         return _reader.advance();
       } else if (next == 0xD || next == 0xA) {
         _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return _reader.advance();
       }
       next = _reader.advance();
@@ -1766,14 +1770,20 @@ class Scanner {
         next = _reader.advance();
       } else if (next == 0x24) {
         _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
-        _beginToken();
         next = _tokenizeStringInterpolation(start);
+        _beginToken();
         start = _reader.offset;
         continue;
       }
       if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
         _reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        if (start == _reader.offset) {
+          _appendStringTokenWithOffset(TokenType.STRING, "", 1);
+        } else if (next == -1) {
+          _appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        } else {
+          _appendStringToken(TokenType.STRING, _reader.getString(start, -1));
+        }
         return _reader.advance();
       }
       next = _reader.advance();
@@ -1911,6 +1921,9 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
+
+  @override
+  String get uniqueName => "${runtimeType.toString()}.${name}";
 }
 
 /**

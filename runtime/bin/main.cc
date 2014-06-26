@@ -65,12 +65,14 @@ static bool has_compile_all = false;
 static bool has_print_script = false;
 
 
+static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
 static bool start_vm_service = false;
-static const char *vm_service_server_ip = NULL;
-static int vm_service_server_port = -1;
-static const char *DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
-static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
+// The 0 port is a magic value which results in the first available port
+// being allocated.
+static int vm_service_server_port = 0;
 
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
@@ -434,19 +436,30 @@ static int ParseArguments(int argc,
             break;
           }
         }
+        i++;
+        continue;  // '-p' is not a VM flag so don't add to vm options.
       } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
         vm_options->AddArgument("--checked");
+        i++;
+        continue;  // '-c' is not a VM flag so don't add to vm options.
       } else if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
+      // The following two flags are processed by both the embedder and
+      // the VM.
       const char* kPrintFlags1 = "--print-flags";
       const char* kPrintFlags2 = "--print_flags";
+      const char* kVerboseDebug1 = "--verbose_debug";
+      const char* kVerboseDebug2 = "--verbose-debug";
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
         *print_flags_seen = true;
-      }
-      const char* kVerboseDebug = "--verbose_debug";
-      if (strncmp(argv[i], kVerboseDebug, strlen(kVerboseDebug)) == 0) {
+      } else if ((strncmp(argv[i],
+                          kVerboseDebug1,
+                          strlen(kVerboseDebug1)) == 0) ||
+                 (strncmp(argv[i],
+                          kVerboseDebug2,
+                          strlen(kVerboseDebug2)) == 0)) {
         *verbose_debug_seen = true;
       }
       vm_options->AddArgument(argv[i]);
@@ -938,6 +951,7 @@ void main(int argc, char** argv) {
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
 
+  vm_options.AddArgument("--no_write_protect_code");
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
     Log::PrintErr("Initialization failed\n");
@@ -1013,8 +1027,7 @@ void main(int argc, char** argv) {
     if (!start_debugger) {
       DebuggerConnectionHandler::InitForVmService();
     }
-    ASSERT(vm_service_server_ip != NULL && vm_service_server_port >= 0);
-    bool r = VmService::Start(vm_service_server_ip , vm_service_server_port);
+    bool r = VmService::Start(vm_service_server_ip, vm_service_server_port);
     if (!r) {
       Log::PrintErr("Could not start VM Service isolate %s\n",
                     VmService::GetErrorMessage());

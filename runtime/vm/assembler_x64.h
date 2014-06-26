@@ -350,6 +350,7 @@ class Assembler : public ValueObject {
   void movl(Register dst, const Immediate& imm);
   void movl(Register dst, const Address& src);
   void movl(const Address& dst, Register src);
+  void movl(const Address& dst, const Immediate& imm);
 
   void movzxb(Register dst, Register src);
   void movzxb(Register dst, const Address& src);
@@ -714,6 +715,9 @@ class Assembler : public ValueObject {
     cmpxchgl(address, reg);
   }
 
+  void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+  void PopRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
@@ -726,6 +730,11 @@ class Assembler : public ValueObject {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
+  // Call runtime function. Reserves shadow space on the stack before calling
+  // if platform ABI requires that. Does not restore RSP after the call itself.
+  void CallCFunction(const ExternalLabel* label);
+  void CallCFunction(Register reg);
+
   /*
    * Loading and comparing classes of objects.
    */
@@ -736,6 +745,8 @@ class Assembler : public ValueObject {
   void LoadClass(Register result, Register object);
 
   void CompareClassId(Register object, intptr_t class_id);
+
+  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   /*
    * Misc. functionality.

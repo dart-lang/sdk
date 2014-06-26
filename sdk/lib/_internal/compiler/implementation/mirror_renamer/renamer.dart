@@ -6,7 +6,8 @@ part of mirror_renamer;
 
 class MirrorRenamer {
   static const String MIRROR_HELPER_GET_NAME_FUNCTION = 'helperGetName';
-  static const String MIRROR_HELPER_LIBRARY_NAME = '_mirror_helper';
+  static final Uri DART_MIRROR_HELPER =
+      new Uri(scheme: 'dart', path: '_mirror_helper');
   static const String MIRROR_HELPER_SYMBOLS_MAP_NAME = '_SYMBOLS';
 
   /// Maps mangled name to original name.

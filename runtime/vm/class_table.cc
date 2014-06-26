@@ -358,6 +358,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
       "dateLastServiceGC",
       "%" Pd64 "",
       isolate->last_allocationprofile_gc_timestamp());
+
   {
     JSONObject heaps(&obj, "heaps");
     {
@@ -373,7 +374,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
     for (intptr_t i = 1; i < top_; i++) {
       const ClassHeapStats* stats = StatsWithUpdatedSize(i);
       if (stats != NULL) {
-       JSONObject obj(&arr);
+        JSONObject obj(&arr);
         cls = At(i);
         stats->PrintToJSONObject(cls, &obj);
       }

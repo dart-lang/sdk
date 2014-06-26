@@ -17,11 +17,13 @@ import 'command/get.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
 import 'command/list_package_dirs.dart';
+import 'command/run.dart';
 import 'command/serve.dart';
 import 'command/upgrade.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
+import 'exceptions.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'system_cache.dart';
@@ -133,8 +135,10 @@ abstract class PubCommand {
   /// parsed after a non-option argument is parsed.
   bool get allowTrailingOptions => true;
 
-  /// Alternate names for this command. These names won't be used in the
-  /// documentation, but they will work when invoked on the command line.
+  /// Alternate names for this command.
+  ///
+  /// These names won't be used in the documentation, but they will work when
+  /// invoked on the command line.
   final aliases = const <String>[];
 
   /// The [ArgParser] for this command.
@@ -253,6 +257,7 @@ _initCommands() {
     'deps': new DepsCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
+    'run': new RunCommand(),
     'serve': new ServeCommand(),
     'upgrade': new UpgradeCommand(),
     'uploader': new UploaderCommand(),

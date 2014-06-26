@@ -86,8 +86,9 @@ class ServeCommand extends BarbackCommand {
     var watcherType = commandOptions['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
-    return AssetEnvironment.create(entrypoint, hostname, port, mode,
-        watcherType, useDart2JS: useDart2JS).then((environment) {
+    return AssetEnvironment.create(entrypoint, mode, watcherType,
+        hostname: hostname, basePort: port, useDart2JS: useDart2JS)
+        .then((environment) {
 
       var directoryLength = sourceDirectories.map((dir) => dir.length)
           .reduce(math.max);

@@ -2006,6 +2006,22 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type);
 
 /**
+ * Allocate a new object without invoking a constructor, and sets specified
+ *  native fields.
+ *
+ * \param type The type of an object to be allocated.
+ * \param num_native_fields The number of native fields to set.
+ * \param native_fields An array containing the value of native fields.
+ *
+ * \return The new object. If an error occurs during execution, then an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
+    Dart_Handle type,
+    intptr_t num_native_fields,
+    const intptr_t* native_fields);
+
+/**
  * Invokes a method or function.
  *
  * The 'target' parameter may be an object, type, or library.  If
@@ -2049,7 +2065,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 
 /**
  * Invokes a Generative Constructor on an object that was previously
- * allocated using Dart_Allocate.
+ * allocated using Dart_Allocate/Dart_AllocateWithNativeFields.
  *
  * The 'target' parameter must be an object.
  *
@@ -2643,6 +2659,18 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source);
+
+
+/**
+ * Indicates that all outstanding load requests have been satisfied,
+ * finalizing classes and completing deferred library futures.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return Success if all deferred library futures are completed.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_FinalizeLoading();
 
 
 /*

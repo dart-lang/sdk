@@ -785,7 +785,8 @@ abstract class ClassMemberMixin implements ClassElement {
       if (interfaceMembersAreClassMembers) {
         ClassMemberMixin superclass = this.superclass;
         if ((superclass != null &&
-             !superclass.interfaceMembersAreClassMembers) ||
+             (!superclass.interfaceMembersAreClassMembers ||
+              superclass.isMixinApplication)) ||
              !interfaces.isEmpty) {
           interfaceMembersAreClassMembers = false;
         }

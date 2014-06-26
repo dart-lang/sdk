@@ -5,9 +5,9 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/inferrer/concrete_types_inferrer.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/types/types.dart';
+import 'package:compiler/implementation/inferrer/concrete_types_inferrer.dart';
 
 import "parser_helper.dart";
 import "compiler_helper.dart";
@@ -154,46 +154,12 @@ class AnalysisResult {
 
 const String DYNAMIC = '"__dynamic_for_test"';
 
-const String CORELIB = r'''
-  print(var obj) {}
-  abstract class num {
-    num operator +(num x);
-    num operator *(num x);
-    num operator -(num x);
-    operator ==(x);
-    num floor();
-  }
-  abstract class int extends num {
-    bool get isEven;
-  }
-  abstract class double extends num {
-    bool get isNaN;
-  }
-  class bool {}
-  class String {}
-  class Object {
-    Object();
-  }
-  class Function {}
-  abstract class List<E> {
-    factory List([int length]) {}
-  }
-  abstract class Map<K, V> {}
-  class Closure {}
-  class Type {}
-  class StackTrace {}
-  class Dynamic_ {}
-  bool identical(Object a, Object b) {}
-  const proxy = 0;''';
-
 Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
-  Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = new MockCompiler(
-      coreSource: CORELIB,
+  Uri uri = new Uri(scheme: 'dart', path: 'test');
+  MockCompiler compiler = new MockCompiler.internal(
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
-  compiler.sourceFiles[uri.toString()] =
-      new StringSourceFile(uri.toString(), code);
+  compiler.registerSource(uri, code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
   return compiler.runCompiler(uri).then((_) {
     return new AnalysisResult(compiler);
@@ -1435,9 +1401,8 @@ testDynamicIsAbsorbing() {
 
 testJsCall() {
   final String source = r"""
-    import 'dart:foreign';
-    import 'dart:helper' show Null;
-    import 'dart:interceptors';
+    import 'dart:_foreign_helper';
+    import 'dart:_interceptors';
 
     abstract class AbstractA {}
     class A extends AbstractA {}
@@ -1517,7 +1482,7 @@ testJsCallAugmentsSeenClasses() {
   }).whenComplete(() {
 
     final String source2 = """
-      import 'dart:foreign';
+      import 'dart:_foreign_helper';
 
       main () {
         var x = $DYNAMIC.truncate();
@@ -1686,16 +1651,16 @@ testSelectors() {
         new TypeMask.unionOf([a, b, c]
             .map((cls) => new TypeMask.nonNullExact(cls)), result.compiler));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(x, foo),
+        new TypedSelector.subclass(x, foo, result.compiler),
         new TypeMask.nonNullExact(b));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(y, foo),
+        new TypedSelector.subclass(y, foo, result.compiler),
         new TypeMask.nonNullExact(c));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(z, foo),
+        new TypedSelector.subclass(z, foo, result.compiler),
         new TypeMask.nonNullExact(a));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(xy, foo),
+        new TypedSelector.subclass(xy, foo, result.compiler),
         new TypeMask.unionOf([b, c].map((cls) =>
             new TypeMask.nonNullExact(cls)), result.compiler));
 

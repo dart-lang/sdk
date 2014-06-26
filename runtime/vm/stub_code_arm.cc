@@ -217,12 +217,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
   __ mov(R0, Operand(SP));  // Pass the pointer to the NativeArguments.
 
-  // Call native function (setsup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask());
-  __ b(&leaf_call, EQ);
-
   __ mov(R1, Operand(R5));  // Pass the function entrypoint to call.
   // Call native function invocation wrapper or redirection via simulator.
 #if defined(USING_SIMULATOR)
@@ -234,13 +228,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
-  __ b(&done);
-
-  __ Bind(&leaf_call);
-  // Call native function or redirection via simulator.
-  __ blx(R5);
-
-  __ Bind(&done);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R2, VMTag::kScriptTagId);
@@ -1284,7 +1271,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Preserve return address, since LR is needed for subroutine call.
   __ mov(R8, Operand(LR));
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found, get_class_id_as_smi;
+  Label loop, update, test, found;
   // R5: IC data object (preserved).
   __ ldr(R6, FieldAddress(R5, ICData::ic_data_offset()));
   // R6: ic_data_array with check entries: classes and target functions.
@@ -1296,7 +1283,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   __ sub(R7, R7, Operand(Smi::RawValue(1)));
   __ ldr(R0, Address(SP, R7, LSL, 1));  // R7 (argument_count - 1) is smi.
-  __ bl(&get_class_id_as_smi);
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // R7: argument_count - 1 (smi).
   // R0: receiver's class ID (smi).
   __ ldr(R1, Address(R6, 0));  // First class id (smi) to check.
@@ -1308,7 +1295,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       // If not the first, load the next argument's class ID.
       __ AddImmediate(R0, R7, Smi::RawValue(-i));
       __ ldr(R0, Address(SP, R0, LSL, 1));
-      __ bl(&get_class_id_as_smi);
+      __ LoadTaggedClassIdMayBeSmi(R0, R0);
       // R0: next argument class ID (smi).
       __ LoadFromOffset(kWord, R1, R6, i * kWordSize);
       // R1: next class ID to check (smi).
@@ -1326,7 +1313,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ ldr(R0, Address(SP, R7, LSL, 1));
-    __ bl(&get_class_id_as_smi);
+    __ LoadTaggedClassIdMayBeSmi(R0, R0);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1386,17 +1373,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
-
-  // Instance in R0, return its class-id in R0 as Smi.
-  __ Bind(&get_class_id_as_smi);
-
-  // Test if Smi -> load Smi class for comparison.
-  __ tst(R0, Operand(kSmiTagMask));
-  __ mov(R0, Operand(Smi::RawValue(kSmiCid)), EQ);
-  __ bx(LR, EQ);
-  __ LoadClassId(R0, R0);
-  __ SmiTag(R0);
-  __ bx(LR);
 }
 
 

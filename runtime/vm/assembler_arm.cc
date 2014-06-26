@@ -1621,6 +1621,21 @@ void Assembler::StoreIntoObject(Register object,
 }
 
 
+void Assembler::StoreIntoObjectOffset(Register object,
+                                      int32_t offset,
+                                      Register value,
+                                      bool can_value_be_smi) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObject(
+        object, FieldAddress(object, offset), value, can_value_be_smi);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObject(object, Address(IP), value, can_value_be_smi);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
@@ -1635,6 +1650,19 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               Register value) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(IP), value);
+  }
+}
+
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
@@ -1646,12 +1674,25 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 }
 
 
-void Assembler::LoadClassId(Register result, Register object) {
+void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+                                               int32_t offset,
+                                               const Object& value) {
+  int32_t ignored = 0;
+  if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+  } else {
+    AddImmediate(IP, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(IP), value);
+  }
+}
+
+
+void Assembler::LoadClassId(Register result, Register object, Condition cond) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  ldrh(result, FieldAddress(object, class_id_offset));
+  ldrh(result, FieldAddress(object, class_id_offset), cond);
 }
 
 
@@ -1682,6 +1723,14 @@ void Assembler::CompareClassId(Register object,
                                Register scratch) {
   LoadClassId(scratch, object);
   CompareImmediate(scratch, class_id);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  tst(object, Operand(kSmiTagMask));
+  LoadImmediate(result, Smi::RawValue(kSmiCid), EQ);
+  LoadClassId(result, object, NE);
+  SmiTag(result, NE);
 }
 
 

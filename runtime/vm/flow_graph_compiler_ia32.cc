@@ -28,7 +28,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
@@ -1169,27 +1168,11 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
+    LocationSummary* locs,
+    const ICData& ic_data) {
   uword label_address = 0;
   if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
@@ -1287,16 +1270,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
+  Label load_cache;
   __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
-  __ jmp(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(EAX, EAX);
-  __ SmiTag(EAX);
+  __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
 
   // EAX: class ID of the receiver (smi).
   __ Bind(&load_cache);

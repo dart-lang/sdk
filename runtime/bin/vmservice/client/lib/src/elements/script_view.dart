@@ -13,21 +13,16 @@ import 'package:polymer/polymer.dart';
 @CustomTag('script-view')
 class ScriptViewElement extends ObservatoryElement {
   @published Script script;
-  @published bool showCoverage = false;
 
   ScriptViewElement.created() : super.created();
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
     if (script == null) {
       return;
     }
     script.load();
-  }
-
-  showCoverageChanged(oldValue) {
-    ScriptInsetElement sie = shadowRoot.querySelector('#scriptInset');
-    sie.coverage = showCoverage;
   }
 
   void refresh(var done) {
@@ -35,6 +30,6 @@ class ScriptViewElement extends ObservatoryElement {
   }
 
   void refreshCoverage(var done) {
-    script.isolate.refreshCoverage().whenComplete(done);
+    script.isolate.refreshCoverage()..whenComplete(done);
   }
 }

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library unittest.breath_test;
+
 import 'dart:async';
 
 import 'package:unittest/unittest.dart';
 
-main() {
+void main() {
   // Test the sync test 'breath' feature of unittest.
 
   group('breath', () {
@@ -31,4 +33,3 @@ main() {
     });
   });
 }
-

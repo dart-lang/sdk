@@ -121,8 +121,8 @@ void main() {
   // The expression 'undeclared_prefix.Unresolved()' is parsed as the invocation
   // of the named constructor 'Unresolved' on the type 'undeclared_prefix'.
   Expect.throws(() => new undeclared_prefix.Unresolved(), (e) => true);
-  // The expression 'undeclared_prefix.Unresolved<int>' cannot be parsed.
-  Expect.throws(() => new undeclared_prefix.Unresolved<int>(), (e) => true);  /// 05: compile-time error
+  // The expression 'undeclared_prefix.Unresolved<int>' is a malformed type.
+  Expect.throws(() => new undeclared_prefix.Unresolved<int>(), (e) => true);
 
   try {
     try {
@@ -163,7 +163,7 @@ void main() {
   try {
     throw 'foo';
   }
-    on undeclared_prefix.Unresolved<int>  /// 06: compile-time error
+    on undeclared_prefix.Unresolved<int>  /// 06: runtime error
     catch (e) {
   }
 }

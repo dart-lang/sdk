@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all C++ sources for the dart:builtin library and
+# This file contains all C++ sources for the dart:_builtin library and
 # some of the C++ sources for the dart:io library.  The rest are in
 # io_impl_sources.gypi.
 {

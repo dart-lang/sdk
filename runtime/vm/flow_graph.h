@@ -154,13 +154,8 @@ class FlowGraph : public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number,
                   ZoneGrowableArray<Definition*>* inlining_parameters);
 
-  // TODO(zerny): Once the SSA is feature complete this should be removed.
-  void Bailout(const char* reason) const;
-
-#ifdef DEBUG
   // Verification methods for debugging.
   bool VerifyUseLists();
-#endif  // DEBUG
 
   void DiscoverBlocks();
 

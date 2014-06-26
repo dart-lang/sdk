@@ -6,19 +6,16 @@ library matcher.pretty_print;
 
 import 'description.dart';
 import 'interfaces.dart';
-import 'utils.dart';
 
-/**
- * Returns a pretty-printed representation of [object].
- *
- * If [maxLineLength] is passed, this will attempt to ensure that each line is
- * no longer than [maxLineLength] characters long. This isn't guaranteed, since
- * individual objects may have string representations that are too long, but
- * most lines will be less than [maxLineLength] long.
- *
- * If [maxItems] is passed, [Iterable]s and [Map]s will only print their first
- * [maxItems] members or key/value pairs, respectively.
- */
+/// Returns a pretty-printed representation of [object].
+///
+/// If [maxLineLength] is passed, this will attempt to ensure that each line is
+/// no longer than [maxLineLength] characters long. This isn't guaranteed, since
+/// individual objects may have string representations that are too long, but
+/// most lines will be less than [maxLineLength] long.
+///
+/// If [maxItems] is passed, [Iterable]s and [Map]s will only print their first
+/// [maxItems] members or key/value pairs, respectively.
 String prettyPrint(object, {int maxLineLength, int maxItems}) {
   String _prettyPrint(object, int indent, Set seen, bool top) {
     // If the object is a matcher, use its description.
@@ -35,7 +32,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
 
     if (object is Iterable) {
       // Print the type name for non-List iterables.
-      var type = object is List ? "" : typeName(object) + ":";
+      var type = object is List ? "" : _typeName(object) + ":";
 
       // Truncate the list of strings if it's longer than [maxItems].
       var strings = object.map(pp).toList();
@@ -83,7 +80,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
     } else if (object is String) {
       // Escape strings and print each line on its own line.
       var lines = object.split("\n");
-      return "'" + lines.map(escapeString)
+      return "'" + lines.map(_escapeString)
           .join("\\n'\n${_indent(indent + 2)}'") + "'";
     } else {
       var value = object.toString().replaceAll("\n", _indent(indent) + "\n");
@@ -100,7 +97,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
           object == null || defaultToString) {
         return value;
       } else {
-        return "${typeName(object)}:$value";
+        return "${_typeName(object)}:$value";
       }
     }
   }
@@ -109,3 +106,42 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
 }
 
 String _indent(int length) => new List.filled(length, ' ').join('');
+
+/// Returns the name of the type of [x], or "Unknown" if the type name can't be
+/// determined.
+String _typeName(x) {
+  // dart2js blows up on some objects (e.g. window.navigator).
+  // So we play safe here.
+  try {
+    if (x == null) return "null";
+    var type = x.runtimeType.toString();
+    // TODO(nweiz): if the object's type is private, find a public superclass to
+    // display once there's a portable API to do that.
+    return type.startsWith("_") ? "?" : type;
+  } catch (e) {
+    return "?";
+  }
+}
+
+/// Returns [source] with any control characters replaced by their escape
+/// sequences.
+///
+/// This doesn't add quotes to the string, but it does escape single quote
+/// characters so that single quotes can be applied externally.
+String _escapeString(String source) =>
+  source.split("").map(_escapeChar).join("");
+
+/// Return the escaped form of a character [ch].
+String _escapeChar(String ch) {
+  if (ch == "'")
+    return "\\'";
+  else if (ch == '\n')
+    return '\\n';
+  else if (ch == '\r')
+    return '\\r';
+  else if (ch == '\t')
+    return '\\t';
+  else
+    return ch;
+}
+

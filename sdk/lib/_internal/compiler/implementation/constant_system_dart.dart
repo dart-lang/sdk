@@ -352,6 +352,10 @@ class DartConstantSystem extends ConstantSystem {
   StringConstant createString(DartString string) => new StringConstant(string);
   BoolConstant createBool(bool value) => new BoolConstant(value);
   NullConstant createNull() => new NullConstant();
+  MapConstant createMap(Compiler compiler, InterfaceType type,
+                        List<Constant> keys, List<Constant> values) {
+    return new MapConstant(type, keys, values);
+  }
 
   bool isInt(Constant constant) => constant.isInt;
   bool isDouble(Constant constant) => constant.isDouble;

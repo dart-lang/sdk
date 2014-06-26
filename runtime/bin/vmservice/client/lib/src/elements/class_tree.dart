@@ -50,7 +50,9 @@ class ClassTreeElement extends ObservatoryElement {
 
   ClassTreeElement.created() : super.created();
 
-  void enteredView() {
+  @override
+  void attached() {
+    super.attached();
     tree = new TableTree();
     if (isolate != null) {
       _update(isolate.objectClass);

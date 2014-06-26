@@ -26,6 +26,6 @@ main() {
     d.appDir({"bad name!": "1.2.3"}).create();
 
     pubGet(error: new RegExp(
-        r"Could not find package bad name! at http://127\.0\.0\.1:\d+\."));
+        r"Could not find package bad name! at http://localhost:\d+\."));
   });
 }

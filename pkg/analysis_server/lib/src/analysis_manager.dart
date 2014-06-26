@@ -121,7 +121,7 @@ class AnalysisManager {
       return channel.close().then((_) => false);
     }
     return channel
-        .sendRequest(new Request('0', METHOD_SHUTDOWN))
+        .sendRequest(new Request('0', SERVER_SHUTDOWN))
         .timeout(new Duration(seconds: 2), onTimeout: () {
           print('Expected shutdown response');
         })

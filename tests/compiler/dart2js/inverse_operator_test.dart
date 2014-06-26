@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String MAIN = r"""
@@ -17,5 +18,5 @@ main() {
 
 main() {
   // Make sure we don't introduce a new variable.
-  compileAndMatchFuzzy(MAIN, 'main', "1 >= x");
+  asyncTest(() => compileAndMatchFuzzy(MAIN, 'main', "1 >= x"));
 }

@@ -534,7 +534,7 @@ TEST_CASE(IdentityEquals) {
   Dart_Handle mint_again = Dart_NewInteger(0xFFFFFFFF);
   Dart_Handle abc = NewString("abc");
   Dart_Handle abc_again = NewString("abc");
-  Dart_Handle xyz = NewString("abc");
+  Dart_Handle xyz = NewString("xyz");
   Dart_Handle dart_core = NewString("dart:core");
   Dart_Handle dart_mirrors = NewString("dart:mirrors");
 
@@ -585,7 +585,7 @@ TEST_CASE(IdentityHash) {
   Dart_Handle mint_again = Dart_NewInteger(0xFFFFFFFF);
   Dart_Handle abc = NewString("abc");
   // Dart_Handle abc_again = NewString("abc");
-  Dart_Handle xyz = NewString("abc");
+  Dart_Handle xyz = NewString("xyz");
   Dart_Handle dart_core = NewString("dart:core");
   Dart_Handle dart_mirrors = NewString("dart:mirrors");
 
@@ -5316,12 +5316,17 @@ static void NativeArgumentCreate(Dart_NativeArguments args) {
   EXPECT_VALID(type);
 
   // Allocate without a constructor.
-  Dart_Handle obj = Dart_Allocate(type);
+  const int num_native_fields = 2;
+  const intptr_t native_fields[] = {
+    kNativeArgumentNativeField1Value,
+    kNativeArgumentNativeField2Value
+  };
+  // Allocate and Setup native fields.
+  Dart_Handle obj = Dart_AllocateWithNativeFields(type,
+                                                  num_native_fields,
+                                                  native_fields);
   EXPECT_VALID(obj);
 
-  // Setup native fields.
-  Dart_SetNativeInstanceField(obj, 0, kNativeArgumentNativeField1Value);
-  Dart_SetNativeInstanceField(obj, 1, kNativeArgumentNativeField2Value);
   kNativeArgumentNativeField1Value *= 2;
   kNativeArgumentNativeField2Value *= 2;
   Dart_SetReturnValue(args, obj);
@@ -8236,7 +8241,7 @@ TEST_CASE(MakeExternalString) {
   EXPECT_EQ(40, peer8);
   EXPECT_EQ(41, peer16);
   EXPECT_EQ(42, canonical_str_peer);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  Isolate::Current()->heap()->CollectAllGarbage();
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
   EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.

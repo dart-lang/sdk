@@ -7,6 +7,9 @@ library pub.solver.version_solver;
 import 'dart:async';
 import "dart:convert";
 
+import 'package:stack_trace/stack_trace.dart';
+
+import '../exceptions.dart';
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
@@ -15,7 +18,7 @@ import '../source_registry.dart';
 import '../version.dart';
 import '../utils.dart';
 import 'backtracking_solver.dart';
-import 'solve_report.dart' as solve_report;
+import 'solve_report.dart';
 
 /// Attempts to select the best concrete versions for all of the transitive
 /// dependencies of [root] taking into account all of the [VersionConstraint]s
@@ -62,9 +65,10 @@ class SolveResult {
   final SolveFailure error;
 
   /// The number of solutions that were attempted before either finding a
-  /// successful solution or exhausting all options. In other words, one more
-  /// than the number of times it had to backtrack because it found an invalid
-  /// solution.
+  /// successful solution or exhausting all options.
+  ///
+  /// In other words, one more than the number of times it had to backtrack
+  /// because it found an invalid solution.
   final int attemptedSolutions;
 
   final SourceRegistry _sources;
@@ -83,13 +87,21 @@ class SolveResult {
 
   /// Displays a report of what changes were made to the lockfile.
   ///
-  /// If [showAll] is true, displays all new and previous dependencies.
-  /// Otherwise, just shows a warning for any overrides in effect.
+  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
+  /// command.
+  void showReport({bool isUpgrade: false}) {
+    new SolveReport(_sources, _root, _previousLockFile, this,
+        showAll: isUpgrade).show();
+  }
+
+  /// Displays a one-line message summarizing what changes were made (or would
+  /// be made) to the lockfile.
   ///
-  /// Returns the number of changed (added, removed, or modified) dependencies.
-  int showReport({bool showAll: false}) {
-    return solve_report.show(_sources, _root, _previousLockFile, this,
-        showAll: showAll);
+  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
+  /// command.
+  void summarizeChanges({bool isUpgrade: false, bool dryRun: false}) {
+    new SolveReport(_sources, _root, _previousLockFile, this,
+        showAll: isUpgrade).summarize(dryRun: dryRun);
   }
 
   String toString() {
@@ -104,12 +116,16 @@ class SolveResult {
 }
 
 /// Maintains a cache of previously-requested data: pubspecs and version lists.
+///
 /// Used to avoid requesting the same pubspec from the server repeatedly.
 class PubspecCache {
   final SourceRegistry _sources;
 
   /// The already-requested cached version lists.
   final _versions = new Map<PackageRef, List<PackageId>>();
+
+  /// The errors from failed version list requests.
+  final _versionErrors = new Map<PackageRef, Pair<Object, Chain>>();
 
   /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
@@ -175,6 +191,14 @@ class PubspecCache {
       _versionCacheHits++;
       return new Future.value(versions);
     }
+
+    // See if we cached a failure.
+    var error = _versionErrors[package];
+    if (error != null) {
+      _versionCacheHits++;
+      return new Future.error(error.first, error.last);
+    }
+
     _versionCacheMisses++;
 
     var source = _sources[package.source];
@@ -187,6 +211,12 @@ class PubspecCache {
           (version) => package.atVersion(version)).toList();
       _versions[package] = ids;
       return ids;
+    }).catchError((error, trace) {
+      // If an error occurs, cache that too. We only want to do one request
+      // for any given package, successful or not.
+      log.solver("Could not get versions for $package:\n$error\n\n$trace");
+      _versionErrors[package] = new Pair(error, new Chain.forTrace(trace));
+      throw error;
     });
   }
 
@@ -258,16 +288,15 @@ class Dependency {
 
 /// Base class for all failures that can occur while trying to resolve versions.
 abstract class SolveFailure implements ApplicationException {
-  /// The name of the package whose version could not be solved. Will be `null`
-  /// if the failure is not specific to one package.
+  /// The name of the package whose version could not be solved.
+  ///
+  /// Will be `null` if the failure is not specific to one package.
   final String package;
 
-  /// The known dependencies on [package] at the time of the failure. Will be
-  /// an empty collection if the failure is not specific to one package.
+  /// The known dependencies on [package] at the time of the failure.
+  ///
+  /// Will be an empty collection if the failure is not specific to one package.
   final Iterable<Dependency> dependencies;
-
-  final innerError = null;
-  final innerTrace = null;
 
   String get message => toString();
 
@@ -300,8 +329,9 @@ abstract class SolveFailure implements ApplicationException {
     return buffer.toString();
   }
 
-  /// Describes a dependency's reference in the output message. Override this
-  /// to highlight which aspect of [dep] led to the failure.
+  /// Describes a dependency's reference in the output message.
+  ///
+  /// Override this to highlight which aspect of [dep] led to the failure.
   String _describeDependency(PackageDep dep) =>
       "depends on version ${dep.constraint}";
 }

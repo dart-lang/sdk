@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -68,20 +70,22 @@ void main() {
 """;
 
 main() {
-  compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;");
-  compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);");
+  asyncTest(() => Future.wait([
+    compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;"),
+    compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);"),
 
-  compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10");
-  compileAndMatchFuzzy(TEST_TWO, 'main', "\\+\\+x");
+    compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10"),
+    compileAndMatchFuzzy(TEST_TWO, 'main', "\\+\\+x"),
 
-  // Check that we don't have 'd = d' (using regexp back references).
-  compileAndDoNotMatchFuzzy(TEST_THREE, 'foo', '(x) = \1');
-  compileAndMatchFuzzy(TEST_THREE, 'foo', 'return x');
-  // Check that a store just after the declaration of the local
-  // only generates one instruction.
-  compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42');
+    // Check that we don't have 'd = d' (using regexp back references).
+    compileAndDoNotMatchFuzzy(TEST_THREE, 'foo', '(x) = \1'),
+    compileAndMatchFuzzy(TEST_THREE, 'foo', 'return x'),
+    // Check that a store just after the declaration of the local
+    // only generates one instruction.
+    compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42'),
 
-  compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
+    compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;'),
 
-  compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'));
+    compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0')),
+  ]));
 }

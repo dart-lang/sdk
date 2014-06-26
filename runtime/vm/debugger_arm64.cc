@@ -55,8 +55,7 @@ void CodeBreakpoint::PatchCode() {
       case PcDescriptors::kIcCall:
       case PcDescriptors::kUnoptStaticCall:
       case PcDescriptors::kRuntimeCall:
-      case PcDescriptors::kClosureCall:
-      case PcDescriptors::kReturn: {
+      case PcDescriptors::kClosureCall: {
         int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
         ASSERT((offset > 0) && ((offset & 0x7) == 0));
         saved_value_ = static_cast<uword>(offset);
@@ -84,8 +83,7 @@ void CodeBreakpoint::RestoreCode() {
       case PcDescriptors::kIcCall:
       case PcDescriptors::kUnoptStaticCall:
       case PcDescriptors::kClosureCall:
-      case PcDescriptors::kRuntimeCall:
-      case PcDescriptors::kReturn: {
+      case PcDescriptors::kRuntimeCall: {
         CodePatcher::SetPoolOffsetAt(pc_, static_cast<int32_t>(saved_value_));
         break;
       }

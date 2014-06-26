@@ -16,13 +16,15 @@ import 'serialize.dart';
 void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
   replyTo.send(port.sendPort);
-  port.first.then((wrappedMessage) {
+  port.listen((wrappedMessage) {
+    // TODO(nweiz): When issue 19228 is fixed, spin up a separate isolate for
+    // libraries loaded beyond the first so they can run in parallel.
     respond(wrappedMessage, (message) {
       var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);
       var mode = new BarbackMode(message['mode']);
       return _initialize(library, configuration, mode).
-          map(serializeTransformerOrGroup).toList();
+          map(serializeTransformerLike).toList();
     });
   });
 }
@@ -34,6 +36,7 @@ void loadTransformers(SendPort replyTo) {
 List _initialize(Uri uri, Map configuration, BarbackMode mode) {
   var mirrors = currentMirrorSystem();
   var transformerClass = reflectClass(Transformer);
+  var aggregateClass = _aggregateTransformerClass;
   var groupClass = reflectClass(TransformerGroup);
 
   var seen = new Set();
@@ -57,7 +60,9 @@ List _initialize(Uri uri, Map configuration, BarbackMode mode) {
       if (classMirror.isPrivate) return null;
       if (classMirror.isAbstract) return null;
       if (!classMirror.isSubtypeOf(transformerClass) &&
-          !classMirror.isSubtypeOf(groupClass)) {
+          !classMirror.isSubtypeOf(groupClass) &&
+          (aggregateClass == null ||
+              !classMirror.isSubtypeOf(aggregateClass))) {
         return null;
       }
 
@@ -86,3 +91,13 @@ MethodMirror _getConstructor(ClassMirror classMirror, String constructor) {
   if (candidate is MethodMirror && candidate.isConstructor) return candidate;
   return null;
 }
+
+// Older barbacks don't support [AggregateTransformer], and calling
+// [reflectClass] on an undefined class will throw an error, so we just define a
+// null getter for them.
+//# if barback >=0.14.1
+ClassMirror get _aggregateTransformerClass =>
+    reflectClass(AggregateTransformer);
+//# else
+//>   ClassMirror get _aggregateTransformerClass => null;
+//# end

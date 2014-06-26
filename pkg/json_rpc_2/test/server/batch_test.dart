@@ -13,16 +13,17 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'utils.dart';
 
 void main() {
-  var server;
+  var controller;
   setUp(() {
-    server = new json_rpc.Server()
+    controller = new ServerController();
+    controller.server
         ..registerMethod('foo', () => 'foo')
         ..registerMethod('id', (params) => params.value)
         ..registerMethod('arg', (params) => params['arg'].value);
   });
 
   test('handles a batch of requests', () {
-    expect(server.handleRequest([
+    expect(controller.handleRequest([
       {'jsonrpc': '2.0', 'method': 'foo', 'id': 1},
       {'jsonrpc': '2.0', 'method': 'id', 'params': ['value'], 'id': 2},
       {'jsonrpc': '2.0', 'method': 'arg', 'params': {'arg': 'value'}, 'id': 3}
@@ -34,7 +35,7 @@ void main() {
   });
 
   test('handles errors individually', () {
-    expect(server.handleRequest([
+    expect(controller.handleRequest([
       {'jsonrpc': '2.0', 'method': 'foo', 'id': 1},
       {'jsonrpc': '2.0', 'method': 'zap', 'id': 2},
       {'jsonrpc': '2.0', 'method': 'arg', 'params': {'arg': 'value'}, 'id': 3}
@@ -54,7 +55,7 @@ void main() {
   });
 
   test('handles notifications individually', () {
-    expect(server.handleRequest([
+    expect(controller.handleRequest([
       {'jsonrpc': '2.0', 'method': 'foo', 'id': 1},
       {'jsonrpc': '2.0', 'method': 'id', 'params': ['value']},
       {'jsonrpc': '2.0', 'method': 'arg', 'params': {'arg': 'value'}, 'id': 3}
@@ -65,7 +66,7 @@ void main() {
   });
 
   test('returns nothing if every request is a notification', () {
-    expect(server.handleRequest([
+    expect(controller.handleRequest([
       {'jsonrpc': '2.0', 'method': 'foo'},
       {'jsonrpc': '2.0', 'method': 'id', 'params': ['value']},
       {'jsonrpc': '2.0', 'method': 'arg', 'params': {'arg': 'value'}}
@@ -73,24 +74,12 @@ void main() {
   });
 
   test('returns an error if the batch is empty', () {
-    expectErrorResponse(server, [], error_code.INVALID_REQUEST,
+    expectErrorResponse(controller, [], error_code.INVALID_REQUEST,
         'A batch must contain at least one request.');
   });
 
-  test('handles a batch of requests parsed from JSON', () {
-    expect(server.parseRequest(JSON.encode([
-      {'jsonrpc': '2.0', 'method': 'foo', 'id': 1},
-      {'jsonrpc': '2.0', 'method': 'id', 'params': ['value'], 'id': 2},
-      {'jsonrpc': '2.0', 'method': 'arg', 'params': {'arg': 'value'}, 'id': 3}
-    ])), completion(equals(JSON.encode([
-      {'jsonrpc': '2.0', 'result': 'foo', 'id': 1},
-      {'jsonrpc': '2.0', 'result': ['value'], 'id': 2},
-      {'jsonrpc': '2.0', 'result': 'value', 'id': 3}
-    ]))));
-  });
-
   test('disallows nested batches', () {
-    expect(server.handleRequest([
+    expect(controller.handleRequest([
       [{'jsonrpc': '2.0', 'method': 'foo', 'id': 1}]
     ]), completion(equals([{
       'jsonrpc': '2.0',

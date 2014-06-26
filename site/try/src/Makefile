@@ -3,9 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 SDK_DIR=../../../xcodebuild/ReleaseIA32/dart-sdk
-PACKAGE_ROOT=../../../sdk/lib/_internal/
+PACKAGE_ROOT=../../../xcodebuild/ReleaseIA32/packages/
 
 all:
-	$(SDK_DIR)/bin/dartanalyzer -p $(PACKAGE_ROOT) leap.dart --machine 2>&1\
+	$(SDK_DIR)/bin/dartanalyzer -p $(PACKAGE_ROOT) \
+	--package-warnings --machine leap.dart 2>&1 \
+	| grep -v DEPRECATED_MEMBER_USE \
 	| sed -e "s,$(PWD)/,," \
-	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ": " $$8}'
+	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ": [" $$3 "] " $$8 }'
+	$(SDK_DIR)/bin/dartanalyzer -p $(PACKAGE_ROOT) \
+	--package-warnings --machine compiler_isolate.dart 2>&1 \
+	| grep -v DEPRECATED_MEMBER_USE \
+	| sed -e "s,$(PWD)/,," \
+	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ": [" $$3 "] " $$8 }'

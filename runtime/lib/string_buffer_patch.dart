@@ -11,7 +11,7 @@ patch class StringBuffer {
    * When strings are written to the string buffer, we add them to a
    * list of string parts.
    */
-  List<String> _parts = null;
+  List<String> _parts;
 
   /**
     * Total number of code units in the string parts. Does not include
@@ -34,7 +34,7 @@ patch class StringBuffer {
    * used when writing short strings or individual char codes to the
    * buffer. The buffer is allocated on demand.
    */
-  Uint16List _buffer = null;
+  Uint16List _buffer;
   int _bufferPosition = 0;
 
   /**

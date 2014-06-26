@@ -5,10 +5,10 @@
 import "package:expect/expect.dart";
 
 void testInvalidArguments() {
-  Expect.throws(() => new Uri(scheme: "_"), (e) => e is ArgumentError);
-  Expect.throws(() => new Uri(scheme: "http_s"), (e) => e is ArgumentError);
+  Expect.throws(() => new Uri(scheme: "_"), (e) => e is FormatException);
+  Expect.throws(() => new Uri(scheme: "http_s"), (e) => e is FormatException);
   Expect.throws(() => new Uri(scheme: "127.0.0.1:80"),
-                (e) => e is ArgumentError);
+                (e) => e is FormatException);
 }
 
 void testScheme() {

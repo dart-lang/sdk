@@ -5,27 +5,22 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+import "package:compiler/implementation/dart2jslib.dart";
+import "package:compiler/implementation/elements/elements.dart";
+import "package:compiler/implementation/tree/tree.dart";
+import "package:compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false}) {
   String core = "$DEFAULT_CORELIB\n$script";
-  MockCompiler compiler = new MockCompiler(coreSource: core,
-                                           analyzeAll: analyzeAll,
-                                           analyzeOnly: analyzeOnly);
-  var uri = Uri.parse("core.dartp");
-  compiler.sourceFiles[uri.toString()] = new MockFile(patch);
-  var handler = new LibraryDependencyHandler(compiler);
-  return compiler.patchParser.patchLibrary(handler, uri, compiler.coreLibrary)
-      .then((_) {
-    handler.computeExports();
-    return compiler;
-  });
+  MockCompiler compiler = new MockCompiler.internal(coreSource: core,
+                                                    analyzeAll: analyzeAll,
+                                                    analyzeOnly: analyzeOnly);
+  var uri = Uri.parse("patch:core");
+  compiler.registerSource(uri, "$PATCH_CORE_SOURCE\n$patch");
+  return compiler.init().then((_) => compiler);
 }
 
 void expectHasBody(compiler, Element element) {
@@ -112,7 +107,7 @@ Element ensure(compiler,
 testPatchFunction() {
   asyncTest(() => applyPatch(
       "external test();",
-      "patch test() { return 'string'; } ").then((compiler) {
+      "@patch test() { return 'string'; } ").then((compiler) {
     ensure(compiler, "test", compiler.coreLibrary.find,
            expectIsPatched: true, checkHasBody: true);
     ensure(compiler, "test", compiler.coreLibrary.patch.find,
@@ -133,8 +128,8 @@ testPatchConstructor() {
       }
       """,
       """
-      patch class Class {
-        patch Class();
+      @patch class Class {
+        @patch Class();
       }
       """).then((compiler) {
     var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -173,8 +168,8 @@ testPatchRedirectingConstructor() {
       }
       """,
       r"""
-      patch class Class {
-        patch Class._(x, y) { print('$x,$y'); }
+      @patch class Class {
+        @patch Class._(x, y) { print('$x,$y'); }
       }
       """).then((compiler) {
     var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -218,8 +213,8 @@ testPatchMember() {
       }
       """,
       """
-      patch class Class {
-        patch String toString() => 'string';
+      @patch class Class {
+        @patch String toString() => 'string';
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -248,8 +243,8 @@ testPatchGetter() {
       }
       """,
       """
-      patch class Class {
-        patch int get field => 5;
+      @patch class Class {
+        @patch int get field => 5;
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -283,7 +278,7 @@ testRegularMember() {
       }
       """,
       """
-      patch class Class {
+      @patch class Class {
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -311,7 +306,7 @@ testGhostMember() {
       }
       """,
       """
-      patch class Class {
+      @patch class Class {
         void ghost() {}
       }
       """).then((compiler) {
@@ -371,18 +366,18 @@ testPatchSignatureCheck() {
       }
       """,
       """
-      patch class Class {
-        patch int method1() => 0;
-        patch void method2() {}
-        patch void method3(String s2) {}
-        patch void method4([String str, int i]) {}
-        patch void method5() {}
-        patch void method6([String str]) {}
-        patch void method7([String s2]) {}
-        patch void method8({String s2}) {}
-        patch void method9(int str) {}
-        patch void method10([int str]) {}
-        patch void method11({int str}) {}
+      @patch class Class {
+        @patch int method1() => 0;
+        @patch void method2() {}
+        @patch void method3(String s2) {}
+        @patch void method4([String str, int i]) {}
+        @patch void method5() {}
+        @patch void method6([String str]) {}
+        @patch void method7([String s2]) {}
+        @patch void method8({String s2}) {}
+        @patch void method9(int str) {}
+        @patch void method10([int str]) {}
+        @patch void method11({int str}) {}
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -438,7 +433,7 @@ testExternalWithoutImplementationTopLevel() {
       external void foo();
       """,
       """
-      // patch void foo() {}
+      // @patch void foo() {}
       """).then((compiler) {
     var function = ensure(compiler, "foo", compiler.coreLibrary.find);
     compiler.resolver.resolve(function);
@@ -462,8 +457,8 @@ testExternalWithoutImplementationMember() {
       }
       """,
       """
-      patch class Class {
-        // patch void foo() {}
+      @patch class Class {
+        // @patch void foo() {}
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -492,7 +487,7 @@ testIsSubclass() {
       class A {}
       """,
       """
-      patch class A {}
+      @patch class A {}
       """).then((compiler) {
     ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
                               expectIsPatched: true);
@@ -509,7 +504,7 @@ testPatchNonExistingTopLevel() {
       // class Class {}
       """,
       """
-      patch class Class {}
+      @patch class Class {}
       """).then((compiler) {
     Expect.isTrue(compiler.warnings.isEmpty,
                   "Unexpected warnings: ${compiler.warnings}");
@@ -526,8 +521,8 @@ testPatchNonExistingMember() {
       class Class {}
       """,
       """
-      patch class Class {
-        patch void foo() {}
+      @patch class Class {
+        @patch void foo() {}
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -549,7 +544,7 @@ testPatchNonPatchablePatch() {
       external get foo;
       """,
       """
-      patch var foo;
+      @patch var foo;
       """).then((compiler) {
     ensure(compiler, "foo", compiler.coreLibrary.find);
 
@@ -568,7 +563,7 @@ testPatchNonPatchableOrigin() {
       external var foo;
       """,
       """
-      patch get foo => 0;
+      @patch get foo => 0;
       """).then((compiler) {
     ensure(compiler, "foo", compiler.coreLibrary.find);
 
@@ -591,7 +586,7 @@ testPatchNonExternalTopLevel() {
       void foo() {}
       """,
       """
-      patch void foo() {}
+      @patch void foo() {}
       """).then((compiler) {
     print('testPatchNonExternalTopLevel.errors:${compiler.errors}');
     print('testPatchNonExternalTopLevel.warnings:${compiler.warnings}');
@@ -613,8 +608,8 @@ testPatchNonExternalMember() {
       }
       """,
       """
-      patch class Class {
-        patch void foo() {}
+      @patch class Class {
+        @patch void foo() {}
       }
       """).then((compiler) {
     var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -639,7 +634,7 @@ testPatchNonClass() {
       external void Class() {}
       """,
       """
-      patch class Class {}
+      @patch class Class {}
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -659,7 +654,7 @@ testPatchNonGetter() {
       external void foo() {}
       """,
       """
-      patch get foo => 0;
+      @patch get foo => 0;
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -679,7 +674,7 @@ testPatchNoGetter() {
       external set foo(var value) {}
       """,
       """
-      patch get foo => 0;
+      @patch get foo => 0;
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -699,7 +694,7 @@ testPatchNonSetter() {
       external void foo() {}
       """,
       """
-      patch set foo(var value) {}
+      @patch set foo(var value) {}
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -719,7 +714,7 @@ testPatchNoSetter() {
       external get foo;
       """,
       """
-      patch set foo(var value) {}
+      @patch set foo(var value) {}
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -739,7 +734,7 @@ testPatchNonFunction() {
       external get foo;
       """,
       """
-      patch void foo() {}
+      @patch void foo() {}
       """).then((compiler) {
     print('testPatchNonClass.errors:${compiler.errors}');
     print('testPatchNonClass.warnings:${compiler.warnings}');
@@ -764,9 +759,9 @@ testPatchAndSelector() {
       }
       """,
       """
-      patch class A {
+      @patch class A {
         int method() => 0;
-        patch void clear() {}
+        @patch void clear() {}
       }
       """).then((compiler) {
     ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
@@ -784,7 +779,7 @@ testPatchAndSelector() {
     // Check that a method just in the patch class is a target for a
     // typed selector.
     var selector = new Selector.call('method', compiler.coreLibrary, 0);
-    var typedSelector = new TypedSelector.exact(cls, selector);
+    var typedSelector = new TypedSelector.exact(cls, selector, compiler);
     Element method = cls.implementation.lookupLocalMember('method');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
@@ -792,7 +787,7 @@ testPatchAndSelector() {
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
     selector = new Selector.call('clear', compiler.coreLibrary, 0);
-    typedSelector = new TypedSelector.exact(cls, selector);
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
     method = cls.lookupLocalMember('clear');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
@@ -801,7 +796,7 @@ testPatchAndSelector() {
     // for a typed selector on a subclass.
     cls = ensure(compiler, "B", compiler.coreLibrary.find);
     cls.ensureResolved(compiler);
-    typedSelector = new TypedSelector.exact(cls, selector);
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
   }));
@@ -844,7 +839,7 @@ void testAnalyzeAllInjectedMembers() {
 void testTypecheckPatchedMembers() {
   String originText = "external void method();";
   String patchText = """
-                     patch void method() {
+                     @patch void method() {
                        String s = 0;
                      }
                      """;

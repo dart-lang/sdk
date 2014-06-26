@@ -58,6 +58,12 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
+class _Patch {
+  const _Patch();
+}
+
+const _Patch patch = const _Patch();
+
 bool isJsIndexable(var object, var record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);
@@ -106,6 +112,19 @@ createUnmangledInvocationMirror(Symbol symbol, internalName, kind, arguments,
 void throwInvalidReflectionError(String memberName) {
   throw new UnsupportedError("Can't use '$memberName' in reflection "
       "because it is not included in a @MirrorsUsed annotation.");
+}
+
+/// Helper to print the given method information to the console the first
+/// time it is called with it.
+@NoInline()
+void traceHelper(String method) {
+  if (JS('bool', '!this.cache')) {
+    JS('', 'this.cache = Object.create(null)');
+  }
+  if (JS('bool', '!this.cache[#]', method)) {
+    JS('', 'console.log(#)', method);
+    JS('', 'this.cache[#] = true', method);
+  }
 }
 
 class JSInvocationMirror implements Invocation {
@@ -533,8 +552,6 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static computeGlobalThis() => JS('', 'function() { return this; }()');
-
   static _throwFormatException(String string) {
     throw new FormatException(string);
   }
@@ -678,16 +695,23 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static num numMicroseconds() {
-    if (JS('bool', 'typeof window != "undefined" && window !== null')) {
-      var performance = JS('var', 'window.performance');
-      if (performance != null &&
-          JS('bool', 'typeof #.webkitNow == "function"', performance)) {
-        return (1000 * JS('num', '#.webkitNow()', performance)).floor();
-      }
-    }
-    return 1000 * dateNow();
+  static void initTicker() {
+    if (timerFrequency != null) return;
+    // Start with low-resolution. We overwrite the fields if we find better.
+    timerFrequency = 1000;
+    timerTicks = dateNow;
+    if (JS('bool', 'typeof window == "undefined"')) return;
+    var window = JS('var', 'window');
+    if (window == null) return;
+    var performance = JS('var', '#.performance', window);
+    if (performance == null) return;
+    if (JS('bool', 'typeof #.now != "function"', performance)) return;
+    timerFrequency = 1000000;
+    timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
   }
+
+  static int timerFrequency;
+  static Function timerTicks;
 
   static bool get isD8 {
     return JS('bool',
@@ -702,30 +726,11 @@ class Primitives {
 
   static String currentUri() {
     // In a browser return self.location.href.
-    if (JS('bool', 'typeof self != "undefined"')) {
+    if (JS('bool', '!!self.location')) {
       return JS('String', 'self.location.href');
     }
 
-    // In JavaScript shells try to determine the current working
-    // directory.
-    var workingDirectory;
-    if (isD8) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'os.system("pwd")');
-      var length = workingDirectory.length;
-      if (workingDirectory[length - 1] == '\n') {
-        workingDirectory = workingDirectory.substring(0, length - 1);
-      }
-    }
-
-    if (isJsshell) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'environment["PWD"]');
-    }
-
-    return workingDirectory != null
-        ? "file://" + workingDirectory + "/"
-        : null;
+    return null;
   }
 
   // This is to avoid stack overflows due to very large argument arrays in
@@ -2789,7 +2794,7 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-class DeferredNotLoadedError extends Error {
+class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   String libraryName;
 
   DeferredNotLoadedError(this.libraryName);

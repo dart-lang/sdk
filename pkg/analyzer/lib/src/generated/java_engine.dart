@@ -1,5 +1,6 @@
 library java.engine;
 
+import 'interner.dart';
 import 'java_core.dart';
 
 /**
@@ -10,7 +11,10 @@ typedef bool Predicate<E>(E argument);
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String>[];
-  static String intern(String s) => s;
+
+  static Interner INTERNER = new NullInterner();
+
+  static String intern(String string) => INTERNER.intern(string);
   static bool isTagName(String s) {
     if (s == null || s.length == 0) {
       return false;
@@ -255,6 +259,17 @@ class AnalysisException implements Exception {
    * [cause].
    */
   AnalysisException([this.message = 'Exception', this.cause = null]);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("AnalysisException: ");
+    buffer.writeln(message);
+    if (cause != null) {
+      buffer.write('Caused by ');
+      cause._writeOn(buffer);
+    }
+    return buffer.toString();
+  }
 }
 
 
@@ -266,7 +281,7 @@ class CaughtException implements Exception {
   /**
    * The exception that was caught.
    */
-  final Exception exception;
+  final Object exception;
 
   /**
    * The stack trace associated with the exception.

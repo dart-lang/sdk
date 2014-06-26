@@ -1,3 +1,21 @@
+## 1.1.1
+
+* Fix broken type arguments that caused breakage on dart2js.
+
+* Fix an analyzer warning in `yaml_node_wrapper.dart`.
+
+## 1.1.0
+
+* Add new publicly-accessible constructors for `YamlNode` subclasses. These
+  constructors make it possible to use the same API to access non-YAML data as
+  YAML data.
+
+* Make `YamlException` inherit from source_map's [`SpanFormatException`][]. This
+  improves the error formatting and allows callers access to source range
+  information.
+
+[SpanFormatException]: (http://www.dartdocs.org/documentation/source_maps/0.9.2/index.html#source_maps/source_maps.SpanFormatException)
+
 ## 1.0.0+1
 
 * Fix a variable name typo.

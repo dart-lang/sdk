@@ -23,8 +23,11 @@ class MockSource extends Source {
   Future<Pubspec> doDescribe(PackageId id) => throw new UnsupportedError(
       "Cannot describe mock packages.");
 
-  Future<bool> get(PackageId id, String path) => throw new UnsupportedError(
+  Future ensureLocal(PackageId id) => throw new UnsupportedError(
       "Cannot get a mock package.");
+
+  Future get(PackageId id, String symlink) => throw new UnsupportedError(
+      "Cannot get an mock.");
 
   Future<String> getDirectory(PackageId id) => throw new UnsupportedError(
       "Cannot get the directory for mock packages.");

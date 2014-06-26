@@ -7,7 +7,7 @@ library part_of_test;
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
     show MessageKind;
 
 final libraryUri = Uri.parse('test:library.dart');
@@ -22,13 +22,11 @@ part of bar;
 ''';
 
 void main() {
-  var compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler.internal();
   compiler.registerSource(libraryUri, LIBRARY_SOURCE);
   compiler.registerSource(partUri, PART_SOURCE);
 
-  asyncTest(() =>
-      compiler.libraryLoader.loadLibrary(libraryUri, null, libraryUri).
-      then((_) {
+  asyncTest(() => compiler.libraryLoader.loadLibrary(libraryUri).then((_) {
     print('errors: ${compiler.errors}');
     print('warnings: ${compiler.warnings}');
     Expect.isTrue(compiler.errors.isEmpty);

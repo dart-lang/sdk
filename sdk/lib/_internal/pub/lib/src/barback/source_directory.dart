@@ -42,8 +42,8 @@ class SourceDirectory {
 
   /// Binds a server running on [hostname]:[port] to this directory.
   Future<BarbackServer> serve() {
-    return BarbackServer.bind(_environment, hostname, port, directory)
-        .then((server) {
+    return BarbackServer.bind(_environment, hostname, port,
+        rootDirectory: directory).then((server) {
       _serverCompleter.complete(server);
       return server;
     });

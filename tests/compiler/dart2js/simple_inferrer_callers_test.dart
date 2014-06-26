@@ -7,8 +7,8 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/inferrer/type_graph_inferrer.dart';
+import 'package:compiler/implementation/types/types.dart';
+import 'package:compiler/implementation/inferrer/type_graph_inferrer.dart';
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';

@@ -6,11 +6,11 @@ library trydart.test_try;
 
 export 'dart:html';
 
-export '../../site/try/src/interaction_manager.dart' show
+export 'package:try/src/interaction_manager.dart' show
     InteractionContext,
     InteractionManager;
 
-export '../../site/try/src/ui.dart' show
+export 'package:try/src/ui.dart' show
     mainEditorPane;
 
 export '../../pkg/expect/lib/expect.dart';

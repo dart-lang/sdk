@@ -20,6 +20,7 @@
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
         '../../create_sdk.gyp:create_sdk_internal',
+        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'variables': {
         'try_dart_static_files': [
@@ -39,7 +40,28 @@
           'favicon.ico',
 
           '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
+          '<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
           '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
+        ],
+        'try_dart_hosted_package_directories': [
+          # These packages are uploaded to Try Dart and can be used in code
+          # there.
+          '../../pkg/analyzer/lib',
+          '../../pkg/args/lib',
+          '../../pkg/collection/lib',
+          '../../pkg/crypto/lib',
+          '../../pkg/http/lib',
+          '../../pkg/http_parser/lib',
+          '../../pkg/intl/lib',
+          '../../pkg/logging/lib',
+          '../../pkg/matcher/lib',
+          '../../pkg/math/lib',
+          '../../pkg/path/lib',
+          '../../pkg/serialization/lib',
+          '../../pkg/stack_trace/lib',
+          '../../pkg/string_scanner/lib',
+          '../../pkg/unittest/lib',
+          '../../pkg/yaml/lib',
         ],
       },
       'actions': [
@@ -79,6 +101,9 @@
             # action is executed.
             '<(PRODUCT_DIR)/dart-sdk/README',
 
+            # Ensure the packages directory is built first.
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
           ],
           'outputs': [
@@ -86,10 +111,37 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
-            '-p../../sdk/lib/_internal/',
+            '-p<(PRODUCT_DIR)/packages/',
             '-Denable_ir=false',
+            '--show-package-warnings',
             'src/leap.dart',
             '-o<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
+          ],
+        },
+        {
+          'action_name': 'compile_isolate',
+          'message': 'Creating compiler_isolate.dart.js',
+          'inputs': [
+            # Depending on this file ensures that the SDK is built before this
+            # action is executed.
+            '<(PRODUCT_DIR)/dart-sdk/README',
+
+            # Ensure the packages directory is built first.
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/dart-sdk/bin/dart2js<(script_suffix)',
+            '-p<(PRODUCT_DIR)/packages/',
+            '-Denable_ir=false',
+            '--show-package-warnings',
+            '--trust-type-annotations',
+            'src/compiler_isolate.dart',
+            '-o<(SHARED_INTERMEDIATE_DIR)/compiler_isolate.dart.js',
           ],
         },
         {
@@ -111,6 +163,24 @@
             'add_time_stamp.py',
             'nossl.appcache',
             '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
+          ],
+        },
+        {
+          'action_name': 'make_pkg_packages',
+          'inputs': [
+            '../../tools/make_links.py',
+            '<@(try_dart_hosted_package_directories)',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/try_dartlang_org_packages.stamp',
+            '<(PRODUCT_DIR)/try_dartlang_org/packages'
+          ],
+          'action': [
+            'python', '../../tools/make_links.py',
+            '--timestamp_file=<(SHARED_INTERMEDIATE_DIR)'
+            '/try_dartlang_org_packages.stamp',
+            '<(PRODUCT_DIR)/try_dartlang_org/packages',
+            '<@(_inputs)',
           ],
         },
       ],

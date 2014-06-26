@@ -6,6 +6,7 @@ library pub_tests;
 
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../lib/src/exit_codes.dart' as exit_codes;
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
@@ -27,8 +28,9 @@ main() {
           d.pubspec({"dependencies": {"foo": null}})
         ]).create();
 
-        pubCommand(command, error: new RegExp(r'Missing the required "name" '
-            r'field\.'));
+        pubCommand(command,
+            error: contains('Missing the required "name" field.'),
+            exitCode: exit_codes.DATA);
       });
     });
 
@@ -120,8 +122,9 @@ main() {
         })
       ]).create();
 
-      pubCommand(command, error: new RegExp(r'"dependencies.myapp": Package '
-          r'may not list itself as a dependency\.'));
+      pubCommand(command,
+          error: contains('A package may not list itself as a dependency.'),
+          exitCode: exit_codes.DATA);
     });
 
     integration('does not allow a dev dependency on itself', () {
@@ -134,8 +137,9 @@ main() {
         })
       ]).create();
 
-      pubCommand(command, error: new RegExp(r'"dev_dependencies.myapp": '
-          r'Package may not list itself as a dependency\.'));
+      pubCommand(command,
+          error: contains('A package may not list itself as a dependency.'),
+          exitCode: exit_codes.DATA);
     });
   });
 }

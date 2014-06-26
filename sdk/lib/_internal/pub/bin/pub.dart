@@ -8,9 +8,11 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../lib/src/command.dart';
+import '../lib/src/exceptions.dart';
 import '../lib/src/exit_codes.dart' as exit_codes;
 import '../lib/src/http.dart';
 import '../lib/src/io.dart';
@@ -45,16 +47,14 @@ void main(List<String> arguments) {
   }
 
   switch (options['verbosity']) {
-    case 'normal': log.showNormal(); break;
-    case 'io':     log.showIO(); break;
-    case 'solver': log.showSolver(); break;
-    case 'all':    log.showAll(); break;
+    case 'normal': log.verbosity = log.Verbosity.NORMAL; break;
+    case 'io':     log.verbosity = log.Verbosity.IO; break;
+    case 'solver': log.verbosity = log.Verbosity.SOLVER; break;
+    case 'all':    log.verbosity = log.Verbosity.ALL; break;
     default:
       // No specific verbosity given, so check for the shortcut.
       if (options['verbose']) {
-        log.showAll();
-      } else {
-        log.showNormal();
+        log.verbosity = log.Verbosity.ALL;
       }
       break;
   }
@@ -88,8 +88,11 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
       captureStackChains: captureStackChains).catchError((error, Chain chain) {
     // This is basically the top-level exception handler so that we don't
     // spew a stack trace on our users.
-    var message = getErrorMessage(error);
-    log.error(message);
+    if (error is SpanException) {
+      log.error(error.toString(useColors: canUseSpecialChars));
+    } else {
+      log.error(getErrorMessage(error));
+    }
     log.fine("Exception type: ${error.runtimeType}");
 
     if (log.json.enabled) {
@@ -107,9 +110,9 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
       log.fine(chain.terse);
     }
 
-    if (error is ApplicationException && error.innerError != null) {
+    if (error is WrappedException && error.innerError != null) {
       var message = "Wrapped exception: ${error.innerError}";
-      if (error.innerTrace != null) message = "$message\n${error.innerTrace}";
+      if (error.innerChain != null) message = "$message\n${error.innerChain}";
       log.fine(message);
     }
 
@@ -201,8 +204,10 @@ Future invokeCommand(String cacheDir, ArgResults mainOptions) {
   });
 }
 
-/// Checks that pub is running on a supported platform. If it isn't, it prints
-/// an error message and exits. Completes when the validation is done.
+/// Checks that pub is running on a supported platform.
+///
+/// If it isn't, it prints an error message and exits. Completes when the
+/// validation is done.
 Future validatePlatform() {
   return syncFuture(() {
     if (Platform.operatingSystem != 'windows') return null;

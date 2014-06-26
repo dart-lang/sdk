@@ -35,37 +35,37 @@ final String outputHelper =
 
 const String OUTPUT_HELPER = r'''
 function dartPrint(msg) {
+  // Send a message to the main Try Dart window.
   window.parent.postMessage(String(msg), "*");
 }
 
 function dartMainRunner(main) {
+  // Store the current height (of an empty document).  This implies that the
+  // main Try Dart application is only notified if the document is actually
+  // changed.
+  var previousScrollHeight = document.documentElement.scrollHeight;
+
+  function postScrollHeight(mutations, observer) {
+    var scrollHeight = document.documentElement.scrollHeight;
+    if (scrollHeight !== previousScrollHeight) {
+      previousScrollHeight = scrollHeight;
+      window.parent.postMessage(["scrollHeight", scrollHeight], "*");
+    }
+  }
+
+  var MutationObserver =
+      window.MutationObserver ||
+      window.WebKitMutationObserver ||
+      window.MozMutationObserver;
+
+  // Listen to any changes to the DOM.
+  new MutationObserver(postScrollHeight).observe(
+      document.documentElement,
+      { attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true });
+
   main();
 }
-
-window.onerror = function (message, url, lineNumber) {
-  window.parent.postMessage(
-      ["error", {message: message, url: url, lineNumber: lineNumber}], "*");
-};
-
-(function () {
-
-function postScrollHeight() {
-  window.parent.postMessage(
-      ["scrollHeight", document.documentElement.scrollHeight], "*");
-}
-
-var observer = new (window.MutationObserver ||
-                    window.WebKitMutationObserver ||
-                    window.MozMutationObserver)(function(mutations) {
-  postScrollHeight()
-  window.setTimeout(postScrollHeight, 500);
-});
-
-observer.observe(
-    document.body,
-    { attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true });
-})();
 ''';

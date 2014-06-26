@@ -8,6 +8,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/dart_entry.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -796,6 +797,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(1).reg() == ECX);
   ASSERT(locs()->temp(2).reg() == EDX);
   Register result = locs()->out(0).reg();
+  const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
+  const bool is_leaf_call =
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
@@ -807,10 +811,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
-  __ movl(EDX, Immediate(NativeArguments::ComputeArgcTag(function())));
-  const ExternalLabel* stub_entry =
-      (is_bootstrap_native()) ? &StubCode::CallBootstrapCFunctionLabel() :
-                                &StubCode::CallNativeCFunctionLabel();
+  __ movl(EDX, Immediate(argc_tag));
+  const ExternalLabel* stub_entry = (is_bootstrap_native() || is_leaf_call) ?
+      &StubCode::CallBootstrapCFunctionLabel() :
+      &StubCode::CallNativeCFunctionLabel();
   compiler->GenerateCall(token_pos(),
                          stub_entry,
                          PcDescriptors::kOther,
@@ -904,7 +908,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                CallFunction(),
                                kNumberOfArguments,
                                kNoArgumentNames,
-                               locs());
+                               locs(),
+                               ICData::Handle());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -939,15 +944,7 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  Label load, done;
-  __ testl(object, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &load, Assembler::kNearJump);
-  __ movl(result, Immediate(Smi::RawValue(kSmiCid)));
-  __ jmp(&done);
-  __ Bind(&load);
-  __ LoadClassId(result, object);
-  __ SmiTag(result);
-  __ Bind(&done);
+  __ LoadTaggedClassIdMayBeSmi(result, object);
 }
 
 
@@ -1742,8 +1739,8 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
           ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
-          !field().IsNull() &&
-          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
+          ((IsUnboxedStore() && opt && is_initialization_) ||
+           IsPotentialUnboxedStore())
           ? LocationSummary::kCallOnSlowPath
           : LocationSummary::kNoCall);
 
@@ -1833,6 +1830,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedStore()) {
+    __ Comment("PotentialUnboxedStore");
     Register value_reg = locs()->in(1).reg();
     Register temp = locs()->temp(0).reg();
     Register temp2 = locs()->temp(1).reg();
@@ -2830,7 +2828,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->is_truncating();
+  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -2849,7 +2847,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     } else if ((value < 0) || (value >= kCountLimit)) {
       // This condition may not be known earlier in some cases because
       // of constant propagation, inlining, etc.
-      if ((value >=kCountLimit) && is_truncating) {
+      if ((value >= kCountLimit) && is_truncating) {
         __ xorl(result, result);
       } else {
         // Result is Mint or exception.
@@ -2906,8 +2904,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+          (right_range == NULL) || !right_range->IsPositive();
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
         __ cmpl(right, Immediate(0));
@@ -2993,12 +2990,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = !is_truncating() ? 1 : 0;
+    const intptr_t kNumTemps = !IsTruncating() ? 1 : 0;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-    if (!is_truncating()) {
+    if (!IsTruncating()) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
@@ -3026,7 +3023,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ASSERT(!is_truncating());
   Register left = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(left == result);
@@ -3273,7 +3269,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&done, Assembler::kNearJump);
         __ Bind(&subtract);
         __ subl(result, right);
-      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      } else if (right_range->IsPositive()) {
         // Right is positive.
         __ addl(result, right);
       } else {
@@ -3293,7 +3289,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
       if ((right_range == NULL) ||
-          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
         __ cmpl(right, Immediate(kCountLimit));
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
@@ -3333,7 +3329,7 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Isolate* isolate,
   ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
   const intptr_t kNumInputs = 2;
   const bool need_temp = (left()->definition() != right()->definition())
-                      &&(left_cid != kSmiCid)
+                      && (left_cid != kSmiCid)
                       && (right_cid != kSmiCid);
   const intptr_t kNumTemps = need_temp ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
@@ -4950,8 +4946,9 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Object::null_array(),  // No argument names.,
-                               locs());
+                               Object::null_array(),  // No argument names.
+                               locs(),
+                               ICData::Handle());
   __ Bind(&done);
 }
 
@@ -5365,7 +5362,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jmp(&done, Assembler::kNearJump);
       __ Bind(&subtract);
       __ subl(EDX, right);
-    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+    } else if (right_range->IsPositive()) {
       // Right is positive.
       __ addl(EDX, right);
     } else {
@@ -5427,7 +5424,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names(),
-                                 locs());
+                                 locs(),
+                                 ICData::Handle());
     return;
   }
 
@@ -5665,14 +5663,18 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxIntegerInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = is_smi() ? 0 : 1;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs,
                           kNumTemps,
-                          LocationSummary::kCallOnSlowPath);
+                          is_smi()
+                              ? LocationSummary::kNoCall
+                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_temp(0, Location::RequiresRegister());
+  if (!is_smi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5712,6 +5714,15 @@ class BoxIntegerSlowPath : public SlowPathCode {
 
 
 void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (is_smi()) {
+    PairLocation* value_pair = locs()->in(0).AsPairLocation();
+    Register value_lo = value_pair->At(0).reg();
+    Register out_reg = locs()->out(0).reg();
+    __ movl(out_reg, value_lo);
+    __ SmiTag(out_reg);
+    return;
+  }
+
   BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
   PairLocation* value_pair = locs()->in(0).AsPairLocation();
@@ -6003,7 +6014,7 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (compiler->NeedsEdgeCounter(this)) {
       compiler->EmitEdgeCounter();
     }
     // The deoptimization descriptor points after the edge counter code for

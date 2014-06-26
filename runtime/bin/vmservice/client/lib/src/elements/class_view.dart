@@ -11,20 +11,33 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('class-view')
 class ClassViewElement extends ObservatoryElement {
-  @published ServiceMap cls;
+  @published Class cls;
+  @observable ServiceMap instances;
+  @observable int retainedBytes;
   ClassViewElement.created() : super.created();
 
   Future<ServiceObject> eval(String text) {
-    return cls.isolate.get(
-        cls.id + "/eval?expr=${Uri.encodeComponent(text)}");
+    return cls.get("eval?expr=${Uri.encodeComponent(text)}");
+  }
+
+  Future<ServiceObject> reachable(var limit) {
+    return cls.get("instances?limit=$limit")
+        .then((ServiceMap obj) {
+          instances = obj;
+        });
   }
   
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
-  Future<ServiceObject> retainedSize(String dummy) {
-    return cls.isolate.get(cls.id + "/retained");
+  Future<ServiceObject> retainedSize(var dummy) {
+    return cls.get("retained")
+        .then((ServiceMap obj) {
+          retainedBytes = int.parse(obj['valueAsString']);
+        });
   }
 
   void refresh(var done) {
+    instances = null;
+    retainedBytes = null;
     cls.reload().whenComplete(done);
   }
 }

@@ -7,6 +7,7 @@
 
 library engine.utilities.collection;
 
+import 'dart:collection';
 import 'java_core.dart';
 import 'scanner.dart' show Token;
 
@@ -94,7 +95,7 @@ class DirectedGraph<N> {
    * to a set of tails. Nodes that are not the head of any edge are represented by an entry mapping
    * the node to an empty set of tails.
    */
-  Map<N, Set<N>> _edges = new Map<N, Set<N>>();
+  HashMap<N, HashSet<N>> _edges = new HashMap<N, HashSet<N>>();
 
   /**
    * Add an edge from the given head node to the given tail node. Both nodes will be a part of the
@@ -108,14 +109,14 @@ class DirectedGraph<N> {
     // First, ensure that the tail is a node known to the graph.
     //
     if (_edges[tail] == null) {
-      _edges[tail] = new Set<N>();
+      _edges[tail] = new HashSet<N>();
     }
     //
     // Then create the edge.
     //
-    Set<N> tails = _edges[head];
+    HashSet<N> tails = _edges[head];
     if (tails == null) {
-      tails = new Set<N>();
+      tails = new HashSet<N>();
       _edges[head] = tails;
     }
     tails.add(tail);
@@ -127,9 +128,9 @@ class DirectedGraph<N> {
    * @param node the node to be added
    */
   void addNode(N node) {
-    Set<N> tails = _edges[node];
+    HashSet<N> tails = _edges[node];
     if (tails == null) {
-      _edges[node] = new Set<N>();
+      _edges[node] = new HashSet<N>();
     }
   }
 
@@ -148,7 +149,7 @@ class DirectedGraph<N> {
    * Return true if the graph contains at least one path from `source` to `destination`.
    */
   bool containsPath(N source, N destination) {
-    Set<N> nodesVisited = new Set<N>();
+    HashSet<N> nodesVisited = new HashSet<N>();
     return _containsPathInternal(source, destination, nodesVisited);
   }
 
@@ -187,9 +188,9 @@ class DirectedGraph<N> {
    * @return a set containing the tails of edges that have the given node as their head
    */
   Set<N> getTails(N head) {
-    Set<N> tails = _edges[head];
+    HashSet<N> tails = _edges[head];
     if (tails == null) {
-      return new Set<N>();
+      return new HashSet<N>();
     }
     return tails;
   }
@@ -223,7 +224,7 @@ class DirectedGraph<N> {
    * @return `true` if the graph was modified as a result of this operation
    */
   void removeEdge(N head, N tail) {
-    Set<N> tails = _edges[head];
+    HashSet<N> tails = _edges[head];
     if (tails != null) {
       tails.remove(tail);
     }
@@ -237,7 +238,7 @@ class DirectedGraph<N> {
    */
   void removeNode(N node) {
     _edges.remove(node);
-    for (Set<N> tails in _edges.values) {
+    for (HashSet<N> tails in _edges.values) {
       tails.remove(node);
     }
   }
@@ -260,11 +261,11 @@ class DirectedGraph<N> {
     return sink;
   }
 
-  bool _containsPathInternal(N source, N destination, Set<N> nodesVisited) {
+  bool _containsPathInternal(N source, N destination, HashSet<N> nodesVisited) {
     if (identical(source, destination)) {
       return true;
     }
-    Set<N> tails = _edges[source];
+    HashSet<N> tails = _edges[source];
     if (tails != null) {
       nodesVisited.add(source);
       for (N tail in tails) {
@@ -355,7 +356,7 @@ class DirectedGraph_SccFinder<N> {
   /**
    * A table mapping nodes to information about the nodes that is used by this algorithm.
    */
-  Map<N, DirectedGraph_NodeInfo<N>> _nodeMap = new Map<N, DirectedGraph_NodeInfo<N>>();
+  HashMap<N, DirectedGraph_NodeInfo<N>> _nodeMap = new HashMap<N, DirectedGraph_NodeInfo<N>>();
 
   /**
    * A list of all strongly connected components found, in topological sort order (each node in a
@@ -432,7 +433,7 @@ class DirectedGraph_SccFinder<N> {
     //
     // Consider successors of v
     //
-    Set<N> tails = _graph._edges[v];
+    HashSet<N> tails = _graph._edges[v];
     if (tails != null) {
       for (N w in tails) {
         DirectedGraph_NodeInfo<N> wInfo = _nodeMap[w];
@@ -638,7 +639,7 @@ class TokenMap {
    * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
    * cursor indicating where to start searching.
    */
-  Map<Token, Token> _map = new Map<Token, Token>();
+  HashMap<Token, Token> _map = new HashMap<Token, Token>();
 
   /**
    * Return the token that is mapped to the given token, or `null` if there is no token

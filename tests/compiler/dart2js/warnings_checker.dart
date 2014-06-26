@@ -10,10 +10,10 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
+import 'package:compiler/implementation/filenames.dart';
+import 'package:compiler/implementation/source_file.dart';
+import 'package:compiler/implementation/source_file_provider.dart';
+import 'package:compiler/implementation/util/uri_extras.dart';
 import 'dart:convert';
 
 void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {

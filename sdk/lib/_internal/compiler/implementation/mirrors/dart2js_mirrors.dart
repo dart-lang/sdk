@@ -468,13 +468,13 @@ class ResolvedNode {
 class BackDoor {
   /// Return the compilation units comprising [library].
   static List<Mirror> compilationUnitsOf(Dart2JsLibraryMirror library) {
-    return library._element.compilationUnits.toList().map(
-        (cu) => new Dart2JsCompilationUnitMirror(cu, library)).toList();
+    return library._element.compilationUnits.mapToList(
+        (cu) => new Dart2JsCompilationUnitMirror(cu, library));
   }
 
   static Iterable metadataSyntaxOf(Dart2JsElementMirror declaration) {
     Compiler compiler = declaration.mirrorSystem.compiler;
-    return declaration._element.metadata.toList().map((metadata) {
+    return declaration._element.metadata.map((metadata) {
       var node = metadata.parseNode(compiler);
       var treeElements = metadata.annotatedElement.treeElements;
       return new ResolvedNode(

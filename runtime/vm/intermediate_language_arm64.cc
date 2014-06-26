@@ -8,6 +8,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/dart_entry.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -92,7 +93,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ sub(R2, SP, Operand(FP));
   __ CompareImmediate(R2, fp_sp_dist, PP);
   __ b(&stack_ok, EQ);
-  __ hlt(0);
+  __ brk(0);
   __ Bind(&stack_ok);
 #endif
   __ LeaveDartFrame();
@@ -348,7 +349,7 @@ static void EmitAssertBoolean(Register reg,
                                 1,
                                 locs);
   // We should never return here.
-  __ hlt(0);
+  __ brk(0);
   __ Bind(&done);
 }
 
@@ -769,8 +770,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(native_c_function());
+  const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
+  const bool is_leaf_call =
+    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const ExternalLabel* stub_entry;
-  if (is_bootstrap_native()) {
+  if (is_bootstrap_native() || is_leaf_call) {
     stub_entry = &StubCode::CallBootstrapCFunctionLabel();
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
@@ -789,7 +793,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   }
   __ LoadImmediate(R5, entry, PP);
-  __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()), PP);
+  __ LoadImmediate(R1, argc_tag, PP);
   compiler->GenerateCall(token_pos(),
                          stub_entry,
                          PcDescriptors::kOther,
@@ -866,7 +870,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                CallFunction(),
                                kNumberOfArguments,
                                kNoArgumentNames,
-                               locs());
+                               locs(),
+                               ICData::Handle());
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -901,15 +906,7 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  Label load, done;
-  __ tsti(object, kSmiTagMask);
-  __ b(&load, NE);
-  __ LoadImmediate(result, Smi::RawValue(kSmiCid), PP);
-  __ b(&done);
-  __ Bind(&load);
-  __ LoadClassId(result, object, PP);
-  __ SmiTag(result);
-  __ Bind(&done);
+  __ LoadTaggedClassIdMayBeSmi(result, object);
 }
 
 
@@ -1419,24 +1416,25 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (emit_full_guard) {
     __ LoadObject(field_reg, Field::ZoneHandle(field().raw()), PP);
 
-    FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
+    FieldAddress field_cid_operand(
+        field_reg, Field::guarded_cid_offset(), kWord);
     FieldAddress field_nullability_operand(
-        field_reg, Field::is_nullable_offset());
+        field_reg, Field::is_nullable_offset(), kWord);
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
       Label skip_length_check;
-      __ ldr(TMP, field_cid_operand);
+      __ ldr(TMP, field_cid_operand, kWord);
       __ CompareRegisters(value_cid_reg, TMP);
       __ b(&ok, EQ);
-      __ ldr(TMP, field_nullability_operand);
+      __ ldr(TMP, field_nullability_operand, kWord);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ ldr(value_cid_reg, field_nullability_operand);
+      __ ldr(value_cid_reg, field_nullability_operand, kWord);
       __ CompareImmediate(value_cid_reg, value_cid, PP);
     } else {
       Label skip_length_check;
-      __ ldr(value_cid_reg, field_cid_operand);
+      __ ldr(value_cid_reg, field_cid_operand, kWord);
       __ CompareImmediate(value_cid_reg, value_cid, PP);
     }
     __ b(&ok, EQ);
@@ -1450,17 +1448,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldr(TMP, field_cid_operand);
+      __ ldr(TMP, field_cid_operand, kWord);
       __ CompareImmediate(TMP, kIllegalCid, PP);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ str(value_cid_reg, field_cid_operand);
-        __ str(value_cid_reg, field_nullability_operand);
+        __ str(value_cid_reg, field_cid_operand, kWord);
+        __ str(value_cid_reg, field_nullability_operand, kWord);
       } else {
         __ LoadImmediate(TMP, value_cid, PP);
-        __ str(TMP, field_cid_operand);
-        __ str(TMP, field_nullability_operand);
+        __ str(TMP, field_cid_operand, kWord);
+        __ str(TMP, field_nullability_operand, kWord);
       }
 
       if (deopt == NULL) {
@@ -1473,7 +1471,8 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
-      __ LoadFieldFromOffset(TMP, field_reg, Field::guarded_cid_offset(), PP);
+      __ LoadFieldFromOffset(
+          TMP, field_reg, Field::guarded_cid_offset(), PP, kWord);
       __ CompareImmediate(TMP, kDynamicCid, PP);
       __ b(&ok, EQ);
 
@@ -1642,10 +1641,10 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
           ((IsPotentialUnboxedStore()) ? 2 : 0);
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps,
-      !field().IsNull() &&
-          ((field().guarded_cid() == kIllegalCid) || is_initialization_)
-              ? LocationSummary::kCallOnSlowPath
-              : LocationSummary::kNoCall);
+          ((IsUnboxedStore() && opt && is_initialization_) ||
+           IsPotentialUnboxedStore())
+          ? LocationSummary::kCallOnSlowPath
+          : LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
@@ -1740,7 +1739,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()), PP);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(), PP);
+    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(), PP, kWord);
     __ CompareImmediate(temp2, kNullCid, PP);
     __ b(&store_pointer, EQ);
 
@@ -1750,15 +1749,15 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tsti(temp2, 1 << Field::kUnboxingCandidateBit);
     __ b(&store_pointer, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
     __ CompareImmediate(temp2, kDoubleCid, PP);
     __ b(&store_double, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
     __ CompareImmediate(temp2, kFloat32x4Cid, PP);
     __ b(&store_float32x4, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
     __ CompareImmediate(temp2, kFloat64x2Cid, PP);
     __ b(&store_float64x2, EQ);
 
@@ -2127,23 +2126,24 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()), PP);
 
-    FieldAddress field_cid_operand(result_reg, Field::guarded_cid_offset());
-    FieldAddress field_nullability_operand(result_reg,
-                                           Field::is_nullable_offset());
+    FieldAddress field_cid_operand(
+        result_reg, Field::guarded_cid_offset(), kWord);
+    FieldAddress field_nullability_operand(
+        result_reg, Field::is_nullable_offset(), kWord);
 
-    __ ldr(temp, field_nullability_operand);
+    __ ldr(temp, field_nullability_operand, kWord);
     __ CompareImmediate(temp, kNullCid, PP);
     __ b(&load_pointer, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldr(temp, field_cid_operand, kWord);
     __ CompareImmediate(temp, kDoubleCid, PP);
     __ b(&load_double, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldr(temp, field_cid_operand, kWord);
     __ CompareImmediate(temp, kFloat32x4Cid, PP);
     __ b(&load_float32x4, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldr(temp, field_cid_operand, kWord);
     __ CompareImmediate(temp, kFloat64x2Cid, PP);
     __ b(&load_float64x2, EQ);
 
@@ -2478,7 +2478,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(temp, compiler->parsed_function().function(), PP);
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
-    __ LoadFieldFromOffset(temp, temp, Function::usage_counter_offset(), PP);
+    __ LoadFieldFromOffset(
+        temp, temp, Function::usage_counter_offset(), PP, kWord);
     __ CompareImmediate(temp, threshold, PP);
     __ b(slow_path->osr_entry_label(), GE);
   }
@@ -2505,7 +2506,7 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->is_truncating();
+  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   const Register left = locs.in(0).reg();
   const Register result = locs.out(0).reg();
@@ -2583,8 +2584,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+          (right_range == NULL) || !right_range->IsPositive();
       if (right_may_be_negative) {
         ASSERT(shift_left->CanDeoptimize());
         __ CompareRegisters(right, ZR);
@@ -2630,7 +2630,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
-      (((op_kind() == Token::kSHL) && !is_truncating()) ||
+      (((op_kind() == Token::kSHL) && !IsTruncating()) ||
        (op_kind() == Token::kSHR)) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -2653,7 +2653,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !is_truncating()) ||
+  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -2670,7 +2670,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ASSERT(!is_truncating());
   const Register left = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   Label* deopt = NULL;
@@ -2917,7 +2916,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // sarl operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
       if ((right_range == NULL) ||
-          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+          !right_range->OnlyLessThanOrEqualTo(kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit, PP);
         __ CompareRegisters(TMP, TMP2);
         __ csel(TMP, TMP2, TMP, GT);
@@ -4505,7 +4504,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                target,
                                kNumberOfArguments,
                                Object::null_array(),  // No argument names.,
-                               locs());
+                               locs(),
+                               ICData::Handle());
   __ Bind(&done);
 }
 
@@ -4887,7 +4887,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  target,
                                  instance_call()->ArgumentCount(),
                                  instance_call()->argument_names(),
-                                 locs());
+                                 locs(),
+                                 ICData::Handle());
     return;
   }
 
@@ -5123,7 +5124,7 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 kThrowRuntimeEntry,
                                 1,
                                 locs());
-  __ hlt(0);
+  __ brk(0);
 }
 
 
@@ -5140,7 +5141,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 kReThrowRuntimeEntry,
                                 2,
                                 locs());
-  __ hlt(0);
+  __ brk(0);
 }
 
 
@@ -5154,7 +5155,7 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (compiler->NeedsEdgeCounter(this)) {
       compiler->EmitEdgeCounter();
     }
     // Add an edge counter.

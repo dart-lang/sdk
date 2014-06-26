@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:path/path.dart' as path;
 
-import 'git.dart' as git;
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -19,6 +18,8 @@ import 'source/cached.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
+/// The context surrounding the root package pub is operating on.
+///
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
 /// working directory is located. An entrypoint knows the [root] package it is
@@ -64,31 +65,58 @@ class Entrypoint {
   /// The path to the entrypoint package's lockfile.
   String get lockFilePath => path.join(root.dir, 'pubspec.lock');
 
-  /// Gets package [id] and makes it available for use by this entrypoint.
+  /// Gets all dependencies of the [root] package.
   ///
-  /// If this completes successfully, the package is guaranteed to be importable
-  /// using the `package:` scheme. Returns the resolved [PackageId].
+  /// [useLatest], if provided, defines a list of packages that will be
+  /// unlocked and forced to their latest versions. If [upgradeAll] is
+  /// true, the previous lockfile is ignored and all packages are re-resolved
+  /// from scratch. Otherwise, it will attempt to preserve the versions of all
+  /// previously locked packages.
+  ///
+  /// Shows a report of the changes made relative to the previous lockfile. If
+  /// [isUpgrade] is `true`, all transitive dependencies are shown in the
+  /// report. Otherwise, only dependencies that were changed are shown. If
+  /// [dryRun] is `true`, no physical changes are made.
+  Future acquireDependencies({List<String> useLatest, bool isUpgrade: false,
+      bool dryRun: false}) {
+    return syncFuture(() {
+      return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
+          useLatest: useLatest, upgradeAll: isUpgrade && useLatest.isEmpty);
+    }).then((result) {
+      if (!result.succeeded) throw result.error;
+
+      result.showReport(isUpgrade: isUpgrade);
+
+      if (dryRun) {
+        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
+        return null;
+      }
+
+      // Install the packages.
+      cleanDir(packagesDir);
+      return Future.wait(result.packages.map(_get).toList()).then((ids) {
+        _saveLockFile(ids);
+        _linkSelf();
+        _linkSecondaryPackageDirs();
+        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
+      });
+    });
+  }
+
+  /// Makes sure the package at [id] is locally available.
   ///
   /// This automatically downloads the package to the system-wide cache as well
   /// if it requires network access to retrieve (specifically, if the package's
   /// source is a [CachedSource]).
-  ///
-  /// See also [getDependencies].
-  Future<PackageId> get(PackageId id) {
+  Future<PackageId> _get(PackageId id) {
+    if (id.isRoot) return new Future.value(id);
+
     var pending = _pendingGets[id];
     if (pending != null) return pending;
 
-    var packageDir = path.join(packagesDir, id.name);
-
     var future = syncFuture(() {
-      ensureDir(path.dirname(packageDir));
-
-      if (entryExists(packageDir)) {
-        // TODO(nweiz): figure out when to actually delete the directory, and
-        // when we can just re-use the existing symlink.
-        log.fine("Deleting package directory for ${id.name} before get.");
-        deleteEntry(packageDir);
-      }
+      var packageDir = path.join(packagesDir, id.name);
+      if (entryExists(packageDir)) deleteEntry(packageDir);
 
       var source = cache.sources[id.source];
       return source.get(id, packageDir).then((_) => source.resolveId(id));
@@ -99,52 +127,10 @@ class Entrypoint {
     return future;
   }
 
-  /// Gets all dependencies of the [root] package.
-  ///
-  /// [useLatest], if provided, defines a list of packages that will be
-  /// unlocked and forced to their latest versions. If [upgradeAll] is
-  /// true, the previous lockfile is ignored and all packages are re-resolved
-  /// from scratch. Otherwise, it will attempt to preserve the versions of all
-  /// previously locked packages.
-  ///
-  /// If [useLatest] is non-empty or [upgradeAll] is true, displays a detailed
-  /// report of the changes made relative to the previous lockfile.
-  ///
-  /// Returns a [Future] that completes to the number of changed dependencies.
-  /// It completes when an up-to-date lockfile has been generated and all
-  /// dependencies are available.
-  Future<int> acquireDependencies({List<String> useLatest,
-      bool upgradeAll: false}) {
-    var numChanged = 0;
-
-    return syncFuture(() {
-      return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
-          useLatest: useLatest, upgradeAll: upgradeAll);
-    }).then((result) {
-      if (!result.succeeded) throw result.error;
-
-      // TODO(rnystrom): Should also show the report if there were changes.
-      // That way pub get/build/serve will show the report when relevant.
-      // https://code.google.com/p/dart/issues/detail?id=15587
-      numChanged = result.showReport(showAll: useLatest != null || upgradeAll);
-
-      // Install the packages.
-      cleanDir(packagesDir);
-      return Future.wait(result.packages.map((id) {
-        if (id.isRoot) return new Future.value(id);
-        return get(id);
-      }).toList());
-    }).then((ids) {
-      _saveLockFile(ids);
-      _linkSelf();
-      _linkSecondaryPackageDirs();
-
-      return numChanged;
-    });
-  }
-
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
-  /// exists. If it doesn't, this completes to an empty [LockFile].
+  /// exists.
+  ///
+  /// If it doesn't, this completes to an empty [LockFile].
   LockFile loadLockFile() {
     if (!lockFileExists) return new LockFile.empty();
     return new LockFile.load(lockFilePath, cache.sources);
@@ -233,15 +219,15 @@ class Entrypoint {
       });
     }).then((upToDate) {
       if (upToDate) return null;
-      return acquireDependencies().then((_) {
-        log.message("Got dependencies!");
-      });
+      return acquireDependencies();
     });
   }
 
   /// Loads the package graph for the application and all of its transitive
-  /// dependencies. Before loading makes sure the lockfile and dependencies are
-  /// installed and up to date.
+  /// dependencies.
+  ///
+  /// Before loading, makes sure the lockfile and dependencies are installed
+  /// and up to date.
   Future<PackageGraph> loadPackageGraph() {
     return _ensureLockFileIsUpToDate().then((_) {
       var lockFile = loadLockFile();
@@ -322,54 +308,5 @@ class Entrypoint {
     var symlink = path.join(dir, 'packages');
     if (entryExists(symlink)) deleteEntry(symlink);
     createSymlink(packagesDir, symlink, relative: true);
-  }
-
-  /// The basenames of files that are automatically excluded from archives.
-  final _BLACKLISTED_FILES = const ['pubspec.lock'];
-
-  /// The basenames of directories that are automatically excluded from
-  /// archives.
-  final _BLACKLISTED_DIRS = const ['packages'];
-
-  // TODO(nweiz): unit test this function.
-  /// Returns a list of files that are considered to be part of this package.
-  ///
-  /// If this is a Git repository, this will respect .gitignore; otherwise, it
-  /// will return all non-hidden, non-blacklisted files.
-  ///
-  /// If [beneath] is passed, this will only return files beneath that path.
-  Future<List<String>> packageFiles({String beneath}) {
-    if (beneath == null) beneath = root.dir;
-
-    return git.isInstalled.then((gitInstalled) {
-      if (dirExists(path.join(root.dir, '.git')) && gitInstalled) {
-        // Later versions of git do not allow a path for ls-files that appears
-        // to be outside of the repo, so make sure we give it a relative path.
-        var relativeBeneath = path.relative(beneath, from: root.dir);
-
-        // List all files that aren't gitignored, including those not checked
-        // in to Git.
-        return git.run(
-            ["ls-files", "--cached", "--others", "--exclude-standard",
-             relativeBeneath],
-            workingDir: root.dir).then((files) {
-          // Git always prints files relative to the project root, but we want
-          // them relative to the working directory. It also prints forward
-          // slashes on Windows which we normalize away for easier testing.
-          return files.map((file) => path.normalize(path.join(root.dir, file)));
-        });
-      }
-
-      return listDir(beneath, recursive: true);
-    }).then((files) {
-      return files.where((file) {
-        // Skip directories and broken symlinks.
-        if (!fileExists(file)) return false;
-
-        var relative = path.relative(file, from: beneath);
-        if (_BLACKLISTED_FILES.contains(path.basename(relative))) return false;
-        return !path.split(relative).any(_BLACKLISTED_DIRS.contains);
-      }).toList();
-    });
   }
 }

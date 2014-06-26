@@ -68,7 +68,7 @@ class SsaBuilderTask extends CompilerTask {
             registry.registerCompileTimeConstant(constant);
           });
         }
-        if (compiler.tracer.enabled) {
+        if (compiler.tracer.isEnabled) {
           String name;
           if (element.isMember) {
             String className = element.enclosingClass.name;
@@ -1576,10 +1576,12 @@ class SsaBuilder extends ResolvedVisitor {
     }
     assert(argumentIndex == compiledArguments.length);
 
-    elements = compiler.enqueuer.resolution.getCachedElements(function);
+    elements = function.resolvedAst.elements;
     assert(elements != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
+
+    insertTraceCall(function);
   }
 
   void restoreState(AstInliningState state) {
@@ -1712,9 +1714,10 @@ class SsaBuilder extends ResolvedVisitor {
 
       // Build the initializers in the context of the new constructor.
       TreeElements oldElements = elements;
-      elements = compiler.enqueuer.resolution.getCachedElements(callee);
+      ResolvedAst resolvedAst = callee.resolvedAst;
+      elements = resolvedAst.elements;
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = callee.node;
+      ast.Node node = resolvedAst.node;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               callee, node, elements);
@@ -2055,9 +2058,9 @@ class SsaBuilder extends ResolvedVisitor {
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      TreeElements elements =
-          compiler.enqueuer.resolution.getCachedElements(constructor);
-      ast.Node node = constructor.node;
+      ResolvedAst resolvedAst = constructor.resolvedAst;
+      TreeElements elements = resolvedAst.elements;
+      ast.Node node = resolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
@@ -2167,6 +2170,21 @@ class SsaBuilder extends ResolvedVisitor {
     } else {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);
+    }
+
+    insertTraceCall(element);
+  }
+
+  insertTraceCall(Element element) {
+    if (JavaScriptBackend.TRACE_CALLS) {
+      if (element == backend.traceHelper) return;
+      n(e) => e == null ? '' : e.name;
+      String name = "${n(element.library)}:${n(element.enclosingClass)}."
+        "${n(element)}";
+      HConstant nameConstant = addConstantString(name);
+      add(new HInvokeStatic(backend.traceHelper,
+                            <HInstruction>[nameConstant],
+                            backend.dynamicType));
     }
   }
 
@@ -2380,34 +2398,36 @@ class SsaBuilder extends ResolvedVisitor {
 
   /**
    * Ends the loop:
-   * - creates a new block and adds it as successor to the [branchBlock] and
+   * - creates a new block and adds it as successor to the [branchExitBlock] and
    *   any blocks that end in break.
    * - opens the new block (setting as [current]).
    * - notifies the locals handler that we're exiting a loop.
    * [savedLocals] are the locals from the end of the loop condition.
-   * [branchBlock] is the exit (branching) block of the condition.  For the
-   * while and for loops this is at the top of the loop.  For do-while it is
-   * the end of the body.  It is null for degenerate do-while loops that have
+   * [branchExitBlock] is the exit (branching) block of the condition. Generally
+   * this is not the top of the loop, since this would lead to critical edges.
+   * It is null for degenerate do-while loops that have
    * no back edge because they abort (throw/return/break in the body and have
    * no continues).
    */
   void endLoop(HBasicBlock loopEntry,
-               HBasicBlock branchBlock,
+               HBasicBlock branchExitBlock,
                JumpHandler jumpHandler,
                LocalsHandler savedLocals) {
     HBasicBlock loopExitBlock = addNewBlock();
+
     List<LocalsHandler> breakHandlers = <LocalsHandler>[];
     // Collect data for the successors and the phis at each break.
     jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(loopExitBlock);
       breakHandlers.add(locals);
     });
+
     // The exit block is a successor of the loop condition if it is reached.
     // We don't add the successor in the case of a while/for loop that aborts
     // because the caller of endLoop will be wiring up a special empty else
     // block instead.
-    if (branchBlock != null) {
-      branchBlock.addSuccessor(loopExitBlock);
+    if (branchExitBlock != null) {
+      branchExitBlock.addSuccessor(loopExitBlock);
     }
     // Update the phis at the loop entry with the current values of locals.
     localsHandler.endLoop(loopEntry);
@@ -2417,7 +2437,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     // Create a new localsHandler for the loopExitBlock with the correct phis.
     if (!breakHandlers.isEmpty) {
-      if (branchBlock != null) {
+      if (branchExitBlock != null) {
         // Add the values of the locals at the end of the condition block to
         // the phis.  These are the values that flow to the exit if the
         // condition fails.
@@ -2477,10 +2497,10 @@ class SsaBuilder extends ResolvedVisitor {
     if (startBlock == null) startBlock = conditionBlock;
 
     HInstruction conditionInstruction = condition();
-    HBasicBlock conditionExitBlock =
+    HBasicBlock conditionEndBlock =
         close(new HLoopBranch(conditionInstruction));
     SubExpression conditionExpression =
-        new SubExpression(conditionBlock, conditionExitBlock);
+        new SubExpression(conditionBlock, conditionEndBlock);
 
     // Save the values of the local variables at the end of the condition
     // block.  These are the values that will flow to the loop exit if the
@@ -2489,7 +2509,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     // The body.
     HBasicBlock beginBodyBlock = addNewBlock();
-    conditionExitBlock.addSuccessor(beginBodyBlock);
+    conditionEndBlock.addSuccessor(beginBodyBlock);
     open(beginBodyBlock);
 
     localsHandler.enterLoopBody(loop);
@@ -2554,6 +2574,12 @@ class SsaBuilder extends ResolvedVisitor {
       updateEndBlock.addSuccessor(conditionBlock);
       updateGraph = new SubExpression(updateBlock, updateEndBlock);
 
+      // Avoid a critical edge from the condition to the loop-exit body.
+      HBasicBlock conditionExitBlock = addNewBlock();
+      open(conditionExitBlock);
+      close(new HGoto());
+      conditionEndBlock.addSuccessor(conditionExitBlock);
+
       endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
 
       conditionBlock.postProcessLoopHeader();
@@ -2595,19 +2621,19 @@ class SsaBuilder extends ResolvedVisitor {
 
       // Remove the [HLoopBranch] instruction and replace it with
       // [HIf].
-      HInstruction condition = conditionExitBlock.last.inputs[0];
-      conditionExitBlock.addAtExit(new HIf(condition));
-      conditionExitBlock.addSuccessor(elseBlock);
-      conditionExitBlock.remove(conditionExitBlock.last);
+      HInstruction condition = conditionEndBlock.last.inputs[0];
+      conditionEndBlock.addAtExit(new HIf(condition));
+      conditionEndBlock.addSuccessor(elseBlock);
+      conditionEndBlock.remove(conditionEndBlock.last);
       HIfBlockInformation info =
           new HIfBlockInformation(
               wrapExpressionGraph(conditionExpression),
               wrapStatementGraph(bodyGraph),
               wrapStatementGraph(elseGraph));
 
-      conditionExitBlock.setBlockFlow(info, current);
-      HIf ifBlock = conditionExitBlock.last;
-      ifBlock.blockInformation = conditionExitBlock.blockFlow;
+      conditionEndBlock.setBlockFlow(info, current);
+      HIf ifBlock = conditionEndBlock.last;
+      ifBlock.blockInformation = conditionEndBlock.blockFlow;
 
       // If the body has any break, attach a synthesized label to the
       // if block.
@@ -2767,7 +2793,13 @@ class SsaBuilder extends ResolvedVisitor {
       conditionExpression =
           new SubExpression(conditionBlock, conditionEndBlock);
 
-      endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
+      // Avoid a critical edge from the condition to the loop-exit body.
+      HBasicBlock conditionExitBlock = addNewBlock();
+      open(conditionExitBlock);
+      close(new HGoto());
+      conditionEndBlock.addSuccessor(conditionExitBlock);
+
+      endLoop(loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
 
       loopEntryBlock.postProcessLoopHeader();
       SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
@@ -5845,7 +5877,7 @@ class StringBuilderVisitor extends ast.Visitor {
     // directly.
     Selector selector =
         new TypedSelector(expression.instructionType,
-            new Selector.call('toString', null, 0));
+            new Selector.call('toString', null, 0), compiler);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (type.containsOnlyString(compiler)) {
       builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);

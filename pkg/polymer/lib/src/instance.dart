@@ -182,12 +182,16 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   CompoundObserver _propertyObserver;
   bool _readied = false;
 
+  JsObject _jsElem;
+
   /// Returns the object that should be used as the event controller for
   /// event bindings in this element's template. If set, this will override the
   /// normal controller lookup.
-  // TODO(jmesserly): type seems wrong here? I'm guessing this should be any
-  // kind of model object. Also, should it be writable by anyone?
-  Polymer eventController;
+  // TODO(jmesserly): we need to use a JS-writable property as our backing
+  // store, because of elements such as:
+  // https://github.com/Polymer/core-overlay/blob/eeb14853/core-overlay-layer.html#L78
+  get eventController => _jsElem['eventController'];
+  set eventController(value) { _jsElem['eventController'] = value; }
 
   bool get hasBeenAttached => _hasBeenAttached;
   bool _hasBeenAttached = false;
@@ -212,8 +216,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Note: this is observable to support $['someId'] being used in templates.
   // The template is stamped before $ is populated, so we need observation if
   // we want it to be usable in bindings.
-  @reflectable final Map<String, Element> $ =
-      new ObservableMap<String, Element>();
+  final Map<String, dynamic> $ = new ObservableMap<String, dynamic>();
 
   /// Use to override the default syntax for polymer-elements.
   /// By default this will be null, which causes [instanceTemplate] to use
@@ -264,6 +267,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       window.console.warn('Element already prepared: $_name');
       return;
     }
+    _initJsObject();
     // Dart note: get the corresponding <polymer-element> declaration.
     _element = _getDeclaration(_name);
     // install property storage
@@ -276,6 +280,12 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     takeAttributes();
     // add event listeners
     addHostListeners();
+  }
+
+  /// Initialize JS interop for this element. For now we just initialize the
+  // JsObject, but in the future we could also initialize JS APIs here.
+  _initJsObject() {
+    _jsElem = new JsObject.fromBrowserObject(this);
   }
 
   makeElementReady() {
@@ -828,8 +838,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // by default supports 1 thing being bound.
     events.forEach((type, methodName) {
       // Dart note: the getEventHandler method is on our PolymerExpressions.
-      var handler = element.syntax.getEventHandler(this, this, methodName);
-      addEventListener(type, handler);
+      on[type].listen(element.syntax.getEventHandler(this, this, methodName));
     });
   }
 

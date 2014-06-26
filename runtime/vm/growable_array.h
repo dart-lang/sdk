@@ -83,6 +83,9 @@ class BaseGrowableArray : public B {
     data_[idx] = value;
   }
 
+  // The content is uninitialized after calling it.
+  void SetLength(intptr_t new_length);
+
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 
@@ -92,6 +95,7 @@ class BaseGrowableArray : public B {
   T* data_;
   Zone* zone_;  // Zone in which we are allocating the array.
 
+  // Used for growing the array.
   void Resize(intptr_t new_length);
 
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableArray);
@@ -114,6 +118,18 @@ void BaseGrowableArray<T, B>::Resize(intptr_t new_length) {
     ASSERT(new_data != NULL);
     data_ = new_data;
     capacity_ = new_capacity;
+  }
+  length_ = new_length;
+}
+
+
+template<typename T, typename B>
+void BaseGrowableArray<T, B>::SetLength(intptr_t new_length) {
+  if (new_length > capacity_) {
+    T* new_data = zone_->Alloc<T>(new_length);
+    ASSERT(new_data != NULL);
+    data_ = new_data;
+    capacity_ = new_length;
   }
   length_ = new_length;
 }

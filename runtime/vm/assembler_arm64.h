@@ -22,8 +22,6 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 
-// TODO(zra): Label, Address, and FieldAddress are copied from ARM,
-// they must be adapted to ARM64.
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }
@@ -245,8 +243,8 @@ class Address : public ValueObject {
 
 class FieldAddress : public Address {
  public:
-  FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) { }
+  FieldAddress(Register base, int32_t disp, OperandSize sz = kDoubleWord)
+      : Address(base, disp - kHeapObjectTag, Offset, sz) { }
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
@@ -684,6 +682,9 @@ class Assembler : public ValueObject {
   void hlt(uint16_t imm) {
     EmitExceptionGenOp(HLT, imm);
   }
+  void brk(uint16_t imm) {
+    EmitExceptionGenOp(BRK, imm);
+  }
 
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
@@ -1068,9 +1069,9 @@ class Assembler : public ValueObject {
 
   void LoadFromOffset(Register dest, Register base, int32_t offset,
                       Register pp, OperandSize sz = kDoubleWord);
-  void LoadFieldFromOffset(
-      Register dest, Register base, int32_t offset, Register pp) {
-    LoadFromOffset(dest, base, offset - kHeapObjectTag, pp);
+  void LoadFieldFromOffset(Register dest, Register base, int32_t offset,
+                           Register pp, OperandSize sz = kDoubleWord) {
+    LoadFromOffset(dest, base, offset - kHeapObjectTag, pp, sz);
   }
   void LoadDFromOffset(
       VRegister dest, Register base, int32_t offset, Register pp);
@@ -1087,9 +1088,9 @@ class Assembler : public ValueObject {
 
   void StoreToOffset(Register src, Register base, int32_t offset,
                      Register pp, OperandSize sz = kDoubleWord);
-  void StoreFieldToOffset(
-      Register src, Register base, int32_t offset, Register pp) {
-    StoreToOffset(src, base, offset - kHeapObjectTag, pp);
+  void StoreFieldToOffset(Register src, Register base, int32_t offset,
+                          Register pp, OperandSize sz = kDoubleWord) {
+    StoreToOffset(src, base, offset - kHeapObjectTag, pp, sz);
   }
   void StoreDToOffset(
       VRegister src, Register base, int32_t offset, Register pp);
@@ -1170,6 +1171,7 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id, Register pp);
   void LoadClass(Register result, Register object, Register pp);
   void CompareClassId(Register object, intptr_t class_id, Register pp);
+  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();

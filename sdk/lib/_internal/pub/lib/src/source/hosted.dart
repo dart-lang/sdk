@@ -11,6 +11,7 @@ import "dart:convert";
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
+import '../exceptions.dart';
 import '../http.dart';
 import '../io.dart';
 import '../log.dart' as log;
@@ -179,8 +180,8 @@ class HostedSource extends CachedSource {
       return httpClient.send(new http.Request("GET", url))
           .then((response) => response.stream)
           .then((stream) {
-        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
-            'fetching URL "$url"');
+        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT, url,
+            'downloading $url');
       }).then((_) {
         // Remove the existing directory if it exists. This will happen if
         // we're forcing a download to repair the cache.
@@ -196,8 +197,9 @@ class HostedSource extends CachedSource {
   }
 
   /// When an error occurs trying to read something about [package] from [url],
-  /// this tries to translate into a more user friendly error message. Always
-  /// throws an error, either the original one or a better one.
+  /// this tries to translate into a more user friendly error message.
+  ///
+  /// Always throws an error, either the original one or a better one.
   void _throwFriendlyError(error, StackTrace stackTrace, String package,
       String url) {
     if (error is PubHttpException &&
@@ -222,8 +224,10 @@ class HostedSource extends CachedSource {
 }
 
 /// This is the modified hosted source used when pub get or upgrade are run
-/// with "--offline". This uses the system cache to get the list of available
-/// packages and does no network access.
+/// with "--offline".
+///
+/// This uses the system cache to get the list of available packages and does
+/// no network access.
 class OfflineHostedSource extends HostedSource {
   /// Gets the list of all versions of [name] that are in the system cache.
   Future<List<Version>> getVersions(String name, description) {
@@ -274,7 +278,9 @@ class OfflineHostedSource extends HostedSource {
 ///
 /// This behavior is a bug, but is being preserved for compatibility.
 String _urlToDirectory(String url) {
-  url = url.replaceAll(new RegExp(r"^https?://"), "");
+  // Normalize all loopback URLs to "localhost".
+  url = url.replaceAllMapped(new RegExp(r"^https?://(127\.0\.0\.1|\[::1\])?"),
+      (match) => match[1] == null ? '' : 'localhost');
   return replace(url, new RegExp(r'[<>:"\\/|?*%]'),
       (match) => '%${match[0].codeUnitAt(0)}');
 }
@@ -298,23 +304,14 @@ String _directoryToUrl(String url) {
   var scheme = "https";
 
   // See if it's a loopback IP address.
-  try {
-    var urlWithoutPort = url.replaceAll(new RegExp(":.*"), "");
-    var address = new io.InternetAddress(urlWithoutPort);
-    if (address.isLoopback) scheme = "http";
-  } on ArgumentError catch(error) {
-    // If we got here, it's not a raw IP address, so it's probably a regular
-    // URL.
-  }
-
-  if (url == "localhost") scheme = "http";
-
+  if (isLoopback(url.replaceAll(new RegExp(":.*"), ""))) scheme = "http";
   return "$scheme://$url";
 }
 
 /// Parses [description] into its server and package name components, then
-/// converts that to a Uri given [pattern]. Ensures the package name is
-/// properly URL encoded.
+/// converts that to a Uri given [pattern].
+///
+/// Ensures the package name is properly URL encoded.
 Uri _makeUrl(description, String pattern(String server, String package)) {
   var parsed = _parseDescription(description);
   var server = parsed.last;
@@ -323,8 +320,9 @@ Uri _makeUrl(description, String pattern(String server, String package)) {
 }
 
 /// Parses [id] into its server, package name, and version components, then
-/// converts that to a Uri given [pattern]. Ensures the package name is
-/// properly URL encoded.
+/// converts that to a Uri given [pattern].
+///
+/// Ensures the package name is properly URL encoded.
 Uri _makeVersionUrl(PackageId id,
     String pattern(String server, String package, String version)) {
   var parsed = _parseDescription(id.description);

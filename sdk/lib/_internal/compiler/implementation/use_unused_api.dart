@@ -67,6 +67,7 @@ void main(List<String> arguments) {
   usedByTests();
   useElements(null, null);
   useIr(null, null);
+  useCompiler(null);
 }
 
 useApi() {
@@ -197,13 +198,12 @@ usedByTests() {
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   world.hasAnyUserDefinedGetter(null);
-  compiler.importHelperLibrary(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);
-  new universe.TypedSelector.subclass(null, null);
-  new universe.TypedSelector.subtype(null, null);
-  new universe.TypedSelector.exact(null, null);
+  new universe.TypedSelector.subclass(null, null, compiler);
+  new universe.TypedSelector.subtype(null, null, compiler);
+  new universe.TypedSelector.exact(null, null, compiler);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -231,4 +231,9 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
   task
     ..hasIr(null)
     ..getIr(null);
+}
+
+useCompiler(dart2jslib.Compiler compiler) {
+  compiler.libraryLoader.reset();
+  compiler.libraryLoader.reuseLibrary(null);
 }

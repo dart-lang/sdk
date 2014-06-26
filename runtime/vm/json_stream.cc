@@ -216,6 +216,12 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
+void JSONStream::PrintValueNoEscape(const char* s) {
+  PrintCommaIfNeeded();
+  buffer_.Printf("%s", s);
+}
+
+
 void JSONStream::PrintfValue(const char* format, ...) {
   PrintCommaIfNeeded();
 
@@ -286,6 +292,12 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintPropertyNoEscape(const char* name, const char* s) {
+  PrintPropertyName(name);
+  PrintValueNoEscape(s);
 }
 
 

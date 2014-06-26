@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Exit code constants. From [the BSD sysexits manpage][manpage]. Not every
-/// constant here is used, even though some of the unused ones may be
-/// appropriate for errors encountered by pub.
+/// Exit code constants.
+///
+/// From [the BSD sysexits manpage][manpage]. Not every constant here is used,
+/// even though some of the unused ones may be appropriate for errors
+/// encountered by pub.
 ///
 /// [manpage]: http://www.freebsd.org/cgi/man.cgi?query=sysexits
 library pub.exit_codes;

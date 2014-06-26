@@ -4,6 +4,9 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_test.dart';
+
+import '../../../lib/src/exit_codes.dart' as exit_codes;
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
@@ -32,8 +35,8 @@ main() {
       d.libPubspec('zoo', '1.0.0')
     ]).commit();
 
-    pubUpgrade(error: new RegExp(r'"name" field "zoo" doesn' "'" r't match '
-        r'expected name "foo"\.'));
+    pubUpgrade(error: contains('"name" field doesn\'t match expected name '
+        '"foo".'), exitCode: exit_codes.DATA);
 
     d.dir(packagesPath, [
       d.dir('foo', [

@@ -639,18 +639,15 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Load IC data for the callee.
-      Array& ic_data_array = Array::Handle();
-
-      // IsInlineable above checked HasCode. Creating a Handle for the code
-      // should have kept GC from detaching, but let's assert just to make sure.
-      ASSERT(function.HasCode());
-      ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
+      ZoneGrowableArray<const ICData*>* ic_data_array =
+            new(isolate()) ZoneGrowableArray<const ICData*>();
+      function.RestoreICDataMap(ic_data_array);
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new(isolate()) InlineExitCollector(caller_graph_, call);
       FlowGraphBuilder builder(parsed_function,
-                               ic_data_array,
+                               *ic_data_array,
                                exit_collector,
                                Isolate::kNoDeoptId,
                                true);

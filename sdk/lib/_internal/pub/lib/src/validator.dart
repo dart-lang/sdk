@@ -20,18 +20,24 @@ import 'validator/size.dart';
 import 'validator/utf8_readme.dart';
 
 /// The base class for validators that check whether a package is fit for
-/// uploading. Each validator should override [errors], [warnings], or both to
-/// return lists of errors or warnings to display to the user. Errors will cause
-/// the package not to be uploaded; warnings will require the user to confirm
-/// the upload.
+/// uploading.
+///
+/// Each validator should override [errors], [warnings], or both to return
+/// lists of errors or warnings to display to the user. Errors will cause the
+/// package not to be uploaded; warnings will require the user to confirm the
+/// upload.
 abstract class Validator {
   /// The entrypoint that's being validated.
   final Entrypoint entrypoint;
 
-  /// The accumulated errors for this validator. Filled by calling [validate].
+  /// The accumulated errors for this validator.
+  ///
+  /// Filled by calling [validate].
   final errors = <String>[];
 
-  /// The accumulated warnings for this validator. Filled by calling [validate].
+  /// The accumulated warnings for this validator.
+  ///
+  /// Filled by calling [validate].
   final warnings = <String>[];
 
   Validator(this.entrypoint);
@@ -41,8 +47,8 @@ abstract class Validator {
   Future validate();
 
   /// Run all validators on the [entrypoint] package and print their results.
-  /// The future will complete with the error and warning messages,
-  /// respectively.
+  ///
+  /// The future completes with the error and warning messages, respectively.
   ///
   /// [packageSize], if passed, should complete to the size of the tarred
   /// package, in bytes. This is used to validate that it's not too big to

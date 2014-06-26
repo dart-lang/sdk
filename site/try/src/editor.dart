@@ -15,6 +15,7 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
 import 'ui.dart' show
     currentTheme,
     hackDiv,
+    interaction,
     mainEditorPane,
     observer,
     outputDiv;
@@ -32,6 +33,8 @@ import 'selection.dart' show
 
 import 'shadow_root.dart' show
     getShadowRoot;
+
+import 'settings.dart' as settings;
 
 const String INDENT = '\u{a0}\u{a0}';
 
@@ -150,20 +153,54 @@ addDiagnostic(String kind, String message, int begin, int end) {
       if (offset <= begin && begin < newOffset) {
         hasSelection = node == anchorNode;
         anchorOffset = selection.anchorOffset;
-        Node marker = new Text("");
-        node.replaceWith(marker);
-        // TODO(ahe): Don't highlight everything in the node.  Find the
-        // relevant token (works for now as we create a node for each token,
-        // which is probably not great for performance).
+        var alert;
         if (kind == 'error') {
-          marker.replaceWith(diagnostic(node, error(message)));
+          alert = error(message);
         } else if (kind == 'warning') {
-          marker.replaceWith(diagnostic(node, warning(message)));
+          alert = warning(message);
         } else {
-          marker.replaceWith(diagnostic(node, info(message)));
+          alert = info(message);
         }
-        if (hasSelection) {
-          selection.collapse(node, anchorOffset);
+        Element parent = node.parent;
+        if (parent.classes.contains("diagnostic") &&
+            !interaction.oldDiagnostics.contains(parent)) {
+          Element other = parent.lastChild;
+          other.remove();
+          SpanElement wrapper = new SpanElement();
+          wrapper.style
+              ..fontWeight = 'normal';
+          var root = getShadowRoot(wrapper);
+          if (root is ShadowRoot) {
+            // When https://code.google.com/p/chromium/issues/detail?id=313458
+            // is fixed:
+            // var link = new LinkElement()
+            //     ..rel = "stylesheet"
+            //     ..type = "text/css"
+            //     ..href = "dartlang-style.css";
+            // root.append(link);
+            root.append(
+                new StyleElement()..text = '@import url(dartlang-style.css)');
+          }
+          root
+              ..append(other)
+              ..append(alert);
+          other.style.display = 'block';
+          alert.style.display = 'block';
+          parent.append(wrapper);
+        } else {
+          if (interaction.oldDiagnostics.contains(parent)) {
+            node.remove();
+            parent.replaceWith(node);
+          }
+          Node marker = new Text("");
+          node.replaceWith(marker);
+          // TODO(ahe): Don't highlight everything in the node.  Find the
+          // relevant token (works for now as we create a node for each token,
+          // which is probably not great for performance).
+          marker.replaceWith(diagnostic(node, alert));
+          if (hasSelection) {
+            selection.collapse(node, anchorOffset);
+          }
         }
         foundNode = true;
         return;
@@ -216,7 +253,11 @@ Decoration getDecoration(Token token) {
   if (tokenInfo == 'string') return currentTheme.string;
   if (tokenInfo == 'identifier') {
     seenIdentifiers.add(tokenValue);
-    return CodeCompletionDecoration.from(currentTheme.foreground);
+    Decoration decoration = currentTheme.foreground;
+    if (settings.enableCodeCompletion.value) {
+      decoration = CodeCompletionDecoration.from(decoration);
+    }
+    return decoration;
   }
   if (tokenInfo == 'keyword') return currentTheme.keyword;
   if (tokenInfo == 'comment') return currentTheme.singleLineComment;

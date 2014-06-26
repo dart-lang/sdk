@@ -12,14 +12,15 @@ import 'dart:io' show Platform;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
-import '../../../sdk/lib/_internal/compiler/implementation/dart2js.dart' as entry;
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' as apiimpl;
-import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/implementation/dart2js.dart' as entry;
+import 'package:compiler/implementation/dart2jslib.dart';
+import 'package:compiler/implementation/apiimpl.dart' as apiimpl;
+import 'package:compiler/implementation/elements/elements.dart';
+import 'package:compiler/implementation/library_loader.dart';
+import 'package:compiler/implementation/resolution/resolution.dart';
+import 'package:compiler/implementation/scanner/scannerlib.dart';
+import 'package:compiler/implementation/util/util.dart';
 
 class TestCompiler extends apiimpl.Compiler {
   final String testMarker;
@@ -48,14 +49,14 @@ class TestCompiler extends apiimpl.Compiler {
     return super.run(uri);
   }
 
-  Future scanBuiltinLibraries() {
-    test('Compiler.scanBuiltinLibraries');
-    return super.scanBuiltinLibraries();
+  Future onLibraryScanned(LibraryElement element, LibraryLoader loader) {
+    test('Compiler.onLibraryScanned');
+    return super.onLibraryScanned(element, loader);
   }
 
-  void initializeSpecialClasses() {
-    test('Compiler.initializeSpecialClasses');
-    super.initializeSpecialClasses();
+  Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    test('Compiler.onLibrariesLoaded');
+    return super.onLibrariesLoaded(loadedLibraries);
   }
 
   TreeElements analyzeElement(Element element) {
@@ -248,8 +249,8 @@ void main() {
   final tests = {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
-    'Compiler.scanBuiltinLibraries': beforeRun,
-    'Compiler.initializeSpecialClasses': beforeRun,
+    'Compiler.onLibraryScanned': beforeRun,
+    'Compiler.onLibrariesLoaded': beforeRun,
     'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.analyzeElement': duringRun,

@@ -11,7 +11,9 @@ import 'package:barback/barback.dart';
 import 'package:source_maps/span.dart';
 
 import 'serialize/exception.dart';
+import 'utils.dart';
 
+export 'serialize/aggregate_transform.dart';
 export 'serialize/exception.dart';
 export 'serialize/transform.dart';
 export 'serialize/transformer.dart';
@@ -59,6 +61,60 @@ Location deserializeLocation(Map location) {
   assert(location['type'] == 'fixed');
   return new FixedLocation(location['offset'], location['sourceUrl'],
       location['line'], location['column']);
+}
+
+/// Converts [stream] into a serializable map.
+///
+/// [serializeEvent] is used to serialize each event from the stream.
+Map serializeStream(Stream stream, serializeEvent(event)) {
+  var receivePort = new ReceivePort();
+  var map = {'replyTo': receivePort.sendPort};
+
+  receivePort.first.then((message) {
+    var sendPort = message['replyTo'];
+    stream.listen((event) {
+      sendPort.send({
+        'type': 'event',
+        'value': serializeEvent(event)
+      });
+    }, onError: (error, stackTrace) {
+      sendPort.send({
+        'type': 'error',
+        'error': serializeException(error, stackTrace)
+      });
+    }, onDone: () => sendPort.send({'type': 'done'}));
+  });
+
+  return map;
+}
+
+/// Converts a serializable map into a [Stream].
+///
+/// [deserializeEvent] is used to deserialize each event from the stream.
+Stream deserializeStream(Map stream, deserializeEvent(event)) {
+  return callbackStream(() {
+    var receivePort = new ReceivePort();
+    stream['replyTo'].send({'replyTo': receivePort.sendPort});
+
+    var controller = new StreamController(sync: true);
+    receivePort.listen((event) {
+      switch (event['type']) {
+        case 'event':
+          controller.add(deserializeEvent(event['value']));
+          break;
+        case 'error':
+          var exception = deserializeException(event['error']);
+          controller.addError(exception, exception.stackTrace);
+          break;
+        case 'done':
+          controller.close();
+          receivePort.close();
+          break;
+      }
+    });
+
+    return controller.stream;
+  });
 }
 
 /// Wraps [message] and sends it across [port], then waits for a response which

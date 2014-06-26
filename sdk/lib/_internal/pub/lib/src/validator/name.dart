@@ -53,7 +53,7 @@ class NameValidator extends Validator {
   List<String> get _libraries {
     var libDir = path.join(entrypoint.root.dir, "lib");
     if (!dirExists(libDir)) return [];
-    return listDir(libDir, recursive: true)
+    return entrypoint.root.listFiles(beneath: libDir)
         .map((file) => path.relative(file, from: path.dirname(libDir)))
         .where((file) => !path.split(file).contains("src") &&
                          path.extension(file) == '.dart')

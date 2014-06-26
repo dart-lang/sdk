@@ -8,14 +8,14 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+import 'package:compiler/implementation/dart2jslib.dart'
        show NullSink;
 
-import '../../../sdk/lib/_internal/compiler/compiler.dart'
+import 'package:compiler/compiler.dart'
        show Diagnostic;
 
 import 'dart:async';
-import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
+import 'package:compiler/implementation/js_backend/js_backend.dart'
        show JavaScriptBackend;
 
 main() {

@@ -27,7 +27,7 @@ $endif
 $!GENERATED_DART_FILES
 $if DART_USE_BLINK
 // FIXME: Can we make this private?
-const web_sqlBlinkMap = const {
+final web_sqlBlinkMap = {
 $!TYPE_MAP
 };
 $endif

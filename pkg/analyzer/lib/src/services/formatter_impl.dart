@@ -425,7 +425,6 @@ class SourceVisitor implements AstVisitor {
     token(node.leftParenthesis);
     breakableNonSpace();
     visitCommaSeparatedNodes(node.arguments);
-    breakableNonSpace();
     token(node.rightParenthesis);
   }
 
@@ -808,7 +807,8 @@ class SourceVisitor implements AstVisitor {
     for (var i = 0; i < size; i++) {
       var parameter = parameters[i];
       if (i > 0) {
-        append(', ');
+        append(',');
+        space();
       }
       if (groupEnd == null && parameter is DefaultFormalParameter) {
         if (identical(parameter.kind, ParameterKind.NAMED)) {
@@ -1030,7 +1030,7 @@ class SourceVisitor implements AstVisitor {
 
   visitMapLiteral(MapLiteral node) {
     modifier(node.constKeyword);
-    visitNode(node.typeArguments, followedBy: space);
+    visitNode(node.typeArguments);
     token(node.leftBracket);
     if (!node.entries.isEmpty) {
       newlines();
@@ -1061,7 +1061,7 @@ class SourceVisitor implements AstVisitor {
     if (!node.isGetter) {
       visit(node.parameters);
     }
-    visitPrefixedBody(space, node.body);
+    visitPrefixedBody(nonBreakingSpace, node.body);
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1180,7 +1180,7 @@ class SourceVisitor implements AstVisitor {
   visitSimpleFormalParameter(SimpleFormalParameter node) {
     visitMemberMetadata(node.metadata);
     modifier(node.keyword);
-    visitNode(node.type, followedBy: space);
+    visitNode(node.type, followedBy: nonBreakingSpace);
     visit(node.identifier);
   }
 
@@ -1686,6 +1686,10 @@ class SourceVisitor implements AstVisitor {
   }
 
 
+  /// Test if this EOL [comment] is at the beginning of a line.
+  bool isAtBOL(Token comment) =>
+      lineInfo.getLocation(comment.offset).columnNumber == 1;
+
   /// Test if this [comment] is at the end of a line.
   bool isAtEOL(Token comment) =>
       comment != null && comment.toString().trim().startsWith(twoSlashes) &&
@@ -1699,6 +1703,11 @@ class SourceVisitor implements AstVisitor {
       if (ws > 0 && leadingSpaces == 0) {
         space();
       }
+    }
+
+    // Don't indent commented-out lines
+    if (isAtBOL(comment)) {
+      writer.currentLine.clear();
     }
 
     append(comment.toString().trim());

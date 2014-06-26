@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:mirrors";
-import "package:expect/expect.dart";
+import "lru_expect.dart";
 
 newLRUMapWithShift(int shift) {
   var lib = currentMirrorSystem().libraries[Uri.parse("dart:_internal")];
@@ -12,23 +12,5 @@ newLRUMapWithShift(int shift) {
 }
 
 main() {
-  Expect.throws(() => newLRUMapWithShift(0), (e) => e is Exception);
-
-  for (int shift = 1; shift < 5; shift++) {
-    var map = newLRUMapWithShift(shift);
-    var capacity = (1 << shift) * 3 ~/ 4;
-    for (int value = 0; value < 100; value++) {
-      var key = "$value";
-      map[key] = value;
-      Expect.equals(value, map[key]);
-    }
-    for (int value = 0; value < 100 - capacity - 1; value++) {
-      var key = "$value";
-      Expect.equals(null, map[key]);
-    }
-    for (int value = 100 - capacity; value < 100; value++) {
-      var key = "$value";
-      Expect.equals(value, map[key]);
-    }
-  }
+  expect(newLRUMapWithShift);
 }

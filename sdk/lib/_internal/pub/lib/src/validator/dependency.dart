@@ -90,7 +90,7 @@ class DependencyValidator extends Validator {
             'future versions of "${dep.name}".');
   }
 
-  // Warn that dependencies should allow more than a single version.
+  /// Warn that dependencies should allow more than a single version.
   void _warnAboutSingleVersionConstraint(PackageDep dep) {
     warnings.add(
         'Your dependency on "${dep.name}" should allow more than one version. '
@@ -104,7 +104,7 @@ class DependencyValidator extends Validator {
         'along with other packages that also depend on "${dep.name}".');
   }
 
-  // Warn that dependencies should have lower bounds on their constraints.
+  /// Warn that dependencies should have lower bounds on their constraints.
   void _warnAboutNoConstraintLowerBound(PackageDep dep) {
     var message = 'Your dependency on "${dep.name}" should have a lower bound.';
     var locked = entrypoint.loadLockFile().packages[dep.name];
@@ -126,7 +126,7 @@ class DependencyValidator extends Validator {
             'previous versions of "${dep.name}".');
   }
 
-  // Warn that dependencies should have upper bounds on their constraints.
+  /// Warn that dependencies should have upper bounds on their constraints.
   void _warnAboutNoConstraintUpperBound(PackageDep dep) {
     warnings.add(
         'Your dependency on "${dep.name}" should have an upper bound. For '

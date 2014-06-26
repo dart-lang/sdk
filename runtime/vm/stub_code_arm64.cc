@@ -230,12 +230,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(R26, CSP);
   __ mov(CSP, SP);
 
-  // Call native function (setsup scope if not leaf function).
-  Label leaf_call;
-  Label done;
-  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask(), kNoPP);
-  __ b(&leaf_call, EQ);
-
   __ mov(R1, R5);  // Pass the function entrypoint to call.
   // Call native function invocation wrapper or redirection via simulator.
 #if defined(USING_SIMULATOR)
@@ -247,13 +241,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNoPP);
 #endif
-  __ b(&done);
 
-  __ Bind(&leaf_call);
-  // Call native function or redirection via simulator.
-  __ blr(R5);
-
-  __ Bind(&done);
   // Restore SP and CSP.
   __ mov(SP, CSP);
   __ mov(CSP, R26);
@@ -1305,9 +1293,11 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ Pop(R6);  // Restore.
     __ LeaveStubFrame();
   }
-  __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ LoadFieldFromOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
   __ add(R7, R7, Operand(1));
-  __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ StoreFieldToOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
 }
 
 
@@ -1318,9 +1308,11 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
   Register func_reg = temp_reg;
   ASSERT(temp_reg == R6);
   __ LoadFieldFromOffset(func_reg, ic_reg, ICData::owner_offset(), kNoPP);
-  __ LoadFieldFromOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ LoadFieldFromOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
   __ AddImmediate(R7, R7, 1, kNoPP);
-  __ StoreFieldToOffset(R7, func_reg, Function::usage_counter_offset(), kNoPP);
+  __ StoreFieldToOffset(
+      R7, func_reg, Function::usage_counter_offset(), kNoPP, kWord);
 }
 
 
@@ -1373,7 +1365,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset(), kNoPP);
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found, get_class_id_as_smi;
+  Label loop, update, test, found;
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset(), kNoPP);
   // R6: ic_data_array with check entries: classes and target functions.
@@ -1388,23 +1380,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // R0 <- [SP + (R7 << 3)]
   __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-
-  {
-    // TODO(zra): Put this code in a subroutine call as with other architectures
-    // when we have a bl(Label& l) instruction.
-    // Instance in R0, return its class-id in R0 as Smi.
-    // Test if Smi -> load Smi class for comparison.
-    Label not_smi, done;
-    __ tsti(R0, kSmiTagMask);
-    __ b(&not_smi, NE);
-    __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-    __ b(&done);
-
-    __ Bind(&not_smi);
-    __ LoadClassId(R0, R0, kNoPP);
-    __ SmiTag(R0);
-    __ Bind(&done);
-  }
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
   // R7: argument_count - 1 (untagged).
   // R0: receiver's class ID (smi).
@@ -1418,20 +1394,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       __ AddImmediate(R0, R7, -i, kNoPP);
       // R0 <- [SP + (R0 << 3)]
       __ ldr(R0, Address(SP, R0, UXTX, Address::Scaled));
-      {
-        // Instance in R0, return its class-id in R0 as Smi.
-        // Test if Smi -> load Smi class for comparison.
-        Label not_smi, done;
-        __ tsti(R0, kSmiTagMask);
-        __ b(&not_smi, NE);
-        __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-        __ b(&done);
-
-        __ Bind(&not_smi);
-        __ LoadClassId(R0, R0, kNoPP);
-        __ SmiTag(R0);
-        __ Bind(&done);
-      }
+      __ LoadTaggedClassIdMayBeSmi(R0, R0);
       // R0: next argument class ID (smi).
       __ LoadFromOffset(R1, R6, i * kWordSize, kNoPP);
       // R1: next class ID to check (smi).
@@ -1448,20 +1411,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-    {
-      // Instance in R0, return its class-id in R0 as Smi.
-      // Test if Smi -> load Smi class for comparison.
-      Label not_smi, done;
-      __ tsti(R0, kSmiTagMask);
-      __ b(&not_smi, NE);
-      __ LoadImmediate(R0, Smi::RawValue(kSmiCid), kNoPP);
-      __ b(&done);
-
-      __ Bind(&not_smi);
-      __ LoadClassId(R0, R0, kNoPP);
-      __ SmiTag(R0);
-      __ Bind(&done);
-    }
+    __ LoadTaggedClassIdMayBeSmi(R0, R0);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1583,7 +1533,8 @@ void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
 
 
 void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  __ Stop("GenerateClosureCallInlineCacheStub");
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
 }
 
 
@@ -1731,8 +1682,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
     __ LoadObject(R4, Object::null_object(), PP);
-    __ LoadFieldFromOffset(
-        R5, R3, Class::type_arguments_field_offset_in_words_offset(), kNoPP);
+    __ LoadFieldFromOffset(R5, R3,
+        Class::type_arguments_field_offset_in_words_offset(), kNoPP, kWord);
     __ CompareImmediate(R5, Class::kNoTypeArguments, kNoPP);
     __ b(&has_no_type_arguments, EQ);
     __ add(R5, R0, Operand(R5, LSL, 3));
@@ -1830,8 +1781,23 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
+// Jump to the exception or error handler.
+// LR: return address.
+// R0: program_counter.
+// R1: stack_pointer.
+// R2: frame_pointer.
+// R3: error object.
+// R4: address of stacktrace object.
+// Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  __ Stop("GenerateJumpToExceptionHandlerStub");
+  ASSERT(kExceptionObjectReg == R0);
+  ASSERT(kStackTraceObjectReg == R1);
+  __ mov(LR, R0);  // Program counter.
+  __ mov(SP, R1);  // Stack pointer.
+  __ mov(FP, R2);  // Frame_pointer.
+  __ mov(R0, R3);  // Exception object.
+  __ mov(R1, R4);  // StackTrace object.
+  __ ret();  // Jump to the exception handler code.
 }
 
 
@@ -1852,7 +1818,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag, PP);
   __ LeaveStubFrame();
   __ br(R0);
-  __ hlt(0);
+  __ brk(0);
 }
 
 

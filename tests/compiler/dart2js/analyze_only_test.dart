@@ -10,7 +10,7 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
-import '../../../sdk/lib/_internal/compiler/compiler.dart';
+import 'package:compiler/compiler.dart';
 
 runCompiler(String main, List<String> options,
             onValue(String code, List errors, List warnings)) {
@@ -44,7 +44,7 @@ runCompiler(String main, List<String> options,
   result.then((String code) {
     onValue(code, errors, warnings);
   }, onError: (e) {
-      throw 'Compilation failed';
+    throw 'Compilation failed: ${Error.safeToString(e)}';
   }).then(asyncSuccess);
 }
 

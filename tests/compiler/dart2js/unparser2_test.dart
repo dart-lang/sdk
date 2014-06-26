@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
+import "package:compiler/implementation/scanner/scannerlib.dart";
+import "package:compiler/implementation/tree/tree.dart";
 
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+import "package:compiler/implementation/dart2jslib.dart"
     show DiagnosticListener,
          Script;
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+import "package:compiler/implementation/elements/elements.dart"
     show CompilationUnitElement,
          LibraryElement;
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart"
+import "package:compiler/implementation/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 

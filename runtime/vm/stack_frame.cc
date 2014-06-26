@@ -12,6 +12,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/raw_object.h"
+#include "vm/reusable_handles.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
 
@@ -196,23 +197,28 @@ RawCode* StackFrame::GetCodeObject() const {
 }
 
 
-bool StackFrame::FindExceptionHandler(uword* handler_pc,
+bool StackFrame::FindExceptionHandler(Isolate* isolate,
+                                      uword* handler_pc,
                                       bool* needs_stacktrace,
                                       bool* has_catch_all) const {
-  Isolate* isolate = Isolate::Current();
-  Code& code = Code::Handle(isolate, LookupDartCode());
+  REUSABLE_CODE_HANDLESCOPE(isolate);
+  Code& code = reused_code_handle.Handle();
+  code = LookupDartCode();
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
 
-  ExceptionHandlers& handlers =
-      ExceptionHandlers::Handle(isolate, code.exception_handlers());
+  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate);
+  ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
+  handlers = code.exception_handlers();
   if (handlers.Length() == 0) {
     return false;
   }
+
   // Find pc descriptor for the current pc.
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(isolate, code.pc_descriptors());
+  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(isolate);
+  PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
+  descriptors = code.pc_descriptors();
   const intptr_t len = descriptors.Length();
   for (intptr_t i = 0; i < len; i++) {
     if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&

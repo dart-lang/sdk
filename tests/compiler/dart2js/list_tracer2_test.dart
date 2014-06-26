@@ -7,8 +7,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import
-    '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+import 'package:compiler/implementation/types/types.dart'
     show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';

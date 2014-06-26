@@ -43,3 +43,24 @@ final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
 /// [toString], so we remove that if it exists.
 String getErrorMessage(error) =>
     error.toString().replaceFirst(_exceptionPrefix, '');
+
+/// Returns a [StreamSink] that wraps [sink] and maps each event added using
+/// [callback].
+StreamSink mapStreamSink(StreamSink sink, callback(event)) =>
+    new _MappedStreamSink(sink, callback);
+
+/// A [StreamSink] wrapper that maps each event added to the sink.
+class _MappedStreamSink implements StreamSink {
+  final StreamSink _inner;
+  final Function _callback;
+
+  Future get done => _inner.done;
+
+  _MappedStreamSink(this._inner, this._callback);
+
+  void add(event) => _inner.add(_callback(event));
+  void addError(error, [StackTrace stackTrace]) =>
+      _inner.addError(error, stackTrace);
+  Future addStream(Stream stream) => _inner.addStream(stream.map(_callback));
+  Future close() => _inner.close();
+}

@@ -192,7 +192,7 @@ if (typeof WeakMap === 'undefined') {
     return obj === Object(obj);
   }
 
-  var numberIsNaN = global.Number.isNaN || function isNaN(value) {
+  var numberIsNaN = global.Number.isNaN || function(value) {
     return typeof value === 'number' && global.isNaN(value);
   }
 
@@ -221,45 +221,194 @@ if (typeof WeakMap === 'undefined') {
 
   var identStart = '[\$_a-zA-Z]';
   var identPart = '[\$_a-zA-Z0-9]';
-  var ident = identStart + '+' + identPart + '*';
-  var elementIndex = '(?:[0-9]|[1-9]+[0-9]+)';
-  var identOrElementIndex = '(?:' + ident + '|' + elementIndex + ')';
-  var path = '(?:' + identOrElementIndex + ')(?:\\s*\\.\\s*' + identOrElementIndex + ')*';
-  var pathRegExp = new RegExp('^' + path + '$');
+  var identRegExp = new RegExp('^' + identStart + '+' + identPart + '*' + '$');
 
-  function isPathValid(s) {
-    if (typeof s != 'string')
-      return false;
-    s = s.trim();
+  function getPathCharType(char) {
+    if (char === undefined)
+      return 'eof';
 
-    if (s == '')
-      return true;
+    var code = char.charCodeAt(0);
 
-    if (s[0] == '.')
-      return false;
+    switch(code) {
+      case 0x5B: // [
+      case 0x5D: // ]
+      case 0x2E: // .
+      case 0x22: // "
+      case 0x27: // '
+      case 0x30: // 0
+        return char;
 
-    return pathRegExp.test(s);
+      case 0x5F: // _
+      case 0x24: // $
+        return 'ident';
+
+      case 0x20: // Space
+      case 0x09: // Tab
+      case 0x0A: // Newline
+      case 0x0D: // Return
+      case 0xA0:  // No-break space
+      case 0xFEFF:  // Byte Order Mark
+      case 0x2028:  // Line Separator
+      case 0x2029:  // Paragraph Separator
+        return 'ws';
+    }
+
+    // a-z, A-Z
+    if ((0x61 <= code && code <= 0x7A) || (0x41 <= code && code <= 0x5A))
+      return 'ident';
+
+    // 1-9
+    if (0x31 <= code && code <= 0x39)
+      return 'number';
+
+    return 'else';
+  }
+
+  var pathStateMachine = {
+    'beforePath': {
+      'ws': ['beforePath'],
+      'ident': ['inIdent', 'append'],
+      '[': ['beforeElement'],
+      'eof': ['afterPath']
+    },
+
+    'inPath': {
+      'ws': ['inPath'],
+      '.': ['beforeIdent'],
+      '[': ['beforeElement'],
+      'eof': ['afterPath']
+    },
+
+    'beforeIdent': {
+      'ws': ['beforeIdent'],
+      'ident': ['inIdent', 'append']
+    },
+
+    'inIdent': {
+      'ident': ['inIdent', 'append'],
+      '0': ['inIdent', 'append'],
+      'number': ['inIdent', 'append'],
+      'ws': ['inPath', 'push'],
+      '.': ['beforeIdent', 'push'],
+      '[': ['beforeElement', 'push'],
+      'eof': ['afterPath', 'push']
+    },
+
+    'beforeElement': {
+      'ws': ['beforeElement'],
+      '0': ['afterZero', 'append'],
+      'number': ['inIndex', 'append'],
+      "'": ['inSingleQuote', 'append', ''],
+      '"': ['inDoubleQuote', 'append', '']
+    },
+
+    'afterZero': {
+      'ws': ['afterElement', 'push'],
+      ']': ['inPath', 'push']
+    },
+
+    'inIndex': {
+      '0': ['inIndex', 'append'],
+      'number': ['inIndex', 'append'],
+      'ws': ['afterElement'],
+      ']': ['inPath', 'push']
+    },
+
+    'inSingleQuote': {
+      "'": ['afterElement'],
+      'eof': ['error'],
+      'else': ['inSingleQuote', 'append']
+    },
+
+    'inDoubleQuote': {
+      '"': ['afterElement'],
+      'eof': ['error'],
+      'else': ['inDoubleQuote', 'append']
+    },
+
+    'afterElement': {
+      'ws': ['afterElement'],
+      ']': ['inPath', 'push']
+    }
+  }
+
+  function noop() {}
+
+  function parsePath(path) {
+    var keys = [];
+    var index = -1;
+    var c, newChar, key, type, transition, action, typeMap, mode = 'beforePath';
+
+    var actions = {
+      push: function() {
+        if (key === undefined)
+          return;
+
+        keys.push(key);
+        key = undefined;
+      },
+
+      append: function() {
+        if (key === undefined)
+          key = newChar
+        else
+          key += newChar;
+      }
+    };
+
+    function maybeUnescapeQuote() {
+      if (index >= path.length)
+        return;
+
+      var nextChar = path[index + 1];
+      if ((mode == 'inSingleQuote' && nextChar == "'") ||
+          (mode == 'inDoubleQuote' && nextChar == '"')) {
+        index++;
+        newChar = nextChar;
+        actions.append();
+        return true;
+      }
+    }
+
+    while (mode) {
+      index++;
+      c = path[index];
+
+      if (c == '\\' && maybeUnescapeQuote(mode))
+        continue;
+
+      type = getPathCharType(c);
+      typeMap = pathStateMachine[mode];
+      transition = typeMap[type] || typeMap['else'] || 'error';
+
+      if (transition == 'error')
+        return; // parse error;
+
+      mode = transition[0];
+      action = actions[transition[1]] || noop;
+      newChar = transition[2] === undefined ? c : transition[2];
+      action();
+
+      if (mode === 'afterPath') {
+        return keys;
+      }
+    }
+
+    return; // parse error
+  }
+
+  function isIdent(s) {
+    return identRegExp.test(s);
   }
 
   var constructorIsPrivate = {};
 
-  function Path(s, privateToken) {
+  function Path(parts, privateToken) {
     if (privateToken !== constructorIsPrivate)
       throw Error('Use Path.get to retrieve path objects');
 
-    if (s.trim() == '')
-      return this;
-
-    if (isIndex(s)) {
-      this.push(s);
-      return this;
-    }
-
-    s.split(/\s*\.\s*/).filter(function(part) {
-      return part;
-    }).forEach(function(part) {
-      this.push(part);
-    }, this);
+    if (parts.length)
+      Array.prototype.push.apply(this, parts.slice());
 
     if (hasEval && this.length) {
       this.getValueFrom = this.compiledGetValueFromFn();
@@ -273,30 +422,57 @@ if (typeof WeakMap === 'undefined') {
     if (pathString instanceof Path)
       return pathString;
 
-    if (pathString == null)
+    if (pathString == null || pathString.length == 0)
       pathString = '';
 
-    if (typeof pathString !== 'string')
+    if (typeof pathString != 'string') {
+      if (isIndex(pathString.length)) {
+        // Constructed with array-like (pre-parsed) keys
+        return new Path(pathString, constructorIsPrivate);
+      }
+
       pathString = String(pathString);
+    }
 
     var path = pathCache[pathString];
     if (path)
       return path;
-    if (!isPathValid(pathString))
+
+    var parts = parsePath(pathString);
+    if (!parts)
       return invalidPath;
-    var path = new Path(pathString, constructorIsPrivate);
+
+    var path = new Path(parts, constructorIsPrivate);
     pathCache[pathString] = path;
     return path;
   }
 
   Path.get = getPath;
 
+  function formatAccessor(key) {
+    if (isIndex(key)) {
+      return '[' + key + ']';
+    } else {
+      return '["' + key.replace(/"/g, '\\"') + '"]';
+    }
+  }
+
   Path.prototype = createObject({
     __proto__: [],
     valid: true,
 
     toString: function() {
-      return this.join('.');
+      var pathString = '';
+      for (var i = 0; i < this.length; i++) {
+        var key = this[i];
+        if (isIdent(key)) {
+          pathString += i ? '.' + key : key;
+        } else {
+          pathString += formatAccessor(key);
+        }
+      }
+
+      return pathString;
     },
 
     getValueFrom: function(obj, directObserver) {
@@ -319,22 +495,20 @@ if (typeof WeakMap === 'undefined') {
     },
 
     compiledGetValueFromFn: function() {
-      var accessors = this.map(function(ident) {
-        return isIndex(ident) ? '["' + ident + '"]' : '.' + ident;
-      });
-
       var str = '';
       var pathString = 'obj';
       str += 'if (obj != null';
       var i = 0;
+      var key;
       for (; i < (this.length - 1); i++) {
-        var ident = this[i];
-        pathString += accessors[i];
+        key = this[i];
+        pathString += isIdent(key) ? '.' + key : formatAccessor(key);
         str += ' &&\n     ' + pathString + ' != null';
       }
       str += ')\n';
 
-      pathString += accessors[i];
+      var key = this[i];
+      pathString += isIdent(key) ? '.' + key : formatAccessor(key);
 
       str += '  return ' + pathString + ';\nelse\n  return undefined;';
       return new Function('obj', str);
@@ -935,6 +1109,10 @@ if (typeof WeakMap === 'undefined') {
   PathObserver.prototype = createObject({
     __proto__: Observer.prototype,
 
+    get path() {
+      return this.path_;
+    },
+
     connect_: function() {
       if (hasObserve)
         this.directObserver_ = getObservedSet(this, this.object_);
@@ -961,7 +1139,7 @@ if (typeof WeakMap === 'undefined') {
       if (skipChanges || areSameValue(this.value_, oldValue))
         return false;
 
-      this.report_([this.value_, oldValue]);
+      this.report_([this.value_, oldValue, this]);
       return true;
     },
 
@@ -1170,98 +1348,6 @@ if (typeof WeakMap === 'undefined') {
     update: true,
     delete: true
   };
-
- var updateRecord = {
-    object: undefined,
-    type: 'update',
-    name: undefined,
-    oldValue: undefined
-  };
-
-  function notify(object, name, value, oldValue) {
-    if (areSameValue(value, oldValue))
-      return;
-
-    // TODO(rafaelw): Hack hack hack. This entire code really needs to move
-    // out of observe-js into polymer.
-    if (typeof object.propertyChanged_ == 'function')
-      object.propertyChanged_(name, value, oldValue);
-
-    if (!hasObserve)
-      return;
-
-    var notifier = object.notifier_;
-    if (!notifier)
-      notifier = object.notifier_ = Object.getNotifier(object);
-
-    updateRecord.object = object;
-    updateRecord.name = name;
-    updateRecord.oldValue = oldValue;
-
-    notifier.notify(updateRecord);
-  }
-
-  Observer.createBindablePrototypeAccessor = function(proto, name) {
-    var privateName = name + '_';
-    var privateObservable  = name + 'Observable_';
-
-    proto[privateName] = proto[name];
-
-    Object.defineProperty(proto, name, {
-      get: function() {
-        var observable = this[privateObservable];
-        if (observable)
-          observable.deliver();
-
-        return this[privateName];
-      },
-      set: function(value) {
-        var observable = this[privateObservable];
-        if (observable) {
-          observable.setValue(value);
-          return;
-        }
-
-        var oldValue = this[privateName];
-        this[privateName] = value;
-        notify(this, name, value, oldValue);
-
-        return value;
-      },
-      configurable: true
-    });
-  }
-
-  Observer.bindToInstance = function(instance, name, observable, resolveFn) {
-    var privateName = name + '_';
-    var privateObservable  = name + 'Observable_';
-
-    instance[privateObservable] = observable;
-    var oldValue = instance[privateName];
-    var value = observable.open(function(value, oldValue) {
-      instance[privateName] = value;
-      notify(instance, name, value, oldValue);
-    });
-
-    if (resolveFn && !areSameValue(oldValue, value)) {
-      var resolvedValue = resolveFn(oldValue, value);
-      if (!areSameValue(value, resolvedValue)) {
-        value = resolvedValue;
-        if (observable.setValue)
-          observable.setValue(value);
-      }
-    }
-
-    instance[privateName] = value;
-    notify(instance, name, value, oldValue);
-
-    return {
-      close: function() {
-        observable.close();
-        instance[privateObservable] = undefined;
-      }
-    };
-  }
 
   function diffObjectFromChangeRecords(object, changeRecords, oldValues) {
     var added = {};
@@ -3044,7 +3130,11 @@ window.ShadowDOMPolyfill = {};
     targetTable.set(event, target);
     currentTargetTable.set(event, currentTarget);
 
-    for (var i = 0; i < listeners.length; i++) {
+    // Keep track of the invoke depth so that we only clean up the removed
+    // listeners if we are in the outermost invoke.
+    listeners.depth++;
+
+    for (var i = 0, len = listeners.length; i < len; i++) {
       var listener = listeners[i];
       if (listener.removed) {
         anyRemoved = true;
@@ -3072,7 +3162,9 @@ window.ShadowDOMPolyfill = {};
       }
     }
 
-    if (anyRemoved) {
+    listeners.depth--;
+
+    if (anyRemoved && listeners.depth === 0) {
       var copy = listeners.slice();
       listeners.length = 0;
       for (var i = 0; i < copy.length; i++) {
@@ -3137,25 +3229,11 @@ window.ShadowDOMPolyfill = {};
       return eventPhaseTable.get(this);
     },
     get path() {
-      var nodeList = new wrappers.NodeList();
       var eventPath = eventPathTable.get(this);
-      if (eventPath) {
-        var index = 0;
-        var lastIndex = eventPath.length - 1;
-        var baseRoot = getTreeScope(currentTargetTable.get(this));
-
-        for (var i = 0; i <= lastIndex; i++) {
-          var currentTarget = eventPath[i];
-          var currentRoot = getTreeScope(currentTarget);
-          if (currentRoot.contains(baseRoot) &&
-              // Make sure we do not add Window to the path.
-              (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
-            nodeList[index++] = currentTarget;
-          }
-        }
-        nodeList.length = index;
-      }
-      return nodeList;
+      if (!eventPath)
+        return [];
+      // TODO(arv): Event path should contain window.
+      return eventPath.slice();
     },
     stopPropagation: function() {
       stopPropagationTable.set(this, true);
@@ -3383,6 +3461,7 @@ window.ShadowDOMPolyfill = {};
       var listeners = listenersTable.get(this);
       if (!listeners) {
         listeners = [];
+        listeners.depth = 0;
         listenersTable.set(this, listeners);
       } else {
         // Might have a duplicate.
@@ -3491,6 +3570,15 @@ window.ShadowDOMPolyfill = {};
     if (!element)
       return null;
     var path = getEventPath(element, null);
+
+    // scope the path to this TreeScope
+    var idx = path.lastIndexOf(self);
+    if (idx == -1)
+      return null;
+    else
+      path = path.slice(0, idx);
+
+    // TODO(dfreedm): pass idx to eventRetargetting to avoid array copy
     return eventRetargetting(path, self);
   }
 
@@ -4448,7 +4536,7 @@ window.ShadowDOMPolyfill = {};
         } else {
           if (modNode && remNodes.length) {
             modNode.data += s;
-            cleanUpNodes(remNodes);
+            cleanupNodes(remNodes);
           }
           remNodes = [];
           s = '';
@@ -4766,6 +4854,53 @@ window.ShadowDOMPolyfill = {};
   scope.wrappers.Text = Text;
 })(window.ShadowDOMPolyfill);
 
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  function invalidateClass(el) {
+    scope.invalidateRendererBasedOnAttribute(el, 'class');
+  }
+
+  function DOMTokenList(impl, ownerElement) {
+    this.impl = impl;
+    this.ownerElement_ = ownerElement;
+  }
+
+  DOMTokenList.prototype = {
+    get length() {
+      return this.impl.length;
+    },
+    item: function(index) {
+      return this.impl.item(index);
+    },
+    contains: function(token) {
+      return this.impl.contains(token);
+    },
+    add: function() {
+      this.impl.add.apply(this.impl, arguments);
+      invalidateClass(this.ownerElement_);
+    },
+    remove: function() {
+      this.impl.remove.apply(this.impl, arguments);
+      invalidateClass(this.ownerElement_);
+    },
+    toggle: function(token) {
+      var rv = this.impl.toggle.apply(this.impl, arguments);
+      invalidateClass(this.ownerElement_);
+      return rv;
+    },
+    toString: function() {
+      return this.impl.toString();
+    }
+  };
+
+  scope.wrappers.DOMTokenList = DOMTokenList;
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4776,6 +4911,7 @@ window.ShadowDOMPolyfill = {};
   var ChildNodeInterface = scope.ChildNodeInterface;
   var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
+  var DOMTokenList = scope.wrappers.DOMTokenList;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
@@ -4783,6 +4919,7 @@ window.ShadowDOMPolyfill = {};
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
   var wrappers = scope.wrappers;
 
   var OriginalElement = window.Element;
@@ -4822,6 +4959,8 @@ window.ShadowDOMPolyfill = {};
     });
   }
 
+  var classListTable = new WeakMap();
+
   function Element(node) {
     Node.call(this, node);
   }
@@ -4859,6 +4998,31 @@ window.ShadowDOMPolyfill = {};
 
     matches: function(selector) {
       return originalMatches.call(this.impl, selector);
+    },
+
+    get classList() {
+      var list = classListTable.get(this);
+      if (!list) {
+        classListTable.set(this,
+            list = new DOMTokenList(unwrap(this).classList, this));
+      }
+      return list;
+    },
+
+    get className() {
+      return unwrap(this).className;
+    },
+
+    set className(v) {
+      this.setAttribute('class', v);
+    },
+
+    get id() {
+      return unwrap(this).id;
+    },
+
+    set id(v) {
+      this.setAttribute('id', v);
     }
   });
 
@@ -4875,28 +5039,6 @@ window.ShadowDOMPolyfill = {};
         Element.prototype.createShadowRoot;
   }
 
-  /**
-   * Useful for generating the accessor pair for a property that reflects an
-   * attribute.
-   */
-  function setterDirtiesAttribute(prototype, propertyName, opt_attrName) {
-    var attrName = opt_attrName || propertyName;
-    Object.defineProperty(prototype, propertyName, {
-      get: function() {
-        return this.impl[propertyName];
-      },
-      set: function(v) {
-        this.impl[propertyName] = v;
-        invalidateRendererBasedOnAttribute(this, attrName);
-      },
-      configurable: true,
-      enumerable: true
-    });
-  }
-
-  setterDirtiesAttribute(Element.prototype, 'id');
-  setterDirtiesAttribute(Element.prototype, 'className', 'class');
-
   mixin(Element.prototype, ChildNodeInterface);
   mixin(Element.prototype, GetElementsByInterface);
   mixin(Element.prototype, ParentNodeInterface);
@@ -4905,8 +5047,7 @@ window.ShadowDOMPolyfill = {};
   registerWrapper(OriginalElement, Element,
                   document.createElementNS(null, 'x'));
 
-  // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
-  // that reflect attributes.
+  scope.invalidateRendererBasedOnAttribute = invalidateRendererBasedOnAttribute;
   scope.matchesNames = matchesNames;
   scope.wrappers.Element = Element;
 })(window.ShadowDOMPolyfill);
@@ -5802,12 +5943,24 @@ window.ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
+  var Element = scope.wrappers.Element;
+  var HTMLElement = scope.wrappers.HTMLElement;
   var registerObject = scope.registerObject;
 
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var svgTitleElement = document.createElementNS(SVG_NS, 'title');
   var SVGTitleElement = registerObject(svgTitleElement);
   var SVGElement = Object.getPrototypeOf(SVGTitleElement.prototype).constructor;
+
+  // IE11 does not have classList for SVG elements. The spec says that classList
+  // is an accessor on Element, but IE11 puts classList on HTMLElement, leaving
+  // SVGElement without a classList property. We therefore move the accessor for
+  // IE11.
+  if (!('classList' in svgTitleElement)) {
+    var descr = Object.getOwnPropertyDescriptor(Element.prototype, 'classList');
+    Object.defineProperty(HTMLElement.prototype, 'classList', descr);
+    delete Element.prototype.classList;
+  }
 
   scope.wrappers.SVGElement = SVGElement;
 })(window.ShadowDOMPolyfill);
@@ -7100,6 +7253,10 @@ window.ShadowDOMPolyfill = {};
     getSelection: function() {
       renderAllPending();
       return new Selection(originalGetSelection.call(unwrap(this)));
+    },
+    getElementsByName: function(name) {
+      return SelectorsInterface.querySelectorAll.call(this,
+          '[name=' + JSON.stringify(String(name)) + ']');
     }
   });
 
@@ -7244,6 +7401,7 @@ window.ShadowDOMPolyfill = {};
     'createTextNode',
     'elementFromPoint',
     'getElementById',
+    'getElementsByName',
     'getSelection',
   ]);
 
@@ -7534,7 +7692,7 @@ window.ShadowDOMPolyfill = {};
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 
-(function() {
+(function(scope) {
 
   // convenient global
   window.wrap = ShadowDOMPolyfill.wrapIfNeeded;
@@ -7567,7 +7725,62 @@ window.ShadowDOMPolyfill = {};
   };
 
   Element.prototype.webkitCreateShadowRoot = Element.prototype.createShadowRoot;
-})();
+
+  function queryShadow(node, selector) {
+    var m, el = node.firstElementChild;
+    var shadows, sr, i;
+    shadows = [];
+    sr = node.shadowRoot;
+    while(sr) {
+      shadows.push(sr);
+      sr = sr.olderShadowRoot;
+    }
+    for(i = shadows.length - 1; i >= 0; i--) {
+      m = shadows[i].querySelector(selector);
+      if (m) {
+        return m;
+      }
+    }
+    while(el) {
+      m = queryShadow(el, selector);
+      if (m) {
+        return m;
+      }
+      el = el.nextElementSibling;
+    }
+    return null;
+  }
+
+  function queryAllShadows(node, selector, results) {
+    var el = node.firstElementChild;
+    var temp, sr, shadows, i, j;
+    shadows = [];
+    sr = node.shadowRoot;
+    while(sr) {
+      shadows.push(sr);
+      sr = sr.olderShadowRoot;
+    }
+    for (i = shadows.length - 1; i >= 0; i--) {
+      temp = shadows[i].querySelectorAll(selector);
+      for(j = 0; j < temp.length; j++) {
+        results.push(temp[j]);
+      }
+    }
+    while (el) {
+      queryAllShadows(el, selector, results);
+      el = el.nextElementSibling;
+    }
+    return results;
+  }
+
+  scope.queryAllShadows = function(node, selector, all) {
+    if (all) {
+      return queryAllShadows(node, selector, []);
+    } else {
+      return queryShadow(node, selector);
+    }
+  };
+})(window.Platform);
 
 /*
  * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
@@ -7969,7 +8182,7 @@ var ShadowCSS = {
     var cssText = '';
     if (cssRules) {
       Array.prototype.forEach.call(cssRules, function(rule) {
-        if (rule.selectorText && (rule.style && rule.style.cssText)) {
+        if (rule.selectorText && (rule.style && rule.style.cssText !== undefined)) {
           cssText += this.scopeSelector(rule.selectorText, scopeSelector, 
             this.strictStyling) + ' {\n\t';
           cssText += this.propertiesFromRule(rule) + '\n}\n\n';
@@ -7977,8 +8190,23 @@ var ShadowCSS = {
           cssText += '@media ' + rule.media.mediaText + ' {\n';
           cssText += this.scopeRules(rule.cssRules, scopeSelector);
           cssText += '\n}\n\n';
-        } else if (rule.cssText) {
-          cssText += rule.cssText + '\n\n';
+        } else {
+          // TODO(sjmiles): KEYFRAMES_RULE in IE11 throws when we query cssText
+          // 'cssText' in rule returns true, but rule.cssText throws anyway
+          // We can test the rule type, e.g.
+          //   else if (rule.type !== CSSRule.KEYFRAMES_RULE && rule.cssText) {
+          // but this will prevent cssText propagation in other browsers which
+          // support it.
+          // KEYFRAMES_RULE has a CSSRuleSet, so the text can probably be reconstructed
+          // from that collection; this would be a proper fix.
+          // For now, I'm trapping the exception so IE11 is unblocked in other areas.
+          try {
+            if (rule.cssText) {
+              cssText += rule.cssText + '\n\n';
+            }
+          } catch(x) {
+            // squelch
+          }
         }
       }, this);
     }
@@ -8306,6 +8534,7 @@ if (window.ShadowDOMPolyfill) {
         }
         style.__importParsed = true;
         this.markParsingComplete(elt);
+        this.parseNext();
       }
 
       var hasResource = HTMLImports.parser.hasResource;
@@ -9420,9 +9649,11 @@ scope.mixin = mixin;
         module = null;
         break;
       case 2:
+        // dependsOrFactory is `factory` in this case
         module = dependsOrFactory.apply(this);
         break;
       default:
+        // dependsOrFactory is `depends` in this case
         module = withDependencies(moduleFactory, dependsOrFactory);
         break;
     }
@@ -9444,7 +9675,8 @@ scope.mixin = mixin;
   // exports
 
   scope.marshal = marshal;
-  scope.module = module;
+  // `module` confuses commonjs detectors
+  scope.modularize = module;
   scope.using = using;
 
 })(window);
@@ -9551,7 +9783,7 @@ var urlResolver = {
       var replacement;
       if (value && value.search(URL_TEMPLATE_SEARCH) < 0) {
         if (v === 'style') {
-          replacement = replaceUrlsInCssText(value, url, CSS_URL_REGEXP);
+          replacement = replaceUrlsInCssText(value, url, false, CSS_URL_REGEXP);
         } else {
           replacement = resolveRelativeUrl(url, value);
         }
@@ -9563,7 +9795,7 @@ var urlResolver = {
 
 var CSS_URL_REGEXP = /(url\()([^)]*)(\))/g;
 var CSS_IMPORT_REGEXP = /(@import[\s]+(?!url\())([^;]*)(;)/g;
-var URL_ATTRS = ['href', 'src', 'action', 'style'];
+var URL_ATTRS = ['href', 'src', 'action', 'style', 'url'];
 var URL_ATTRS_SELECTOR = '[' + URL_ATTRS.join('],[') + ']';
 var URL_TEMPLATE_SEARCH = '{{.*}}';
 
@@ -10261,8 +10493,8 @@ window.HTMLImports = window.HTMLImports || {flags:{}};
             this.receive(url, elt, null, body);
         }.bind(this), 0);
       } else {
-        var receiveXhr = function(err, resource) {
-          this.receive(url, elt, err, resource);
+        var receiveXhr = function(err, resource, redirectedUrl) {
+          this.receive(url, elt, err, resource, redirectedUrl);
         }.bind(this);
         xhr.load(url, receiveXhr);
         // TODO(sorvell): blocked on)
@@ -10280,16 +10512,25 @@ window.HTMLImports = window.HTMLImports || {flags:{}};
         */
       }
     },
-    receive: function(url, elt, err, resource) {
+    receive: function(url, elt, err, resource, redirectedUrl) {
       this.cache[url] = resource;
       var $p = this.pending[url];
+      if ( redirectedUrl && redirectedUrl !== url ) {
+        this.cache[redirectedUrl] = resource;
+        $p = $p.concat(this.pending[redirectedUrl]);
+      }
       for (var i=0, l=$p.length, p; (i<l) && (p=$p[i]); i++) {
         //if (!err) {
-          this.onload(url, p, resource);
+          // If url was redirected, use the redirected location so paths are
+          // calculated relative to that.
+          this.onload(redirectedUrl || url, p, resource);
         //}
         this.tail();
       }
       this.pending[url] = null;
+      if ( redirectedUrl && redirectedUrl !== url ) {
+        this.pending[redirectedUrl] = null;
+      }
     },
     tail: function() {
       --this.inflight;
@@ -10317,8 +10558,17 @@ window.HTMLImports = window.HTMLImports || {flags:{}};
       request.open('GET', url, xhr.async);
       request.addEventListener('readystatechange', function(e) {
         if (request.readyState === 4) {
+          // Servers redirecting an import can add a Location header to help us
+          // polyfill correctly.
+          var locationHeader = request.getResponseHeader("Location");
+          var redirectedUrl = null;
+          if (locationHeader) {
+            var redirectedUrl = (locationHeader.substr( 0, 1 ) === "/")
+              ? location.origin + locationHeader  // Location is a relative path
+              : redirectedUrl;                    // Full path
+          }
           next.call(nextContext, !xhr.ok(request) && request,
-              request.response || request.responseText, url);
+              request.response || request.responseText, redirectedUrl);
         }
       });
       request.send();
@@ -10392,9 +10642,14 @@ var importParser = {
       fn.call(this, elt);
     }
   },
-  // only 1 element may be parsed at a time; parsing is async so, each
+  // only 1 element may be parsed at a time; parsing is async so each
   // parsing implementation must inform the system that parsing is complete
   // via markParsingComplete.
+  // To prompt the system to parse the next element, parseNext should then be
+  // called.
+  // Note, parseNext used to be included at the end of markParsingComplete, but
+  // we must not do this so that, for example, we can (1) mark parsing complete 
+  // then (2) fire an import load event, and then (3) parse the next resource.
   markParsing: function(elt) {
     flags.parse && console.log('parsing', elt);
     this.parsingElement = elt;
@@ -10406,16 +10661,31 @@ var importParser = {
     }
     this.parsingElement = null;
     flags.parse && console.log('completed', elt);
-    this.parseNext();
+  },
+  invalidateParse: function(doc) {
+    if (doc && doc.__importLink) {
+      doc.__importParsed = doc.__importLink.__importParsed = false;
+      this.parseSoon();
+    }
+  },
+  parseSoon: function() {
+    if (this._parseSoon) {
+      cancelAnimationFrame(this._parseDelay);
+    }
+    var parser = this;
+    this._parseSoon = requestAnimationFrame(function() {
+      parser.parseNext();
+    });
   },
   parseImport: function(elt) {
-    elt.import.__importParsed = true;
     // TODO(sorvell): consider if there's a better way to do this;
     // expose an imports parsing hook; this is needed, for example, by the
     // CustomElements polyfill.
     if (HTMLImports.__importsParsingHook) {
       HTMLImports.__importsParsingHook(elt);
     }
+    elt.import.__importParsed = true;
+    this.markParsingComplete(elt);
     // fire load event
     if (elt.__resource) {
       elt.dispatchEvent(new CustomEvent('load', {bubbles: false}));    
@@ -10433,7 +10703,7 @@ var importParser = {
         }
       }
     }
-    this.markParsingComplete(elt);
+    this.parseNext();
   },
   parseLink: function(linkElt) {
     if (nodeIsImport(linkElt)) {
@@ -10463,6 +10733,7 @@ var importParser = {
         callback(e);
       }
       self.markParsingComplete(elt);
+      self.parseNext();
     };
     elt.addEventListener('load', done);
     elt.addEventListener('error', done);
@@ -10934,6 +11205,7 @@ license that can be found in the LICENSE file.
 var IMPORT_LINK_TYPE = scope.IMPORT_LINK_TYPE;
 var importSelector = 'link[rel=' + IMPORT_LINK_TYPE + ']';
 var importer = scope.importer;
+var parser = scope.parser;
 
 // we track mutations for addedNodes, looking for imports
 function handler(mutations) {
@@ -10946,7 +11218,9 @@ function handler(mutations) {
 
 // find loadable elements and add them to the importer
 function addedNodes(nodes) {
+  var owner;
   for (var i=0, l=nodes.length, n; (i<l) && (n=nodes[i]); i++) {
+    owner = owner || n.ownerDocument;
     if (shouldLoadNode(n)) {
       importer.loadNode(n);
     }
@@ -10954,6 +11228,14 @@ function addedNodes(nodes) {
       addedNodes(n.children);
     }
   }
+  // TODO(sorvell): This is not the right approach here. We shouldn't need to
+  // invalidate parsing when an element is added. Disabling this code 
+  // until a better approach is found.
+  /*
+  if (owner) {
+    parser.invalidateParse(owner);
+  }
+  */
 }
 
 function shouldLoadNode(node) {
@@ -11418,12 +11700,9 @@ var flags = scope.flags;
 // native document.registerElement?
 
 var hasNative = Boolean(document.registerElement);
-// TODO(sorvell): See https://github.com/Polymer/polymer/issues/399
-// we'll address this by defaulting to CE polyfill in the presence of the SD
-// polyfill. This will avoid spamming excess attached/detached callbacks.
-// If there is a compelling need to run CE native with SD polyfill,
-// we'll need to fix this issue.
-var useNative = !flags.register && hasNative && !window.ShadowDOMPolyfill;
+// For consistent timing, use native custom elements only when not polyfilling
+// other key related web components features.
+var useNative = !flags.register && hasNative && !window.ShadowDOMPolyfill && (!window.HTMLImports || HTMLImports.useNative);
 
 if (useNative) {
 
@@ -11713,6 +11992,7 @@ if (useNative) {
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/
   // index.html#dfn-attribute-changed-callback
   function changeAttribute(name, value, operation) {
+    name = name.toLowerCase();
     var oldValue = this.getAttribute(name);
     operation.apply(this, arguments);
     var newValue = this.getAttribute(name);
@@ -13193,9 +13473,6 @@ scope.styleResolver = styleResolver;
       };
     },
 
-    // TODO(rafaelw): Assigning .bindingDelegate always succeeds. It may
-    // make sense to issue a warning or even throw if the template is already
-    // "activated", since this would be a strange thing to do.
     set bindingDelegate(bindingDelegate) {
       if (this.delegate_) {
         throw Error('Template must be cleared before a new bindingDelegate ' +

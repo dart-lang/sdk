@@ -208,7 +208,7 @@ class ScalarNode extends Node {
       return '"${escapedValue.join()}"';
     }
 
-    throw new YamlException('Unknown scalar value: "$value".');
+    throw new YamlException('Unknown scalar value.', span);
   }
 
   String toString() => '$tag "$content"';

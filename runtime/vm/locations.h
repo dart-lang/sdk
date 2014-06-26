@@ -472,17 +472,20 @@ class RegisterSet : public ValueObject {
   }
 
   bool ContainsRegister(Register reg) const {
-    return (cpu_registers_ & (1 << reg)) != 0;
+    return Contains(cpu_registers_, reg);
   }
 
   bool ContainsFpuRegister(FpuRegister fpu_reg) const {
-    return (fpu_registers_ & (1 << fpu_reg)) != 0;
+    return Contains(fpu_registers_, fpu_reg);
   }
 
   intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers_); }
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers_); }
 
   static intptr_t RegisterCount(intptr_t registers);
+  static bool Contains(intptr_t register_set, intptr_t reg) {
+    return (register_set & (1 << reg)) != 0;
+  }
 
   intptr_t cpu_registers() const { return cpu_registers_; }
   intptr_t fpu_registers() const { return fpu_registers_; }

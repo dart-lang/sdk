@@ -67,7 +67,7 @@ patch class MirrorSystem {
       // Drop 'get:' or 'set:' prefix.
       pos = 4;
       if (string[0] == 's') {
-        add_setter_suffix;
+        add_setter_suffix = true;
       }
     }
     // Skip everything between AT and PERIOD, SPACE, COMMA or END

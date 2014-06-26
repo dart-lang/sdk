@@ -19,6 +19,10 @@ cc/Sleep: Pass, Fail
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
+[ $mode == debug ]
+# This is a benchmark that is not informative in debug mode.
+cc/CorelibIsolateStartup: Skip
+
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 [ $system == windows ]
@@ -45,8 +49,9 @@ cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
-[ $arch == simmips && $arch == mips ]
-cc/Service_Coverage: Skip # Dart bug 16250
+[ $arch == simmips || $arch == mips ]
+cc/Coverage_MainWithClass: Skip # Dart bug 16250
+cc/Service_ClassesCoverage: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
 dart/mirrored_compilation_error_test: Skip # VM-specific flag
@@ -73,6 +78,7 @@ dart/inline_stack_frame_test: RuntimeError
 cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 
 [ $arch == mips && $mode == debug ]
+cc/JSON_JSONStream_Options: Crash # Issue 19328
 cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]

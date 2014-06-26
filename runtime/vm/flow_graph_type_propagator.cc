@@ -1043,7 +1043,15 @@ CompileType UnaryMintOpInstr::ComputeType() const {
 
 
 CompileType BoxIntegerInstr::ComputeType() const {
+  if (is_smi()) {
+    return CompileType::FromCid(kSmiCid);
+  }
   return CompileType::Int();
+}
+
+
+bool BoxIntegerInstr::RecomputeType() {
+  return UpdateType(ComputeType());
 }
 
 

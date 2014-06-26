@@ -113,7 +113,7 @@ class FSEventsWatcher {
           array,
           kFSEventStreamEventIdSinceNow,
           0.10,
-          kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagFileEvents);
+          kFSEventStreamCreateFlagFileEvents);
       CFRelease(array);
 
       node->set_ref(ref);

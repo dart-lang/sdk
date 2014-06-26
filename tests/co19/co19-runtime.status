@@ -46,6 +46,7 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
 [ $compiler == none && $runtime == vm ]
+LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 
@@ -58,13 +59,8 @@ Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
 # These flaky tests also fail with dart2dart.
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
 
-[ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
-
-#end [ $compiler == none && $runtime == vm && $checked ]
-
 [ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/core/List/List_class_A01_t01: Pass, Slow
+LibTest/core/List/List_class_A01_t02: Pass, Slow
 
 [ $compiler == none && $runtime == vm && ($arch != x64 && $arch != simarm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
@@ -73,9 +69,9 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/core/double/toInt_A01_t01: Fail
 # These tests take too much memory (300 MB) for our 1 GB test machine.
 # co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
-LibTest/core/List/List_class_A01_t01: Skip # co19 issue 673
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # co19 issue 673
-LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19 issue 673
+LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # dartbug.com/17440
@@ -85,6 +81,8 @@ LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # dartbug.com/17440
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667

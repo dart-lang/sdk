@@ -28,7 +28,10 @@ import '../dart2jslib.dart' show invariant,
 
 import '../dart_types.dart';
 
-import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
+import '../scanner/scannerlib.dart' show
+    EOF_TOKEN,
+    ErrorToken,
+    Token;
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
@@ -104,6 +107,8 @@ abstract class ElementX extends Element {
 
   bool get isDeclaration => true;
 
+  bool get isInjected => !isPatch && implementationLibrary.isPatch;
+
   Element get implementation => this;
 
   Element get declaration => this;
@@ -152,7 +157,7 @@ abstract class ElementX extends Element {
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
-      if (needle == t.value) return t;
+      if (t is !ErrorToken && needle == t.value) return t;
     }
     return token;
   }
@@ -265,9 +270,15 @@ abstract class ElementX extends Element {
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
+  bool get hasTreeElements => analyzableElement.hasTreeElements;
+
   TreeElements get treeElements => analyzableElement.treeElements;
 
-  AnalyzableElement get analyzableElement => outermostEnclosingMemberOrTopLevel;
+  AnalyzableElement get analyzableElement {
+    Element element = outermostEnclosingMemberOrTopLevel;
+    if (element.isAbstractField || element.isPrefix) return element.library;
+    return element;
+  }
 }
 
 /**
@@ -297,6 +308,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get isErroneous => true;
 
+  bool get isSynthesized => true;
+
   AbstractFieldElement abstractField;
 
   unsupported() {
@@ -305,6 +318,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   Link<MetadataAnnotation> get metadata => unsupported();
   get node => unsupported();
+  get hasResolvedAst => false;
+  get resolvedAst => unsupported();
   get type => unsupported();
   get cachedNode => unsupported();
   get functionSignature => unsupported();
@@ -965,11 +980,11 @@ class LibraryElementX
 
   String toString() {
     if (origin != null) {
-      return 'patch library(${getLibraryOrScriptName()})';
+      return 'patch library(${canonicalUri})';
     } else if (patch != null) {
-      return 'origin library(${getLibraryOrScriptName()})';
+      return 'origin library(${canonicalUri})';
     } else {
-      return 'library(${getLibraryOrScriptName()})';
+      return 'library(${canonicalUri})';
     }
   }
 
@@ -1017,7 +1032,9 @@ class PrefixElementX extends ElementX implements PrefixElement {
 }
 
 class TypedefElementX extends ElementX
-    with AnalyzableElementX, TypeDeclarationElementX<TypedefType>
+    with AstElementMixin,
+         AnalyzableElementX,
+         TypeDeclarationElementX<TypedefType>
     implements TypedefElement {
   Typedef cachedNode;
 
@@ -1080,6 +1097,9 @@ class TypedefElementX extends ElementX
   }
 
   accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
+
+  // A typedef cannot be patched therefore defines itself.
+  AstElement get definingElement => this;
 }
 
 // This class holds common information for a list of variable or field
@@ -1106,7 +1126,7 @@ class VariableList {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX with AnalyzableElementX
+class VariableElementX extends ElementX with AstElementMixin
     implements VariableElement {
   final Token token;
   final VariableList variables;
@@ -1137,6 +1157,9 @@ class VariableElementX extends ElementX with AnalyzableElementX
   void addMetadataInternal(MetadataAnnotation annotation) {
     variables.metadata = variables.metadata.prepend(annotation);
   }
+
+  // A variable cannot be patched therefore defines itself.
+  AstElement get definingElement => this;
 
   VariableDefinitions get node {
     assert(invariant(this, definitionsCache != null,
@@ -1194,12 +1217,13 @@ class VariableElementX extends ElementX with AnalyzableElementX
   }
 
   DartType computeType(Compiler compiler) {
+    if (variables.type != null) return variables.type;
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
-    compiler.withCurrentElement(this, () {
+    return compiler.withCurrentElement(this, () {
       parseNode(compiler);
+      return variables.computeType(this, compiler);
     });
-    return variables.computeType(this, compiler);
   }
 
   DartType get type {
@@ -1227,7 +1251,8 @@ class LocalVariableElementX extends VariableElementX {
   }
 }
 
-class FieldElementX extends VariableElementX implements FieldElement {
+class FieldElementX extends VariableElementX
+    with AnalyzableElementX implements FieldElement {
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
   FieldElementX(Identifier name,
@@ -1264,7 +1289,8 @@ class FieldParameterElementX extends ParameterElementX
 /// patched with the corresponding parameter of the patch method. This is done
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
-class ParameterElementX extends ElementX with PatchMixin<ParameterElement>
+class ParameterElementX extends ElementX
+    with PatchMixin<ParameterElement>, AstElementMixin
     implements ParameterElement {
   final VariableDefinitions definitions;
   final Identifier identifier;
@@ -1315,6 +1341,9 @@ class ParameterElementX extends ElementX with PatchMixin<ParameterElement>
   FunctionType get functionType => type;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+
+  // A parameter is defined by the declaration element.
+  AstElement get definingElement => declaration;
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1440,8 +1469,8 @@ class FunctionSignatureX implements FunctionSignature {
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
-      Set<String> names = optionalParameters.toList().map(
-          (Element element) => element.name).toSet();
+      Set<String> names = optionalParameters.mapToSet(
+          (Element element) => element.name);
       for (Element namedParameter in signature.optionalParameters) {
         if (!names.contains(namedParameter.name)) {
           return false;
@@ -1461,8 +1490,8 @@ class FunctionSignatureX implements FunctionSignature {
   }
 }
 
-abstract class FunctionElementX
-    extends ElementX with AnalyzableElementX, PatchMixin<FunctionElement>
+abstract class BaseFunctionElementX
+    extends ElementX with PatchMixin<FunctionElement>, AstElementMixin
     implements FunctionElement {
   DartType typeCache;
   final Modifiers modifiers;
@@ -1475,20 +1504,11 @@ abstract class FunctionElementX
 
   AbstractFieldElement abstractField;
 
-  FunctionElementX(String name,
-                   ElementKind kind,
-                   Modifiers modifiers,
-                   Element enclosing,
-                   bool hasNoBody)
-      : this.tooMuchOverloading(name, kind, modifiers, enclosing, null,
-                                hasNoBody);
-
-  FunctionElementX.tooMuchOverloading(String name,
-                                      ElementKind kind,
-                                      this.modifiers,
-                                      Element enclosing,
-                                      this.functionSignatureCache,
-                                      bool hasNoBody)
+  BaseFunctionElementX(String name,
+                       ElementKind kind,
+                       Modifiers this.modifiers,
+                       Element enclosing,
+                       bool hasNoBody)
       : super(name, kind, enclosing),
         _hasNoBody = hasNoBody {
     assert(modifiers != null);
@@ -1545,9 +1565,22 @@ abstract class FunctionElementX
   }
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+
+  // A function is defined by the implementation element.
+  AstElement get definingElement => implementation;
 }
 
-class LocalFunctionElementX extends FunctionElementX {
+abstract class FunctionElementX extends BaseFunctionElementX
+    with AnalyzableElementX {
+  FunctionElementX(String name,
+                   ElementKind kind,
+                   Modifiers modifiers,
+                   Element enclosing,
+                   bool hasNoBody)
+      : super(name, kind, modifiers, enclosing, hasNoBody);
+}
+
+class LocalFunctionElementX extends BaseFunctionElementX {
   final FunctionExpression node;
 
   LocalFunctionElementX(String name,
@@ -1651,7 +1684,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
   FunctionExpression get node => null;
 }
 
-class ConstructorBodyElementX extends FunctionElementX
+class ConstructorBodyElementX extends BaseFunctionElementX
     implements ConstructorBodyElement {
   FunctionElement constructor;
 
@@ -1676,6 +1709,8 @@ class ConstructorBodyElementX extends FunctionElementX
   Token get position => constructor.position;
 
   Element get outermostEnclosingMemberOrTopLevel => constructor;
+
+  Element get analyzableElement => constructor.analyzableElement;
 
   accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
 }
@@ -1829,7 +1864,8 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 }
 
 abstract class BaseClassElementX extends ElementX
-    with AnalyzableElementX,
+    with AstElementMixin,
+         AnalyzableElementX,
          TypeDeclarationElementX<InterfaceType>,
          PatchMixin<ClassElement>,
          ClassMemberMixin
@@ -2222,11 +2258,23 @@ abstract class BaseClassElementX extends ElementX
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
   ClassElement get patch => super.patch;
   ClassElement get origin => super.origin;
+
+  // A class declaration is defined by the declaration element.
+  AstElement get definingElement => declaration;
 }
 
 abstract class ClassElementX extends BaseClassElementX {
-  Link<Element> localMembers = const Link<Element>();
+  Link<Element> localMembersReversed = const Link<Element>();
   final ScopeX localScope = new ScopeX();
+
+  Link<Element> localMembersCache;
+
+  Link<Element> get localMembers {
+    if (localMembersCache == null) {
+      localMembersCache = localMembersReversed.reverse();
+    }
+    return localMembersCache;
+  }
 
   ClassElementX(String name, Element enclosing, int id, int initialState)
       : super(name, enclosing, id, initialState);
@@ -2237,7 +2285,8 @@ abstract class ClassElementX extends BaseClassElementX {
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
   void addMember(Element element, DiagnosticListener listener) {
-    localMembers = localMembers.prepend(element);
+    localMembersCache = null;
+    localMembersReversed = localMembersReversed.prepend(element);
     addToScope(element, listener);
   }
 
@@ -2257,7 +2306,7 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void forEachLocalMember(void f(Element member)) {
-    localMembers.reverse().forEach(f);
+    localMembers.forEach(f);
   }
 
   bool get hasConstructor {
@@ -2269,9 +2318,8 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
-    addToScope(constructor, compiler);
     // The default constructor, although synthetic, is part of a class' API.
-    localMembers = localMembers.prepend(constructor);
+    addMember(constructor, compiler);
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
@@ -2442,7 +2490,8 @@ class TargetElementX extends ElementX implements TargetElement {
   accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
 }
 
-class TypeVariableElementX extends ElementX implements TypeVariableElement {
+class TypeVariableElementX extends ElementX with AstElementMixin
+    implements TypeVariableElement {
   final Node node;
   TypeVariableType typeCache;
   DartType boundCache;
@@ -2471,6 +2520,9 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
   Token get position => node.getBeginToken();
 
   accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
+
+  // A type variable cannot be patched therefore defines itself.
+  AstElement get definingElement => this;
 }
 
 /**
@@ -2568,4 +2620,25 @@ abstract class PatchMixin<E extends Element> implements Element {
     this.patch = patch;
     patch.origin = this;
   }
+}
+
+/// Abstract implementation of the [AstElement] interface.
+abstract class AstElementMixin implements AstElement {
+  /// The element whose node defines this element.
+  ///
+  /// For patched functions the defining element is the patch element found
+  /// through [implementation] since its node define the implementation of the
+  /// function. For patched classes the defining element is the origin element
+  /// found through [declaration] since its node define the inheritance relation
+  /// for the class. For unpatched elements the defining element is the element
+  /// itself.
+  AstElement get definingElement;
+
+  bool get hasResolvedAst => definingElement.hasTreeElements;
+
+  ResolvedAst get resolvedAst {
+    return new ResolvedAst(declaration,
+        definingElement.node, definingElement.treeElements);
+  }
+
 }

@@ -5,6 +5,7 @@
 library context.directory.manager;
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -25,7 +26,7 @@ class _ContextDirectoryInfo {
    * Map from full path to the [Source] object, for each source that has been
    * added to the context.
    */
-  Map<String, Source> sources = <String, Source>{};
+  Map<String, Source> sources = new HashMap<String, Source>();
 }
 
 /**
@@ -34,11 +35,16 @@ class _ContextDirectoryInfo {
  */
 abstract class ContextDirectoryManager {
   /**
+   * File name of pubspec files.
+   */
+  static const String PUBSPEC_NAME = 'pubspec.yaml';
+
+  /**
    * [_ContextDirectoryInfo] object for each included directory in the most
    * recent successful call to [setRoots].
    */
   Map<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
-      <Folder, _ContextDirectoryInfo>{};
+      new HashMap<Folder, _ContextDirectoryInfo>();
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -54,7 +60,7 @@ abstract class ContextDirectoryManager {
   void setRoots(List<String> includedPaths,
                 List<String> excludedPaths) {
     // included
-    Set<Folder> includedFolders = new Set<Folder>();
+    Set<Folder> includedFolders = new HashSet<Folder>();
     for (int i = 0; i < includedPaths.length; i++) {
       String path = includedPaths[i];
       Resource resource = resourceProvider.getResource(path);
@@ -73,28 +79,44 @@ abstract class ContextDirectoryManager {
       throw new UnimplementedError(
           'Excluded paths are not supported yet');
     }
-    Set<Folder> excludedFolders = new Set<Folder>();
+    Set<Folder> excludedFolders = new HashSet<Folder>();
     // diff
     Set<Folder> currentFolders = _currentDirectoryInfo.keys.toSet();
     Set<Folder> newFolders = includedFolders.difference(currentFolders);
     Set<Folder> oldFolders = currentFolders.difference(includedFolders);
-    // remove old contexts
+    // destroy old contexts
     for (Folder folder in oldFolders) {
-      // TODO(scheglov) implement
+      _destroyContext(folder);
     }
-    // add new contexts
+    // create new contexts
     for (Folder folder in newFolders) {
-      _ContextDirectoryInfo info = new _ContextDirectoryInfo();
-      _currentDirectoryInfo[folder] = info;
-      info.changeSubscription = folder.changes.listen((WatchEvent event) {
-        _handleWatchEvent(folder, info, event);
-      });
-      File pubspecFile = folder.getChild('pubspec.yaml');
-      addContext(folder, pubspecFile.exists ? pubspecFile : null);
-      ChangeSet changeSet = new ChangeSet();
-      _addSourceFiles(changeSet, folder, info);
-      applyChangesToContext(folder, changeSet);
+      _createContext(folder);
     }
+  }
+
+  /**
+   * Create a new context associated with the given folder.
+   */
+  void _createContext(Folder folder) {
+    _ContextDirectoryInfo info = new _ContextDirectoryInfo();
+    _currentDirectoryInfo[folder] = info;
+    info.changeSubscription = folder.changes.listen((WatchEvent event) {
+      _handleWatchEvent(folder, info, event);
+    });
+    File pubspecFile = folder.getChild(PUBSPEC_NAME);
+    addContext(folder);
+    ChangeSet changeSet = new ChangeSet();
+    _addSourceFiles(changeSet, folder, info);
+    applyChangesToContext(folder, changeSet);
+  }
+
+  /**
+   * Clean up and destroy the context associated with the given folder.
+   */
+  void _destroyContext(Folder folder) {
+    _currentDirectoryInfo[folder].changeSubscription.cancel();
+    _currentDirectoryInfo.remove(folder);
+    removeContext(folder);
   }
 
   void _handleWatchEvent(Folder folder, _ContextDirectoryInfo info, WatchEvent event) {
@@ -105,7 +127,6 @@ abstract class ContextDirectoryManager {
           // there is a pubspec.yaml?
           break;
         }
-        // TODO(paulberry): handle adding pubspec.yaml
         if (_shouldFileBeAnalyzed(event.path)) {
           ChangeSet changeSet = new ChangeSet();
           Resource resource = resourceProvider.getResource(event.path);
@@ -122,7 +143,6 @@ abstract class ContextDirectoryManager {
         }
         break;
       case ChangeType.REMOVE:
-        // TODO(paulberry): handle removing pubspec.yaml
         Source source = info.sources[event.path];
         if (source != null) {
           ChangeSet changeSet = new ChangeSet();
@@ -132,7 +152,12 @@ abstract class ContextDirectoryManager {
         }
         break;
       case ChangeType.MODIFY:
-        // TODO(paulberry): handle modification events
+        Source source = info.sources[event.path];
+        if (source != null) {
+          ChangeSet changeSet = new ChangeSet();
+          changeSet.changedSource(source);
+          applyChangesToContext(folder, changeSet);
+        }
         break;
     }
   }
@@ -181,11 +206,9 @@ abstract class ContextDirectoryManager {
   }
 
   /**
-   * Called when a new context needs to be created.  If the context is
-   * associated with a pubspec file, that file is passed in [pubspecFile];
-   * otherwise it is null.
+   * Called when a new context needs to be created.
    */
-  void addContext(Folder folder, File pubspecFile);
+  void addContext(Folder folder);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -193,4 +216,9 @@ abstract class ContextDirectoryManager {
    * changes that need to be applied to the context.
    */
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * Remove the context associated with the given [folder].
+   */
+  void removeContext(Folder folder);
 }

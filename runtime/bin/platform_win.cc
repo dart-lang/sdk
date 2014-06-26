@@ -59,8 +59,10 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
-void Platform::FreeEnvironment(char** env, int count) {
-  for (int i = 0; i < count; i++) free(env[i]);
+void Platform::FreeEnvironment(char** env, intptr_t count) {
+  for (intptr_t i = 0; i < count; i++) {
+    free(env[i]);
+  }
   delete[] env;
 }
 

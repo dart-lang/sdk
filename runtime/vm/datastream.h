@@ -17,7 +17,7 @@ static const int8_t kDataBitsPerByte = 7;
 static const int8_t kByteMask = (1 << kDataBitsPerByte) - 1;
 static const int8_t kMaxUnsignedDataPerByte = kByteMask;
 static const int8_t kMinDataPerByte = -(1 << (kDataBitsPerByte - 1));
-static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);
+static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);  // NOLINT
 static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
 static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
 
@@ -51,7 +51,7 @@ class ReadStream : public ValueObject {
   class Raw<2, T> {
    public:
     static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int16_t>());
+      return bit_cast<T>(st->Read16());
     }
   };
 
@@ -59,7 +59,7 @@ class ReadStream : public ValueObject {
   class Raw<4, T> {
    public:
     static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int32_t>());
+      return bit_cast<T>(st->Read32());
     }
   };
 
@@ -67,7 +67,7 @@ class ReadStream : public ValueObject {
   class Raw<8, T> {
    public:
     static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int64_t>());
+      return bit_cast<T>(st->Read64());
     }
   };
 
@@ -104,10 +104,25 @@ class ReadStream : public ValueObject {
     return Read<T>(kEndByteMarker);
   }
 
+  int16_t Read16() {
+    return Read16(kEndByteMarker);
+  }
+
+  int32_t Read32() {
+    return Read32(kEndByteMarker);
+  }
+
+  int64_t Read64() {
+    return Read64(kEndByteMarker);
+  }
+
   template<typename T>
   T Read(uint8_t end_byte_marker) {
-    uint8_t b = ReadByte();
+    const uint8_t* c = current_;
+    ASSERT(c < end_);
+    uint8_t b = *c++;
     if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
       return static_cast<T>(b) - end_byte_marker;
     }
     T r = 0;
@@ -115,9 +130,160 @@ class ReadStream : public ValueObject {
     do {
       r |= static_cast<T>(b) << s;
       s += kDataBitsPerByte;
-      b = ReadByte();
+      ASSERT(c < end_);
+      b = *c++;
     } while (b <= kMaxUnsignedDataPerByte);
+    current_ = c;
     return r | ((static_cast<T>(b) - end_byte_marker) << s);
+  }
+
+  int16_t Read16(uint8_t end_byte_marker) {
+    const uint8_t* c = current_;
+    ASSERT(c < end_);
+    uint8_t b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return static_cast<int16_t>(b) - end_byte_marker;
+    }
+    int16_t r = 0;
+    r |= static_cast<int16_t>(b);
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int16_t>(b) - end_byte_marker) << 7);
+    }
+
+    r |= static_cast<int16_t>(b) << 7;
+    ASSERT(c < end_);
+    b = *c++;
+    ASSERT(b > kMaxUnsignedDataPerByte);
+    current_ = c;
+    return r | ((static_cast<int16_t>(b) - end_byte_marker) << 14);
+  }
+
+  int32_t Read32(uint8_t end_byte_marker) {
+    const uint8_t* c = current_;
+    ASSERT(c < end_);
+    uint8_t b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return static_cast<int32_t>(b) - end_byte_marker;
+    }
+
+    int32_t r = 0;
+    r |= static_cast<int32_t>(b);
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int32_t>(b) - end_byte_marker) << 7);
+    }
+
+    r |= static_cast<int32_t>(b) << 7;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int32_t>(b) - end_byte_marker) << 14);
+    }
+
+    r |= static_cast<int32_t>(b) << 14;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int32_t>(b) - end_byte_marker) << 21);
+    }
+
+    r |= static_cast<int32_t>(b) << 21;
+    ASSERT(c < end_);
+    b = *c++;
+    ASSERT(b > kMaxUnsignedDataPerByte);
+    current_ = c;
+    return r | ((static_cast<int32_t>(b) - end_byte_marker) << 28);
+  }
+
+  int64_t Read64(uint8_t end_byte_marker) {
+    const uint8_t* c = current_;
+    ASSERT(c < end_);
+    uint8_t b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return static_cast<int64_t>(b) - end_byte_marker;
+    }
+    int64_t r = 0;
+
+    r |= static_cast<int64_t>(b);
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 7);
+    }
+
+    r |= static_cast<int64_t>(b) << 7;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 14);
+    }
+
+    r |= static_cast<int64_t>(b) << 14;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 21);
+    }
+
+    r |= static_cast<int64_t>(b) << 21;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 28);
+    }
+
+    r |= static_cast<int64_t>(b) << 28;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 35);
+    }
+
+    r |= static_cast<int64_t>(b) << 35;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 42);
+    }
+
+    r |= static_cast<int64_t>(b) << 42;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 49);
+    }
+
+    r |= static_cast<int64_t>(b) << 49;
+    ASSERT(c < end_);
+    b = *c++;
+    if (b > kMaxUnsignedDataPerByte) {
+      current_ = c;
+      return r | ((static_cast<int64_t>(b) - end_byte_marker) << 56);
+    }
+
+    r |= static_cast<int64_t>(b) << 56;
+    ASSERT(c < end_);
+    b = *c++;
+    ASSERT(b > kMaxUnsignedDataPerByte);
+    current_ = c;
+    return r | ((static_cast<int64_t>(b) - end_byte_marker) << 63);
   }
 
   uint8_t ReadByte() {

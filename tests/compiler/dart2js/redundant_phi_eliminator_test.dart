@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'dart:async';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -28,13 +30,17 @@ void foo() {
 """;
 
 main() {
-  String generated = compile(TEST_ONE, entry: 'foo');
-  RegExp regexp = new RegExp("toBeRemoved");
-  Expect.isTrue(!regexp.hasMatch(generated));
+  asyncTest(() => Future.wait([
+    compile(TEST_ONE, entry: 'foo', check: (String generated) {
+      RegExp regexp = new RegExp("toBeRemoved");
+      Expect.isTrue(!regexp.hasMatch(generated));
+    }),
 
-  generated = compile(TEST_TWO, entry: 'foo');
-  regexp = new RegExp("toBeRemoved");
-  Expect.isTrue(!regexp.hasMatch(generated));
-  regexp = new RegExp("temp");
-  Expect.isTrue(!regexp.hasMatch(generated));
+    compile(TEST_TWO, entry: 'foo', check: (String generated) {
+      RegExp regexp = new RegExp("toBeRemoved");
+      Expect.isTrue(!regexp.hasMatch(generated));
+      regexp = new RegExp("temp");
+      Expect.isTrue(!regexp.hasMatch(generated));
+    }),
+  ]));
 }

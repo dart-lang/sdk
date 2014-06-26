@@ -47,9 +47,14 @@ abstract class CachedSource extends Source {
   /// the system cache.
   Future<Pubspec> describeUncached(PackageId id);
 
-  Future get(PackageId id, String packageDir) {
-    return downloadToSystemCache(id).then(
-        (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
+  Future ensureLocal(PackageId id) {
+    return downloadToSystemCache(id);
+  }
+
+  Future get(PackageId id, String symlink) {
+    return downloadToSystemCache(id).then((pkg) {
+      createPackageSymlink(id.name, pkg.dir, symlink);
+    });
   }
 
   /// Determines if the package with [id] is already downloaded to the system

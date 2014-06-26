@@ -52,23 +52,71 @@ Map _serializeTransformer(Transformer transformer) {
   };
 }
 
+/// Converts [transformer] into a serializable map.
+Map _serializeAggregateTransformer(AggregateTransformer transformer) {
+  var port = new ReceivePort();
+  port.listen((wrappedMessage) {
+    respond(wrappedMessage, (message) {
+      if (message['type'] == 'classifyPrimary') {
+        return transformer.classifyPrimary(deserializeId(message['id']));
+      } else if (message['type'] == 'declareOutputs') {
+        return new Future.sync(() {
+          return (transformer as DeclaringAggregateTransformer).declareOutputs(
+              new ForeignDeclaringAggregateTransform(message['transform']));
+        }).then((_) => null);
+      } else {
+        assert(message['type'] == 'apply');
+
+        // Make sure we return null so that if the transformer's [apply] returns
+        // a non-serializable value it doesn't cause problems.
+        return new Future.sync(() {
+          return transformer.apply(
+              new ForeignAggregateTransform(message['transform']));
+        }).then((_) => null);
+      }
+    });
+  });
+
+  var type;
+  if (transformer is LazyAggregateTransformer) {
+    type = 'LazyAggregateTransformer';
+  } else if (transformer is DeclaringAggregateTransformer) {
+    type = 'DeclaringAggregateTransformer';
+  } else {
+    type = 'AggregateTransformer';
+  }
+
+  return {
+    'type': type,
+    'toString': transformer.toString(),
+    'port': port.sendPort
+  };
+}
+
 // Converts [group] into a serializable map.
 Map _serializeTransformerGroup(TransformerGroup group) {
   return {
     'type': 'TransformerGroup',
     'toString': group.toString(),
     'phases': group.phases.map((phase) {
-      return phase.map(serializeTransformerOrGroup).toList();
+      return phase.map(serializeTransformerLike).toList();
     }).toList()
   };
 }
 
-/// Converts [transformerOrGroup] into a serializable map.
-Map serializeTransformerOrGroup(transformerOrGroup) {
-  if (transformerOrGroup is Transformer) {
-    return _serializeTransformer(transformerOrGroup);
+/// Converts [transformerLike] into a serializable map.
+///
+/// [transformerLike] can be a [Transformer], an [AggregateTransformer], or a
+/// [TransformerGroup].
+Map serializeTransformerLike(transformerLike) {
+  if (transformerLike is Transformer) {
+    return _serializeTransformer(transformerLike);
+  } else if (transformerLike is TransformerGroup) {
+    return _serializeTransformerGroup(transformerLike);
   } else {
-    assert(transformerOrGroup is TransformerGroup);
-    return _serializeTransformerGroup(transformerOrGroup);
+    // This has to be last, since "transformerLike is AggregateTransformer" will
+    // throw on older versions of barback.
+    assert(transformerLike is AggregateTransformer);
+    return _serializeAggregateTransformer(transformerLike);
   }
 }

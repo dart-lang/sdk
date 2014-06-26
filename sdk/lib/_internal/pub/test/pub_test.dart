@@ -34,6 +34,7 @@ final USAGE_STRING = """
       get        Get the current package's dependencies.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
+      run        Run an executable from a package.
       serve      Run a local web development server.
       upgrade    Upgrade the current package's dependencies to latest versions.
       uploader   Manage uploaders for a package on pub.dartlang.org.
@@ -69,6 +70,7 @@ main() {
           Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
+          -n, --dry-run         Report what dependencies would change but don't change any.
     ''');
   });
 
@@ -80,6 +82,7 @@ main() {
           Usage: pub get
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
+          -n, --dry-run         Report what dependencies would change but don't change any.
     ''');
   });
 
@@ -115,6 +118,7 @@ main() {
           get        Get the current package's dependencies.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
+          run        Run an executable from a package.
           serve      Run a local web development server.
           upgrade    Upgrade the current package's dependencies to latest versions.
           uploader   Manage uploaders for a package on pub.dartlang.org.
@@ -197,6 +201,7 @@ main() {
             Usage: pub get
             -h, --help            Print usage information for this command.
                 --[no-]offline    Use cached packages instead of accessing the network.
+            -n, --dry-run         Report what dependencies would change but don't change any.
             ''');
     });
 
@@ -263,6 +268,7 @@ main() {
               get        Get the current package's dependencies.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.
+              run        Run an executable from a package.
               serve      Run a local web development server.
               upgrade    Upgrade the current package's dependencies to latest versions.
               uploader   Manage uploaders for a package on pub.dartlang.org.

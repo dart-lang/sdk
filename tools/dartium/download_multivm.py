@@ -23,6 +23,8 @@ SRC_DIR = os.path.dirname(os.path.dirname(TOOLS_DIR))
 GS_BUCKET = 'gs://dartium-archive'
 if platform.system() == 'Windows':
   GSUTIL = 'e:\\b\\build\\scripts\\slave\\gsutil.bat'
+  if not os.path.exists(GSUTIL):
+    GSUTIL = 'c:\\b\\build\\scripts\\slave\\gsutil.bat'
 else:
   GSUTIL = '/b/build/scripts/slave/gsutil'
 if not os.path.exists(GSUTIL):

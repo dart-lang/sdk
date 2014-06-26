@@ -6,14 +6,13 @@ library pub.asset.serialize.transform;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:convert';
 
 import 'package:barback/barback.dart';
 // TODO(nweiz): don't import from "src" once issue 14966 is fixed.
 import 'package:barback/src/internal_asset.dart';
 
 import '../serialize.dart';
-import '../utils.dart';
+import 'get_input_transform.dart';
 
 /// Serialize the methods shared between [Transform] and [DeclaringTransform].
 ///
@@ -107,7 +106,8 @@ class _ForeignBaseTransform {
 /// A wrapper for a [Transform] that's in the host isolate.
 ///
 /// This retrieves inputs from and sends outputs and logs to the host isolate.
-class ForeignTransform extends _ForeignBaseTransform implements Transform {
+class ForeignTransform extends _ForeignBaseTransform
+    with GetInputTransform implements Transform {
   final Asset primaryInput;
 
   /// Creates a transform from a serialized map sent from the host isolate.
@@ -120,21 +120,6 @@ class ForeignTransform extends _ForeignBaseTransform implements Transform {
       'type': 'getInput',
       'id': serializeId(id)
     }).then(deserializeAsset);
-  }
-
-  Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
-    if (encoding == null) encoding = UTF8;
-    return getInput(id).then((input) => input.readAsString(encoding: encoding));
-  }
-
-  Stream<List<int>> readInput(AssetId id) =>
-      futureStream(getInput(id).then((input) => input.read()));
-
-  Future<bool> hasInput(AssetId id) {
-    return getInput(id).then((_) => true).catchError((error) {
-      if (error is AssetNotFoundException && error.id == id) return false;
-      throw error;
-    });
   }
 
   void addOutput(Asset output) {

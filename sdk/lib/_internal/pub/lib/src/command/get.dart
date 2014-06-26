@@ -7,7 +7,6 @@ library pub.command.get;
 import 'dart:async';
 
 import '../command.dart';
-import '../log.dart' as log;
 
 /// Handles the `get` pub command.
 class GetCommand extends PubCommand {
@@ -19,10 +18,12 @@ class GetCommand extends PubCommand {
   GetCommand() {
     commandParser.addFlag('offline',
         help: 'Use cached packages instead of accessing the network.');
+
+    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+        help: "Report what dependencies would change but don't change any.");
   }
 
   Future onRun() {
-    return entrypoint.acquireDependencies()
-        .then((_) => log.message("Got dependencies!"));
+    return entrypoint.acquireDependencies(dryRun: commandOptions['dry-run']);
   }
 }

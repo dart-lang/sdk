@@ -2,31 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Support for specifying test expectations, such as for unit tests.
- *
- * The matcher library provides a third-generation assertion mechanism, drawing
- * inspiration from [Hamcrest](http://code.google.com/p/hamcrest/).
- *
- * For more information, see
- * [Unit Testing with Dart]
- * (http://www.dartlang.org/articles/dart-unit-tests/).
- */
+/// Support for specifying test expectations, such as for unit tests.
 library matcher;
 
-import 'dart:async';
-
-import 'src/description.dart';
-import 'src/interfaces.dart';
-
+export 'src/core_matchers.dart';
 export 'src/description.dart';
+export 'src/error_matchers.dart';
+export 'src/expect.dart';
+export 'src/future_matchers.dart';
 export 'src/interfaces.dart';
-
-part 'src/core_matchers.dart';
-part 'src/expect.dart';
-part 'src/future_matchers.dart';
-part 'src/iterable_matchers.dart';
-part 'src/map_matchers.dart';
-part 'src/numeric_matchers.dart';
-part 'src/operator_matchers.dart';
-part 'src/string_matchers.dart';
+export 'src/iterable_matchers.dart';
+export 'src/map_matchers.dart';
+export 'src/numeric_matchers.dart';
+export 'src/operator_matchers.dart';
+export 'src/string_matchers.dart';

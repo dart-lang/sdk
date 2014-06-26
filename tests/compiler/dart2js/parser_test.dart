@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'parser_helper.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+import 'package:compiler/implementation/tree/tree.dart';
 
 void testStatement(String statement) {
   Node node = parseStatement(statement);

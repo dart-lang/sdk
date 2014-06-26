@@ -368,6 +368,21 @@
       'Release': {
         'inherit_from': ['Release<(chrome_target_os)<(dart_target_arch)']
       },
+
+      'conditions': [
+        # On Windows ninja generator has hardcorded configuration naming
+        # patterns and it expects that x64 configurations are named smth_x64.
+        # This is a workaround for the crash that these expectations cause.
+        [ 'OS=="win" and GENERATOR=="ninja"', {
+          'DebugX64_x64': {
+            'inherit_from': [ 'DebugX64' ]
+          },
+
+          'ReleaseX64_x64': {
+            'inherit_from': [ 'ReleaseX64' ]
+          },
+        }],
+      ],
     },
   },
 }

@@ -949,9 +949,8 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ b(&fall_through, NE);
   // Receiver is Mint, return false if right is Smi.
   __ tst(R0, Operand(kSmiTagMask));
-  __ b(&fall_through, NE);
-  __ LoadObject(R0, Bool::False());
-  __ Ret();
+  __ LoadObject(R0, Bool::False(), EQ);
+  __ bx(LR, EQ);
   // TODO(srdjan): Implement Mint == Mint comparison.
 
   __ Bind(&fall_through);
@@ -1228,9 +1227,8 @@ void Intrinsifier::Double_toInt(Assembler* assembler) {
     // Overflow is signaled with minint.
     // Check for overflow and that it fits into Smi.
     __ CompareImmediate(R0, 0xC0000000);
-    __ b(&fall_through, MI);
-    __ SmiTag(R0);
-    __ Ret();
+    __ SmiTag(R0, PL);
+    __ bx(LR, PL);
     __ Bind(&fall_through);
   }
 }

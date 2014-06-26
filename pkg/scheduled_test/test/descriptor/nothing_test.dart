@@ -42,45 +42,38 @@ void main(_, message) {
     });
   });
 
-  expectTestsPass("nothing().validate() fails if there's a file", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+  expectTestFails("nothing().validate() fails if there's a file", () {
+    scheduleSandbox();
+    d.file('name.txt', 'contents').create();
+    d.nothing('name.txt').validate();
+  }, (errors) {
+    expect(errors.single, new isInstanceOf<ScheduleError>());
+    expect(errors.single.error.toString(),
+        matches(r"^Expected nothing to exist at '[^']+[\\/]name.txt', but "
+                r"found a file\.$"));
+  });
 
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
+  expectTestFails("nothing().validate() fails if there's a directory", () {
+    scheduleSandbox();
+    d.dir('dir').create();
+    d.nothing('dir').validate();
+  }, (errors) {
+    expect(errors.single, new isInstanceOf<ScheduleError>());
+    expect(errors.single.error.toString(),
+        matches(r"^Expected nothing to exist at '[^']+[\\/]dir', but found a "
+            r"directory\.$"));
+  });
 
-      d.file('name.txt', 'contents').create();
-      d.nothing('name.txt').validate();
+  expectTestFails("nothing().validate() fails if there's a broken link", () {
+    scheduleSandbox();
+    schedule(() {
+      new Link(path.join(sandbox, 'link')).createSync('nonexistent');
     });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^Expected nothing to exist at '[^']+[\\/]name.txt', but "
-                  r"found a file\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("nothing().validate() fails if there's a directory", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.dir('dir').create();
-      d.nothing('dir').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^Expected nothing to exist at '[^']+[\\/]dir', but found a "
-              r"directory\.$"));
-    });
-  }, passing: ['test 2']);
+    d.nothing('link').validate();
+  }, (errors) {
+    expect(errors.single, new isInstanceOf<ScheduleError>());
+    expect(errors.single.error.toString(),
+        matches(r"^Expected nothing to exist at '[^']+[\\/]link', but found "
+            r"a link\.$"));
+  });
 }

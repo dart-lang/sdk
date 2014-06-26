@@ -4,6 +4,7 @@
 
 library observatory_element;
 
+import 'dart:html';
 import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
 
@@ -12,21 +13,34 @@ import 'package:polymer/polymer.dart';
 class ObservatoryElement extends PolymerElement {
   ObservatoryElement.created() : super.created();
 
-  void enteredView() {
-    super.enteredView();
+  @override
+  void attached() {
+    super.attached();
   }
 
-  void leftView() {
-    super.leftView();
+  @override
+  void attributeChanged(String name, var oldValue, var newValue) {
+    super.attributeChanged(name, oldValue, newValue);
+  }
+
+  @override
+  void detached() {
+    super.detached();
   }
 
   void ready() {
     super.ready();
   }
 
-  void attributeChanged(String name, var oldValue, var newValue) {
-    super.attributeChanged(name, oldValue, newValue);
+  void goto(MouseEvent event, var detail, Element target) {
+    location.onGoto(event, detail, target);
   }
+
+  String gotoLink(String url) {
+    return location.makeLink(url);
+  }
+
+
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
 

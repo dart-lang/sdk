@@ -20,13 +20,14 @@ main() {
   setUp(() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    server = new AnalysisServer(serverChannel, resourceProvider);
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
     handler = new ServerDomainHandler(server);
   });
 
   group('ServerDomainHandler', () {
     test('getVersion', () {
-      var request = new Request('0', METHOD_GET_VERSION);
+      var request = new Request('0', SERVER_GET_VERSION);
       var response = handler.handleRequest(request);
       expect(response.toJson(), equals({
         Response.ID: '0',
@@ -39,7 +40,7 @@ main() {
     group('setSubscriptions', () {
       Request request;
       setUp(() {
-        request = new Request('0', METHOD_SET_SERVER_SUBSCRIPTIONS);
+        request = new Request('0', SERVER_SET_SUBSCRIPTIONS);
       });
 
       test('invalid service name', () {
@@ -66,7 +67,7 @@ main() {
     test('shutdown', () {
       expect(server.running, isTrue);
       // send request
-      var request = new Request('0', METHOD_SHUTDOWN);
+      var request = new Request('0', SERVER_SHUTDOWN);
       var response = handler.handleRequest(request);
       expect(response, isResponseSuccess('0'));
       // server is down

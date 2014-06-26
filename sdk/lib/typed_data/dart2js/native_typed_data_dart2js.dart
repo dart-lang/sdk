@@ -242,7 +242,7 @@ class NativeByteData extends NativeTypedData implements ByteData
    * `byteOffset + 8` is greater than the length of this object.
    */
   int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
+    throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
   /**
@@ -297,7 +297,7 @@ class NativeByteData extends NativeTypedData implements ByteData
    * `byteOffset + 8` is greater than the length of this object.
    */
   int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
+    throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
   /**
@@ -392,7 +392,7 @@ class NativeByteData extends NativeTypedData implements ByteData
    */
   void setInt64(int byteOffset, int value,
                 [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
+    throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
   /**
@@ -449,7 +449,7 @@ class NativeByteData extends NativeTypedData implements ByteData
    */
   void setUint64(int byteOffset, int value,
                  [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
+    throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
   /**
@@ -474,12 +474,9 @@ class NativeByteData extends NativeTypedData implements ByteData
 }
 
 
-// TODO(sra): Move this type to a public name in a private library so that other
-// platform libraries like dart:html and dart:webaudio can tell a native array
-// from a list that implements the implicit interface.
 abstract class NativeTypedArray extends NativeTypedData
     implements JavaScriptIndexingBehavior {
-  int get length => JS("JSUInt32", '#.length', this);
+  int get length => JS('JSUInt32', '#.length', this);
 
   bool _setRangeFast(int start, int end,
       NativeTypedArray source, int skipCount) {
@@ -493,7 +490,7 @@ abstract class NativeTypedArray extends NativeTypedData
 
     int sourceLength = source.length;
     if (sourceLength - skipCount < count)  {
-      throw new StateError("Not enough elements");
+      throw new StateError('Not enough elements');
     }
 
     if (skipCount != 0 || sourceLength != count) {
@@ -505,11 +502,20 @@ abstract class NativeTypedArray extends NativeTypedData
   }
 }
 
-// TODO(sra): Move to private library, like [NativeTypedArray].
 abstract class NativeTypedArrayOfDouble
     extends NativeTypedArray
         with ListMixin<double>, FixedLengthListMixin<double>
     implements List<double> {
+
+  num operator[](int index) {
+    _checkIndex(index, length);
+    return JS('num', '#[#]', this, index);
+  }
+
+  void operator[]=(int index, num value) {
+    _checkIndex(index, length);
+    JS('void', '#[#] = #', this, index, value);
+  }
 
   void setRange(int start, int end, Iterable<double> iterable,
                 [int skipCount = 0]) {
@@ -521,11 +527,18 @@ abstract class NativeTypedArrayOfDouble
   }
 }
 
-// TODO(sra): Move to private library, like [NativeTypedArray].
 abstract class NativeTypedArrayOfInt
     extends NativeTypedArray
         with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
+
+  // operator[]() is not here since different versions have different return
+  // types
+
+  void operator[]=(int index, int value) {
+    _checkIndex(index, length);
+    JS('void', '#[#] = #', this, index, value);
+  }
 
   void setRange(int start, int end, Iterable<int> iterable,
                 [int skipCount = 0]) {
@@ -557,16 +570,6 @@ class NativeFloat32List
   }
 
   Type get runtimeType => Float32List;
-
-  num operator[](int index) {
-    _checkIndex(index, length);
-    return JS("num", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, num value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
 
   List<double> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
@@ -604,16 +607,6 @@ class NativeFloat64List
   }
 
   Type get runtimeType => Float64List;
-
-  num operator[](int index) {
-    _checkIndex(index, length);
-    return JS("num", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, num value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
 
   List<double> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
@@ -654,12 +647,7 @@ class NativeInt16List
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -701,12 +689,7 @@ class NativeInt32List
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -748,12 +731,7 @@ class NativeInt8List
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -795,12 +773,7 @@ class NativeUint16List
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('JSUInt31', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -842,12 +815,7 @@ class NativeUint32List
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("JSUInt32", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('JSUInt32', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -887,16 +855,11 @@ class NativeUint8ClampedList
 
   Type get runtimeType => Uint8ClampedList;
 
-  int get length => JS("JSUInt32", '#.length', this);
+  int get length => JS('JSUInt32', '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('JSUInt31', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
@@ -942,16 +905,11 @@ class NativeUint8List
 
   Type get runtimeType => Uint8List;
 
-  int get length => JS("JSUInt32", '#.length', this);
+  int get length => JS('JSUInt32', '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
+    return JS('JSUInt31', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {

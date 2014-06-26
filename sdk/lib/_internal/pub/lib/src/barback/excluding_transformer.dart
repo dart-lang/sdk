@@ -8,56 +8,38 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
+import 'transformer_config.dart';
+
 /// Decorates an inner [Transformer] and handles including and excluding
 /// primary inputs.
 class ExcludingTransformer extends Transformer {
-  /// If [includes] or [excludes] is non-null, wraps [inner] in an
+  /// If [config] defines includes or excludes, wraps [inner] in an
   /// [ExcludingTransformer] that handles those.
   ///
   /// Otherwise, just returns [inner] unmodified.
-  static Transformer wrap(Transformer inner, Set<String> includes,
-      Set<String> excludes) {
-    if (includes == null && excludes == null) return inner;
+  static Transformer wrap(Transformer inner, TransformerConfig config) {
+    if (!config.hasExclusions) return inner;
 
     if (inner is LazyTransformer) {
       // TODO(nweiz): Remove these unnecessary "as"es when issue 19046 is fixed.
-      return new _LazyExcludingTransformer(
-          inner as LazyTransformer, includes, excludes);
+      return new _LazyExcludingTransformer(inner as LazyTransformer, config);
     } else if (inner is DeclaringTransformer) {
       return new _DeclaringExcludingTransformer(
-          inner as DeclaringTransformer, includes, excludes);
+          inner as DeclaringTransformer, config);
     } else {
-      return new ExcludingTransformer._(inner, includes, excludes);
+      return new ExcludingTransformer._(inner, config);
     }
   }
 
   final Transformer _inner;
 
-  /// The set of asset paths which should be included.
-  ///
-  /// If `null`, all non-excluded assets are allowed. Otherwise, only included
-  /// assets are allowed.
-  final Set<String> _includes;
+  /// The config containing rules for which assets to include or exclude.
+  final TransformerConfig _config;
 
-  /// The set of assets which should be excluded.
-  ///
-  /// Exclusions are applied after inclusions.
-  final Set<String> _excludes;
-
-  ExcludingTransformer._(this._inner, this._includes, this._excludes);
+  ExcludingTransformer._(this._inner, this._config);
 
   isPrimary(AssetId id) {
-    // TODO(rnystrom): Support globs in addition to paths. See #17093.
-    if (_includes != null) {
-      // If there are any includes, it must match one of them.
-      if (!_includes.contains(id.path)) return false;
-    }
-
-    // It must not be excluded.
-    if (_excludes != null && _excludes.contains(id.path)) {
-      return false;
-    }
-
+    if (!_config.canTransform(id.path)) return false;
     return _inner.isPrimary(id);
   }
 
@@ -69,8 +51,8 @@ class ExcludingTransformer extends Transformer {
 class _DeclaringExcludingTransformer extends ExcludingTransformer
     implements DeclaringTransformer {
   _DeclaringExcludingTransformer(DeclaringTransformer inner,
-        Set<String> includes, Set<String> excludes)
-      : super._(inner as Transformer, includes, excludes);
+          TransformerConfig config)
+      : super._(inner as Transformer, config);
 
   Future declareOutputs(DeclaringTransform transform) =>
       (_inner as DeclaringTransformer).declareOutputs(transform);
@@ -79,6 +61,6 @@ class _DeclaringExcludingTransformer extends ExcludingTransformer
 class _LazyExcludingTransformer extends _DeclaringExcludingTransformer
     implements LazyTransformer {
   _LazyExcludingTransformer(DeclaringTransformer inner,
-        Set<String> includes, Set<String> excludes)
-      : super(inner, includes, excludes);
+          TransformerConfig config)
+      : super(inner, config);
 }

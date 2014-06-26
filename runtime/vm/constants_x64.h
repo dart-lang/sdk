@@ -138,6 +138,62 @@ enum Condition {
   NOT_CARRY     = ABOVE_EQUAL
 };
 
+#define R(reg) (1 << (reg))
+
+#if defined(_WIN64)
+class CallingConventions {
+ public:
+  static const Register kArg1Reg = RCX;
+  static const Register kArg2Reg = RDX;
+  static const Register kArg3Reg = R8;
+  static const Register kArg4Reg = R9;
+  static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
+
+  static const intptr_t kVolatileCpuRegisters =
+      R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
+
+  static const intptr_t kVolatileXmmRegisters =
+      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) | R(XMM5);
+
+  static const intptr_t kCalleeSaveCpuRegisters =
+      R(RBX) | R(RSI) | R(RDI) | R(R12) | R(R13) | R(R14) | R(R15);
+
+  static const intptr_t kCalleeSaveXmmRegisters =
+      R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) |
+      R(XMM13) | R(XMM14) | R(XMM15);
+
+  // Windows x64 ABI specifies that small objects are passed in registers.
+  // Otherwise they are passed by reference.
+  static const size_t kRegisterTransferLimit = 16;
+};
+#else
+class CallingConventions {
+ public:
+  static const Register kArg1Reg = RDI;
+  static const Register kArg2Reg = RSI;
+  static const Register kArg3Reg = RDX;
+  static const Register kArg4Reg = RCX;
+  static const Register kArg5Reg = R8;
+  static const Register kArg6Reg = R9;
+  static const intptr_t kShadowSpaceBytes = 0;
+
+  static const intptr_t kVolatileCpuRegisters =
+      R(RAX) | R(RCX) | R(RDX) | R(RSI) | R(RDI) |
+      R(R8) | R(R9) | R(R10) | R(R11);
+
+  static const intptr_t kVolatileXmmRegisters =
+      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) |
+      R(XMM5) | R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) |
+      R(XMM10) | R(XMM11) | R(XMM12) | R(XMM13) | R(XMM14) | R(XMM15);
+
+  static const intptr_t kCalleeSaveCpuRegisters =
+      R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);
+
+  static const intptr_t kCalleeSaveXmmRegisters = 0;
+};
+#endif
+
+#undef R
 
 class Instr {
  public:

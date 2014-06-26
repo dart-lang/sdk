@@ -1005,16 +1005,14 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (is_optimizing()) {
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
-      __ CompareImmediate(
+      __ cmpl(
           FieldAddress(function_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_reoptimization_counter_threshold),
-          new_pp);
+          Immediate(FLAG_reoptimization_counter_threshold));
     } else {
-      __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
-      __ CompareImmediate(
+      __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
+      __ cmpl(
           FieldAddress(function_reg, Function::usage_counter_offset()),
-          Immediate(FLAG_optimization_counter_threshold),
-          new_pp);
+          Immediate(FLAG_optimization_counter_threshold));
     }
     ASSERT(function_reg == RDI);
     __ J(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel(), R13);
@@ -1207,27 +1205,11 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
+    LocationSummary* locs,
+    const ICData& ic_data) {
   uword label_address = 0;
   if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
@@ -1325,19 +1307,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ LoadImmediate(RAX, Immediate(Smi::RawValue(kSmiCid)), PP);
-  __ jmp(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(RAX, RAX);
-  __ SmiTag(RAX);
+  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
 
   // RAX: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(RBX, cache, PP);
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
   __ movq(RBX, FieldAddress(RBX, MegamorphicCache::mask_offset()));
@@ -1474,58 +1447,15 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
-  // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    __ AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
-    // Store XMM registers with the lowest register number at the lowest
-    // address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(Address(RSP, offset), xmm_reg);
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-  }
-
-  // Store general purpose registers with the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ pushq(reg);
-    }
-  }
+  // TODO(vegorov): avoid saving non-volatile registers.
+  __ PushRegisters(locs->live_registers()->cpu_registers(),
+                   locs->live_registers()->fpu_registers());
 }
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ popq(reg);
-    }
-  }
-
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    // XMM registers have the lowest register number at the lowest address.
-    intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(xmm_reg, Address(RSP, offset));
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-    __ AddImmediate(RSP, Immediate(offset), PP);
-  }
+  __ PopRegisters(locs->live_registers()->cpu_registers(),
+                  locs->live_registers()->fpu_registers());
 }
 
 

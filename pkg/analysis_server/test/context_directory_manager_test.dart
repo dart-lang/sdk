@@ -15,29 +15,47 @@ import 'package:analyzer/src/generated/source.dart';
 class TestContextDirectoryManager extends ContextDirectoryManager {
   TestContextDirectoryManager(MemoryResourceProvider provider) : super(provider);
 
+  /**
+   * Source of timestamps stored in [currentContextFilePaths].
+   */
+  int now = 0;
+
   final Set<String> currentContextPaths = new Set<String>();
-  final Map<String, String> currentContextPubspecPaths = <String, String>{};
-  final Map<String, Set<String>> currentContextFilePaths = <String, Set<String>>{};
+
+  /**
+   * Map from context to (map from file path to timestamp of last event)
+   */
+  final Map<String, Map<String, int>> currentContextFilePaths = <String, Map<String, int>>{};
 
   @override
-  void addContext(Folder folder, File pubspecFile) {
-    currentContextPaths.add(folder.path);
-    currentContextPubspecPaths[folder.path] = pubspecFile != null ? pubspecFile.path : null;
-    currentContextFilePaths[folder.path] = new Set<String>();
+  void addContext(Folder folder) {
+    String path = folder.path;
+    currentContextPaths.add(path);
+    currentContextFilePaths[path] = <String, int>{};
   }
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    Set<String> filePaths = currentContextFilePaths[contextFolder.path];
+    Map<String, int> filePaths = currentContextFilePaths[contextFolder.path];
     for (Source source in changeSet.addedSources) {
       expect(filePaths, isNot(contains(source.fullName)));
-      filePaths.add(source.fullName);
+      filePaths[source.fullName] = now;
     }
     for (Source source in changeSet.removedSources) {
       expect(filePaths, contains(source.fullName));
       filePaths.remove(source.fullName);
     }
-    // TODO(paulberry): handle source.changedSources.
+    for (Source source in changeSet.changedSources) {
+      expect(filePaths, contains(source.fullName));
+      filePaths[source.fullName] = now;
+    }
+  }
+
+  @override
+  void removeContext(Folder folder) {
+    String path = folder.path;
+    currentContextPaths.remove(path);
+    currentContextFilePaths.remove(path);
   }
 }
 
@@ -61,7 +79,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       expect(manager.currentContextPaths, hasLength(1));
       expect(manager.currentContextPaths, contains(projPath));
-      expect(manager.currentContextPubspecPaths[projPath], equals(pubspecPath));
       expect(manager.currentContextFilePaths[projPath], hasLength(0));
     });
 
@@ -71,7 +88,6 @@ main() {
       manager.setRoots(<String>[projPath], <String>[]);
       expect(manager.currentContextPaths, hasLength(1));
       expect(manager.currentContextPaths, contains(projPath));
-      expect(manager.currentContextPubspecPaths[projPath], isNull);
       expect(manager.currentContextFilePaths[projPath], hasLength(0));
     });
 
@@ -97,6 +113,26 @@ main() {
       expect(filePaths, contains(filePath));
     });
 
+    test('remove folder with pubspec', () {
+      String projPath = '/my/proj';
+      String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+      provider.newFolder(projPath);
+      provider.newFile(pubspecPath, 'pubspec');
+      manager.setRoots(<String>[projPath], <String>[]);
+      manager.setRoots(<String>[], <String>[]);
+      expect(manager.currentContextPaths, hasLength(0));
+      expect(manager.currentContextFilePaths, hasLength(0));
+    });
+
+    test('remove folder without pubspec', () {
+      String projPath = '/my/proj';
+      provider.newFolder(projPath);
+      manager.setRoots(<String>[projPath], <String>[]);
+      manager.setRoots(<String>[], <String>[]);
+      expect(manager.currentContextPaths, hasLength(0));
+      expect(manager.currentContextFilePaths, hasLength(0));
+    });
+
     test('ignore files in packages dir', () {
       String projPath = '/my/proj';
       provider.newFolder(projPath);
@@ -105,7 +141,7 @@ main() {
       String filePath1 = posix.join(projPath, 'packages', 'file1.dart');
       provider.newFile(filePath1, 'contents');
       manager.setRoots(<String>[projPath], <String>[]);
-      Set<String> filePaths = manager.currentContextFilePaths[projPath];
+      Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
       expect(filePaths, hasLength(0));
       String filePath2 = posix.join(projPath, 'packages', 'file2.dart');
       provider.newFile(filePath2, 'contents');
@@ -124,7 +160,7 @@ main() {
 
       test('Add file', () {
         manager.setRoots(<String>[projPath], <String>[]);
-        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
         expect(filePaths, hasLength(0));
         String filePath = posix.join(projPath, 'foo.dart');
         provider.newFile(filePath, 'contents');
@@ -136,7 +172,7 @@ main() {
 
       test('Add file in subdirectory', () {
         manager.setRoots(<String>[projPath], <String>[]);
-        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
         expect(filePaths, hasLength(0));
         String filePath = posix.join(projPath, 'foo', 'bar.dart');
         provider.newFile(filePath, 'contents');
@@ -150,11 +186,25 @@ main() {
         String filePath = posix.join(projPath, 'foo.dart');
         provider.newFile(filePath, 'contents');
         manager.setRoots(<String>[projPath], <String>[]);
-        Set<String> filePaths = manager.currentContextFilePaths[projPath];
+        Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
         expect(filePaths, hasLength(1));
         expect(filePaths, contains(filePath));
         provider.deleteFile(filePath);
         return pumpEventQueue().then((_) => expect(filePaths, hasLength(0)));
+      });
+
+      test('Modify file', () {
+        String filePath = posix.join(projPath, 'foo.dart');
+        provider.newFile(filePath, 'contents');
+        manager.setRoots(<String>[projPath], <String>[]);
+        Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
+        expect(filePaths, hasLength(1));
+        expect(filePaths, contains(filePath));
+        expect(filePaths[filePath], equals(manager.now));
+        manager.now++;
+        provider.modifyFile(filePath, 'new contents');
+        return pumpEventQueue().then((_) => expect(filePaths[filePath], equals(
+            manager.now)));
       });
     });
   });

@@ -508,7 +508,7 @@ bool Api::GetNativeReceiver(NativeArguments* arguments, intptr_t* value) {
       if (native_fields == TypedData::null()) {
         *value = 0;
       } else {
-        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
       }
       return true;
     }
@@ -593,7 +593,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
         memset(field_values, 0, (num_fields * sizeof(field_values[0])));
       } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
         intptr_t* native_values =
-            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
         memmove(field_values,
                 native_values,
                 (num_fields * sizeof(field_values[0])));
@@ -947,20 +947,16 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& ref = isolate->ObjectHandle();
   ref = Api::UnwrapHandle(object);
-  FinalizablePersistentHandle* finalizable_ref = is_prologue ?
-      state->prologue_weak_persistent_handles().AllocateHandle() :
-      state->weak_persistent_handles().AllocateHandle();
-
-  finalizable_ref->set_raw(ref);
-  finalizable_ref->set_peer(peer);
-  finalizable_ref->set_callback(callback);
-  finalizable_ref->SetExternalSize(external_allocation_size, isolate);
-  finalizable_ref->SetPrologueWeakPersistent(is_prologue);
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(isolate,
+                                       is_prologue,
+                                       ref,
+                                       peer,
+                                       callback,
+                                       external_allocation_size);
   return finalizable_ref->apiHandle();
 }
 
@@ -1978,7 +1974,7 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
   // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  if (Smi::IsValid64(value)) {
+  if (Smi::IsValid(value)) {
     NOHANDLESCOPE(isolate);
     return Api::NewHandle(isolate, Smi::New(static_cast<intptr_t>(value)));
   }
@@ -2702,7 +2698,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(*saved_exception);
+  Exceptions::Throw(isolate, *saved_exception);
   const String& message = String::Handle(
           String::New("Exception was not thrown, internal error"));
   return ApiError::New(message);
@@ -3179,7 +3175,7 @@ static Dart_Handle NewExternalByteData(
     return ext_data;
   }
   Object& result = Object::Handle(isolate);
-  result = GetByteDataConstructor(isolate, Symbols::ByteDataDotview(), 3);
+  result = GetByteDataConstructor(isolate, Symbols::ByteDataDot_view(), 3);
   ASSERT(!result.IsNull());
   ASSERT(result.IsFunction());
   const Function& factory = Function::Cast(result);
@@ -3600,23 +3596,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 }
 
 
-DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  CHECK_CALLBACK_STATE(isolate);
-
-  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
-  // Get the class to instantiate.
-  if (type_obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, type, Type);
-  }
-  const Class& cls = Class::Handle(isolate, type_obj.type_class());
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
-  if (!error.IsNull()) {
-    // An error occurred, return error object.
-    return Api::NewHandle(isolate, error.raw());
-  }
-
+static RawInstance* AllocateObject(Isolate* isolate, const Class& cls) {
   if (!cls.is_fields_marked_nullable()) {
     // Mark all fields as nullable.
     Class& iterate_cls = Class::Handle(isolate, cls.raw());
@@ -3638,7 +3618,61 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
 
   // Allocate an object for the given class.
-  return Api::NewHandle(isolate, Instance::New(cls));
+  return Instance::New(cls);
+}
+
+
+DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
+  return Api::NewHandle(isolate, AllocateObject(isolate, cls));
+}
+
+
+DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
+    Dart_Handle type,
+    intptr_t num_native_fields,
+    const intptr_t* native_fields) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  if (native_fields == NULL) {
+    RETURN_NULL_ERROR(native_fields);
+  }
+  const Class& cls = Class::Handle(isolate, type_obj.type_class());
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    // An error occurred, return error object.
+    return Api::NewHandle(isolate, error.raw());
+  }
+  if (num_native_fields != cls.num_native_fields()) {
+    return Api::NewError(
+        "%s: invalid number of native fields %" Pd " passed in, expected %d",
+        CURRENT_FUNC, num_native_fields, cls.num_native_fields());
+  }
+  const Instance& instance = Instance::Handle(isolate,
+                                              AllocateObject(isolate, cls));
+  instance.SetNativeFields(num_native_fields, native_fields);
+  return Api::NewHandle(isolate, instance.raw());
 }
 
 
@@ -4216,7 +4250,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(*saved_exception);
+  Exceptions::Throw(isolate, *saved_exception);
   return Api::NewError("Exception was not thrown, internal error");
 }
 
@@ -4258,7 +4292,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     saved_exception = &Instance::Handle(raw_exception);
     saved_stacktrace = &Instance::Handle(raw_stacktrace);
   }
-  Exceptions::ReThrow(*saved_exception, *saved_stacktrace);
+  Exceptions::ReThrow(isolate, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
 }
 
@@ -4665,7 +4699,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
                                             int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->isolate() == Isolate::Current());
-  if (Smi::IsValid64(retval)) {
+  if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, retval);
   } else {
     // Slow path for Mints and Bigints.
@@ -4977,7 +5011,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   if (library.IsNull()) {
     library = Library::New(url_str);
     library.Register();
-  } else if (!library.LoadNotStarted()) {
+  } else if (library.LoadInProgress() ||
+      library.Loaded() ||
+      library.LoadError()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.
     return Api::NewError("%s: library '%s' has already been loaded.",
@@ -4992,8 +5028,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     return result;
   }
 
-  // If this is the dart:builtin library, register it with the VM.
-  if (url_str.Equals("dart:builtin")) {
+  // If this is the dart:_builtin library, register it with the VM.
+  if (url_str.Equals("dart:_builtin")) {
     isolate->object_store()->set_builtin_library(library);
     Dart_Handle state = Api::CheckIsolateState(isolate);
     if (::Dart_IsError(state)) {
@@ -5039,7 +5075,8 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     if (!library_prefix.IsNull()) {
       library_prefix.AddImport(import_ns);
     } else {
-      library_prefix = LibraryPrefix::New(prefix_symbol, import_ns, false);
+      library_prefix =
+          LibraryPrefix::New(prefix_symbol, import_ns, false, library_vm);
       library_vm.AddObject(library_prefix, prefix_symbol);
     }
   }
@@ -5104,6 +5141,37 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
   Dart_Handle result;
   CompileSource(isolate, lib, script, &result);
   return result;
+}
+
+
+// Finalizes classes and invokes Dart core library function that completes
+// futures of loadLibrary calls (deferred library loading).
+DART_EXPORT Dart_Handle Dart_FinalizeLoading() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+
+  const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());
+  const String& function_name =
+      String::Handle(isolate, String::New("_completeDeferredLoads"));
+  const Function& function =
+      Function::Handle(isolate,
+                       corelib.LookupFunctionAllowPrivate(function_name));
+  ASSERT(!function.IsNull());
+  const Array& args = Array::empty_array();
+
+  const Object& res =
+      Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+  if (res.IsError() || res.IsUnhandledException()) {
+    return Api::NewHandle(isolate, res.raw());
+  }
+  return Api::Success();
 }
 
 

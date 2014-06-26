@@ -189,15 +189,17 @@ class Handle {
   virtual ~Handle();
 
   // Socket interface exposing normal socket operations.
-  int Available();
-  int Read(void* buffer, int num_bytes);
-  int RecvFrom(
-      void* buffer, int num_bytes, struct sockaddr* sa, socklen_t addr_len);
-  virtual int Write(const void* buffer, int num_bytes);
-  virtual int SendTo(const void* buffer,
-                     int num_bytes,
-                     struct sockaddr* sa,
-                     socklen_t sa_len);
+  intptr_t Available();
+  intptr_t Read(void* buffer, intptr_t num_bytes);
+  intptr_t RecvFrom(void* buffer,
+                    intptr_t num_bytes,
+                    struct sockaddr* sa,
+                    socklen_t addr_len);
+  virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
+  virtual intptr_t SendTo(const void* buffer,
+                          intptr_t num_bytes,
+                          struct sockaddr* sa,
+                          socklen_t sa_len);
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();
@@ -324,7 +326,7 @@ class StdHandle : public FileHandle {
   }
 
   virtual void DoClose();
-  virtual int Write(const void* buffer, int num_bytes);
+  virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
 
   void WriteSyncCompleteAsync();
   void RunWriteLoop();

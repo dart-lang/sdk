@@ -23,6 +23,7 @@ void testSimpleBind() {
   asyncStart();
   ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
     Expect.isTrue(s.port > 0);
+    s.close();
     asyncEnd();
   });
 }

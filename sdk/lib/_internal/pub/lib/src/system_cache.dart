@@ -37,8 +37,9 @@ class SystemCache {
   /// user's file system.
   SystemCache(this.rootDir);
 
-  /// Creates a system cache and registers the standard set of sources. If
-  /// [isOffline] is `true`, then the offline hosted source will be used.
+  /// Creates a system cache and registers the standard set of sources.
+  ///
+  /// If [isOffline] is `true`, then the offline hosted source will be used.
   /// Defaults to `false`.
   factory SystemCache.withSources(String rootDir, {bool isOffline: false}) {
     var cache = new SystemCache(rootDir);
@@ -55,8 +56,10 @@ class SystemCache {
     return cache;
   }
 
-  /// Registers a new source. This source must not have the same name as a
-  /// source that's already been registered.
+  /// Registers a new source.
+  ///
+  /// This source must not have the same name as a source that's already been
+  /// registered.
   void register(Source source) {
     source.bind(this);
     sources.register(source);
@@ -73,11 +76,12 @@ class SystemCache {
     return source.isInSystemCache(id);
   }
 
-  /// Create a new temporary directory within the system cache. The system
-  /// cache maintains its own temporary directory that it uses to stage
-  /// packages into while downloading. It uses this instead of the OS's system
-  /// temp directory to ensure that it's on the same volume as the pub system
-  /// cache so that it can move the directory from it.
+  /// Create a new temporary directory within the system cache.
+  ///
+  /// The system cache maintains its own temporary directory that it uses to
+  /// stage packages into while downloading. It uses this instead of the OS's
+  /// system temp directory to ensure that it's on the same volume as the pub
+  /// system cache so that it can move the directory from it.
   String createTempDir() {
     var temp = ensureDir(tempDir);
     return io.createTempDir(temp, 'dir');

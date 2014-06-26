@@ -14,10 +14,13 @@ import 'dart:io';
 import 'package:analyzer/src/analyzer_impl.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/options.dart';
 
 void main(args) {
+  StringUtilities.INTERNER = new MappedInterner();
   CommandLineOptions options = CommandLineOptions.parse(args);
   if (options.shouldBatch) {
     BatchRunner.runAsBatch(args, (List<String> args) {

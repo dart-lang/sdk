@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import '../io.dart';
 import '../log.dart' as log;
 import 'asset_environment.dart';
 import 'base_server.dart';
@@ -29,7 +30,7 @@ class AdminServer extends BaseServer {
   /// Creates a new server and binds it to [port] of [host].
   static Future<AdminServer> bind(AssetEnvironment environment,
       String host, int port) {
-    return Chain.track(HttpServer.bind(host, port)).then((server) {
+    return Chain.track(bindServer(host, port)).then((server) {
       log.fine('Bound admin server to $host:$port.');
       return new AdminServer._(environment, server);
     });

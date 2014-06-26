@@ -4,6 +4,9 @@
 
 library domain.analysis;
 
+import 'dart:collection';
+
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -27,21 +30,17 @@ class AnalysisDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == METHOD_GET_FIXES) {
-        return getFixes(request);
-      } else if (requestName == METHOD_GET_MINOR_REFACTORINGS) {
-          return getMinorRefactorings(request);
-      } else if (requestName == METHOD_SET_ANALYSIS_ROOTS) {
+      if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
-      } else if (requestName == METHOD_SET_PRIORITY_FILES) {
+      } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == METHOD_SET_ANALYSIS_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == METHOD_UPDATE_CONTENT) {
+      } else if (requestName == ANALYSIS_UPDATE_CONTENT) {
         return updateContent(request);
-      } else if (requestName == METHOD_UPDATE_OPTIONS) {
+      } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
         return updateOptions(request);
-      } else if (requestName == METHOD_UPDATE_SDKS) {
+      } else if (requestName == ANALYSIS_UPDATE_SDKS) {
         return updateSdks(request);
       }
     } on RequestFailure catch (exception) {
@@ -50,16 +49,9 @@ class AnalysisDomainHandler implements RequestHandler {
     return null;
   }
 
-  Response getFixes(Request request) {
-    // TODO(scheglov) implement
-    return null;
-  }
-
-  Response getMinorRefactorings(Request request) {
-    // TODO(scheglov) implement
-    return null;
-  }
-
+  /**
+   * Implement the 'analysis.setAnalysisRoots' request.
+   */
   Response setAnalysisRoots(Request request) {
     // included
     RequestDatum includedDatum = request.getRequiredParameter(INCLUDED);
@@ -72,37 +64,51 @@ class AnalysisDomainHandler implements RequestHandler {
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.setPriorityFiles' request.
+   */
   Response setPriorityFiles(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    // files
+    RequestDatum filesDatum = request.getRequiredParameter(FILES);
+    List<String> files = filesDatum.asStringList();
+    server.setPriorityFiles(request, files);
+    return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.setSubscriptions' request.
+   */
   Response setSubscriptions(Request request) {
     // parse subscriptions
     Map<AnalysisService, Set<String>> subMap;
     {
       RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
       Map<String, List<String>> subStringMap = subDatum.asStringListMap();
-      subMap = new Map<AnalysisService, Set<String>>();
+      subMap = new HashMap<AnalysisService, Set<String>>();
       subStringMap.forEach((String serviceName, List<String> paths) {
-        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES, serviceName);
+        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES,
+            serviceName);
         if (service == null) {
-          throw new RequestFailure(
-              new Response.unknownAnalysisService(request, serviceName));
+          throw new RequestFailure(new Response.unknownAnalysisService(request,
+              serviceName));
         }
-        subMap[service] = new Set.from(paths);
+        subMap[service] = new HashSet.from(paths);
       });
     }
     server.setAnalysisSubscriptions(subMap);
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.updateContent' request.
+   */
   Response updateContent(Request request) {
-    var changes = new Map<String, ContentChange>();
+    var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
     filesDatum.forEachMap((file, changeDatum) {
       var change = new ContentChange();
-      change.content = changeDatum[CONTENT].asString();
+      change.content = changeDatum[CONTENT].isNull ? null :
+          changeDatum[CONTENT].asString();
       if (changeDatum.hasKey(OFFSET)) {
         change.offset = changeDatum[OFFSET].asInt();
         change.oldLength = changeDatum[OLD_LENGTH].asInt();
@@ -114,12 +120,73 @@ class AnalysisDomainHandler implements RequestHandler {
     return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.updateOptions' request.
+   */
   Response updateOptions(Request request) {
-    // TODO(scheglov) implement
-    return null;
+    // options
+    RequestDatum optionsDatum = request.getRequiredParameter(OPTIONS);
+    List<OptionUpdater> updaters = new List<OptionUpdater>();
+    optionsDatum.forEachMap((String optionName, RequestDatum optionDatum) {
+      if (optionName == ANALYZE_ANGULAR) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.analyzeAngular = optionValue;
+        });
+      } else if (optionName == ANALYZE_POLYMER) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.analyzePolymer = optionValue;
+        });
+      } else if (optionName == ENABLE_ASYNC) {
+        // TODO(brianwilkerson) Uncomment this when the option is supported.
+//        bool optionValue = optionDatum.asBool();
+//        updaters.add((AnalysisOptionsImpl options) {
+//          options.enableAsync = optionValue;
+//        });
+      } else if (optionName == ENABLE_DEFERRED_LOADING) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.enableDeferredLoading = optionValue;
+        });
+      } else if (optionName == ENABLE_ENUMS) {
+        // TODO(brianwilkerson) Uncomment this when the option is supported.
+//        bool optionValue = optionDatum.asBool();
+//        updaters.add((AnalysisOptionsImpl options) {
+//          options.enableEnums = optionValue;
+//        });
+      } else if (optionName == GENERATE_DART2JS_HINTS) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.dart2jsHint = optionValue;
+        });
+      } else if (optionName == GENERATE_HINTS) {
+        bool optionValue = optionDatum.asBool();
+        updaters.add((AnalysisOptionsImpl options) {
+          options.hint = optionValue;
+        });
+      } else {
+        throw new RequestFailure(new Response.unknownOptionName(request,
+            optionName));
+      }
+    });
+    server.updateOptions(updaters);
+    return new Response(request.id);
   }
 
+  /**
+   * Implement the 'analysis.updateSdks' request.
+   */
   Response updateSdks(Request request) {
+    // added
+    RequestDatum addedDatum = request.getRequiredParameter(ADDED);
+    List<String> added = addedDatum.asStringList();
+    // removed
+    RequestDatum removedDatum = request.getRequiredParameter(REMOVED);
+    List<String> removed = removedDatum.asStringList();
+    // default
+    RequestDatum defaultDatum = request.getRequiredParameter(DEFAULT);
+    String defaultSdk = defaultDatum.asString();
     // TODO(scheglov) implement
     return null;
   }

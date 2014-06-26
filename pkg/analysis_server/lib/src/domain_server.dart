@@ -23,15 +23,24 @@ class ServerDomainHandler implements RequestHandler {
    */
   ServerDomainHandler(this.server);
 
+  /**
+   * Return the version number of the analysis server.
+   */
+  Response getVersion(Request request) {
+    Response response = new Response(request.id);
+    response.setResult(VERSION, '0.0.1');
+    return response;
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == METHOD_GET_VERSION) {
+      if (requestName == SERVER_GET_VERSION) {
         return getVersion(request);
-      } else if (requestName == METHOD_SET_SERVER_SUBSCRIPTIONS) {
+      } else if (requestName == SERVER_SET_SUBSCRIPTIONS) {
           return setSubscriptions(request);
-      } else if (requestName == METHOD_SHUTDOWN) {
+      } else if (requestName == SERVER_SHUTDOWN) {
         return shutdown(request);
       }
     } on RequestFailure catch (exception) {
@@ -110,15 +119,6 @@ class ServerDomainHandler implements RequestHandler {
   Response shutdown(Request request) {
     server.running = false;
     Response response = new Response(request.id);
-    return response;
-  }
-
-  /**
-   * Return the version number of the analysis server.
-   */
-  Response getVersion(Request request) {
-    Response response = new Response(request.id);
-    response.setResult(VERSION, '0.0.1');
     return response;
   }
 }

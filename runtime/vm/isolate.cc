@@ -355,6 +355,7 @@ Isolate::Isolate()
       last_allocationprofile_gc_timestamp_(0),
       cha_used_(false),
       object_id_ring_(NULL),
+      trace_buffer_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
@@ -768,6 +769,10 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
+  // Remove this isolate from the list *before* we start tearing it down, to
+  // avoid exposing it in a state of decay.
+  RemoveIsolateFromList(this);
+
   // Create an area where we do have a zone and a handle scope so that we can
   // call VM functions while tearing this isolate down.
   {
@@ -811,7 +816,6 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
-  RemoveIsolateFromList(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -1018,21 +1022,26 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
 
 intptr_t Isolate::ProfileInterrupt() {
-  if (profiler_data() == NULL) {
+  // Other threads might be modifying these fields. Save them in locals so that
+  // we can at least trust the NULL check.
+  IsolateProfilerData* prof_data = profiler_data();
+  if (prof_data == NULL) {
     // Profiler not setup for isolate.
     return 0;
   }
-  if (profiler_data()->blocked()) {
+  if (prof_data->blocked()) {
     // Profiler blocked for this isolate.
     return 0;
   }
-  if ((debugger() != NULL) && debugger()->IsPaused()) {
+  Debugger* debug = debugger();
+  if ((debug != NULL) && debug->IsPaused()) {
     // Paused at breakpoint. Don't tick.
     return 0;
   }
-  if ((message_handler() != NULL) &&
-      (message_handler()->paused_on_start() ||
-       message_handler()->paused_on_exit())) {
+  MessageHandler* msg_handler = message_handler();
+  if ((msg_handler != NULL) &&
+      (msg_handler->paused_on_start() ||
+       msg_handler->paused_on_exit())) {
     // Paused at start / exit . Don't tick.
     return 0;
   }

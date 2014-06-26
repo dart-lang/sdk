@@ -41,7 +41,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SelectRepresentations();
 
-  void InferSmiRanges();
+  void InferIntRanges();
 
   void AnalyzeTryCatch();
 

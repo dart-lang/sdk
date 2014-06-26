@@ -50,6 +50,8 @@ def GuessArchitecture():
   id = platform.machine()
   if id.startswith('arm'):
     return 'arm'
+  elif id.startswith('aarch64'):
+    return 'arm64'
   elif id.startswith('mips'):
     return 'mips'
   elif (not id) or (not re.match('(x|i[3-6])86', id) is None):
@@ -364,7 +366,18 @@ def GetSVNRevision():
   if revision:
     return revision
 
-  # maybe the builder is using git-svn, try that
+  # Check for revision using git (Note: we can't use git-svn because in a
+  # pure-git checkout, "git-svn anyCommand" just hangs!). We look an arbitrary
+  # number of commits backwards (100) to get past any local commits.
+  p = subprocess.Popen(['git', 'log', '-100'], stdout = subprocess.PIPE,
+      stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
+  output, _ = p.communicate()
+  revision = ParseGitInfoOutput(output)
+  if revision:
+    return revision
+
+  # In the rare off-chance that git log -100 doesn't have a svn repo number,
+  # attempt to use "git svn info."
   p = subprocess.Popen(['git', 'svn', 'info'], stdout = subprocess.PIPE,
       stderr = subprocess.STDOUT, shell=IsWindows(), cwd = DART_DIR)
   output, _ = p.communicate()
@@ -377,6 +390,14 @@ def GetSVNRevision():
   if user != 'chrome-bot':
     return '0'
 
+  return None
+
+def ParseGitInfoOutput(output):
+  """Given a git log, determine the latest corresponding svn revision."""
+  for line in output.split('\n'):
+    tokens = line.split()
+    if len(tokens) > 0 and tokens[0] == 'git-svn-id:':
+      return tokens[1].split('@')[1]
   return None
 
 def ParseSvnInfoOutput(output):
@@ -528,6 +549,8 @@ def DartBinary():
     system = GuessOS()
     if arch == 'arm':
       return os.path.join(dart_binary_prefix, system, 'dart-arm')
+    elif arch == 'arm64':
+      return os.path.join(dart_binary_prefix, system, 'dart-arm64')
     elif arch == 'mips':
       return os.path.join(dart_binary_prefix, system, 'dart-mips')
     else:

@@ -175,7 +175,7 @@ void testIndexOutOfRangeHelper(typed_data, value) {
 
   Expect.throws(() {
     var size = typed_data.elementSizeInBytes;
-    var i = (typed_data.length - 1) * size + 1; 
+    var i = (typed_data.length - 1) * size + 1;
     typed_data[new C(i)] = value;
   });
 
@@ -302,7 +302,7 @@ void testSetAtIndex(TypedData list,
 }
 
 testViewCreation() {
-  var bytes = new Uint8List(1024);
+  var bytes = new Uint8List(1024).buffer;
   var view = new ByteData.view(bytes, 24);
   Expect.equals(1000, view.lengthInBytes);
   view = new Uint8List.view(bytes, 24);

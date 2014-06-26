@@ -50,21 +50,10 @@
       },
       # Added by Dart.
       'Dart_x64_Base': {
-        'conditions': [
-          # On Windows, Dart is always built as a 32-bit version,
-          # even if a 64-bit build is requested.
-          ['OS=="win"', {
-            'defines': [
-              'NSS_X86_OR_X64',
-              'NSS_X86',
-              '_X86_',
-              ],
-            }, {
-            'defines': [
-              'NSS_X86_OR_X64',
-              'NSS_X64',
-              'NSS_USE_64',
-          ]}],
+        'defines': [
+          'NSS_X86_OR_X64',
+          'NSS_X64',
+          'NSS_USE_64',
         ],
       },
       # Added by Dart.
@@ -89,7 +78,32 @@
               # Do not compile NSPR and NSS with /D _UNICODE /D UNICODE.
               'CharacterSet': '0'
             }
-          }
+          },
+          # Added by Dart. All target_arch specific defines are taken
+          # from below.
+          'Dart_ia32_Base': {
+            'defines': [
+              'NSS_X86_OR_X64',
+              'NSS_X86',
+              '_X86_',
+              'MP_ASSEMBLY_MULTIPLY',
+              'MP_ASSEMBLY_SQUARE',
+              'MP_ASSEMBLY_DIV_2DX1D',
+              'MP_USE_UINT_DIGIT',
+              'MP_NO_MP_WORD',
+            ],
+          },
+          'Dart_x64_Base': {
+            'defines': [
+              'NSS_USE_64',
+              'NSS_X86_OR_X64',
+              'NSS_X64',
+              '_AMD64_',
+              'MP_CHAR_STORE_SLOW',
+              'MP_IS_LITTLE_ENDIAN',
+              'WIN64',
+            ],
+          },
         },
         'defines!': [
           'WIN32_LEAN_AND_MEAN',
@@ -433,13 +447,14 @@
             ['exclude', 'nspr/pr/src/md/unix/'],
             ['exclude', 'nspr/pr/src/pthreads/'],
           ],
-          'conditions': [
-            ['target_arch=="ia32"', {
-              'defines': [
-                '_X86_',
-              ],
-            }],
-          ],
+          # Changed by Dart. We don't use target_arch.
+          # 'conditions': [
+          #  ['target_arch=="ia32"', {
+          #    'defines': [
+          #      '_X86_',
+          #    ],
+          #  }],
+          # ],
         }],
         ['component == "static_library"', {
           'defines': [
@@ -594,6 +609,7 @@
       # should be on 'nss'.
       'suppress_wildcard': 1,
       'sources': [
+        'os_windows.c',
         '<(nss_directory)/nss/lib/base/arena.c',
         '<(nss_directory)/nss/lib/base/base.h',
         '<(nss_directory)/nss/lib/base/baset.h',
@@ -1306,38 +1322,43 @@
           },
           'sources!': [
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_amd64.c',
+            # If needed it will be included by os_windows.c.
+            '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
           ],
-          'conditions': [
-            ['target_arch=="ia32"', {
-              'defines': [
-                'NSS_X86_OR_X64',
-                'NSS_X86',
-                '_X86_',
-                'MP_ASSEMBLY_MULTIPLY',
-                'MP_ASSEMBLY_SQUARE',
-                'MP_ASSEMBLY_DIV_2DX1D',
-                'MP_USE_UINT_DIGIT',
-                'MP_NO_MP_WORD',
-              ],
-            }],
-            ['target_arch=="x64"', {
-              'defines': [
-                'NSS_USE_64',
-                'NSS_X86_OR_X64',
-                'NSS_X64',
-                '_AMD64_',
-                'MP_CHAR_STORE_SLOW',
-                'MP_IS_LITTLE_ENDIAN',
-                'WIN64',
-              ],
-              'sources!': [
-                '<(nss_directory)/nss/lib/freebl/mpi/mpi_amd64.c',
-                '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
-              ],
-            }],
-          ],
+          # Changed by Dart. We don't use target_arch. This was moved into
+          # configurations instead.
+          # 'conditions': [
+          #   ['target_arch=="ia32"', {
+          #     'defines': [
+          #       'NSS_X86_OR_X64',
+          #       'NSS_X86',
+          #       '_X86_',
+          #       'MP_ASSEMBLY_MULTIPLY',
+          #       'MP_ASSEMBLY_SQUARE',
+          #       'MP_ASSEMBLY_DIV_2DX1D',
+          #       'MP_USE_UINT_DIGIT',
+          #       'MP_NO_MP_WORD',
+          #     ],
+          #   }],
+          #   ['target_arch=="x64"', {
+          #     'defines': [
+          #       'NSS_USE_64',
+          #       'NSS_X86_OR_X64',
+          #       'NSS_X64',
+          #       '_AMD64_',
+          #       'MP_CHAR_STORE_SLOW',
+          #       'MP_IS_LITTLE_ENDIAN',
+          #       'WIN64',
+          #     ],
+          #     'sources!': [
+          #       '<(nss_directory)/nss/lib/freebl/mpi/mpi_amd64.c',
+          #       '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
+          #     ],
+          #    }],
+          # ],
         }, { # else: OS!="win"
           'sources!': [
+            'os_windows.c',
             # mpi_x86_asm.c contains MSVC inline assembly code.
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
           ],

@@ -91,6 +91,9 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableCodeHandleScope reused_code_handle(isolate);
 #define REUSABLE_ERROR_HANDLESCOPE(isolate)                                    \
   ReusableErrorHandleScope reused_error_handle(isolate);
+#define REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate)                       \
+  ReusableExceptionHandlersHandleScope                                         \
+      reused_exception_handlers_handle(isolate);
 #define REUSABLE_FIELD_HANDLESCOPE(isolate)                                    \
   ReusableFieldHandleScope reused_field_handle(isolate);
 #define REUSABLE_FUNCTION_HANDLESCOPE(isolate)                                 \
@@ -104,6 +107,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableLibraryHandleScope reused_library_handle(isolate);
 #define REUSABLE_OBJECT_HANDLESCOPE(isolate)                                   \
   ReusableObjectHandleScope reused_object_handle(isolate);
+#define REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(isolate)                           \
+  ReusablePcDescriptorsHandleScope reused_pc_descriptors_handle(isolate);
 #define REUSABLE_STRING_HANDLESCOPE(isolate)                                   \
   ReusableStringHandleScope reused_string_handle(isolate);
 #define REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(isolate)                           \

@@ -32,4 +32,7 @@ const Map<String, dynamic> messages = const <String, dynamic> {
 
   'theme':
     'Theme:',
+
+  'incrementalCompilation':
+    'Enable incremental compilation (EXPERIMENTAL)',
 };

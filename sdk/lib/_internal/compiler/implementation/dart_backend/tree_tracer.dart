@@ -9,12 +9,17 @@ import '../tracer.dart';
 import 'dart_tree.dart';
 
 class Block {
+  Label label;
   int index;
-  final List<Statement> statements = <Statement>[];
+  /// Mixed list of [Statement] and [Block].
+  /// A [Block] represents a synthetic goto statement.
+  final List statements = [];
   final List<Block> predecessors = <Block>[];
   final List<Block> successors = <Block>[];
 
   String get name => 'B$index';
+
+  Block([this.label]);
 
   void addEdgeTo(Block successor) {
     successors.add(successor);
@@ -36,6 +41,9 @@ class BlockCollector extends Visitor {
   void _addStatement(Statement statement) {
     blocks.last.statements.add(statement);
   }
+  void _addGotoStatement(Block target) {
+    blocks.last.statements.add(target);
+  }
 
   void _addBlock(Block block) {
     block.index = blocks.length;
@@ -54,12 +62,14 @@ class BlockCollector extends Visitor {
   visitLiteralList(LiteralList node) {}
   visitLiteralMap(LiteralMap node) {}
   visitConstant(Constant node) {}
+  visitThis(This node) {}
   visitConditional(Conditional node) {}
   visitLogicalOperator(LogicalOperator node) {}
   visitNot(Not node) {}
+  visitTypeOperator(TypeOperator node) {}
 
   visitLabeledStatement(LabeledStatement node) {
-    Block target = new Block();
+    Block target = new Block(node.label);
     breakTargets[node.label] = target;
     visitStatement(node.body);
     _addBlock(target);
@@ -99,13 +109,40 @@ class BlockCollector extends Visitor {
     visitStatement(node.elseStatement);
   }
 
-  visitWhile(While node) {
+  visitWhileTrue(WhileTrue node) {
     Block continueTarget = new Block();
+    _addGotoStatement(continueTarget);
+
     continueTargets[node.label] = continueTarget;
     blocks.last.addEdgeTo(continueTarget);
     _addBlock(continueTarget);
     _addStatement(node);
     visitStatement(node.body);
+  }
+
+  visitWhileCondition(WhileCondition node) {
+    Block whileBlock = new Block();
+    _addGotoStatement(whileBlock);
+
+    _addBlock(whileBlock);
+    _addStatement(node);
+    whileBlock.statements.add(node);
+    blocks.last.addEdgeTo(whileBlock);
+
+    Block bodyBlock = new Block();
+    Block nextBlock = new Block();
+    whileBlock.addEdgeTo(bodyBlock);
+    whileBlock.addEdgeTo(nextBlock);
+
+    continueTargets[node.label] = bodyBlock;
+    _addBlock(bodyBlock);
+    visitStatement(node.body);
+
+    _addBlock(nextBlock);
+    visitStatement(node.next);
+
+    ifTargets[node.body] = bodyBlock;
+    ifTargets[node.next] = nextBlock;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -114,7 +151,7 @@ class BlockCollector extends Visitor {
   }
 }
 
-class TreeTracer extends TracerUtil with Visitor {
+class TreeTracer extends TracerUtil with StatementVisitor {
   final EventSink<String> output;
 
   TreeTracer(this.output);
@@ -152,9 +189,22 @@ class TreeTracer extends TracerUtil with Visitor {
         });
       });
       tag("HIR", () {
-        block.statements.forEach(visitStatement);
+        if (block.label != null) {
+          printStatement(null,
+              "Label ${block.name}, useCount=${block.label.useCount}");
+        }
+        block.statements.forEach(visitBlockMember);
       });
     });
+  }
+
+  void visitBlockMember(member) {
+    if (member is Block) {
+      printStatement(null, "goto block B${member.name}");
+    } else {
+      assert(member is Statement);
+      visitStatement(member);
+    }
   }
 
   void printStatement(String name, String contents) {
@@ -167,18 +217,6 @@ class TreeTracer extends TracerUtil with Visitor {
     add("$bci $uses $name $contents <|@\n");
   }
 
-  visitVariable(Variable node) {
-    printStatement(null, "dead-use ${names.varName(node)}");
-  }
-
-  visitInvokeStatic(InvokeStatic node) {
-    printStatement(null, expr(node));
-  }
-
-  visitConstant(Constant node) {
-    printStatement(null, "dead-use ${node.value}");
-  }
-
   visitLabeledStatement(LabeledStatement node) {
     // These do not get added to a block's list of statements.
   }
@@ -186,39 +224,8 @@ class TreeTracer extends TracerUtil with Visitor {
   visitAssign(Assign node) {
     String name = names.varName(node.variable);
     String rhs = expr(node.definition);
-    printStatement(name, "let $name = $rhs");
-  }
-
-  visitInvokeMethod(InvokeMethod node) {
-    printStatement(null, expr(node));
-  }
-
-  visitInvokeConstructor(InvokeConstructor node) {
-    printStatement(null, expr(node));
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
-    printStatement(null, expr(node));
-  }
-
-  visitLiteralList(LiteralList node) {
-    printStatement(null, expr(node));
-  }
-
-  visitLiteralMap(LiteralMap node) {
-    printStatement(null, expr(node));
-  }
-
-  visitConditional(Conditional node) {
-    printStatement(null, expr(node));
-  }
-
-  visitLogicalOperator(LogicalOperator node) {
-    printStatement(null, expr(node));
-  }
-
-  visitNot(Not node) {
-    printStatement(null, expr(node));
+    String extra = node.hasExactlyOneUse ? "[single-use]" : "";
+    printStatement(null, "assign $name = $rhs $extra");
   }
 
   visitReturn(Return node) {
@@ -231,7 +238,7 @@ class TreeTracer extends TracerUtil with Visitor {
 
   visitContinue(Continue node) {
     printStatement(null,
-        "continue ${collector.breakTargets[node.target].name}");
+        "continue ${collector.continueTargets[node.target].name}");
   }
 
   visitIf(If node) {
@@ -241,12 +248,20 @@ class TreeTracer extends TracerUtil with Visitor {
     printStatement(null, "if $condition then $thenTarget else $elseTarget");
   }
 
-  visitWhile(While node) {
+  visitWhileTrue(WhileTrue node) {
     printStatement(null, "while true do");
   }
 
+  visitWhileCondition(WhileCondition node) {
+    String bodyTarget = collector.ifTargets[node.body].name;
+    String nextTarget = collector.ifTargets[node.next].name;
+    printStatement(null, "while ${expr(node.condition)}");
+    printStatement(null, "do $bodyTarget");
+    printStatement(null, "then $nextTarget" );
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
-    visitExpression(node.expression);
+    printStatement(null, expr(node.expression));
   }
 
   String expr(Expression e) {
@@ -254,7 +269,7 @@ class TreeTracer extends TracerUtil with Visitor {
   }
 }
 
-class SubexpressionVisitor extends Visitor<String, String> {
+class SubexpressionVisitor extends ExpressionVisitor<String> {
   Names names;
 
   SubexpressionVisitor(this.names);
@@ -298,7 +313,8 @@ class SubexpressionVisitor extends Visitor<String, String> {
       callName = '${node.type}.${node.target.name}';
     }
     String args = formatArguments(node);
-    return "new $callName($args)";
+    String keyword = node.constant != null ? 'const' : 'new';
+    return "$keyword $callName($args)";
   }
 
   String visitConcatenateStrings(ConcatenateStrings node) {
@@ -325,6 +341,10 @@ class SubexpressionVisitor extends Visitor<String, String> {
     return "${node.value}";
   }
 
+  String visitThis(This node) {
+    return "this";
+  }
+
   bool usesInfixNotation(Expression node) {
     return node is Conditional || node is LogicalOperator;
   }
@@ -348,6 +368,12 @@ class SubexpressionVisitor extends Visitor<String, String> {
     return "$left ${node.operator} $right";
   }
 
+  String visitTypeOperator(TypeOperator node) {
+    String receiver = visitExpression(node.receiver);
+    String type = "${node.type}";
+    return "TypeOperator $receiver ${node.operator} $type";
+  }
+
   String visitNot(Not node) {
     String operand = visitExpression(node.operand);
     if (usesInfixNotation(node.operand)) {
@@ -356,21 +382,6 @@ class SubexpressionVisitor extends Visitor<String, String> {
     return '!$operand';
   }
 
-  // Note: There should not be statements in the context of expressions.
-  String visitStatement(Statement node) {
-    return "$node statement in expression context";
-  }
-
-  String visitLabeledStatement(LabeledStatement node) => visitStatement(node);
-  String visitAssign(Assign node) => visitStatement(node);
-  String visitReturn(Return node) => visitStatement(node);
-  String visitBreak(Break node) => visitStatement(node);
-  String visitContinue(Continue node) => visitStatement(node);
-  String visitIf(If node) => visitStatement(node);
-  String visitWhile(While node) => visitStatement(node);
-  String visitExpressionStatement(ExpressionStatement node) {
-    return visitStatement(node);
-  }
 }
 
 /**
@@ -388,12 +399,9 @@ class Names {
   String varName(Variable v) {
     String name = _names[v];
     if (name == null) {
-      name = v.name;
-      if (v.cachedName != null) {
-        name = v.cachedName;
-      }
+      String prefix = v.element == null ? 'v' : '${v.element.name}_';
       while (name == null || _usedNames.contains(name)) {
-        name = "v${_counter++}";
+        name = "$prefix${_counter++}";
       }
       _names[v] = name;
       _usedNames.add(name);

@@ -81,7 +81,7 @@ class _Override {
  */
 const Deprecated deprecated = const Deprecated("next release");
 
-/*
+/**
  * The annotation `@override` marks an instance member as overriding a
  * superclass member with the same name.
  *

@@ -32,6 +32,9 @@ main() {
       group('Watch', () {
 
         Future delayed(computation()) {
+          // Give the tests 1 second to detect the changes. While it may only
+          // take up to a few hundred ms, a whole second gives a good margin
+          // for when running tests.
           return new Future.delayed(
               new Duration(seconds: 1), computation);
         }

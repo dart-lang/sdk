@@ -972,7 +972,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Comment("Inlined Setter");
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
-  __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
+  __ StoreIntoObjectOffset(T0, offset, T1);
   __ LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
   __ Ret();
 }
@@ -1276,20 +1276,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  Label not_smi, load_cache;
   __ TraceSimMsg("MegamorphicInstanceCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &not_smi);
-  __ LoadImmediate(T0, Smi::RawValue(kSmiCid));
-  __ b(&load_cache);
-
-  __ Bind(&not_smi);
-  __ LoadClassId(T0, T0);
-  __ SmiTag(T0);
+  __ LoadTaggedClassIdMayBeSmi(T0, T0);
 
   // T0: class ID of the receiver (smi).
-  __ Bind(&load_cache);
   __ LoadObject(T1, cache);
   __ lw(T2, FieldAddress(T1, MegamorphicCache::buckets_offset()));
   __ lw(T1, FieldAddress(T1, MegamorphicCache::mask_offset()));
@@ -1336,27 +1327,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(
-    const Function& target_function,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  // TODO(srdjan): Improve performance of function recognition.
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target_function);
-  int num_args_checked = 0;
-  if ((recognized_kind == MethodRecognizer::kMathMin) ||
-      (recognized_kind == MethodRecognizer::kMathMax)) {
-    num_args_checked = 2;
-  }
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(parsed_function().function(),  // Caller function.
-                  String::Handle(target_function.name()),
-                  arguments_descriptor,
-                  deopt_id,
-                  num_args_checked));  // No arguments checked.
-  ic_data.AddTarget(target_function);
+    LocationSummary* locs,
+    const ICData& ic_data) {
   uword label_address = 0;
   if (ic_data.NumArgsTested() == 0) {
     label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();

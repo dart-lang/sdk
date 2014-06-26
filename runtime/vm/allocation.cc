@@ -10,11 +10,6 @@
 
 namespace dart {
 
-ZoneAllocated::~ZoneAllocated() {
-  UNREACHABLE();
-}
-
-
 static void* Allocate(uword size, BaseIsolate* isolate) {
   ASSERT(isolate != NULL);
   ASSERT(isolate->current_zone() != NULL);

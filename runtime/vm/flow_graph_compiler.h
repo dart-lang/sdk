@@ -62,7 +62,8 @@ class ParallelMoveResolver : public ValueObject {
   bool IsScratchLocation(Location loc);
   intptr_t AllocateScratchRegister(Location::Kind kind,
                                    intptr_t blocked,
-                                   intptr_t register_count,
+                                   intptr_t first_free_register,
+                                   intptr_t last_free_register,
                                    bool* spilled);
 
   void SpillScratch(Register reg);
@@ -118,6 +119,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
         deopt_env_(deopt_env) {
     ASSERT(deopt_env != NULL);
   }
+  virtual ~CompilerDeoptInfo() { }
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder,
@@ -173,6 +175,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 class SlowPathCode : public ZoneAllocated {
  public:
   SlowPathCode() : entry_label_(), exit_label_() { }
+  virtual ~SlowPathCode() { }
 
   Label* entry_label() { return &entry_label_; }
   Label* exit_label() { return &exit_label_; }
@@ -331,7 +334,8 @@ class FlowGraphCompiler : public ValueObject {
                           const Function& function,
                           intptr_t argument_count,
                           const Array& argument_names,
-                          LocationSummary* locs);
+                          LocationSummary* locs,
+                          const ICData& ic_data);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -344,6 +348,8 @@ class FlowGraphCompiler : public ValueObject {
                              Label* is_instance_lbl);
 
   void EmitComment(Instruction* instr);
+
+  bool NeedsEdgeCounter(TargetEntryInstr* block);
 
   void EmitEdgeCounter();
 
@@ -451,6 +457,21 @@ class FlowGraphCompiler : public ValueObject {
   static void SortICDataByCount(const ICData& ic_data,
                                 GrowableArray<CidTarget>* sorted);
 
+  // Use in unoptimized compilation to preserve/reuse ICData.
+  const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
+                                           const String& target_name,
+                                           const Array& arguments_descriptor,
+                                           intptr_t num_args_tested);
+
+  const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
+                                         const Function& target,
+                                         const Array& arguments_descriptor,
+                                         intptr_t num_args_tested);
+
+  const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data() const {
+    return *deopt_id_to_ic_data_;
+  }
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -475,12 +496,11 @@ class FlowGraphCompiler : public ValueObject {
                                intptr_t token_pos,
                                LocationSummary* locs);
 
-  void EmitUnoptimizedStaticCall(const Function& function,
-                                 const Array& arguments_descriptor,
-                                 intptr_t argument_count,
+  void EmitUnoptimizedStaticCall(intptr_t argument_count,
                                  intptr_t deopt_id,
                                  intptr_t token_pos,
-                                 LocationSummary* locs);
+                                 LocationSummary* locs,
+                                 const ICData& ic_data);
 
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,
@@ -597,6 +617,8 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t entry_patch_pc_offset_;
   intptr_t patch_code_pc_offset_;
   intptr_t lazy_deopt_pc_offset_;
+
+  ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };
