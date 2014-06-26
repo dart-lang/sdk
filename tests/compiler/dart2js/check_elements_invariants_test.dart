@@ -17,7 +17,10 @@ import "package:async_helper/async_helper.dart";
 
 const String DART2JS_SOURCE =
     'sdk/lib/_internal/compiler/implementation/dart2js.dart';
-const List<String> DART2JS_OPTIONS = const ['--categories=Client,Server'];
+const List<String> DART2JS_OPTIONS = const <String>[
+      '--categories=Client,Server', 
+      '--disable-type-inference'
+    ];
 
 Iterable<ClassElement> computeLiveClasses(Compiler compiler) {
   return new Set<ClassElement>()

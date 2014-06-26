@@ -29,6 +29,10 @@ exit_code_test: Skip # This tests requires checked mode.
 [ $checked ]
 deferred_mirrors_test: Pass, Slow
 
+[ $checked || $mode == debug ]
+check_elements_invariants_test: Skip # Slow and only needs to be run in one 
+                                     # configuration
+
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581
 
