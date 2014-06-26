@@ -714,6 +714,15 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// test that has explicitly set this.
 bool runningAsTest = Platform.environment.containsKey('_PUB_TESTING');
 
+/// Whether today is April Fools' day.
+bool get isAprilFools {
+  // Tests should never see April Fools' output.
+  if (runningAsTest) return false;
+
+  var date = new DateTime.now();
+  return date.month == 4 && date.day == 1;
+}
+
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
 ///

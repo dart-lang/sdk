@@ -295,6 +295,8 @@ ArgParser _initArgParser() {
       });
   argParser.addFlag('verbose', abbr: 'v', negatable: false,
       help: 'Shortcut for "--verbosity=all".');
+  argParser.addFlag('with-prejudice', hide: !isAprilFools, negatable: false,
+      help: 'Execute commands with prejudice.');
 
   // Register the commands.
   PubCommand.mainCommands.forEach((name, command) {

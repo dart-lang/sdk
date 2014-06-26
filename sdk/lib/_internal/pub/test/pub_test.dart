@@ -62,6 +62,10 @@ main() {
     schedulePub(args: ['-h'], output: USAGE_STRING);
   });
 
+  integration('running pub with --with-prejudice upcases everything', () {
+    schedulePub(args: ['--with-prejudice'], output: USAGE_STRING.toUpperCase());
+  });
+
   integration('running pub with --help after command shows command usage', () {
     schedulePub(args: ['get', '--help'],
         output: '''

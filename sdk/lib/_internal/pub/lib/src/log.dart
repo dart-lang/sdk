@@ -25,6 +25,9 @@ final json = new _JsonLogger();
 /// The current logging verbosity.
 Verbosity verbosity = Verbosity.NORMAL;
 
+/// Whether or not to log entries with prejudice.
+bool withPrejudice = false;
+
 /// In cases where there's a ton of log spew, make sure we don't eat infinite
 /// memory.
 ///
@@ -52,6 +55,7 @@ final _red = getSpecial('\u001b[31m');
 final _yellow = getSpecial('\u001b[33m');
 final _gray = getSpecial('\u001b[1;30m');
 final _none = getSpecial('\u001b[0m');
+final _noColor = getSpecial('\u001b[39m');
 final _bold = getSpecial('\u001b[1m');
 
 /// An enum type for defining the different logging levels a given message can
@@ -205,7 +209,8 @@ void fine(message) => write(Level.FINE, message);
 
 /// Logs [message] at [level].
 void write(Level level, message) {
-  var lines = splitLines(message.toString());
+  message = message.toString();
+  var lines = splitLines(message);
 
   // Discard a trailing newline. This is useful since StringBuffers often end
   // up with an extra newline at the end from using [writeln].
@@ -213,12 +218,27 @@ void write(Level level, message) {
     lines.removeLast();
   }
 
-  var entry = new Entry(level, lines);
+  var entry = new Entry(level, lines.map(format).toList());
 
   var logFn = verbosity._loggers[level];
   if (logFn != null) logFn(entry);
 
   if (_transcript != null) _transcript.add(entry);
+}
+
+final _capitalizedAnsiEscape = new RegExp(r'\u001b\[\d+(;\d+)?M');
+
+/// Returns [string] formatted as it would be if it were logged.
+String format(String string) {
+  if (!withPrejudice) return string;
+
+  // [toUpperCase] can corrupt terminal colorings, so fix them up using
+  // [replaceAllMapped].
+  string = string.toUpperCase().replaceAllMapped(_capitalizedAnsiEscape,
+      (match) => match[0].toLowerCase());
+
+  // Don't use [bold] because it's disabled under [withPrejudice].
+  return "$_bold$string$_none";
 }
 
 /// Logs an asynchronous IO operation.
@@ -332,45 +352,48 @@ void _stopProgress() {
 /// that supports that.
 ///
 /// Use this to highlight the most important piece of a long chunk of text.
-String bold(text) => "$_bold$text$_none";
+///
+/// This is disabled under [withPrejudice] since all text is bold with
+/// prejudice.
+String bold(text) => withPrejudice ? text : "$_bold$text$_none";
 
 /// Wraps [text] in the ANSI escape codes to make it gray when on a platform
 /// that supports that.
 ///
 /// Use this for text that's less important than the text around it.
-String gray(text) => "$_gray$text$_none";
+String gray(text) => "$_gray$text$_noColor";
 
 /// Wraps [text] in the ANSI escape codes to color it cyan when on a platform
 /// that supports that.
 ///
 /// Use this to highlight something interesting but neither good nor bad.
-String cyan(text) => "$_cyan$text$_none";
+String cyan(text) => "$_cyan$text$_noColor";
 
 /// Wraps [text] in the ANSI escape codes to color it green when on a platform
 /// that supports that.
 ///
 /// Use this to highlight something successful or otherwise positive.
-String green(text) => "$_green$text$_none";
+String green(text) => "$_green$text$_noColor";
 
 /// Wraps [text] in the ANSI escape codes to color it magenta when on a
 /// platform that supports that.
 ///
 /// Use this to highlight something risky that the user should be aware of but
 /// may intend to do.
-String magenta(text) => "$_magenta$text$_none";
+String magenta(text) => "$_magenta$text$_noColor";
 
 /// Wraps [text] in the ANSI escape codes to color it red when on a platform
 /// that supports that.
 ///
 /// Use this to highlight unequivocal errors, problems, or failures.
-String red(text) => "$_red$text$_none";
+String red(text) => "$_red$text$_noColor";
 
 /// Wraps [text] in the ANSI escape codes to color it yellow when on a platform
 /// that supports that.
 ///
 /// Use this to highlight warnings, cautions or other things that are bad but
 /// do not prevent the user's goal from being reached.
-String yellow(text) => "$_yellow$text$_none";
+String yellow(text) => "$_yellow$text$_noColor";
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {

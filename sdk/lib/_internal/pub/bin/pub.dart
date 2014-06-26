@@ -32,6 +32,8 @@ void main(List<String> arguments) {
     return;
   }
 
+  log.withPrejudice = options['with-prejudice'];
+
   if (options['version']) {
     log.message('Pub ${sdk.version}');
     return;
