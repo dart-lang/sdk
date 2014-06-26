@@ -8,6 +8,7 @@ import '../closure.dart' show ClosureClassMap, ClosureScope;
 import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
+import '../js_backend/js_backend.dart' as js;
 import '../native_handler.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../ir/ir_nodes.dart' as ir show Node;
@@ -956,6 +957,10 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitStaticSend(ast.Send node) {
     Element element = elements[node];
+    if (elements.isAssert(node)) {
+      js.JavaScriptBackend backend = compiler.backend;
+      element = backend.assertMethod;
+    }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (ast.Initializers.isConstructorRedirect(node)) {

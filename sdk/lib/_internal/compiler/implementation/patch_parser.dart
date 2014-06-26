@@ -116,7 +116,6 @@ library patchparser;
 
 import 'dart:async';
 
-import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "helpers/helpers.dart";
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners

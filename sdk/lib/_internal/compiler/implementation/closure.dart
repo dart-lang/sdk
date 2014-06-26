@@ -7,6 +7,7 @@ library closureToClassMapper;
 import "elements/elements.dart";
 import "dart2jslib.dart";
 import "dart_types.dart";
+import "js_backend/js_backend.dart" show JavaScriptBackend;
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
@@ -145,9 +146,10 @@ class ClosureClassElement extends ClassElementX {
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId(),
               STATE_DONE) {
+    JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? compiler.boundClosureClass
-        : compiler.closureClass;
+        ? backend.boundClosureClass
+        : backend.closureClass;
     superclass.ensureResolved(compiler);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
@@ -587,8 +589,7 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeCast) {
       DartType type = elements.getType(node.arguments.head);
       analyzeType(type);
-    } else if (element == compiler.assertMethod
-               && !compiler.enableUserAssertions) {
+    } else if (elements.isAssert(node) && !compiler.enableUserAssertions) {
       return;
     }
     node.visitChildren(this);

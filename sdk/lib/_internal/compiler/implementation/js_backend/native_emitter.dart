@@ -44,7 +44,7 @@ class NativeEmitter {
   String get N => emitter.N;
 
   jsAst.Expression get defPropFunction {
-    Element element = compiler.findHelper('defineProperty');
+    Element element = backend.findHelper('defineProperty');
     return backend.namer.elementAccess(element);
   }
 
@@ -336,8 +336,7 @@ class NativeEmitter {
       FunctionElement member,
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
-    Element converter =
-        compiler.findHelper('convertDartClosureToJS');
+    Element converter = backend.findHelper('convertDartClosureToJS');
     jsAst.Expression closureConverter = backend.namer.elementAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {
       String name = parameter.name;

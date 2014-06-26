@@ -161,9 +161,11 @@ class DartBackend extends Backend {
     final fixedMemberNames = new Set<String>();
     for (final library in compiler.libraryLoader.libraries) {
       if (!library.isPlatformLibrary) continue;
-      library.implementation.forEachLocalMember((Element element) {
+      library.forEachLocalMember((Element element) {
         if (element.isClass) {
           ClassElement classElement = element;
+          assert(invariant(classElement, classElement.isResolved,
+              message: "Unresolved platform class."));
           classElement.forEachLocalMember((member) {
             final name = member.name;
             // Skip operator names.
@@ -458,6 +460,18 @@ class DartBackend extends Backend {
   log(String message) => compiler.log('[DartBackend] $message');
 
   Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    // All platform classes must be resolved to ensure that their member names
+    // are preserved.
+    loadedLibraries.values.forEach((LibraryElement library) {
+      if (library.isPlatformLibrary) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            ClassElement classElement = element;
+            classElement.ensureResolved(compiler);
+          }
+        });
+      }
+    });
     if (useMirrorHelperLibrary &&
         loadedLibraries.containsKey(Compiler.DART_MIRRORS)) {
       return compiler.libraryLoader.loadLibrary(

@@ -264,7 +264,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
 
-  Element closureFromTearOff = compiler.findHelper('closureFromTearOff');
+  Element closureFromTearOff = backend.findHelper('closureFromTearOff');
   String tearOffAccessText;
   jsAst.Expression tearOffAccessExpression;
   String tearOffGlobalObjectName;
