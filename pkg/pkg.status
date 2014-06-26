@@ -400,9 +400,6 @@ watcher/test/*/windows_test: Skip
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
-[ $runtime == chrome ] # Note: this only fails on Chrome 35. They pass 36+
-polymer/test/entered_view_test: Fail # Chrome 35 
-
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
 third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
