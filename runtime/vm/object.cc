@@ -12858,6 +12858,12 @@ RawObject* Instance::Evaluate(const String& expr,
 }
 
 
+RawObject* Instance::HashCode() const {
+  // TODO(koda): Optimize for all builtin classes and all classes
+  // that do not override hashCode.
+  return DartLibraryCalls::HashCode(*this);
+}
+
 
 bool Instance::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {

@@ -4248,6 +4248,9 @@ class Instance : public Object {
                       const Array& param_names,
                       const Array& param_values) const;
 
+  // Equivalent to invoking hashCode on this instance.
+  virtual RawObject* HashCode() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -4946,6 +4949,8 @@ class Integer : public Number {
     return false;
   }
 
+  virtual RawObject* HashCode() const { return raw(); }
+
   // Integer is an abstract class.
   virtual bool IsZero() const {
     UNREACHABLE();
@@ -5316,6 +5321,8 @@ class String : public Instance {
   static intptr_t Hash(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
+
+  virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
   int32_t CharAt(intptr_t index) const;
 

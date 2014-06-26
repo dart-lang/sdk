@@ -159,6 +159,9 @@ class DartLibraryCalls : public AllStatic {
   static RawObject* ToString(const Instance& receiver);
 
   // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* HashCode(const Instance& receiver);
+
+  // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
 
   // Returns the handler if one has been registered for this port id.

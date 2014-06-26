@@ -4090,4 +4090,27 @@ TEST_CASE(InstanceEquality) {
   EXPECT(!a0.IsIdenticalTo(a1));
 }
 
+
+TEST_CASE(HashCode) {
+  // Ensure C++ overrides of Instance::HashCode match the Dart implementations.
+  const char* kScript =
+      "foo() {\n"
+      "  return \"foo\".hashCode;\n"
+      "}";
+
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(h_result);
+  Integer& result = Integer::Handle();
+  result ^= Api::UnwrapHandle(h_result);
+  String& foo = String::Handle(String::New("foo"));
+  Integer& expected = Integer::Handle();
+  expected ^= foo.HashCode();
+  EXPECT(result.IsIdenticalTo(expected));
+}
+
 }  // namespace dart
