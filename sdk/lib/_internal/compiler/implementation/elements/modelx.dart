@@ -317,6 +317,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   Link<MetadataAnnotation> get metadata => unsupported();
+  bool get hasNode => false;
   get node => unsupported();
   get hasResolvedAst => false;
   get resolvedAst => unsupported();
@@ -1051,6 +1052,8 @@ class TypedefElementX extends ElementX
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
+  bool get hasNode => cachedNode != null;
+
   Typedef get node {
     assert(invariant(this, cachedNode != null,
         message: "Node has not been computed for $this."));
@@ -1160,6 +1163,8 @@ class VariableElementX extends ElementX with AstElementMixin
 
   // A variable cannot be patched therefore defines itself.
   AstElement get definingElement => this;
+
+  bool get hasNode => definitionsCache != null;
 
   VariableDefinitions get node {
     assert(invariant(this, definitionsCache != null,
@@ -1335,6 +1340,8 @@ class ParameterElementX extends ElementX
             message: "Parameter signature has not been set for $this."));
     return functionSignatureCache;
   }
+
+  bool get hasNode => true;
 
   VariableDefinitions get node => definitions;
 
@@ -1590,6 +1597,8 @@ class LocalFunctionElementX extends BaseFunctionElementX {
                         Element enclosing)
       : super(name, kind, modifiers, enclosing, false);
 
+  bool get hasNode => true;
+
   FunctionExpression parseNode(DiagnosticListener listener) => node;
 
   Token get position {
@@ -1681,6 +1690,8 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
 
+  bool get hasNode => false;
+
   FunctionExpression get node => null;
 }
 
@@ -1696,6 +1707,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
               constructor.enclosingElement, false) {
     functionSignatureCache = constructor.functionSignature;
   }
+
+  bool get hasNode => constructor.hasNode;
 
   FunctionExpression get node => constructor.node;
 
@@ -1739,6 +1752,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
       : this('', superMember, enclosing, true);
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
+
+  bool get hasNode => false;
 
   FunctionExpression get node => null;
 
@@ -2363,6 +2378,8 @@ class MixinApplicationElementX extends BaseClassElementX
   get patch => null;
   get origin => null;
 
+  bool get hasNode => true;
+
   Token get position => node.getBeginToken();
 
   Node parseNode(DiagnosticListener listener) => node;
@@ -2512,6 +2529,8 @@ class TypeVariableElementX extends ElementX with AstElementMixin
         message: "Bound has not been set on $this."));
     return boundCache;
   }
+
+  bool get hasNode => true;
 
   Node parseNode(compiler) => node;
 

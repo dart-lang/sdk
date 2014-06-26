@@ -8,14 +8,24 @@ import 'dart:async';
 
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
-import 'package:source_maps/source_maps.dart';
+import 'package:source_maps/source_maps.dart' hide SourceFile;
+import 'package:compiler/implementation/apiimpl.dart';
+import 'package:compiler/implementation/elements/elements.dart'
+    show LibraryElement,
+         CompilationUnitElement,
+         ClassElement,
+         AstElement;
+import 'package:compiler/implementation/source_file.dart' show SourceFile;
 
-validateSourceMap(Uri targetUri) {
+validateSourceMap(Uri targetUri, [Compiler compiler]) {
   Uri mapUri = getMapUri(targetUri);
   SingleMapping sourceMap = getSourceMap(mapUri);
   checkFileReferences(targetUri, mapUri, sourceMap);
   checkIndexReferences(targetUri, mapUri, sourceMap);
   checkRedundancy(sourceMap);
+  if (compiler != null) {
+    checkNames(targetUri, mapUri, sourceMap, compiler);
+  }
 }
 
 checkIndexReferences(Uri targetUri, Uri mapUri, SingleMapping sourceMap) {
@@ -77,6 +87,82 @@ checkRedundancy(SingleMapping sourceMap) {
   });
 }
 
+checkNames(Uri targetUri, Uri mapUri,
+           SingleMapping sourceMap, Compiler compiler) {
+  Map<Uri, CompilationUnitElement> compilationUnitMap = {};
+
+  void mapCompilationUnits(LibraryElement library) {
+    library.compilationUnits.forEach((CompilationUnitElement compilationUnit) {
+      compilationUnitMap[compilationUnit.script.readableUri] = compilationUnit;
+    });
+  }
+
+  compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+    mapCompilationUnits(library);
+    if (library.patch != null) {
+      mapCompilationUnits(library.patch);
+    }
+  });
+
+  sourceMap.lines.forEach((TargetLineEntry line) {
+    for (TargetEntry entry in line.entries) {
+      if (entry.sourceNameId != null) {
+        Uri uri = mapUri.resolve(sourceMap.urls[entry.sourceUrlId]);
+        Position targetPosition =
+            new Position(line.line, entry.column);
+        Position sourcePosition =
+            new Position(entry.sourceLine, entry.sourceColumn);
+        String name = sourceMap.names[entry.sourceNameId];
+
+        CompilationUnitElement compilationUnit = compilationUnitMap[uri];
+        Expect.isNotNull(compilationUnit,
+                         "No compilation unit found for $uri.");
+
+        SourceFile sourceFile = compilationUnit.script.file;
+
+        Position positionFromOffset(int offset) {
+          int line = sourceFile.getLine(offset);
+          int column = sourceFile.getColumn(line, offset);
+          return new Position(line, column);
+        }
+
+        Interval intervalFromElement(AstElement element) {
+          if (!element.hasNode) return null;
+
+          var begin = element.node.getBeginToken().charOffset;
+          var end = element.node.getEndToken();
+          end = end.charOffset + end.charCount;
+          return new Interval(positionFromOffset(begin),
+                              positionFromOffset(end));
+        }
+
+        void match(AstElement element) {
+          Interval interval = intervalFromElement(element);
+          if (interval != null && interval.contains(sourcePosition)) {
+            if (name != 'call') {
+              // TODO(johnniwinther): Check closures.
+              Expect.equals(element.name, name);
+            } else if (name != element.name) {
+              print("${targetUri}$targetPosition:\n"
+                    "Name '$name' does not match element $element in "
+                    "${sourceFile.filename}$sourcePosition.");
+            }
+          }
+        }
+
+        compilationUnit.forEachLocalMember((AstElement element) {
+          if (element.isClass) {
+            ClassElement classElement = element;
+            classElement.forEachLocalMember(match);
+          } else {
+            match(element);
+          }
+        });
+      }
+    }
+  });
+}
+
 sameSourcePoint(TargetEntry entry, TargetEntry otherEntry) {
   return
       (entry.sourceUrlId == otherEntry.sourceUrlId) &&
@@ -124,4 +210,31 @@ Future<Directory> createTempDir() {
       .then((Directory dir) {
     return dir;
   });
+}
+
+class Position {
+  final int line;
+  final int column;
+
+  Position(this.line, this.column);
+
+  bool operator <=(Position other) {
+    return line < other.line ||
+           line == other.line && column <= other.column;
+  }
+
+  String toString() => '[$line,$column]';
+}
+
+class Interval {
+  final Position begin;
+  final Position end;
+
+  Interval(this.begin, this.end);
+
+  bool contains(Position other) {
+    return begin <= other && other <= end;
+  }
+
+  String toString() => '$begin-$end';
 }

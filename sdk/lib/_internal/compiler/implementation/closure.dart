@@ -90,6 +90,8 @@ class ClosureFieldElement extends ElementX implements VariableElement {
 
   ClosureClassElement get closureClass => enclosingElement;
 
+  bool get hasNode => false;
+
   Node get node {
     throw new SpannableAssertionFailure(
         variableElement,
@@ -158,6 +160,8 @@ class ClosureClassElement extends ClassElementX {
         superclass.allSupertypesAndSelf.extendClass(thisType);
     callType = methodElement.type;
   }
+
+  bool get hasNode => true;
 
   bool get isClosure => true;
 
@@ -245,6 +249,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX {
   }
 
   ClosureClassElement get closureClass => enclosingElement;
+
+  bool get hasNode => expression.hasNode;
 
   FunctionExpression get node => expression.node;
 

@@ -1266,9 +1266,13 @@ abstract class AnalyzableElement extends Element {
 ///
 /// Synthesized elements may return `null` from [node].
 abstract class AstElement extends AnalyzableElement {
+  /// `true` if [node] is available and non-null.
+  bool get hasNode;
+
   /// The AST node of this element.
   Node get node;
 
+  /// `true` if [resolvedAst] is available.
   bool get hasResolvedAst;
 
   /// The defining AST node of this element with is corresponding
