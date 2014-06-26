@@ -17,6 +17,7 @@ import '../utils.dart';
 class CacheRepairCommand extends PubCommand {
   String get description => "Reinstall cached packages.";
   String get usage => "pub cache repair";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-cache.html";
   bool get requiresEntrypoint => false;
 
   Future onRun() {

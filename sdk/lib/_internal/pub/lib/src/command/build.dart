@@ -22,6 +22,7 @@ final _arrow = getSpecial('\u2192', '=>');
 class BuildCommand extends BarbackCommand {
   String get description => "Apply transformers to build a package.";
   String get usage => "pub build [options] [directories...]";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-build.html";
   List<String> get aliases => const ["deploy", "settle-up"];
 
   /// The path to the application's build output directory.

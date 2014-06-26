@@ -23,6 +23,7 @@ class UploaderCommand extends PubCommand {
   String get description =>
       "Manage uploaders for a package on pub.dartlang.org.";
   String get usage => "pub uploader [options] {add/remove} <email>";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-uploader.html";
   bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 

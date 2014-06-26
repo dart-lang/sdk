@@ -41,6 +41,7 @@ final USAGE_STRING = """
       version    Print pub version.
 
     Use "pub help [command]" for more information about a command.
+    See http://dartlang.org/tools/pub for detailed documentation.
     """;
 
 final VERSION_STRING = '''
@@ -75,6 +76,8 @@ main() {
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
           -n, --dry-run         Report what dependencies would change but don't change any.
+
+          See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
 
@@ -87,6 +90,8 @@ main() {
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
           -n, --dry-run         Report what dependencies would change but don't change any.
+
+          See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
 
@@ -102,6 +107,8 @@ main() {
           Available subcommands:
             add      Install a package.
             repair   Reinstall cached packages.
+
+          See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
      ''');
   });
 
@@ -142,6 +149,8 @@ main() {
         Available subcommands:
           add      Install a package.
           repair   Reinstall cached packages.
+
+        See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -188,6 +197,8 @@ main() {
         Available subcommands:
           add      Install a package.
           repair   Reinstall cached packages.
+
+        See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -206,6 +217,8 @@ main() {
             -h, --help            Print usage information for this command.
                 --[no-]offline    Use cached packages instead of accessing the network.
             -n, --dry-run         Report what dependencies would change but don't change any.
+
+            See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
             ''');
     });
 
@@ -220,6 +233,8 @@ main() {
             -f, --force      Publish without confirmation if there are no errors.
                 --server     The package server to which to upload this package.
                              (defaults to "https://pub.dartlang.org")
+
+            See http://dartlang.org/tools/pub/cmd/pub-lish.html for detailed documentation.
             ''');
     });
 
@@ -247,6 +262,8 @@ main() {
                                      (defaults to on)
 
                 --[no-]force-poll    Force the use of a polling filesystem watcher.
+
+            See http://dartlang.org/tools/pub/cmd/pub-serve.html for detailed documentation.
             ''');
     });
 
@@ -292,6 +309,8 @@ main() {
             Available subcommands:
               add      Install a package.
               repair   Reinstall cached packages.
+
+            See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
             ''',
             exitCode: exit_codes.USAGE);
     });

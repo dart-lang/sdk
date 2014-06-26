@@ -56,6 +56,8 @@ abstract class PubCommand {
     buffer.writeln();
     buffer.writeln(
         'Use "pub help [command]" for more information about a command.');
+    buffer.writeln(
+        'See http://dartlang.org/tools/pub for detailed documentation.');
 
     log.message(buffer);
   }
@@ -118,6 +120,9 @@ abstract class PubCommand {
 
   /// How to invoke this command (e.g. `"pub get [package]"`).
   String get usage;
+
+  /// The URL for web documentation for this command.
+  String get docUrl => null;
 
   /// Whether or not this command requires [entrypoint] to be defined.
   ///
@@ -242,6 +247,11 @@ abstract class PubCommand {
     if (subcommands.isNotEmpty) {
       buffer.writeln();
       buffer.write(_listCommands(subcommands));
+    }
+
+    if (docUrl != null) {
+      buffer.writeln();
+      buffer.writeln("See $docUrl for detailed documentation.");
     }
 
     return buffer.toString();
