@@ -113,7 +113,7 @@ class SendVisitor extends ResolvedVisitor {
     collector.backend.registerStaticSend(element, node);
 
     if (Elements.isUnresolved(element)
-        || identical(element, compiler.assertMethod)
+        || elements.isAssert(node)
         || element.isDeferredLoaderGetter) {
       return;
     }

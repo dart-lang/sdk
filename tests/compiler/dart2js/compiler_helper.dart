@@ -170,7 +170,7 @@ types.TypeMask findTypeMask(compiler, String name,
   var sourceName = name;
   var element = compiler.mainApp.find(sourceName);
   if (element == null) {
-    element = compiler.interceptorsLibrary.find(sourceName);
+    element = compiler.backend.interceptorsLibrary.find(sourceName);
   }
   if (element == null) {
     element = compiler.coreLibrary.find(sourceName);

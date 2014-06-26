@@ -247,7 +247,7 @@ abstract class Enqueuer {
   }
 
   void enableNoSuchMethod(Element element) {}
-  void enableIsolateSupport(LibraryElement element) {}
+  void enableIsolateSupport() {}
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
@@ -441,11 +441,7 @@ abstract class Enqueuer {
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
-    if (compiler.closureClass != null) {
-      // TODO(johnniwinther): Move this to the JavaScript backend.
-      registerInstantiatedClass(compiler.closureClass,
-                                compiler.globalDependencies);
-    }
+    compiler.backend.registerGetOfStaticFunction(this);
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
@@ -507,19 +503,12 @@ abstract class Enqueuer {
     universe.genericCallMethods.add(element);
   }
 
-  void registerBoundClosure() {
-    registerInstantiatedClass(compiler.boundClosureClass,
-                              // Precise dependency is not important here.
-                              compiler.globalDependencies);
-  }
-
   void registerClosurizedMember(Element element, Registry registry) {
     assert(element.isInstanceMember);
     registerIfGeneric(element, registry);
-    registerBoundClosure();
+    compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
   }
-
 
   void registerIfGeneric(Element element, Registry registry) {
     if (element.computeType(compiler).containsTypeVariables) {
@@ -620,17 +609,17 @@ class ResolutionEnqueuer extends Enqueuer {
     // library, or timers for the async library.  We exclude constant fields,
     // which are ending here because their initializing expression is compiled.
     LibraryElement library = element.library;
-    if (!compiler.hasIsolateSupport() &&
+    if (!compiler.hasIsolateSupport &&
         (!element.isField || !element.isConst)) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
-        enableIsolateSupport(library);
+        enableIsolateSupport();
       } else if (uri == 'dart:async') {
         if (element.name == '_createTimer' ||
             element.name == '_createPeriodicTimer') {
           // The [:Timer:] class uses the event queue of the isolate
           // library, so we make sure that event queue is generated.
-          enableIsolateSupport(library);
+          enableIsolateSupport();
         }
       }
     }
@@ -645,22 +634,14 @@ class ResolutionEnqueuer extends Enqueuer {
       compiler.backend.registerRuntimeType(this, compiler.globalDependencies);
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
-    } else if (element == compiler.invokeOnMethod) {
-      compiler.enabledInvokeOn = true;
     }
 
     nativeEnqueuer.registerElement(element);
   }
 
-  void enableIsolateSupport(LibraryElement element) {
-    compiler.isolateLibrary = element.patch;
-    for (String name in const [Compiler.START_ROOT_ISOLATE,
-                               '_currentIsolate',
-                               '_callInIsolate']) {
-      Element element = compiler.isolateHelperLibrary.find(name);
-      addToWorkList(element);
-      compiler.globalDependencies.registerDependency(element);
-    }
+  void enableIsolateSupport() {
+    compiler.hasIsolateSupport = true;
+    compiler.backend.enableIsolateSupport(this);
   }
 
   void enableNoSuchMethod(Element element) {

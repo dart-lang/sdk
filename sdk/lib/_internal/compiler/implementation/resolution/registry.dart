@@ -352,4 +352,13 @@ class ResolutionRegistry extends Registry {
     if (element == null) return;
     world.registerInstantiatedClass(element, this);
   }
+
+  void registerAssert(Send node) {
+    mapping.setAssert(node);
+    backend.onAssert(node, this);
+  }
+
+  bool isAssert(Send node) {
+    return mapping.isAssert(node);
+  }
 }

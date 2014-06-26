@@ -266,7 +266,7 @@ abstract class ElementX extends Element {
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-  bool isForeign(Compiler compiler) => library == compiler.foreignLibrary;
+  bool isForeign(Compiler compiler) => compiler.backend.isForeign(this);
 
   void diagnose(Element context, DiagnosticListener listener) {}
 

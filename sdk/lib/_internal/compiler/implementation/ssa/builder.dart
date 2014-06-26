@@ -2229,7 +2229,7 @@ class SsaBuilder extends ResolvedVisitor {
       List arguments = [buildFunctionType(type), original];
       pushInvokeDynamic(
           null,
-          new Selector.call(name, compiler.jsHelperLibrary, 1),
+          new Selector.call(name, backend.jsHelperLibrary, 1),
           arguments);
 
       return new HTypeConversion(type, kind, original.instructionType, pop());
@@ -3248,7 +3248,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
-          node, new Selector.call('_isTest', compiler.jsHelperLibrary, 1),
+          node, new Selector.call('_isTest', backend.jsHelperLibrary, 1),
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.isTypeVariable) {
@@ -3444,7 +3444,7 @@ class SsaBuilder extends ResolvedVisitor {
           'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we just generate code
       // to fetch the current isolate.
       String name = backend.namer.currentIsolate;
@@ -3455,7 +3455,7 @@ class SsaBuilder extends ResolvedVisitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateHelperLibrary.find('_currentIsolate');
+      Element element = backend.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
         compiler.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -3559,7 +3559,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignJsCallInIsolate(ast.Send node) {
     Link<ast.Node> link = node.arguments;
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
@@ -3569,7 +3569,7 @@ class SsaBuilder extends ResolvedVisitor {
                               backend.dynamicType));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateHelperLibrary.find('_callInIsolate');
+      Element element = backend.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
         compiler.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -3714,8 +3714,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
-      Element element = compiler.findHelper(
-          'JavaScriptIndexingBehavior');
+      Element element = backend.findHelper('JavaScriptIndexingBehavior');
       stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
@@ -4256,12 +4255,19 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(graph.addConstantNull(compiler));
       return;
     }
+    // TODO(johnniwinther): Don't handle assert like a regular static call.
+    // It breaks the selector name check since the assert helper method cannot
+    // be called `assert` and therefore does not match the selector like a
+    // regular method.
     visitStaticSend(node);
   }
 
   visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (elements.isAssert(node)) {
+      element = backend.assertMethod;
+    }
     if (element.isForeign(compiler) && element.isFunction) {
       visitForeignSend(node);
       return;
@@ -6301,13 +6307,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
+    ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
     builder.push(new HVoidType(type, new TypeMask.exact(cls)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('RuntimeType');
+    ClassElement cls = builder.backend.findHelper('RuntimeType');
     TypeMask instructionType = new TypeMask.subclass(cls);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
@@ -6345,7 +6351,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       namedParameterTypes = namedParameterTypes.tail;
     }
 
-    ClassElement cls = builder.compiler.findHelper('RuntimeFunctionType');
+    ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
     builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
   }
 
@@ -6369,9 +6375,9 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     }
     ClassElement cls;
     if (type.typeArguments.isEmpty) {
-      cls = builder.compiler.findHelper('RuntimeTypePlain');
+      cls = builder.backend.findHelper('RuntimeTypePlain');
     } else {
-      cls = builder.compiler.findHelper('RuntimeTypeGeneric');
+      cls = builder.backend.findHelper('RuntimeTypeGeneric');
     }
     builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
   }
@@ -6383,7 +6389,8 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
+    JavaScriptBackend backend = builder.compiler.backend;
+    ClassElement cls = backend.findHelper('DynamicRuntimeType');
     builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }
 }

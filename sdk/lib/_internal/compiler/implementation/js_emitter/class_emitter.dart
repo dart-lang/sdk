@@ -44,7 +44,7 @@ class ClassEmitter extends CodeEmitterHelper {
       additionalProperties.forEach(builder.addProperty);
     }
 
-    if (classElement == compiler.closureClass) {
+    if (classElement == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       String name = namer.getMappedInstanceName(Compiler.CALL_OPERATOR_NAME);
@@ -611,7 +611,7 @@ class ClassEmitter extends CodeEmitterHelper {
           js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]', index);
     }
     jsAst.Expression convertRtiToRuntimeType =
-        namer.elementAccess(compiler.findHelper('convertRtiToRuntimeType'));
+        namer.elementAccess(backend.findHelper('convertRtiToRuntimeType'));
     builder.addProperty(name,
         js('function () { return #(#) }',
             [convertRtiToRuntimeType, computeTypeVariable]));

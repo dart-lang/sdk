@@ -328,6 +328,12 @@ abstract class Backend {
   /// Register that the application creates a constant map.
   void onConstantMap(Registry registry) {}
 
+  /// Register that [node] is a call to `assert`.
+  void onAssert(Send node, Registry registry) {}
+
+  /// Returns `true` if [element] represent the assert function.
+  bool isAssertMethod(Element element) => false;
+
   /**
    * Call this to register that an instantiated generic class has a call
    * method.
@@ -342,6 +348,13 @@ abstract class Backend {
   void registerGenericClosure(Element closure,
                               Enqueuer enqueuer,
                               Registry registry) {}
+
+  /// Call this to register that a member has been closurized.
+  void registerBoundClosure(Enqueuer enqueuer) {}
+
+  /// Call this to register that a static function has been closurized.
+  void registerGetOfStaticFunction(Enqueuer enqueuer) {}
+
   /**
    * Call this to register that the [:runtimeType:] property has been accessed.
    */
@@ -354,6 +367,9 @@ abstract class Backend {
   void enableNoSuchMethod(Enqueuer enqueuer) {
     enqueuer.registerInvocation(compiler.noSuchMethodSelector);
   }
+
+  /// Call this method to enable support for isolates.
+  void enableIsolateSupport(Enqueuer enqueuer) {}
 
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
@@ -395,6 +411,24 @@ abstract class Backend {
 
   bool isInterceptorClass(ClassElement element) => false;
 
+  /// Returns `true` if [element] is a foreign element, that is, that the
+  /// backend has specialized handling for the element.
+  bool isForeign(Element element) => false;
+
+  /// Returns `true` if [library] is a backend specific library whose members
+  /// have special treatment, such as being allowed to extends blacklisted
+  /// classes or member being eagerly resolved.
+  bool isBackendLibrary(LibraryElement library) {
+    // TODO(johnnwinther): Remove this when patching is only done by the
+    // JavaScript backend.
+    Uri canonicalUri = library.canonicalUri;
+    if (canonicalUri == js_backend.JavaScriptBackend.DART_JS_HELPER ||
+        canonicalUri == js_backend.JavaScriptBackend.DART_INTERCEPTORS) {
+      return true;
+    }
+    return false;
+  }
+
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
   /// This method is called immediately after the [LibraryElement] [library] has
@@ -403,9 +437,7 @@ abstract class Backend {
 
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
-  Future onLibraryScanned(LibraryElement library,
-                          LibraryLoader loader) {
-    // TODO(johnniwinther): Move this to the JavaScript backend.
+  Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     if (library.isPlatformLibrary && !library.isPatched) {
       // Apply patch, if any.
       Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
@@ -495,13 +527,6 @@ class TokenMap {
 
 abstract class Compiler implements DiagnosticListener {
   static final Uri DART_CORE = new Uri(scheme: 'dart', path: 'core');
-  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
-  static final Uri DART_INTERCEPTORS =
-      new Uri(scheme: 'dart', path: '_interceptors');
-  static final Uri DART_FOREIGN_HELPER =
-      new Uri(scheme: 'dart', path: '_foreign_helper');
-  static final Uri DART_ISOLATE_HELPER =
-      new Uri(scheme: 'dart', path: '_isolate_helper');
   static final Uri DART_MIRRORS = new Uri(scheme: 'dart', path: 'mirrors');
   static final Uri DART_NATIVE_TYPED_DATA =
       new Uri(scheme: 'dart', path: '_native_typed_data');
@@ -633,13 +658,6 @@ abstract class Compiler implements DiagnosticListener {
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
-  LibraryElement isolateLibrary;
-  LibraryElement isolateHelperLibrary;
-  // TODO(johnniwinther): Move JavaScript specific libraries to the JavaScript
-  // backend.
-  LibraryElement jsHelperLibrary;
-  LibraryElement interceptorsLibrary;
-  LibraryElement foreignLibrary;
 
   LibraryElement mainApp;
   FunctionElement mainFunction;
@@ -651,8 +669,6 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement typedDataLibrary;
 
   ClassElement objectClass;
-  ClassElement closureClass;
-  ClassElement boundClosureClass;
   ClassElement boolClass;
   ClassElement numClass;
   ClassElement intClass;
@@ -670,6 +686,7 @@ abstract class Compiler implements DiagnosticListener {
   /// The constant for the [proxy] variable defined in dart:core.
   Constant proxyConstant;
 
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The constant for the [patch] variable defined in dart:_js_helper.
   Constant patchConstant;
 
@@ -697,14 +714,11 @@ abstract class Compiler implements DiagnosticListener {
   // Initialized when dart:mirrors is loaded.
   ClassElement deferredLibraryClass;
 
-  ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
-  Element assertMethod;
   Element identicalFunction;
   Element loadLibraryFunction;
   Element functionApplyMethod;
-  Element invokeOnMethod;
   Element intEnvironment;
   Element boolEnvironment;
   Element stringEnvironment;
@@ -788,14 +802,7 @@ abstract class Compiler implements DiagnosticListener {
   static const String CREATE_INVOCATION_MIRROR =
       'createInvocationMirror';
 
-  // TODO(ahe): Rename this field and move this logic to backend, similar to how
-  // we disable tree-shaking when seeing disableTreeShaking in js_mirrors.dart.
-  static const String INVOKE_ON =
-      '_getCachedInvocation';
-
   static const String RUNTIME_TYPE = 'runtimeType';
-  static const String START_ROOT_ISOLATE =
-      'startRootIsolate';
 
   static const String UNDETERMINED_BUILD_ID =
       "build number could not be determined";
@@ -817,6 +824,7 @@ abstract class Compiler implements DiagnosticListener {
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
   bool enabledInvokeOn = false;
+  bool hasIsolateSupport = false;
 
   Stopwatch progress = new Stopwatch()..start();
 
@@ -1029,8 +1037,6 @@ abstract class Compiler implements DiagnosticListener {
     });
   }
 
-  bool hasIsolateSupport() => isolateLibrary != null;
-
   /// This method is called immediately after the [LibraryElement] [library] has
   /// been created.
   ///
@@ -1041,14 +1047,6 @@ abstract class Compiler implements DiagnosticListener {
     Uri uri = library.canonicalUri;
     if (uri == DART_CORE) {
       coreLibrary = library;
-    } else if (uri == DART_JS_HELPER) {
-      jsHelperLibrary = library;
-    } else if (uri == DART_INTERCEPTORS) {
-      interceptorsLibrary = library;
-    } else if (uri == DART_FOREIGN_HELPER) {
-      foreignLibrary = library;
-    } else if (uri == DART_ISOLATE_HELPER) {
-      isolateHelperLibrary = library;
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataLibrary = library;
     } else if (uri == DART_MIRRORS) {
@@ -1071,9 +1069,6 @@ abstract class Compiler implements DiagnosticListener {
     if (uri == DART_CORE) {
       initializeCoreClasses();
       identicalFunction = coreLibrary.find('identical');
-    } else if (uri == DART_JS_HELPER) {
-      initializeHelperClasses();
-      assertMethod = jsHelperLibrary.find('assertHelper');
     } else if (uri == DART_INTERNAL) {
       symbolImplementationClass = findRequiredElement(library, 'Symbol');
     } else if (uri == DART_MIRRORS) {
@@ -1105,12 +1100,12 @@ abstract class Compiler implements DiagnosticListener {
       proxyConstant =
           resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
 
-      patchConstant = resolver.constantCompiler.compileConstant(
-          jsHelperLibrary.find('patch'));
-
-      if (jsInvocationMirrorClass != null) {
-        jsInvocationMirrorClass.ensureResolved(this);
-        invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
+      // TODO(johnniwinther): Move this to the JavaScript backend.
+      LibraryElement jsHelperLibrary =
+          loadedLibraries[js_backend.JavaScriptBackend.DART_JS_HELPER];
+      if (jsHelperLibrary != null) {
+        patchConstant = resolver.constantCompiler.compileConstant(
+            jsHelperLibrary.find('patch'));
       }
 
       if (preserveComments) {
@@ -1184,25 +1179,6 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): It is possible that we have to require the presence
     // of Symbol as we change how we implement noSuchMethod.
     symbolClass = lookupCoreClass('Symbol');
-  }
-
-  void initializeHelperClasses() {
-    final List missingHelperClasses = [];
-    ClassElement lookupHelperClass(String name) {
-      ClassElement result = jsHelperLibrary.find(name);
-      if (result == null) {
-        missingHelperClasses.add(name);
-      }
-      return result;
-    }
-    jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
-    boundClosureClass = lookupHelperClass('BoundClosure');
-    closureClass = lookupHelperClass('Closure');
-    if (!missingHelperClasses.isEmpty) {
-      internalError(jsHelperLibrary,
-          'dart:_js_helper library does not contain required classes: '
-          '$missingHelperClasses');
-    }
   }
 
   Element _unnamedListConstructor;
@@ -1379,9 +1355,8 @@ abstract class Compiler implements DiagnosticListener {
     log('Compiling...');
     phase = PHASE_COMPILING;
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
-    if (hasIsolateSupport()) {
-      enqueuer.codegen.addToWorkList(
-          isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+    if (hasIsolateSupport) {
+      backend.enableIsolateSupport(enqueuer.codegen);
       enqueuer.codegen.registerGetOfStaticFunction(main);
     }
     if (enabledNoSuchMethod) {
@@ -1448,7 +1423,7 @@ abstract class Compiler implements DiagnosticListener {
         // TODO(ngeoffray, floitsch): we should also ensure that the
         // class IsolateMessage is instantiated. Currently, just enabling
         // isolate support works.
-        world.enableIsolateSupport(main.library);
+        world.enableIsolateSupport();
         world.registerInstantiatedClass(listClass, globalDependencies);
         world.registerInstantiatedClass(stringClass, globalDependencies);
       }
@@ -1493,10 +1468,7 @@ abstract class Compiler implements DiagnosticListener {
         resolved.remove(e);
 
       }
-      if (identical(e.library, jsHelperLibrary)) {
-        resolved.remove(e);
-      }
-      if (identical(e.library, interceptorsLibrary)) {
+      if (backend.isBackendLibrary(e.library)) {
         resolved.remove(e);
       }
     }
@@ -1736,13 +1708,6 @@ abstract class Compiler implements DiagnosticListener {
     unimplemented(node, 'Compiler.readScript');
     return null;
   }
-
-  // TODO(karlklose): split into findHelperFunction and findHelperClass and
-  // add a check that the element has the expected kind.
-  Element findHelper(String name)
-      => jsHelperLibrary.findLocal(name);
-  Element findInterceptor(String name)
-      => interceptorsLibrary.findLocal(name);
 
   Element lookupElementIn(ScopeContainerElement container, String name) {
     Element element = container.localLookup(name);

@@ -127,6 +127,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       : this.compiler = compiler,
         processedLibraries = compiler.cacheStrategy.newSet();
 
+  JavaScriptBackend get backend => compiler.backend;
+
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     if (compiler.hasIncrementalSupport) {
       // Since [Set.add] returns bool if an element was added, this restricts
@@ -135,8 +137,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       libraries = libraries.where(processedLibraries.add);
     }
     libraries.forEach(processNativeClassesInLibrary);
-    if (compiler.isolateHelperLibrary != null) {
-      processNativeClassesInLibrary(compiler.isolateHelperLibrary);
+    if (backend.isolateHelperLibrary != null) {
+      processNativeClassesInLibrary(backend.isolateHelperLibrary);
     }
     processSubclassesOfNativeClasses(libraries);
     if (!enableLiveTypeAnalysis) {
@@ -297,7 +299,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void findAnnotationClasses() {
     if (_annotationCreatesClass != null) return;
     ClassElement find(name) {
-      Element e = compiler.findHelper(name);
+      Element e = backend.findHelper(name);
       if (e == null || e is! ClassElement) {
         compiler.internalError(NO_LOCATION_SPANNABLE,
             "Could not find implementation class '${name}'.");
@@ -492,7 +494,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         } else if (type.element == compiler.boolClass) {
           world.registerInstantiatedClass(compiler.boolClass, registry);
         } else if (compiler.types.isSubtype(
-                      type, compiler.backend.listImplementation.rawType)) {
+                      type, backend.listImplementation.rawType)) {
           world.registerInstantiatedClass(type.element, registry);
         }
       }
@@ -519,9 +521,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   onFirstNativeClass() {
     staticUse(name) {
-      JavaScriptBackend backend = compiler.backend;
       backend.enqueue(
-          world, compiler.findHelper(name), compiler.globalDependencies);
+          world, backend.findHelper(name), compiler.globalDependencies);
     }
 
     staticUse('dynamicFunction');
