@@ -455,7 +455,8 @@ class HashTables : public AllStatic {
 template<typename Base>
 class HashMap : public Base {
  public:
-  explicit HashMap(Array& data) : Base(data) {}
+  typedef Base BaseTable;
+  explicit HashMap(Array& data) : BaseTable(data) {}
   template<typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = Base::FindKey(key);
@@ -514,7 +515,8 @@ class EnumIndexHashMap : public HashMap<EnumIndexHashTable<KeyTraits, 1> > {
 template<typename Base>
 class HashSet : public Base {
  public:
-  explicit HashSet(Array& data) : Base(data) {}
+  typedef Base BaseTable;
+  explicit HashSet(Array& data) : BaseTable(data) {}
   bool Insert(const Object& key) {
     HashTables::EnsureLoadFactor(0.0, 0.75, *this);
     intptr_t entry = -1;
