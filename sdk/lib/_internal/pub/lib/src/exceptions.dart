@@ -4,7 +4,6 @@
 
 library pub.exceptions;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -23,6 +22,8 @@ class ApplicationException implements Exception {
   final String message;
 
   ApplicationException(this.message);
+
+  String toString() => message;
 }
 
 /// A class for exceptions that wrap other exceptions.
