@@ -373,6 +373,8 @@ void PageSpace::WriteProtect(bool read_only) {
 
 
 void PageSpace::PrintToJSONObject(JSONObject* object) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
   JSONObject space(object, "old");
   space.AddProperty("type", "PageSpace");
   space.AddProperty("id", "heaps/old");
@@ -383,6 +385,15 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
   space.AddProperty("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
+  {
+    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
+    double run_time_millis = MicrosecondsToMilliseconds(run_time);
+    double avg_time_between_collections =
+        run_time_millis / static_cast<double>(collections());
+    space.AddProperty("avgCollectionPeriodMillis",
+                      avg_time_between_collections);
+  }
 }
 
 

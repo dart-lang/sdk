@@ -495,6 +495,7 @@ class HeapSpace extends Observable {
   @observable int external = 0;
   @observable int collections = 0;
   @observable double totalCollectionTimeInSeconds = 0.0;
+  @observable double averageCollectionPeriodInMillis = 0.0;
 
   void update(Map heapMap) {
     used = heapMap['used'];
@@ -502,6 +503,7 @@ class HeapSpace extends Observable {
     external = heapMap['external'];
     collections = heapMap['collections'];
     totalCollectionTimeInSeconds = heapMap['time'];
+    averageCollectionPeriodInMillis = heapMap['avgCollectionPeriodMillis'];
   }
 }
 
