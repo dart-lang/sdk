@@ -29,6 +29,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
+#include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
@@ -8657,9 +8658,16 @@ RawObject* Library::ResolveName(const String& name) const {
 }
 
 
-static intptr_t ResolvedNameCacheSize(const Array& cache) {
-  return (cache.Length() - 1) / 2;
-}
+class StringEqualsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    return String::Cast(a).Equals(String::Cast(b));
+  }
+  static uword Hash(const Object& obj) {
+    return String::Cast(obj).Hash();
+  }
+};
+typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
 
 
 // Returns true if the name is found in the cache, false no cache hit.
@@ -8667,41 +8675,12 @@ static intptr_t ResolvedNameCacheSize(const Array& cache) {
 // name does not resolve to anything in this library.
 bool Library::LookupResolvedNamesCache(const String& name,
                                        Object* obj) const {
-  const Array& cache = Array::Handle(resolved_names());
-  const intptr_t cache_size = ResolvedNameCacheSize(cache);
-  intptr_t index = name.Hash() % cache_size;
-  String& entry_name = String::Handle();
-  entry_name ^= cache.At(index);
-  while (!entry_name.IsNull()) {
-    if (entry_name.Equals(name)) {
-      CompilerStats::num_lib_cache_hit++;
-      *obj = cache.At(index + cache_size);
-      return true;
-    }
-    index = (index + 1) % cache_size;
-    entry_name ^= cache.At(index);
-  }
-  *obj = Object::null();
-  return false;
-}
-
-
-void Library::GrowResolvedNamesCache() const {
-  const Array& old_cache = Array::Handle(resolved_names());
-  const intptr_t old_cache_size = ResolvedNameCacheSize(old_cache);
-
-  // Create empty new cache and add entries from the old cache.
-  const intptr_t new_cache_size = old_cache_size * 3 / 2;
-  InitResolvedNamesCache(new_cache_size);
-  String& name = String::Handle();
-  Object& entry = Object::Handle();
-  for (intptr_t i = 0; i < old_cache_size; i++) {
-    name ^= old_cache.At(i);
-    if (!name.IsNull()) {
-      entry = old_cache.At(i + old_cache_size);
-      AddToResolvedNamesCache(name, entry);
-    }
-  }
+  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  bool present = false;
+  *obj = cache.GetOrNull(name, &present);
+  RawArray* array = cache.Release();
+  ASSERT(array == resolved_names());
+  return present;
 }
 
 
@@ -8713,45 +8692,16 @@ void Library::AddToResolvedNamesCache(const String& name,
   if (!FLAG_use_lib_cache) {
     return;
   }
-  ASSERT(!Field::IsGetterName(name) && !Field::IsSetterName(name));
-  const Array& cache = Array::Handle(resolved_names());
-  // let N = cache.Length();
-  // The entry cache[N-1] is used as a counter
-  // The array entries [0..N-2] are used as cache entries.
-  //   cache[i] contains the name of the entry
-  //   cache[i+(N-1)/2] contains the resolved entity, or NULL if that name
-  //   is not present in the library.
-  const intptr_t counter_index = cache.Length() - 1;
-  intptr_t cache_size = ResolvedNameCacheSize(cache);
-  intptr_t index = name.Hash() % cache_size;
-  String& entry_name = String::Handle();
-  entry_name ^= cache.At(index);
-  // An empty spot will be found because we keep the hash set at most 75% full.
-  while (!entry_name.IsNull()) {
-    index = (index + 1) % cache_size;
-    entry_name ^= cache.At(index);
-  }
-  // Insert the object at the empty slot.
-  cache.SetAt(index, name);
-  ASSERT(cache.At(index + cache_size) == Object::null());
-  cache.SetAt(index + cache_size, obj);
-
-  // One more element added.
-  intptr_t num_used = Smi::Value(Smi::RawCast(cache.At(counter_index))) + 1;
-  cache.SetAt(counter_index, Smi::Handle(Smi::New(num_used)));
-  CompilerStats::num_names_cached++;
-
-  // Rehash if symbol_table is 75% full.
-  if (num_used > ((cache_size / 4) * 3)) {
-    CompilerStats::num_names_cached -= num_used;
-    GrowResolvedNamesCache();
-  }
+  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  cache.UpdateOrInsert(name, obj);
+  StorePointer(&raw_ptr()->resolved_names_, cache.Release());
 }
 
 
 void Library::InvalidateResolvedName(const String& name) const {
   Object& entry = Object::Handle();
   if (LookupResolvedNamesCache(name, &entry)) {
+    // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     InvalidateResolvedNamesCache();
   }
 }
@@ -9268,8 +9218,8 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 
 
 void Library::InitResolvedNamesCache(intptr_t size) const {
-  // Need space for 'size' names and 'size' resolved object entries.
-  StorePointer(&raw_ptr()->resolved_names_, NewDictionary(2 * size));
+  const Array& cache = Array::Handle(HashTables::New<ResolvedNamesMap>(size));
+  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
 }
 
 
