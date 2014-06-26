@@ -44,7 +44,7 @@ class EnqueueTask extends CompilerTask {
       }
     }
 
-    compiler.libraries.values.forEach(addMemberByName);
+    compiler.libraryLoader.libraries.forEach(addMemberByName);
   }
 
   String get name => 'Enqueue';

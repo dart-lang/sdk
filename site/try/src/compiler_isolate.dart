@@ -115,7 +115,8 @@ compile(source, SendPort replyTo) {
   cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
     compilationTimer.stop();
     print('Compilation took ${compilationTimer.elapsed}');
-    if (cachedCompiler.libraries.containsKey('dart:html')) {
+    if (cachedCompiler.libraryLoader
+            .lookupLibrary(Uri.parse('dart:html')) != null) {
       notifyDartHtml(replyTo);
     }
     String js = cachedCompiler.assembledCode;

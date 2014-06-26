@@ -1193,7 +1193,7 @@ class JavaScriptBackend extends Backend {
           {'count': mirrorCount,
            'total': totalMethodCount,
            'percentage': percentage.round()});
-      for (LibraryElement library in compiler.libraries.values) {
+      for (LibraryElement library in compiler.libraryLoader.libraries) {
         if (library.isInternalLibrary) continue;
         for (LibraryTag tag in library.tags) {
           Import importTag = tag.asImport();
@@ -1924,7 +1924,7 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata) {
       compiler.log('Retaining metadata.');
 
-      compiler.libraries.values.forEach(retainMetadataOf);
+      compiler.libraryLoader.libraries.forEach(retainMetadataOf);
       for (Dependency dependency in metadataConstants) {
         registerCompileTimeConstant(
             dependency.constant, dependency.registry);

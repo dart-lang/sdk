@@ -21,6 +21,10 @@ runTest(String mainScript, test) {
       .then((_) => test(compiler)));
 }
 
+lookupLibrary(compiler, name) {
+  return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+}
+
 void main() {
   runTest('memory:main.dart', (compiler) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
@@ -28,9 +32,9 @@ void main() {
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var lib1 = compiler.libraries["memory:lib1.dart"];
-    var lib2 = compiler.libraries["memory:lib2.dart"];
-    var mathLib = compiler.libraries["dart:math"];
+    var lib1 = lookupLibrary(compiler, "memory:lib1.dart");
+    var lib2 = lookupLibrary(compiler, "memory:lib2.dart");
+    var mathLib = lookupLibrary(compiler, "dart:math");
     var sin = mathLib.find('sin');
     var foo1 = lib1.find("foo1");
     var foo2 = lib2.find("foo2");
@@ -51,8 +55,8 @@ void main() {
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var mainLib = compiler.libraries["memory:main3.dart"];
-    var lib3 = compiler.libraries["memory:lib3.dart"];
+    var mainLib = lookupLibrary(compiler, "memory:main3.dart");
+    var lib3 = lookupLibrary(compiler, "memory:lib3.dart");
     var C = mainLib.find("C");
     var foo = lib3.find("foo");
 
@@ -65,10 +69,10 @@ void main() {
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var mainLib = compiler.libraries["memory:main4.dart"];
-    var lib4 = compiler.libraries["memory:lib4.dart"];
-    var lib5 = compiler.libraries["memory:lib5.dart"];
-    var lib6 = compiler.libraries["memory:lib6.dart"];
+    var mainLib = lookupLibrary(compiler, "memory:main4.dart");
+    var lib4 = lookupLibrary(compiler, "memory:lib4.dart");
+    var lib5 = lookupLibrary(compiler, "memory:lib5.dart");
+    var lib6 = lookupLibrary(compiler, "memory:lib6.dart");
     var foo5 = lib5.find("foo");
     var foo6 = lib6.find("foo");
 
