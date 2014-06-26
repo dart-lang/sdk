@@ -488,6 +488,9 @@ class Uri {
    * and joined using equal and ampersand characters. The
    * percent-encoding of the keys and values encodes all characters
    * except for the unreserved characters.
+   * If `query` is the empty string, it is equivalent to omitting it.
+   * To have an actual empty query part,
+   * use an empty list for `queryParameters`.
    * If both `query` and `queryParameters` are omitted or `null`, the
    * URI will have no query part.
    *
@@ -508,6 +511,8 @@ class Uri {
     scheme = _makeScheme(scheme, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
+    // Special case this constructor for backwards compatibility.
+    if (query == "") query = null;
     query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
     fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
     port = _makePort(port, scheme);

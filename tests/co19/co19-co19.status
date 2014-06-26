@@ -18,15 +18,15 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t06: Fail, Pass, OK # co19 issue 695
 
-LibTest/core/Uri/authority_A01_t01: RuntimeError     # co19 issue 696
-LibTest/core/Uri/hasAuthority_A01_t01: RuntimeError  # co19 issue 696
-
 # These tests are obsolete and need updating.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
+
+LibTest/core/Uri/authority_A01_t01: RuntimeError     # co19 issue 696
+LibTest/core/Uri/hasAuthority_A01_t01: RuntimeError  # co19 issue 696
 
 LibTest/core/Uri/fragment_A01_t01: Fail # assumes space valid in fragment.
 
