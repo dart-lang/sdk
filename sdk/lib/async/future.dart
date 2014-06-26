@@ -291,19 +291,46 @@ abstract class Future<T> {
    *
    * The return values of all [Future]s are discarded. Any errors will cause the
    * iteration to stop and will be piped through the returned [Future].
+   *
+   * If [f] returns a non-[Future], iteration continues immediately. Otherwise
+   * it waits for the returned [Future] to complete.
    */
-  static Future forEach(Iterable input, Future f(element)) {
-    _Future doneSignal = new _Future();
+  static Future forEach(Iterable input, f(element)) {
     Iterator iterator = input.iterator;
-    void nextElement(_) {
-      if (iterator.moveNext()) {
-        new Future.sync(() => f(iterator.current))
-            .then(nextElement, onError: doneSignal._completeError);
+    return doWhile(() {
+      if (!iterator.moveNext()) return false;
+      return new Future.sync(() => f(iterator.current)).then((_) => true);
+    });
+  }
+
+  /**
+   * Perform an async operation repeatedly until it returns `false`.
+   *
+   * Runs [f] repeatedly, starting the next iteration only when the [Future]
+   * returned by [f] completes to `true`. Returns a [Future] that completes once
+   * [f] returns `false`.
+   *
+   * The return values of all [Future]s are discarded. Any errors will cause the
+   * iteration to stop and will be piped through the returned [Future].
+   *
+   * The function [f] may return either a [bool] or a [Future] that completes to
+   * a [bool]. If it returns a non-[Future], iteration continues immediately.
+   * Otherwise it waits for the returned [Future] to complete.
+   */
+  static Future doWhile(f()) {
+    _Future doneSignal = new _Future();
+    var nextIteration;
+    // Bind this callback explicitly so that each iteration isn't bound in the
+    // context of all the previous iterations' callbacks.
+    nextIteration = Zone.current.bindUnaryCallback((bool keepGoing) {
+      if (keepGoing) {
+        new Future.sync(f).then(nextIteration,
+                                onError: doneSignal._completeError);
       } else {
         doneSignal._complete(null);
       }
-    }
-    nextElement(null);
+    }, runGuarded: true);
+    nextIteration(true);
     return doneSignal;
   }
 

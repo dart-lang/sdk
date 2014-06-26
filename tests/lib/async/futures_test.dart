@@ -184,12 +184,47 @@ Future testForEach() {
   }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
+Future testForEachSync() {
+  var seen = <int>[];
+  return Future.forEach([1, 2, 3, 4, 5], seen.add)
+      .then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
+}
+
 Future testForEachWithException() {
   var seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
     return new Future.value();
+  }).then((_) {
+    throw 'incorrect exception';
+  }).catchError((error) {
+    Expect.equals('correct exception', error);
+  });
+}
+
+Future testDoWhile() {
+  var count = 0;
+  return Future.doWhile(() {
+    count++;
+    return new Future(() => count < 10);
+  }).then((_) => Expect.equals(10, count));
+}
+
+Future testDoWhileSync() {
+  var count = 0;
+  return Future.doWhile(() {
+    count++;
+    return count < 10;
+  }).then((_) => Expect.equals(10, count));
+}
+
+Future testDoWhileWithException() {
+  var count = 0;
+  return Future.doWhile(() {
+    count++;
+    if (count == 4) throw 'correct exception';
+    return new Future(() => true);
   }).then((_) {
     throw 'incorrect exception';
   }).catchError((error) {
@@ -213,11 +248,15 @@ main() {
   futures.add(testEagerWait());
   futures.add(testForEachEmpty());
   futures.add(testForEach());
+  futures.add(testForEachSync());
   futures.add(testForEachWithException());
+  futures.add(testDoWhile());
+  futures.add(testDoWhileSync());
+  futures.add(testDoWhileWithException());
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(14, list.length);
+    Expect.equals(18, list.length);
     asyncEnd();
   });
 }
