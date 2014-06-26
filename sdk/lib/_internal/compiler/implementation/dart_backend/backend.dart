@@ -221,9 +221,8 @@ class DartBackend extends Backend {
     final elementAsts = new Map<Element, ElementAst>();
 
     ElementAst parse(AstElement element) {
-      Node node;
       if (!compiler.irBuilder.hasIr(element)) {
-        node = element.node;
+        return new ElementAst(element);
       } else {
         ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         tree.Builder builder = new tree.Builder(compiler);
@@ -238,9 +237,9 @@ class DartBackend extends Backend {
         compiler.tracer.traceGraph('Loop rewriter', definition);
         new tree.LogicalRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Logical rewriter', definition);
-        node = dart_codegen.emit(element, treeElements, definition);
+        Node node = dart_codegen.emit(element, treeElements, definition);
+        return new ElementAst.internal(node, treeElements);
       }
-      return new ElementAst(element);
     }
 
     Set<Element> topLevelElements = new Set<Element>();
