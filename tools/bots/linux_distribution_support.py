@@ -118,10 +118,12 @@ def SrcSteps(build_info):
     if build_info.builder_tag == "debian_wheezy":
       if not "wheezy" in stdout:
         print "Trying to build debian bits on a non debian system"
+        print "You can't fix this, please contact ricow@ or whesse@"
         sys.exit(1)
     if build_info.builder_tag == "ubuntu_precise":
       if not "precise" in stdout:
         print "Trying to build ubuntu bits on a non ubuntu system"
+        print "You can't fix this, please contact ricow@ or whesse@"
         sys.exit(1)
 
   with bot.BuildStep('Create src tarball'):
