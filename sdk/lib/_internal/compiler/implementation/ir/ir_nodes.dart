@@ -151,8 +151,8 @@ class InvokeStatic extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
-/// Invoke a method, operator, getter, setter, or index getter/setter in
-/// tail position.
+/// Invoke a method, operator, getter, setter, or index getter/setter.
+/// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
   final Reference receiver;
   final Selector selector;

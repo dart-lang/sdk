@@ -935,12 +935,29 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitGetterSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
+
+    // TODO(asgerf): Generate code for erroneous getter access
+    if (Elements.isErroneousElement(element)) {
+      return giveup(node, 'Erroneous element on GetterSend');
+    }
+
+    // Reference to constant local, top-level or static field
     if (element != null && element.isConst) {
       return translateConstant(node);
     }
+
+    // Reference to local variable
     if (Elements.isLocal(element)) {
       return lookupLocal(element);
-    } else if (element == null || Elements.isInstanceField(element)) {
+    }
+
+    // Dynamic dispatch to a getter. Sometimes resolution will suggest a target
+    // element, but in these cases we must still emit a dynamic dispatch.
+    // The target element may be an instance method in case we are converting
+    // a method to a function object.
+    if (element == null ||
+        Elements.isInstanceField(element) ||
+        Elements.isInstanceMethod(element)) {
       ir.Primitive receiver = node.receiver == null
           ? lookupThis()
           : visit(node.receiver);
@@ -951,7 +968,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, []);
       add(new ir.LetCont(k, invoke));
       return v;
-    } else if (element.isField) {
+    }
+
+    // Access to a static field or getter (non-static case handled above).
+    if (element.isField || element.isGetter) {
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
       Selector selector = elements.getSelector(node);
@@ -959,11 +979,14 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       ir.InvokeStatic invoke = new ir.InvokeStatic(element, selector, k, []);
       add(new ir.LetCont(k, invoke));
       return v;
-    } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      return translateConstant(node);
-    } else {
-      return giveup(node); // TODO(asgerf): figure out what's missing here
     }
+
+    // Convert a top-level or static function to a function object.
+    if (Elements.isStaticOrTopLevelFunction(element)) {
+      return translateConstant(node);
+    }
+
+    throw "Unexpected GetterSend: $node, $element";
   }
 
   ir.Primitive buildNegation(ir.Primitive condition) {
