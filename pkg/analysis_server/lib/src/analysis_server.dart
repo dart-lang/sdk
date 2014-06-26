@@ -108,6 +108,12 @@ class AnalysisServer {
   bool running;
 
   /**
+   * A flag indicating the value of the 'analyzing' parameter sent in the last
+   * status message to the client.
+   */
+  bool statusAnalyzing = false;
+
+  /**
    * A list of the request handlers used to handle the requests sent to this
    * server.
    */
@@ -347,6 +353,7 @@ class AnalysisServer {
     }
     // prepare next operation
     ServerOperation operation = operationQueue.take();
+    sendStatusNotification(operation);
     // perform the operation
     try {
       operation.perform(this);
@@ -367,19 +374,19 @@ class AnalysisServer {
   }
 
   /**
-   * Send status notification to the client. The `contextId` indicates
-   * the current context being analyzed or `null` if analysis is complete.
+   * Send status notification to the client. The `operation` is the operation
+   * being performed or `null` if analysis is complete.
    */
-  void sendStatusNotification(String contextId) {
+  void sendStatusNotification(ServerOperation operation) {
+    // Only send status when it changes
+    bool isAnalyzing = operation != null;
+    if (statusAnalyzing == isAnalyzing) {
+      return;
+    }
+    statusAnalyzing = isAnalyzing;
     Notification notification = new Notification(SERVER_STATUS);
     Map<String, Object> analysis = new Map();
-    if (contextId != null) {
-      analysis['analyzing'] = true;
-      // TODO(danrubel): replace contextId with real analysisTarget
-      analysis['analysisTarget'] = contextId;
-    } else {
-      analysis['analyzing'] = false;
-    }
+    analysis['analyzing'] = isAnalyzing;
     notification.params['analysis'] = analysis;
     channel.sendNotification(notification);
   }
