@@ -9,9 +9,12 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
+import 'package:source_maps/source_maps.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../../asset/dart/serialize.dart';
 import '../barback.dart';
+import '../exceptions.dart';
 import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
@@ -112,6 +115,18 @@ class TransformerIsolate {
           .toSet();
       log.fine("Transformers from $config: $transformers");
       return transformers;
+    }).catchError((error, stackTrace) {
+      throw new TransformerLoadError(error, config.span);
     });
   }
+}
+
+/// An error thrown when a transformer fails to load.
+class TransformerLoadError extends SpanException implements WrappedException {
+  final CrossIsolateException innerError;
+  Chain get innerChain => innerError.stackTrace;
+
+  TransformerLoadError(CrossIsolateException error, Span span)
+      : innerError = error,
+        super("Error loading transformer: ${error.message}", span);
 }
