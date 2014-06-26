@@ -244,8 +244,6 @@ class JavaScriptConstantSystem extends ConstantSystem {
                         InterfaceType sourceType,
                         List<Constant> keys,
                         List<Constant> values) {
-    JavaScriptBackend backend = compiler.backend;
-
     bool onlyStringKeys = true;
     Constant protoValue = null;
     for (int i = 0; i < keys.length ; i++) {
@@ -276,7 +274,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = backend.jsHelperLibrary.find(className);
+    ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     Link<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;

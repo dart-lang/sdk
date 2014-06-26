@@ -277,8 +277,6 @@ class Namer implements ClosureNamer {
         constantHasher = new ConstantCanonicalHasher(compiler),
         functionTypeNamer = new FunctionTypeNamer(compiler);
 
-  JavaScriptBackend get backend => compiler.backend;
-
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
   /**
@@ -663,6 +661,7 @@ class Namer implements ClosureNamer {
   String getInterceptorSuffix(Iterable<ClassElement> classes) {
     String abbreviate(ClassElement cls) {
       if (cls == compiler.objectClass) return "o";
+      JavaScriptBackend backend = compiler.backend;
       if (cls == backend.jsStringClass) return "s";
       if (cls == backend.jsArrayClass) return "a";
       if (cls == backend.jsDoubleClass) return "d";
@@ -688,6 +687,7 @@ class Namer implements ClosureNamer {
   }
 
   String getInterceptorName(Element element, Iterable<ClassElement> classes) {
+    JavaScriptBackend backend = compiler.backend;
     if (classes.contains(backend.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
@@ -700,6 +700,7 @@ class Namer implements ClosureNamer {
 
   String getOneShotInterceptorName(Selector selector,
                                    Iterable<ClassElement> classes) {
+    JavaScriptBackend backend = compiler.backend;
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
     // other global names.
@@ -831,7 +832,7 @@ class Namer implements ClosureNamer {
   String globalObjectFor(Element element) {
     if (isPropertyOfCurrentIsolate(element)) return currentIsolate;
     LibraryElement library = element.library;
-    if (library == backend.interceptorsLibrary) return 'J';
+    if (library == compiler.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';

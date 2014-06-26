@@ -27,7 +27,8 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
       return visitStaticSend(node);
     } else if (Elements.isClosureSend(node, element)) {
       return visitClosureSend(node);
-    } else if (elements.isAssert(node)) {
+    } else if (element == compiler.assertMethod) {
+      assert(element != null);
       return visitAssert(node);
     } else {
       if (Elements.isUnresolved(element)) {

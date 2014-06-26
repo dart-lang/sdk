@@ -53,20 +53,10 @@ class FunctionInlineCache {
 }
 
 class JavaScriptBackend extends Backend {
-  static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
-  static final Uri DART_INTERCEPTORS =
-      new Uri(scheme: 'dart', path: '_interceptors');
-  static final Uri DART_FOREIGN_HELPER =
-      new Uri(scheme: 'dart', path: '_foreign_helper');
   static final Uri DART_JS_MIRRORS =
       new Uri(scheme: 'dart', path: '_js_mirrors');
   static final Uri DART_JS_NAMES =
       new Uri(scheme: 'dart', path: '_js_names');
-  static final Uri DART_ISOLATE_HELPER =
-      new Uri(scheme: 'dart', path: '_isolate_helper');
-
-  static const String INVOKE_ON = '_getCachedInvocation';
-  static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
@@ -81,16 +71,6 @@ class JavaScriptBackend extends Backend {
   }
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
-
-  LibraryElement jsHelperLibrary;
-  LibraryElement interceptorsLibrary;
-  LibraryElement foreignLibrary;
-  LibraryElement isolateHelperLibrary;
-
-  ClassElement closureClass;
-  ClassElement boundClosureClass;
-  Element assertMethod;
-  Element invokeOnMethod;
 
   ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
@@ -136,8 +116,6 @@ class JavaScriptBackend extends Backend {
 
   Element getInterceptorMethod;
   Element interceptedNames;
-
-  ClassElement jsInvocationMirrorClass;
 
   /// If [true], the compiler will emit code that writes the name of the current
   /// method together with its class and library to the console the first time
@@ -346,20 +324,6 @@ class JavaScriptBackend extends Backend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
-  }
-
-  // TODO(karlklose): split into findHelperFunction and findHelperClass and
-  // add a check that the element has the expected kind.
-  Element findHelper(String name)
-      => jsHelperLibrary.findLocal(name);
-  Element findInterceptor(String name)
-      => interceptorsLibrary.findLocal(name);
-
-  bool isForeign(Element element) => element.library == foreignLibrary;
-
-  bool isBackendLibrary(LibraryElement library) {
-    return library == interceptorsLibrary ||
-           library == jsHelperLibrary;
   }
 
   static Namer determineNamer(Compiler compiler) {
@@ -660,15 +624,21 @@ class JavaScriptBackend extends Backend {
           || cls == compiler.numClass) {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
-        enqueue(enqueuer, findHelper('iae'), registry);
+        enqueue(enqueuer,
+                compiler.findHelper('iae'),
+                registry);
       } else if (cls == compiler.listClass
                  || cls == compiler.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
-        enqueue(enqueuer, findHelper('ioore'), registry);
-        enqueue(enqueuer, findHelper('iae'), registry);
+        enqueue(enqueuer,
+                compiler.findHelper('ioore'),
+                registry);
+        enqueue(enqueuer,
+                compiler.findHelper('iae'),
+                registry);
       } else if (cls == compiler.functionClass) {
-        enqueueClass(enqueuer, closureClass, registry);
+        enqueueClass(enqueuer, compiler.closureClass, registry);
       } else if (cls == compiler.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
@@ -677,9 +647,10 @@ class JavaScriptBackend extends Backend {
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         rti.registerRtiDependency(mapLiteralClass, cls);
-      } else if (cls == boundClosureClass) {
-        // TODO(johnniwinther): Is this a noop?
-        enqueueClass(enqueuer, boundClosureClass, registry);
+      } else if (cls == compiler.boundClosureClass) {
+        // TODO(ngeoffray): Move the bound closure class in the
+        // backend.
+        enqueueClass(enqueuer, compiler.boundClosureClass, registry);
       } else if (Elements.isNativeOrExtendsNative(cls)) {
         enqueue(enqueuer, getNativeInterceptorMethod, registry);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
@@ -707,16 +678,18 @@ class JavaScriptBackend extends Backend {
         enqueueInResolution(mapLiteralConstructorEmpty, registry);
       }
     }
-    if (cls == closureClass) {
-      enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
+    if (cls == compiler.closureClass) {
+      enqueue(enqueuer,
+              compiler.findHelper('closureFromTearOff'),
+              registry);
     }
     ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, registry);
-    } else if (cls == compiler.listClass ||
-               cls == jsArrayClass ||
-               cls == jsFixedArrayClass ||
-               cls == jsExtendableArrayClass) {
+    } else if (cls == compiler.listClass
+               || cls == jsArrayClass
+               || cls == jsFixedArrayClass
+               || cls == jsExtendableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, registry);
       addInterceptors(jsMutableArrayClass, enqueuer, registry);
       addInterceptors(jsFixedArrayClass, enqueuer, registry);
@@ -751,8 +724,14 @@ class JavaScriptBackend extends Backend {
       // These two helpers are used by the emitter and the codegen.
       // Because we cannot enqueue elements at the time of emission,
       // we make sure they are always generated.
-      enqueue(enqueuer, findHelper('isJsIndexable'), registry);
-      enqueue(enqueuer, findInterceptor('dispatchPropertyName'), registry);
+      enqueue(
+          enqueuer,
+          compiler.findHelper('isJsIndexable'),
+          registry);
+      enqueue(
+          enqueuer,
+          compiler.findInterceptor('dispatchPropertyName'),
+          registry);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
@@ -773,7 +752,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
-    assert(interceptorsLibrary != null);
+    assert(compiler.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
@@ -783,11 +762,12 @@ class JavaScriptBackend extends Backend {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
-      Element e = findHelper('boolConversionCheck');
+      Element e =
+          compiler.findHelper('boolConversionCheck');
       if (e != null) enqueue(world, e, registry);
     }
     if (TRACE_CALLS) {
-      traceHelper = findHelper('traceHelper');
+      traceHelper = compiler.findHelper('traceHelper');
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }
@@ -860,18 +840,6 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerBoundClosure(Enqueuer enqueuer) {
-    enqueuer.registerInstantiatedClass(
-        boundClosureClass,
-        // Precise dependency is not important here.
-        compiler.globalDependencies);
-  }
-
-  void registerGetOfStaticFunction(Enqueuer enqueuer) {
-    enqueuer.registerInstantiatedClass(closureClass,
-                                       compiler.globalDependencies);
-  }
-
   void registerComputeSignature(Enqueuer enqueuer, Registry registry) {
     // Calls to [:computeSignature:] are generated by the emitter and we
     // therefore need to enqueue the used elements in the codegen enqueuer as
@@ -934,13 +902,15 @@ class JavaScriptBackend extends Backend {
     }
     if (type is FunctionType) {
       registerBackendStaticInvocation(
-          findHelper('functionTypeTestMetaHelper'), registry);
+          compiler.findHelper('functionTypeTestMetaHelper'), registry);
     }
     if (type.element != null && type.element.isNative) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      registerBackendStaticInvocation(findHelper('defineProperty'), registry);
+      registerBackendStaticInvocation(
+              compiler.findHelper('defineProperty'),
+              registry);
     }
   }
 
@@ -975,7 +945,9 @@ class JavaScriptBackend extends Backend {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
-      enqueue(world, findHelper('defineProperty'), registry);
+      enqueue(world,
+              compiler.findHelper('defineProperty'),
+              registry);
     }
   }
 
@@ -1034,20 +1006,6 @@ class JavaScriptBackend extends Backend {
     world.registerInvocation(compiler.noSuchMethodSelector);
   }
 
-  void enableIsolateSupport(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) {
-      for (String name in const [START_ROOT_ISOLATE,
-                                 '_currentIsolate',
-                                 '_callInIsolate']) {
-        Element element = isolateHelperLibrary.find(name);
-        enqueuer.addToWorkList(element);
-        compiler.globalDependencies.registerDependency(element);
-      }
-    } else {
-      enqueuer.addToWorkList(isolateHelperLibrary.find(START_ROOT_ISOLATE));
-    }
-  }
-
   void onSuperNoSuchMethod(Registry registry) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(getCreateInvocationMirror(), registry);
@@ -1056,12 +1014,6 @@ class JavaScriptBackend extends Backend {
         registry);
     registerBackendInstantiation(compiler.listClass, registry);
   }
-
-  void onAssert(Send node, Registry registry) {
-    registerBackendStaticInvocation(assertMethod, registry);
-  }
-
-  bool isAssertMethod(Element element) => element == assertMethod;
 
   void registerRequiredType(DartType type, Element enclosingElement) {
     // If [argument] has type variables or is a type variable, this method
@@ -1166,7 +1118,7 @@ class JavaScriptBackend extends Backend {
   void onConstantMap(Registry registry) {
     assert(registry.isForResolution);
     void enqueue(String name) {
-      Element e = findHelper(name);
+      Element e = compiler.findHelper(name);
       registerBackendInstantiation(e, registry);
     }
 
@@ -1445,115 +1397,115 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getExceptionUnwrapper() {
-    return findHelper('unwrapException');
+    return compiler.findHelper('unwrapException');
   }
 
   Element getThrowRuntimeError() {
-    return findHelper('throwRuntimeError');
+    return compiler.findHelper('throwRuntimeError');
   }
 
   Element getThrowTypeError() {
-    return findHelper('throwTypeError');
+    return compiler.findHelper('throwTypeError');
   }
 
   Element getThrowAbstractClassInstantiationError() {
-    return findHelper('throwAbstractClassInstantiationError');
+    return compiler.findHelper('throwAbstractClassInstantiationError');
   }
 
   Element getStringInterpolationHelper() {
-    return findHelper('S');
+    return compiler.findHelper('S');
   }
 
   Element getWrapExceptionHelper() {
-    return findHelper(r'wrapException');
+    return compiler.findHelper(r'wrapException');
   }
 
   Element getThrowExpressionHelper() {
-    return findHelper('throwExpression');
+    return compiler.findHelper('throwExpression');
   }
 
   Element getClosureConverter() {
-    return findHelper('convertDartClosureToJS');
+    return compiler.findHelper('convertDartClosureToJS');
   }
 
   Element getTraceFromException() {
-    return findHelper('getTraceFromException');
+    return compiler.findHelper('getTraceFromException');
   }
 
   Element getSetRuntimeTypeInfo() {
-    return findHelper('setRuntimeTypeInfo');
+    return compiler.findHelper('setRuntimeTypeInfo');
   }
 
   Element getGetRuntimeTypeInfo() {
-    return findHelper('getRuntimeTypeInfo');
+    return compiler.findHelper('getRuntimeTypeInfo');
   }
 
   Element getGetTypeArgumentByIndex() {
-    return findHelper('getTypeArgumentByIndex');
+    return compiler.findHelper('getTypeArgumentByIndex');
   }
 
   Element getCopyTypeArguments() {
-    return findHelper('copyTypeArguments');
+    return compiler.findHelper('copyTypeArguments');
   }
 
   Element getComputeSignature() {
-    return findHelper('computeSignature');
+    return compiler.findHelper('computeSignature');
   }
 
   Element getGetRuntimeTypeArguments() {
-    return findHelper('getRuntimeTypeArguments');
+    return compiler.findHelper('getRuntimeTypeArguments');
   }
 
   Element getGetRuntimeTypeArgument() {
-    return findHelper('getRuntimeTypeArgument');
+    return compiler.findHelper('getRuntimeTypeArgument');
   }
 
   Element getRuntimeTypeToString() {
-    return findHelper('runtimeTypeToString');
+    return compiler.findHelper('runtimeTypeToString');
   }
 
   Element getAssertIsSubtype() {
-    return findHelper('assertIsSubtype');
+    return compiler.findHelper('assertIsSubtype');
   }
 
   Element getCheckSubtype() {
-    return findHelper('checkSubtype');
+    return compiler.findHelper('checkSubtype');
   }
 
   Element getAssertSubtype() {
-    return findHelper('assertSubtype');
+    return compiler.findHelper('assertSubtype');
   }
 
   Element getCheckSubtypeOfRuntimeType() {
-    return findHelper('checkSubtypeOfRuntimeType');
+    return compiler.findHelper('checkSubtypeOfRuntimeType');
   }
 
   Element getCheckDeferredIsLoaded() {
-    return findHelper('checkDeferredIsLoaded');
+    return compiler.findHelper('checkDeferredIsLoaded');
   }
 
   Element getAssertSubtypeOfRuntimeType() {
-    return findHelper('assertSubtypeOfRuntimeType');
+    return compiler.findHelper('assertSubtypeOfRuntimeType');
   }
 
   Element getThrowNoSuchMethod() {
-    return findHelper('throwNoSuchMethod');
+    return compiler.findHelper('throwNoSuchMethod');
   }
 
   Element getCreateRuntimeType() {
-    return findHelper('createRuntimeType');
+    return compiler.findHelper('createRuntimeType');
   }
 
   Element getFallThroughError() {
-    return findHelper("getFallThroughError");
+    return compiler.findHelper("getFallThroughError");
   }
 
   Element getCreateInvocationMirror() {
-    return findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    return compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
   }
 
   Element getCyclicThrowHelper() {
-    return findHelper("throwCyclicInit");
+    return compiler.findHelper("throwCyclicInit");
   }
 
   bool isNullImplementation(ClassElement cls) {
@@ -1592,7 +1544,7 @@ class JavaScriptBackend extends Backend {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (compiler.loadLibraryFunction == null) {
         compiler.loadLibraryFunction =
-            findHelper("_loadLibraryWrapper");
+            compiler.findHelper("_loadLibraryWrapper");
         enqueueInResolution(compiler.loadLibraryFunction,
                             compiler.globalDependencies);
       }
@@ -1649,38 +1601,6 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryCreated(LibraryElement library) {
-    Uri uri = library.canonicalUri;
-    if (uri == DART_JS_HELPER) {
-      jsHelperLibrary = library;
-    } else if (uri ==  DART_INTERCEPTORS) {
-      interceptorsLibrary = library;
-    } else if (uri ==  DART_FOREIGN_HELPER) {
-      foreignLibrary = library;
-    } else if (uri == DART_ISOLATE_HELPER) {
-      isolateHelperLibrary = library;
-    }
-  }
-
-  void initializeHelperClasses() {
-    final List missingHelperClasses = [];
-    ClassElement lookupHelperClass(String name) {
-      ClassElement result = jsHelperLibrary.find(name);
-      if (result == null) {
-        missingHelperClasses.add(name);
-      }
-      return result;
-    }
-    jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
-    boundClosureClass = lookupHelperClass('BoundClosure');
-    closureClass = lookupHelperClass('Closure');
-    if (!missingHelperClasses.isEmpty) {
-      compiler.internalError(jsHelperLibrary,
-          'dart:_js_helper library does not contain required classes: '
-          '$missingHelperClasses');
-    }
-  }
-
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
       Uri uri = library.canonicalUri;
@@ -1698,7 +1618,7 @@ class JavaScriptBackend extends Backend {
         return library.find(name);
       }
 
-      if (uri == DART_INTERCEPTORS) {
+      if (uri == Compiler.DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
         interceptedNames = findVariable('interceptedNames');
         mapTypeToInterceptor = findVariable('mapTypeToInterceptor');
@@ -1727,10 +1647,7 @@ class JavaScriptBackend extends Backend {
 
         jsIndexableClass = findClass('JSIndexable');
         jsMutableIndexableClass = findClass('JSMutableIndexable');
-      } else if (uri == DART_JS_HELPER) {
-        initializeHelperClasses();
-        assertMethod = jsHelperLibrary.find('assertHelper');
-
+      } else if (uri == Compiler.DART_JS_HELPER) {
         typeLiteralClass = findClass('TypeImpl');
         constMapLiteralClass = findClass('ConstantMap');
         typeVariableClass = findClass('TypeVariable');
@@ -1741,13 +1658,13 @@ class JavaScriptBackend extends Backend {
         noThrowsClass = findClass('NoThrows');
         noInlineClass = findClass('NoInline');
         irRepresentationClass = findClass('IrRepresentation');
-
-        getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
       } else if (uri == DART_JS_MIRRORS) {
         disableTreeShakingMarker = library.find('disableTreeShaking');
         preserveMetadataMarker = library.find('preserveMetadata');
       } else if (uri == DART_JS_NAMES) {
         preserveNamesMarker = library.find('preserveNames');
+      } else if (uri == Compiler.DART_JS_HELPER) {
+        getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
       }
     });
   }
@@ -1756,15 +1673,9 @@ class JavaScriptBackend extends Backend {
     if (!loadedLibraries.containsKey(Compiler.DART_CORE)) {
       return new Future.value();
     }
-
     assert(loadedLibraries.containsKey(Compiler.DART_CORE));
-    assert(loadedLibraries.containsKey(DART_INTERCEPTORS));
-    assert(loadedLibraries.containsKey(DART_JS_HELPER));
-
-    if (jsInvocationMirrorClass != null) {
-      jsInvocationMirrorClass.ensureResolved(compiler);
-      invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
-    }
+    assert(loadedLibraries.containsKey(Compiler.DART_INTERCEPTORS));
+    assert(loadedLibraries.containsKey(Compiler.DART_JS_HELPER));
 
     // [LinkedHashMap] is reexported from dart:collection and can therefore not
     // be loaded from dart:core in [onLibraryScanned].
@@ -1827,7 +1738,6 @@ class JavaScriptBackend extends Backend {
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
     // The null-interceptor must also implement *all* methods.
     validateInterceptorImplementsAllObjectMethods(jsNullClass);
-
     return new Future.value();
   }
 
@@ -1939,7 +1849,7 @@ class JavaScriptBackend extends Backend {
         use2, js(dispatchPropertyName));
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    FunctionElement helper = findHelper('isJsIndexable');
+    FunctionElement helper = compiler.findHelper('isJsIndexable');
     jsAst.Expression helperExpression = namer.elementAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
@@ -2072,9 +1982,6 @@ class JavaScriptBackend extends Backend {
     if (hasNoSideEffects && !hasNoInline) {
       compiler.internalError(element,
           "@NoSideEffects() should always be combined with @NoInline.");
-    }
-    if (element == invokeOnMethod) {
-      compiler.enabledInvokeOn = true;
     }
   }
 

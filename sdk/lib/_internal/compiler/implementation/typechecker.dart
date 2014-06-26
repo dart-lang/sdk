@@ -89,23 +89,6 @@ class DynamicAccess implements ElementAccess {
   String toString() => 'DynamicAccess';
 }
 
-/// An access of the `assert` method.
-class AssertAccess implements ElementAccess {
-  const AssertAccess();
-
-  Element get element => null;
-
-  DartType computeType(Compiler compiler) {
-    return new FunctionType.synthesized(
-        const VoidType(),
-        const Link<DartType>().prepend(const DynamicType()));
-  }
-
-  bool isCallable(Compiler compiler) => true;
-
-  String toString() => 'AssertAccess';
-}
-
 /**
  * An access of a resolved top-level or static property or function, or an
  * access of a resolved element through [:this:].
@@ -1078,10 +1061,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitSend(Send node) {
-    if (elements.isAssert(node)) {
-      return analyzeInvocation(node, const AssertAccess());
-    }
-
     Element element = elements[node];
 
     if (element != null && element.isConstructor) {

@@ -10,8 +10,6 @@ import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/implementation/elements/elements.dart';
-import 'package:compiler/implementation/js_backend/js_backend.dart'
-    show JavaScriptBackend;
 import 'package:compiler/implementation/resolution/resolution.dart';
 import 'package:compiler/implementation/source_file.dart';
 import 'package:compiler/implementation/tree/tree.dart';
@@ -316,11 +314,10 @@ class MockCompiler extends Compiler {
     registerSource(Compiler.DART_CORE, coreSource);
     registerSource(PATCH_CORE, PATCH_CORE_SOURCE);
 
-    registerSource(JavaScriptBackend.DART_JS_HELPER, DEFAULT_HELPERLIB);
-    registerSource(JavaScriptBackend.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
-    registerSource(JavaScriptBackend.DART_INTERCEPTORS, interceptorsSource);
-    registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
-                   DEFAULT_ISOLATE_HELPERLIB);
+    registerSource(Compiler.DART_JS_HELPER, DEFAULT_HELPERLIB);
+    registerSource(Compiler.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
+    registerSource(Compiler.DART_INTERCEPTORS, interceptorsSource);
+    registerSource(Compiler.DART_ISOLATE_HELPER, DEFAULT_ISOLATE_HELPERLIB);
     registerSource(Compiler.DART_MIRRORS, DEFAULT_MIRRORS);
   }
 

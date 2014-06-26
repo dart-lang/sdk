@@ -9,10 +9,7 @@ class CheckedModeHelper {
 
   const CheckedModeHelper(String this.name);
 
-  Element getElement(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.findHelper(name);
-  }
+  Element getElement(Compiler compiler) => compiler.findHelper(name);
 
   jsAst.Expression generateCall(SsaCodeGenerator codegen,
                                 HTypeConversion node) {

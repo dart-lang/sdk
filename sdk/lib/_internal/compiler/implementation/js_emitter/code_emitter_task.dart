@@ -1058,9 +1058,9 @@ class CodeEmitterTask extends CompilerTask {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
     jsAst.Expression mainCallClosure = null;
-    if (compiler.hasIsolateSupport) {
+    if (compiler.hasIsolateSupport()) {
       Element isolateMain =
-        backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
+        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
     } else {
       mainCallClosure = namer.elementAccess(main);

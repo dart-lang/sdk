@@ -374,9 +374,9 @@ class Selector {
 
   bool sameNameHack(Element element, Compiler compiler) {
     // TODO(ngeoffray): Remove workaround checks.
-    return element.isConstructor ||
-           name == element.name ||
-           name == 'assert' && compiler.backend.isAssertMethod(element);
+    return element == compiler.assertMethod
+        || element.isConstructor
+        || name == element.name;
   }
 
   bool applies(Element element, Compiler compiler) {

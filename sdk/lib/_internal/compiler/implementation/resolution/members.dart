@@ -32,7 +32,6 @@ abstract class TreeElements {
   void setCurrentSelector(ForIn node, Selector selector);
   void setConstant(Node node, Constant constant);
   Constant getConstant(Node node);
-  bool isAssert(Send send);
 
   /**
    * Returns [:true:] if [node] is a type literal.
@@ -79,7 +78,6 @@ class TreeElementMapping implements TreeElements {
   final Map<Node, Map<VariableElement, List<Node>>> accessedByClosureIn =
       new Map<Node, Map<VariableElement, List<Node>>>();
   final Setlet<Element> elements = new Setlet<Element>();
-  final Setlet<Send> asserts = new Setlet<Send>();
 
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
@@ -256,14 +254,6 @@ class TreeElementMapping implements TreeElements {
   Iterable<Element> get allElements => elements;
 
   void forEachConstantNode(f(Node n, Constant c)) => constants.forEach(f);
-
-  void setAssert(Send node) {
-    asserts.add(node);
-  }
-
-  bool isAssert(Send node) {
-    return asserts.contains(node);
-  }
 }
 
 class ResolverTask extends CompilerTask {
@@ -2367,10 +2357,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
                 MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
                 {'argumentCount': selector.namedArgumentCount});
         }
-        registry.registerAssert(node);
-        // TODO(johnniwinther): Return a marker to indicated that this is
-        // a call to assert.
-        return null;
+        return compiler.assertMethod;
       }
 
       return node.selector.accept(this);
@@ -2753,7 +2740,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     String operatorName = node.assignmentOperator.source;
     String source = operatorName;
     bool isComplex = !identical(source, '=');
-    if (!(registry.isAssert(node) || Elements.isUnresolved(target))) {
+    if (!Elements.isUnresolved(target)) {
       if (target.isAbstractField) {
         AbstractFieldElement field = target;
         setter = field.setter;
@@ -4363,7 +4350,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     LibraryElement lib = element.library;
     return
       !identical(lib, compiler.coreLibrary) &&
-      !compiler.backend.isBackendLibrary(lib) &&
+      !identical(lib, compiler.jsHelperLibrary) &&
+      !identical(lib, compiler.interceptorsLibrary) &&
       (type.isDynamic ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||
