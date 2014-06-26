@@ -360,7 +360,7 @@ void testNormalization() {
                 new Uri(scheme: "scheme", path: "/").toString());
 
   Expect.equals("scheme:///?#", Uri.parse("scheme:///?#").toString());
-  Expect.equals("scheme:///?#",
+  Expect.equals("scheme:///#",
                 new Uri(scheme: "scheme", host: "", path: "/",
                         query: "", fragment: "").toString());
 }

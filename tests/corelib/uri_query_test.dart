@@ -22,6 +22,7 @@ void testQueryParameters() {
   test(String query, Map<String, String> parameters, [String normalizedQuery]) {
     if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
+      Expect.isTrue(uri.hasQuery);
       Expect.equals(normalizedQuery, uri.query);
       Expect.equals("?$normalizedQuery", uri.toString());
       if (parameters.containsValue(null)) {
@@ -37,10 +38,14 @@ void testQueryParameters() {
     var uri2 = new Uri(query: query);
     var uri3 = Uri.parse("?$query");
     check(uri1);
-    check(uri2);
+    if (query != "") {
+      check(uri2);
+    } else {
+      Expect.isFalse(uri2.hasQuery);
+    }
     check(uri3);
     Expect.equals(uri1, uri3);
-    Expect.equals(uri2, uri3);
+    if (query != "") Expect.equals(uri2, uri3);
     if (parameters.containsValue(null)) {
       var map = new Map.from(parameters);
       map.forEach((k, v) { if (v == null) map[k] = ""; });
