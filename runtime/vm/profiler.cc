@@ -36,8 +36,8 @@ DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 DEFINE_FLAG(bool, profile_verify_stack_walk, false,
             "Verify instruction addresses while walking the stack.");
-DEFINE_FLAG(bool, profile_native_stack, true,
-            "Use native stack in profiler.");
+DEFINE_FLAG(bool, profile_vm, false,
+            "Always collect native stack traces.");
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
@@ -1671,12 +1671,6 @@ class ProfilerDartStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  ProfilerDartStackWalker(Sample* sample, uword pc, uword fp, uword sp)
-      : sample_(sample),
-        frame_iterator_(fp, sp, pc) {
-    ASSERT(sample_ != NULL);
-  }
-
   ProfilerDartStackWalker(Sample* sample, uword fp)
       : sample_(sample),
         frame_iterator_(fp) {
@@ -1881,26 +1875,30 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(state.sp);
   sample->set_fp(state.fp);
-  if (FLAG_profile_native_stack) {
+
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  isolate->GetStackBounds(&stack_lower, &stack_upper);
+  if ((stack_lower == 0) || (stack_upper == 0)) {
+    stack_lower = 0;
+    stack_upper = 0;
+  }
+  if (FLAG_profile_vm) {
     // Collect native and Dart frames.
-    uword stack_lower = 0;
-    uword stack_upper = 0;
-    isolate->GetStackBounds(&stack_lower, &stack_upper);
-    if ((stack_lower == 0) || (stack_upper == 0)) {
-      stack_lower = 0;
-      stack_upper = 0;
-    }
     ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
                                           state.pc, state.fp, state.sp);
     stackWalker.walk(isolate->heap());
   } else {
-    if ((isolate->top_exit_frame_info() != 0) &&
-        (isolate->stub_code() != NULL)) {
+    if ((isolate->stub_code() != NULL) &&
+        (isolate->top_exit_frame_info() != 0)) {
+      // Collect only Dart frames.
       ProfilerDartStackWalker stackWalker(sample);
       stackWalker.walk();
     } else {
-      // TODO(johnmccutchan): Support collecting only Dart frames with
-      // ProfilerNativeStackWalker.
+      // Collect native and Dart frames.
+      ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
+                                            state.pc, state.fp, state.sp);
+      stackWalker.walk(isolate->heap());
     }
   }
 }
