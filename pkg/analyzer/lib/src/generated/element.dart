@@ -1263,7 +1263,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    *
    * @param name the name of this element
    */
-  ClassElementImpl(Identifier name) : super.forNode(name);
+  ClassElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created class element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ClassElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
@@ -2216,7 +2225,7 @@ class ConstFieldElementImpl extends FieldElementImpl {
    *
    * @param name the name of this element
    */
-  ConstFieldElementImpl(Identifier name) : super.con1(name);
+  ConstFieldElementImpl(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2242,7 +2251,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
    *
    * @param name the name of this element
    */
-  ConstLocalVariableElementImpl(Identifier name) : super(name);
+  ConstLocalVariableElementImpl(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2268,7 +2277,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
    *
    * @param name the name of this element
    */
-  ConstTopLevelVariableElementImpl(Identifier name) : super.con1(name);
+  ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2700,7 +2709,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl {
    *
    * @param name the name of this element
    */
-  DefaultParameterElementImpl(Identifier name) : super.con1(name);
+  DefaultParameterElementImpl(Identifier name) : super.forNode(name);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2896,10 +2905,10 @@ abstract class Element {
    * Return a display name for the given element that includes the path to the compilation unit in
    * which the type is defined.
    *
-   * @param type the type for which an extended display name is to be returned
+   * @param shortName the short display name. If null, [getDisplayName] is used.
    * @return a display name that can help distinguish between two types with the same name
    */
-  String get extendedDisplayName;
+  String getExtendedDisplayName(String shortName);
 
   /**
    * Return the kind of element that this is.
@@ -3279,13 +3288,15 @@ abstract class ElementImpl implements Element {
   Element get enclosingElement => _enclosingElement;
 
   @override
-  String get extendedDisplayName {
-    String displayName = this.displayName;
+  String getExtendedDisplayName(String shortName) {
+    if (shortName == null) {
+      shortName = displayName;
+    }
     Source source = this.source;
     if (source != null) {
-      return "${displayName} (${source.fullName})";
+      return "${shortName} (${source.fullName})";
     }
-    return displayName;
+    return shortName;
   }
 
   @override
@@ -3369,6 +3380,15 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
+
+  /**
+   * Set the enclosing element of this element to the given element.
+   *
+   * @param element the enclosing element of this element
+   */
+  void set enclosingElement(Element element) {
+    _enclosingElement = element as ElementImpl;
+  }
 
   /**
    * Set whether this element is synthetic to correspond to the given value.
@@ -3470,15 +3490,6 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
-  }
-
-  /**
-   * Set the enclosing element of this element to the given element.
-   *
-   * @param element the enclosing element of this element
-   */
-  void set enclosingElement(Element element) {
-    _enclosingElement = element as ElementImpl;
   }
 
   /**
@@ -4491,14 +4502,16 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
    *
    * @param name the name of this element
    */
-  FieldElementImpl.con1(Identifier name) : super.con1(name);
+  FieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic field element to have the given name.
    *
    * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
    */
-  FieldElementImpl.con2(String name) : super.con2(name);
+  FieldElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
@@ -4552,7 +4565,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
    *
    * @param name the name of this element
    */
-  FieldFormalParameterElementImpl(Identifier name) : super.con1(name);
+  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
@@ -7617,7 +7630,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
-  LibraryElementImpl(this.context, LibraryIdentifier name) : super.forNode(name);
+  LibraryElementImpl.forNode(this.context, LibraryIdentifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created library element to have the given name.
+   *
+   * @param context the analysis context in which the library is defined
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  LibraryElementImpl(this.context, String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -8029,7 +8052,16 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    *
    * @param name the name of this element
    */
-  LocalVariableElementImpl(Identifier name) : super.forNode(name);
+  LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  LocalVariableElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
@@ -8154,7 +8186,7 @@ abstract class Member implements Element {
   String get displayName => _baseElement.displayName;
 
   @override
-  String get extendedDisplayName => _baseElement.extendedDisplayName;
+  String getExtendedDisplayName(String shortName) => _baseElement.getExtendedDisplayName(shortName);
 
   @override
   ElementKind get kind => _baseElement.kind;
@@ -8692,7 +8724,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Element get enclosingElement => null;
 
   @override
-  String get extendedDisplayName => displayName;
+  String getExtendedDisplayName(String shortName) {
+    if (shortName != null) {
+      return shortName;
+    }
+    return displayName;
+  }
 
   @override
   ElementKind get kind => ElementKind.ERROR;
@@ -8930,7 +8967,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    *
    * @param name the name of this element
    */
-  ParameterElementImpl.con1(Identifier name) : super.forNode(name);
+  ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created parameter element to have the given name.
@@ -8939,7 +8976,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  ParameterElementImpl.con2(String name, int nameOffset) : super(name, nameOffset);
+  ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
@@ -9464,7 +9501,16 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    *
    * @param name the name of this element
    */
-  PrefixElementImpl(Identifier name) : super.forNode(name);
+  PrefixElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
@@ -9591,7 +9637,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    *
    * @param variable the variable with which this access is associated
    */
-  PropertyAccessorElementImpl(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
+  PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
     this.variable = variable;
     synthetic = true;
   }
@@ -9898,16 +9944,16 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
    *
    * @param name the name of this element
    */
-  PropertyInducingElementImpl.con1(Identifier name) : super.forNode(name);
+  PropertyInducingElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic element to have the given name.
    *
    * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
    */
-  PropertyInducingElementImpl.con2(String name) : super(name, -1) {
-    synthetic = true;
-  }
+  PropertyInducingElementImpl(String name, int nameOffset) : super(name, nameOffset);
 }
 
 /**
@@ -10339,14 +10385,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
    *
    * @param name the name of this element
    */
-  TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name);
+  TopLevelVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
    * Initialize a newly created synthetic top-level variable element to have the given name.
    *
    * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
    */
-  TopLevelVariableElementImpl.con2(String name) : super.con2(name);
+  TopLevelVariableElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
@@ -10629,7 +10677,16 @@ class TypeParameterElementImpl extends ElementImpl implements TypeParameterEleme
    *
    * @param name the name of this element
    */
-  TypeParameterElementImpl(Identifier name) : super.forNode(name);
+  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created method element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  TypeParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);

@@ -7106,7 +7106,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    * @return the new [LocalVariableElementImpl]
    */
   LocalVariableElementImpl _createLocalVariableFromIdentifier(DartType type, SimpleIdentifier identifier) {
-    LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
+    LocalVariableElementImpl variable = new LocalVariableElementImpl.forNode(identifier);
     _definedVariables.add(variable);
     variable.type = type;
     return variable;
@@ -7274,7 +7274,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _unitElement = new CompilationUnitElementImpl(unitName);
     _unitElement.source = _source;
     // create LibraryElementImpl
-    _libraryElement = new LibraryElementImpl(_context, null);
+    _libraryElement = new LibraryElementImpl.forNode(_context, null);
     _libraryElement.definingCompilationUnit = _unitElement;
     _libraryElement.angularHtml = true;
     _injectedLibraries.add(_libraryElement);
@@ -7812,7 +7812,7 @@ class BuildDartElementModelTask extends AnalysisTask {
                 String prefixName = prefixNode.name;
                 PrefixElementImpl prefix = nameToPrefixMap[prefixName];
                 if (prefix == null) {
-                  prefix = new PrefixElementImpl(prefixNode);
+                  prefix = new PrefixElementImpl.forNode(prefixNode);
                   nameToPrefixMap[prefixName] = prefix;
                 }
                 importElement.prefix = prefix;

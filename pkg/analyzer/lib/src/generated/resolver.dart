@@ -3368,12 +3368,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      LocalVariableElementImpl exception = new LocalVariableElementImpl(exceptionParameter);
+      LocalVariableElementImpl exception = new LocalVariableElementImpl.forNode(exceptionParameter);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
-        LocalVariableElementImpl stackTrace = new LocalVariableElementImpl(stackTraceParameter);
+        LocalVariableElementImpl stackTrace = new LocalVariableElementImpl.forNode(stackTraceParameter);
         _currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.staticElement = stackTrace;
       }
@@ -3404,7 +3404,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _currentHolder = previousHolder;
     }
     SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl(className);
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl.con1(element);
@@ -3442,7 +3442,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _functionTypesToFix = new List<FunctionTypeImpl>();
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl(className);
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
     element.abstract = node.abstractKeyword != null;
     element.typedef = true;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
@@ -3502,7 +3502,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     sc.Token keyword = node.keyword;
-    LocalVariableElementImpl element = new LocalVariableElementImpl(variableName);
+    LocalVariableElementImpl element = new LocalVariableElementImpl.forNode(variableName);
     ForEachStatement statement = node.parent as ForEachStatement;
     int declarationEnd = node.offset + node.length;
     int statementEnd = statement.offset + statement.length;
@@ -3631,7 +3631,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         String propertyName = propertyNameNode.name;
         TopLevelVariableElementImpl variable = _currentHolder.getTopLevelVariable(propertyName) as TopLevelVariableElementImpl;
         if (variable == null) {
-          variable = new TopLevelVariableElementImpl.con2(node.name.name);
+          variable = new TopLevelVariableElementImpl(node.name.name, -1);
           variable.final2 = true;
           variable.synthetic = true;
           _currentHolder.addTopLevelVariable(variable);
@@ -3726,7 +3726,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
-      ParameterElementImpl parameter = new ParameterElementImpl.con1(parameterName);
+      ParameterElementImpl parameter = new ParameterElementImpl.forNode(parameterName);
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -3786,7 +3786,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       String propertyName = propertyNameNode.name;
       FieldElementImpl field = _currentHolder.getField(propertyName) as FieldElementImpl;
       if (field == null) {
-        field = new FieldElementImpl.con2(node.name.name);
+        field = new FieldElementImpl(node.name.name, -1);
         field.final2 = true;
         field.static = isStatic;
         field.synthetic = true;
@@ -3828,7 +3828,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
-      ParameterElementImpl parameter = new ParameterElementImpl.con1(parameterName);
+      ParameterElementImpl parameter = new ParameterElementImpl.forNode(parameterName);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -3870,7 +3870,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
-    TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(parameterName);
+    TypeParameterElementImpl typeParameter = new TypeParameterElementImpl.forNode(parameterName);
     TypeParameterTypeImpl typeParameterType = new TypeParameterTypeImpl(typeParameter);
     typeParameter.type = typeParameterType;
     _currentHolder.addTypeParameter(typeParameter);
@@ -3891,7 +3891,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (isConst && hasInitializer) {
         field = new ConstFieldElementImpl(fieldName);
       } else {
-        field = new FieldElementImpl.con1(fieldName);
+        field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
       _currentHolder.addField(field);
@@ -3902,7 +3902,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (isConst && hasInitializer) {
         variable = new ConstLocalVariableElementImpl(variableName);
       } else {
-        variable = new LocalVariableElementImpl(variableName);
+        variable = new LocalVariableElementImpl.forNode(variableName);
       }
       element = variable;
       Block enclosingBlock = node.getAncestor((node) => node is Block);
@@ -3918,7 +3918,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (isConst && hasInitializer) {
         variable = new ConstTopLevelVariableElementImpl(variableName);
       } else {
-        variable = new TopLevelVariableElementImpl.con1(variableName);
+        variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
       _currentHolder.addTopLevelVariable(variable);
@@ -3948,16 +3948,16 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (_inFieldContext) {
         (variable as FieldElementImpl).static = _matches((node.parent.parent as FieldDeclaration).staticKeyword, sc.Keyword.STATIC);
       }
-      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
+      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.forVariable(variable);
       getter.getter = true;
       getter.static = variable.isStatic;
       _currentHolder.addAccessor(getter);
       variable.getter = getter;
       if (!isFinal) {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
+        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.forVariable(variable);
         setter.setter = true;
         setter.static = variable.isStatic;
-        ParameterElementImpl parameter = new ParameterElementImpl.con2("_${variable.name}", variable.nameOffset);
+        ParameterElementImpl parameter = new ParameterElementImpl("_${variable.name}", variable.nameOffset);
         parameter.synthetic = true;
         parameter.parameterKind = ParameterKind.REQUIRED;
         setter.parameters = <ParameterElement> [parameter];
@@ -9573,7 +9573,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (enclosingElement.source == _enclosingClass.source) {
       displayName = enclosingElement.displayName;
     } else {
-      displayName = enclosingElement.extendedDisplayName;
+      displayName = enclosingElement.getExtendedDisplayName(null);
     }
     // report problem
     _errorReporter.reportErrorForOffset(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE, staticMember.nameOffset, name.length, [name, displayName]);
@@ -13573,19 +13573,19 @@ class InheritanceManager {
     List<ParameterElement> parameters = new List<ParameterElement>(numOfParameters);
     int i = 0;
     for (int j = 0; j < numOfRequiredParameters; j++, i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con2("", 0);
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
       parameter.type = dynamicType;
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
     }
     for (int k = 0; k < numOfPositionalParameters; k++, i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con2("", 0);
+      ParameterElementImpl parameter = new ParameterElementImpl("", 0);
       parameter.type = dynamicType;
       parameter.parameterKind = ParameterKind.POSITIONAL;
       parameters[i] = parameter;
     }
     for (int m = 0; m < namedParameters.length; m++, i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl.con2(namedParameters[m], 0);
+      ParameterElementImpl parameter = new ParameterElementImpl(namedParameters[m], 0);
       parameter.type = dynamicType;
       parameter.parameterKind = ParameterKind.NAMED;
       parameters[i] = parameter;
@@ -14905,7 +14905,7 @@ class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl(_analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext, libraryNameNode);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -14989,7 +14989,7 @@ class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl(_analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext, libraryNameNode);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -15624,7 +15624,7 @@ class LibraryResolver {
                 String prefixName = prefixNode.name;
                 PrefixElementImpl prefix = nameToPrefixMap[prefixName];
                 if (prefix == null) {
-                  prefix = new PrefixElementImpl(prefixNode);
+                  prefix = new PrefixElementImpl.forNode(prefixNode);
                   nameToPrefixMap[prefixName] = prefix;
                 }
                 importElement.prefix = prefix;
@@ -16214,7 +16214,7 @@ class LibraryResolver2 {
                 String prefixName = prefixNode.name;
                 PrefixElementImpl prefix = nameToPrefixMap[prefixName];
                 if (prefix == null) {
-                  prefix = new PrefixElementImpl(prefixNode);
+                  prefix = new PrefixElementImpl.forNode(prefixNode);
                   nameToPrefixMap[prefixName] = prefix;
                 }
                 importElement.prefix = prefix;
@@ -23206,7 +23206,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       List<ParameterElement> implicitParameters = new List<ParameterElement>(count);
       for (int i = 0; i < count; i++) {
         ParameterElement explicitParameter = explicitParameters[i];
-        ParameterElementImpl implicitParameter = new ParameterElementImpl.con2(explicitParameter.name, -1);
+        ParameterElementImpl implicitParameter = new ParameterElementImpl(explicitParameter.name, -1);
         implicitParameter.const3 = explicitParameter.isConst;
         implicitParameter.final2 = explicitParameter.isFinal;
         implicitParameter.parameterKind = explicitParameter.parameterKind;
@@ -23609,6 +23609,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     aliasElement.synthetic = true;
     aliasElement.shareParameters(parameters);
     aliasElement.returnType = _computeReturnType(returnType);
+    // FunctionTypeAliasElementImpl assumes the enclosing element is a
+    // CompilationUnitElement (because non-synthetic function types can only be declared
+    // at top level), so to avoid breaking things, go find the compilation unit element.
+    aliasElement.enclosingElement = element.getAncestor((element) => element is CompilationUnitElement);
     FunctionTypeImpl type = new FunctionTypeImpl.con2(aliasElement);
     ClassElement definingClass = element.getAncestor((element) => element is ClassElement);
     if (definingClass != null) {

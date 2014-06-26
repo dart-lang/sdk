@@ -25,8 +25,8 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-import 'ast_test.dart' show AstFactory;
-import 'element_test.dart' show ElementFactory;
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
 
 /**
  * The class `AnalysisContextFactory` defines utility methods used to create analysis contexts
@@ -101,7 +101,7 @@ class AnalysisContextFactory {
         deprecatedTopLevelVariableElt.getter,
         deprecatedTopLevelVariableElt.setter];
     coreUnit.topLevelVariables = <TopLevelVariableElement> [proxyTopLevelVariableElt, deprecatedTopLevelVariableElt];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "core"]));
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
@@ -141,7 +141,7 @@ class AnalysisContextFactory {
         completerElement,
         futureElement,
         ElementFactory.classElement2("Stream", ["T"])];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "async"]));
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
@@ -178,7 +178,7 @@ class AnalysisContextFactory {
     TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
     htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
@@ -8591,23 +8591,23 @@ class InheritanceManagerTest extends EngineTestCase {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
     String methodName = "m";
     MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a1"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
-    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(AstFactory.identifier3("a2"));
+    ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement> [parameter1, parameter2];
     classI1.methods = <MethodElement> [methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
     MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(AstFactory.identifier3("a3"));
+    ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.REQUIRED;
-    ParameterElementImpl parameter4 = new ParameterElementImpl.con1(AstFactory.identifier3("a4"));
+    ParameterElementImpl parameter4 = new ParameterElementImpl.forNode(AstFactory.identifier3("a4"));
     parameter4.type = _typeProvider.intType;
     parameter4.parameterKind = ParameterKind.REQUIRED;
-    ParameterElementImpl parameter5 = new ParameterElementImpl.con1(AstFactory.identifier3("a5"));
+    ParameterElementImpl parameter5 = new ParameterElementImpl.forNode(AstFactory.identifier3("a5"));
     parameter5.type = _typeProvider.intType;
     parameter5.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter3, parameter4, parameter5];
@@ -8740,14 +8740,14 @@ class InheritanceManagerTest extends EngineTestCase {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
     String methodName = "m";
     MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a0"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI1.methods = <MethodElement> [methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
     MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(AstFactory.identifier3("a0"));
+    ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = _typeProvider.numType;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter2];
@@ -8826,21 +8826,21 @@ class InheritanceManagerTest extends EngineTestCase {
     ClassElementImpl classI1 = ElementFactory.classElement2("I1", []);
     String methodName = "m";
     MethodElementImpl methodM1 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a0"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter1.type = classA.type;
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI1.methods = <MethodElement> [methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
     MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(AstFactory.identifier3("a0"));
+    ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter2.type = classB.type;
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement> [parameter2];
     classI2.methods = <MethodElement> [methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
     MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.dynamicType, []);
-    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(AstFactory.identifier3("a0"));
+    ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a0"));
     parameter3.type = classC.type;
     parameter3.parameterKind = ParameterKind.REQUIRED;
     methodM3.parameters = <ParameterElement> [parameter3];
@@ -8895,7 +8895,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classI1.methods = <MethodElement> [methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
     MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a1"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM2.parameters = <ParameterElement> [parameter1];
@@ -8919,17 +8919,17 @@ class InheritanceManagerTest extends EngineTestCase {
     classI1.methods = <MethodElement> [methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2", []);
     MethodElementImpl methodM2 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a1"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM1.parameters = <ParameterElement> [parameter1];
     classI2.methods = <MethodElement> [methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
     MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(AstFactory.identifier3("a2"));
+    ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
-    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(AstFactory.identifier3("a3"));
+    ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement> [parameter2, parameter3];
@@ -8957,17 +8957,17 @@ class InheritanceManagerTest extends EngineTestCase {
     classI2.methods = <MethodElement> [methodM2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3", []);
     MethodElementImpl methodM3 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    ParameterElementImpl parameter1 = new ParameterElementImpl.con1(AstFactory.identifier3("a1"));
+    ParameterElementImpl parameter1 = new ParameterElementImpl.forNode(AstFactory.identifier3("a1"));
     parameter1.type = _typeProvider.intType;
     parameter1.parameterKind = ParameterKind.POSITIONAL;
     methodM3.parameters = <ParameterElement> [parameter1];
     classI3.methods = <MethodElement> [methodM3];
     ClassElementImpl classI4 = ElementFactory.classElement2("I4", []);
     MethodElementImpl methodM4 = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
-    ParameterElementImpl parameter2 = new ParameterElementImpl.con1(AstFactory.identifier3("a2"));
+    ParameterElementImpl parameter2 = new ParameterElementImpl.forNode(AstFactory.identifier3("a2"));
     parameter2.type = _typeProvider.intType;
     parameter2.parameterKind = ParameterKind.POSITIONAL;
-    ParameterElementImpl parameter3 = new ParameterElementImpl.con1(AstFactory.identifier3("a3"));
+    ParameterElementImpl parameter3 = new ParameterElementImpl.forNode(AstFactory.identifier3("a3"));
     parameter3.type = _typeProvider.intType;
     parameter3.parameterKind = ParameterKind.POSITIONAL;
     methodM4.parameters = <ParameterElement> [parameter2, parameter3];
@@ -9815,7 +9815,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
     AnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl(AstFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported", []);
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [importedType];
     LibraryElementImpl definingLibrary = createTestLibrary(context, "importing", []);
@@ -9941,7 +9941,7 @@ class LibraryScopeTest extends ResolverTestCase {
     AnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([]);
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl(AstFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported", []);
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types = <ClassElement> [importedType];
     LibraryElementImpl definingLibrary = createTestLibrary(context, "importing", []);
@@ -10031,7 +10031,7 @@ class LibraryTest extends EngineTestCase {
   }
 
   void test_getLibraryScope() {
-    LibraryElementImpl element = new LibraryElementImpl(_analysisContext, AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElementImpl element = new LibraryElementImpl.forNode(_analysisContext, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
     JUnitTestCase.assertNotNull(_library.libraryScope);
@@ -10067,7 +10067,7 @@ class LibraryTest extends EngineTestCase {
   }
 
   void test_setLibraryElement() {
-    LibraryElementImpl element = new LibraryElementImpl(_analysisContext, AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElementImpl element = new LibraryElementImpl.forNode(_analysisContext, AstFactory.libraryIdentifier2(["lib"]));
     _library.libraryElement = element;
     JUnitTestCase.assertSame(element, _library.libraryElement);
   }
@@ -16852,7 +16852,7 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  AnalysisContextImpl _analysisContext;
+  AnalysisContextImpl analysisContext2;
 
   @override
   void setUp() {
@@ -16870,7 +16870,7 @@ class ResolverTestCase extends EngineTestCase {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
-    _analysisContext.applyChanges(changeSet);
+    analysisContext2.applyChanges(changeSet);
     return source;
   }
 
@@ -16895,7 +16895,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertErrors(Source source, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (AnalysisError error in _analysisContext.computeErrors(source)) {
+    for (AnalysisError error in analysisContext2.computeErrors(source)) {
       errorListener.onError(error);
     }
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
@@ -16922,7 +16922,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   Source cacheSource(String filePath, String contents) {
     Source source = new FileBasedSource.con1(FileUtilities2.createFile(filePath));
-    _analysisContext.setContents(source, contents);
+    analysisContext2.setContents(source, contents);
     return source;
   }
 
@@ -16946,7 +16946,7 @@ class ResolverTestCase extends EngineTestCase {
     List<CompilationUnitElementImpl> sourcedCompilationUnits = new List<CompilationUnitElementImpl>(count);
     for (int i = 0; i < count; i++) {
       String typeName = typeNames[i];
-      ClassElementImpl type = new ClassElementImpl(AstFactory.identifier3(typeName));
+      ClassElementImpl type = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
       String fileName = "${typeName}.dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
       compilationUnit.source = _createNamedSource(fileName);
@@ -16956,7 +16956,7 @@ class ResolverTestCase extends EngineTestCase {
     String fileName = "${libraryName}.dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
     compilationUnit.source = _createNamedSource(fileName);
-    LibraryElementImpl library = new LibraryElementImpl(context, AstFactory.libraryIdentifier2([libraryName]));
+    LibraryElementImpl library = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
@@ -16975,7 +16975,7 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
-  AnalysisContext get analysisContext => _analysisContext;
+  AnalysisContext get analysisContext => analysisContext2;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -16983,14 +16983,14 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type provider
    * @throws AnalysisException if dart:core cannot be resolved
    */
-  TypeProvider get typeProvider => _analysisContext.typeProvider;
+  TypeProvider get typeProvider => analysisContext2.typeProvider;
 
   /**
    * In the rare cases we want to group several tests into single "test_" method, so need a way to
    * reset test instance to reuse it.
    */
   void reset() {
-    _analysisContext = AnalysisContextFactory.contextWithCore();
+    analysisContext2 = AnalysisContextFactory.contextWithCore();
   }
 
   /**
@@ -17000,7 +17000,7 @@ class ResolverTestCase extends EngineTestCase {
    * @param options the analysis options for the context
    */
   void resetWithOptions(AnalysisOptions options) {
-    _analysisContext = AnalysisContextFactory.contextWithCoreAndOptions(options);
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   /**
@@ -17012,7 +17012,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElement resolve(Source librarySource) => _analysisContext.computeLibraryElement(librarySource);
+  LibraryElement resolve(Source librarySource) => analysisContext2.computeLibraryElement(librarySource);
 
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
@@ -17022,7 +17022,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the resolved compilation unit
    * @throws Exception if the compilation unit could not be resolved
    */
-  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
+  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => analysisContext2.resolveCompilationUnit(source, library);
 
   CompilationUnit resolveSource(String sourceText) => resolveSource2("/test.dart", sourceText);
 
@@ -17062,7 +17062,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void tearDown() {
-    _analysisContext = null;
+    analysisContext2 = null;
     super.tearDown();
   }
 
@@ -17078,7 +17078,7 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      _analysisContext.parseCompilationUnit(source).accept(verifier);
+      analysisContext2.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
   }
@@ -17091,7 +17091,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   FileBasedSource _createNamedSource(String fileName) {
     FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
-    _analysisContext.setContents(source, "");
+    analysisContext2.setContents(source, "");
     return source;
   }
 
@@ -19356,7 +19356,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FileBasedSource source = new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
     definingCompilationUnit.source = source;
-    LibraryElementImpl definingLibrary = new LibraryElementImpl(context, null);
+    LibraryElementImpl definingLibrary = new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
@@ -19394,7 +19394,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   FunctionExpression _resolvedFunctionExpression(FormalParameterList parameters, FunctionBody body) {
     List<ParameterElement> parameterElements = new List<ParameterElement>();
     for (FormalParameter parameter in parameters.parameters) {
-      ParameterElementImpl element = new ParameterElementImpl.con1(parameter.identifier);
+      ParameterElementImpl element = new ParameterElementImpl.forNode(parameter.identifier);
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
       parameter.identifier.staticElement = element;
@@ -19458,7 +19458,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     SimpleIdentifier identifier = parameter.identifier;
     Element element = identifier.staticElement;
     if (element is! ParameterElement) {
-      element = new ParameterElementImpl.con1(identifier);
+      element = new ParameterElementImpl.forNode(identifier);
       identifier.staticElement = element;
     }
     (element as ParameterElementImpl).type = type;
@@ -21874,6 +21874,30 @@ class StaticWarningCodeTest extends ResolverTestCase {
     addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "var v;"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+  }
+
+  void test_argumentTypeNotAssignable_ambiguousClassName() {
+    // See dartbug.com/19624
+    Source source = addNamedSource("/lib1.dart", EngineTestCase.createSource([
+        "library lib1;",
+        "import 'lib2.dart';",
+        "class _A {}",
+        "f() {",
+        "  g((_A a) {});",
+        "}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "class _A {}", "g(h(_A a)) {}"]));
+    resolve(source);
+    // The name _A is private to the library it's defined in, so this is a type mismatch.
+    // Furthermore, the error message should mention both _A and the filenames
+    // so the user can figure out what's going on.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    EngineTestCase.assertLength(1, errors);
+    AnalysisError error = errors[0];
+    JUnitTestCase.assertEquals(error.errorCode, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    String message = error.message;
+    JUnitTestCase.assertTrue(message.indexOf("_A") != -1);
+    JUnitTestCase.assertTrue(message.indexOf("lib1.dart") != -1);
+    JUnitTestCase.assertTrue(message.indexOf("lib2.dart") != -1);
   }
 
   void test_argumentTypeNotAssignable_annotation_namedConstructor() {
@@ -24508,6 +24532,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_ambiguousImport_varWrite', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_ambiguousImport_varWrite);
+      });
+      _ut.test('test_argumentTypeNotAssignable_ambiguousClassName', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_ambiguousClassName);
       });
       _ut.test('test_argumentTypeNotAssignable_annotation_namedConstructor', () {
         final __test = new StaticWarningCodeTest();
@@ -27473,7 +27501,7 @@ class TypeProviderImplTest extends EngineTestCase {
         stringType.element,
         symbolType.element,
         typeType.element];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl(new AnalysisContextImpl(), AstFactory.libraryIdentifier2(["dart.core"]));
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(new AnalysisContextImpl(), AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -27495,7 +27523,7 @@ class TypeProviderImplTest extends EngineTestCase {
   }
 
   ClassElement _classElement(String typeName, InterfaceType superclassType, List<String> parameterNames) {
-    ClassElementImpl element = new ClassElementImpl(AstFactory.identifier3(typeName));
+    ClassElementImpl element = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(element);
     element.type = type;
@@ -27504,7 +27532,7 @@ class TypeProviderImplTest extends EngineTestCase {
       List<TypeParameterElementImpl> typeParameters = new List<TypeParameterElementImpl>(count);
       List<TypeParameterTypeImpl> typeArguments = new List<TypeParameterTypeImpl>(count);
       for (int i = 0; i < count; i++) {
-        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(AstFactory.identifier3(parameterNames[i]));
+        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl.forNode(AstFactory.identifier3(parameterNames[i]));
         typeParameters[i] = typeParameter;
         typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
         typeParameter.type = typeArguments[i];
@@ -27590,7 +27618,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     context.sourceFactory = factory;
     Source librarySource = new FileBasedSource.con1(FileUtilities2.createFile("/lib.dart"));
     _library = new Library(context, _listener, librarySource);
-    LibraryElementImpl element = new LibraryElementImpl(context, AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElementImpl element = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
@@ -27601,7 +27629,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // catch (e)
     CatchClause clause = AstFactory.catchClause("e", []);
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
-    exceptionParameter.staticElement = new LocalVariableElementImpl(exceptionParameter);
+    exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     _resolveCatchClause(clause, _typeProvider.dynamicType, null, []);
     _listener.assertNoErrors();
   }
@@ -27610,9 +27638,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
     // catch (e, s)
     CatchClause clause = AstFactory.catchClause2("e", "s", []);
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
-    exceptionParameter.staticElement = new LocalVariableElementImpl(exceptionParameter);
+    exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
-    stackTraceParameter.staticElement = new LocalVariableElementImpl(stackTraceParameter);
+    stackTraceParameter.staticElement = new LocalVariableElementImpl.forNode(stackTraceParameter);
     _resolveCatchClause(clause, _typeProvider.dynamicType, _typeProvider.stackTraceType, []);
     _listener.assertNoErrors();
   }
@@ -27623,7 +27651,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     TypeName exceptionType = AstFactory.typeName(exceptionElement, []);
     CatchClause clause = AstFactory.catchClause4(exceptionType, "e", []);
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
-    exceptionParameter.staticElement = new LocalVariableElementImpl(exceptionParameter);
+    exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     _resolveCatchClause(clause, exceptionElement.type, null, [exceptionElement]);
     _listener.assertNoErrors();
   }
@@ -27635,9 +27663,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
     (exceptionType.name as SimpleIdentifier).staticElement = exceptionElement;
     CatchClause clause = AstFactory.catchClause5(exceptionType, "e", "s", []);
     SimpleIdentifier exceptionParameter = clause.exceptionParameter;
-    exceptionParameter.staticElement = new LocalVariableElementImpl(exceptionParameter);
+    exceptionParameter.staticElement = new LocalVariableElementImpl.forNode(exceptionParameter);
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
-    stackTraceParameter.staticElement = new LocalVariableElementImpl(stackTraceParameter);
+    stackTraceParameter.staticElement = new LocalVariableElementImpl.forNode(stackTraceParameter);
     _resolveCatchClause(clause, exceptionElement.type, _typeProvider.stackTraceType, [exceptionElement]);
     _listener.assertNoErrors();
   }
@@ -27742,7 +27770,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
   void test_visitSimpleFormalParameter_noType() {
     // p
     FormalParameter node = AstFactory.simpleFormalParameter3("p");
-    node.identifier.staticElement = new ParameterElementImpl.con1(AstFactory.identifier3("p"));
+    node.identifier.staticElement = new ParameterElementImpl.forNode(AstFactory.identifier3("p"));
     JUnitTestCase.assertSame(_typeProvider.dynamicType, _resolveFormalParameter(node, []));
     _listener.assertNoErrors();
   }
@@ -27753,7 +27781,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement intElement = intType.element;
     FormalParameter node = AstFactory.simpleFormalParameter4(AstFactory.typeName(intElement, []), "p");
     SimpleIdentifier identifier = node.identifier;
-    ParameterElementImpl element = new ParameterElementImpl.con1(identifier);
+    ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
     identifier.staticElement = element;
     JUnitTestCase.assertSame(intType, _resolveFormalParameter(node, [intElement]));
     _listener.assertNoErrors();

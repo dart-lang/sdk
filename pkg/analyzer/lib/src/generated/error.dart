@@ -2109,7 +2109,7 @@ class ErrorReporter {
           if (element == null) {
             arguments[i] = type.displayName;
           } else {
-            arguments[i] = element.extendedDisplayName;
+            arguments[i] = element.getExtendedDisplayName(type.displayName);
           }
         }
       }

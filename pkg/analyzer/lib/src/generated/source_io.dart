@@ -283,47 +283,6 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
 }
 
 /**
- * An implementation of an non-existing [Source].
- */
-class NonExistingSource implements Source {
-  final String _name;
-
-  final UriKind uriKind;
-
-  NonExistingSource(this._name, this.uriKind);
-
-  @override
-  bool exists() => false;
-
-  @override
-  TimestampedData<String> get contents {
-    throw new UnsupportedOperationException("${_name}does not exist.");
-  }
-
-  @override
-  String get encoding {
-    throw new UnsupportedOperationException("${_name}does not exist.");
-  }
-
-  @override
-  String get fullName => _name;
-
-  @override
-  int get modificationStamp => 0;
-
-  @override
-  String get shortName => _name;
-
-  @override
-  bool get isInSystemLibrary => false;
-
-  @override
-  Source resolveRelative(Uri relativeUri) {
-    throw new UnsupportedOperationException("${_name}does not exist.");
-  }
-}
-
-/**
  * Instances of the class `PackageUriResolver` resolve `package` URI's in the context of
  * an application.
  *
