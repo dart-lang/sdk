@@ -16,6 +16,7 @@ import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
 
 import 'exceptions.dart';
+import 'log.dart' as log;
 
 export '../../asset/dart/utils.dart';
 
@@ -122,6 +123,21 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
   }
 
   return completer.future;
+}
+
+/// Like [Future.wait], but prints all errors from the futures as they occur and
+/// only returns once all Futures have completed, successfully or not.
+///
+/// This will wrap the first error thrown in a [SilentException] and rethrow it.
+Future waitAndPrintErrors(Iterable<Future> futures) {
+  return Future.wait(futures.map((future) {
+    return future.catchError((error, stackTrace) {
+      log.exception(error, stackTrace);
+      throw error;
+    });
+  })).catchError((error, stackTrace) {
+    throw new SilentException(error, stackTrace);
+  });
 }
 
 /// Returns a [StreamTransformer] that will call [onDone] when the stream

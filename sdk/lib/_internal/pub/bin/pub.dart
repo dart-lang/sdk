@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
-import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../lib/src/command.dart';
@@ -88,35 +87,7 @@ void runPub(String cacheDir, ArgResults options, List<String> arguments) {
 
   captureErrors(() => invokeCommand(cacheDir, options),
       captureStackChains: captureStackChains).catchError((error, Chain chain) {
-    // This is basically the top-level exception handler so that we don't
-    // spew a stack trace on our users.
-    if (error is SpanException) {
-      log.error(error.toString(useColors: canUseSpecialChars));
-    } else {
-      log.error(getErrorMessage(error));
-    }
-    log.fine("Exception type: ${error.runtimeType}");
-
-    if (log.json.enabled) {
-      if (error is UsageException) {
-        // Don't print usage info in JSON output.
-        log.json.error(error.message);
-      } else {
-        log.json.error(error);
-      }
-    }
-
-    if (options['trace'] || !isUserFacingException(error)) {
-      log.error(chain.terse);
-    } else {
-      log.fine(chain.terse);
-    }
-
-    if (error is WrappedException && error.innerError != null) {
-      var message = "Wrapped exception: ${error.innerError}";
-      if (error.innerChain != null) message = "$message\n${error.innerChain}";
-      log.fine(message);
-    }
+    log.exception(error, chain);
 
     if (options['trace']) {
       log.dumpTranscript();
@@ -141,6 +112,8 @@ and include the results in a bug report on http://dartbug.com/new.
 /// Returns the appropriate exit code for [exception], falling back on 1 if no
 /// appropriate exit code could be found.
 int chooseExitCode(exception) {
+  while (exception is WrappedException) exception = exception.innerError;
+
   if (exception is HttpException || exception is http.ClientException ||
       exception is SocketException || exception is PubHttpException) {
     return exit_codes.UNAVAILABLE;

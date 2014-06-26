@@ -10,8 +10,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:source_maps/source_maps.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import 'exceptions.dart';
 import 'io.dart';
 import 'progress.dart';
 import 'transcript.dart';
@@ -303,6 +305,45 @@ void processResult(String executable, PubProcessResult result) {
   dumpOutput("stderr", result.stderr);
 
   io(buffer.toString().trim());
+}
+
+/// Logs an exception.
+void exception(exception, [StackTrace trace]) {
+  if (exception is SilentException) return;
+
+  var chain = trace == null ? new Chain.current() : new Chain.forTrace(trace);
+
+  // This is basically the top-level exception handler so that we don't
+  // spew a stack trace on our users.
+  if (exception is SpanException) {
+    error(exception.toString(useColors: canUseSpecialChars));
+  } else {
+    error(getErrorMessage(exception));
+  }
+  fine("Exception type: ${exception.runtimeType}");
+
+  if (json.enabled) {
+    if (exception is UsageException) {
+      // Don't print usage info in JSON output.
+      json.error(exception.message);
+    } else {
+      json.error(exception);
+    }
+  }
+
+  if (!isUserFacingException(exception)) {
+    error(chain.terse);
+  } else {
+    fine(chain.terse);
+  }
+
+  if (exception is WrappedException && exception.innerError != null) {
+    var message = "Wrapped exception: ${exception.innerError}";
+    if (exception.innerChain != null) {
+      message = "$message\n${exception.innerChain}";
+    }
+    fine(message);
+  }
 }
 
 /// Enables recording of log entries.
