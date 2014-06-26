@@ -1,3 +1,9 @@
+## 1.0.2
+
+* Remove a workaround for [issue 17083][].
+
+[issue 17083]: http://code.google.com/p/dart/issues/detail?id=17083
+
 ## 1.0.1
 
 * Synchronous errors in the [Chain.capture] callback are now handled correctly.
