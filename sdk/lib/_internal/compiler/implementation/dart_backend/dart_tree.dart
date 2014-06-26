@@ -7,11 +7,12 @@ library dart_tree;
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart'
     show Element, FunctionElement, FunctionSignature, ParameterElement,
-         ClassElement;
+         ClassElement, VariableElement;
 import '../universe/universe.dart';
 import '../ir/ir_nodes.dart' as ir;
 import '../dart_types.dart' show DartType, GenericType;
 import '../universe/universe.dart' show Selector;
+import '../ir/const_expression.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -167,9 +168,14 @@ class ConcatenateStrings extends Expression {
  * A constant.
  */
 class Constant extends Expression {
-  dart2js.Constant value;
+  final ConstExp expression;
+  final dart2js.Constant value;
 
-  Constant(this.value);
+  Constant(this.expression, this.value);
+
+  Constant.primitive(dart2js.PrimitiveConstant primitiveValue)
+      : expression = new PrimitiveConstExp(primitiveValue),
+        value = primitiveValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 }
@@ -181,9 +187,8 @@ class This extends Expression {
 class LiteralList extends Expression {
   final GenericType type;
   final List<Expression> values;
-  final dart2js.Constant constant;
 
-  LiteralList(this.type, this.values, [this.constant]);
+  LiteralList(this.type, this.values);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
 }
@@ -192,9 +197,8 @@ class LiteralMap extends Expression {
   final GenericType type;
   final List<Expression> keys;
   final List<Expression> values;
-  final dart2js.Constant constant;
 
-  LiteralMap(this.type, this.keys, this.values, [this.constant]);
+  LiteralMap(this.type, this.keys, this.values);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
 }
@@ -423,8 +427,9 @@ class ExpressionStatement extends Statement {
 class FunctionDefinition extends Node {
   final List<Variable> parameters;
   Statement body;
+  final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.parameters, this.body);
+  FunctionDefinition(this.parameters, this.body, this.localConstants);
 }
 
 abstract class ExpressionVisitor<E> {
@@ -548,7 +553,6 @@ class Builder extends ir.Visitor<Node> {
   }
 
   FunctionDefinition build(ir.FunctionDefinition node) {
-    new ir.RegisterAllocator().visit(node);
     visit(node);
     return function;
   }
@@ -670,7 +674,8 @@ class Builder extends ir.Visitor<Node> {
       assert(parameter != null);
       parameters.add(parameter);
     }
-    function = new FunctionDefinition(parameters, visit(node.body));
+    function = new FunctionDefinition(parameters, visit(node.body),
+        node.localConstants);
     return null;
   }
 
@@ -825,17 +830,8 @@ class Builder extends ir.Visitor<Node> {
     return new If(condition, thenStatement, elseStatement);
   }
 
-  Expression visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
-    return new InvokeConstructor(
-        node.type,
-        node.constructor,
-        node.selector,
-        translateArguments(node.arguments),
-        node.constant);
-  }
-
   Expression visitConstant(ir.Constant node) {
-    return new Constant(node.value);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitThis(ir.This node) {
@@ -845,16 +841,14 @@ class Builder extends ir.Visitor<Node> {
   Expression visitLiteralList(ir.LiteralList node) {
     return new LiteralList(
             node.type,
-            translateArguments(node.values),
-            node.constant);
+            translateArguments(node.values));
   }
 
   Expression visitLiteralMap(ir.LiteralMap node) {
     return new LiteralMap(
         node.type,
         translateArguments(node.keys),
-        translateArguments(node.values),
-        node.constant);
+        translateArguments(node.values));
   }
 
   Expression visitIsCheck(ir.IsCheck node) {
@@ -1903,7 +1897,8 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     if (e is Constant && e.value is dart2js.BoolConstant) {
       // !true ==> false
       if (!polarity) {
-        e.value = (e.value as dart2js.BoolConstant).negate();
+        dart2js.BoolConstant value = e.value;
+        return new Constant.primitive(value.negate());
       }
       return e;
     }

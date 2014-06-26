@@ -6,13 +6,15 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant;
+import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
+  StringConstant, ListConstant, MapConstant;
 import '../elements/elements.dart'
     show FunctionElement, LibraryElement, ParameterElement, ClassElement,
-    Element, VariableElement;
+    Element, VariableElement, Elements;
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../helpers/helpers.dart';
+import 'const_expression.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -60,9 +62,6 @@ abstract class Primitive extends Definition {
   /// Separate register spaces are used for primitives with different [element].
   /// Assigned by [RegisterAllocator], is null before that phase.
   int registerIndex;
-
-  /// If non-null, this primitive is a reference to the given constant.
-  dart2js.Constant get constant;
 
   /// Use the given element as a hint for naming this primitive.
   ///
@@ -223,35 +222,6 @@ class AsCast extends Expression {
   accept(Visitor visitor) => visitor.visitAsCast(this);
 }
 
-class InvokeConstConstructor extends Primitive {
-  final GenericType type;
-  final FunctionElement constructor;
-  final List<Reference> arguments;
-  final Selector selector;
-
-  final dart2js.ConstructedConstant constant;
-
-  /// The class being instantiated. This is the same as `target.enclosingClass`
-  /// and `type.element`.
-  ClassElement get targetClass => constructor.enclosingElement;
-
-  /// True if this is an invocation of a factory constructor.
-  bool get isFactory => constructor.isFactoryConstructor;
-
-  InvokeConstConstructor(this.type,
-                    this.constructor,
-                    this.selector,
-                    List<Definition> args,
-                    this.constant)
-      : arguments = _referenceList(args) {
-    assert(constructor.isConstructor);
-    assert(type.element == constructor.enclosingElement);
-    assert(constant.type == type);
-  }
-
-  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
-}
-
 /// Invoke [toString] on each argument and concatenate the results.
 class ConcatenateStrings extends Expression {
   final Reference continuation;
@@ -310,19 +280,16 @@ class Branch extends Expression {
 }
 
 class Constant extends Primitive {
+  final ConstExp expression;
   final dart2js.Constant value;
 
-  Constant(this.value);
-
-  dart2js.Constant get constant => value;
+  Constant(this.expression, this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
 
 class This extends Primitive {
   This();
-
-  dart2js.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitThis(this);
 }
@@ -332,10 +299,7 @@ class LiteralList extends Primitive {
   final GenericType type;
   final List<Reference> values;
 
-  /// Set to null if this is not a const literal list.
-  final dart2js.Constant constant;
-
-  LiteralList(this.type, List<Primitive> values, [this.constant])
+  LiteralList(this.type, List<Primitive> values)
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -346,11 +310,7 @@ class LiteralMap extends Primitive {
   final List<Reference> keys;
   final List<Reference> values;
 
-  /// Set to null if this is not a const literal map.
-  final dart2js.Constant constant;
-
-  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values,
-             [this.constant])
+  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values)
       : this.keys = _referenceList(keys),
         this.values = _referenceList(values);
 
@@ -373,8 +333,6 @@ class Parameter extends Primitive {
   Parameter(Element element) {
     super.element = element;
   }
-
-  dart2js.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -402,8 +360,10 @@ class FunctionDefinition extends Node {
   final Continuation returnContinuation;
   final List<Parameter> parameters;
   final Expression body;
+  final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.returnContinuation, this.parameters, this.body);
+  FunctionDefinition(this.returnContinuation, this.parameters, this.body,
+      this.localConstants);
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -441,7 +401,6 @@ abstract class Visitor<T> {
   T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
-  T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 
@@ -584,6 +543,7 @@ class RegisterArray {
   int nextIndex = 0;
   final List<int> freeStack = <int>[];
 
+  /// Returns an index that is currently unused.
   int makeIndex() {
     if (freeStack.isEmpty) {
       return nextIndex++;
@@ -680,10 +640,6 @@ class RegisterAllocator extends Visitor {
 
   void visitBranch(Branch node) {
     visit(node.condition);
-  }
-
-  void visitInvokeConstConstructor(InvokeConstConstructor node) {
-    node.arguments.forEach(visitReference);
   }
 
   void visitLiteralList(LiteralList node) {

@@ -170,12 +170,6 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "AsCast ($receiver ${node.type})");
   }
 
-  visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
-    String dummy = names.name(node);
-    String values = node.arguments.map(formatReference).join(', ');
-    printStmt(dummy, "ConstConstruction ($values)");
-  }
-
   visitThis(ir.This node) {
     String dummy = names.name(node);
     printStmt(dummy, "This");
