@@ -170,11 +170,6 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "AsCast ($receiver ${node.type})");
   }
 
-  visitThis(ir.This node) {
-    String dummy = names.name(node);
-    printStmt(dummy, "This");
-  }
-
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
@@ -215,6 +210,14 @@ class IRTracer extends TracerUtil implements ir.Visitor {
 
   visitIsTrue(ir.IsTrue node) {
     return "IsTrue(${names.name(node.value.definition)})";
+  }
+
+  visitThis(ir.This node) {
+    return "This";
+  }
+
+  visitReifyTypeVar(ir.ReifyTypeVar node) {
+    return "ReifyTypeVar ${node.element.name}";
   }
 
   visitCondition(ir.Condition c) {}

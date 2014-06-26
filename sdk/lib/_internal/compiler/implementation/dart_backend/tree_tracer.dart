@@ -27,7 +27,7 @@ class Block {
   }
 }
 
-class BlockCollector extends Visitor {
+class BlockCollector extends StatementVisitor {
   // Accumulate a list of blocks.  The current block is the last block in
   // the list.
   final List<Block> blocks = [new Block()..index = 0];
@@ -53,20 +53,6 @@ class BlockCollector extends Visitor {
   void collect(FunctionDefinition function) {
     visitStatement(function.body);
   }
-
-  visitVariable(Variable node) {}
-  visitInvokeStatic(InvokeStatic node) {}
-  visitInvokeMethod(InvokeMethod node) {}
-  visitInvokeConstructor(InvokeConstructor node) {}
-  visitConcatenateStrings(ConcatenateStrings node) {}
-  visitLiteralList(LiteralList node) {}
-  visitLiteralMap(LiteralMap node) {}
-  visitConstant(Constant node) {}
-  visitThis(This node) {}
-  visitConditional(Conditional node) {}
-  visitLogicalOperator(LogicalOperator node) {}
-  visitNot(Not node) {}
-  visitTypeOperator(TypeOperator node) {}
 
   visitLabeledStatement(LabeledStatement node) {
     Block target = new Block(node.label);
@@ -343,6 +329,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitThis(This node) {
     return "this";
+  }
+
+  String visitReifyTypeVar(ReifyTypeVar node) {
+    return "typevar [${node.element.name}]";
   }
 
   bool usesInfixNotation(Expression node) {

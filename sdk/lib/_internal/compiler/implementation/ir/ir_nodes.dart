@@ -8,9 +8,7 @@ library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
   StringConstant, ListConstant, MapConstant;
-import '../elements/elements.dart'
-    show FunctionElement, LibraryElement, ParameterElement, ClassElement,
-    Element, VariableElement, Elements;
+import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../helpers/helpers.dart';
@@ -294,6 +292,18 @@ class This extends Primitive {
   accept(Visitor visitor) => visitor.visitThis(this);
 }
 
+/// Reify the given type variable as a [Type].
+/// This depends on the current binding of 'this'.
+class ReifyTypeVar extends Primitive {
+  final TypeVariableElement element;
+
+  ReifyTypeVar(this.element);
+
+  dart2js.Constant get constant => null;
+
+  accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
+}
+
 class LiteralList extends Primitive {
   /// The List type being created; this is not the type argument.
   final GenericType type;
@@ -401,6 +411,7 @@ abstract class Visitor<T> {
   T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
+  T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 
@@ -520,6 +531,14 @@ class SExpressionStringifier extends Visitor<String> {
 
   String visitConstant(Constant node) {
     return '(Constant ${node.value})';
+  }
+
+  String visitThis(This node) {
+    return '(This)';
+  }
+
+  String visitReifyTypeVar(ReifyTypeVar node) {
+    return '(ReifyTypeVar ${node.element.name})';
   }
 
   String visitParameter(Parameter node) {
@@ -658,6 +677,12 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitConstant(Constant node) {
+  }
+
+  void visitThis(This node) {
+  }
+
+  void visitReifyTypeVar(ReifyTypeVar node) {
   }
 
   void visitParameter(Parameter node) {

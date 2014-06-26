@@ -498,6 +498,12 @@ class TreePrinter {
           makeStaticReceiver(exp.element),
           makeIdentifier(exp.name));
       setElement(result, exp.element, exp);
+    } else if (exp is ReifyTypeVar) {
+      precedence = PRIMARY;
+      result = new tree.Send(
+          null,
+          makeIdentifier(exp.name));
+      setElement(result, exp.element, exp);
     } else if (exp is StringConcat) {
       precedence = PRIMARY;
       result = unparseStringLiteral(exp);

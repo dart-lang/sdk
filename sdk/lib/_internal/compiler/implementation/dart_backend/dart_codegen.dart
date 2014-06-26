@@ -391,6 +391,11 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return new This();
   }
 
+  Expression visitReifyTypeVar(tree.ReifyTypeVar exp) {
+    return new ReifyTypeVar(exp.element.name)
+               ..element = exp.element;
+  }
+
   Expression visitLiteralList(tree.LiteralList exp) {
     return new LiteralList(
         exp.values.map(visitExpression).toList(growable: false),

@@ -5,9 +5,7 @@
 library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart'
-    show Element, FunctionElement, FunctionSignature, ParameterElement,
-         ClassElement, VariableElement;
+import '../elements/elements.dart';
 import '../universe/universe.dart';
 import '../ir/ir_nodes.dart' as ir;
 import '../dart_types.dart' show DartType, GenericType;
@@ -182,6 +180,14 @@ class Constant extends Expression {
 
 class This extends Expression {
   accept(Visitor visitor) => visitor.visitThis(this);
+}
+
+class ReifyTypeVar extends Expression {
+  TypeVariableElement element;
+
+  ReifyTypeVar(this.element);
+
+  accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
 }
 
 class LiteralList extends Expression {
@@ -441,6 +447,7 @@ abstract class ExpressionVisitor<E> {
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitThis(This node);
+  E visitReifyTypeVar(ReifyTypeVar node);
   E visitConditional(Conditional node);
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
@@ -838,6 +845,10 @@ class Builder extends ir.Visitor<Node> {
     return new This();
   }
 
+  Expression visitReifyTypeVar(ir.ReifyTypeVar node) {
+    return new ReifyTypeVar(node.element);
+  }
+
   Expression visitLiteralList(ir.LiteralList node) {
     return new LiteralList(
             node.type,
@@ -1190,6 +1201,10 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitThis(This node) {
+    return node;
+  }
+
+  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 
@@ -1716,6 +1731,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitThis(This node) {
+    return node;
+  }
+
+  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 

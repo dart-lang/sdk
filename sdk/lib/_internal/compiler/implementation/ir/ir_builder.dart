@@ -1164,29 +1164,21 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitTypeReferenceSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    ir.Primitive result;
-    if (element is TypeDeclarationElement) {
-      // We can't call translateConstant(node) here because of the obscure
-      // case mentioned below, where the constant compiler refuses to compute
-      // a constant for the type literal.
-      DartType typeType = compiler.backend.typeImplementation.rawType;
-      DartType elementType = element.rawType;
-      result = translateConstant(node, new TypeConstant(elementType, typeType));
-    } else if (element.isTypeVariable) {
-      // TODO(asgerf): Introduce IR to reify type variables
-      result = giveup(node, 'TypeReferenceSend: type variable');
-    } else {
-      // TODO(asgerf): Any other cases?
-      result = giveup(node);
-    }
-    // In the obscure case that the user is trying to invoke the type literal
-    // as a function, we must preserve the function call, even though it is
-    // guaranteed to fail.
+    assert(element is TypeDeclarationElement || element.isTypeVariable);
+
+    // If the user is trying to invoke the type literal or variable,
+    // it must be treated as a function call.
     if (node.argumentsNode != null) {
-      result = translateClosureCall(result, elements.getSelector(node),
-          node.argumentsNode);
+      return visitDynamicSend(node);
     }
-    return result;
+
+    if (element is TypeDeclarationElement) {
+      return translateConstant(node);
+    } else {
+      ir.Primitive prim = new ir.ReifyTypeVar(element);
+      add(new ir.LetPrim(prim));
+      return prim;
+    }
   }
 
   ir.Primitive visitSendSet(ast.SendSet node) {
