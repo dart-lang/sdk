@@ -160,6 +160,12 @@ main() {
         test('toString', () {
           expect(file.toString(), path);
         });
+
+        test('parent', () {
+          Resource parent = file.parent;
+          expect(parent, new isInstanceOf<Folder>());
+          expect(parent.path, equals(tempPath));
+        });
       });
 
       group('Folder', () {
@@ -215,6 +221,26 @@ main() {
           expect(children[0], _isFile);
           expect(children[1], _isFolder);
           expect(children[2], _isFile);
+        });
+
+        test('parent', () {
+          Resource parent = folder.parent;
+          expect(parent, new isInstanceOf<Folder>());
+          expect(parent.path, equals(tempPath));
+
+          // Since the OS is in control of where tempPath is, we don't know how
+          // far it should be from the root.  So just verify that each call to
+          // parent results in a a folder with a shorter path, and that we
+          // reach the root eventually.
+          while (true) {
+            Resource grandParent = parent.parent;
+            if (grandParent == null) {
+              break;
+            }
+            expect(grandParent, new isInstanceOf<Folder>());
+            expect(grandParent.path.length, lessThan(parent.path.length));
+            parent = grandParent;
+          }
         });
       });
     });

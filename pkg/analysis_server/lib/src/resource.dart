@@ -69,6 +69,12 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Return the [Folder] that contains this resource, or `null` if this resource
+   * is a root folder.
+   */
+  Folder get parent;
 }
 
 
@@ -114,6 +120,15 @@ abstract class _MemoryResource implements Resource {
 
   @override
   String toString() => path;
+
+  @override
+  Folder get parent {
+    String parentPath = posix.dirname(path);
+    if (parentPath == path) {
+      return null;
+    }
+    return _provider.getResource(parentPath);
+  }
 }
 
 
@@ -290,28 +305,24 @@ class MemoryResourceProvider implements ResourceProvider {
     if (!path.startsWith('/')) {
       throw new ArgumentError("Path must start with '/'");
     }
-    _MemoryFolder folder = null;
-    String partialPath = "";
-    for (String pathPart in path.split('/')) {
-      if (pathPart.isEmpty) {
-        continue;
+    _MemoryResource resource = _pathToResource[path];
+    if (resource == null) {
+      String parentPath = posix.dirname(path);
+      if (parentPath != path) {
+        newFolder(parentPath);
       }
-      partialPath += '/' + pathPart;
-      _MemoryResource resource = _pathToResource[partialPath];
-      if (resource == null) {
-        folder = new _MemoryFolder(this, partialPath);
-        _pathToResource[partialPath] = folder;
-        _pathToTimestamp[partialPath] = nextStamp++;
-      } else if (resource is _MemoryFolder) {
-        folder = resource;
-      } else {
-        String message = 'Folder expected at '
-                         "'$partialPath'"
-                         'but ${resource.runtimeType} found';
-        throw new ArgumentError(message);
-      }
+      _MemoryFolder folder = new _MemoryFolder(this, path);
+      _pathToResource[path] = folder;
+      _pathToTimestamp[path] = nextStamp++;
+      return folder;
+    } else if (resource is _MemoryFolder) {
+      return resource;
+    } else {
+      String message = 'Folder expected at '
+                       "'$path'"
+                       'but ${resource.runtimeType} found';
+      throw new ArgumentError(message);
     }
-    return folder;
   }
 
   File newFile(String path, String content) {
@@ -434,6 +445,15 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   String toString() => path;
+
+  @override
+  Folder get parent {
+    String parentPath = dirname(path);
+    if (parentPath == path) {
+      return null;
+    }
+    return new _PhysicalFolder(new io.Directory(parentPath));
+  }
 }
 
 

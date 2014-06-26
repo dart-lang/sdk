@@ -259,6 +259,14 @@ main() {
         File file = provider.getResource('/foo/bar/file.txt');
         expect(file.toString(), '/foo/bar/file.txt');
       });
+
+      test('parent', () {
+        provider.newFile('/foo/bar/file.txt', 'content');
+        File file = provider.getResource('/foo/bar/file.txt');
+        Resource parent = file.parent;
+        expect(parent, new isInstanceOf<Folder>());
+        expect(parent.path, equals('/foo/bar'));
+      });
     });
 
     group('Folder', () {
@@ -310,6 +318,16 @@ main() {
         expect(children[0], _isFile);
         expect(children[1], _isFolder);
         expect(children[2], _isFile);
+      });
+
+      test('parent', () {
+        Resource parent1 = folder.parent;
+        expect(parent1, new isInstanceOf<Folder>());
+        expect(parent1.path, equals('/foo'));
+        Resource parent2 = parent1.parent;
+        expect(parent2, new isInstanceOf<Folder>());
+        expect(parent2.path, equals('/'));
+        expect(parent2.parent, isNull);
       });
     });
 
