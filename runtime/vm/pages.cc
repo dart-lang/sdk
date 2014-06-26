@@ -385,7 +385,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
   space.AddProperty("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
-  {
+  if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
@@ -393,6 +393,8 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
         run_time_millis / static_cast<double>(collections());
     space.AddProperty("avgCollectionPeriodMillis",
                       avg_time_between_collections);
+  } else {
+    space.AddProperty("avgCollectionPeriodMillis", 0.0);
   }
 }
 
