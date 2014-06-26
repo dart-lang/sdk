@@ -23,11 +23,7 @@ void testQueryParameters() {
     if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
       Expect.equals(normalizedQuery, uri.query);
-      if (query.isEmpty) {
-        Expect.equals(normalizedQuery, uri.toString());
-      } else {
-        Expect.equals("?$normalizedQuery", uri.toString());
-      }
+      Expect.equals("?$normalizedQuery", uri.toString());
       if (parameters.containsValue(null)) {
         var map = new Map.from(parameters);
         map.forEach((k, v) { if (v == null) map[k] = ""; });
