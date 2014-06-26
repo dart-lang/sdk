@@ -766,9 +766,11 @@ class ClosureTranslator extends Visitor {
     ClosureContainer enclosing = element.enclosingElement;
     enclosing.nestedClosures.add(callElement);
     globalizedElement.addMember(callElement, compiler);
+    globalizedElement.computeAllClassMembers(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
+
     return new ClosureClassMap(element, globalizedElement,
                                callElement, thisElement);
   }
