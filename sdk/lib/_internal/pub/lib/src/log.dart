@@ -402,7 +402,11 @@ String bold(text) => withPrejudice ? text : "$_bold$text$_none";
 /// that supports that.
 ///
 /// Use this for text that's less important than the text around it.
-String gray(text) => "$_gray$text$_noColor";
+///
+/// The gray marker also enables bold, so it needs to be handled specially with
+/// [withPrejudice] to avoid disabling bolding entirely.
+String gray(text) =>
+    withPrejudice ? "$_gray$text$_noColor" : "$_gray$text$_none";
 
 /// Wraps [text] in the ANSI escape codes to color it cyan when on a platform
 /// that supports that.
