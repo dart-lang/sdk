@@ -174,6 +174,12 @@ abstract class InteractionManager {
   void onIframeError(ErrorMessage message);
 
   void verboseCompilerMessage(String message);
+
+  /// Called if the compiler crashes.
+  void onCompilerCrash(data);
+
+  /// Called if an internal error is detected.
+  void onInternalError(message);
 }
 
 /**
@@ -239,17 +245,8 @@ class InteractionContext extends InteractionManager {
     } catch (error, stackTrace) {
       try {
         editor.isMalformedInput = true;
-        outputDiv
-            ..nodes.clear()
-            ..append(new HeadingElement.h1()..appendText('Internal Error'))
-            ..appendText('We would appreciate if you take a moment to report '
-                         'this at ')
-            ..append(
-                new AnchorElement(href: TRY_DART_NEW_DEFECT)
-                    ..target = '_blank'
-                    ..appendText(TRY_DART_NEW_DEFECT))
-            ..appendText('\nError and stack trace:\n$error\n')
-            ..appendText('$stackTrace\n');
+        state.onInternalError(
+            '\nError and stack trace:\n$error\n$stackTrace\n');
       } catch (e) {
         // Double faults ignored.
       }
@@ -292,6 +289,10 @@ class InteractionContext extends InteractionManager {
   void verboseCompilerMessage(String message) {
     return state.verboseCompilerMessage(message);
   }
+
+  void onCompilerCrash(data) => state.onCompilerCrash(data);
+
+  void onInternalError(message) => state.onInternalError(message);
 }
 
 abstract class InteractionState implements InteractionManager {
@@ -741,6 +742,30 @@ class InitialState extends InteractionState {
         Element progress = context.compilerConsole.firstChild;
         progress.appendText('.');
       }
+    }
+  }
+
+  void onCompilerCrash(data) {
+    onInternalError('Error and stack trace:\n$data');
+  }
+
+  void onInternalError(message) {
+    outputDiv
+        ..nodes.clear()
+        ..append(new HeadingElement.h1()..appendText('Internal Error'))
+        ..appendText('We would appreciate if you take a moment to report '
+                     'this at ')
+        ..append(
+            new AnchorElement(href: TRY_DART_NEW_DEFECT)
+            ..target = '_blank'
+            ..appendText(TRY_DART_NEW_DEFECT))
+        ..appendText('$message');
+    if (window.parent != window) {
+      // Test support.
+      // TODO(ahe): Use '/' instead of '*' when Firefox is upgraded to version
+      // 30 across build bots.  Support for '/' was added in version 29, and we
+      // support the two most recent versions.
+      window.parent.postMessage('$message\n', '*');
     }
   }
 }
