@@ -181,8 +181,10 @@ stack_overflow_stacktrace_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
 
-[ $compiler == dart2dart ]
+[ $compiler == dart2dart && $builder_tag == new_backend ]
 type_variable_conflict2_test/01: Fail # Issue
+
+[ $compiler == dart2dart ]
 type_variable_conflict2_test/02: MissingCompileTimeError # Issue 13134
 type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
