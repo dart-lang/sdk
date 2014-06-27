@@ -160,6 +160,38 @@ abstract class ServiceObject extends Observable {
 
   // Updates internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map, bool mapIsRef);
+
+  String relativeLink(String id) {
+    assert(id != null);
+    return "${link}/${id}";
+  }
+}
+
+abstract class Coverage {
+  // Following getters and functions will be provided by [ServiceObject].
+  ServiceObjectOwner get owner;
+  String get serviceType;
+  VM get vm;
+  String relativeLink(String id);
+
+  /// Default handler for coverage data.
+  void processCoverageData(List coverageData) {
+    coverageData.forEach((scriptCoverage) {
+      assert(scriptCoverage['script'] != null);
+      scriptCoverage['script']._processHits(scriptCoverage['hits']);
+    });
+  }
+
+  Future refreshCoverage() {
+    return vm.getAsMap(relativeLink('coverage')).then((ObservableMap map) {
+      var coverageOwner = (serviceType == 'Isolate') ? this : owner;
+      var coverage = new ServiceObject._fromMap(coverageOwner, map);
+      assert(coverage.serviceType == 'CodeCoverage');
+      var coverageList = coverage['coverage'];
+      assert(coverageList != null);
+      processCoverageData(coverageList);
+    });
+  }
 }
 
 abstract class ServiceObjectOwner extends ServiceObject {
@@ -508,7 +540,7 @@ class HeapSpace extends Observable {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner {
+class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable ObservableMap counters = new ObservableMap();
@@ -574,27 +606,6 @@ class Isolate extends ServiceObjectOwner {
       Code code = codeRegion['code'];
       code.updateProfileData(codeRegion, codeTable, sampleCount);
     }
-  }
-
-  Future refreshCoverage() {
-    return get('coverage').then(_processCoverage);
-  }
-
-  void _processCoverage(ServiceMap coverage) {
-    assert(coverage.serviceType == 'CodeCoverage');
-    var coverageList = coverage['coverage'];
-    assert(coverageList != null);
-    coverageList.forEach((scriptCoverage) {
-      _processScriptCoverage(scriptCoverage);
-    });
-  }
-
-  void _processScriptCoverage(ObservableMap scriptCoverage) {
-    // Because the coverage data was upgraded into a ServiceObject,
-    // the script can be directly accessed.
-    Script script = scriptCoverage['script'];
-    assert(_cache.containsValue(script));
-    script._processHits(scriptCoverage['hits']);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -952,7 +963,7 @@ class ServiceException extends ServiceObject {
   }
 }
 
-class Library extends ServiceObject {
+class Library extends ServiceObject with Coverage {
   @observable String url;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -1031,7 +1042,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends ServiceObject {
+class Class extends ServiceObject with Coverage {
   @observable Library library;
   @observable Script script;
   @observable Class superClass;
@@ -1138,7 +1149,7 @@ class ScriptLine extends Observable {
   ScriptLine(this.line, this.text);
 }
 
-class Script extends ServiceObject {
+class Script extends ServiceObject with Coverage {
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
   @observable String kind;

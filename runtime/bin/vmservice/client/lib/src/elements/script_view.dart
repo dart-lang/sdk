@@ -30,6 +30,6 @@ class ScriptViewElement extends ObservatoryElement {
   }
 
   void refreshCoverage(var done) {
-    script.isolate.refreshCoverage()..whenComplete(done);
+    script.refreshCoverage().whenComplete(done);
   }
 }

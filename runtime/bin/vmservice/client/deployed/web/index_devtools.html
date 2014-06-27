@@ -11,6 +11,7 @@
 </head>
 <body><script src="packages/web_components/platform.js"></script>
 
+
 <!-- unminfied for debugging:
 <link rel="import" href="src/js/polymer/layout.html">
 <script src="src/js/polymer/polymer.concat.js"></script>
@@ -249,7 +250,7 @@ html /deep/ [block] {
 
 /* ie support for hidden */
 html /deep/ [hidden] {
-  display: none;
+  display: none !important;
 }
 
 html /deep/ [relative] {
@@ -287,7 +288,10 @@ html /deep/ [segment], html /deep/ segment {
   border-radius: 5px 5px 5px 5px;
 }
 
-</style><script src="packages/polymer/src/js/polymer/polymer.js"></script><script type="text/javascript" src="https://www.google.com/jsapi"></script><style>
+</style><script src="packages/polymer/src/js/polymer/polymer.js"></script><script>
+// TODO(sigmund): remove this script tag (dartbug.com/19650). This empty
+// script tag is necessary to work around a bug in Chrome 36.
+</script><script type="text/javascript" src="https://www.google.com/jsapi"></script><style>
 /* Global styles */
 * {
   margin: 0;
@@ -3734,6 +3738,7 @@ hr {
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -13024,6 +13029,7 @@ hr {
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
       </isolate-nav-menu>
+      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -13838,6 +13844,7 @@ hr {
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ library.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ library }}" last="{{ true }}"></library-nav-menu>
+      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -16552,4 +16559,4 @@ hr {
 
   <observatory-application devtools="true"></observatory-application>
 
-<script src="index_devtools.html_bootstrap.dart.js"></script></body></html>
+<script src="index_devtools.html_bootstrap.dart.js" async=""></script></body></html>
