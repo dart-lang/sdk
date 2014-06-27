@@ -99,7 +99,7 @@
 
     <div class="content">
       <template if="{{ cls.fields.isNotEmpty }}">
-        fields ({{ cls['fields'].length }})
+        fields ({{ cls.fields.length }})
         <curly-block expand="{{ cls.fields.length <= 8 }}">
           <div class="memberList">
             <template repeat="{{ field in cls.fields }}">

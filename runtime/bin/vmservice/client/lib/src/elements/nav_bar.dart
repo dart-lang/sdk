@@ -111,7 +111,7 @@ class LibraryNavMenuElement extends ObservatoryElement {
 
 @CustomTag('class-nav-menu')
 class ClassNavMenuElement extends ObservatoryElement {
-  @published ServiceMap cls;
+  @published Class cls;
   @published bool last = false;
 
   ClassNavMenuElement.created() : super.created();
