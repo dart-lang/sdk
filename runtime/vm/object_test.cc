@@ -2222,13 +2222,6 @@ TEST_CASE(Script) {
   EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  Script& script2 = Script::Handle(
-      Script::FindByUrl(String::Handle(String::New("test-lib"))));
-  EXPECT(!script2.IsNull());
-  const Library& lib2 = Library::Handle(script2.FindLibrary());
-  EXPECT_EQ(lib2.raw(), lib.raw());
-  script2 = Script::FindByUrl(String::Handle(String::New("non-there.dart")));
-  EXPECT(script2.IsNull());
 }
 
 

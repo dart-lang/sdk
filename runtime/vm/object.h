@@ -2519,8 +2519,6 @@ class Script : public Object {
                         intptr_t* first_token_index,
                         intptr_t* last_token_index) const;
 
-  RawLibrary* FindLibrary() const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -2528,8 +2526,6 @@ class Script : public Object {
   static RawScript* New(const String& url,
                         const String& source,
                         RawScript::Kind kind);
-
-  static RawScript* FindByUrl(const String& url);
 
  private:
   void set_url(const String& value) const;

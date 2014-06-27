@@ -8307,54 +8307,6 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawLibrary* Script::FindLibrary() const {
-  Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Script& script = Script::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    for (intptr_t j = 0; j < loaded_scripts.Length(); j++) {
-      script ^= loaded_scripts.At(j);
-      ASSERT(!script.IsNull());
-      if (script.raw() == raw()) {
-        return lib.raw();
-      }
-    }
-  }
-  return Library::null();
-}
-
-
-RawScript* Script::FindByUrl(const String& url) {
-  Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Script& script = Script::Handle();
-  String& script_url = String::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    for (intptr_t j = 0; j < loaded_scripts.Length(); j++) {
-      script ^= loaded_scripts.At(j);
-      ASSERT(!script.IsNull());
-      script_url ^= script.url();
-      if (script_url.Equals(url)) {
-        return script.raw();
-      }
-    }
-  }
-  return Script::null();
-}
-
-
 DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
       // Last element in array is a Smi indicating the number of entries used.

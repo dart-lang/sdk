@@ -151,6 +151,49 @@ class EmbedderServiceHandler {
 };
 
 
+class LibraryCoverageFilter : public CoverageFilter {
+ public:
+  explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const String& script_url,
+                               const Class& cls,
+                               const Function& func) const {
+    return lib.raw() == lib_.raw();
+  }
+ private:
+  const Library& lib_;
+};
+
+
+class ScriptCoverageFilter : public CoverageFilter {
+ public:
+  explicit ScriptCoverageFilter(const String& script_url)
+      : script_url_(script_url) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const String& script_url,
+                               const Class& cls,
+                               const Function& func) const {
+    return script_url_.Equals(script_url);
+  }
+ private:
+  const String& script_url_;
+};
+
+
+class ClassCoverageFilter : public CoverageFilter {
+ public:
+  explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const String& script_url,
+                               const Class& cls,
+                               const Function& func) const {
+    return cls.raw() == cls_.raw();
+  }
+ private:
+  const Class& cls_;
+};
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -1207,7 +1250,8 @@ static bool HandleClassesInstances(Isolate* isolate, const Class& cls,
 static bool HandleClassesCoverage(Isolate* isolate,
                                   const Class& cls,
                                   JSONStream* stream) {
-  CodeCoverage::PrintJSONForClass(cls, stream);
+  ClassCoverageFilter cf(cls);
+  CodeCoverage::PrintJSON(isolate, stream, &cf);
   return true;
 }
 
@@ -1290,7 +1334,8 @@ static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
 static bool HandleLibrariesCoverage(Isolate* isolate,
                                     const Library& lib,
                                     JSONStream* js) {
-  CodeCoverage::PrintJSONForLibrary(lib, Script::Handle(), js);
+  LibraryCoverageFilter lf(lib);
+  CodeCoverage::PrintJSON(isolate, js, &lf);
   return true;
 }
 
@@ -1495,8 +1540,9 @@ static bool HandleScriptsFetch(
 
 
 static bool HandleScriptsCoverage(
-    Isolate* isolate, const Script& script, JSONStream* js) {
-  CodeCoverage::PrintJSONForScript(script, js);
+    Isolate* isolate, const String& script_url, JSONStream* js) {
+  ScriptCoverageFilter sf(script_url);
+  CodeCoverage::PrintJSON(isolate, js, &sf);
   return true;
 }
 
@@ -1512,8 +1558,28 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
   // The id is the url of the script % encoded, decode it.
   String& requested_url = String::Handle(String::DecodeURI(id));
   Script& script = Script::Handle();
-  script = Script::FindByUrl(requested_url);
-  if (script.IsNull()) {
+  // There may exist more than one script object for a given url. Since they all
+  // have the same properties (source, tokens) we don't care which one we get.
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+  Library& lib = Library::Handle();
+  String& script_url = String::Handle();
+  bool found = false;
+  for (intptr_t i = 0; !found && (i < libs.Length()); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
+    ASSERT(!loaded_scripts.IsNull());
+    for (intptr_t j = 0; !found && (j < loaded_scripts.Length()); j++) {
+      script ^= loaded_scripts.At(j);
+      ASSERT(!script.IsNull());
+      script_url ^= script.url();
+      if (script_url.Equals(requested_url)) {
+        found = true;
+      }
+    }
+  }
+  if (!found) {
     PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
                        requested_url.ToCString());
     return true;
@@ -1524,7 +1590,7 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
   } else if (js->num_arguments() == 3) {
     const char* arg = js->GetArgument(2);
     if (strcmp(arg, "coverage") == 0) {
-      return HandleScriptsCoverage(isolate, script, js);
+      return HandleScriptsCoverage(isolate, requested_url, js);
     }
     PrintError(js, "Unrecognized subcommand '%s'", arg);
     return true;
@@ -1726,7 +1792,7 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
 }
 
 static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
-  CodeCoverage::PrintJSON(isolate, js);
+  CodeCoverage::PrintJSON(isolate, js, NULL);
   return true;
 }
 
