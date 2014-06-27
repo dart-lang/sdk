@@ -109,6 +109,6 @@ class ResolvedNodeMirrorFinder extends Unparser {
       unparseNodeListFrom(node, node.nodes);
       recursionLevel--;
     }
-    if (node.endToken != null) add(node.endToken.value);
+    if (node.endToken != null) write(node.endToken.value);
   }
 }
