@@ -2977,11 +2977,10 @@ class SsaBuilder extends ResolvedVisitor {
     return pop();
   }
 
-  String getTargetName(ErroneousElement error, [String prefix]) {
+  String noSuchMethodTargetSymbolString(ErroneousElement error,
+                                        [String prefix]) {
     String result = error.name;
-    if (prefix != null) {
-      result = '$prefix $result';
-    }
+    if (prefix == "set") return "$result=";
     return result;
   }
 
@@ -3077,7 +3076,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'get'),
+                                noSuchMethodTargetSymbolString(element, 'get'),
                                 argumentNodes: const Link<ast.Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
@@ -3128,7 +3127,8 @@ class SsaBuilder extends ResolvedVisitor {
       List<HInstruction> arguments =
           send == null ? const <HInstruction>[] : <HInstruction>[value];
       // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(location, getTargetName(element, 'set'),
+      generateThrowNoSuchMethod(location,
+                                noSuchMethodTargetSymbolString(element, 'set'),
                                 argumentValues: arguments);
     } else {
       stack.add(value);
@@ -4276,7 +4276,7 @@ class SsaBuilder extends ResolvedVisitor {
       // An erroneous element indicates that the funciton could not be resolved
       // (a warning has been issued).
       generateThrowNoSuchMethod(node,
-                                getTargetName(element),
+                                noSuchMethodTargetSymbolString(element),
                                 argumentNodes: node.arguments);
       return;
     }
@@ -4455,9 +4455,10 @@ class SsaBuilder extends ResolvedVisitor {
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
-        generateThrowNoSuchMethod(node.send,
-                                  getTargetName(error, 'constructor'),
-                                  argumentNodes: node.send.arguments);
+        generateThrowNoSuchMethod(
+            node.send,
+            noSuchMethodTargetSymbolString(error, 'constructor'),
+            argumentNodes: node.send.arguments);
       } else {
         Message message = error.messageKind.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
