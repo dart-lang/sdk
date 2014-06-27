@@ -204,6 +204,8 @@
     'handles_test.cc',
     'hash_map.h',
     'hash_map_test.cc',
+    'hash_table.h',
+    'hash_table_test.cc',
     'heap.cc',
     'heap.h',
     'heap_test.cc',
