@@ -140,6 +140,28 @@ void main() {
           });
       });
 
+      testVirtualDir('non-ascii-dir', (dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        new Directory('${dir.path}/æøå').createSync();
+        virDir.allowDirectoryListing = true;
+
+        return getAsString(virDir, '/')
+          .then((result) {
+            expect(result, contains('æøå'));
+          });
+      });
+
+      testVirtualDir('content-type', (dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+
+        return getHeaders(virDir, '/')
+          .then((headers) {
+            var contentType = headers.contentType.toString();
+            expect(contentType, 'text/html; charset=utf-8');
+          });
+      });
+
       if (!Platform.isWindows) {
         testVirtualDir('recursive-link', (dir) {
           var link = new Link('${dir.path}/recursive')..createSync('.');

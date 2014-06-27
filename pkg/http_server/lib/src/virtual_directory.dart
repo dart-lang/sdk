@@ -254,6 +254,8 @@ class VirtualDirectory {
         return;
       }
 
+      response.headers.contentType =
+          new ContentType('text', 'html', parameters: {'charset': 'utf-8'});
       response.headers.set(HttpHeaders.LAST_MODIFIED, stats.modified);
       var path = Uri.decodeComponent(request.uri.path);
       var encodedPath = new HtmlEscape().convert(path);
@@ -340,6 +342,8 @@ $server
       _errorCallback(request);
       return;
     }
+    response.headers.contentType =
+        new ContentType('text', 'html', parameters: {'charset': 'utf-8'});
     // Default error page.
     var path = Uri.decodeComponent(request.uri.path);
     var encodedPath = new HtmlEscape().convert(path);
