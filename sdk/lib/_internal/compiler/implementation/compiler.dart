@@ -218,6 +218,9 @@ abstract class Backend {
   /// the frontend and the backend.
   ConstantCompilerTask get constantCompilerTask;
 
+  /// Backend callback methods for the resolution phase.
+  ResolutionCallbacks get resolutionCallbacks;
+
   // Given a [FunctionElement], return a buffer with the code generated for it
   // or null if no code was generated.
   CodeBuffer codeOf(Element element) => null;
@@ -248,7 +251,6 @@ abstract class Backend {
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
 
-
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(Constant constant, Registry registry) {}
 
@@ -261,75 +263,15 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {}
 
-  /// Called during resolution to notify to the backend that the
-  /// program uses string interpolation.
-  void onStringInterpolation(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a catch statement.
-  void onCatchStatement(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program explicitly throws an exception.
-  void onThrowExpression(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a global variable with a lazy initializer.
-  void onLazyField(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program uses a type variable as an expression.
-  void onTypeVariableExpression(Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program uses a type literal.
-  void onTypeLiteral(DartType type, Registry registry) {}
-
-  /// Called during resolution to notify to the backend that the
-  /// program has a catch statement with a stack trace.
-  void onStackTraceInCatch(Registry registry) {}
-
   /// Register an is check to the backend.
   void registerIsCheckForCodegen(DartType type,
                                  Enqueuer enqueuer,
                                  Registry registry) {}
 
-  /// Register an is check to the backend.
-  void onIsCheck(DartType type, Registry registry) {}
-
-  /// Register an as check to the backend.
-  void onAsCheck(DartType type, Registry registry) {}
-
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
                                               DartType bound) {}
-
-  /// Registers that a type variable bounds check might occur at runtime.
-  void onTypeVariableBoundCheck(Registry registry) {}
-
-  /// Register that the application may throw a [NoSuchMethodError].
-  void onThrowNoSuchMethod(Registry registry) {}
-
-  /// Register that the application may throw a [RuntimeError].
-  void onThrowRuntimeError(Registry registry) {}
-
-  /// Register that the application may throw an
-  /// [AbstractClassInstantiationError].
-  void onAbstractClassInstantiation(Registry registry) {}
-
-  /// Register that the application may throw a [FallThroughError].
-  void onFallThroughError(Registry registry) {}
-
-  /// Register that a super call will end up calling
-  /// [: super.noSuchMethod :].
-  void onSuperNoSuchMethod(Registry registry) {}
-
-  /// Register that the application creates a constant map.
-  void onConstantMap(Registry registry) {}
-
-  /// Register that [node] is a call to `assert`.
-  void onAssert(Send node, Registry registry) {}
 
   /// Returns `true` if [element] represent the assert function.
   bool isAssertMethod(Element element) => false;
@@ -377,12 +319,10 @@ abstract class Backend {
   void registerConstSymbol(String name, Registry registry) {}
   void registerNewSymbol(Registry registry) {}
 
-  /// Called when resolving the `Symbol` constructor.
-  void onSymbolConstructor(Registry registry) {}
-
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
   }
+
   ClassElement get intImplementation => compiler.intClass;
   ClassElement get doubleImplementation => compiler.doubleClass;
   ClassElement get numImplementation => compiler.numClass;
@@ -484,6 +424,72 @@ abstract class Backend {
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
+}
+
+/// Backend callbacks function specific to the resolution phase.
+class ResolutionCallbacks {
+  /// Register that [node] is a call to `assert`.
+  void onAssert(Send node, Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses string interpolation.
+  void onStringInterpolation(Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a catch statement.
+  void onCatchStatement(Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program explicitly throws an exception.
+  void onThrowExpression(Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a global variable with a lazy initializer.
+  void onLazyField(Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses a type variable as an expression.
+  void onTypeVariableExpression(Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program uses a type literal.
+  void onTypeLiteral(DartType type, Registry registry) {}
+
+  /// Called during resolution to notify to the backend that the
+  /// program has a catch statement with a stack trace.
+  void onStackTraceInCatch(Registry registry) {}
+
+  /// Register an is check to the backend.
+  void onIsCheck(DartType type, Registry registry) {}
+
+  /// Register an as check to the backend.
+  void onAsCheck(DartType type, Registry registry) {}
+
+  /// Registers that a type variable bounds check might occur at runtime.
+  void onTypeVariableBoundCheck(Registry registry) {}
+
+  /// Register that the application may throw a [NoSuchMethodError].
+  void onThrowNoSuchMethod(Registry registry) {}
+
+  /// Register that the application may throw a [RuntimeError].
+  void onThrowRuntimeError(Registry registry) {}
+
+  /// Register that the application may throw an
+  /// [AbstractClassInstantiationError].
+  void onAbstractClassInstantiation(Registry registry) {}
+
+  /// Register that the application may throw a [FallThroughError].
+  void onFallThroughError(Registry registry) {}
+
+  /// Register that a super call will end up calling
+  /// [: super.noSuchMethod :].
+  void onSuperNoSuchMethod(Registry registry) {}
+
+  /// Register that the application creates a constant map.
+  void onConstantMap(Registry registry) {}
+
+  /// Called when resolving the `Symbol` constructor.
+  void onSymbolConstructor(Registry registry) {}
 }
 
 /**

@@ -56,6 +56,8 @@ class DartBackend extends Backend {
 
   DartConstantTask constantCompilerTask;
 
+  DartResolutionCallbacks resolutionCallbacks;
+
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
   /**
@@ -110,7 +112,9 @@ class DartBackend extends Backend {
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask  = new DartConstantTask(compiler),
-        super(compiler);
+        super(compiler) {
+    resolutionCallbacks = new DartResolutionCallbacks(this);
+  }
 
   bool classNeedsRti(ClassElement cls) => false;
   bool methodNeedsRti(FunctionElement function) => false;
@@ -490,12 +494,6 @@ class DartBackend extends Backend {
     return new Future.value();
   }
 
-  void onTypeLiteral(DartType type, Registry registry) {
-    if (type.isInterfaceType) {
-      usedTypeLiterals.add(type.element);
-    }
-  }
-
   void registerStaticSend(Element element, Node node) {
     if (useMirrorHelperLibrary) {
       mirrorRenamer.registerStaticSend(element, node);
@@ -513,6 +511,18 @@ class DartBackend extends Backend {
     if (useMirrorHelperLibrary &&
         element == compiler.mirrorSystemGetNameFunction) {
       enqueuer.addToWorkList(mirrorHelperGetNameFunction);
+    }
+  }
+}
+
+class DartResolutionCallbacks extends ResolutionCallbacks {
+  final DartBackend backend;
+
+  DartResolutionCallbacks(this.backend);
+
+  void onTypeLiteral(DartType type, Registry registry) {
+    if (type.isInterfaceType) {
+      backend.usedTypeLiterals.add(type.element);
     }
   }
 }

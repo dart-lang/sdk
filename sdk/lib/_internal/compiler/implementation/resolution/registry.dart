@@ -198,7 +198,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerLazyField() {
-    backend.onLazyField(this);
+    backend.resolutionCallbacks.onLazyField(this);
   }
 
   void registerMetadataConstant(Constant constant) {
@@ -206,25 +206,25 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerThrowRuntimeError() {
-    backend.onThrowRuntimeError(this);
+    backend.resolutionCallbacks.onThrowRuntimeError(this);
   }
 
   void registerTypeVariableBoundCheck() {
-    backend.onTypeVariableBoundCheck(this);
+    backend.resolutionCallbacks.onTypeVariableBoundCheck(this);
   }
 
   void registerThrowNoSuchMethod() {
-    backend.onThrowNoSuchMethod(this);
+    backend.resolutionCallbacks.onThrowNoSuchMethod(this);
   }
 
   void registerIsCheck(DartType type) {
     world.registerIsCheck(type, this);
-    backend.onIsCheck(type, this);
+    backend.resolutionCallbacks.onIsCheck(type, this);
   }
 
   void registerAsCheck(DartType type) {
     registerIsCheck(type);
-    backend.onAsCheck(type, this);
+    backend.resolutionCallbacks.onAsCheck(type, this);
   }
 
   void registerClosure(Element element) {
@@ -240,7 +240,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerSuperNoSuchMethod() {
-    backend.onSuperNoSuchMethod(this);
+    backend.resolutionCallbacks.onSuperNoSuchMethod(this);
   }
 
   void registerClassUsingVariableExpression(ClassElement element) {
@@ -248,12 +248,12 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerTypeVariableExpression() {
-    backend.onTypeVariableExpression(this);
+    backend.resolutionCallbacks.onTypeVariableExpression(this);
   }
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
-    backend.onTypeLiteral(type, this);
+    backend.resolutionCallbacks.onTypeLiteral(type, this);
     world.registerInstantiatedClass(compiler.typeClass, this);
   }
 
@@ -280,7 +280,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerSymbolConstructor() {
-    backend.onSymbolConstructor(this);
+    backend.resolutionCallbacks.onSymbolConstructor(this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -292,7 +292,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerAbstractClassInstantiation() {
-    backend.onAbstractClassInstantiation(this);
+    backend.resolutionCallbacks.onAbstractClassInstantiation(this);
   }
 
   void registerNewSymbol() {
@@ -304,23 +304,23 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerStringInterpolation() {
-    backend.onStringInterpolation(this);
+    backend.resolutionCallbacks.onStringInterpolation(this);
   }
 
   void registerConstantMap() {
-    backend.onConstantMap(this);
+    backend.resolutionCallbacks.onConstantMap(this);
   }
 
   void registerFallThroughError() {
-    backend.onFallThroughError(this);
+    backend.resolutionCallbacks.onFallThroughError(this);
   }
 
   void registerCatchStatement() {
-    backend.onCatchStatement(this);
+    backend.resolutionCallbacks.onCatchStatement(this);
   }
 
   void registerStackTraceInCatch() {
-    backend.onStackTraceInCatch(this);
+    backend.resolutionCallbacks.onStackTraceInCatch(this);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -333,7 +333,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerThrowExpression() {
-    backend.onThrowExpression(this);
+    backend.resolutionCallbacks.onThrowExpression(this);
   }
 
   void registerDependency(Element element) {
@@ -355,7 +355,7 @@ class ResolutionRegistry extends Registry {
 
   void registerAssert(Send node) {
     mapping.setAssert(node);
-    backend.onAssert(node, this);
+    backend.resolutionCallbacks.onAssert(node, this);
   }
 
   bool isAssert(Send node) {
