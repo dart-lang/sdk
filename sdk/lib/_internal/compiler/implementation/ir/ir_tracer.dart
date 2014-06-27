@@ -119,6 +119,15 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         "InvokeMethod $receiver $callName ($args) $kont");
   }
 
+  visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
+    String dummy = names.name(node);
+    String callName = node.selector.name;
+    String args = node.arguments.map(formatReference).join(', ');
+    String kont = formatReference(node.continuation);
+    printStmt(dummy,
+        "InvokeSuperMethod $callName ($args) $kont");
+  }
+
   visitInvokeConstructor(ir.InvokeConstructor node) {
     String dummy = names.name(node);
     String callName;

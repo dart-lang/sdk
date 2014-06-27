@@ -291,6 +291,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "$receiver.$name($args)";
   }
 
+  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+    String name = node.selector.name;
+    String args = formatArguments(node);
+    return "super.$name($args)";
+  }
+
   String visitInvokeConstructor(InvokeConstructor node) {
     String callName;
     if (node.target.name.isEmpty) {

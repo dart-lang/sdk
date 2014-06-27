@@ -134,6 +134,15 @@ class InvokeMethod extends Expression implements Invoke {
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethod(this);
 }
 
+class InvokeSuperMethod extends Expression implements Invoke {
+  final Selector selector;
+  final List<Expression> arguments;
+
+  InvokeSuperMethod(this.selector, this.arguments) ;
+
+  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+}
+
 /**
  * Call to a factory or generative constructor.
  */
@@ -443,6 +452,7 @@ abstract class ExpressionVisitor<E> {
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
+  E visitInvokeSuperMethod(InvokeSuperMethod node);
   E visitInvokeConstructor(InvokeConstructor node);
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
@@ -742,6 +752,20 @@ class Builder extends ir.Visitor<Node> {
     }
   }
 
+  Statement visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression invoke = new InvokeSuperMethod(node.selector, arguments);
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(invoke);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildContinuationAssignment(cont.parameters.single, invoke,
+          () => visit(cont.body));
+    }
+  }
+
   Statement visitConcatenateStrings(ir.ConcatenateStrings node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression concat = new ConcatenateStrings(arguments);
@@ -985,7 +1009,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
   /// Returns the redirect target of [label] or [label] itself if it should not
   /// be redirected.
-  Jump redirect(Break jump) {
+  Jump redirect(Jump jump) {
     Jump newJump = labelRedirects[jump.target];
     return newJump != null ? newJump : jump;
   }
@@ -1049,6 +1073,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
   Expression visitInvokeConstructor(InvokeConstructor node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
@@ -1102,12 +1133,12 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     // Redirect through chain of breaks.
     // Note that useCount was accounted for at visitLabeledStatement.
     // Note redirect may return either a Break or Continue statement.
-    node = redirect(node);
-    if (node is Break && node.target.useCount == 1) {
-      --node.target.useCount;
-      return visitStatement(node.target.binding.next);
+    Jump jump = redirect(node);
+    if (jump is Break && jump.target.useCount == 1) {
+      --jump.target.useCount;
+      return visitStatement(jump.target.binding.next);
     }
-    return node;
+    return jump;
   }
 
   Statement visitContinue(Continue node) {
@@ -1696,6 +1727,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
 
   Expression visitInvokeMethod(InvokeMethod node) {
     node.receiver = visitExpression(node.receiver);
+    _rewriteList(node.arguments);
+    return node;
+  }
+
+  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
     _rewriteList(node.arguments);
     return node;
   }

@@ -137,6 +137,14 @@ class IrBuilderTask extends CompilerTask {
   }
 }
 
+class _GetterElements {
+  ir.Primitive result;
+  ir.Primitive index;
+  ir.Primitive receiver;
+
+  _GetterElements({this.result, this.index, this.receiver}) ;
+}
+
 /**
  * A tree visitor that builds [IrNodes]. The visit methods add statements using
  * to the [builder] and return the last added statement for trees that represent
@@ -827,6 +835,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitIdentifier(ast.Identifier node) {
     assert(isOpen);
+    // "this" is the only identifier that should be met by the visitor.
     assert(node.isThis());
     return lookupThis();
   }
@@ -913,13 +922,31 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         node.argumentsNode);
   }
 
+  /// If [node] is null, returns this.
+  /// If [node] is super, returns null (for special handling)
+  /// Otherwise visits [node] and returns the result.
+  ir.Primitive visitReceiver(ast.Expression node) {
+    if (node == null) return lookupThis();
+    if (node.isSuper()) return null;
+    return visit(node);
+  }
+
+  /// Makes an [InvokeMethod] unless [node.receiver.isSuper()], in that case
+  /// makes an [InvokeSuperMethod] ignoring [receiver].
+  ir.Expression createDynamicInvoke(ast.Send node,
+                             Selector selector,
+                             ir.Definition receiver,
+                             ir.Continuation k,
+                             List<ir.Definition> arguments) {
+    return node.receiver != null && node.receiver.isSuper()
+        ? new ir.InvokeSuperMethod(selector, k, arguments)
+        : new ir.InvokeMethod(receiver, selector, k, arguments);
+  }
+
   ir.Primitive visitDynamicSend(ast.Send node) {
     assert(isOpen);
-    if (node.receiver == null || node.receiver.isSuper()) {
-      return giveup(node, 'DynamicSend without receiver, or super receiver');
-    }
     Selector selector = elements.getSelector(node);
-    ir.Primitive receiver = visit(node.receiver);
+    ir.Primitive receiver = visitReceiver(node.receiver);
     List<ir.Primitive> arguments = new List<ir.Primitive>();
     for (ast.Node n in node.arguments) {
       arguments.add(visit(n));
@@ -927,66 +954,84 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Parameter v = new ir.Parameter(null);
     ir.Continuation k = new ir.Continuation([v]);
     ir.Expression invoke =
-        new ir.InvokeMethod(receiver, selector, k, arguments);
+        createDynamicInvoke(node, selector, receiver, k, arguments);
     add(new ir.LetCont(k, invoke));
     return v;
   }
 
+  _GetterElements translateGetter(ast.Send node, Selector selector) {
+    Element element = elements[node];
+    ir.Primitive result;
+    ir.Primitive receiver;
+    ir.Primitive index;
+
+    if (Elements.isErroneousElement(element)) {
+      giveup(node, 'Erroneous element on GetterSend');
+      return null;
+    }
+
+    if (element != null && element.isConst) {
+      // Reference to constant local, top-level or static field
+
+      result = translateConstant(node);
+    } else if (Elements.isLocal(element)) {
+      // Reference to local variable
+
+      result = lookupLocal(element);
+    } else if (element == null ||
+               Elements.isInstanceField(element) ||
+               Elements.isInstanceMethod(element) ||
+               selector.isIndex ||
+               node.isSuperCall) {
+    // Dynamic dispatch to a getter. Sometimes resolution will suggest a target
+    // element, but in these cases we must still emit a dynamic dispatch. The
+    // target element may be an instance method in case we are converting a
+    // method to a function object.
+
+      receiver = visitReceiver(node.receiver);
+      List<ir.Primitive> arguments = new List<ir.Primitive>();
+      if (selector.isIndex) {
+        index = visit(node.arguments.head);
+        arguments.add(index);
+      }
+
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      assert(selector.kind == SelectorKind.GETTER ||
+             selector.kind == SelectorKind.INDEX);
+      ir.Expression invoke =
+          createDynamicInvoke(node, selector, receiver, k, arguments);
+      add(new ir.LetCont(k, invoke));
+      result = v;
+    } else if (element.isField || element.isGetter ||
+        // Access to a static field or getter (non-static case handled above).
+        // Even if there is only a setter, we compile as if it was a getter,
+        // so the vm can fail at runtime.
+
+        element.isSetter) {
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      assert(selector.kind == SelectorKind.GETTER ||
+             selector.kind == SelectorKind.SETTER);
+      ir.Expression invoke =
+          new ir.InvokeStatic(element, selector, k, []);
+      add(new ir.LetCont(k, invoke));
+      result = v;
+    } else if (Elements.isStaticOrTopLevelFunction(element)) {
+      // Convert a top-level or static function to a function object.
+
+      result = translateConstant(node);
+    } else {
+      throw "Unexpected SendSet getter: $node, $element";
+    }
+    return new _GetterElements(
+        result: result,index: index, receiver: receiver);
+  }
+
   ir.Primitive visitGetterSend(ast.Send node) {
     assert(isOpen);
-    Element element = elements[node];
+    return translateGetter(node, elements.getSelector(node)).result;
 
-    // TODO(asgerf): Generate code for erroneous getter access
-    if (Elements.isErroneousElement(element)) {
-      return giveup(node, 'Erroneous element on GetterSend');
-    }
-
-    // Reference to constant local, top-level or static field
-    if (element != null && element.isConst) {
-      return translateConstant(node);
-    }
-
-    // Reference to local variable
-    if (Elements.isLocal(element)) {
-      return lookupLocal(element);
-    }
-
-    // Dynamic dispatch to a getter. Sometimes resolution will suggest a target
-    // element, but in these cases we must still emit a dynamic dispatch.
-    // The target element may be an instance method in case we are converting
-    // a method to a function object.
-    if (element == null ||
-        Elements.isInstanceField(element) ||
-        Elements.isInstanceMethod(element)) {
-      ir.Primitive receiver = node.receiver == null
-          ? lookupThis()
-          : visit(node.receiver);
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
-      Selector selector = elements.getSelector(node);
-      assert(selector.kind == SelectorKind.GETTER);
-      ir.InvokeMethod invoke = new ir.InvokeMethod(receiver, selector, k, []);
-      add(new ir.LetCont(k, invoke));
-      return v;
-    }
-
-    // Access to a static field or getter (non-static case handled above).
-    if (element.isField || element.isGetter) {
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
-      Selector selector = elements.getSelector(node);
-      assert(selector.kind == SelectorKind.GETTER);
-      ir.InvokeStatic invoke = new ir.InvokeStatic(element, selector, k, []);
-      add(new ir.LetCont(k, invoke));
-      return v;
-    }
-
-    // Convert a top-level or static function to a function object.
-    if (Elements.isStaticOrTopLevelFunction(element)) {
-      return translateConstant(node);
-    }
-
-    throw "Unexpected GetterSend: $node, $element";
   }
 
   ir.Primitive buildNegation(ir.Primitive condition) {
@@ -1181,7 +1226,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitSuperSend(ast.Send node) {
     assert(isOpen);
-    return giveup(node, 'SuperSend');
+    if (node.isPropertyAccess) {
+      return visitGetterSend(node);
+    } else {
+      return visitDynamicSend(node);
+    }
   }
 
   ir.Primitive visitTypeReferenceSend(ast.Send node) {
@@ -1208,98 +1257,97 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     assert(isOpen);
     Element element = elements[node];
     ast.Operator op = node.assignmentOperator;
-    ir.Primitive result;
-    ir.Primitive getter;
-    if (op.source == '=') {
-      if (Elements.isLocal(element)) {
-        // Exactly one argument expected for a simple assignment.
-        assert(!node.arguments.isEmpty);
-        assert(node.arguments.tail.isEmpty);
-        result = visit(node.arguments.head);
-        result.useElementAsHint(element);
-        assignedVars[variableIndex[element]] = result;
-        return result;
-      } else if (Elements.isStaticOrTopLevel(element)) {
-        assert(element.isField || element.isSetter);
-        assert(!node.arguments.isEmpty && node.arguments.tail.isEmpty);
-        ir.Parameter v = new ir.Parameter(null);
-        ir.Continuation k = new ir.Continuation([v]);
-        Selector selector = elements.getSelector(node);
-        ir.Definition arg = visit(node.arguments.head);
-        ir.InvokeStatic invoke =
-            new ir.InvokeStatic(element, selector, k, [arg]);
-        add(new ir.LetCont(k, invoke));
-        return arg;
-      } else if (node.receiver == null) {
-        // Nodes that fall in this case:
-        // - Unresolved top-level
-        // - Assignment to final variable (will not be resolved)
-        return giveup(node, 'SendSet: non-local, non-static, but no receiver');
-      } else {
-        if (element != null && Elements.isUnresolved(element)) {
-          return giveup(node);
-        }
+    // For complex operators, this is the result of getting (before assigning)
+    ir.Primitive originalValue;
+    // For []+= style operators, this saves the index.
+    ir.Primitive index;
+    ir.Primitive receiver;
+    // This is what gets assigned.
+    ir.Primitive valueToStore;
+    Selector selector = elements.getSelector(node);
+    Selector operatorSelector =
+        elements.getOperatorSelectorInComplexSendSet(node);
+    Selector getterSelector =
+        elements.getGetterSelectorInComplexSendSet(node);
+    assert(
+        // Indexing send-sets have an argument for the index.
+        (selector.isIndexSet ? 1 : 0) +
+        // Non-increment send-sets have one more argument.
+        (ast.Operator.INCREMENT_OPERATORS.contains(op.source) ? 0 : 1)
+            == node.argumentCount());
 
-        // Setter or index-setter invocation
-        assert(node.receiver != null);
+    ast.Node assignArg = selector.isIndexSet
+        ? node.arguments.tail.head
+        : node.arguments.head;
 
-        if (node.receiver.isSuper()) return giveup(node, 'Super SendSet');
-
-        ir.Primitive receiver = node.receiver == null
-            ? lookupThis()
-            : visit(node.receiver);
-        ir.Parameter v = new ir.Parameter(null);
-        ir.Continuation k = new ir.Continuation([v]);
-        Selector selector = elements.getSelector(node);
-        assert(selector.kind == SelectorKind.SETTER ||
-            selector.kind == SelectorKind.INDEX);
-        List<ir.Definition> args = node.arguments.mapToList(visit,
-                                                            growable:false);
-        ir.InvokeMethod invoke =
-            new ir.InvokeMethod(receiver, selector, k, args);
-        add(new ir.LetCont(k, invoke));
-        return args.last;
+    // Get the value into valueToStore
+    if (op.source == "=") {
+      if (selector.isIndexSet) {
+        receiver = visitReceiver(node.receiver);
+        index = visit(node.arguments.head);
+      } else if (element == null || Elements.isInstanceField(element)) {
+        receiver = visitReceiver(node.receiver);
       }
-    } else if (ast.Operator.COMPLEX_OPERATORS.contains(op.source)) {
-      Element selectorElement = elements[node.selector];
-      if (selectorElement != null && !selectorElement.isAssignable) {
-        return giveup(node, 'Unresolved or non-assignable compound assignment');
-      }
-      if (!Elements.isLocal(selectorElement)) {
-        return giveup(node, 'Non-local compound assignment');
-      }
+      valueToStore = visit(assignArg);
+    } else {
+      // Get the original value into getter
+      assert(ast.Operator.COMPLEX_OPERATORS.contains(op.source));
 
-      Selector selector = elements.getOperatorSelectorInComplexSendSet(node);
-      getter = lookupLocal(selectorElement);
+      _GetterElements getterResult = translateGetter(node, getterSelector);
+      index = getterResult.index;
+      receiver = getterResult.receiver;
+      originalValue = getterResult.result;
 
+      // Do the modification of the value in getter.
       ir.Primitive arg;
       if (ast.Operator.INCREMENT_OPERATORS.contains(op.source)) {
-        assert(node.arguments.isEmpty);
         arg = makePrimConst(constantSystem.createInt(1));
         add(new ir.LetPrim(arg));
       } else {
-        assert(!node.arguments.isEmpty);
-        assert(node.arguments.tail.isEmpty);
-        arg = visit(node.arguments.head);
+        arg = visit(assignArg);
       }
-      arg.useElementAsHint(element);
-      result = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([result]);
-      ir.Expression invoke = new ir.InvokeMethod(getter, selector, k, [arg]);
+      valueToStore = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([valueToStore]);
+      ir.Expression invoke =
+          new ir.InvokeMethod(originalValue, operatorSelector, k, [arg]);
       add(new ir.LetCont(k, invoke));
+    }
 
-      assignedVars[variableIndex[element]] = result;
-
-      if (ast.Operator.INCREMENT_OPERATORS.contains(op.source) &&
-          !node.isPrefix) {
-        assert(getter != null);
-        return getter;
-      } else {
-        return result;
-      }
+    // Set the value
+    if (Elements.isLocal(element)) {
+      valueToStore.useElementAsHint(element);
+      assignedVars[variableIndex[element]] = valueToStore;
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      assert(element.isField || element.isSetter);
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      ir.InvokeStatic invoke =
+          new ir.InvokeStatic(element, selector, k, [valueToStore]);
+      add(new ir.LetCont(k, invoke));
     } else {
-      compiler.internalError(node, "Unknown assignment operator ${op.source}");
-      return null;
+      if (element != null && Elements.isUnresolved(element)) {
+        return giveup(node, 'SendSet: non-local, non-static, unresolved');
+      }
+      // Setter or index-setter invocation
+      ir.Parameter v = new ir.Parameter(null);
+      ir.Continuation k = new ir.Continuation([v]);
+      Selector selector = elements.getSelector(node);
+      assert(selector.kind == SelectorKind.SETTER ||
+          selector.kind == SelectorKind.INDEX);
+      List<ir.Definition> arguments = selector.isIndexSet
+          ? [index, valueToStore]
+          : [valueToStore];
+      ir.Expression invoke =
+          createDynamicInvoke(node, selector, receiver, k, arguments);
+      add(new ir.LetCont(k, invoke));
+    }
+
+    if (node.isPostfix) {
+      assert(originalValue != null);
+      return originalValue;
+    } else {
+      return valueToStore;
     }
   }
 
@@ -1373,8 +1421,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
     try {
       return action();
-    } catch(e) {
-      if (e == ABORT_IRNODE_BUILDER) return null;
+    } catch(e, tr) {
+      if (e == ABORT_IRNODE_BUILDER) {
+        return null;
+      }
       rethrow;
     }
   }

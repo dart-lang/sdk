@@ -165,7 +165,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   /// True if the two expressions are a reference to the same variable.
-  bool isSameVariable(Expression e1, Expression e2) {
+  bool isSameVariable(Receiver e1, Receiver e2) {
     // TODO(asgerf): Using the annotated element isn't the best way to do this
     // since elements are supposed to go away from codegen when we discard the
     // old backend.
@@ -451,8 +451,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
-  Expression visitInvokeMethod(tree.InvokeMethod exp) {
-    Expression receiver = visitExpression(exp.receiver);
+  Expression emitMethodCall(tree.Invoke exp, Receiver receiver) {
     List<Argument> args = emitArguments(exp);
     switch (exp.selector.kind) {
       case SelectorKind.CALL:
@@ -489,6 +488,15 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       default:
         throw "Unexpected selector in InvokeMethod: ${exp.selector.kind}";
     }
+  }
+
+  Expression visitInvokeMethod(tree.InvokeMethod exp) {
+    Expression receiver = visitExpression(exp.receiver);
+    return emitMethodCall(exp, receiver);
+  }
+
+  Expression visitInvokeSuperMethod(tree.InvokeSuperMethod exp) {
+    return emitMethodCall(exp, new SuperReceiver());
   }
 
   Expression visitInvokeConstructor(tree.InvokeConstructor exp) {

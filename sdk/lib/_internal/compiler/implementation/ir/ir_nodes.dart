@@ -178,6 +178,30 @@ class InvokeMethod extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
 
+/// Invoke a method, operator, getter, setter, or index getter/setter from the
+/// super class in tail position.
+class InvokeSuperMethod extends Expression implements Invoke {
+  final Selector selector;
+  final Reference continuation;
+  final List<Reference> arguments;
+
+  InvokeSuperMethod(this.selector,
+                    Continuation cont,
+                    List<Definition> args)
+      : continuation = new Reference(cont),
+        arguments = _referenceList(args) {
+    assert(selector != null);
+    assert(selector.kind == SelectorKind.CALL ||
+           selector.kind == SelectorKind.OPERATOR ||
+           (selector.kind == SelectorKind.GETTER && arguments.isEmpty) ||
+           (selector.kind == SelectorKind.SETTER && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 2));
+  }
+
+  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+}
+
 /// Non-const call to a constructor. The [target] may be a generative
 /// constructor, factory, or redirecting factory.
 class InvokeConstructor extends Expression implements Invoke {
@@ -400,6 +424,7 @@ abstract class Visitor<T> {
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
+  T visitInvokeSuperMethod(InvokeSuperMethod node) => visitExpression(node);
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
@@ -646,6 +671,10 @@ class RegisterAllocator extends Visitor {
 
   void visitInvokeMethod(InvokeMethod node) {
     visitReference(node.receiver);
+    node.arguments.forEach(visitReference);
+  }
+
+  void visitInvokeSuperMethod(InvokeSuperMethod node) {
     node.arguments.forEach(visitReference);
   }
 
