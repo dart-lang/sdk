@@ -4418,8 +4418,6 @@ class VoidTypeImplTest extends EngineTestCase {
 }
 
 main() {
-  ElementKindTest.dartSuite();
-  AngularPropertyKindTest.dartSuite();
   FunctionTypeImplTest.dartSuite();
   InterfaceTypeImplTest.dartSuite();
   TypeParameterTypeImplTest.dartSuite();
@@ -4430,4 +4428,6 @@ main() {
   HtmlElementImplTest.dartSuite();
   LibraryElementImplTest.dartSuite();
   MultiplyDefinedElementImplTest.dartSuite();
+  AngularPropertyKindTest.dartSuite();
+  ElementKindTest.dartSuite();
 }

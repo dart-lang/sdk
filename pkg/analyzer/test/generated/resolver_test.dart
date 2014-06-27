@@ -27955,22 +27955,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
 }
 
 main() {
-//  DeclarationMatcherTest.dartSuite();
-//  ElementResolverTest.dartSuite();
-//  IncrementalResolverTest.dartSuite();
-//  InheritanceManagerTest.dartSuite();
-//  LibraryElementBuilderTest.dartSuite();
-//  LibraryTest.dartSuite();
-//  StaticTypeAnalyzerTest.dartSuite();
-//  SubtypeManagerTest.dartSuite();
-//  TypeOverrideManagerTest.dartSuite();
-//  TypeProviderImplTest.dartSuite();
-//  TypeResolverVisitorTest.dartSuite();
-//  EnclosedScopeTest.dartSuite();
-//  LibraryImportScopeTest.dartSuite();
-//  LibraryScopeTest.dartSuite();
-//  ScopeBuilderTest.dartSuite();
-//  ScopeTest.dartSuite();
 //  CompileTimeErrorCodeTest.dartSuite();
 //  ErrorResolverTest.dartSuite();
 //  HintCodeTest.dartSuite();
@@ -27982,6 +27966,22 @@ main() {
 //  StaticWarningCodeTest.dartSuite();
 //  StrictModeTest.dartSuite();
 //  TypePropagationTest.dartSuite();
+//  EnclosedScopeTest.dartSuite();
+//  LibraryImportScopeTest.dartSuite();
+//  LibraryScopeTest.dartSuite();
+//  ScopeBuilderTest.dartSuite();
+//  ScopeTest.dartSuite();
 //  //AnalysisDeltaTest.dartSuite();
 //  ChangeSetTest.dartSuite();
+//  DeclarationMatcherTest.dartSuite();
+//  ElementResolverTest.dartSuite();
+//  IncrementalResolverTest.dartSuite();
+//  InheritanceManagerTest.dartSuite();
+//  LibraryElementBuilderTest.dartSuite();
+//  LibraryTest.dartSuite();
+//  StaticTypeAnalyzerTest.dartSuite();
+//  SubtypeManagerTest.dartSuite();
+//  TypeOverrideManagerTest.dartSuite();
+//  TypeProviderImplTest.dartSuite();
+//  TypeResolverVisitorTest.dartSuite();
 }

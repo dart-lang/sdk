@@ -1008,7 +1008,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (entry is DartEntry) {
           DartEntry dartEntry = entry;
           DartEntryImpl dartCopy = dartEntry.writableCopy;
-          dartCopy.invalidateAllResolutionInformation();
+          dartCopy.invalidateAllResolutionInformation(false);
           _cache.put(source, dartCopy);
           SourcePriority priority = SourcePriority.UNKNOWN;
           SourceKind kind = dartCopy.kind;
@@ -1021,7 +1021,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else if (entry is HtmlEntry) {
           HtmlEntry htmlEntry = entry;
           HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
-          htmlCopy.invalidateAllResolutionInformation();
+          htmlCopy.invalidateAllResolutionInformation(false);
           _cache.put(source, htmlCopy);
           _workManager.add(source, SourcePriority.HTML);
         }
@@ -1781,7 +1781,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.preserveComments = options.preserveComments;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
-      _invalidateAllLocalResolutionInformation();
+      _invalidateAllLocalResolutionInformation(false);
     }
   }
 
@@ -1868,7 +1868,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _sourceFactory = factory;
     _coreLibrarySource = _sourceFactory.forUri(DartSdk.DART_CORE);
     _cache = createCacheFromSourceFactory(factory);
-    _invalidateAllLocalResolutionInformation();
+    _invalidateAllLocalResolutionInformation(true);
   }
 
   /**
@@ -3643,8 +3643,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Invalidate all of the resolution results computed by this context.
    *
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
+   *
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  void _invalidateAllLocalResolutionInformation() {
+  void _invalidateAllLocalResolutionInformation(bool invalidateUris) {
     HashMap<Source, List<Source>> oldPartMap = new HashMap<Source, List<Source>>();
     MapIterator<Source, SourceEntry> iterator = _privatePartition.iterator();
     while (iterator.moveNext()) {
@@ -3652,13 +3655,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is HtmlEntry) {
         HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
-        htmlCopy.invalidateAllResolutionInformation();
+        htmlCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.value = htmlCopy;
       } else if (sourceEntry is DartEntry) {
         DartEntry dartEntry = sourceEntry;
         oldPartMap[source] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
         DartEntryImpl dartCopy = dartEntry.writableCopy;
-        dartCopy.invalidateAllResolutionInformation();
+        dartCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.value = dartCopy;
         _workManager.add(source, SourcePriority.UNKNOWN);
       }
@@ -3734,14 +3737,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (libraryEntry != null) {
       List<Source> includedParts = libraryEntry.getValue(DartEntry.INCLUDED_PARTS);
       DartEntryImpl libraryCopy = libraryEntry.writableCopy;
-      libraryCopy.invalidateAllResolutionInformation();
+      libraryCopy.invalidateAllResolutionInformation(false);
       _cache.put(librarySource, libraryCopy);
       _workManager.add(librarySource, SourcePriority.LIBRARY);
       for (Source partSource in includedParts) {
         SourceEntry partEntry = _cache.get(partSource);
         if (partEntry is DartEntry) {
           DartEntryImpl partCopy = partEntry.writableCopy;
-          partCopy.invalidateAllResolutionInformation();
+          partCopy.invalidateAllResolutionInformation(false);
           _cache.put(partSource, partCopy);
         }
       }
@@ -9359,19 +9362,16 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _parsedUnit = null;
     _parsedUnitAccessed = false;
     _parsedUnitState = CacheState.INVALID;
-    _importedLibraries = Source.EMPTY_ARRAY;
-    _importedLibrariesState = CacheState.INVALID;
-    _exportedLibraries = Source.EMPTY_ARRAY;
-    _exportedLibrariesState = CacheState.INVALID;
-    _includedParts = Source.EMPTY_ARRAY;
-    _includedPartsState = CacheState.INVALID;
-    _discardCachedResolutionInformation();
+    _discardCachedResolutionInformation(true);
   }
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
+   *
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  void invalidateAllResolutionInformation() {
+  void invalidateAllResolutionInformation(bool invalidateUris) {
     if (_parsedUnitState == CacheState.FLUSHED) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
@@ -9389,7 +9389,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
         state = state._nextState;
       }
     }
-    _discardCachedResolutionInformation();
+    _discardCachedResolutionInformation(invalidateUris);
   }
 
   @override
@@ -9942,8 +9942,11 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
+   *
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  void _discardCachedResolutionInformation() {
+  void _discardCachedResolutionInformation(bool invalidateUris) {
     _element = null;
     _elementState = CacheState.INVALID;
     clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
@@ -9952,6 +9955,14 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _publicNamespace = null;
     _publicNamespaceState = CacheState.INVALID;
     _resolutionState.invalidateAllResolutionInformation();
+    if (invalidateUris) {
+      _importedLibraries = Source.EMPTY_ARRAY;
+      _importedLibrariesState = CacheState.INVALID;
+      _exportedLibraries = Source.EMPTY_ARRAY;
+      _exportedLibrariesState = CacheState.INVALID;
+      _includedParts = Source.EMPTY_ARRAY;
+      _includedPartsState = CacheState.INVALID;
+    }
   }
 
   /**
@@ -11033,15 +11044,16 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _parsedUnitState = CacheState.INVALID;
     _resolvedUnit = null;
     _resolvedUnitState = CacheState.INVALID;
-    _referencedLibraries = Source.EMPTY_ARRAY;
-    _referencedLibrariesState = CacheState.INVALID;
-    invalidateAllResolutionInformation();
+    invalidateAllResolutionInformation(true);
   }
 
   /**
    * Invalidate all of the resolution information associated with the HTML file.
+   *
+   * @param invalidateUris true if the cached results of converting URIs to source files should also
+   *          be invalidated.
    */
-  void invalidateAllResolutionInformation() {
+  void invalidateAllResolutionInformation(bool invalidateUris) {
     _angularEntry = null;
     _angularEntryState = CacheState.INVALID;
     _angularErrors = AnalysisError.NO_ERRORS;
@@ -11056,6 +11068,10 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _resolutionErrorsState = CacheState.INVALID;
     _hints = AnalysisError.NO_ERRORS;
     _hintsState = CacheState.INVALID;
+    if (invalidateUris) {
+      _referencedLibraries = Source.EMPTY_ARRAY;
+      _referencedLibrariesState = CacheState.INVALID;
+    }
   }
 
   @override

@@ -46,7 +46,7 @@ class ElementFactory {
     return element;
   }
 
-  static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, object.type, parameterNames);
+  static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, objectType, parameterNames);
 
   static CompilationUnitElementImpl compilationUnit(String fileName) {
     Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
