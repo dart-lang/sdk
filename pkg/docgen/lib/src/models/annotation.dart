@@ -83,7 +83,7 @@ class ResolvedNodeMirrorFinder extends Unparser {
     recursionLevel--;
   }
 
-  unparseNodeListFrom(NodeList node, var from) {
+  unparseNodeListFrom(NodeList node, var from, {spaces}) {
     if (from.isEmpty) return;
 
     visit(from.head);
