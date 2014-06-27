@@ -142,12 +142,12 @@ void main() {
 
       testVirtualDir('non-ascii-dir', (dir) {
         var virDir = new VirtualDirectory(dir.path);
-        new Directory('${dir.path}/æøå').createSync();
+        new Directory('${dir.path}/æø').createSync();
         virDir.allowDirectoryListing = true;
 
         return getAsString(virDir, '/')
           .then((result) {
-            expect(result, contains('æøå'));
+            expect(result, contains('æø'));
           });
       });
 
