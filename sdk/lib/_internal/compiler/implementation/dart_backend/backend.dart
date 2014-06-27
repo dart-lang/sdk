@@ -429,7 +429,8 @@ class DartBackend extends Backend {
       mirrorRenamer.addRenames(renames, topLevelNodes, collector);
     }
 
-    final unparser = new EmitterUnparser(renames);
+    final unparser = new EmitterUnparser(renames, stripTypes: forceStripTypes,
+        minify: compiler.enableMinification);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     String assembledCode = unparser.result;
     compiler.outputProvider('', 'dart')
@@ -519,11 +520,12 @@ class DartBackend extends Backend {
 class EmitterUnparser extends Unparser {
   final Map<Node, String> renames;
 
-  EmitterUnparser(this.renames);
+  EmitterUnparser(this.renames, {bool minify, bool stripTypes})
+      : super(minify: minify, stripTypes: stripTypes);
 
   visit(Node node) {
     if (node != null && renames.containsKey(node)) {
-      sb.write(renames[node]);
+      write(renames[node]);
     } else {
       super.visit(node);
     }
@@ -537,7 +539,7 @@ class EmitterUnparser extends Unparser {
 
   unparseFunctionName(Node name) {
     if (name != null && renames.containsKey(name)) {
-      sb.write(renames[name]);
+      write(renames[name]);
     } else {
       super.unparseFunctionName(name);
     }

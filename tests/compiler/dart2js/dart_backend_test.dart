@@ -168,59 +168,163 @@ main() {
 }
 ''';
   testDart2Dart(src, continuation: (String s) {
-    Expect.equals('should_be_kept(){}main(){should_be_kept();}', s);
+    print(s);
+    Expect.equals('''
+should_be_kept() {}
+main() {
+  should_be_kept();
+}
+''', s);
   });
 }
-
 testTopLevelField() {
-  testDart2Dart('final String x="asd";main(){x;}');
+  testDart2Dart('''
+final String x = "asd";
+main() {
+  x;
+}
+''');
 }
 
 testSimpleTopLevelClass() {
-  testDart2Dart('main(){new A();}class A{A(){}}');
+  testDart2Dart('''
+main() {
+  new A();
+}
+class A {
+  A() {}
+}
+''');
 }
 
 testClassWithSynthesizedConstructor() {
-  testDart2Dart('main(){new A();}class A{}');
+  testDart2Dart('''
+main() {
+  new A();
+}
+class A {}
+''');
 }
 
 testClassWithMethod() {
-  testDart2Dart(r'main(){var a=new A();a.foo();}class A{void foo(){}}');
+  testDart2Dart(r'''
+main() {
+  var a = new A();
+  a.foo();
+}
+class A {
+  void foo() {}
+}
+''');
 }
 
 testExtendsImplements() {
-  testDart2Dart('main(){new B<Object>();}'
-      'class A<T>{}class B<T> extends A<T>{}');
+  testDart2Dart('''
+main() {
+  new B<Object>();
+}
+class A<T> {}
+class B<T> extends A<T> {}
+''');
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){var x,y;final String s=null;}');
-  testDart2Dart('main(){final int x=0,y=0;final String s=null;}');
-  testDart2Dart('foo(f,g){}main(){foo(1,2);}');
-  testDart2Dart('foo(f(arg)){}main(){foo(main);}');
+  testDart2Dart('''
+main() {
+  var x, y;
+  final String s = null;
+}
+''');
+  testDart2Dart('''
+main() {
+  final int x = 0, y = 0;
+  final String s = null;
+}
+''');
+  testDart2Dart('''
+foo(f, g) {}
+main() {
+  foo(1, 2);
+}
+''');
+  testDart2Dart('''
+foo(f(arg)) {}
+main() {
+  foo(main);
+}
+''');
   // A couple of static/finals inside a class.
-  testDart2Dart('main(){A.a;A.b;}class A{static const String a="5";'
-      'static const String b="4";}');
+  testDart2Dart('''
+main() {
+  A.a;
+  A.b;
+}
+class A {
+  static const String a = "5";
+  static const String b = "4";
+}
+''');
   // Class member of typedef-ed function type.
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
-  testDart2Dart(
-    'typedef void foofunc(arg);main(){new A((arg){});}'
-    'class A{A(foofunc this.handler);final foofunc handler;}');
+  testDart2Dart('''
+typedef void foofunc(arg);
+main() {
+  new A((arg) {});
+}
+class A {
+  A(foofunc this.handler);
+  final foofunc handler;
+}
+''');
 }
 
 testGetSet() {
   // Top-level get/set.
-  testDart2Dart('set foo(arg){}get foo{return 5;}main(){foo;foo=5;}');
+  testDart2Dart('''
+set foo(arg) {}
+get foo {
+  return 5;
+}
+main() {
+  foo;
+  foo = 5;
+}
+''');
   // Field get/set.
-  testDart2Dart('main(){var a=new A();a.foo;a.foo=5;}'
-      'class A{set foo(a){}get foo{return 5;}}');
+  testDart2Dart('''
+main() {
+  var a = new A();
+  a.foo;
+  a.foo = 5;
+}
+class A {
+  set foo(a) {}
+  get foo {
+    return 5;
+  }
+}
+''');
   // Typed get/set.
-  testDart2Dart('String get foo{return "a";}main(){foo;}');
+  testDart2Dart('''
+String get foo {
+  return "a";
+}
+main() {
+  foo;
+}
+''');
 }
 
 testAbstractClass() {
-  testDart2Dart('main(){A.foo;}abstract class A{static final num foo=0;}');
+  testDart2Dart('''
+main() {
+  A.foo;
+}
+abstract class A {
+  static final num foo = 0;
+}
+''');
 }
 
 testConflictSendsRename() {
@@ -279,23 +383,50 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult =
-      'globalfoo(){}var globalVar;'
-      'var globalVarInitialized=6;var globalVarInitialized2=7;'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
-          'static const field=5;}'
-      'A_globalfoo(){}'
-      'var A_globalVar;var A_globalVarInitialized=6;'
-          'var A_globalVarInitialized2=7;'
-      'class A_A{A_A(){}A_A.A_fromFoo(){}static A_staticfoo(){}foo(){}'
-          'static const A_field=5;}'
-      'main(){A_globalVar;A_globalVarInitialized;'
-         'A_globalVarInitialized2;A_globalfoo();'
-         'A_A.A_field;A_A.A_staticfoo();'
-         'new A_A();new A_A.A_fromFoo();new A_A().foo();'
-         'globalVar;globalVarInitialized;globalVarInitialized2;globalfoo();'
-         'A.field;A.staticfoo();'
-         'new A();new A.fromFoo();new A().foo();}';
+  var expectedResult = '''
+globalfoo() {}
+var globalVar;
+var globalVarInitialized = 6;
+var globalVarInitialized2 = 7;
+class A {
+  A() {}
+  A.fromFoo() {}
+  static staticfoo() {}
+  foo() {}
+  static const field = 5;
+}
+A_globalfoo() {}
+var A_globalVar;
+var A_globalVarInitialized = 6;
+var A_globalVarInitialized2 = 7;
+class A_A {
+  A_A() {}
+  A_A.A_fromFoo() {}
+  static A_staticfoo() {}
+  foo() {}
+  static const A_field = 5;
+}
+main() {
+  A_globalVar;
+  A_globalVarInitialized;
+  A_globalVarInitialized2;
+  A_globalfoo();
+  A_A.A_field;
+  A_A.A_staticfoo();
+  new A_A();
+  new A_A.A_fromFoo();
+  new A_A().foo();
+  globalVar;
+  globalVarInitialized;
+  globalVarInitialized2;
+  globalfoo();
+  A.field;
+  A.staticfoo();
+  new A();
+  new A.fromFoo();
+  new A().foo();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -345,16 +476,38 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult =
-      'globalfoo(){}'
-      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}'
-          'static const field=5;}'
-      'myglobalfoo(){}'
-      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}'
-          'static const myfield=5;}'
-      'main(){myglobalfoo();MyA.myfield;MyA.mystaticfoo();new MyA();'
-          'new MyA.myfromFoo();new MyA().myfoo();globalfoo();A.field;'
-          'A.staticfoo();new A();new A.fromFoo();new A().foo();}';
+  var expectedResult = '''
+globalfoo() {}
+class A {
+  A() {}
+  A.fromFoo() {}
+  static staticfoo() {}
+  foo() {}
+  static const field = 5;
+}
+myglobalfoo() {}
+class MyA {
+  MyA() {}
+  MyA.myfromFoo() {}
+  static mystaticfoo() {}
+  myfoo() {}
+  static const myfield = 5;
+}
+main() {
+  myglobalfoo();
+  MyA.myfield;
+  MyA.mystaticfoo();
+  new MyA();
+  new MyA.myfromFoo();
+  new MyA().myfoo();
+  globalfoo();
+  A.field;
+  A.staticfoo();
+  new A();
+  new A.fromFoo();
+  new A().foo();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -366,24 +519,21 @@ library mylib;
 topfoo() {}
 
 class A {
-  foo(){}
+  foo() {}
 }
 ''';
   var mainSrc = '''
 import 'mylib.dart' as mylib;
-
-
-topfoo() {var x = 5;}
-
-class A{
+topfoo() {
+  var x = 5;
+}
+class A {
   num foo() {}
   A.fromFoo() {}
   mylib.A myliba;
   List<A> mylist;
 }
-
 mylib.A getA() => null;
-
 main() {
   var a = new mylib.A();
   a.foo();
@@ -396,26 +546,53 @@ main() {
   mylib.topfoo();
 }
 ''';
-  var expectedResult =
-    'topfoo(){}'
-    'class A{foo(){}}'
-    'A_topfoo(){var x=5;}'
-    'class A_A{num foo(){}A_A.fromFoo(){}A myliba;List<A_A> mylist;}'
-    'A getA()=>null;'
-    'main(){var a=new A();a.foo();var b=new A_A.fromFoo();b.foo();'
-        'var GREATVAR=b.myliba;b.mylist;a=getA();A_topfoo();topfoo();}';
+  var expectedResult = '''
+topfoo() {}
+class A {
+  foo() {}
+}
+A_topfoo() {
+  var x = 5;
+}
+class A_A {
+  num foo() {}
+  A_A.fromFoo() {}
+  A myliba;
+  List<A_A> mylist;
+}
+A getA() => null;
+main() {
+  var a = new A();
+  a.foo();
+  var b = new A_A.fromFoo();
+  b.foo();
+  var GREATVAR = b.myliba;
+  b.mylist;
+  a = getA();
+  A_topfoo();
+  topfoo();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testClassExtendsWithArgs() {
-  testDart2Dart('main(){new B<Object>();}'
-    'class A<T extends Object>{}'
-    'class B<T extends Object> extends A<T>{}');
+  testDart2Dart('''
+main() {
+  new B<Object>();
+}
+class A<T extends Object> {}
+class B<T extends Object> extends A<T> {}
+''');
 }
 
 testStaticInvocation() {
-  testDart2Dart('main(){var x=Math.parseDouble("1");}');
+  testDart2Dart('''
+main() {
+  var x = Math.parseDouble("1");
+}
+''');
 }
 
 testLibraryGetSet() {
@@ -439,18 +616,32 @@ main() {
   mylib.topgetset = 5;
 }
 ''';
-  var expectedResult =
-    'get topgetset=>5;'
-    'set topgetset(arg){}'
-    'get A_topgetset=>6;'
-    'set A_topgetset(arg){}'
-    'main(){A_topgetset;A_topgetset=6;topgetset;topgetset=5;}';
+  var expectedResult = '''
+get topgetset => 5;
+set topgetset(arg) {}
+get A_topgetset => 6;
+set A_topgetset(arg) {}
+main() {
+  A_topgetset;
+  A_topgetset = 6;
+  topgetset;
+  topgetset = 5;
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
 testFieldTypeOutput() {
-  testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
+  testDart2Dart('''
+main() {
+  new A().field;
+}
+class B {}
+class A {
+  B field;
+}
+''');
 }
 
 class DynoMap implements Map<Element, ElementAst> {
@@ -519,17 +710,28 @@ main() {
   new mylib.T();
 }
 ''';
-  var expectedResult =
-    'typedef void MyFunction<T extends num>(T arg);'
-    'class T{}'
-    'class B<T>{}'
-    'class A<T> extends B<T>{T f;}'
-    'typedef void A_MyFunction<A_T extends num>(A_T arg);'
-    'class A_T{}'
-    'class A_B<A_T>{}'
-    'class A_A<A_T> extends A_B<A_T>{A_T f;}'
-    'main(){A_MyFunction myf1;MyFunction myf2;new A_A<int>().f;'
-        'new A_T();new A<int>().f;new T();}';
+  var expectedResult = '''
+typedef void MyFunction<T extends num>(T arg);
+class T {}
+class B<T> {}
+class A<T> extends B<T> {
+  T f;
+}
+typedef void A_MyFunction<A_T extends num>(A_T arg);
+class A_T {}
+class A_B<A_T> {}
+class A_A<A_T> extends A_B<A_T> {
+  A_T f;
+}
+main() {
+  A_MyFunction myf1;
+  MyFunction myf2;
+  new A_A<int>().f;
+  new A_T();
+  new A<int>().f;
+  new T();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -553,12 +755,16 @@ main() {
   new mylib.A();
 }
 ''';
-  var expectedResult =
-    'class I{}'
-    'class A<T extends I>{}'
-    'class A_I{}'
-    'class A_A<A_T extends A_I>{}'
-    'main(){new A_A();new A();}';
+  var expectedResult = '''
+class I {}
+class A<T extends I> {}
+class A_I {}
+class A_A<A_T extends A_I> {}
+main() {
+  new A_A();
+  new A();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -574,9 +780,12 @@ main() {
   mylib.main();
 }
 ''';
-  var expectedResult =
-    'A_main(){}'
-    'main(){A_main();}';
+  var expectedResult = '''
+A_main() {}
+main() {
+  A_main();
+}
+''';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -589,8 +798,12 @@ main() {
   Platform.operatingSystem;
 }
 ''';
-  var expectedResult = 'import "dart:io" as p;'
-      'main(){p.Platform.operatingSystem;}';
+  var expectedResult = '''
+import "dart:io" as p;
+main() {
+  p.Platform.operatingSystem;
+}
+''';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -667,8 +880,13 @@ main() {
   foo("5");
 }
 ''';
-  var expectedResult =
-      ' foo( arg){}main(){var localvar;foo("5");}';
+  var expectedResult = '''
+foo( arg) {}
+main() {
+  var localvar;
+  foo("5");
+}
+''';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); },
       stripTypes: true);
@@ -686,9 +904,15 @@ main() {
   A.userAgent;
 }
 ''';
-  var expectedResult = 'import "dart:html" as p;'
-      'class A{static String get A_userAgent=>p.window.navigator.userAgent;}'
-      'main(){A.A_userAgent;}';
+  var expectedResult = '''
+import "dart:html" as p;
+class A {
+  static String get A_userAgent => p.window.navigator.userAgent;
+}
+main() {
+  A.A_userAgent;
+}
+''';
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -704,8 +928,15 @@ main() {
   print('local');
 }
 ''';
-  var expectedResult = "A_print(x){throw 'fisk';}"
-      "main(){print('corelib');A_print('local');}";
+  var expectedResult = """
+A_print(x) {
+  throw 'fisk';
+}
+main() {
+  print('corelib');
+  A_print('local');
+}
+""";
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
@@ -721,7 +952,15 @@ main() {
   new A.named();
 }
 ''';
-  var expectedResult = "class A{A(){}}main(){new A();new A_Unresolved();}";
+  var expectedResult = """
+class A {
+  A() {}
+}
+main() {
+  new A();
+  new A_Unresolved();
+}
+""";
   testDart2Dart(src,
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }

@@ -58,7 +58,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
     String output = compiler.assembledCode;
     String getNameMatch = MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION;
     Iterable i = getNameMatch.allMatches(output);
-
+    print(output);
     if (minify) {
       Expect.equals(0, i.length);
     } else {
@@ -66,7 +66,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
       Expect.equals(2, i.length);
     }
 
-    String mapMatch = 'const<String,String>';
+    RegExp mapMatch = new RegExp('const<String,( )?String>');
     i = mapMatch.allMatches(output);
     Expect.equals(1, i.length);
   }));
