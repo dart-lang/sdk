@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.11.0+5
+  * fixes web_components version in dependencies
+
 #### Pub version 0.11.0+4
   * workaround for bug
     [19653](https://code.google.com/p/dart/issues/detail?id=19653)
