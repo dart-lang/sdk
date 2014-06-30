@@ -30,9 +30,21 @@ export 'src/task.dart';
 Schedule get currentSchedule => _currentSchedule;
 Schedule _currentSchedule;
 
-/// The user-provided setUp function. This is set for each test during
-/// `unittest.setUp`.
+/// The user-provided set-up function for the currently-running test.
+///
+/// This is set for each test during `unittest.setUp`.
 Function _setUpFn;
+
+/// The user-provided tear-down function for the currently-running test.
+///
+/// This is set for each test during `unittest.setUp`.
+Function _tearDownFn;
+
+/// The user-provided set-up function for the current test scope.
+Function _setUpForGroup;
+
+/// The user-provided tear-down function for the current test scope.
+Function _tearDownForGroup;
 
 /// Creates a new test case with the given description and body.
 ///
@@ -59,7 +71,7 @@ void _test(String description, body(), Function testFn) {
   }
 
   unittest.ensureInitialized();
-  _ensureSetUpForTopLevel();
+  _initializeForGroup();
   testFn(description, () {
     var completer = new Completer();
 
@@ -73,6 +85,7 @@ void _test(String description, body(), Function testFn) {
       return currentSchedule.run(() {
         if (_setUpFn != null) maybeWrapFuture(_setUpFn(), "set up");
         maybeWrapFuture(body(), "test body");
+        if (_tearDownFn != null) maybeWrapFuture(_tearDownFn(), "tear down");
       }).catchError((error, stackTrace) {
         if (error is ScheduleError) {
           assert(error.schedule.errors.contains(error));
@@ -96,11 +109,20 @@ bool _inGroup = false;
 /// [unittest.group].
 void group(String description, void body()) {
   unittest.ensureInitialized();
-  _ensureSetUpForTopLevel();
+  _initializeForGroup();
   unittest.group(description, () {
+    var oldSetUp = _setUpForGroup;
+    var oldTearDown = _tearDownForGroup;
+    var wasInitializedForGroup = _initializedForGroup;
     var wasInGroup = _inGroup;
+    _setUpForGroup = null;
+    _tearDownForGroup = null;
+    _initializedForGroup = false;
     _inGroup = true;
     body();
+    _setUpForGroup = oldSetUp;
+    _tearDownForGroup = oldTearDown;
+    _initializedForGroup = wasInitializedForGroup;
     _inGroup = wasInGroup;
   });
 }
@@ -124,71 +146,92 @@ void group(String description, void body()) {
 Future schedule(fn(), [String description]) =>
   currentSchedule.tasks.schedule(fn, description);
 
-/// Register a [setUp] function for a test [group]. This has the same semantics
-/// as [unittest.setUp]. Tasks may be scheduled using [schedule] within
-/// [setUpFn], and [currentSchedule] may be accessed as well.
+/// Register a [setUp] function for a test [group].
 ///
-/// Note that there is no associated [tearDown] function. Instead, tasks should
-/// be scheduled for [currentSchedule.onComplete] or
-/// [currentSchedule.onException]. These tasks will be run after each test's
-/// schedule is completed.
+/// This has the same semantics as [unittest.setUp]. Tasks may be scheduled
+/// using [schedule] within [setUpFn], and [currentSchedule] may be accessed as
+/// well.
 void setUp(setUpFn()) {
-  _setUpScheduledTest(setUpFn);
+  _setUpForGroup = setUpFn;
 }
 
-/// Whether [unittest.setUp] has been called in the top level scope.
-bool _setUpForTopLevel = false;
-
-/// If we're in the top-level scope (that is, not in any [group]s) and
-/// [unittest.setUp] hasn't been called yet, call it.
-void _ensureSetUpForTopLevel() {
-  if (_inGroup || _setUpForTopLevel) return;
-  _setUpScheduledTest();
+/// Register a [tearDown] function for a test [group].
+///
+/// This has the same semantics as [unittest.tearDown]. Tasks may be scheduled
+/// using [schedule] within [tearDownFn], and [currentSchedule] may be accessed
+/// as well. Note that [tearDownFn] will be run synchronously after the test
+/// body finishes running, which means it will run before any scheduled tasks
+/// have begun.
+///
+/// To run code after the schedule has finished running, use
+/// `currentSchedule.onComplete.schedule`.
+void tearDown(tearDownFn()) {
+  _tearDownForGroup = tearDownFn;
 }
+
+/// Whether [_initializeForGroup] has been called in this group scope.
+bool _initializedForGroup = false;
 
 /// Registers callbacks for [unittest.setUp] and [unittest.tearDown] that set up
-/// and tear down the scheduled test infrastructure.
-void _setUpScheduledTest([void setUpFn()]) {
-  if (!_inGroup) {
-    _setUpForTopLevel = true;
-    var oldWrapAsync = unittest.wrapAsync;
-    unittest.setUp(() {
-      if (currentSchedule != null) {
-        throw new StateError('There seems to be another scheduled test '
-            'still running.');
-      }
+/// and tear down the scheduled test infrastructure and run the user's [setUp]
+/// and [tearDown] callbacks.
+void _initializeForGroup() {
+  if (_initializedForGroup) return;
+  _initializedForGroup = true;
 
-      unittest.wrapAsync = (f, [description]) {
-        // It's possible that this setup is run before a vanilla unittest test
-        // if [unittest.test] is run in the same context as
-        // [scheduled_test.test]. In that case, [currentSchedule] will never be
-        // set and we should forward to the [unittest.wrapAsync].
-        if (currentSchedule == null) return oldWrapAsync(f, description);
-        return currentSchedule.wrapAsync(f, description);
-      };
+  var setUpFn = _setUpForGroup;
+  var tearDownFn = _tearDownForGroup;
 
-      if (_setUpFn != null) {
-        var parentFn = _setUpFn;
-        _setUpFn = () { parentFn(); setUpFn(); };
-      } else {
-        _setUpFn = setUpFn;
-      }
-    });
+  if (_inGroup) {
+    unittest.setUp(() => _addSetUpTearDown(setUpFn, tearDownFn));
+    return;
+  }
 
-    unittest.tearDown(() {
-      unittest.wrapAsync = oldWrapAsync;
-      _currentSchedule = null;
-      _setUpFn = null;
-    });
-  } else {
-    unittest.setUp(() {
-      if (_setUpFn != null) {
-        var parentFn = _setUpFn;
-        _setUpFn = () { parentFn(); setUpFn(); };
-      } else {
-        _setUpFn = setUpFn;
-      }
-    });
+  var oldWrapAsync = unittest.wrapAsync;
+  unittest.setUp(() {
+    if (currentSchedule != null) {
+      throw new StateError('There seems to be another scheduled test '
+          'still running.');
+    }
+
+    unittest.wrapAsync = (f, [description]) {
+      // It's possible that this setup is run before a vanilla unittest test
+      // if [unittest.test] is run in the same context as
+      // [scheduled_test.test]. In that case, [currentSchedule] will never be
+      // set and we should forward to the [unittest.wrapAsync].
+      if (currentSchedule == null) return oldWrapAsync(f, description);
+      return currentSchedule.wrapAsync(f, description);
+    };
+
+    _addSetUpTearDown(setUpFn, tearDownFn);
+  });
+
+  unittest.tearDown(() {
+    unittest.wrapAsync = oldWrapAsync;
+    _currentSchedule = null;
+    _setUpFn = null;
+    _tearDownFn = null;
+  });
+}
+
+/// Set [_setUpFn] and [_tearDownFn] appropriately.
+void _addSetUpTearDown(void setUpFn(), void tearDownFn()) {
+  if (setUpFn != null) {
+    if (_setUpFn != null) {
+      var parentFn = _setUpFn;
+      _setUpFn = () { parentFn(); setUpFn(); };
+    } else {
+      _setUpFn = setUpFn;
+    }
+  }
+
+  if (tearDownFn != null) {
+    if (_tearDownFn != null) {
+      var parentFn = _tearDownFn;
+      _tearDownFn = () { parentFn(); tearDownFn(); };
+    } else {
+      _tearDownFn = tearDownFn;
+    }
   }
 }
 
