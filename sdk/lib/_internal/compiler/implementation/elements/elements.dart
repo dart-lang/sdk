@@ -808,7 +808,7 @@ abstract class LibraryElement extends Element
   Uri get canonicalUri;
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
-  Link<LibraryTag> get tags;
+  Iterable<LibraryTag> get tags;
   LibraryName get libraryTag;
   Link<Element> get exports;
 

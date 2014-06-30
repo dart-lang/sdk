@@ -157,6 +157,8 @@ abstract class LinkBuilder<T> {
    */
   Link<T> toLink([Link<T> tail = const Link()]);
 
+  List<T> toList();
+
   void addLast(T t);
 
   final int length;

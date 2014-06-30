@@ -752,7 +752,8 @@ class LibraryElementX
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
-  Link<LibraryTag> tags = const Link<LibraryTag>();
+  LinkBuilder<LibraryTag> tagsBuilder = new LinkBuilder<LibraryTag>();
+  List<LibraryTag> tagsCache;
   LibraryName libraryTag;
   bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
@@ -804,7 +805,19 @@ class LibraryElementX
   }
 
   void addTag(LibraryTag tag, DiagnosticListener listener) {
-    tags = tags.prepend(tag);
+    if (tagsCache != null) {
+      listener.internalError(tag,
+          "Library tags for $this have already been computed.");
+    }
+    tagsBuilder.addLast(tag);
+  }
+
+  Iterable<LibraryTag> get tags {
+    if (tagsCache == null) {
+      tagsCache = tagsBuilder.toList();
+      tagsBuilder = null;
+    }
+    return tagsCache;
   }
 
   void recordResolvedTag(LibraryDependency tag, LibraryElement library) {

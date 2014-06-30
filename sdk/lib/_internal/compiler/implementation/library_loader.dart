@@ -342,8 +342,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     var libraryDependencies = new LinkBuilder<LibraryDependency>();
     Uri base = library.entryCompilationUnit.script.readableUri;
 
-    // TODO(johnniwinther): Reverse the tag list on access and cache the result.
-    return Future.forEach(library.tags.reverse().toList(), (LibraryTag tag) {
+    return Future.forEach(library.tags, (LibraryTag tag) {
       return compiler.withCurrentElement(library, () {
         if (tag.isImport) {
           Import import = tag;
@@ -379,14 +378,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         checkDuplicatedLibraryName(library);
 
         // Import dart:core if not already imported.
-        if (!importsDartCore && !isDartCore(library.canonicalUri)) {
-          return loadCoreLibrary(handler).then((LibraryElement coreLibrary) {
+        if (!importsDartCore && library.canonicalUri != Compiler.DART_CORE) {
+          return createLibrary(handler, null, Compiler.DART_CORE)
+              .then((LibraryElement coreLibrary) {
             handler.registerDependency(library, null, coreLibrary);
           });
         }
       });
     }).then((_) {
-      return Future.forEach(libraryDependencies.toLink().toList(), (tag) {
+      return Future.forEach(libraryDependencies.toList(), (tag) {
         return compiler.withCurrentElement(library, () {
           return registerLibraryFromTag(handler, library, tag);
         });
@@ -432,23 +432,6 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         });
       }
     }
-  }
-
-  bool isDartCore(Uri uri) => uri.scheme == "dart" && uri.path == "core";
-
-  /**
-   * Lazily loads and returns the [LibraryElement] for the dart:core library.
-   */
-  Future<LibraryElement> loadCoreLibrary(LibraryDependencyHandler handler) {
-    if (compiler.coreLibrary != null) {
-      return new Future.value(compiler.coreLibrary);
-    }
-
-    Uri coreUri = new Uri(scheme: 'dart', path: 'core');
-    return createLibrary(handler, null, coreUri).then((LibraryElement library) {
-      compiler.coreLibrary = library;
-      return library;
-    });
   }
 
   /**
