@@ -31,9 +31,6 @@ class UnknownSource extends Source {
   Future<Pubspec> doDescribe(PackageId id) => throw new UnsupportedError(
       "Cannot describe a package from unknown source '$name'.");
 
-  Future ensureLocal(PackageId id) => throw new UnsupportedError(
-      "Cannot get a package from an unknown source '$name'.");
-
   Future get(PackageId id, String symlink) => throw new UnsupportedError(
       "Cannot get an unknown source '$name'.");
 

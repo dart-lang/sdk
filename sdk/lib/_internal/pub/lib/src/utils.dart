@@ -835,3 +835,11 @@ void fail(String message, [innerError, StackTrace innerTrace]) {
     throw new ApplicationException(message);
   }
 }
+
+/// Throw a [DataException] with [message] to indicate that the command has
+/// failed because of invalid input data.
+///
+/// This will report the error and cause pub to exit with [exit_codes.DATA].
+void dataError(String message) {
+  throw new DataException(message);
+}

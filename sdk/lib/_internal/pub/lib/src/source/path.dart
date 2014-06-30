@@ -34,9 +34,6 @@ class PathSource extends Source {
     return path1 == path2;
   }
 
-  /// Path dependencies are already local.
-  Future ensureLocal(PackageId id) => new Future.value();
-
   Future get(PackageId id, String symlink) {
     return syncFuture(() {
       var dir = _validatePath(id.name, id.description);

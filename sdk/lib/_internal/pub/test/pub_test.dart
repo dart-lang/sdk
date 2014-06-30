@@ -32,6 +32,7 @@ final USAGE_STRING = """
       cache      Work with the system cache.
       deps       Print package dependencies.
       get        Get the current package's dependencies.
+      global     Work with global packages.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
       run        Run an executable from a package.
@@ -127,6 +128,7 @@ main() {
           cache      Work with the system cache.
           deps       Print package dependencies.
           get        Get the current package's dependencies.
+          global     Work with global packages.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
           run        Run an executable from a package.
@@ -287,6 +289,7 @@ main() {
               cache      Work with the system cache.
               deps       Print package dependencies.
               get        Get the current package's dependencies.
+              global     Work with global packages.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.
               run        Run an executable from a package.
