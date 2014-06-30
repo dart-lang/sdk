@@ -123,6 +123,9 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
+    'Event':
+        'Event,InputEvent',
+
     'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
 
