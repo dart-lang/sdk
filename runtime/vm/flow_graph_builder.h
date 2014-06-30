@@ -345,6 +345,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
   Definition* BuildLoadLocal(const LocalVariable& local);
+  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,
