@@ -21,7 +21,28 @@ abstract class PackageMapProvider {
    *
    * If a package map can't be computed, return null.
    */
-  Map<String, List<Folder>> computePackageMap(Folder folder);
+  PackageMapInfo computePackageMap(Folder folder);
+}
+
+/**
+ * Data structure output by PackageMapProvider.  This contains both the package
+ * map and dependency information.
+ */
+class PackageMapInfo {
+  /**
+   * The package map itself.  This is a map from package name to a list of
+   * the folders containing source code for the package.
+   */
+  Map<String, List<Folder>> packageMap;
+
+  /**
+   * Dependency information.  This is a set of the paths which were consulted
+   * in order to generate the package map.  If any of these files is
+   * modified, the package map will need to be regenerated.
+   */
+  Set<String> dependencies;
+
+  PackageMapInfo(this.packageMap, this.dependencies);
 }
 
 /**
@@ -39,7 +60,7 @@ class PubPackageMapProvider implements PackageMapProvider {
   PubPackageMapProvider(this.resourceProvider);
 
   @override
-  Map<String, List<Folder>> computePackageMap(Folder folder) {
+  PackageMapInfo computePackageMap(Folder folder) {
     // TODO(paulberry) make this asynchronous so that we can (a) do other
     // analysis while it's in progress, and (b) time out if it takes too long
     // to respond.
@@ -70,7 +91,7 @@ class PubPackageMapProvider implements PackageMapProvider {
   /**
    * Decode the JSON output from pub into a package map.
    */
-  Map<String, List<Folder>> parsePackageMap(String jsonText) {
+  PackageMapInfo parsePackageMap(String jsonText) {
     // The output of pub looks like this:
     // {
     //   "packages": {
@@ -106,6 +127,15 @@ class PubPackageMapProvider implements PackageMapProvider {
         processPaths(key, value);
       }
     });
-    return packageMap;
+    Set<String> dependencies = new Set<String>();
+    List inputFiles = obj['input_files'];
+    if (inputFiles != null) {
+      for (var path in inputFiles) {
+        if (path is String) {
+          dependencies.add(path);
+        }
+      }
+    }
+    return new PackageMapInfo(packageMap, dependencies);
   }
 }

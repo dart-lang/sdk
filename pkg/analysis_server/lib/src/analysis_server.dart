@@ -44,24 +44,23 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
    */
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
 
-  AnalysisServerContextDirectoryManager(this.analysisServer, ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  AnalysisServerContextDirectoryManager(
+      this.analysisServer, ResourceProvider resourceProvider,
+      PackageMapProvider packageMapProvider)
+      : super(resourceProvider, packageMapProvider);
 
   @override
-  void addContext(Folder folder) {
-    Map<String, List<Folder>> packageMap =
-        analysisServer.packageMapProvider.computePackageMap(folder);
-    ContextDirectory contextDirectory = new ContextDirectory(
-        analysisServer.defaultSdk, resourceProvider, folder, packageMap);
-    analysisServer.folderMap[folder] = contextDirectory;
-    AnalysisContext context = contextDirectory.context;
+  void addContext(Folder folder, Map<String, List<Folder>> packageMap) {
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    analysisServer.folderMap[folder] = context;
+    context.sourceFactory = _createSourceFactory(packageMap);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
-    AnalysisContext context = analysisServer.folderMap[contextFolder].context;
+    AnalysisContext context = analysisServer.folderMap[contextFolder];
     context.applyChanges(changeSet);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
@@ -69,6 +68,27 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   @override
   void removeContext(Folder folder) {
     analysisServer.folderMap.remove(folder);
+  }
+
+  @override
+  void updateContextPackageMap(Folder contextFolder,
+                               Map<String, List<Folder>> packageMap) {
+    AnalysisContext context = analysisServer.folderMap[contextFolder];
+    context.sourceFactory = _createSourceFactory(packageMap);
+    analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  /**
+   * Set up a [SourceFactory] that resolves packages using the given
+   * [packageMap].
+   */
+  SourceFactory _createSourceFactory(Map<String, List<Folder>> packageMap) {
+    List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(analysisServer.defaultSdk),
+        new ResourceUriResolver(resourceProvider),
+        new PackageMapUriResolver(resourceProvider, packageMap)
+    ];
+    return new SourceFactory(resolvers);
   }
 }
 
@@ -95,12 +115,6 @@ class AnalysisServer {
   AnalysisServerContextDirectoryManager contextDirectoryManager;
 
   /**
-   * Provider which is used to determine the mapping from package name to
-   * package folder.
-   */
-  final PackageMapProvider packageMapProvider;
-
-  /**
    * A flag indicating whether the server is running.  When false, contexts
    * will no longer be added to [contextWorkQueue], and [performOperation] will
    * discard any tasks it finds on [contextWorkQueue].
@@ -125,10 +139,10 @@ class AnalysisServer {
   DartSdk defaultSdk = SHARED_SDK;
 
   /**
-   * A table mapping [Folder]s to the [ContextDirectory]s associated with them.
+   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
-  final Map<Folder, ContextDirectory> folderMap =
-      new HashMap<Folder, ContextDirectory>();
+  final Map<Folder, AnalysisContext> folderMap =
+      new HashMap<Folder, AnalysisContext>();
 
   /**
    * A queue of the operations to perform in this server.
@@ -167,9 +181,11 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      this.packageMapProvider, this.index, {this.rethrowExceptions: true}) {
+      PackageMapProvider packageMapProvider, this.index,
+      {this.rethrowExceptions: true}) {
     operationQueue = new ServerOperationQueue(this);
-    contextDirectoryManager = new AnalysisServerContextDirectoryManager(this, resourceProvider);
+    contextDirectoryManager = new AnalysisServerContextDirectoryManager(
+        this, resourceProvider, packageMapProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
     Notification notification = new Notification(SERVER_CONNECTED);
@@ -228,8 +244,7 @@ class AnalysisServer {
       throw new RequestFailure(new Response.unanalyzedPriorityFiles(request,
           buffer.toString()));
     }
-    folderMap.forEach((Folder folder, ContextDirectory directory) {
-      AnalysisContext context = directory.context;
+    folderMap.forEach((Folder folder, AnalysisContext context) {
       List<Source> sourceList = sourceMap[context];
       if (sourceList == null) {
         sourceList = Source.EMPTY_ARRAY;
@@ -246,8 +261,7 @@ class AnalysisServer {
     //
     // Update existing contexts.
     //
-    folderMap.forEach((Folder folder, ContextDirectory directory) {
-      AnalysisContext context = directory.context;
+    folderMap.forEach((Folder folder, AnalysisContext context) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(context.analysisOptions);
       optionUpdaters.forEach((OptionUpdater optionUpdater) {
         optionUpdater(options);
@@ -484,7 +498,7 @@ class AnalysisServer {
   AnalysisContext _getAnalysisContext(String path) {
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.path)) {
-        return folderMap[folder].context;
+        return folderMap[folder];
       }
     }
     return null;
@@ -576,51 +590,6 @@ class AnalysisService extends Enum2<AnalysisService> {
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
 }
 
-
-/**
- * Instances of [ContextDirectory] represents a [Folder] associated with an
- * analysis context.  The folder may or may not contain a Pub `pubspec.yaml`.
- *
- * TODO(scheglov) implement complete projects/contexts semantics.
- *
- * This class is intentionally simplified to serve as a base to start working
- * on services while work on complete semantics is being done in parallel.
- */
-class ContextDirectory {
-  /**
-   * The root [ResourceProvider] of this [ContextDirectory].
-   */
-  final ResourceProvider _resourceProvider;
-
-  /**
-   * The root [Folder] of this [ContextDirectory].
-   */
-  final Folder _folder;
-
-  /**
-   * The [AnalysisContext] of this [_folder].
-   */
-  AnalysisContext _context;
-
-  ContextDirectory(DartSdk sdk, this._resourceProvider, this._folder,
-      Map<String, List<Folder>> packageMap) {
-    // create AnalysisContext
-    _context = AnalysisEngine.instance.createAnalysisContext();
-    // TODO(scheglov) replace FileUriResolver with an Resource based resolver
-    List<UriResolver> resolvers = <UriResolver>[new DartUriResolver(sdk),
-        new ResourceUriResolver(_resourceProvider),
-    ];
-    if (packageMap != null) {
-      resolvers.add(new PackageMapUriResolver(_resourceProvider, packageMap));
-    }
-    _context.sourceFactory = new SourceFactory(resolvers);
-  }
-
-  /**
-   * Return the [AnalysisContext] of this folder.
-   */
-  AnalysisContext get context => _context;
-}
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
 

@@ -7,6 +7,7 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -27,6 +28,12 @@ class _ContextDirectoryInfo {
    * added to the context.
    */
   Map<String, Source> sources = new HashMap<String, Source>();
+
+  /**
+   * Dependencies of the context's package map.  If any of these files changes,
+   * the package map needs to be recomputed.
+   */
+  Set<String> packageMapDependencies;
 }
 
 /**
@@ -51,7 +58,13 @@ abstract class ContextDirectoryManager {
    */
   final ResourceProvider resourceProvider;
 
-  ContextDirectoryManager(this.resourceProvider);
+  /**
+   * Provider which is used to determine the mapping from package name to
+   * package folder.
+   */
+  final PackageMapProvider packageMapProvider;
+
+  ContextDirectoryManager(this.resourceProvider, this.packageMapProvider);
 
   /**
    * Change the set of paths which should be used as starting points to
@@ -104,7 +117,12 @@ abstract class ContextDirectoryManager {
       _handleWatchEvent(folder, info, event);
     });
     File pubspecFile = folder.getChild(PUBSPEC_NAME);
-    addContext(folder);
+    PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
+    // TODO(paulberry): handle null return from computePackageMap.
+    info.packageMapDependencies = packageMapInfo.dependencies;
+    // TODO(paulberry): if any of the dependencies is outside of [folder],
+    // we'll need to watch their parent folders as well.
+    addContext(folder, packageMapInfo.packageMap);
     ChangeSet changeSet = new ChangeSet();
     _addSourceFiles(changeSet, folder, info);
     applyChangesToContext(folder, changeSet);
@@ -160,6 +178,17 @@ abstract class ContextDirectoryManager {
         }
         break;
     }
+
+    if (info.packageMapDependencies.contains(event.path)) {
+      // TODO(paulberry): when computePackageMap is changed into an
+      // asynchronous API call, we'll want to suspend analysis for this context
+      // while we're rerunning "pub list", since any analysis we complete while
+      // "pub list" is in progress is just going to get thrown away anyhow.
+      PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
+      // TODO(paulberry): handle null return from computePackageMap.
+      info.packageMapDependencies = packageMapInfo.dependencies;
+      updateContextPackageMap(folder, packageMapInfo.packageMap);
+    }
   }
 
   /**
@@ -208,7 +237,7 @@ abstract class ContextDirectoryManager {
   /**
    * Called when a new context needs to be created.
    */
-  void addContext(Folder folder);
+  void addContext(Folder folder, Map<String, List<Folder>> packageMap);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -221,4 +250,10 @@ abstract class ContextDirectoryManager {
    * Remove the context associated with the given [folder].
    */
   void removeContext(Folder folder);
+
+  /**
+   * Called when the package map for a context has changed.
+   */
+  void updateContextPackageMap(Folder contextFolder,
+                               Map<String, List<Folder>> packageMap);
 }

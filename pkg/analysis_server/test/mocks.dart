@@ -423,10 +423,18 @@ class MockSdk implements DartSdk {
  * A mock [PackageMapProvider].
  */
 class MockPackageMapProvider implements PackageMapProvider {
+  /**
+   * Package map that will be returned by the next call to [computePackageMap].
+   */
   Map<String, List<resource.Folder>> packageMap = <String, List<resource.Folder>>{};
 
+  /**
+   * Dependency list that will be returned by the next call to [computePackageMap].
+   */
+  Set<String> dependencies = new Set<String>();
+
   @override
-  Map<String, List<resource.Folder>> computePackageMap(resource.Folder folder) {
-    return packageMap;
+  PackageMapInfo computePackageMap(resource.Folder folder) {
+    return new PackageMapInfo(packageMap, dependencies);
   }
 }

@@ -12,6 +12,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -591,6 +592,38 @@ main(A a) {
       expect(filesErrors[testFile], isEmpty);
       // packages file also was resolved
       expect(filesErrors[pkgFile], isEmpty);
+    });
+  }
+
+  test_packageMapDependencies() {
+    // Prepare a source file that has errors because it refers to an unknown
+    // package.
+    String pkgFile = '/packages/pkgA/libA.dart';
+    resourceProvider.newFile(pkgFile, '''
+library lib_a;
+class A {}
+''');
+    addTestFile('''
+import 'package:pkgA/libA.dart';
+f(A a) {
+}
+''');
+    String pkgDependency = posix.join(projectPath, 'package_dep');
+    resourceProvider.newFile(pkgDependency, 'contents');
+    packageMapProvider.dependencies.add(pkgDependency);
+    // Create project and wait for analysis
+    createProject();
+    return waitForTasksFinished().then((_) {
+      expect(filesErrors[testFile], isNot(isEmpty));
+      // Add the package to the package map and tickle the package dependency.
+      packageMapProvider.packageMap = {
+          'pkgA': [resourceProvider.getResource('/packages/pkgA')] };
+      resourceProvider.modifyFile(pkgDependency, 'new contents');
+      // Let the server time to notice the file has changed, then let
+      // analysis omplete.  There should now be no error.
+      return pumpEventQueue().then((_) => waitForTasksFinished()).then((_) {
+        expect(filesErrors[testFile], isEmpty);
+      });
     });
   }
 }
