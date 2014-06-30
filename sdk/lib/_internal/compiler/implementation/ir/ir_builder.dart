@@ -13,9 +13,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
-import '../util/util.dart' show Link;
 import 'const_expression.dart';
-import '../helpers/helpers.dart';
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -400,16 +398,16 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   /// The [bodyBuilder] is assumed to be open, otherwise there is no join
   /// necessary.
   List<ir.Parameter> createLoopJoinParametersAndFillArguments(
-      List<ir.Primitive> entryArguments,
-      IrBuilder condBuilder,
+      IrBuilder conditionBuilder,
       IrBuilder bodyBuilder,
+      List<ir.Primitive> entryArguments,
       List<ir.Primitive> loopArguments) {
     assert(bodyBuilder.isOpen);
     // The loop condition and body are delimited --- assignedVars are still
     // those reaching the entry to the loop.
-    assert(assignedVars.length == condBuilder.freeVars.length);
+    assert(assignedVars.length == conditionBuilder.freeVars.length);
     assert(assignedVars.length == bodyBuilder.freeVars.length);
-    assert(assignedVars.length <= condBuilder.assignedVars.length);
+    assert(assignedVars.length <= conditionBuilder.assignedVars.length);
     assert(assignedVars.length <= bodyBuilder.assignedVars.length);
 
     List<ir.Parameter> parameters = <ir.Parameter>[];
@@ -421,7 +419,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       ir.Definition reachingAssignment = bodyBuilder.assignedVars[i];
       // If not, was there an assignment in the condition?
       if (reachingAssignment == null) {
-        reachingAssignment = condBuilder.assignedVars[i];
+        reachingAssignment = conditionBuilder.assignedVars[i];
       }
       // If not, no value needs to be passed to the join point.
       if (reachingAssignment == null) continue;
@@ -515,6 +513,78 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
   }
 
+  ir.Primitive visitFor(ast.For node) {
+    assert(isOpen);
+    // For loops use three named continuations: the entry to the condition,
+    // the entry to the body, and the loop exit (break).  The CPS translation
+    // of [[for (initializer; condition; update) body; successor]] is:
+    //
+    // [[initializer]];
+    // let cont loop(x, ...) =
+    //     let cont exit() = [[successor]] in
+    //     let cont body() = [[body]]; [[update]]; loop(v, ...) in
+    //     let prim cond = [[condition]] in
+    //     branch cond (body, exit) in
+    // loop(v, ...)
+
+    if (node.initializer != null) visit(node.initializer);
+
+    // If the condition is empty then the body is entered unconditionally.
+    IrBuilder condBuilder = new IrBuilder.delimited(this);
+    ir.Primitive condition;
+    if (node.condition == null) {
+      condition = makePrimConst(constantSystem.createBool(true));
+      condBuilder.add(new ir.LetPrim(condition));
+    } else {
+      condition = condBuilder.visit(node.condition);
+    }
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(this);
+    bodyBuilder.visit(node.body);
+    for (ast.Node n in node.update) {
+      if (!bodyBuilder.isOpen) break;
+      bodyBuilder.visit(n);
+    }
+
+    // Create body entry and loop exit continuations and a join-point
+    // continuation if control flow reaches the end of the body (update).
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    condBuilder.add(new ir.Branch(new ir.IsTrue(condition),
+                                  bodyContinuation,
+                                  exitContinuation));
+    ir.Continuation loopContinuation;
+    List<ir.Parameter> parameters;
+    List<ir.Primitive> entryArguments = <ir.Primitive>[];
+    if (bodyBuilder.isOpen) {
+      List<ir.Primitive> loopArguments = <ir.Primitive>[];
+      parameters =
+          createLoopJoinParametersAndFillArguments(
+              condBuilder, bodyBuilder, entryArguments, loopArguments);
+      loopContinuation = new ir.Continuation(parameters);
+      bodyBuilder.add(
+          new ir.InvokeContinuation(loopContinuation, loopArguments,
+                                    recursive:true));
+    }
+    bodyContinuation.body = bodyBuilder.root;
+
+    captureFreeLoopVariables(condBuilder, bodyBuilder, parameters);
+
+    ir.Expression resultContext =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                condBuilder.root));
+    if (loopContinuation != null) {
+      loopContinuation.body = resultContext;
+      add(new ir.LetCont(loopContinuation,
+              new ir.InvokeContinuation(loopContinuation, entryArguments)));
+      current = resultContext;
+    } else {
+      add(resultContext);
+    }
+    return null;
+  }
+
   ir.Primitive visitIf(ast.If node) {
     assert(isOpen);
     ir.Primitive condition = visit(node.condition);
@@ -595,12 +665,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // the loop exit (break), and the loop back edge (continue).
     // The CPS translation [[while (condition) body; successor]] is:
     //
-    // let cont continue(x, ...) =
-    //     let cont break() = [[successor]] in
+    // let cont loop(x, ...) =
+    //     let cont exit() = [[successor]] in
     //     let cont body() = [[body]]; continue(v, ...) in
     //     let prim cond = [[condition]] in
-    //     branch cond (body, break) in
-    // continue(v, ...)
+    //     branch cond (body, exit) in
+    // loop(v, ...)
 
     // The condition and body are delimited.
     IrBuilder condBuilder = new IrBuilder.delimited(this);
@@ -611,21 +681,21 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // Create body entry and loop exit continuations and a join-point
     // continuation if control flow reaches the end of the body.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
-    ir.Continuation breakContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
     condBuilder.add(new ir.Branch(new ir.IsTrue(condition),
                                   bodyContinuation,
-                                  breakContinuation));
-    ir.Continuation continueContinuation;
+                                  exitContinuation));
+    ir.Continuation loopContinuation;
     List<ir.Parameter> parameters;
     List<ir.Primitive> entryArguments = <ir.Primitive>[];  // The forward edge.
     if (bodyBuilder.isOpen) {
       List<ir.Primitive> loopArguments = <ir.Primitive>[];  // The back edge.
       parameters =
-          createLoopJoinParametersAndFillArguments(entryArguments, condBuilder,
-                                   bodyBuilder, loopArguments);
-      continueContinuation = new ir.Continuation(parameters);
+          createLoopJoinParametersAndFillArguments(
+              condBuilder, bodyBuilder, entryArguments, loopArguments);
+      loopContinuation = new ir.Continuation(parameters);
       bodyBuilder.add(
-          new ir.InvokeContinuation(continueContinuation, loopArguments,
+          new ir.InvokeContinuation(loopContinuation, loopArguments,
                                     recursive:true));
     }
     bodyContinuation.body = bodyBuilder.root;
@@ -634,14 +704,13 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     captureFreeLoopVariables(condBuilder, bodyBuilder, parameters);
 
     ir.Expression resultContext =
-        new ir.LetCont(breakContinuation,
+        new ir.LetCont(exitContinuation,
             new ir.LetCont(bodyContinuation,
                 condBuilder.root));
-    if (continueContinuation != null) {
-      continueContinuation.body = resultContext;
-      add(new ir.LetCont(continueContinuation,
-            new ir.InvokeContinuation(continueContinuation,
-              entryArguments)));
+    if (loopContinuation != null) {
+      loopContinuation.body = resultContext;
+      add(new ir.LetCont(loopContinuation,
+              new ir.InvokeContinuation(loopContinuation, entryArguments)));
       current = resultContext;
     } else {
       add(resultContext);

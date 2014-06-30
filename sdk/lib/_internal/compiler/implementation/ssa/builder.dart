@@ -2663,13 +2663,11 @@ class SsaBuilder extends ResolvedVisitor {
     assert(isReachable);
     assert(node.body != null);
     void buildInitializer() {
-      if (node.initializer == null) return;
       ast.Node initializer = node.initializer;
-      if (initializer != null) {
-        visit(initializer);
-        if (initializer.asExpression() != null) {
-          pop();
-        }
+      if (initializer == null) return;
+      visit(initializer);
+      if (initializer.asExpression() != null) {
+        pop();
       }
     }
     HInstruction buildCondition() {
