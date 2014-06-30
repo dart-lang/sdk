@@ -10,11 +10,11 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('errors if the package could not be found', () {
+  integration('errors if the package is not activated', () {
     servePackages([]);
 
-    schedulePub(args: ["global", "activate", "foo"],
-        error: startsWith("Could not find package foo at"),
-        exitCode: exit_codes.UNAVAILABLE);
+    schedulePub(args: ["global", "deactivate", "foo"],
+        error: "No active package foo.",
+        exitCode: exit_codes.DATA);
   });
 }

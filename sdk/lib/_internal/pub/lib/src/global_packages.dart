@@ -5,9 +5,10 @@
 library pub.global_packages;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 import 'io.dart';
 import 'lock_file.dart';
@@ -33,7 +34,7 @@ class GlobalPackages {
   final SystemCache cache;
 
   /// The directory where the lockfiles for activated packages are stored.
-  String get _directory => path.join(cache.rootDir, "global_packages");
+  String get _directory => p.join(cache.rootDir, "global_packages");
 
   /// The source that global packages can be activated from.
   // TODO(rnystrom): Allow activating packages from other sources.
@@ -49,7 +50,7 @@ class GlobalPackages {
   /// Finds the latest version of the hosted package with [name] that matches
   /// [constraint] and makes it the active global version.
   Future activate(String name, VersionConstraint constraint) {
-    var lockFilePath = path.join(_directory, name + ".lock");
+    var lockFilePath = p.join(_directory, name + ".lock");
 
     // See if we already have it activated.
     var lockFile;
@@ -104,6 +105,22 @@ class GlobalPackages {
       // TODO(rnystrom): Look in "bin" and display list of binaries that
       // user can run.
     });
+  }
+
+  /// Deactivates a previously-activated package named [name] or fails with
+  /// an error if [name] is not an active package.
+  void deactivate(String name) {
+    // See if we already have it activated.
+    try {
+      var lockFilePath = p.join(_directory, "$name.lock");
+      var lockFile = new LockFile.load(lockFilePath, cache.sources);
+      var version = lockFile.packages[name].version;
+
+      deleteEntry(lockFilePath);
+      log.message("Deactivated package ${log.bold(name)} $version.");
+    } on IOException catch (error) {
+      dataError("No active package ${log.bold(name)}.");
+    }
   }
 
   /// Picks the best version of [package] to activate that meets [constraint].
