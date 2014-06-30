@@ -10,6 +10,7 @@ import 'dart:io' as io;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:path/path.dart';
 
 /**
  * A PackageMapProvider is an entity capable of determining the mapping from
@@ -19,7 +20,8 @@ abstract class PackageMapProvider {
   /**
    * Compute a package map for the given folder, if possible.
    *
-   * If a package map can't be computed, return null.
+   * If a package map can't be computed (e.g. because an error occurred), a
+   * [PackageMapInfo] will still be returned, but its packageMap will be null.
    */
   PackageMapInfo computePackageMap(Folder folder);
 }
@@ -32,6 +34,8 @@ class PackageMapInfo {
   /**
    * The package map itself.  This is a map from package name to a list of
    * the folders containing source code for the package.
+   *
+   * `null` if an error occurred.
    */
   Map<String, List<Folder>> packageMap;
 
@@ -50,6 +54,12 @@ class PackageMapInfo {
  */
 class PubPackageMapProvider implements PackageMapProvider {
   static const String PUB_LIST_COMMAND = 'list-package-dirs';
+
+  /**
+   * The name of the 'pubspec.lock' file, which we assume is the dependency
+   * in the event that [PUB_LIST_COMMAND] fails.
+   */
+  static const String PUBSPEC_LOCK_NAME = 'pubspec.lock';
 
   /**
    * [ResourceProvider] that is used to create the [Folder]s that populate the
@@ -76,7 +86,7 @@ class PubPackageMapProvider implements PackageMapProvider {
     if (result.exitCode != 0) {
       AnalysisEngine.instance.logger.logInformation(
           "pub $PUB_LIST_COMMAND failed: exit code ${result.exitCode}");
-      return null;
+      return _error(folder);
     }
     try {
       return parsePackageMap(result.stdout);
@@ -85,7 +95,19 @@ class PubPackageMapProvider implements PackageMapProvider {
           "Malformed output from pub $PUB_LIST_COMMAND\n${exception}\n${stackTrace}");
     }
 
-    return null;
+    return _error(folder);
+  }
+
+  /**
+   * Create a PackageMapInfo object representing an error condition.
+   */
+  PackageMapInfo _error(Folder folder) {
+    // Even if an error occurs, we still need to know the dependencies, so that
+    // we'll know when to try running "pub list-package-dirs" again.
+    // Unfortunately, "pub list-package-dirs" doesn't tell us dependencies when
+    // an error occurs, so just assume there is one dependency, "pubspec.lock".
+    List<String> dependencies = <String>[join(folder.path, PUBSPEC_LOCK_NAME)];
+    return new PackageMapInfo(null, dependencies.toSet());
   }
 
   /**

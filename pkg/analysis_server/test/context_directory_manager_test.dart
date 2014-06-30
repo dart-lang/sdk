@@ -115,6 +115,7 @@ main() {
     test('add folder without pubspec', () {
       String projPath = '/my/proj';
       resourceProvider.newFolder(projPath);
+      packageMapProvider.packageMap = null;
       manager.setRoots(<String>[projPath], <String>[]);
       expect(manager.currentContextPaths, hasLength(1));
       expect(manager.currentContextPaths, contains(projPath));
@@ -157,6 +158,7 @@ main() {
     test('remove folder without pubspec', () {
       String projPath = '/my/proj';
       resourceProvider.newFolder(projPath);
+      packageMapProvider.packageMap = null;
       manager.setRoots(<String>[projPath], <String>[]);
       manager.setRoots(<String>[], <String>[]);
       expect(manager.currentContextPaths, hasLength(0));
@@ -247,7 +249,7 @@ main() {
         expect(manager.currentContextPackageMaps[projPath],
             equals(packageMapProvider.packageMap));
         String packagePath = '/package/foo';
-        resourceProvider.newFolder(projPath);
+        resourceProvider.newFolder(packagePath);
         packageMapProvider.packageMap = {'foo': projPath};
         // Changing a .dart file in the project shouldn't cause a new
         // package map to be picked up.
@@ -260,6 +262,25 @@ main() {
             expect(manager.currentContextPackageMaps[projPath],
                 equals(packageMapProvider.packageMap));
           });
+        });
+      });
+
+      test('Modify package map dependency - packageMapProvider failure', () {
+        String dependencyPath = posix.join(projPath, 'dep');
+        resourceProvider.newFile(dependencyPath, 'contents');
+        String dartFilePath = posix.join(projPath, 'main.dart');
+        resourceProvider.newFile(dartFilePath, 'contents');
+        packageMapProvider.dependencies.add(dependencyPath);
+        manager.setRoots(<String>[projPath], <String>[]);
+        expect(manager.currentContextPackageMaps[projPath],
+            equals(packageMapProvider.packageMap));
+        // Change the package map dependency so that the packageMapProvider is
+        // re-run, and arrange for it to return null from computePackageMap().
+        packageMapProvider.packageMap = null;
+        resourceProvider.modifyFile(dependencyPath, 'new contents');
+        return pumpEventQueue().then((_) {
+          // The package map should have been changed to null.
+          expect(manager.currentContextPackageMaps[projPath], isNull);
         });
       });
     });

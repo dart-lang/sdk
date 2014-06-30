@@ -118,7 +118,6 @@ abstract class ContextDirectoryManager {
     });
     File pubspecFile = folder.getChild(PUBSPEC_NAME);
     PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
-    // TODO(paulberry): handle null return from computePackageMap.
     info.packageMapDependencies = packageMapInfo.dependencies;
     // TODO(paulberry): if any of the dependencies is outside of [folder],
     // we'll need to watch their parent folders as well.
@@ -185,7 +184,6 @@ abstract class ContextDirectoryManager {
       // while we're rerunning "pub list", since any analysis we complete while
       // "pub list" is in progress is just going to get thrown away anyhow.
       PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
-      // TODO(paulberry): handle null return from computePackageMap.
       info.packageMapDependencies = packageMapInfo.dependencies;
       updateContextPackageMap(folder, packageMapInfo.packageMap);
     }
