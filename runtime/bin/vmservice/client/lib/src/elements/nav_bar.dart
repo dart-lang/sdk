@@ -116,3 +116,22 @@ class ClassNavMenuElement extends ObservatoryElement {
 
   ClassNavMenuElement.created() : super.created();
 }
+
+@CustomTag('nav-notify')
+class NavNotifyElement extends ObservatoryElement {
+  @published ObservableList<ServiceEvent> events;
+  
+  NavNotifyElement.created() : super.created();
+}
+
+@CustomTag('nav-notify-item')
+class NavNotifyItemElement extends ObservatoryElement {
+  @published ObservableList<ServiceEvent> events;
+  @published ServiceEvent event;
+  
+  void closeItem(MouseEvent e, var detail, Element target) {
+    events.remove(event);
+  }
+
+  NavNotifyItemElement.created() : super.created();
+}

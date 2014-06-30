@@ -19,6 +19,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -192,10 +193,29 @@ ActivationFrame::ActivationFrame(
 }
 
 
-void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
+bool Debugger::HasEventHandler() {
+  return (event_handler_ != NULL) || Service::NeedsDebuggerEvents();
+}
+
+
+void Debugger::InvokeEventHandler(DebuggerEvent* event) {
+  ASSERT(HasEventHandler());
+
+  // Give the event to the Service first, as the debugger event handler
+  // may go into a message loop and the Service will not.
+  if (Service::NeedsDebuggerEvents()) {
+    Service::HandleDebuggerEvent(event);
+  }
+
   if (event_handler_ != NULL) {
-    DebuggerEvent event(type);
-    event.set_isolate_id(isolate_id_);
+    (*event_handler_)(event);
+  }
+}
+
+
+void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
+  if (HasEventHandler()) {
+    DebuggerEvent event(isolate_, type);
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
@@ -207,14 +227,14 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
       HandleSteppingRequest(trace);
       stack_trace_ = NULL;
     } else {
-      (*event_handler_)(&event);
+      InvokeEventHandler(&event);
     }
   }
 }
 
 
 void Debugger::SignalIsolateInterrupted() {
-  if (event_handler_ != NULL) {
+  if (HasEventHandler()) {
     Debugger* debugger = Isolate::Current()->debugger();
     ASSERT(debugger != NULL);
     debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
@@ -510,11 +530,11 @@ const char* DebuggerEvent::EventTypeToCString(EventType type) {
 
 void DebuggerEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "DebuggerEvent");
+  jsobj.AddProperty("type", "ServiceEvent");
   // TODO(turnidge): Drop the 'id' for things like DebuggerEvent.
   jsobj.AddProperty("id", "");
-  // TODO(turnidge): Add 'isolate'.
   jsobj.AddProperty("eventType", EventTypeToCString(type()));
+  jsobj.AddProperty("isolate", isolate());
   if (type() == kBreakpointResolved || type() == kBreakpointReached) {
     jsobj.AddProperty("breakpoint", breakpoint());
   }
@@ -1212,10 +1232,10 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
 
 
 void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
-  if (event_handler_ != NULL) {
-    DebuggerEvent event(DebuggerEvent::kBreakpointResolved);
+  if (HasEventHandler()) {
+    DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
     event.set_breakpoint(bpt);
-    (*event_handler_)(&event);
+    InvokeEventHandler(&event);
   }
 }
 
@@ -1500,7 +1520,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // interested in exception events.
   if (ignore_breakpoints_ ||
       IsPaused() ||
-      (event_handler_ == NULL) ||
+      (!HasEventHandler()) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
@@ -1508,7 +1528,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   if (!ShouldPauseOnException(stack_trace, exc)) {
     return;
   }
-  DebuggerEvent event(DebuggerEvent::kExceptionThrown);
+  DebuggerEvent event(isolate_, DebuggerEvent::kExceptionThrown);
   event.set_exception(&exc);
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
@@ -2138,6 +2158,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
 }
 
 
+// static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   SourceBreakpoint* bpt = src_breakpoints_;
@@ -2153,6 +2174,7 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+// static
 void Debugger::SetEventHandler(EventHandler* handler) {
   event_handler_ = handler;
 }
@@ -2165,7 +2187,7 @@ void Debugger::Pause(DebuggerEvent* event) {
   pause_event_ = event;
   obj_cache_ = new RemoteObjectCache(64);
 
-  (*event_handler_)(event);
+  InvokeEventHandler(event);
 
   pause_event_ = NULL;
   obj_cache_ = NULL;    // Zone allocated
@@ -2212,7 +2234,7 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
-  DebuggerEvent event(DebuggerEvent::kBreakpointReached);
+  DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
   Pause(&event);
@@ -2223,7 +2245,7 @@ void Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
-  ASSERT(event_handler_ != NULL);
+  ASSERT(HasEventHandler());
   // Don't pause recursively.
   if (IsPaused()) return;
 
@@ -2283,7 +2305,7 @@ void Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused() || (event_handler_ == NULL)) {
+  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();

@@ -13,6 +13,8 @@ import 'package:polymer/polymer.dart';
 class ObservatoryElement extends PolymerElement {
   ObservatoryElement.created() : super.created();
 
+  ObservatoryApplication get app => ObservatoryApplication.app;
+
   @override
   void attached() {
     super.attached();

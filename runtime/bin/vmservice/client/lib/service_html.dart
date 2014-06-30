@@ -95,10 +95,16 @@ class WebSocketVM extends VM {
       });
   }
 
-  void _handleMessage(MessageEvent event) {
-    var map = JSON.decode(event.data);
+  void _handleMessage(MessageEvent message) {
+    var map = JSON.decode(message.data);
     int seq = map['seq'];
     var response = map['response'];
+    if (seq == null) {
+      // Messages without sequence numbers are asynchronous events
+      // from the vm.
+      postEventMessage(response);
+      return;
+    }
     var completer = _pendingRequests.remove(seq);
     if (completer == null) {
       Logger.root.severe('Received unexpected message: ${map}');

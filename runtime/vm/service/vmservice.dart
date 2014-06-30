@@ -20,12 +20,56 @@ class VMService extends MessageRouter {
   static VMService _instance;
   /// Collection of currently connected clients.
   final Set<Client> clients = new Set<Client>();
+
+  // A map encoding which clients are interested in which kinds of events.
+  final Map<int, Set<Client>> eventMap = new Map<int, Set<Client>>();
+
   /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
-  /// Isolate startup and shutdown messages are sent on this port.
-  final RawReceivePort receivePort;
 
-  void controlMessageHandler(int code, int port_id, SendPort sp, String name) {
+  /// A port used to receive events from the VM.
+  final RawReceivePort eventPort;
+
+  void _addClient(Client client) {
+    clients.add(client);
+  }
+
+  void _removeClient(Client client) {
+    clients.remove(client);
+  }
+
+  int eventTypeCode(String eventType) {
+    switch(eventType) {
+      case 'debug':
+        return Constants.EVENT_FAMILY_DEBUG;
+      default:
+        return -1;
+    }
+  }
+
+  void _updateEventMask() {
+    int mask = 0;
+    for (var key in eventMap.keys) {
+      var subscribers = eventMap[key];
+      if (subscribers.isNotEmpty) {
+        mask |= (1 << key);
+      }
+    }
+    _setEventMask(mask);
+  }
+
+  void subscribe(String eventType, Client client) {
+    int eventCode = eventTypeCode(eventType);
+    assert(eventCode >= 0);
+    var subscribers = eventMap.putIfAbsent(eventCode, () => new Set<Client>());
+    subscribers.add(client);
+    _updateEventMask();
+  }
+
+  void _controlMessageHandler(int code,
+                              int port_id,
+                              SendPort sp,
+                              String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
         runningIsolates.isolateStartup(port_id, sp, name);
@@ -36,24 +80,30 @@ class VMService extends MessageRouter {
     }
   }
 
-  void _addClient(Client client) {
-    clients.add(client);
-  }
-
-  void _removeClient(Client client) {
-    clients.remove(client);
+  void _eventMessageHandler(int eventType, String eventMessage) {
+    var subscribers = eventMap[eventType];
+    if (subscribers == null) {
+      return;
+    }
+    for (var subscriber in subscribers) {
+      subscriber.post(null, eventMessage);
+    }
   }
 
   void messageHandler(message) {
     assert(message is List);
-    assert(message.length == 4);
     if (message is List && message.length == 4) {
-      controlMessageHandler(message[0], message[1], message[2], message[3]);
+      _controlMessageHandler(message[0], message[1], message[2], message[3]);
+    } else if (message is List && message.length == 2) {
+      _eventMessageHandler(message[0], message[1]);
+    } else {
+      Logger.root.severe('Unexpected message: $message');
     }
   }
 
-  VMService._internal() : receivePort = new RawReceivePort() {
-    receivePort.handler = messageHandler;
+  VMService._internal()
+      : eventPort = new RawReceivePort() {
+    eventPort.handler = messageHandler;
   }
 
   factory VMService() {
@@ -92,10 +142,13 @@ class VMService extends MessageRouter {
 RawReceivePort boot() {
   // Boot the VMService.
   // Return the port we expect isolate startup and shutdown messages on.
-  return new VMService().receivePort;
+  return new VMService().eventPort;
 }
 
 void _registerIsolate(int port_id, SendPort sp, String name) {
   var service = new VMService();
   service.runningIsolates.isolateStartup(port_id, sp, name);
 }
+
+void _setEventMask(int mask)
+    native "VMService_SetEventMask";

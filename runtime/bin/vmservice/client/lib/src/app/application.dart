@@ -116,6 +116,7 @@ class ErrorViewPane extends Pane {
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
+  static ObservatoryApplication app;
   final _paneRegistry = new List<Pane>();
   ServiceObjectPane _serviceObjectPane;
   Pane _currentPane;
@@ -126,12 +127,62 @@ class ObservatoryApplication extends Observable {
 
   @reflectable ServiceObject lastErrorOrException;
 
+  @observable ObservableList<ServiceEvent> notifications =
+      new ObservableList<ServiceEvent>();
+
   void _initOnce() {
+    app = this;
+    vm.events.stream.listen(_handleEvent);
     _registerPanes();
     vm.errors.stream.listen(_onError);
     vm.exceptions.stream.listen(_onException);
     location = locationManager;
     locationManager._init(this);
+  }
+
+  void removePauseEvents(Isolate isolate) {
+    bool isPauseEvent(var event) {
+      return (event.eventType == 'IsolateInterrupted' ||
+              event.eventType == 'BreakpointReached' ||
+              event.eventType == 'ExceptionThrown');
+    }
+
+    notifications.removeWhere((oldEvent) {
+        return (oldEvent.isolate == isolate &&
+                isPauseEvent(oldEvent));
+      });
+  }
+
+  void _handleEvent(ServiceEvent event) {
+    switch(event.eventType) {
+      case 'IsolateCreated':
+        // vm.reload();
+        break;
+
+      case 'IsolateShutdown':
+        // TODO(turnidge): Should we show the user isolate shutdown events?
+        // What if there are hundreds of them?  Coalesce multiple
+        // shutdown events into one notification?
+        removePauseEvents(event.isolate);
+        // vm.reload();
+        break;
+        
+      case 'BreakpointResolved':
+        // Do nothing.
+        break;
+
+      case 'BreakpointReached':
+      case 'IsolateInterrupted':
+      case 'ExceptionThrown':
+        removePauseEvents(event.isolate);
+        notifications.add(event);
+        break;
+
+      default:
+        // Ignore unrecognized events.
+        Logger.root.severe('Unrecognized event type: ${event.eventType}');
+        break;
+    }
   }
 
   void _registerPanes() {
@@ -199,7 +250,7 @@ class ObservatoryApplication extends Observable {
 
   ObservatoryApplication(this.rootElement) :
       locationManager = new HashLocationManager(),
-      vm = new HttpVM() {
+      vm = new WebSocketVM() {
     _initOnce();
   }
 }

@@ -52,6 +52,7 @@
 
     <template if="{{ isolate.idle }}">
       <strong>idle</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
     </template>
 
     <template if="{{ isolate.loading }}">
@@ -63,25 +64,32 @@
 <polymer-element name="isolate-location" extends="observatory-element">
   <template>
     <template if="{{ isolate.pauseEvent != null }}">
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateCreated' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateCreated' }}">
         at isolate start
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateShutdown' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateShutdown' }}">
         at isolate exit
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateInterrupted' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateInterrupted' }}">
         at
         <function-ref ref="{{ isolate.topFrame['function'] }}">
         </function-ref>
         (<script-ref ref="{{ isolate.topFrame['script'] }}"
                      pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'BreakpointReached' }}">
-        at breakpoint {{ isolate.pauseEvent['breakpoint']['id'] }}
+      <template if="{{ isolate.pauseEvent.eventType == 'BreakpointReached' }}">
+        at breakpoint {{ isolate.pauseEvent.breakpoint['id'] }}
         <function-ref ref="{{ isolate.topFrame['function'] }}">
         </function-ref>
         (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                         pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+      <template if="{{ isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+        at exception
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}"
+                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
       </template>
     </template>
 

@@ -1262,6 +1262,7 @@ hr {
     </style>
     <nav>
       <ul>
+        <nav-notify events="{{ app.notifications }}"></nav-notify>
         <content></content>
       </ul>
     </nav>
@@ -1454,6 +1455,115 @@ hr {
     </nav-menu>
   </template>
 </polymer-element>
+
+<polymer-element name="nav-notify" extends="observatory-element">
+  <template>
+    <style>
+      .menu {
+        float: right;
+      }
+      .menu .list {
+        display: block;
+        position: absolute;
+        top: 98%;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        width: auto;
+        z-index: 1000;
+        font: 400 12px 'Montserrat', sans-serif;
+        color: white;
+        background: none;
+      }
+    </style>
+
+    <div class="menu">
+      <div class="list">
+        <template repeat="{{ event in events }}">
+          <nav-notify-item events="{{ events }}" event="{{ event }}">
+          </nav-notify-item>
+        </template>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="nav-notify-item" extends="observatory-element">
+  <template>
+    <style>
+      .item {
+        position: relative;
+        padding: 16px;
+        margin-top: 10px;
+        margin-right: 10px;
+        padding-right: 25px;
+        width: 200px;
+        color: #ddd;
+        background: rgba(0,0,0,.6);
+        border: solid 2px white;
+        box-shadow: 0 0 5px black;
+        border-radius: 5px;
+        animation: fadein 1s;
+      }
+
+      @keyframes fadein {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      a.link {
+        color: white;
+        text-decoration: none;
+      }
+      a.link:hover {
+        text-decoration: underline;
+      }
+
+      a.boxclose {
+        position: absolute;
+        display: block;
+        top: 4px;
+        right: 4px;
+        height: 18px;
+        width: 18px;
+        line-height: 16px;
+        border-radius: 9px;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: center;
+      }
+      a.boxclose:hover {
+        background: rgba(255,255,255,0.5);
+      }
+    </style>
+    <template if="{{ event.eventType == 'IsolateInterrupted' }}">
+      <div class="item">
+        Isolate
+        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+        is paused
+        <a class="boxclose" on-click="{{ closeItem }}">×</a>
+      </div>
+    </template>
+    <template if="{{ event.eventType == 'BreakpointReached' }}">
+      <div class="item">
+        Isolate
+        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+        is paused at breakpoint {{ event.breakpoint['id'] }}
+        <a class="boxclose" on-click="{{ closeItem }}">×</a>
+      </div>
+    </template>
+    <template if="{{ event.eventType == 'ExceptionThrown' }}">
+      <div class="item">
+        Isolate
+        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+        is paused at exception
+        <a class="boxclose" on-click="{{ closeItem }}">×</a>
+      </div>
+    </template>
+  </template>
+</polymer-element>
+
 
 
 <polymer-element name="breakpoint-list" extends="observatory-element">
@@ -12095,6 +12205,7 @@ hr {
 
 
 
+
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
     <style>
@@ -12383,6 +12494,7 @@ hr {
 
     <template if="{{ isolate.idle }}">
       <strong>idle</strong>
+      <action-link callback="{{ pause }}" label="pause"></action-link>
     </template>
 
     <template if="{{ isolate.loading }}">
@@ -12394,20 +12506,26 @@ hr {
 <polymer-element name="isolate-location" extends="observatory-element">
   <template>
     <template if="{{ isolate.pauseEvent != null }}">
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateCreated' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateCreated' }}">
         at isolate start
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateShutdown' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateShutdown' }}">
         at isolate exit
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'IsolateInterrupted' }}">
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateInterrupted' }}">
         at
         <function-ref ref="{{ isolate.topFrame['function'] }}">
         </function-ref>
         (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
       </template>
-      <template if="{{ isolate.pauseEvent['eventType'] == 'BreakpointReached' }}">
-        at breakpoint {{ isolate.pauseEvent['breakpoint']['id'] }}
+      <template if="{{ isolate.pauseEvent.eventType == 'BreakpointReached' }}">
+        at breakpoint {{ isolate.pauseEvent.breakpoint['id'] }}
+        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        </function-ref>
+        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      </template>
+      <template if="{{ isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+        at exception
         <function-ref ref="{{ isolate.topFrame['function'] }}">
         </function-ref>
         (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)

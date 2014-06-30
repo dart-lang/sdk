@@ -978,11 +978,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   // TODO(turnidge): Make the debugger support paused_on_start/exit.
   if (message_handler()->paused_on_start()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateCreated);
+    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateCreated);
     jsobj.AddProperty("pauseEvent", &pauseEvent);
   } else if (message_handler()->paused_on_exit()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateShutdown);
+    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateShutdown);
     jsobj.AddProperty("pauseEvent", &pauseEvent);
   } else if (debugger()->PauseEvent() != NULL) {
     jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());

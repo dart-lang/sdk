@@ -72,13 +72,16 @@ abstract class ServiceObject extends Observable {
         obj = new DartError._empty(owner);
         break;
       case 'Isolate':
-        obj = new Isolate._empty(owner);
+        obj = new Isolate._empty(owner.vm);
         break;
       case 'Library':
         obj = new Library._empty(owner);
         break;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
+        break;
+      case 'ServiceEvent':
+        obj = new ServiceEvent._empty(owner);
         break;
       case 'ServiceException':
         obj = new ServiceException._empty(owner);
@@ -236,6 +239,29 @@ abstract class VM extends ServiceObjectOwner {
       new StreamController.broadcast();
   final StreamController<ServiceError> errors =
       new StreamController.broadcast();
+  final StreamController<ServiceEvent> events =
+      new StreamController.broadcast();
+
+  void postEventMessage(String eventMessage) {
+      var map;
+      try {
+        map = _parseJSON(eventMessage);
+      } catch (e, st) {
+        Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
+        return;
+      }
+      if (map['type'] != 'ServiceEvent') {
+        Logger.root.severe(
+            "Expected 'ServiceEvent' but found '${map['type']}'");
+        return;
+      }
+      // Extract the owning isolate from the event itself.
+      String owningIsolateId = map['isolate']['id'];
+      _getIsolate(owningIsolateId).then((owningIsolate) {
+          var event = new ServiceObject._fromMap(owningIsolate, map);
+          events.add(event);
+      });
+  }
 
   static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
   static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+/');
@@ -547,7 +573,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   String get link => '/${_id}';
 
-  @observable ServiceMap pauseEvent = null;
+  @observable ServiceEvent pauseEvent = null;
   bool get _isPaused => pauseEvent != null;
 
   @observable bool running = false;
@@ -714,6 +740,18 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     _loaded = true;
     loading = false;
+
+    // Remap DebuggerEvent to ServiceEvent so that the observatory can
+    // work against 1.5 vms in the short term.
+    //
+    // TODO(turnidge): Remove this when no longer needed.
+    var pause = map['pauseEvent'];
+    if (pause != null) {
+      if (pause['type'] == 'DebuggerEvent') {
+        pause['type'] = 'ServiceEvent';
+      }
+    }
+
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -960,6 +998,29 @@ class ServiceException extends ServiceObject {
     response = map['response'];
     name = 'ServiceException $kind';
     vmName = name;
+  }
+}
+
+/// A [ServiceEvent] is an asynchronous event notification from the vm.
+class ServiceEvent extends ServiceObject {
+  ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  @observable String eventType;
+  @observable ServiceMap breakpoint;
+  @observable ServiceMap exception;
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    eventType = map['eventType'];
+    name = 'ServiceEvent $eventType';
+    vmName = name;
+    if (map['breakpoint'] != null) {
+      breakpoint = map['breakpoint'];
+    }
+    if (map['exception'] != null) {
+      exception = map['exception'];
+    }
   }
 }
 
@@ -1395,7 +1456,7 @@ class CodeInstruction extends Observable {
     int address = _getJumpAddress();
     if (address == 0) {
       // Could not determine jump address.
-      print('Could not determine jump address for $human');
+      Logger.root.severe('Could not determine jump address for $human');
       return;
     }
     for (var i = 0; i < instructions.length; i++) {
@@ -1405,7 +1466,8 @@ class CodeInstruction extends Observable {
         return;
       }
     }
-    print('Could not find instruction at ${address.toRadixString(16)}');
+    Logger.root.severe(
+        'Could not find instruction at ${address.toRadixString(16)}');
   }
 }
 

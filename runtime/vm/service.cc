@@ -232,6 +232,21 @@ static void SendRootServiceMessage(Dart_NativeArguments args) {
 }
 
 
+void Service::SetEventMask(uint32_t mask) {
+  event_mask_ = mask;
+}
+
+
+void SetEventMask(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(0));
+  Service::SetEventMask(mask.AsTruncatedUint32Value());
+}
+
+
 struct VmServiceNativeEntry {
   const char* name;
   int num_arguments;
@@ -241,7 +256,8 @@ struct VmServiceNativeEntry {
 
 static VmServiceNativeEntry _VmServiceNativeEntries[] = {
   {"VMService_SendIsolateServiceMessage", 2, SendIsolateServiceMessage},
-  {"VMService_SendRootServiceMessage", 1, SendRootServiceMessage}
+  {"VMService_SendRootServiceMessage", 1, SendRootServiceMessage},
+  {"VMService_SetEventMask", 1, SetEventMask},
 };
 
 
@@ -274,6 +290,7 @@ EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
 Dart_LibraryTagHandler Service::default_handler_ = NULL;
 Dart_Port Service::port_ = ILLEGAL_PORT;
+uint32_t Service::event_mask_ = 0;
 
 
 static Dart_Port ExtractPort(Dart_Handle receivePort) {
@@ -499,11 +516,6 @@ bool Service::SendIsolateShutdownMessage() {
   }
   return PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
-}
-
-
-bool Service::IsRunning() {
-  return port_ != ILLEGAL_PORT;
 }
 
 
@@ -2176,6 +2188,42 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
     OS::Print("Service has no root message handler for <%s>\n", command);
   }
   return NULL;
+}
+
+
+void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
+  if (!IsRunning()) {
+    return;
+  }
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  HANDLESCOPE(isolate);
+
+  // Construct a list of the form [eventId, eventMessage].
+  const Array& list = Array::Handle(Array::New(2));
+  ASSERT(!list.IsNull());
+  list.SetAt(0, Integer::Handle(Integer::New(eventId)));
+  list.SetAt(1, eventMessage);
+
+  // Push the event to port_.
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(list);
+  intptr_t len = writer.BytesWritten();
+  if (FLAG_trace_service) {
+    OS::Print("Pushing event of type %" Pd ", len %" Pd "\n", eventId, len);
+  }
+  // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
+  PortMap::PostMessage(
+      new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+void Service::HandleDebuggerEvent(DebuggerEvent* event) {
+  JSONStream js;
+  event->PrintJSON(&js);
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyDebug, message);
 }
 
 
