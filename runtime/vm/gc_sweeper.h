@@ -26,7 +26,9 @@ class GCSweeper {
   // Returns true if the page is in use.
   bool SweepPage(HeapPage* page, FreeList* freelist);
 
-  bool SweepLargePage(HeapPage* page);
+  // Returns the number of words from page->object_start() to the end of the
+  // last marked object.
+  intptr_t SweepLargePage(HeapPage* page);
 
  private:
   Heap* heap_;

@@ -182,6 +182,24 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
 }
 
 
+void PageSpace::TruncateLargePage(HeapPage* page,
+                                  intptr_t new_object_size_in_bytes) {
+  const intptr_t old_object_size_in_bytes =
+      page->object_end() - page->object_start();
+  ASSERT(new_object_size_in_bytes <= old_object_size_in_bytes);
+  const intptr_t new_page_size_in_words =
+      LargePageSizeInWordsFor(new_object_size_in_bytes);
+  VirtualMemory* memory = page->memory_;
+  const intptr_t old_page_size_in_words = (memory->size() >> kWordSizeLog2);
+  if (new_page_size_in_words < old_page_size_in_words) {
+    memory->Truncate(memory->start(), new_page_size_in_words << kWordSizeLog2);
+    usage_.capacity_in_words -= old_page_size_in_words;
+    usage_.capacity_in_words += new_page_size_in_words;
+    page->set_object_end(page->object_start() + new_object_size_in_bytes);
+  }
+}
+
+
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   usage_.capacity_in_words -= (page->memory_->size() >> kWordSizeLog2);
   // Remove the page from the list.
@@ -538,11 +556,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   page = large_pages_;
   while (page != NULL) {
     HeapPage* next_page = page->next();
-    bool page_in_use = sweeper.SweepLargePage(page);
-    if (page_in_use) {
-      prev_page = page;
-    } else {
+    const intptr_t words_to_end = sweeper.SweepLargePage(page);
+    if (words_to_end == 0) {
       FreeLargePage(page, prev_page);
+    } else {
+      TruncateLargePage(page, words_to_end << kWordSizeLog2);
+      prev_page = page;
     }
     // Advance to the next page.
     page = next_page;

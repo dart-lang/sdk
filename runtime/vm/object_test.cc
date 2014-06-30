@@ -2060,9 +2060,15 @@ TEST_CASE(GrowableObjectArray) {
     value = Smi::New(i);
     array.Add(value);
   }
+  Heap* heap = Isolate::Current()->heap();
+  heap->CollectAllGarbage();
+  intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeArray(array);
   EXPECT_EQ(1, new_array.Length());
-  Isolate::Current()->heap()->CollectAllGarbage();
+  heap->CollectAllGarbage();
+  intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
+  // Page should shrink.
+  EXPECT_LT(capacity_after, capacity_before);
   EXPECT_EQ(1, new_array.Length());
 }
 

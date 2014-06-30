@@ -296,6 +296,7 @@ class PageSpace {
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
+  void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
   HeapPage* NextPageAnySize(HeapPage* page) const {

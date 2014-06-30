@@ -62,10 +62,10 @@ class VirtualMemory {
 
   static bool InSamePage(uword address0, uword address1);
 
- private:
   // Truncate this virtual memory segment.
   void Truncate(uword new_start, intptr_t size);
 
+ private:
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system.
   void FreeSubSegment(void* address, intptr_t size);
