@@ -5817,7 +5817,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(out_hi == left_hi);
 
   Label* deopt = NULL;
-  if (FLAG_throw_on_javascript_int_overflow) {
+  if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   switch (op_kind()) {
@@ -5835,9 +5835,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case Token::kADD:
     case Token::kSUB: {
-      if (!FLAG_throw_on_javascript_int_overflow) {
-        deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
-      }
       if (op_kind() == Token::kADD) {
         __ addl(left_lo, right_lo);
         __ adcl(left_hi, right_hi);
@@ -5845,7 +5842,9 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ subl(left_lo, right_lo);
         __ sbbl(left_hi, right_hi);
       }
-      __ j(OVERFLOW, deopt);
+      if (can_overflow()) {
+        __ j(OVERFLOW, deopt);
+      }
       break;
     }
     default: UNREACHABLE();
@@ -5859,7 +5858,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = op_kind() == Token::kSHL ? 2 : 0;
+  const intptr_t kNumTemps =
+      (op_kind() == Token::kSHL) ? (CanDeoptimize() ? 2 : 1) : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
@@ -5867,10 +5867,20 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
   summary->set_in(1, Location::RegisterLocation(ECX));
   if (op_kind() == Token::kSHL) {
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresRegister());
+    if (CanDeoptimize()) {
+      summary->set_temp(1, Location::RequiresRegister());
+    }
   }
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
+}
+
+
+static const intptr_t kMintShiftCountLimit = 31;
+
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  return (right()->definition()->range() == NULL)
+      || !right()->definition()->range()->IsWithin(0, kMintShiftCountLimit);
 }
 
 
@@ -5884,18 +5894,19 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
-  Label done;
-  __ testl(ECX, ECX);
-  __ j(ZERO, &done);  // Shift by 0 is a nop.
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  }
   // Deoptimize if shift count is > 31.
   // sarl operation masks the count to 5 bits and
   // shrd is undefined with count > operand size (32)
   // TODO(fschneider): Support shift counts > 31 without deoptimization.
   __ SmiUntag(ECX);
-  const Immediate& kCountLimit = Immediate(31);
-  __ cmpl(ECX, kCountLimit);
-  __ j(ABOVE, deopt);
+  if (has_shift_count_check()) {
+    __ cmpl(ECX, Immediate(kMintShiftCountLimit));
+    __ j(ABOVE, deopt);
+  }
   switch (op_kind()) {
     case Token::kSHR: {
       __ shrd(left_lo, left_hi);  // Shift count in CL.
@@ -5904,25 +5915,29 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kSHL: {
       Register temp1 = locs()->temp(0).reg();
-      Register temp2 = locs()->temp(1).reg();
       __ movl(temp1, left_lo);  // Low 32 bits.
-      __ movl(temp2, left_hi);  // High 32 bits.
-      __ shll(left_lo, ECX);  // Shift count in CL.
-      __ shld(left_hi, temp1);  // Shift count in CL.
-      // Check for overflow by shifting back the high 32 bits
-      // and comparing with the input.
-      __ movl(temp1, temp2);
-      __ movl(temp2, left_hi);
-      __ sarl(temp2, ECX);
-      __ cmpl(temp1, temp2);
-      __ j(NOT_EQUAL, deopt);
+      if (can_overflow()) {
+        Register temp2 = locs()->temp(1).reg();
+        __ movl(temp2, left_hi);  // High 32 bits.
+        __ shll(left_lo, ECX);  // Shift count in CL.
+        __ shld(left_hi, temp1);  // Shift count in CL.
+        // Check for overflow by shifting back the high 32 bits
+        // and comparing with the input.
+        __ movl(temp1, temp2);
+        __ movl(temp2, left_hi);
+        __ sarl(temp2, ECX);
+        __ cmpl(temp1, temp2);
+        __ j(NOT_EQUAL, deopt);
+      } else {
+        __ shll(left_lo, ECX);  // Shift count in CL.
+        __ shld(left_hi, temp1);  // Shift count in CL.
+      }
       break;
     }
     default:
       UNREACHABLE();
       break;
   }
-  __ Bind(&done);
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
   }

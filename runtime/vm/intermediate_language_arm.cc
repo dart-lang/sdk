@@ -5972,7 +5972,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
 
   Label* deopt = NULL;
-  if (FLAG_throw_on_javascript_int_overflow) {
+  if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   switch (op_kind()) {
@@ -5993,9 +5993,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     break;
     case Token::kADD:
     case Token::kSUB: {
-      if (!FLAG_throw_on_javascript_int_overflow) {
-        deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
-      }
       if (op_kind() == Token::kADD) {
         __ adds(out_lo, left_lo, Operand(right_lo));
         __ adcs(out_hi, left_hi, Operand(right_hi));
@@ -6004,8 +6001,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ subs(out_lo, left_lo, Operand(right_lo));
         __ sbcs(out_hi, left_hi, Operand(right_hi));
       }
-      // Deopt on overflow.
-      __ b(deopt, VS);
+      if (can_overflow()) {
+        // Deopt on overflow.
+        __ b(deopt, VS);
+      }
       break;
     }
     default:
@@ -6034,6 +6033,14 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static const intptr_t kMintShiftCountLimit = 63;
+
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  return (right()->definition()->range() == NULL)
+      || !right()->definition()->range()->IsWithin(0, kMintShiftCountLimit);
+}
+
+
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
@@ -6044,25 +6051,21 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   Register temp = locs()->temp(0).reg();
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
-  Label done;
-
-  // Early out if shift is 0.
-  __ CompareImmediate(shift, 0);
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  }
   __ mov(out_lo, Operand(left_lo));
   __ mov(out_hi, Operand(left_hi));
-  __ b(&done, EQ);
 
   // Untag shift count.
   __ SmiUntag(shift);
 
-  // Deopt if shift is negative.
-  __ CompareImmediate(shift, 1);
-  __ b(deopt, LT);
-
-  // Deopt if shift is larger than 63.
-  __ CompareImmediate(shift, 63);
-  __ b(deopt, GT);
+  // Deopt if shift is larger than 63 or less than 0.
+  if (has_shift_count_check()) {
+    __ CompareImmediate(shift, kMintShiftCountLimit);
+    __ b(deopt, HI);
+  }
 
   switch (op_kind()) {
     case Token::kSHR: {
@@ -6087,15 +6090,16 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ mov(out_lo, Operand(out_lo, LSL, shift));
 
       // Check for overflow.
-
-      // Copy high word from output.
-      __ mov(temp, Operand(out_hi));
-      // Shift copy right.
-      __ Asr(temp, temp, shift);
-      // Compare with high word from input.
-      __ cmp(temp, Operand(left_hi));
-      // Overflow if they aren't equal.
-      __ b(deopt, NE);
+      if (can_overflow()) {
+        // Copy high word from output.
+        __ mov(temp, Operand(out_hi));
+        // Shift copy right.
+        __ Asr(temp, temp, shift);
+        // Compare with high word from input.
+        __ cmp(temp, Operand(left_hi));
+        // Overflow if they aren't equal.
+        __ b(deopt, NE);
+      }
       break;
     }
     default:
@@ -6103,7 +6107,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
   }
 
-  __ Bind(&done);
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
   }

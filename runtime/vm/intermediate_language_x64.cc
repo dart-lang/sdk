@@ -5537,6 +5537,12 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  UNREACHABLE();
+  return false;
+}
+
+
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   UNIMPLEMENTED();
