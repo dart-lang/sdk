@@ -18,7 +18,7 @@ class DateSymbols {
       MONTHS, STANDALONEMONTHS, SHORTMONTHS, STANDALONESHORTMONTHS, WEEKDAYS,
       STANDALONEWEEKDAYS, SHORTWEEKDAYS, STANDALONESHORTWEEKDAYS,
       NARROWWEEKDAYS, STANDALONENARROWWEEKDAYS, SHORTQUARTERS,
-      QUARTERS, AMPMS, DATEFORMATS, TIMEFORMATS;
+      QUARTERS, AMPMS, DATEFORMATS, TIMEFORMATS, DATETIMEFORMATS;
   Map<String, String> AVAILABLEFORMATS;
   int FIRSTDAYOFWEEK;
   List<int> WEEKENDRANGE;
@@ -51,7 +51,8 @@ class DateSymbols {
                this.AVAILABLEFORMATS,
                this.FIRSTDAYOFWEEK,
                this.WEEKENDRANGE,
-               this.FIRSTWEEKCUTOFFDAY});
+               this.FIRSTWEEKCUTOFFDAY,
+               this.DATETIMEFORMATS});
 
   // TODO(alanknight): Replace this with use of a more general serialization
   // facility once one is available. Issue 4926.
@@ -80,6 +81,7 @@ class DateSymbols {
     FIRSTDAYOFWEEK = map["FIRSTDAYOFWEEK"];
     WEEKENDRANGE = map["WEEKENDRANGE"];
     FIRSTWEEKCUTOFFDAY = map["FIRSTWEEKCUTOFFDAY"];
+    DATETIMEFORMATS = map["DATETIMEFORAMTS"];
   }
 
   Map serializeToMap() => {
@@ -106,7 +108,8 @@ class DateSymbols {
     "AVAILABLEFORMATS": AVAILABLEFORMATS,
     "FIRSTDAYOFWEEK": FIRSTDAYOFWEEK,
     "WEEKENDRANGE": WEEKENDRANGE,
-    "FIRSTWEEKCUTOFFDAY": FIRSTWEEKCUTOFFDAY
+    "FIRSTWEEKCUTOFFDAY": FIRSTWEEKCUTOFFDAY,
+    "DATETIMEFORMATS" : DATETIMEFORMATS,
   };
 
   toString() => NAME;
@@ -152,7 +155,9 @@ var en_USSymbols = new DateSymbols(
          'h:mm a'],
     FIRSTDAYOFWEEK: 6,
     WEEKENDRANGE: const [5, 6],
-    FIRSTWEEKCUTOFFDAY: 5);
+    FIRSTWEEKCUTOFFDAY: 5,
+    DATETIMEFORMATS: const ['{1} \'at\' {0}', '{1} \'at\' {0}', '{1}, {0}',
+        '{1}, {0}']);
 
 var en_USPatterns = const {
   'd': 'd', // DAY

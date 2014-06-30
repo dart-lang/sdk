@@ -30,7 +30,7 @@ main() {
     waitForIt.future.then(expectAsync((_) {
       expect(list[0], "Ran at 00:00:00 on Thursday, January 1, 1970");
       expect(list[1], "Ausgedruckt am 00:00:00 am Donnerstag, 1. Januar 1970.");
-      expect(list[2], "วิ่ง 0:00:00 on วันพฤหัสบดี 1 มกราคม 1970.");
+      expect(list[2], "วิ่ง 00:00:00 on วันพฤหัสบดี 1 มกราคม 1970.");
       expect(list[3], "วิ่ง now on today.");
     }));
   });
