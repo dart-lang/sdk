@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
@@ -22,6 +23,6 @@ main() {
     // passed to dart2js. See issue 16008.
     var pub = startPubServe();
     pub.stderr.expect('Unrecognized dart2js option "invalidOption".');
-    pub.shouldExit(1);
+    pub.shouldExit(exit_codes.DATA);
   });
 }

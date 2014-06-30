@@ -18,6 +18,8 @@ main() {
             -h, --help       Print usage information for this command.
                 --all        Install all matching versions.
             -v, --version    Version constraint.
+
+            See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
             """,
         exitCode: exit_codes.USAGE);
   });

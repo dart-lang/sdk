@@ -23,6 +23,8 @@ main() {
           -f, --force      Publish without confirmation if there are no errors.
               --server     The package server to which to upload this package.
                            (defaults to "https://pub.dartlang.org")
+
+          See http://dartlang.org/tools/pub/cmd/pub-lish.html for detailed documentation.
           """,
         exitCode: exit_codes.USAGE);
   });
