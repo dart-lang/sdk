@@ -22,7 +22,7 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Simple, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -34,7 +34,7 @@ ASSEMBLER_TEST_GENERATE(Addiu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addiu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -47,7 +47,7 @@ ASSEMBLER_TEST_GENERATE(Addiu_overflow, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addiu_overflow, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(static_cast<int32_t>(0x80000000),
             EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -62,7 +62,7 @@ ASSEMBLER_TEST_GENERATE(Addu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -76,7 +76,7 @@ ASSEMBLER_TEST_GENERATE(Addu_overflow, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addu_overflow, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(static_cast<int32_t>(0x80000000),
             EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -91,7 +91,7 @@ ASSEMBLER_TEST_GENERATE(And, assembler) {
 
 
 ASSEMBLER_TEST_RUN(And, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -104,7 +104,7 @@ ASSEMBLER_TEST_GENERATE(Andi, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Andi, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -117,7 +117,7 @@ ASSEMBLER_TEST_GENERATE(Clo, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Clo, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -130,7 +130,7 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Clz, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(17, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -144,7 +144,7 @@ ASSEMBLER_TEST_GENERATE(MtloMflo, assembler) {
 
 
 ASSEMBLER_TEST_RUN(MtloMflo, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -158,7 +158,7 @@ ASSEMBLER_TEST_GENERATE(MthiMfhi, assembler) {
 
 
 ASSEMBLER_TEST_RUN(MthiMfhi, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -173,7 +173,7 @@ ASSEMBLER_TEST_GENERATE(Divu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Divu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -188,7 +188,7 @@ ASSEMBLER_TEST_GENERATE(Div, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Div, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -203,7 +203,7 @@ ASSEMBLER_TEST_GENERATE(Divu_corner, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Divu_corner, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -218,7 +218,7 @@ ASSEMBLER_TEST_GENERATE(Div_corner, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Div_corner, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(static_cast<int32_t>(0x80000000),
             EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -235,7 +235,7 @@ ASSEMBLER_TEST_GENERATE(Lb, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lb, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -251,7 +251,7 @@ ASSEMBLER_TEST_GENERATE(Lb_offset, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lb_offset, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -267,7 +267,7 @@ ASSEMBLER_TEST_GENERATE(Lbu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lbu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(255, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -283,7 +283,7 @@ ASSEMBLER_TEST_GENERATE(Lh, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lh, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -299,7 +299,7 @@ ASSEMBLER_TEST_GENERATE(Lhu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lhu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(65535, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -315,7 +315,7 @@ ASSEMBLER_TEST_GENERATE(Lw, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lw, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -327,7 +327,7 @@ ASSEMBLER_TEST_GENERATE(Lui, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Lui, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42 << 16, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -340,7 +340,7 @@ ASSEMBLER_TEST_GENERATE(Sll, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Sll, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -353,7 +353,7 @@ ASSEMBLER_TEST_GENERATE(Srl, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Srl, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -367,7 +367,7 @@ ASSEMBLER_TEST_GENERATE(LShifting, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LShifting, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -381,7 +381,7 @@ ASSEMBLER_TEST_GENERATE(RShifting, assembler) {
 
 
 ASSEMBLER_TEST_RUN(RShifting, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -395,7 +395,7 @@ ASSEMBLER_TEST_GENERATE(Sllv, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Sllv, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -409,7 +409,7 @@ ASSEMBLER_TEST_GENERATE(Srlv, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Srlv, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -424,7 +424,7 @@ ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LShiftingV, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -439,7 +439,7 @@ ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
 
 
 ASSEMBLER_TEST_RUN(RShiftingV, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -454,7 +454,7 @@ ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Mult_pos, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -469,7 +469,7 @@ ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Mult_neg, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -484,7 +484,7 @@ ASSEMBLER_TEST_GENERATE(Mult_neg_hi, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Mult_neg_hi, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -499,7 +499,7 @@ ASSEMBLER_TEST_GENERATE(Multu_lo, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Multu_lo, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -514,7 +514,7 @@ ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Multu_hi, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -531,7 +531,7 @@ ASSEMBLER_TEST_GENERATE(Madd_neg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Madd_neg, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-84, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -545,7 +545,7 @@ ASSEMBLER_TEST_GENERATE(Subu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Subu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -559,7 +559,7 @@ ASSEMBLER_TEST_GENERATE(Or, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Or, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -573,7 +573,7 @@ ASSEMBLER_TEST_GENERATE(Nor, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Nor, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -587,7 +587,7 @@ ASSEMBLER_TEST_GENERATE(Xor, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Xor, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -600,7 +600,7 @@ ASSEMBLER_TEST_GENERATE(Xori, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Xori, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -614,7 +614,7 @@ ASSEMBLER_TEST_GENERATE(Slt, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Slt, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -628,7 +628,7 @@ ASSEMBLER_TEST_GENERATE(Sltu, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Sltu, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -643,7 +643,7 @@ ASSEMBLER_TEST_GENERATE(Movz, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Movz, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -658,7 +658,7 @@ ASSEMBLER_TEST_GENERATE(Movn, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Movn, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -670,7 +670,7 @@ ASSEMBLER_TEST_GENERATE(Jr_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Jr_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -689,7 +689,7 @@ ASSEMBLER_TEST_GENERATE(Beq_backward, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_backward, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -710,7 +710,7 @@ ASSEMBLER_TEST_GENERATE(Beq_backward_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_backward_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -730,7 +730,7 @@ ASSEMBLER_TEST_GENERATE(Beq_backward_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_backward_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -750,7 +750,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -772,7 +772,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -793,7 +793,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -816,7 +816,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_not_taken_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -842,7 +842,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_not_taken_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -864,7 +864,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -888,7 +888,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -915,7 +915,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far3, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken_far3, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -936,7 +936,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(43, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -957,7 +957,7 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_not_taken_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(44, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -977,7 +977,7 @@ ASSEMBLER_TEST_GENERATE(Beql_backward_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beql_backward_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -995,7 +995,7 @@ ASSEMBLER_TEST_GENERATE(Bgez, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1015,7 +1015,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1038,7 +1038,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1061,7 +1061,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_taken_forward_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_taken_forward_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1086,7 +1086,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_taken_forward_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_taken_forward_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1109,7 +1109,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_not_taken_forward_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_not_taken_forward_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1134,7 +1134,7 @@ ASSEMBLER_TEST_GENERATE(Bgez_not_taken_forward_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgez_not_taken_forward_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1152,7 +1152,7 @@ ASSEMBLER_TEST_GENERATE(Bgezl, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgezl, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1170,7 +1170,7 @@ ASSEMBLER_TEST_GENERATE(Blez, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blez, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1190,7 +1190,7 @@ ASSEMBLER_TEST_GENERATE(Blez_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blez_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1213,7 +1213,7 @@ ASSEMBLER_TEST_GENERATE(Blez_far2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blez_far2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1236,7 +1236,7 @@ ASSEMBLER_TEST_GENERATE(Blez_taken_forward_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blez_taken_forward_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1259,7 +1259,7 @@ ASSEMBLER_TEST_GENERATE(Blez_not_taken_forward_far, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blez_not_taken_forward_far, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1277,7 +1277,7 @@ ASSEMBLER_TEST_GENERATE(Blezl, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Blezl, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1295,7 +1295,7 @@ ASSEMBLER_TEST_GENERATE(Bgtz, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgtz, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1313,7 +1313,7 @@ ASSEMBLER_TEST_GENERATE(Bgtzl, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bgtzl, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1331,7 +1331,7 @@ ASSEMBLER_TEST_GENERATE(Bltz, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bltz, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1349,7 +1349,7 @@ ASSEMBLER_TEST_GENERATE(Bltzl, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bltzl, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1367,7 +1367,7 @@ ASSEMBLER_TEST_GENERATE(Bne, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bne, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1385,7 +1385,7 @@ ASSEMBLER_TEST_GENERATE(Bnel, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Bnel, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1405,7 +1405,7 @@ ASSEMBLER_TEST_GENERATE(Label_link1, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Label_link1, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1425,7 +1425,7 @@ ASSEMBLER_TEST_GENERATE(Label_link2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Label_link2, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1438,7 +1438,7 @@ ASSEMBLER_TEST_GENERATE(Jalr_delay, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Jalr_delay, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1505,7 +1505,7 @@ ASSEMBLER_TEST_GENERATE(AddOverflow_detect, assembler) {
 
 
 ASSEMBLER_TEST_RUN(AddOverflow_detect, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1553,7 +1553,7 @@ ASSEMBLER_TEST_GENERATE(SubOverflow_detect, assembler) {
 
 
 ASSEMBLER_TEST_RUN(SubOverflow_detect, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1568,7 +1568,7 @@ ASSEMBLER_TEST_GENERATE(Mtc1Mfc1, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Mtc1Mfc1, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -1583,7 +1583,7 @@ ASSEMBLER_TEST_GENERATE(Addd, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addd, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(3.0, res, 0.001);
@@ -1598,7 +1598,7 @@ ASSEMBLER_TEST_GENERATE(Movd, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Movd, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(1.0, res, 0.001);
@@ -1617,7 +1617,7 @@ ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Sdc1Ldc1, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(1.0, res, 0.001);
@@ -1636,7 +1636,7 @@ ASSEMBLER_TEST_GENERATE(Addd_NaN, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addd_NaN, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_EQ(isnan(res), true);
@@ -1654,7 +1654,7 @@ ASSEMBLER_TEST_GENERATE(Addd_Inf, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Addd_Inf, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_EQ(isfinite(res), false);
@@ -1670,7 +1670,7 @@ ASSEMBLER_TEST_GENERATE(Subd, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Subd, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(1.0, res, 0.001);
@@ -1686,7 +1686,7 @@ ASSEMBLER_TEST_GENERATE(Muld, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Muld, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(42.0, res, 0.001);
@@ -1702,7 +1702,7 @@ ASSEMBLER_TEST_GENERATE(Divd, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Divd, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
@@ -1717,7 +1717,7 @@ ASSEMBLER_TEST_GENERATE(Sqrtd, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Sqrtd, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
@@ -1741,7 +1741,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CUN, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CUN, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1761,7 +1761,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CUN_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CUN_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1781,7 +1781,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CEq, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CEq, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1801,7 +1801,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CEq_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CEq_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1821,7 +1821,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CEq_false, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CEq_false, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1841,7 +1841,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CEq_false_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CEq_false_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1861,7 +1861,7 @@ ASSEMBLER_TEST_GENERATE(Cop1COLT, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1COLT, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1881,7 +1881,7 @@ ASSEMBLER_TEST_GENERATE(Cop1COLT_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1COLT_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1901,7 +1901,7 @@ ASSEMBLER_TEST_GENERATE(Cop1COLE, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1COLE, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1921,7 +1921,7 @@ ASSEMBLER_TEST_GENERATE(Cop1COLE_not_taken, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
@@ -1935,7 +1935,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDW, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtDW, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(42.0, res, 0.001);
@@ -1951,7 +1951,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDW_neg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtDW_neg, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(-42.0, res, 0.001);
@@ -1972,7 +1972,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtDL, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(4294967296.0, res, 0.001);
@@ -1993,7 +1993,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(-1.0, res, 0.001);
@@ -2009,7 +2009,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtWD, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtWD, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -2024,7 +2024,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtWD_neg, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtWD_neg, test) {
-  typedef int (*SimpleCode)();
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -2039,7 +2039,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtSD, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtSD, test) {
-  typedef double (*SimpleCode)();
+  typedef double (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(-42.42, res, 0.001);
