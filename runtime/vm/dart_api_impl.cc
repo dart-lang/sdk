@@ -4748,14 +4748,9 @@ static void CompileSource(Isolate* isolate,
   const Error& error = Error::Handle(isolate, Compiler::Compile(lib, script));
   if (error.IsNull()) {
     *result = Api::NewHandle(isolate, lib.raw());
-    if (update_lib_status) {
-      lib.SetLoaded();
-    }
   } else {
     *result = Api::NewHandle(isolate, error.raw());
-    if (update_lib_status) {
-      lib.SetLoadError();
-    }
+    lib.SetLoadError();
   }
 }
 
@@ -5150,6 +5145,11 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
+
+  isolate->DoneLoading();
+
+  // TODO(hausner): move the remaining code below (finalization and
+  // invoing of _completeDeferredLoads) into Isolate::DoneLoading().
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckIsolateState(isolate);
