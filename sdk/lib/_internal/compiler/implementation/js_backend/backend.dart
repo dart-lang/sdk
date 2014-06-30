@@ -300,10 +300,6 @@ class JavaScriptBackend extends Backend {
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
 
-
-  /// Set of typedefs that are used as type literals.
-  final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
-
   /// All the checked mode helpers.
   static const checkedModeHelpers = CheckedModeHelper.helpers;
 
@@ -1964,7 +1960,7 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
     if (type.isTypedef) {
-      backend.typedefTypeLiterals.add(type.element);
+      backend.compiler.world.allTypedefs.add(type.element);
     }
     backend.customElementsAnalysis.registerTypeLiteral(type, registry);
   }

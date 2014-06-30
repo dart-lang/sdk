@@ -36,6 +36,9 @@ class EnqueueTask extends CompilerTask {
              link = link.tail) {
           addMemberByName(link.head.element);
         }
+      } else if (element.isTypedef) {
+       TypedefElement typedef = element;
+       typedef.ensureResolved(compiler);
       }
       allElementsByName[name] = allElementsByName.putIfAbsent(
           name, () => const Link<Element>()).prepend(element);
