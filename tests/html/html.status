@@ -13,6 +13,8 @@ blob_constructor_test: Fail # Issue 19500
 transferables_test: Fail # Issue 19500
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 xhr_test/xhr: RuntimeError # Issue 18049
+form_data_test/functional: Skip # Issue 19726
+indexeddb_4_test: Skip # Issue 19726
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
