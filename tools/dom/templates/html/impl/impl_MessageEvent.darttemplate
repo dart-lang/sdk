@@ -14,6 +14,14 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (source == null) {
       source = window;
     }
+$if DART2JS
+    if (!Device.isIE) { // TODO: This if check should be removed once IE
+      // implements the constructor.
+      return JS('MessageEvent', 'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
+          type, canBubble, cancelable, data, origin, lastEventId, source,
+          messagePorts);
+    }
+$endif 
     var event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);

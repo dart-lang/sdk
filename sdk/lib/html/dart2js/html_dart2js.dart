@@ -18415,6 +18415,11 @@ class MessageEvent extends Event native "MessageEvent" {
     if (source == null) {
       source = window;
     }
+    if (!Device.isIE) {
+      return JS('MessageEvent', 'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
+          type, canBubble, cancelable, data, origin, lastEventId, source,
+          messagePorts);
+    }
     var event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
