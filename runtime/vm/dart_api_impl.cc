@@ -1580,47 +1580,20 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_ReceivePortGetId(Dart_Handle port,
-                                              Dart_Port* port_id) {
+DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
+                                           Dart_Port* port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
-  const ReceivePort& receive_port = Api::UnwrapReceivePortHandle(isolate, port);
-  if (receive_port.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, port, ReceivePort);
+  const SendPort& send_port = Api::UnwrapSendPortHandle(isolate, port);
+  if (send_port.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, port, SendPort);
   }
   if (port_id == NULL) {
     RETURN_NULL_ERROR(port_id);
   }
-  *port_id = receive_port.Id();
+  *port_id = send_port.Id();
   return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  CHECK_CALLBACK_STATE(isolate);
-
-  Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& class_name = String::Handle(
-      isolate, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-  // TODO(asiva): Symbols should contain private keys.
-  const String& function_name =
-      String::Handle(isolate_lib.PrivateName(Symbols::_get()));
-  const int kNumArguments = 1;
-  const Function& function = Function::Handle(
-      isolate,
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              Object::empty_array()));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
-  args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
-  return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
 }
 
 
@@ -1630,28 +1603,6 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
   return isolate->main_port();
 }
 
-
-DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle port,
-                                         Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const SendPort& send_port = Api::UnwrapSendPortHandle(isolate, port);
-  if (send_port.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, port, SendPort);
-  }
-  Dart_Port port_id = send_port.Id();
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator);
-  Object& msg_object = Object::Handle(Api::UnwrapHandle(object));
-  writer.WriteMessage(msg_object);
-  intptr_t len = writer.BytesWritten();
-  bool r = PortMap::PostMessage(
-      new Message(port_id, data, len, Message::kNormalPriority));
-  if (r) {
-    return Api::Success();
-  }
-  return Api::NewError("Dart_PostMessage failed.");
-}
 
 // --- Scopes ----
 
