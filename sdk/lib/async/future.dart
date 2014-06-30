@@ -557,23 +557,24 @@ class TimeoutException implements Exception {
 abstract class Completer<T> {
 
   /**
-   * Creates a completer whose future is completed asynchronously, sometime
-   * after [complete] is called on it. This allows a call to [complete] to
-   * be in the middle of other code, without running an unknown amount of
-   * future completion and [then] callbacks synchronously at the point that
-   * [complete] is called.
+   * Creates a new completer.
+   *
+   * The general workflow for creating a new future is to 1) create a
+   * new completer, 2) hand out its future, and, at a later point, 3) invoke
+   * either [complete] or [completeError].
+   *
+   * The completer completes the future asynchronously. That means that
+   * callbacks registered on the future, are not called immediately when
+   * [complete] or [completeError] is called. Instead the callbacks are
+   * delayed until a later microtask.
    *
    * Example:
    *
-   *     var completer = new Completer.sync();
-   *     completer.future.then((_) { bar(); });
-   *     // The completion is the result of the asynchronous onDone event.
-   *     // However, there is code executed after the call to complete,
-   *     // but before completer.future runs its completion callback.
-   *     stream.listen(print, onDone: () {
-   *       completer.complete("done");
-   *       foo();  // In this case, foo() runs before bar().
-   *     });
+   *     var completer = new Completer();
+   *     handOut(completer.future);
+   *     later: {
+   *       completer.complete('completion value');
+   *     }
    */
   factory Completer() => new _AsyncCompleter<T>();
 
