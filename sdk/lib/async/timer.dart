@@ -93,8 +93,9 @@ abstract class Timer {
    * A periodic timer is active if it has not been canceled.
    */
   bool get isActive;
+
+  external static Timer _createTimer(Duration duration, void callback());
+  external static Timer _createPeriodicTimer(Duration duration,
+                                             void callback(Timer timer));
 }
 
-external Timer _createTimer(Duration duration, void callback());
-external Timer _createPeriodicTimer(Duration duration,
-                                    void callback(Timer timer));

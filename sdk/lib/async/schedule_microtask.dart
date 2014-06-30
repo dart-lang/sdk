@@ -59,11 +59,11 @@ void _scheduleAsyncCallback(callback) {
  * callbacks through this method. For example the following program runs
  * the callbacks without ever giving the Timer callback a chance to execute:
  *
- *     Timer.run(() { print("executed"); });  // Will never be executed.
- *     foo() {
- *       scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
- *     }
  *     main() {
+ *       Timer.run(() { print("executed"); });  // Will never be executed.
+ *       foo() {
+ *         scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
+ *       }
  *       foo();
  *     }
  *
@@ -74,10 +74,10 @@ void _scheduleAsyncCallback(callback) {
  * better asynchronous code with fewer surprises.
  */
 void scheduleMicrotask(void callback()) {
-  if (Zone.current == Zone.ROOT) {
+  if (identical(_ROOT_ZONE, Zone.current)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
     // will be invoked in the root zone.
-    Zone.current.scheduleMicrotask(callback);
+    _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
     return;
   }
   Zone.current.scheduleMicrotask(

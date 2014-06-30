@@ -300,6 +300,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   Future _onCancel() {
     assert(_isCanceled);
+    return null;
   }
 
   // Handle pending events.

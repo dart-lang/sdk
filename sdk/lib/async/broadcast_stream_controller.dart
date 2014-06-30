@@ -45,7 +45,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
 
   bool get _isFiring => (_eventState & _STATE_FIRING) != 0;
 
-  bool _setRemoveAfterFiring() {
+  void _setRemoveAfterFiring() {
     assert(_isFiring);
     _eventState |= _STATE_REMOVE_AFTER_FIRING;
   }
@@ -207,6 +207,7 @@ abstract class _BroadcastStreamController<T>
         _callOnCancel();
       }
     }
+    return null;
   }
 
   void _recordPause(StreamSubscription<T> subscription) {}

@@ -19,21 +19,6 @@ import 'dart:_isolate_helper' show
 import 'dart:_foreign_helper' show JS;
 
 @patch
-Timer _createTimer(Duration duration, void callback()) {
-  int milliseconds = duration.inMilliseconds;
-  if (milliseconds < 0) milliseconds = 0;
-  return new TimerImpl(milliseconds, callback);
-}
-
-@patch
-Timer _createPeriodicTimer(Duration duration,
-                           void callback(Timer timer)) {
-  int milliseconds = duration.inMilliseconds;
-  if (milliseconds < 0) milliseconds = 0;
-  return new TimerImpl.periodic(milliseconds, callback);
-}
-
-@patch
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {
@@ -64,7 +49,7 @@ class _AsyncRun {
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
-    _createTimer(Duration.ZERO, callback);
+    Timer._createTimer(Duration.ZERO, callback);
   }
 }
 
@@ -73,6 +58,24 @@ class DeferredLibrary {
   @patch
   Future<Null> load() {
     return loadDeferredLibrary(libraryName, uri);
+  }
+}
+
+@patch
+class Timer {
+  @patch
+  static Timer _createTimer(Duration duration, void callback()) {
+    int milliseconds = duration.inMilliseconds;
+    if (milliseconds < 0) milliseconds = 0;
+    return new TimerImpl(milliseconds, callback);
+  }
+
+  @patch
+  static Timer _createPeriodicTimer(Duration duration,
+                             void callback(Timer timer)) {
+    int milliseconds = duration.inMilliseconds;
+    if (milliseconds < 0) milliseconds = 0;
+    return new TimerImpl.periodic(milliseconds, callback);
   }
 }
 
