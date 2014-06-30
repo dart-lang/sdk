@@ -4,6 +4,8 @@
 
 library computer.navigation;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -19,20 +21,20 @@ import 'element.dart' as computer;
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<Map<String, Object>> _regions = <Map<String, Object>>[];
+  final List<HashMap<String, Object>> _regions = <HashMap<String, Object>>[];
 
   DartUnitNavigationComputer(this._unit);
 
   /**
    * Returns the computed navigation regions, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<HashMap<String, Object>> compute() {
     _unit.accept(new _DartUnitNavigationComputerVisitor(this));
     return new List.from(_regions);
   }
 
   void _addRegion(int offset, int length, Element element) {
-    Map<String, Object> target = _createTarget(element);
+    HashMap<String, Object> target = _createTarget(element);
     if (target == null) {
       return;
     }
@@ -76,7 +78,7 @@ class DartUnitNavigationComputer {
   /**
    * Returns the JSON for the given [Element], maybe `null` if `null` was given.
    */
-  Map<String, Object> _createTarget(Element element) {
+  HashMap<String, Object> _createTarget(Element element) {
     if (element == null) {
       return null;
     }

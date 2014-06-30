@@ -17,7 +17,7 @@ import 'domain_edit_test.dart' as domain_edit_test;
 import 'domain_search_test.dart' as domain_search_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'index/test_all.dart' as index_test_all;
-import 'operation/test_all.dart' as operation_test;
+import 'operation/test_all.dart' as operation_test_all;
 import 'package_map_provider_test.dart' as package_map_provider_test;
 import 'package_uri_resolver_test.dart' as package_uri_resolver_test;
 import 'protocol_test.dart' as protocol_test;
@@ -43,7 +43,7 @@ main() {
     domain_search_test.main();
     domain_server_test.main();
     index_test_all.main();
-    operation_test.main();
+    operation_test_all.main();
     package_map_provider_test.main();
     package_uri_resolver_test.main();
     protocol_test.main();

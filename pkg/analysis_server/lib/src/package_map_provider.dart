@@ -4,6 +4,7 @@
 
 library package.map.provider;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -37,7 +38,7 @@ class PackageMapInfo {
    *
    * `null` if an error occurred.
    */
-  Map<String, List<Folder>> packageMap;
+  HashMap<String, List<Folder>> packageMap;
 
   /**
    * Dependency information.  This is a set of the paths which were consulted
@@ -125,9 +126,9 @@ class PubPackageMapProvider implements PackageMapProvider {
     //     "path/to/myapp/pubspec.lock"
     //   ]
     // }
-    Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
-    Map obj = JSON.decode(jsonText);
-    Map packages = obj['packages'];
+    HashMap<String, List<Folder>> packageMap = new HashMap<String, List<Folder>>();
+    HashMap obj = JSON.decode(jsonText);
+    HashMap packages = obj['packages'];
     processPaths(String packageName, List paths) {
       List<Folder> folders = <Folder>[];
       for (var path in paths) {

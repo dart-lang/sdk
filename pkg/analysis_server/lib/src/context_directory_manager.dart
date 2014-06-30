@@ -27,7 +27,7 @@ class _ContextDirectoryInfo {
    * Map from full path to the [Source] object, for each source that has been
    * added to the context.
    */
-  Map<String, Source> sources = new HashMap<String, Source>();
+  HashMap<String, Source> sources = new HashMap<String, Source>();
 
   /**
    * Dependencies of the context's package map.  If any of these files changes,
@@ -50,7 +50,7 @@ abstract class ContextDirectoryManager {
    * [_ContextDirectoryInfo] object for each included directory in the most
    * recent successful call to [setRoots].
    */
-  Map<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
+  HashMap<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
       new HashMap<Folder, _ContextDirectoryInfo>();
 
   /**
@@ -235,7 +235,7 @@ abstract class ContextDirectoryManager {
   /**
    * Called when a new context needs to be created.
    */
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap);
+  void addContext(Folder folder, HashMap<String, List<Folder>> packageMap);
 
   /**
    * Called when the set of files associated with a context have changed (or

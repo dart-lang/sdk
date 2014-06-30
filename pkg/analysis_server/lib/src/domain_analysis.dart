@@ -80,10 +80,10 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response setSubscriptions(Request request) {
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap;
+    HashMap<AnalysisService, Set<String>> subMap;
     {
       RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
-      Map<String, List<String>> subStringMap = subDatum.asStringListMap();
+      HashMap<String, List<String>> subStringMap = subDatum.asStringListMap();
       subMap = new HashMap<AnalysisService, Set<String>>();
       subStringMap.forEach((String serviceName, List<String> paths) {
         AnalysisService service = Enum2.valueOf(AnalysisService.VALUES,

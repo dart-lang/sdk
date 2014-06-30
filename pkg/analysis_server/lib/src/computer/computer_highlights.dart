@@ -4,6 +4,8 @@
 
 library computer.highlights;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -16,14 +18,14 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
 
-  final List<Map<String, Object>> _regions = <Map<String, Object>>[];
+  final List<HashMap<String, Object>> _regions = <HashMap<String, Object>>[];
 
   DartUnitHighlightsComputer(this._unit);
 
   /**
    * Returns the computed highlight regions, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<HashMap<String, Object>> compute() {
     _unit.accept(new _DartUnitHighlightsComputerVisitor(this));
     return _regions;
   }

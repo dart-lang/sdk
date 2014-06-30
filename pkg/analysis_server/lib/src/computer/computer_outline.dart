@@ -4,6 +4,8 @@
 
 library computer.outline;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -21,7 +23,7 @@ class DartUnitOutlineComputer {
   /**
    * Returns the computed outline, not `null`.
    */
-  Map<String, Object> compute() {
+  HashMap<String, Object> compute() {
     Outline unitOutline = _newUnitOutline();
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
@@ -308,11 +310,11 @@ class Outline {
 
   Outline(this.element, this.offset, this.length);
 
-  factory Outline.fromJson(Map<String, Object> map) {
+  factory Outline.fromJson(HashMap<String, Object> map) {
     Element element = new Element.fromJson(map[ELEMENT]);
     Outline outline = new Outline(element, map[OFFSET], map[LENGTH]);
     // add children
-    List<Map<String, Object>> childrenMaps = map[CHILDREN];
+    List<HashMap<String, Object>> childrenMaps = map[CHILDREN];
     if (childrenMaps != null) {
       childrenMaps.forEach((childMap) {
         outline.children.add(new Outline.fromJson(childMap));
@@ -322,8 +324,8 @@ class Outline {
     return outline;
   }
 
-  Map<String, Object> toJson() {
-    Map<String, Object> json = {
+  HashMap<String, Object> toJson() {
+    HashMap<String, Object> json = {
       ELEMENT: element.toJson(),
       OFFSET: offset,
       LENGTH: length

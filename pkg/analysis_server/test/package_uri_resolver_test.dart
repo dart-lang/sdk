@@ -4,6 +4,8 @@
 
 library test.resolver.package;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -22,7 +24,7 @@ main() {
 
 @ReflectiveTestCase()
 class _PackageMapUriResolverTest {
-  static const EMPTY_MAP = const <String, List<Folder>>{};
+  static HashMap EMPTY_MAP = new HashMap<String, List<Folder>>();
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   setUp() {

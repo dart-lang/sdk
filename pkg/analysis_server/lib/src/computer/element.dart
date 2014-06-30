@@ -4,6 +4,8 @@
 
 library computer.element;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
@@ -79,7 +81,7 @@ class Element {
         isStatic: _isStatic(element));
   }
 
-  factory Element.fromJson(Map<String, Object> map) {
+  factory Element.fromJson(HashMap<String, Object> map) {
     ElementKind kind = ElementKind.valueOf(map[KIND]);
     int flags = map[FLAGS];
     return new Element(kind, map[NAME], map[OFFSET], map[LENGTH], _hasFlag(
@@ -100,8 +102,8 @@ class Element {
     return flags;
   }
 
-  Map<String, Object> toJson() {
-    Map<String, Object> json = {
+  HashMap<String, Object> toJson() {
+    HashMap<String, Object> json = {
       KIND: kind.name,
       NAME: name,
       OFFSET: offset,
