@@ -44,8 +44,8 @@ class IrBuilderTask extends CompilerTask {
 
   ir.FunctionDefinition getIr(Element element) => nodes[element.implementation];
 
-  void buildNodes() {
-    if (!irEnabled()) return;
+  void buildNodes({bool useNewBackend: false}) {
+    if (!irEnabled(useNewBackend: useNewBackend)) return;
     measure(() {
       Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
       resolved.forEach((AstElement element) {
@@ -85,9 +85,9 @@ class IrBuilderTask extends CompilerTask {
     });
   }
 
-  bool irEnabled() {
+  bool irEnabled({bool useNewBackend: false}) {
     // TODO(lry): support checked-mode checks.
-    return const bool.fromEnvironment('USE_NEW_BACKEND') &&
+    return (useNewBackend || const bool.fromEnvironment('USE_NEW_BACKEND')) &&
         compiler.backend is DartBackend &&
         !compiler.enableTypeAssertions &&
         !compiler.enableConcreteTypeInference;
