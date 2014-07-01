@@ -57,7 +57,7 @@ abstract class PubCommand {
     buffer.write(_listCommands(mainCommands));
     buffer.writeln();
     buffer.writeln(
-        'Use "pub help [command]" for more information about a command.');
+        'Run "pub help [command]" for more information about a command.');
     buffer.writeln(
         'See http://dartlang.org/tools/pub for detailed documentation.');
 
@@ -248,8 +248,9 @@ abstract class PubCommand {
       buffer.write(_listCommands(subcommands));
     }
 
+    buffer.writeln();
+    buffer.writeln('Run "pub help" to see global options.');
     if (docUrl != null) {
-      buffer.writeln();
       buffer.writeln("See $docUrl for detailed documentation.");
     }
 
