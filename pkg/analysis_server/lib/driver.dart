@@ -10,6 +10,7 @@ import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
 import 'package:args/args.dart';
+import 'package:logging/logging.dart';
 
 /**
  * The [Driver] class represents a single running instance of the analysis
@@ -33,6 +34,11 @@ class Driver {
    */
   static const String PORT_OPTION = "port";
 
+  /**
+   * The name of the option used to specify the log file.
+   */
+  static const String LOG_FILE_OPTION = "log";
+
   SocketServer socketServer = new SocketServer();
 
   HttpAnalysisServer httpServer;
@@ -54,11 +60,26 @@ class Driver {
         negatable: false);
     parser.addOption(PORT_OPTION, help:
         "[port] the port on which the server will listen");
+    parser.addOption(LOG_FILE_OPTION, help:
+        "[path] file to log debugging messages to");
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
       _printUsage(parser);
       return;
+    }
+    if (results[LOG_FILE_OPTION] != null) {
+      try {
+        File file = new File(results[LOG_FILE_OPTION]);
+        IOSink sink = file.openWrite();
+        Logger.root.onRecord.listen((LogRecord record) {
+          sink.writeln(record);
+        });
+      } catch (exception) {
+        print('Could not open log file: $exception');
+        exitCode = 1;
+        return;
+      }
     }
     int port;
     bool serve_http = false;
