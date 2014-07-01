@@ -128,7 +128,6 @@ class _StringBase {
     return true;
   }
 
-
   int compareTo(String other) {
     int thisLength = this.length;
     int otherLength = other.length;
@@ -294,7 +293,7 @@ class _StringBase {
         (codePoint == 0xFEFF);
   }
 
-  String trim() {
+  int _firstNonWhitespace() {
     final len = this.length;
     int first = 0;
     for (; first < len; first++) {
@@ -302,22 +301,33 @@ class _StringBase {
         break;
       }
     }
-    if (len == first) {
-      // String contains only whitespaces.
-      return "";
-    }
-    int last = len - 1;
-    for (; last >= first; last--) {
+    return first;
+  }
+
+  int _lastNonWhitespace() {
+    int last = this.length - 1;
+    for (; last >= 0; last--) {
       if (!_isWhitespace(this.codeUnitAt(last))) {
         break;
       }
     }
-    if ((first == 0) && (last == (len - 1))) {
+    return last;
+  }
+
+  String trim() {
+    final len = this.length;
+    int first = _firstNonWhitespace();
+    if (len == first) {
+      // String contains only whitespaces.
+      return "";
+    }
+    int last = _lastNonWhitespace() + 1;
+    if ((first == 0) && (last == len)) {
       // Returns this string since it does not have leading or trailing
       // whitespaces.
       return this;
     }
-    return _substringUnchecked(first, last + 1);
+    return _substringUnchecked(first, last);
   }
 
   String trimLeft() {

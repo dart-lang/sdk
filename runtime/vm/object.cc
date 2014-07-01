@@ -16907,6 +16907,35 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
   return Transform(CaseMapping::ToLower, str, space);
 }
 
+bool String::ParseDouble(const String& str,
+                         intptr_t start, intptr_t end,
+                         double* result) {
+  ASSERT(0 <= start);
+  ASSERT(start <= end);
+  ASSERT(end <= str.Length());
+  int length = end - start;
+  NoGCScope no_gc;
+  const uint8_t* startChar;
+  if (str.IsOneByteString()) {
+    startChar = OneByteString::CharAddr(str, start);
+  } else if (str.IsExternalOneByteString()) {
+    startChar = ExternalOneByteString::CharAddr(str, start);
+  } else {
+    uint8_t* chars = Isolate::Current()->current_zone()->Alloc<uint8_t>(length);
+    for (int i = 0; i < length; i++) {
+      int ch = str.CharAt(start + i);
+      if (ch < 128) {
+        chars[i] = ch;
+      } else {
+        return false;  // Not ASCII, so definitely not valid double numeral.
+      }
+    }
+    startChar = chars;
+  }
+  return CStringToDouble(reinterpret_cast<const char*>(startChar),
+                         length, result);
+}
+
 
 // Check to see if 'str1' matches 'str2' as is or
 // once the private key separator is stripped from str2.

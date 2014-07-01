@@ -182,26 +182,23 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Double_parse, 1) {
+DEFINE_NATIVE_ENTRY(Double_parse, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, startValue, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, endValue, arguments->NativeArgAt(2));
 
+  const intptr_t start = startValue.AsTruncatedUint32Value();
+  const intptr_t end = endValue.AsTruncatedUint32Value();
   const intptr_t len = value.Length();
 
-  // The native function only accepts one-byte strings. The Dart side converts
-  // other types of strings to one-byte strings, if necessary.
-  if ((!value.IsOneByteString() && !value.IsExternalOneByteString())
-      || (len == 0)) {
-    return Object::null();
+  // Indices should be inside the string, and 0 <= start < end <= len.
+  if (0 <= start && start < end && end <= len) {
+    double double_value;
+    if (String::ParseDouble(value, start, end, &double_value)) {
+      return Double::New(double_value);
+    }
   }
-
-  double double_value;
-  const char* cstr = value.ToCString();
-  ASSERT(cstr != NULL);
-  if (CStringToDouble(cstr, len, &double_value)) {
-    return Double::New(double_value);
-  } else {
-    return Object::null();
-  }
+  return Object::null();
 }
 
 

@@ -5495,6 +5495,11 @@ class String : public Instance {
       PRINTF_ATTRIBUTE(1, 2);
   static RawString* NewFormattedV(const char* format, va_list args);
 
+  static bool ParseDouble(const String& str,
+                          intptr_t start,
+                          intptr_t end,
+                          double* result);
+
  protected:
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
