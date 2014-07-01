@@ -329,6 +329,15 @@ main() {
         expect(parent2.path, equals('/'));
         expect(parent2.parent, isNull);
       });
+
+      test('canonicalizePath', () {
+        expect(folder.canonicalizePath('baz'), equals('/foo/bar/baz'));
+        expect(folder.canonicalizePath('/baz'), equals('/baz'));
+        expect(folder.canonicalizePath('../baz'), equals('/foo/baz'));
+        expect(folder.canonicalizePath('/a/b/../c'), equals('/a/c'));
+        expect(folder.canonicalizePath('./baz'), equals('/foo/bar/baz'));
+        expect(folder.canonicalizePath('/a/b/./c'), equals('/a/b/c'));
+      });
     });
 
     group('_MemoryFileSource', () {

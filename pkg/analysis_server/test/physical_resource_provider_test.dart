@@ -242,6 +242,17 @@ main() {
             parent = grandParent;
           }
         });
+
+        test('canonicalizePath', () {
+          String path2 = join(tempPath, 'folder2');
+          String path3 = join(tempPath, 'folder3');
+          expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
+          expect(folder.canonicalizePath(path2), equals(path2));
+          expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
+          expect(folder.canonicalizePath(join(path2, '..', 'folder3')), equals(path3));
+          expect(folder.canonicalizePath(join('.', 'baz')), equals(join(path, 'baz')));
+          expect(folder.canonicalizePath(join(path2, '.', 'baz')), equals(join(path2, 'baz')));
+        });
       });
     });
 }

@@ -47,6 +47,16 @@ abstract class Folder extends Resource {
    * folders, including folders reachable via links).
    */
   Stream<WatchEvent> get changes;
+
+  /**
+   * If the path [path] is a relative path, convert it to an absolute path
+   * by interpreting it relative to this folder.  If it is already an aboslute
+   * path, then don't change it.
+   *
+   * However, regardless of whether [path] is relative or absolute, normalize
+   * it by removing path components of the form '.' or '..'.
+   */
+  String canonicalizePath(String path);
 }
 
 
@@ -262,9 +272,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       super(provider, path);
   @override
   Resource getChild(String relPath) {
-    relPath = posix.normalize(relPath);
-    String childPath = posix.join(path, relPath);
-    childPath = posix.normalize(childPath);
+    String childPath = canonicalizePath(relPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
     if (resource == null) {
       resource = new _MemoryFile(_provider, childPath);
@@ -297,6 +305,14 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       }
     });
     return streamController.stream;
+  }
+
+  @override
+  String canonicalizePath(String relPath) {
+    relPath = posix.normalize(relPath);
+    String childPath = posix.join(path, relPath);
+    childPath = posix.normalize(childPath);
+    return childPath;
   }
 }
 
@@ -435,8 +451,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Resource getChild(String relPath) {
-    String childPath = join(_entry.absolute.path, relPath);
-    return PhysicalResourceProvider.INSTANCE.getResource(childPath);
+    return PhysicalResourceProvider.INSTANCE.getResource(canonicalizePath(relPath));
   }
 
   @override
@@ -458,6 +473,11 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
+
+  @override
+  String canonicalizePath(String relPath) {
+    return normalize(join(_entry.absolute.path, relPath));
+  }
 }
 
 

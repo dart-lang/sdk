@@ -90,7 +90,7 @@ class PubPackageMapProvider implements PackageMapProvider {
       return _error(folder);
     }
     try {
-      return parsePackageMap(result.stdout);
+      return parsePackageMap(result.stdout, folder);
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(
           "Malformed output from pub $PUB_LIST_COMMAND\n${exception}\n${stackTrace}");
@@ -112,9 +112,10 @@ class PubPackageMapProvider implements PackageMapProvider {
   }
 
   /**
-   * Decode the JSON output from pub into a package map.
+   * Decode the JSON output from pub into a package map.  Paths in the
+   * output are considered relative to [folder].
    */
-  PackageMapInfo parsePackageMap(String jsonText) {
+  PackageMapInfo parsePackageMap(String jsonText, Folder folder) {
     // The output of pub looks like this:
     // {
     //   "packages": {
@@ -133,7 +134,7 @@ class PubPackageMapProvider implements PackageMapProvider {
       List<Folder> folders = <Folder>[];
       for (var path in paths) {
         if (path is String) {
-          Resource resource = resourceProvider.getResource(path);
+          Resource resource = folder.getChild(path);
           if (resource is Folder) {
             folders.add(resource);
           }
@@ -155,7 +156,7 @@ class PubPackageMapProvider implements PackageMapProvider {
     if (inputFiles != null) {
       for (var path in inputFiles) {
         if (path is String) {
-          dependencies.add(path);
+          dependencies.add(folder.canonicalizePath(path));
         }
       }
     }
