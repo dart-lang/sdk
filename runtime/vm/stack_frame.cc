@@ -268,8 +268,7 @@ bool StackFrame::IsValid() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  Isolate* current = Isolate::Current();
-  uword exit_marker = current->top_exit_frame_info();
+  uword exit_marker = isolate_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
 
@@ -368,7 +367,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     return current_frame_;
   }
   ASSERT(current_frame_->IsExitFrame() ||
-         current_frame_->IsDartFrame() ||
+         current_frame_->IsDartFrame(validate_) ||
          current_frame_->IsStubFrame());
 
   // Consume dart/stub frames using StackFrameIterator::FrameSetIterator

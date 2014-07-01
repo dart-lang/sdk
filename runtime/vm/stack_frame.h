@@ -62,8 +62,8 @@ class StackFrame : public ValueObject {
   virtual bool IsValid() const;
 
   // Frame type.
-  virtual bool IsDartFrame() const {
-    ASSERT(IsValid());
+  virtual bool IsDartFrame(bool validate = true) const {
+    ASSERT(!validate || IsValid());
     return !(IsEntryFrame() || IsExitFrame() || IsStubFrame());
   }
   virtual bool IsStubFrame() const;
@@ -121,7 +121,7 @@ class StackFrame : public ValueObject {
 class ExitFrame : public StackFrame {
  public:
   bool IsValid() const { return sp() == 0; }
-  bool IsDartFrame() const { return false; }
+  bool IsDartFrame(bool validate = true) const { return false; }
   bool IsStubFrame() const { return false; }
   bool IsExitFrame() const { return true; }
 
@@ -146,7 +146,7 @@ class EntryFrame : public StackFrame {
   bool IsValid() const {
     return StubCode::InInvocationStubForIsolate(isolate(), pc());
   }
-  bool IsDartFrame() const { return false; }
+  bool IsDartFrame(bool validate = true) const { return false; }
   bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
 
@@ -193,6 +193,8 @@ class StackFrameIterator : public ValueObject {
 
   // Get next frame.
   StackFrame* NextFrame();
+
+  bool validate() const { return validate_; }
 
  private:
   // Iterator for iterating over the set of frames (dart or stub) which exist
@@ -274,7 +276,7 @@ class DartFrameIterator : public ValueObject {
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
-    while (frame != NULL && !frame->IsDartFrame()) {
+    while (frame != NULL && !frame->IsDartFrame(frames_.validate())) {
       frame = frames_.NextFrame();
     }
     return frame;

@@ -96,8 +96,9 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InInvocationStubForIsolate(Isolate* isolate, uword pc) {
-  uword entry = isolate->stub_code()->InvokeDartCodeEntryPoint();
-  uword size = isolate->stub_code()->InvokeDartCodeSize();
+  StubEntry* invoke_dart_entry = isolate->stub_code()->InvokeDartCode_entry_;
+  uword entry = invoke_dart_entry->EntryPoint();
+  uword size = invoke_dart_entry->Size();
   return (pc >= entry) && (pc < (entry + size));
 }
 

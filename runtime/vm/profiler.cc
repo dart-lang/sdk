@@ -36,7 +36,7 @@ DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 DEFINE_FLAG(bool, profile_verify_stack_walk, false,
             "Verify instruction addresses while walking the stack.");
-DEFINE_FLAG(bool, profile_vm, true,
+DEFINE_FLAG(bool, profile_vm, false,
             "Always collect native stack traces.");
 
 bool Profiler::initialized_ = false;
