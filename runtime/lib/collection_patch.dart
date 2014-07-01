@@ -174,9 +174,11 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   void clear() {
-    _elementCount = 0;
     _buckets = new List(_INITIAL_CAPACITY);
-    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+    if (_elementCount > 0) {
+      _elementCount = 0;
+      _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+    }
   }
 
   void _removeEntry(_HashMapEntry entry,
@@ -673,9 +675,11 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   void clear() {
-    _elementCount = 0;
     _buckets = new List(_INITIAL_CAPACITY);
-    _modificationCount++;
+    if (_elementCount > 0) {
+      _elementCount = 0;
+      _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+    }
   }
 
   void _addEntry(E key, int hashCode, int index) {
@@ -963,9 +967,11 @@ abstract class _LinkedHashMapMixin<K, V> implements LinkedHashMap<K, V> {
 
   void clear() {
     _nextEntry = _previousEntry = this;
-    _elementCount = 0;
     _buckets = new List(_HashMap._INITIAL_CAPACITY);
-    _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+    if (_elementCount > 0) {
+      _elementCount = 0;
+      _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+    }
   }
 
   void _addEntry(List buckets, int index, int length,

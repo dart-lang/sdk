@@ -5,6 +5,9 @@
 library map_test;
 import "package:expect/expect.dart";
 import 'dart:collection';
+import 'dart:convert' show JSON;
+
+Map newJsonMap() => JSON.decode('{}');
 
 void main() {
   test(new HashMap());
@@ -15,6 +18,7 @@ void main() {
   test(new MapView(new SplayTreeMap()));
   test(new MapBaseMap());
   test(new MapMixinMap());
+  test(newJsonMap());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -30,6 +34,7 @@ void main() {
   testWeirdStringKeys(new SplayTreeMap<String, String>());
   testWeirdStringKeys(new MapBaseMap<String, String>());
   testWeirdStringKeys(new MapMixinMap<String, String>());
+  testWeirdStringKeys(newJsonMap());
 
   testNumericKeys(new Map());
   testNumericKeys(new Map<num, String>());
@@ -43,6 +48,7 @@ void main() {
   testNumericKeys(new LinkedHashMap<num, String>.identity());
   testNumericKeys(new MapBaseMap<num, String>());
   testNumericKeys(new MapMixinMap<num, String>());
+  testNumericKeys(newJsonMap());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -52,6 +58,7 @@ void main() {
   testNaNKeys(new LinkedHashMap<num, String>());
   testNaNKeys(new MapBaseMap<num, String>());
   testNaNKeys(new MapMixinMap<num, String>());
+  testNaNKeys(newJsonMap());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -79,6 +86,7 @@ void main() {
 
   testIterationOrder(new LinkedHashMap());
   testIterationOrder(new LinkedHashMap.identity());
+  testIterationOrder(newJsonMap());
 
   testOtherKeys(new SplayTreeMap<int, int>());
   testOtherKeys(new SplayTreeMap<int, int>((int a, int b) => a - b,
@@ -101,6 +109,7 @@ void main() {
                                   isValidKey: (v) => v is int));
   testOtherKeys(new MapBaseMap<int, int>());
   testOtherKeys(new MapMixinMap<int, int>());
+  testOtherKeys(newJsonMap());
 
   testUnmodifiableMap(const {1 : 37});
   testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));
