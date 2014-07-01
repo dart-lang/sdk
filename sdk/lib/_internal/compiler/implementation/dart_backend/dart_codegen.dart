@@ -409,7 +409,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                                    visitExpression(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.mapToList(emitType);
+        : exp.type.typeArguments.map(emitType).toList(growable: false);
     return new LiteralMap(entries, typeArguments: typeArguments);
   }
 
@@ -542,7 +542,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (type is GenericType) {
       return new TypeAnnotation(
           type.element.name,
-          type.typeArguments.mapToList(emitType, growable:false))
+          type.typeArguments.map(emitType).toList(growable:false))
           ..dartType = type;
     } else if (type is VoidType) {
       return new TypeAnnotation('void')
@@ -597,7 +597,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
                                    visit(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.mapToList(parent.emitType);
+        : exp.type.typeArguments.map(parent.emitType).toList();
     return new LiteralMap(entries, isConst: true, typeArguments: typeArguments);
   }
 

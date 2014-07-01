@@ -8,25 +8,6 @@ class Link<T> {
   T get head => null;
   Link<T> get tail => null;
 
-  factory Link.fromList(List<T> list) {
-    switch (list.length) {
-      case 0:
-        return new Link<T>();
-      case 1:
-        return new LinkEntry<T>(list[0]);
-      case 2:
-        return new LinkEntry<T>(list[0], new LinkEntry<T>(list[1]));
-      case 3:
-        return new LinkEntry<T>(
-            list[0], new LinkEntry<T>(list[1], new LinkEntry<T>(list[2])));
-    }
-    Link link = new Link<T>();
-    for (int i = list.length ; i > 0; i--) {
-      link = link.prepend(list[i - 1]);
-    }
-    return link;
-  }
-
   const Link();
 
   Link<T> prepend(T element) {

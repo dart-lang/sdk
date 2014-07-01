@@ -1347,38 +1347,32 @@ class FunctionTypeNamer extends DartTypeVisitor {
 
   visitFunctionType(FunctionType type, _) {
     if (backend.rti.isSimpleFunctionType(type)) {
-      sb.write('args${type.parameterTypes.slowLength()}');
+      sb.write('args${type.parameterTypes.length}');
       return;
     }
     visit(type.returnType);
     sb.write('_');
-    for (Link<DartType> link = type.parameterTypes;
-         !link.isEmpty;
-         link = link.tail) {
+    for (DartType parameter in type.parameterTypes) {
       sb.write('_');
-      visit(link.head);
+      visit(parameter);
     }
     bool first = false;
-    for (Link<DartType> link = type.optionalParameterTypes;
-         !link.isEmpty;
-         link = link.tail) {
+    for (DartType parameter in  type.optionalParameterTypes) {
       if (!first) {
         sb.write('_');
       }
       sb.write('_');
-      visit(link.head);
+      visit(parameter);
       first = true;
     }
     if (!type.namedParameterTypes.isEmpty) {
       first = false;
-      for (Link<DartType> link = type.namedParameterTypes;
-          !link.isEmpty;
-          link = link.tail) {
+      for (DartType parameter in type.namedParameterTypes) {
         if (!first) {
           sb.write('_');
         }
         sb.write('_');
-        visit(link.head);
+        visit(parameter);
         first = true;
       }
     }

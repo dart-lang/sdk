@@ -36,7 +36,6 @@ ref_before_declaration_test/06: MissingCompileTimeError
 external_test/10: Fail
 external_test/20: Fail
 
-setter_declaration2_negative_test: Crash # Issue 17139
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699

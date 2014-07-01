@@ -311,14 +311,14 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (backend.isAccessibleByReflection(classElement)) {
-      Link typeVars = classElement.typeVariables;
+      List<DartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties = task.typeVariableHandler
           .typeVariablesOf(classElement).map(js.number);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;
       if ((!typeVariableProperties.isEmpty && !hasSuper) ||
-          (hasSuper && superclass.typeVariables != typeVars)) {
+          (hasSuper && !equalElements(superclass.typeVariables, typeVars))) {
         classBuilder.addProperty('<>',
             new jsAst.ArrayInitializer.from(typeVariableProperties));
       }

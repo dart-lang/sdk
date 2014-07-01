@@ -64,10 +64,10 @@ void testTypeRepresentations() {
     String named = backend.namer.functionTypeNamedParametersTag();
 
     ClassElement List_ = env.getElement('List');
-    TypeVariableType List_E = List_.typeVariables.head;
+    TypeVariableType List_E = List_.typeVariables[0];
     ClassElement Map_ = env.getElement('Map');
-    TypeVariableType Map_K = Map_.typeVariables.head;
-    TypeVariableType Map_V = Map_.typeVariables.tail.head;
+    TypeVariableType Map_K = Map_.typeVariables[0];
+    TypeVariableType Map_V = Map_.typeVariables[1];
 
     DartType Object_ = env['Object'];
     DartType int_ = env['int'];

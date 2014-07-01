@@ -1097,7 +1097,7 @@ class TypedefElementX extends ElementX
     }
   }
 
-  TypedefType createType(Link<DartType> typeArguments) {
+  TypedefType createType(List<DartType> typeArguments) {
     return new TypedefType(this, typeArguments);
   }
 
@@ -1844,9 +1844,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     return rawTypeCache;
   }
 
-  T createType(Link<DartType> typeArguments);
+  T createType(List<DartType> typeArguments);
 
-  void setThisAndRawTypes(Compiler compiler, Link<DartType> typeParameters) {
+  void setThisAndRawTypes(Compiler compiler, List<DartType> typeParameters) {
     assert(invariant(this, thisTypeCache == null,
         message: "This type has already been set on $this."));
     assert(invariant(this, rawTypeCache == null,
@@ -1855,37 +1855,36 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     if (typeParameters.isEmpty) {
       rawTypeCache = thisTypeCache;
     } else {
-      Link<DartType> dynamicParameters = const Link<DartType>();
-      typeParameters.forEach((_) {
-        dynamicParameters =
-            dynamicParameters.prepend(const DynamicType());
-      });
+      List<DartType> dynamicParameters =
+          new List.filled(typeParameters.length, const DynamicType());
       rawTypeCache = createType(dynamicParameters);
     }
   }
 
-  Link<DartType> get typeVariables => thisType.typeArguments;
+  List<DartType> get typeVariables => thisType.typeArguments;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
    * type variables declared in [parameter] on [element]. The bounds of the type
    * variables are not set until [element] has been resolved.
    */
-  Link<DartType> createTypeVariables(NodeList parameters) {
-    if (parameters == null) return const Link<DartType>();
+  List<DartType> createTypeVariables(NodeList parameters) {
+    if (parameters == null) return const <DartType>[];
 
     // Create types and elements for type variable.
-    LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
-    for (Link<Node> link = parameters.nodes; !link.isEmpty; link = link.tail) {
-      TypeVariable node = link.head;
+    Link<Node> nodes = parameters.nodes;
+    List<DartType> arguments =
+        new List.generate(nodes.slowLength(), (_) {
+      TypeVariable node = nodes.head;
       String variableName = node.name.source;
+      nodes = nodes.tail;
       TypeVariableElementX variableElement =
           new TypeVariableElementX(variableName, this, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
       variableElement.typeCache = variableType;
-      arguments.addLast(variableType);
-    }
-    return arguments.toLink();
+      return variableType;
+    }, growable: false);
+    return arguments;
   }
 
   bool get isResolved => resolutionState == STATE_DONE;
@@ -1939,7 +1938,7 @@ abstract class BaseClassElementX extends ElementX
     return thisTypeCache;
   }
 
-  void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
+  void computeThisAndRawType(Compiler compiler, List<DartType> typeVariables) {
     if (thisTypeCache == null) {
       if (origin == null) {
         setThisAndRawTypes(compiler, typeVariables);
@@ -1950,11 +1949,11 @@ abstract class BaseClassElementX extends ElementX
     }
   }
 
-  InterfaceType createType(Link<DartType> typeArguments) {
+  InterfaceType createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Compiler compiler);
 
   InterfaceType asInstanceOf(ClassElement cls) {
     if (cls == this) return thisType;
@@ -2350,7 +2349,7 @@ abstract class ClassElementX extends BaseClassElementX {
     addMember(constructor, compiler);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler) {
+  List<DartType> computeTypeParameters(Compiler compiler) {
     ClassNode node = parseNode(compiler);
     return createTypeVariables(node.typeParameters);
   }
@@ -2439,7 +2438,7 @@ class MixinApplicationElementX extends BaseClassElementX
     addConstructor(constructor);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler) {
+  List<DartType> computeTypeParameters(Compiler compiler) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
       throw new SpannableAssertionFailure(node,

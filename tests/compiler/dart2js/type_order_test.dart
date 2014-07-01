@@ -39,15 +39,15 @@ void main() {
 
     InterfaceType A_this = add(A.thisType);
     InterfaceType A_raw = add(A.rawType);
-    TypeVariableType AT = add(A_this.typeArguments.head);
-    TypeVariableType AS = add(A_this.typeArguments.tail.head);
+    TypeVariableType AT = add(A_this.typeArguments[0]);
+    TypeVariableType AS = add(A_this.typeArguments[1]);
     InterfaceType A_X_Y = add(instantiate(A, [X, Y]));
     InterfaceType A_Y_X = add(instantiate(A, [Y, X]));
 
     TypedefType B_this = add(B.computeType(env.compiler));
     TypedefType B_raw = add(B.rawType);
-    TypeVariableType BT = add(B_this.typeArguments.head);
-    TypeVariableType BS = add(B_this.typeArguments.tail.head);
+    TypeVariableType BT = add(B_this.typeArguments[0]);
+    TypeVariableType BS = add(B_this.typeArguments[1]);
     FunctionType B_this_alias = add(B.alias);
     TypedefType B_X_Y = add(instantiate(B, [X, Y]));
     FunctionType B_X_Y_alias = add(B_X_Y.unalias(env.compiler));
@@ -56,8 +56,8 @@ void main() {
 
     InterfaceType C_this = add(C.thisType);
     InterfaceType C_raw = add(C.rawType);
-    TypeVariableType CT = add(C_this.typeArguments.head);
-    TypeVariableType CS = add(C_this.typeArguments.tail.head);
+    TypeVariableType CT = add(C_this.typeArguments[0]);
+    TypeVariableType CS = add(C_this.typeArguments[1]);
 
     Expect.listEquals(
         [void_, dynamic_,

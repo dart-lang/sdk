@@ -44,7 +44,7 @@ void test() {
     DartType String_ = env['String'];
 
     ClassElement A = env.getElement('A');
-    DartType T = A.typeVariables.head;
+    DartType T = A.typeVariables.first;
     DartType A_T = A.thisType;
     expect(A_T, 'foo', T);
 
@@ -52,7 +52,7 @@ void test() {
     expect(A_int, 'foo', int_);
 
     ClassElement B = env.getElement('B');
-    DartType S = B.typeVariables.head;
+    DartType S = B.typeVariables.first;
     DartType B_S = B.thisType;
     expect(B_S, 'foo', instantiate(A, [S]));
     expect(B_S, 'bar', S);
@@ -62,7 +62,7 @@ void test() {
     expect(B_int, 'bar', int_);
 
     ClassElement C = env.getElement('C');
-    DartType U = C.typeVariables.head;
+    DartType U = C.typeVariables.first;
     DartType C_U = C.thisType;
     expect(C_U, 'foo', instantiate(A, [String_]));
     expect(C_U, 'bar', String_);

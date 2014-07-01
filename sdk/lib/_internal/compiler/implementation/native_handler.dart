@@ -946,10 +946,8 @@ class NativeBehavior {
       // A function might be called from native code, passing us novel
       // parameters.
       _escape(functionType.returnType, compiler);
-      for (Link<DartType> parameters = functionType.parameterTypes;
-           !parameters.isEmpty;
-           parameters = parameters.tail) {
-        _capture(parameters.head, compiler);
+      for (DartType parameter in functionType.parameterTypes) {
+        _capture(parameter, compiler);
       }
     }
   }
@@ -962,10 +960,8 @@ class NativeBehavior {
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, compiler);
-      for (Link<DartType> parameters = functionType.parameterTypes;
-           !parameters.isEmpty;
-           parameters = parameters.tail) {
-        _escape(parameters.head, compiler);
+      for (DartType parameter in functionType.parameterTypes) {
+        _escape(parameter, compiler);
       }
     } else {
       typesInstantiated.add(type);

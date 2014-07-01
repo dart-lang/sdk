@@ -93,12 +93,11 @@ void renamePlaceholders(
     StringBuffer result = new StringBuffer(renameElement(type.element));
     if (type is GenericType && !type.treatAsRaw) {
       result.write('<');
-      Link<DartType> argumentsLink = type.typeArguments;
-      result.write(renameType(argumentsLink.head, renameElement));
-      for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
-           link = link.tail) {
+      List<DartType> arguments = type.typeArguments;
+      result.write(renameType(arguments.first, renameElement));
+      for (int index = 1; index < arguments.length; index++) {
         result.write(',');
-        result.write(renameType(link.head, renameElement));
+        result.write(renameType(arguments[index], renameElement));
       }
       result.write('>');
     }

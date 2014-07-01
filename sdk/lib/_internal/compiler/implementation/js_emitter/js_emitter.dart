@@ -59,6 +59,9 @@ import '../util/util.dart' show
 import '../util/uri_extras.dart' show
     relativize;
 
+import '../util/util.dart' show
+    equalElements;
+
 import '../deferred_load.dart' show
     OutputUnit;
 

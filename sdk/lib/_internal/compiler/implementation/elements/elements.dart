@@ -1056,7 +1056,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
    * available until the type of the element has been computed through
    * [computeType].
    */
-  Link<DartType> get typeVariables;
+  List<DartType> get typeVariables;
 
   bool get isResolved;
 
@@ -1161,7 +1161,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachBackendMember(void f(Element member));
 
-  Link<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Compiler compiler);
 
   /// Looks up the member [name] in this class.
   Member lookupClassMember(Name name);

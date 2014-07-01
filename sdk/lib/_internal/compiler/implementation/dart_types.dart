@@ -15,7 +15,7 @@ import 'elements/modelx.dart'
          TypedefElementX;
 import 'elements/elements.dart';
 import 'ordered_typeset.dart' show OrderedTypeSet;
-import 'util/util.dart' show Link, LinkBuilder, CURRENT_ELEMENT_SPANNABLE;
+import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
 class TypeKind {
   final String id;
@@ -63,12 +63,13 @@ abstract class DartType {
    *
    * Invariant: There must be the same number of [arguments] and [parameters].
    */
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters);
+  DartType subst(List<DartType> arguments, List<DartType> parameters);
 
   /// Performs the substitution of the type arguments of [type] for their
   /// corresponding type variables in this type.
-  DartType substByContext(GenericType type) =>
-      subst(type.typeArguments, type.element.typeVariables);
+  DartType substByContext(GenericType type) {
+    return subst(type.typeArguments, type.element.typeVariables);
+  }
 
   /**
    * Returns the unaliased type of this type.
@@ -128,9 +129,9 @@ abstract class DartType {
   /// Applies [f] to each occurence of a [TypeVariableType] within this type.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
-  TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
-    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
-      TypeVariableType typeVariable = link.head.typeVariableOccurrence;
+  TypeVariableType _findTypeVariableOccurrence(List<DartType> types) {
+    for (DartType type in types) {
+      TypeVariableType typeVariable = type.typeVariableOccurrence;
       if (typeVariable != null) {
         return typeVariable;
       }
@@ -151,10 +152,10 @@ abstract class DartType {
 
   void visitChildren(DartTypeVisitor visitor, var argument) {}
 
-  static void visitList(Link<DartType> types,
+  static void visitList(List<DartType> types,
                         DartTypeVisitor visitor, var argument) {
-    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
-      link.head.accept(visitor, argument);
+    for (DartType type in types) {
+      type.accept(visitor, argument);
     }
   }
 }
@@ -190,25 +191,19 @@ class TypeVariableType extends DartType {
 
   String get name => element.name;
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    assert(arguments.length == parameters.length);
     if (parameters.isEmpty) {
-      assert(arguments.isEmpty);
       // Return fast on empty substitutions.
       return this;
     }
-    Link<DartType> parameterLink = parameters;
-    Link<DartType> argumentLink = arguments;
-    while (!argumentLink.isEmpty && !parameterLink.isEmpty) {
-      TypeVariableType parameter = parameterLink.head;
-      DartType argument = argumentLink.head;
+    for (int index = 0; index < arguments.length; index++) {
+      TypeVariableType parameter = parameters[index];
+      DartType argument = arguments[index];
       if (parameter == this) {
-        assert(argumentLink.tail.isEmpty == parameterLink.tail.isEmpty);
         return argument;
       }
-      parameterLink = parameterLink.tail;
-      argumentLink = argumentLink.tail;
     }
-    assert(argumentLink.isEmpty && parameterLink.isEmpty);
     // The type variable was not substituted.
     return this;
   }
@@ -258,7 +253,7 @@ class StatementType extends DartType {
     return (identical(this, other)) ? this : MAYBE_RETURNING;
   }
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
     // Statement types are not substitutable.
     return this;
   }
@@ -288,7 +283,7 @@ class VoidType extends DartType {
 
   Element get element => null;
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
     // Void cannot be substituted.
     return this;
   }
@@ -323,7 +318,7 @@ class MalformedType extends DartType {
    * [: dynamic :] and [: T :], respectively, or for [: X<int> :] where [: X :]
    * is not resolved or does not imply a type.
    */
-  final Link<DartType> typeArguments;
+  final List<DartType> typeArguments;
 
   final int hashCode = (nextHash++) & 0x3fffffff;
   static int nextHash = 43765;
@@ -335,7 +330,7 @@ class MalformedType extends DartType {
 
   String get name => element.name;
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
     // Malformed types are not substitutable.
     return this;
   }
@@ -359,7 +354,7 @@ class MalformedType extends DartType {
       }
       if (!typeArguments.isEmpty) {
         sb.write('<');
-        typeArguments.printOn(sb, ', ');
+        sb.write(typeArguments.join(', '));
         sb.write('>');
       }
     } else {
@@ -371,24 +366,24 @@ class MalformedType extends DartType {
 
 abstract class GenericType extends DartType {
   final TypeDeclarationElement element;
-  final Link<DartType> typeArguments;
+  final List<DartType> typeArguments;
 
   GenericType(TypeDeclarationElementX element,
-              Link<DartType> this.typeArguments,
+              this.typeArguments,
               {bool checkTypeArgumentCount: true})
       : this.element = element {
     assert(invariant(element,
         !checkTypeArgumentCount ||
         element.thisTypeCache == null ||
-        typeArguments.slowLength() == element.typeVariables.slowLength(),
+        typeArguments.length == element.typeVariables.length,
         message: () => 'Invalid type argument count on ${element.thisType}. '
                        'Provided type arguments: $typeArguments.'));
   }
 
   /// Creates a new instance of this type using the provided type arguments.
-  GenericType createInstantiation(Link<DartType> newTypeArguments);
+  GenericType createInstantiation(List<DartType> newTypeArguments);
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
     if (typeArguments.isEmpty) {
       // Return fast on non-generic types.
       return this;
@@ -398,7 +393,7 @@ abstract class GenericType extends DartType {
       // Return fast on empty substitutions.
       return this;
     }
-    Link<DartType> newTypeArguments =
+    List<DartType> newTypeArguments =
         Types.substTypes(typeArguments, arguments, parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
@@ -412,8 +407,8 @@ abstract class GenericType extends DartType {
   }
 
   void forEachTypeVariable(f(TypeVariableType variable)) {
-    for (Link<DartType> link = typeArguments; !link.isEmpty; link = link.tail) {
-      link.head.forEachTypeVariable(f);
+    for (DartType type in typeArguments) {
+      type.forEachTypeVariable(f);
     }
   }
 
@@ -426,7 +421,7 @@ abstract class GenericType extends DartType {
     sb.write(name);
     if (!isRaw) {
       sb.write('<');
-      typeArguments.printOn(sb, ', ');
+      sb.write(typeArguments.join(', '));
       sb.write('>');
     }
     return sb.toString();
@@ -434,10 +429,8 @@ abstract class GenericType extends DartType {
 
   int get hashCode {
     int hash = element.hashCode;
-    for (Link<DartType> arguments = this.typeArguments;
-         !arguments.isEmpty;
-         arguments = arguments.tail) {
-      int argumentHash = arguments.head != null ? arguments.head.hashCode : 0;
+    for (DartType argument in typeArguments) {
+      int argumentHash = argument != null ? argument.hashCode : 0;
       hash = 17 * hash + 3 * argumentHash;
     }
     return hash;
@@ -447,7 +440,7 @@ abstract class GenericType extends DartType {
     if (other is !GenericType) return false;
     return kind == other.kind
         && element == other.element
-        && typeArguments == other.typeArguments;
+        && equalElements(typeArguments, other.typeArguments);
   }
 
   /// Returns `true` if the declaration of this type has type variables.
@@ -459,8 +452,8 @@ abstract class GenericType extends DartType {
 
   bool get treatAsRaw {
     if (isRaw) return true;
-    for (Link<DartType> link = typeArguments; !link.isEmpty; link = link.tail) {
-      if (!link.head.treatAsDynamic) return false;
+    for (DartType type in typeArguments) {
+      if (!type.treatAsDynamic) return false;
     }
     return true;
   }
@@ -468,14 +461,14 @@ abstract class GenericType extends DartType {
 
 class InterfaceType extends GenericType {
   InterfaceType(BaseClassElementX element,
-                [Link<DartType> typeArguments = const Link<DartType>()])
+                [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments) {
     assert(invariant(element, element.isDeclaration));
   }
 
   InterfaceType.forUserProvidedBadType(BaseClassElementX element,
-                                       [Link<DartType> typeArguments =
-                                           const Link<DartType>()])
+                                       [List<DartType> typeArguments =
+                                           const <DartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
 
   ClassElement get element => super.element;
@@ -484,7 +477,7 @@ class InterfaceType extends GenericType {
 
   String get name => element.name;
 
-  InterfaceType createInstantiation(Link<DartType> newTypeArguments) {
+  InterfaceType createInstantiation(List<DartType> newTypeArguments) {
     return new InterfaceType(element, newTypeArguments);
   }
 
@@ -497,7 +490,7 @@ class InterfaceType extends GenericType {
     if (element == other) return this;
     InterfaceType supertype = element.asInstanceOf(other);
     if (supertype != null) {
-      Link<DartType> arguments = Types.substTypes(supertype.typeArguments,
+      List<DartType> arguments = Types.substTypes(supertype.typeArguments,
                                                   typeArguments,
                                                   element.typeVariables);
       return new InterfaceType(supertype.element, arguments);
@@ -579,27 +572,27 @@ class BadTypedefType extends TypedefType {
 class FunctionType extends DartType {
   final FunctionTypedElement element;
   final DartType returnType;
-  final Link<DartType> parameterTypes;
-  final Link<DartType> optionalParameterTypes;
+  final List<DartType> parameterTypes;
+  final List<DartType> optionalParameterTypes;
 
   /**
    * The names of the named parameters ordered lexicographically.
    */
-  final Link<String> namedParameters;
+  final List<String> namedParameters;
 
   /**
    * The types of the named parameters in the order corresponding to the
    * [namedParameters].
    */
-  final Link<DartType> namedParameterTypes;
+  final List<DartType> namedParameterTypes;
 
   factory FunctionType(
       FunctionTypedElement element,
       [DartType returnType = const DynamicType(),
-       Link<DartType> parameterTypes = const Link<DartType>(),
-       Link<DartType> optionalParameterTypes = const Link<DartType>(),
-       Link<String> namedParameters = const Link<String>(),
-       Link<DartType> namedParameterTypes = const Link<DartType>()]) {
+       List<DartType> parameterTypes = const <DartType>[],
+       List<DartType> optionalParameterTypes = const <DartType>[],
+       List<String> namedParameters = const <String>[],
+       List<DartType> namedParameterTypes = const <DartType>[]]) {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null));
     assert(invariant(element, element.isDeclaration));
     return new FunctionType.internal(element,
@@ -609,10 +602,10 @@ class FunctionType extends DartType {
 
   factory FunctionType.synthesized(
       [DartType returnType = const DynamicType(),
-       Link<DartType> parameterTypes = const Link<DartType>(),
-       Link<DartType> optionalParameterTypes = const Link<DartType>(),
-       Link<String> namedParameters = const Link<String>(),
-       Link<DartType> namedParameterTypes = const Link<DartType>()]) {
+       List<DartType> parameterTypes = const <DartType>[],
+       List<DartType> optionalParameterTypes = const <DartType>[],
+       List<String> namedParameters = const <String>[],
+       List<DartType> namedParameterTypes = const <DartType>[]]) {
     return new FunctionType.internal(null,
         returnType, parameterTypes, optionalParameterTypes,
         namedParameters, namedParameterTypes);
@@ -620,15 +613,15 @@ class FunctionType extends DartType {
 
   FunctionType.internal(FunctionTypedElement this.element,
                         [DartType this.returnType = const DynamicType(),
-                         this.parameterTypes = const Link<DartType>(),
-                         this.optionalParameterTypes = const Link<DartType>(),
-                         this.namedParameters = const Link<String>(),
-                         this.namedParameterTypes = const Link<DartType>()]) {
+                         this.parameterTypes = const <DartType>[],
+                         this.optionalParameterTypes = const <DartType>[],
+                         this.namedParameters = const <String>[],
+                         this.namedParameterTypes = const <DartType>[]]) {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE,
         element == null || element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
-    assert(namedParameters.slowLength() == namedParameterTypes.slowLength());
+    assert(namedParameters.length == namedParameterTypes.length);
   }
 
 
@@ -636,31 +629,27 @@ class FunctionType extends DartType {
   TypeKind get kind => TypeKind.FUNCTION;
 
   DartType getNamedParameterType(String name) {
-    Link<String> namedParameter = namedParameters;
-    Link<DartType> namedParameterType = namedParameterTypes;
-    while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
-      if (namedParameter.head == name) {
-        return namedParameterType.head;
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (namedParameters[i] == name) {
+        return namedParameterTypes[i];
       }
-      namedParameter = namedParameter.tail;
-      namedParameterType = namedParameterType.tail;
     }
     return null;
   }
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
     if (parameters.isEmpty) {
       assert(arguments.isEmpty);
       // Return fast on empty substitutions.
       return this;
     }
-    var newReturnType = returnType.subst(arguments, parameters);
+    DartType newReturnType = returnType.subst(arguments, parameters);
     bool changed = !identical(newReturnType, returnType);
-    var newParameterTypes =
+    List<DartType> newParameterTypes =
         Types.substTypes(parameterTypes, arguments, parameters);
-    var newOptionalParameterTypes =
+    List<DartType> newOptionalParameterTypes =
         Types.substTypes(optionalParameterTypes, arguments, parameters);
-    var newNamedParameterTypes =
+    List<DartType> newNamedParameterTypes =
         Types.substTypes(namedParameterTypes, arguments, parameters);
     if (!changed &&
         (!identical(parameterTypes, newParameterTypes) ||
@@ -722,14 +711,14 @@ class FunctionType extends DartType {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('(');
-    parameterTypes.printOn(sb, ', ');
+    sb.write(parameterTypes.join(', '));
     bool first = parameterTypes.isEmpty;
     if (!optionalParameterTypes.isEmpty) {
       if (!first) {
         sb.write(', ');
       }
       sb.write('[');
-      optionalParameterTypes.printOn(sb, ', ');
+      sb.write(optionalParameterTypes.join(', '));
       sb.write(']');
       first = false;
     }
@@ -738,18 +727,14 @@ class FunctionType extends DartType {
         sb.write(', ');
       }
       sb.write('{');
-      Link<String> namedParameter = namedParameters;
-      Link<DartType> namedParameterType = namedParameterTypes;
       first = true;
-      while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
+      for (int i = 0; i < namedParameters.length; i++) {
         if (!first) {
           sb.write(', ');
         }
-        sb.write(namedParameterType.head);
+        sb.write(namedParameterTypes[i]);
         sb.write(' ');
-          sb.write(namedParameter.head);
-        namedParameter = namedParameter.tail;
-        namedParameterType = namedParameterType.tail;
+          sb.write(namedParameters[i]);
         first = false;
       }
       sb.write('}');
@@ -785,22 +770,22 @@ class FunctionType extends DartType {
 
   bool operator ==(other) {
     if (other is !FunctionType) return false;
-    return returnType == other.returnType
-           && parameterTypes == other.parameterTypes
-           && optionalParameterTypes == other.optionalParameterTypes
-           && namedParameters == other.namedParameters
-           && namedParameterTypes == other.namedParameterTypes;
+    return returnType == other.returnType &&
+        equalElements(parameterTypes, other.parameterTypes) &&
+        equalElements(optionalParameterTypes, other.optionalParameterTypes) &&
+        equalElements(namedParameters, other.namedParameters) &&
+        equalElements(namedParameterTypes, other.namedParameterTypes);
   }
 }
 
 class TypedefType extends GenericType {
   TypedefType(TypedefElementX element,
-              [Link<DartType> typeArguments = const Link<DartType>()])
+              [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments);
 
   TypedefType.forUserProvidedBadType(TypedefElementX element,
-                                     [Link<DartType> typeArguments =
-                                         const Link<DartType>()])
+                                     [List<DartType> typeArguments =
+                                         const <DartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
 
   TypedefElement get element => super.element;
@@ -809,7 +794,7 @@ class TypedefType extends GenericType {
 
   String get name => element.name;
 
-  TypedefType createInstantiation(Link<DartType> newTypeArguments) {
+  TypedefType createInstantiation(List<DartType> newTypeArguments) {
     return new TypedefType(element, newTypeArguments);
   }
 
@@ -845,7 +830,7 @@ class DynamicType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) => this;
+  DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);
@@ -963,17 +948,14 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
     t.element.ensureResolved(compiler);
 
     bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
-      Link<DartType> tTypeArgs = instance.typeArguments;
-      Link<DartType> sTypeArgs = other.typeArguments;
-      while (!tTypeArgs.isEmpty) {
-        assert(!sTypeArgs.isEmpty);
-        if (invalidTypeArguments(tTypeArgs.head, sTypeArgs.head)) {
+      List<DartType> tTypeArgs = instance.typeArguments;
+      List<DartType> sTypeArgs = other.typeArguments;
+      assert(tTypeArgs.length == sTypeArgs.length);
+      for (int i = 0; i < tTypeArgs.length; i++) {
+        if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) {
           return false;
         }
-        tTypeArgs = tTypeArgs.tail;
-        sTypeArgs = sTypeArgs.tail;
       }
-      assert(sTypeArgs.isEmpty);
       return true;
     }
 
@@ -1004,72 +986,77 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
     //  x.o     : optionalParameterTypes on [:x:], and
     //  len(xs) : length of list [:xs:].
 
-    Link<DartType> tps = tf.parameterTypes;
-    Link<DartType> sps = sf.parameterTypes;
-    while (!tps.isEmpty && !sps.isEmpty) {
-      if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
-      tps = tps.tail;
-      sps = sps.tail;
+    Iterator<DartType> tps = tf.parameterTypes.iterator;
+    Iterator<DartType> sps = sf.parameterTypes.iterator;
+    bool sNotEmpty = sps.moveNext();
+    bool tNotEmpty = tps.moveNext();
+    tNext() => (tNotEmpty = tps.moveNext());
+    sNext() => (sNotEmpty = sps.moveNext());
+
+    bool incompatibleParameters() {
+      while (tNotEmpty && sNotEmpty) {
+        if (invalidFunctionParameterTypes(tps.current, sps.current)) {
+          return true;
+        }
+        tNext();
+        sNext();
+      }
+      return false;
     }
-    if (!tps.isEmpty) {
+
+    if (incompatibleParameters()) return false;
+    if (tNotEmpty) {
       // We must have [: len(t.p) <= len(s.p) :].
       return false;
     }
     if (!sf.namedParameters.isEmpty) {
-      if (!sps.isEmpty) {
         // We must have [: len(t.p) == len(s.p) :].
+      if (sNotEmpty) {
         return false;
       }
       // Since named parameters are globally ordered we can determine the
       // subset relation with a linear search for [:sf.namedParameters:]
       // within [:tf.namedParameters:].
-      Link<String> tNames = tf.namedParameters;
-      Link<DartType> tTypes = tf.namedParameterTypes;
-      Link<String> sNames = sf.namedParameters;
-      Link<DartType> sTypes = sf.namedParameterTypes;
-      while (!tNames.isEmpty && !sNames.isEmpty) {
-        if (sNames.head == tNames.head) {
-          if (invalidFunctionParameterTypes(tTypes.head, sTypes.head)) {
+      List<String> tNames = tf.namedParameters;
+      List<DartType> tTypes = tf.namedParameterTypes;
+      List<String> sNames = sf.namedParameters;
+      List<DartType> sTypes = sf.namedParameterTypes;
+      int tIndex = 0;
+      int sIndex = 0;
+      while (tIndex < tNames.length && sIndex < sNames.length) {
+        if (tNames[tIndex] == sNames[sIndex]) {
+          if (invalidFunctionParameterTypes(tTypes[tIndex], sTypes[sIndex])) {
             return false;
           }
-
-          sNames = sNames.tail;
-          sTypes = sTypes.tail;
+          sIndex++;
         }
-        tNames = tNames.tail;
-        tTypes = tTypes.tail;
+        tIndex++;
       }
-      if (!sNames.isEmpty) {
+      if (sIndex < sNames.length) {
         // We didn't find all names.
         return false;
       }
     } else {
       // Check the remaining [: s.p :] against [: t.o :].
-      tps = tf.optionalParameterTypes;
-      while (!tps.isEmpty && !sps.isEmpty) {
-        if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
-        tps = tps.tail;
-        sps = sps.tail;
-      }
-      if (!sps.isEmpty) {
+      tps = tf.optionalParameterTypes.iterator;
+      tNext();
+      if (incompatibleParameters()) return false;
+      if (sNotEmpty) {
         // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
         return false;
       }
       if (!sf.optionalParameterTypes.isEmpty) {
         // Check the remaining [: s.o :] against the remaining [: t.o :].
-        sps = sf.optionalParameterTypes;
-        while (!tps.isEmpty && !sps.isEmpty) {
-          if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
-          tps = tps.tail;
-          sps = sps.tail;
-        }
-        if (!sps.isEmpty) {
+        sps = sf.optionalParameterTypes.iterator;
+        sNext();
+        if (incompatibleParameters()) return false;
+        if (sNotEmpty) {
           // We didn't find enough parameters:
           // We must have [: len(t.p) + len(t.o) <= len(s.p) + len(s.o) :].
           return false;
         }
       } else {
-        if (!sps.isEmpty) {
+        if (sNotEmpty) {
           // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
           return false;
         }
@@ -1083,9 +1070,9 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
     DartType bound = t.element.bound;
     if (bound.element.isTypeVariable) {
       // The bound is potentially cyclic so we need to be extra careful.
-      Link<TypeVariableElement> seenTypeVariables =
-          const Link<TypeVariableElement>();
-      seenTypeVariables = seenTypeVariables.prepend(t.element);
+      Set<TypeVariableElement> seenTypeVariables =
+          new Set<TypeVariableElement>();
+      seenTypeVariables.add(t.element);
       while (bound.element.isTypeVariable) {
         TypeVariableElement element = bound.element;
         if (identical(bound.element, s.element)) {
@@ -1098,7 +1085,7 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
           // of [s].
           return false;
         }
-        seenTypeVariables = seenTypeVariables.prepend(element);
+        seenTypeVariables.add(element);
         bound = element.bound;
       }
     }
@@ -1272,44 +1259,37 @@ class Types {
   void checkTypeVariableBounds(GenericType type,
                                CheckTypeVariableBound checkTypeVariableBound) {
     TypeDeclarationElement element = type.element;
-    Link<DartType> typeArguments = type.typeArguments;
-    Link<DartType> typeVariables = element.typeVariables;
-    while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
-      TypeVariableType typeVariable = typeVariables.head;
+    List<DartType> typeArguments = type.typeArguments;
+    List<DartType> typeVariables = element.typeVariables;
+    assert(typeVariables.length == typeArguments.length);
+    for (int index = 0; index < typeArguments.length; index++) {
+      TypeVariableType typeVariable = typeVariables[index];
       DartType bound = typeVariable.element.bound.substByContext(type);
-      DartType typeArgument = typeArguments.head;
+      DartType typeArgument = typeArguments[index];
       checkTypeVariableBound(type, typeArgument, typeVariable, bound);
-      typeVariables = typeVariables.tail;
-      typeArguments = typeArguments.tail;
     }
-    assert(typeVariables.isEmpty && typeArguments.isEmpty);
   }
 
   /**
-   * Helper method for performing substitution of a linked list of types.
+   * Helper method for performing substitution of a list of types.
    *
    * If no types are changed by the substitution, the [types] is returned
-   * instead of a newly created linked list.
+   * instead of a newly created list.
    */
-  static Link<DartType> substTypes(Link<DartType> types,
-                                   Link<DartType> arguments,
-                                   Link<DartType> parameters) {
+  static List<DartType> substTypes(List<DartType> types,
+                                   List<DartType> arguments,
+                                   List<DartType> parameters) {
     bool changed = false;
-    var builder = new LinkBuilder<DartType>();
-    Link<DartType> typeLink = types;
-    while (!typeLink.isEmpty) {
-      var argument = typeLink.head.subst(arguments, parameters);
-      if (!changed && !identical(argument, typeLink.head)) {
+    List<DartType> result = new List<DartType>.generate(types.length, (index) {
+      DartType type = types[index];
+      DartType argument = type.subst(arguments, parameters);
+      if (!changed && !identical(argument, type)) {
         changed = true;
       }
-      builder.addLast(argument);
-      typeLink = typeLink.tail;
-    }
-    if (changed) {
-      // Create a new link only if necessary.
-      return builder.toLink();
-    }
-    return types;
+      return argument;
+    });
+    // Use the new List only if necessary.
+    return changed ? result : types;
   }
 
   /**
@@ -1401,18 +1381,17 @@ class Types {
         result = compareList(aFunc.optionalParameterTypes,
                              bFunc.optionalParameterTypes);
         if (result != 0) return result;
-        Link<String> aNames = aFunc.namedParameters;
-        Link<String> bNames = bFunc.namedParameters;
-        while (!aNames.isEmpty && !bNames.isEmpty) {
-          int result = aNames.head.compareTo(bNames.head);
+        // TODO(karlklose): reuse [compareList].
+        Iterator<String> aNames = aFunc.namedParameters.iterator;
+        Iterator<String> bNames = bFunc.namedParameters.iterator;
+        while (aNames.moveNext() && bNames.moveNext()) {
+          int result = aNames.current.compareTo(bNames.current);
           if (result != 0) return result;
-          aNames = aNames.tail;
-          bNames = bNames.tail;
         }
-        if (!aNames.isEmpty) {
+        if (aNames.moveNext()) {
           // [aNames] is longer that [bNames] => a > b.
           return 1;
-        } else if (!bNames.isEmpty) {
+        } else if (bNames.moveNext()) {
           // [bNames] is longer that [aNames] => a < b.
           return -1;
         }
@@ -1444,18 +1423,14 @@ class Types {
     return Elements.compareByPosition(a.element, b.element);
   }
 
-  static int compareList(Link<DartType> a, Link<DartType> b) {
-    while (!a.isEmpty && !b.isEmpty) {
-      int result = compare(a.head, b.head);
+  static int compareList(List<DartType> a, List<DartType> b) {
+    for (int index = 0; index < min(a.length, b.length); index++) {
+      int result = compare(a[index], b[index]);
       if (result != 0) return result;
-      a = a.tail;
-      b = b.tail;
     }
-    if (!a.isEmpty) {
-      // [a] is longer than [b] => a > b.
+    if (a.length > b.length) {
       return 1;
-    } else if (!b.isEmpty) {
-      // [b] is longer than [a] => a < b.
+    } else if (a.length < b.length) {
       return -1;
     }
     return 0;
@@ -1497,16 +1472,15 @@ class Types {
 
   /// Computes the least upper bound of the types in the longest prefix of [a]
   /// and [b].
-  Link<DartType> computeLeastUpperBoundsTypes(Link<DartType> a,
-                                              Link<DartType> b) {
-    if (a.isEmpty || b.isEmpty) return const Link<DartType>();
-    LinkBuilder<DartType> types = new LinkBuilder<DartType>();
-    while (!a.isEmpty && !b.isEmpty) {
-      types.addLast(computeLeastUpperBound(a.head, b.head));
-      a = a.tail;
-      b = b.tail;
+  List<DartType> computeLeastUpperBoundsTypes(List<DartType> a,
+                                              List<DartType> b) {
+    if (a.isEmpty || b.isEmpty) return const <DartType>[];
+    int prefixLength = min(a.length, b.length);
+    List<DartType> types = new List<DartType>(prefixLength);
+    for (int index = 0; index < prefixLength; index++) {
+      types[index] = computeLeastUpperBound(a[index], b[index]);
     }
-    return types.toLink();
+    return types;
   }
 
   /// Computes the least upper bound of two function types [a] and [b].
@@ -1522,43 +1496,46 @@ class Types {
   /// [a] and [b].
   DartType computeLeastUpperBoundFunctionTypes(FunctionType a,
                                                FunctionType b) {
-    if (a.parameterTypes.slowLength() != b.parameterTypes.slowLength()) {
+    if (a.parameterTypes.length != b.parameterTypes.length) {
       return compiler.functionClass.rawType;
     }
     DartType returnType = computeLeastUpperBound(a.returnType, b.returnType);
-    Link<DartType> parameterTypes =
+    List<DartType> parameterTypes =
         computeLeastUpperBoundsTypes(a.parameterTypes, b.parameterTypes);
-    Link<DartType> optionalParameterTypes =
+    List<DartType> optionalParameterTypes =
         computeLeastUpperBoundsTypes(a.optionalParameterTypes,
                                      b.optionalParameterTypes);
-    LinkBuilder<String> namedParameters = new LinkBuilder<String>();
-    Link<String> aNamedParameters = a.namedParameters;
-    Link<String> bNamedParameters = b.namedParameters;
-    LinkBuilder<DartType> namedParameterTypes = new LinkBuilder<DartType>();
-    Link<DartType> aNamedParameterTypes = a.namedParameterTypes;
-    Link<DartType> bNamedParameterTypes = b.namedParameterTypes;
-    while (!aNamedParameters.isEmpty && !bNamedParameters.isEmpty) {
-      String aNamedParameter = aNamedParameters.head;
-      String bNamedParameter = bNamedParameters.head;
+    List<String> namedParameters = <String>[];
+    List<String> aNamedParameters = a.namedParameters;
+    List<String> bNamedParameters = b.namedParameters;
+    List<DartType> namedParameterTypes = <DartType>[];
+    List<DartType> aNamedParameterTypes = a.namedParameterTypes;
+    List<DartType> bNamedParameterTypes = b.namedParameterTypes;
+    int aIndex = 0;
+    int bIndex = 0;
+    int prefixLength =
+        min(aNamedParameterTypes.length, bNamedParameterTypes.length);
+    while (aIndex < aNamedParameters.length &&
+           bIndex < bNamedParameters.length) {
+      String aNamedParameter = aNamedParameters[aIndex];
+      String bNamedParameter = bNamedParameters[bIndex];
       int result = aNamedParameter.compareTo(bNamedParameter);
       if (result == 0) {
-        namedParameters.addLast(aNamedParameter);
-        namedParameterTypes.addLast(computeLeastUpperBound(
-            aNamedParameterTypes.head, bNamedParameterTypes.head));
+        namedParameters.add(aNamedParameter);
+        namedParameterTypes.add(computeLeastUpperBound(
+            aNamedParameterTypes[aIndex], bNamedParameterTypes[bIndex]));
       }
       if (result <= 0) {
-        aNamedParameters = aNamedParameters.tail;
-        aNamedParameterTypes = aNamedParameterTypes.tail;
+        aIndex++;
       }
       if (result >= 0) {
-        bNamedParameters = bNamedParameters.tail;
-        bNamedParameterTypes = bNamedParameterTypes.tail;
+        bIndex++;
       }
     }
     return new FunctionType.synthesized(
         returnType,
         parameterTypes, optionalParameterTypes,
-        namedParameters.toLink(), namedParameterTypes.toLink());
+        namedParameters, namedParameterTypes);
   }
 
   /// Computes the least upper bound of two types of which at least one is a
@@ -1660,11 +1637,10 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       constraintMap[typeVariable] = const DynamicType();
     });
     if (supertypeInstance.accept(this, supertype)) {
-      LinkBuilder<DartType> typeArguments = new LinkBuilder<DartType>();
-      element.typeVariables.forEach((TypeVariableType typeVariable) {
-        typeArguments.addLast(constraintMap[typeVariable]);
-      });
-      return element.thisType.createInstantiation(typeArguments.toLink());
+      List<DartType> variables = element.typeVariables;
+      List<DartType> typeArguments = new List<DartType>.generate(
+          variables.length, (int index) => constraintMap[variables[index]]);
+      return element.thisType.createInstantiation(typeArguments);
     }
     return null;
   }
@@ -1673,13 +1649,12 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
     return compiler.types.isMoreSpecific(type, argument);
   }
 
-  bool visitTypes(Link<DartType> a, Link<DartType> b) {
-    while (!a.isEmpty && !b.isEmpty) {
-      if (!a.head.accept(this, b.head)) return false;
-      a = a.tail;
-      b = b.tail;
+  bool visitTypes(List<DartType> a, List<DartType> b) {
+    int prefixLength = min(a.length, b.length);
+    for (int index = 0; index < prefixLength; index++) {
+      if (!a[index].accept(this, b[index])) return false;
     }
-    return a.isEmpty && b.isEmpty;
+    return prefixLength == a.length && a.length == b.length;
   }
 
   bool visitTypeVariableType(TypeVariableType type, DartType argument) {
@@ -1691,12 +1666,12 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 
   bool visitFunctionType(FunctionType type, DartType argument) {
     if (argument is FunctionType) {
-      if (type.parameterTypes.slowLength() !=
-          argument.parameterTypes.slowLength()) {
+      if (type.parameterTypes.length !=
+          argument.parameterTypes.length) {
         return false;
       }
-      if (type.optionalParameterTypes.slowLength() !=
-          argument.optionalParameterTypes.slowLength()) {
+      if (type.optionalParameterTypes.length !=
+          argument.optionalParameterTypes.length) {
         return false;
       }
       if (type.namedParameters != argument.namedParameters) {
@@ -1760,17 +1735,16 @@ class TypeDeclarationFormatter extends DartTypeVisitor<dynamic, String> {
     type.accept(this, null);
   }
 
-  void visitTypes(Link<DartType> types, String prefix) {
+  void visitTypes(List<DartType> types, String prefix) {
     bool needsComma = false;
-    for (Link<DartType> link = types;
-        !link.isEmpty;
-        link = link.tail) {
+    for (DartType type in types) {
       if (needsComma) {
         sb.write(', ');
       }
-      link.head.accept(this, prefix);
+      type.accept(this, prefix);
       needsComma = true;
-    }  }
+    }
+  }
 
   void visitType(DartType type, String name) {
     if (name == null) {
@@ -1818,16 +1792,14 @@ class TypeDeclarationFormatter extends DartTypeVisitor<dynamic, String> {
         sb.write(', ');
       }
       sb.write('{');
-      Link<String> namedParameter = type.namedParameters;
-      Link<DartType> namedParameterType = type.namedParameterTypes;
+      List<String> namedParameters = type.namedParameters;
+      List<DartType> namedParameterTypes = type.namedParameterTypes;
       needsComma = false;
-      while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
+      for (int index = 0; index < namedParameters.length; index++) {
         if (needsComma) {
           sb.write(', ');
         }
-        namedParameterType.head.accept(this, namedParameter.head);
-        namedParameter = namedParameter.tail;
-        namedParameterType = namedParameterType.tail;
+        namedParameterTypes[index].accept(this, namedParameters[index]);
         needsComma = true;
       }
       sb.write('}');

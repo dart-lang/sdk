@@ -34,15 +34,6 @@ DartType getType(compiler, String name) {
   }
 }
 
-int length(Link link) {
-  int count = 0;
-  while (!link.isEmpty) {
-    count++;
-    link = link.tail;
-  }
-  return count;
-}
-
 void main() {
   testAsInstanceOf();
   testTypeSubstitution();
@@ -95,7 +86,7 @@ void testAsInstanceOf() {
  * Test that substitution of [parameters] by [arguments] in the type found
  * through [name1] is the same as the type found through [name2].
  */
-bool testSubstitution(compiler, arguments, parameters,
+void testSubstitution(compiler, arguments, parameters,
           String name1, String name2) {
   DartType type1 = getType(compiler, name1);
   DartType type2 = getType(compiler, name2);
@@ -163,13 +154,13 @@ void testTypeSubstitution() {
     InterfaceType Class_T_S = env["Class"];
     Expect.isNotNull(Class_T_S);
     Expect.identical(Class_T_S.kind, TypeKind.INTERFACE);
-    Expect.equals(2, length(Class_T_S.typeArguments));
+    Expect.equals(2, Class_T_S.typeArguments.length);
 
-    DartType T = Class_T_S.typeArguments.head;
+    DartType T = Class_T_S.typeArguments[0];
     Expect.isNotNull(T);
     Expect.identical(T.kind, TypeKind.TYPE_VARIABLE);
 
-    DartType S = Class_T_S.typeArguments.tail.head;
+    DartType S = Class_T_S.typeArguments[1];
     Expect.isNotNull(S);
     Expect.identical(S.kind, TypeKind.TYPE_VARIABLE);
 
@@ -181,8 +172,8 @@ void testTypeSubstitution() {
     Expect.isNotNull(StringType);
     Expect.identical(StringType.kind, TypeKind.INTERFACE);
 
-    var parameters = new Link<DartType>.fromList(<DartType>[T, S]);
-    var arguments = new Link<DartType>.fromList(<DartType>[intType, StringType]);
+    List<DartType> parameters = <DartType>[T, S];
+    List<DartType> arguments = <DartType>[intType, StringType];
 
     // TODO(johnniwinther): Create types directly from strings to improve test
     // readability.

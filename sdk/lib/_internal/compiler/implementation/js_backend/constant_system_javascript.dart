@@ -267,8 +267,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     if (sourceType.treatAsRaw) {
       keysType = compiler.listClass.rawType;
     } else {
-      Link<DartType> arguments =
-          new Link<DartType>.fromList([sourceType.typeArguments.head]);
+      List<DartType> arguments = <DartType>[sourceType.typeArguments.first];
       keysType = new InterfaceType(compiler.listClass, arguments);
     }
     ListConstant keysList = new ListConstant(keysType, keys);
@@ -278,7 +277,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
     ClassElement classElement = backend.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
-    Link<DartType> typeArgument = sourceType.typeArguments;
+    List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;
     if (sourceType.treatAsRaw) {
       type = classElement.rawType;

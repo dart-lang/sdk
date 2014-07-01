@@ -10,8 +10,7 @@ import 'type_test_helper.dart';
 import 'package:compiler/implementation/dart_types.dart';
 import "package:compiler/implementation/elements/elements.dart"
        show Element, ClassElement;
-import 'package:compiler/implementation/util/util.dart'
-       show Link;
+import 'package:compiler/implementation/util/util.dart';
 
 void main() {
   testInterface1();
@@ -725,12 +724,12 @@ void testTypeVariable() {
     DartType B = env['B'];
     DartType C = env['C'];
     ClassElement I = env.getElement('I');
-    DartType S = I.typeVariables.head;
-    DartType T = I.typeVariables.tail.head;
-    DartType U = I.typeVariables.tail.tail.head;
-    DartType V = I.typeVariables.tail.tail.tail.head;
-    DartType W = I.typeVariables.tail.tail.tail.tail.head;
-    DartType X = I.typeVariables.tail.tail.tail.tail.tail.head;
+    DartType S = I.typeVariables[0];
+    DartType T = I.typeVariables[1];
+    DartType U = I.typeVariables[2];
+    DartType V = I.typeVariables[3];
+    DartType W = I.typeVariables[4];
+    DartType X = I.typeVariables[5];
 
     checkLub(DartType a, DartType b, DartType expectedLub) {
       DartType lub = env.computeLeastUpperBound(a, b);

@@ -1668,21 +1668,24 @@ class SsaBuilder extends ResolvedVisitor {
         // of both.
         InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
         type = localsHandler.substInContext(type);
-        Link<DartType> typeVariables = enclosingClass.typeVariables;
-        type.typeArguments.forEach((DartType argument) {
-          localsHandler.updateLocal(
-              typeVariables.head.element,
-              analyzeTypeArgument(argument));
-          typeVariables = typeVariables.tail;
-        });
-        // If the supertype is a raw type, we need to set to null the
-        // type variables.
-        assert(typeVariables.isEmpty
-               || enclosingClass.typeVariables == typeVariables);
-        while (!typeVariables.isEmpty) {
-          localsHandler.updateLocal(typeVariables.head.element,
-              graph.addConstantNull(compiler));
-          typeVariables = typeVariables.tail;
+        List<DartType> arguments = type.typeArguments;
+        List<DartType> typeVariables = enclosingClass.typeVariables;
+        if (!type.isRaw) {
+          assert(arguments.length == typeVariables.length);
+          Iterator<DartType> variables = typeVariables.iterator;
+          type.typeArguments.forEach((DartType argument) {
+            variables.moveNext();
+            localsHandler.updateLocal(
+                variables.current.element,
+                analyzeTypeArgument(argument));
+          });
+        } else {
+          // If the supertype is a raw type, we need to set to null the
+          // type variables.
+          for (DartType variable in typeVariables) {
+            localsHandler.updateLocal(variable.element,
+                graph.addConstantNull(compiler));
+          }
         }
       }
 
@@ -1984,7 +1987,8 @@ class SsaBuilder extends ResolvedVisitor {
       bool allIndexed = true;
       int expectedIndex = 0;
       ClassElement contextClass;  // The class of `this`.
-      Link typeVariables;  // The list of 'remaining type variables' of `this`.
+      int remainingTypeVariables;  // The number of 'remaining type variables'
+                                   // of `this`.
 
       /// Helper to identify instructions that read a type variable without
       /// substitution (that is, directly use the index). These instructions
@@ -2010,15 +2014,15 @@ class SsaBuilder extends ResolvedVisitor {
           // many arguments we need to process.
           source = newSource;
           contextClass = source.sourceElement.enclosingClass;
-          typeVariables = contextClass.typeVariables;
+          remainingTypeVariables = contextClass.typeVariables.length;
         } else {
           assert(source == newSource);
         }
         // If there are no more type variables, then there are more type
         // arguments for the new object than the source has, and it can't be
         // a copy.  Otherwise remove one argument.
-        if (typeVariables.isEmpty) return false;
-        typeVariables = typeVariables.tail;
+        if (remainingTypeVariables == 0) return false;
+        remainingTypeVariables--;
         // Check that the index is the one we expect.
         IntConstant constant = index.constant;
         return constant.value == expectedIndex++;
@@ -2033,7 +2037,7 @@ class SsaBuilder extends ResolvedVisitor {
         typeArguments.add(argument);
       });
 
-      if (source != null && allIndexed && typeVariables.isEmpty) {
+      if (source != null && allIndexed && remainingTypeVariables == 0) {
         copyRuntimeTypeInfo(source, newObject);
       } else {
         newObject =
@@ -4149,14 +4153,7 @@ class SsaBuilder extends ResolvedVisitor {
         generateAbstractClassInstantiationError(send, cls.name);
         return;
       }
-      if (backend.classNeedsRti(cls)) {
-        Link<DartType> typeVariable = cls.typeVariables;
-        expectedType.typeArguments.forEach((DartType argument) {
-          inputs.add(analyzeTypeArgument(argument));
-          typeVariable = typeVariable.tail;
-        });
-        assert(typeVariable.isEmpty);
-      }
+      potentiallyAddTypeArguments(inputs, cls, expectedType);
 
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor, inputs, elementType);
@@ -4190,6 +4187,16 @@ class SsaBuilder extends ResolvedVisitor {
         stack.add(checked);
       }
     }
+  }
+
+  void potentiallyAddTypeArguments(List<HInstruction> inputs, ClassElement cls,
+                                   InterfaceType expectedType) {
+    if (!backend.classNeedsRti(cls)) return;
+    assert(expectedType.typeArguments.isEmpty ||
+        cls.typeVariables.length == expectedType.typeArguments.length);
+    expectedType.typeArguments.forEach((DartType argument) {
+      inputs.add(analyzeTypeArgument(argument));
+    });
   }
 
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
@@ -4891,7 +4898,6 @@ class SsaBuilder extends ResolvedVisitor {
       for (; i < targetOptionals.length; i++) {
         inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
       }
-
       ClassElement targetClass = targetConstructor.enclosingClass;
       if (backend.classNeedsRti(targetClass)) {
         ClassElement cls = redirectingConstructor.enclosingClass;
@@ -5205,12 +5211,10 @@ class SsaBuilder extends ResolvedVisitor {
     ClassElement cls = constructor.enclosingClass;
 
     if (backend.classNeedsRti(cls)) {
-      Link<DartType> typeVariable = cls.typeVariables;
+      List<DartType> typeVariable = cls.typeVariables;
       expectedType.typeArguments.forEach((DartType argument) {
-            inputs.add(analyzeTypeArgument(argument));
-            typeVariable = typeVariable.tail;
-          });
-      assert(typeVariable.isEmpty);
+        inputs.add(analyzeTypeArgument(argument));
+      });
     }
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
@@ -6343,14 +6347,14 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       inputs.add(builder.pop());
     }
 
-    Link<DartType> namedParameterTypes = type.namedParameterTypes;
-    for (String name in type.namedParameters) {
-      ast.DartString dartString = new ast.DartString.literal(name);
+    List<DartType> namedParameterTypes = type.namedParameterTypes;
+    List<String> names = type.namedParameters;
+    for (int index = 0; index < names.length; index++) {
+      ast.DartString dartString = new ast.DartString.literal(names[index]);
       inputs.add(
           builder.graph.addConstantString(dartString, builder.compiler));
-      namedParameterTypes.head.accept(this, builder);
+      namedParameterTypes[index].accept(this, builder);
       inputs.add(builder.pop());
-      namedParameterTypes = namedParameterTypes.tail;
     }
 
     ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
