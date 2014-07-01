@@ -91,6 +91,13 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
+[ $compiler == dart2js && $runtime == ff ]
+http/test/html/client_test: Fail # Issue 19750
+scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
+json_rpc_2/test/server/server_test: Fail # Issue 19750
+stack_trace/test/trace_test: Fail # Issue 19750
+shelf/test/log_middleware_test: Fail # Issue 19750
+
 [ $compiler == dart2js && $runtime == drt ]
 third_party/angular_tests/browser_test/core_dom/compiler: Fail # Issue 19329
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
