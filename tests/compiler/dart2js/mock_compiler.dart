@@ -56,12 +56,12 @@ const String DEFAULT_HELPERLIB = r'''
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}
-  class BoundClosure extends Closure {
+  abstract class BoundClosure extends Closure {
     var self;
     var target;
     var receiver;
   }
-  class Closure implements Function {}
+  abstract class Closure implements Function { }
   class ConstantMap {}
   class ConstantStringMap {}
   class TypeImpl {}
@@ -185,7 +185,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSBool extends Interceptor implements bool {
   }
-  class JSFunction extends Interceptor implements Function {
+  abstract class JSFunction extends Interceptor implements Function {
   }
   class ObjectInterceptor {
   }

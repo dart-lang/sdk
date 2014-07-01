@@ -299,6 +299,25 @@ abstract class MembersCreator {
     // the interface member.
   }
 
+  /// Checks that [cls], if it implements Function, has defined call().
+  void checkImplementsFunctionWithCall() {
+    assert(!cls.isAbstract);
+
+    if (cls.asInstanceOf(compiler.functionClass) == null) return;
+    if (cls.lookupMember(Compiler.CALL_OPERATOR_NAME) != null) return;
+    // TODO(johnniwinther): Make separate methods for backend exceptions.
+    // Avoid warnings on backend implementation classes for closures.
+    if (compiler.backend.isBackendLibrary(cls.library)) return;
+
+    reportMessage(compiler.functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
+      compiler.reportWarning(cls, MessageKind.UNIMPLEMENTED_METHOD_ONE,
+          {'class': cls.name,
+           'name': Compiler.CALL_OPERATOR_NAME,
+           'method': Compiler.CALL_OPERATOR_NAME,
+           'declarer': compiler.functionClass.name});
+    });
+  }
+
   /// Checks that a class member exists for every interface member.
   void checkInterfaceImplementation();
 
@@ -588,6 +607,7 @@ class InterfaceMembersCreator extends MembersCreator {
   /// Checks that a class member exists for every interface member.
   void checkInterfaceImplementation() {
     LibraryElement library = cls.library;
+    checkImplementsFunctionWithCall();
     interfaceMembers.forEach((Name name, MemberSignature interfaceMember) {
       if (!name.isAccessibleFrom(library)) return;
       Member classMember = classMembers[name];

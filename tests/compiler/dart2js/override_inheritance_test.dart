@@ -1230,6 +1230,12 @@ Future testAbstractMethods() {
                        MessageKind.UNIMPLEMENTED_METHOD_CONT]),
 
     check("""
+          class Class implements Function {
+          }
+          """, warnings: MessageKind.UNIMPLEMENTED_METHOD_ONE,
+               infos: []),
+
+    check("""
           abstract class A {
             get getter; // testAbstractMethod:14
           }
