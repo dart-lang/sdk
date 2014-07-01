@@ -10184,6 +10184,27 @@ class MemberMapTest extends JUnitTestCase {
 }
 
 class NonErrorResolverTest extends ResolverTestCase {
+  void fail_invalidAssignment_implicitlyImplementFunctionViaCall_2() {
+    // 18341
+    //
+    // Here 'C' checks as a subtype of 'I', but 'C' does not
+    // check as a subtype of 'IntToInt'. Together with
+    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
+    // that subtyping is not transitive here.
+    Source source = addSource(EngineTestCase.createSource([
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int x);",
+        "IntToInt f = new C();"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_ambiguousExport() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -11776,6 +11797,44 @@ class NonErrorResolverTest extends ResolverTestCase {
 
   void test_invalidAssignment_defaultValue_optional() {
     Source source = addSource(EngineTestCase.createSource(["f([String x = '0']) {", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_implicitlyImplementFunctionViaCall_1() {
+    // 18341
+    //
+    // This test and 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
+    // are closely related: here we see that 'I' checks as a subtype of 'IntToInt'.
+    Source source = addSource(EngineTestCase.createSource([
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int x);",
+        "IntToInt f = new I();"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_implicitlyImplementFunctionViaCall_3() {
+    // 18341
+    //
+    // Like 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // but uses type 'Function' instead of more precise type 'IntToInt' for 'f'.
+    Source source = addSource(EngineTestCase.createSource([
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int x);",
+        "Function f = new C();"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -14690,6 +14749,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_invalidAssignment_defaultValue_optional', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidAssignment_defaultValue_optional);
+      });
+      _ut.test('test_invalidAssignment_implicitlyImplementFunctionViaCall_1', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_1);
+      });
+      _ut.test('test_invalidAssignment_implicitlyImplementFunctionViaCall_3', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_3);
       });
       _ut.test('test_invalidAssignment_toDynamic', () {
         final __test = new NonErrorResolverTest();
@@ -27955,24 +28022,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
 }
 
 main() {
-//  CompileTimeErrorCodeTest.dartSuite();
-//  ErrorResolverTest.dartSuite();
-//  HintCodeTest.dartSuite();
-//  MemberMapTest.dartSuite();
-//  NonErrorResolverTest.dartSuite();
-//  NonHintCodeTest.dartSuite();
-//  SimpleResolverTest.dartSuite();
-//  StaticTypeWarningCodeTest.dartSuite();
-//  StaticWarningCodeTest.dartSuite();
-//  StrictModeTest.dartSuite();
-//  TypePropagationTest.dartSuite();
-//  EnclosedScopeTest.dartSuite();
-//  LibraryImportScopeTest.dartSuite();
-//  LibraryScopeTest.dartSuite();
-//  ScopeBuilderTest.dartSuite();
-//  ScopeTest.dartSuite();
-//  //AnalysisDeltaTest.dartSuite();
-//  ChangeSetTest.dartSuite();
 //  DeclarationMatcherTest.dartSuite();
 //  ElementResolverTest.dartSuite();
 //  IncrementalResolverTest.dartSuite();
@@ -27984,4 +28033,22 @@ main() {
 //  TypeOverrideManagerTest.dartSuite();
 //  TypeProviderImplTest.dartSuite();
 //  TypeResolverVisitorTest.dartSuite();
+//  EnclosedScopeTest.dartSuite();
+//  LibraryImportScopeTest.dartSuite();
+//  LibraryScopeTest.dartSuite();
+//  ScopeBuilderTest.dartSuite();
+//  ScopeTest.dartSuite();
+//  CompileTimeErrorCodeTest.dartSuite();
+//  ErrorResolverTest.dartSuite();
+//  HintCodeTest.dartSuite();
+//  MemberMapTest.dartSuite();
+//  NonErrorResolverTest.dartSuite();
+//  NonHintCodeTest.dartSuite();
+//  SimpleResolverTest.dartSuite();
+//  StaticTypeWarningCodeTest.dartSuite();
+//  StaticWarningCodeTest.dartSuite();
+//  StrictModeTest.dartSuite();
+//  TypePropagationTest.dartSuite();
+//  //AnalysisDeltaTest.dartSuite();
+//  ChangeSetTest.dartSuite();
 }

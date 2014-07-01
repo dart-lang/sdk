@@ -1344,6 +1344,48 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
   }
 
+  void test_isQualified_inMethodInvocation_noTarget() {
+    MethodInvocation invocation = AstFactory.methodInvocation2("test", [AstFactory.identifier3("arg0")]);
+    SimpleIdentifier identifier = invocation.methodName;
+    JUnitTestCase.assertFalse(identifier.isQualified);
+  }
+
+  void test_isQualified_inMethodInvocation_withTarget() {
+    MethodInvocation invocation = AstFactory.methodInvocation(AstFactory.identifier3("target"), "test", [AstFactory.identifier3("arg0")]);
+    SimpleIdentifier identifier = invocation.methodName;
+    JUnitTestCase.assertTrue(identifier.isQualified);
+  }
+
+  void test_isQualified_inPrefixedIdentifier_name() {
+    SimpleIdentifier identifier = AstFactory.identifier3("test");
+    AstFactory.identifier4("prefix", identifier);
+    JUnitTestCase.assertTrue(identifier.isQualified);
+  }
+
+  void test_isQualified_inPrefixedIdentifier_prefix() {
+    SimpleIdentifier identifier = AstFactory.identifier3("test");
+    AstFactory.identifier(identifier, AstFactory.identifier3("name"));
+    JUnitTestCase.assertFalse(identifier.isQualified);
+  }
+
+  void test_isQualified_inPropertyAccess_name() {
+    SimpleIdentifier identifier = AstFactory.identifier3("test");
+    AstFactory.propertyAccess(AstFactory.identifier3("target"), identifier);
+    JUnitTestCase.assertTrue(identifier.isQualified);
+  }
+
+  void test_isQualified_inPropertyAccess_target() {
+    SimpleIdentifier identifier = AstFactory.identifier3("test");
+    AstFactory.propertyAccess(identifier, AstFactory.identifier3("name"));
+    JUnitTestCase.assertFalse(identifier.isQualified);
+  }
+
+  void test_isQualified_inReturnStatement() {
+    SimpleIdentifier identifier = AstFactory.identifier3("test");
+    AstFactory.returnStatement2(identifier);
+    JUnitTestCase.assertFalse(identifier.isQualified);
+  }
+
   SimpleIdentifier _createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
     SimpleIdentifier identifier = AstFactory.identifier3("a");
     Expression expression = identifier;
@@ -1479,6 +1521,34 @@ class SimpleIdentifierTest extends ParserTestCase {
       _ut.test('test_inSetterContext', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inSetterContext);
+      });
+      _ut.test('test_isQualified_inMethodInvocation_noTarget', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inMethodInvocation_noTarget);
+      });
+      _ut.test('test_isQualified_inMethodInvocation_withTarget', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inMethodInvocation_withTarget);
+      });
+      _ut.test('test_isQualified_inPrefixedIdentifier_name', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inPrefixedIdentifier_name);
+      });
+      _ut.test('test_isQualified_inPrefixedIdentifier_prefix', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inPrefixedIdentifier_prefix);
+      });
+      _ut.test('test_isQualified_inPropertyAccess_name', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inPropertyAccess_name);
+      });
+      _ut.test('test_isQualified_inPropertyAccess_target', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inPropertyAccess_target);
+      });
+      _ut.test('test_isQualified_inReturnStatement', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_isQualified_inReturnStatement);
       });
     });
   }

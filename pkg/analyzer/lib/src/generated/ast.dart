@@ -15357,6 +15357,28 @@ class SimpleIdentifier extends Identifier {
     return false;
   }
 
+  /**
+   * Returns `true` if this identifier is the "name" part of a prefixed identifier or a method
+   * invocation.
+   *
+   * @return `true` if this identifier is the "name" part of a prefixed identifier or a method
+   *         invocation
+   */
+  bool get isQualified {
+    AstNode parent = this.parent;
+    if (parent is PrefixedIdentifier) {
+      return identical(parent.identifier, this);
+    }
+    if (parent is PropertyAccess) {
+      return identical(parent.propertyName, this);
+    }
+    if (parent is MethodInvocation) {
+      MethodInvocation invocation = parent;
+      return identical(invocation.methodName, this) && invocation.realTarget != null;
+    }
+    return false;
+  }
+
   @override
   bool get isSynthetic => token.isSynthetic;
 
