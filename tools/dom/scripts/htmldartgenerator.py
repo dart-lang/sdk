@@ -358,7 +358,8 @@ class HtmlDartGenerator(object):
       for i in reversed(range(0, argument_count)):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
-        test_type = self._DartType(argument.type.id)
+
+        test_type = self._NarrowToImplementationType(argument.type.id)
 
         if test_type in ['dynamic', 'Object']:
           checks.append('%s != null' % parameter_name)
@@ -752,6 +753,12 @@ class HtmlDartGenerator(object):
   def SecureBaseName(self, type_name):
     if type_name in _secure_base_types:
       return _secure_base_types[type_name]
+
+  def _NarrowToImplementationType(self, type_name):
+    return self._type_registry.TypeInfo(type_name).narrow_dart_type()
+
+  def _NarrowInputType(self, type_name):
+    return self._NarrowToImplementationType(type_name)
 
   def _DartType(self, type_name):
     return self._type_registry.DartType(type_name)

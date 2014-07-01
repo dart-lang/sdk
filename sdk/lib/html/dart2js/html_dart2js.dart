@@ -18415,7 +18415,8 @@ class MessageEvent extends Event native "MessageEvent" {
     if (source == null) {
       source = window;
     }
-    if (!Device.isIE) {
+    if (!Device.isIE) { // TODO: This if check should be removed once IE
+      // implements the constructor.
       return JS('MessageEvent', 'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
           type, canBubble, cancelable, data, origin, lastEventId, source,
           messagePorts);
