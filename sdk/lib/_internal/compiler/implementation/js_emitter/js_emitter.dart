@@ -53,6 +53,9 @@ import '../util/characters.dart' show
     $a,
     $z;
 
+import '../util/util.dart' show
+    NO_LOCATION_SPANNABLE;
+
 import '../util/uri_extras.dart' show
     relativize;
 

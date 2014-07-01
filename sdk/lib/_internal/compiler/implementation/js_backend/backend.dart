@@ -64,6 +64,8 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri DART_HTML =
+      new Uri(scheme: 'dart', path: 'html');
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
@@ -264,6 +266,9 @@ class JavaScriptBackend extends Backend {
   /// dart:mirrors has been loaded.
   FunctionElement preserveMetadataMarker;
 
+  /// Holds the method "requiresPreamble" in _js_helper.
+  FunctionElement requiresPreambleMarker;
+
   /// True if a call to preserveMetadataMarker has been seen.  This means that
   /// metadata must be retained for dart:mirrors to work correctly.
   bool mustRetainMetadata = false;
@@ -282,6 +287,12 @@ class JavaScriptBackend extends Backend {
 
   /// True if there isn't sufficient @MirrorsUsed data.
   bool hasInsufficientMirrorsUsed = false;
+
+  /// True if a core-library function requires the preamble file to function.
+  bool requiresPreamble = false;
+
+  /// True if the html library has been loaded.
+  bool htmlLibraryIsLoaded = false;
 
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
@@ -1429,6 +1440,8 @@ class JavaScriptBackend extends Backend {
         enqueueInResolution(compiler.loadLibraryFunction,
                             compiler.globalDependencies);
       }
+    } else if (element == requiresPreambleMarker) {
+      requiresPreamble = true;
     }
     customElementsAnalysis.registerStaticUse(element, enqueuer);
   }
@@ -1567,11 +1580,15 @@ class JavaScriptBackend extends Backend {
         irRepresentationClass = findClass('IrRepresentation');
 
         getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
+
+        requiresPreambleMarker = library.find('requiresPreamble');
       } else if (uri == DART_JS_MIRRORS) {
         disableTreeShakingMarker = library.find('disableTreeShaking');
         preserveMetadataMarker = library.find('preserveMetadata');
       } else if (uri == DART_JS_NAMES) {
         preserveNamesMarker = library.find('preserveNames');
+      } else if (uri == DART_HTML) {
+        htmlLibraryIsLoaded = true;
       }
     });
   }

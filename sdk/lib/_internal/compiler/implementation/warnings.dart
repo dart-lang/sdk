@@ -1928,6 +1928,11 @@ Please include the following information:
   static const MessageKind HIDDEN_HINTS = const MessageKind(
       "#{hints} hint(s) suppressed in #{uri}.");
 
+  static const MessageKind PREAMBLE = const MessageKind(
+    "When run on the command-line, the compiled output might"
+    " require a preamble file located in:\n"
+    "  <sdk>/lib/_internal/lib/preambles.");
+
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,8 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     convertDartClosureToJS,
-    random64;
+    random64,
+    requiresPreamble;
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
@@ -685,6 +686,7 @@ class _MainManagerStub {
     //
     // See: http://www.w3.org/TR/workers/#the-global-scope
     // and: http://www.w3.org/TR/Window/#dfn-self-attribute
+    requiresPreamble();
     JS("void", r"self.postMessage(#)", msg);
   }
 }
@@ -692,9 +694,19 @@ class _MainManagerStub {
 const String _SPAWNED_SIGNAL = "spawned";
 const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
-get globalWindow => JS('', "self.window");
-get globalWorker => JS('', "self.Worker");
-bool get globalPostMessageDefined => JS('bool', "!!self.postMessage");
+get globalWindow {
+  requiresPreamble();
+  return JS('', "self.window");
+}
+
+get globalWorker {
+  requiresPreamble();
+  JS('', "self.Worker");
+}
+bool get globalPostMessageDefined {
+  requiresPreamble();
+  return JS('bool', "!!self.postMessage");
+}
 
 typedef _MainFunction();
 typedef _MainFunctionArgs(args);
@@ -874,6 +886,7 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
+    requiresPreamble();
     JS("void", r"self.console.log(#)", msg);
   }
 
@@ -1759,7 +1772,10 @@ class TimerImpl implements Timer {
   bool get isActive => _handle != null;
 }
 
-bool hasTimer() => JS('', 'self.setTimeout') != null;
+bool hasTimer() {
+  requiresPreamble();
+  return JS('', 'self.setTimeout') != null;
+}
 
 
 /**

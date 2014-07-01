@@ -1586,7 +1586,7 @@ abstract class Compiler implements DiagnosticListener {
                                 MessageKind messageKind,
                                 Map arguments,
                                 api.Diagnostic kind) {
-    if (!showPackageWarnings) {
+    if (!showPackageWarnings && node != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:

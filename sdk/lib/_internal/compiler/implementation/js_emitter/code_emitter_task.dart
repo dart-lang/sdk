@@ -1660,6 +1660,10 @@ class CodeEmitterTask extends CompilerTask {
       }
       emitDeferredCode();
 
+      if (backend.requiresPreamble &&
+          !backend.htmlLibraryIsLoaded) {
+        compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      }
     });
     return compiler.assembledCode;
   }

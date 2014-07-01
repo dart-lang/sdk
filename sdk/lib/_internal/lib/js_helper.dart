@@ -64,6 +64,11 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
+/// No-op method that is called to inform the compiler that preambles might
+/// be needed when executing the resulting JS file in a command-line
+/// JS engine.
+requiresPreamble() {}
+
 bool isJsIndexable(var object, var record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);
@@ -725,6 +730,7 @@ class Primitives {
   }
 
   static String currentUri() {
+    requiresPreamble();
     // In a browser return self.location.href.
     if (JS('bool', '!!self.location')) {
       return JS('String', 'self.location.href');
