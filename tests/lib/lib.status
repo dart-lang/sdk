@@ -248,8 +248,6 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
-mirrors/typedef_declaration_test/01: Fail # dartbug.com/16048. Remove multitest marker when it passes.
-
 [ $compiler == none && ( $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
