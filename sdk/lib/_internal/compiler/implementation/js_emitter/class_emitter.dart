@@ -13,7 +13,8 @@ class ClassEmitter extends CodeEmitterHelper {
   void generateClass(ClassElement classElement,
                      ClassBuilder properties,
                      Map<String, jsAst.Expression> additionalProperties) {
-    final onlyForRti = task.classesNeededOnlyForRti.contains(classElement);
+    final onlyForRti =
+        task.typeTestEmitter.rtiNeededClasses.contains(classElement);
 
     assert(invariant(classElement, classElement.isDeclaration));
     assert(invariant(classElement, !classElement.isNative || onlyForRti));

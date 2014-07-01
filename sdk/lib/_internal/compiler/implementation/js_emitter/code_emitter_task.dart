@@ -36,7 +36,6 @@ class CodeEmitterTask extends CompilerTask {
   String isolateProperties;
   String classesCollector;
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
-  final Set<ClassElement> classesNeededOnlyForRti = new Set<ClassElement>();
   final Map<OutputUnit, List<ClassElement>> outputClassLists =
       new Map<OutputUnit, List<ClassElement>>();
   final Map<OutputUnit, List<Constant>> outputConstantLists =
@@ -1195,24 +1194,17 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    // 4. Find all classes needed for metadata and rti.
+    // 4. Find all classes needed for rti.
     // It is important that this is the penultimate step, at this point,
     // neededClasses must only contain classes that have been resolved and
     // codegen'd. The rtiNeededClasses may contain additional classes, but
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-
-    // Classes required for metadata are contained in usedClasses.
-    classesNeededOnlyForRti.addAll(backend.rti.referencedClasses);
-    // Compute classes required for type tests.
     typeTestEmitter.computeRtiNeededClasses();
-    classesNeededOnlyForRti.addAll(typeTestEmitter.rtiNeededClasses);
-    // Ensure classesNeededOnlyForRti contains only the "empty shells". The
-    // class emitter will query this set.
-    classesNeededOnlyForRti.removeAll(neededClasses);
-    // Add the shells to the set of generared classes.
-    neededClasses.addAll(classesNeededOnlyForRti);
+    typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
+    // rtiNeededClasses now contains only the "empty shells".
+    neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
     if (neededClasses.contains(backend.jsIntClass)) {
@@ -1238,7 +1230,7 @@ class CodeEmitterTask extends CompilerTask {
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (classesNeededOnlyForRti.contains(element)) {
+      if (typeTestEmitter.rtiNeededClasses.contains(element)) {
         // TODO(sigurdm): We might be able to defer some of these.
         outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
             () => new List<ClassElement>()).add(element);
