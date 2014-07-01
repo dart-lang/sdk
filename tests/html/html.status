@@ -457,7 +457,6 @@ touchevent_test/supported: Fail
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
-indexeddb_5_test: Timeout # Issue 19778 
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning
