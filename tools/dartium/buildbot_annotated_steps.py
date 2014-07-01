@@ -82,7 +82,7 @@ def main():
     dart_revision = dart_tools_utils.GetSVNRevision()
 
   version = dart_revision + '.0'
-  info = upload_steps.BuildInfo(version, dart_revision)
+  info = upload_steps.BuildInfo(dart_revision, version)
 
   result = 0
 
