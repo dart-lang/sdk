@@ -176,7 +176,7 @@ Uri getMapUri(Uri targetUri) {
   File targetFile = new File.fromUri(targetUri);
   Expect.isTrue(targetFile.existsSync());
   List<String> target = targetFile.readAsStringSync().split('\n');
-  String mapReference = target[target.length - 3]; // #sourceMappingURL=<url>
+  String mapReference = target[target.length - 2]; // #sourceMappingURL=<url>
   Expect.isTrue(mapReference.startsWith('//# sourceMappingURL='));
   String mapName = mapReference.substring(mapReference.indexOf('=') + 1);
   return targetUri.resolve(mapName);
