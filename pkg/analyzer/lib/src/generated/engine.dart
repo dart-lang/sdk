@@ -1953,7 +1953,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _cache.put(unitSource, dartCopy);
         _cache.remove(unitSource);
         if (thrownException != null) {
-          throw thrownException;
+          throw new AnalysisException('<rethrow>', thrownException);
         }
         return dartCopy;
       }
@@ -2029,7 +2029,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     if (unitEntry == null) {
       unitEntry = _getReadableDartEntry(unitSource);
@@ -2068,7 +2068,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _cache.put(unitSource, dartCopy);
         _cache.remove(unitSource);
         if (thrownException != null) {
-          throw thrownException;
+          throw new AnalysisException('<rethrow>', thrownException);
         }
         return dartCopy;
       }
@@ -2155,7 +2155,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     if (unitEntry == null) {
       unitEntry = _getReadableDartEntry(unitSource);
@@ -3974,7 +3974,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _logInformation(writer.toString());
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     if (targetEntry == null) {
       targetEntry = _getReadableDartEntry(targetLibrary);
@@ -4069,7 +4069,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = dartCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return dartEntry;
   }
@@ -4104,7 +4104,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntryImpl dartCopy = (sourceEntry as DartEntry).writableCopy;
       dartCopy.recordHintErrorInLibrary(librarySource, thrownException);
       _cache.put(librarySource, dartCopy);
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     for (MapEntry<Source, TimestampedData<List<AnalysisError>>> entry in getMapEntrySet(hintMap)) {
       Source unitSource = entry.getKey();
@@ -4169,7 +4169,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return libraryEntry;
   }
@@ -4203,7 +4203,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache.put(source, sourceCopy);
     sourceEntry = sourceCopy;
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return sourceEntry;
   }
@@ -4337,7 +4337,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = dartCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return dartEntry;
   }
@@ -4423,7 +4423,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4492,7 +4492,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4561,7 +4561,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4640,7 +4640,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4720,7 +4720,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4796,7 +4796,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = dartCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return dartEntry;
   }
@@ -4878,7 +4878,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry = htmlCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return htmlEntry;
   }
@@ -4958,7 +4958,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = dartCopy;
     }
     if (thrownException != null) {
-      throw thrownException;
+      throw new AnalysisException('<rethrow>', thrownException);
     }
     return dartEntry;
   }
