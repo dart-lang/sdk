@@ -20,15 +20,30 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
-Map<String, Object> errorToJson(AnalysisError analysisError) {
-  // TODO(paulberry): move this function into the AnalysisError class.
+Map<String, Object> errorToJson(LineInfo lineInfo, AnalysisError analysisError)
+    {
   ErrorCode errorCode = analysisError.errorCode;
-  Map<String, Object> result = {
+  // prepare location
+  int offset = analysisError.offset;
+  Map<String, Object> location = {
     FILE: analysisError.source.fullName,
+    OFFSET: offset,
+    LENGTH: analysisError.length
+  };
+  if (lineInfo != null) {
+    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+    if (lineLocation != null) {
+      location[START_LINE] = lineLocation.lineNumber;
+      location[START_COLUMN] = lineLocation.columnNumber;
+    }
+  }
+  // fill JSON
+  Map<String, Object> result = {
     // TODO(scheglov) add Enum.fullName ?
     ERROR_CODE: '${errorCode.runtimeType}.${(errorCode as Enum).name}',
-    OFFSET: analysisError.offset,
-    LENGTH: analysisError.length,
+    SEVERITY: errorCode.errorSeverity.name,
+    TYPE: errorCode.type.name,
+    LOCATION: location,
     MESSAGE: analysisError.message
   };
   if (analysisError.correction != null) {
@@ -39,10 +54,12 @@ Map<String, Object> errorToJson(AnalysisError analysisError) {
 
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
-    List<AnalysisError> errors) {
+    LineInfo lineInfo, List<AnalysisError> errors) {
   Notification notification = new Notification(ANALYSIS_ERRORS);
   notification.setParameter(FILE, file);
-  notification.setParameter(ERRORS, errors.map(errorToJson).toList());
+  notification.setParameter(ERRORS, errors.map((error) {
+    return errorToJson(lineInfo, error);
+  }).toList());
   server.sendNotification(notification);
 }
 
@@ -125,9 +142,9 @@ class PerformAnalysisOperation extends ServerOperation {
     for (int i = 0; i < notices.length; i++) {
       ChangeNotice notice = notices[i];
       Source source = notice.source;
-      CompilationUnit dartUnit = notice.compilationUnit;
-      // TODO(scheglov) use default subscriptions
       String file = source.fullName;
+      // Dart
+      CompilationUnit dartUnit = notice.compilationUnit;
       if (dartUnit != null) {
         if (server.hasAnalysisSubscription(AnalysisService.HIGHLIGHTS, file)) {
           sendAnalysisNotificationHighlights(server, file, dartUnit);
@@ -139,8 +156,10 @@ class PerformAnalysisOperation extends ServerOperation {
           sendAnalysisNotificationOutline(server, file, dartUnit);
         }
       }
+      // TODO(scheglov) use default subscriptions
       if (!source.isInSystemLibrary) {
-        sendAnalysisNotificationErrors(server, file, notice.errors);
+        sendAnalysisNotificationErrors(server, file, notice.lineInfo,
+            notice.errors);
       }
     }
   }

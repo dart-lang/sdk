@@ -33,8 +33,8 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
+    server = new AnalysisServer(serverChannel, resourceProvider,
+        new MockPackageMapProvider(), null);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
   });
@@ -65,15 +65,14 @@ main() {
           resourceProvider.newFolder('/project');
           resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
           resourceProvider.newFile('/project/bin/test.dart', 'main() {}');
-          request.setParameter(
-              INCLUDED,
-              ['/project']);
+          request.setParameter(INCLUDED, ['/project']);
           var response = handler.handleRequest(request);
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
           return waitForServerOperationsPerformed(server).then((_) {
-            var unit = serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
+            var unit = serverRef.test_getResolvedCompilationUnit(
+                '/project/bin/test.dart');
             expect(unit, isNotNull);
           });
         });
@@ -120,7 +119,9 @@ main() {
     group('updateOptions', () {
       test('invalid', () {
         var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-        request.setParameter(OPTIONS, {'not-an-option' : true});
+        request.setParameter(OPTIONS, {
+          'not-an-option': true
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -130,13 +131,11 @@ main() {
         bool analyzeAngular = !options.analyzeAngular;
         bool enableDeferredLoading = options.enableDeferredLoading;
         var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-        request.setParameter(
-            OPTIONS,
-            {
-              'analyzeAngular' : analyzeAngular,
-              'enableDeferredLoading': enableDeferredLoading,
-              'enableEnums': false
-            });
+        request.setParameter(OPTIONS, {
+          'analyzeAngular': analyzeAngular,
+          'enableDeferredLoading': enableDeferredLoading,
+          'enableEnums': false
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         expect(options.analyzeAngular, equals(analyzeAngular));
@@ -146,12 +145,8 @@ main() {
 
     test('updateSdks', () {
       var request = new Request('0', ANALYSIS_UPDATE_SDKS);
-      request.setParameter(
-          ADDED,
-          ['/dart/sdk-1.3', '/dart/sdk-1.4']);
-      request.setParameter(
-          REMOVED,
-          ['/dart/sdk-1.2']);
+      request.setParameter(ADDED, ['/dart/sdk-1.3', '/dart/sdk-1.4']);
+      request.setParameter(REMOVED, ['/dart/sdk-1.2']);
       request.setParameter(DEFAULT, '/dart/sdk-1.4');
       var response = handler.handleRequest(request);
       // TODO(scheglov) implement
@@ -162,31 +157,56 @@ main() {
 
 
 class AnalysisError {
-  final String file;
   final String errorCode;
-  final int offset;
-  final int length;
+  final String severity;
+  final String type;
+  final Location location;
   final String message;
   final String correction;
-  AnalysisError(this.file, this.errorCode, this.offset, this.length,
+  AnalysisError(this.errorCode, this.severity, this.type, this.location,
       this.message, this.correction);
 
   @override
   String toString() {
-    return 'NotificationError(file=$file; errorCode=$errorCode; '
-        'offset=$offset; length=$length; message=$message)';
+    return 'AnalysisError(location=$location message=$message); '
+        'errorCode=$errorCode; severity=$separator type=$type';
+  }
+}
+
+
+class Location {
+  final String file;
+  final int offset;
+  final int length;
+  final int startLine;
+  final int startColumn;
+  Location(this.file, this.offset, this.length, this.startLine,
+      this.startColumn);
+
+  @override
+  String toString() {
+    return 'Location(file=$file; offset=$offset; length=$length; '
+        'startLine=$startLine; startColumn=$startColumn)';
   }
 }
 
 
 AnalysisError jsonToAnalysisError(Map<String, Object> json) {
-  return new AnalysisError(
-      json['file'],
-      json['errorCode'],
-      json['offset'],
-      json['length'],
-      json['message'],
-      json['correction']);
+  Map<String, Object> jsonLocation = json[LOCATION];
+  Location location = new Location(jsonLocation[FILE], _getSafeInt(jsonLocation,
+      OFFSET, -1), _getSafeInt(jsonLocation, LENGTH, -1), _getSafeInt(jsonLocation,
+      START_LINE, -1), _getSafeInt(jsonLocation, START_COLUMN, -1));
+  return new AnalysisError(json[ERROR_CODE], json[SEVERITY], json[TYPE], location,
+      json['message'], json['correction']);
+}
+
+
+int _getSafeInt(Map<String, Object> json, String key, int defaultValue) {
+  Object value = json[key];
+  if (value is int) {
+    return value;
+  }
+  return defaultValue;
 }
 
 
@@ -211,12 +231,13 @@ class AnalysisTestHelper {
   AnalysisTestHelper() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
+    server = new AnalysisServer(serverChannel, resourceProvider,
+        new MockPackageMapProvider(), null);
     server.defaultSdk = new MockSdk();
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
-    Stream<Notification> notificationStream = serverChannel.notificationController.stream;
+    Stream<Notification> notificationStream =
+        serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       if (notification.event == ANALYSIS_ERRORS) {
         String file = notification.getParameter(FILE);
@@ -412,19 +433,18 @@ testNotificationErrors() {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
-      expect(error.file, '/project/bin/test.dart');
+      expect(error.location.file, '/project/bin/test.dart');
+      expect(error.location.offset, isPositive);
+      expect(error.location.length, isNonNegative);
       expect(error.errorCode, 'ParserErrorCode.EXPECTED_TOKEN');
-      expect(error.offset, isPositive);
-      expect(error.length, isNonNegative);
+      expect(error.severity, 'ERROR');
+      expect(error.type, 'SYNTACTIC_ERROR');
       expect(error.message, isNotNull);
     });
   });
 
   test('StaticWarningCode', () {
-    helper.createSingleFileProject([
-      'main() {',
-      '  print(unknown);',
-      '}']);
+    helper.createSingleFileProject(['main() {', '  print(unknown);', '}']);
     return helper.waitForOperationsFinished().then((_) {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, hasLength(1));
@@ -578,8 +598,8 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] =
-        [resourceProvider.getResource('/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [resourceProvider.getResource(
+        '/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -617,7 +637,8 @@ f(A a) {
       expect(filesErrors[testFile], isNot(isEmpty));
       // Add the package to the package map and tickle the package dependency.
       packageMapProvider.packageMap = {
-          'pkgA': [resourceProvider.getResource('/packages/pkgA')] };
+        'pkgA': [resourceProvider.getResource('/packages/pkgA')]
+      };
       resourceProvider.modifyFile(pkgDependency, 'new contents');
       // Let the server time to notice the file has changed, then let
       // analysis omplete.  There should now be no error.

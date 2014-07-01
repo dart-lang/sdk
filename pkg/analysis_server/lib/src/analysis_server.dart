@@ -464,8 +464,9 @@ class AnalysisServer {
         if (service == AnalysisService.ERRORS) {
           Source source = _getSource(file);
           AnalysisContext analysisContext = _getAnalysisContext(file);
+          LineInfo lineInfo = analysisContext.getLineInfo(source);
           List<AnalysisError> errors = analysisContext.getErrors(source).errors;
-          sendAnalysisNotificationErrors(this, file, errors);
+          sendAnalysisNotificationErrors(this, file, lineInfo, errors);
         }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {

@@ -63,18 +63,31 @@ void runReflectiveTests(Type type) {
   });
 }
 
+
 _runTest(ClassMirror classMirror, Symbol symbol) {
   InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
+  bool shouldRunTearDown = true;
   _invokeSymbolIfExists(instanceMirror, #setUp);
-  var testReturn = instanceMirror.invoke(symbol, []).reflectee;
-  if (testReturn is Future) {
-    return testReturn.whenComplete(() {
-      _invokeSymbolIfExists(instanceMirror, #tearDown);
-    });
-  } else {
-    _invokeSymbolIfExists(instanceMirror, #tearDown);
-    return testReturn;
+  try {
+    var testReturn = instanceMirror.invoke(symbol, []).reflectee;
+    if (testReturn is Future) {
+      shouldRunTearDown = false;
+      return testReturn.whenComplete(() {
+        _invokeTearDown(instanceMirror);
+      });
+    } else {
+      return testReturn;
+    }
+  } finally {
+    if (shouldRunTearDown) {
+      _invokeTearDown(instanceMirror);
+    }
   }
+}
+
+
+void _invokeTearDown(InstanceMirror instanceMirror) {
+  _invokeSymbolIfExists(instanceMirror, #tearDown);
 }
 
 
