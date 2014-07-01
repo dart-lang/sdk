@@ -1,10 +1,10 @@
 name: intl
-version: 0.9.10
+version: 0.10.0
 author: Dart Team <misc@dartlang.org>
 description: Contains code to deal with internationalized/localized messages, date and number formatting and parsing, bi-directional text, and other internationalization issues.
 homepage: http://www.dartlang.org
 environment:
-  sdk: '>=1.4.0-dev.6.6 <2.0.0'
+  sdk: '>=1.4.0 <2.0.0'
 documentation: http://api.dartlang.org/docs/pkg/intl
 dependencies:
   analyzer: '>=0.13.2 <0.16.0'

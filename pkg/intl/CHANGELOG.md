@@ -1,3 +1,14 @@
+## 0.10.0
+ 
+ * Make message catalogs use deferred loading.
+
+ * Update CLDR Data to version 25 for dates and numbers.
+
+ * Update analyzer dependency to allow later versions.
+
+ * Adds workaround for flakiness in DateTime creation, removes debugging code
+   associated with that.
+
 ## 0.9.9
 
 * Add NumberFormat.parse()
