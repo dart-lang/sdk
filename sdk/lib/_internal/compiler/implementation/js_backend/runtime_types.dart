@@ -31,6 +31,10 @@ class RuntimeTypes {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  Set<ClassElement> get referencedClasses {
+    return representationGenerator.seenClasses;
+  }
+
   RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
         representationGenerator = new TypeRepresentationGenerator(compiler),
@@ -611,6 +615,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   JavaScriptBackend get backend => compiler.backend;
   Namer get namer => backend.namer;
 
+  Set<ClassElement> seenClasses = new Setlet<ClassElement>();
+
   TypeRepresentationGenerator(Compiler this.compiler);
 
   /**
@@ -642,6 +648,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   visitInterfaceType(InterfaceType type, _) {
+    seenClasses.add(type.element);
     jsAst.Expression name = getJavaScriptClassName(type.element);
     return type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
   }
