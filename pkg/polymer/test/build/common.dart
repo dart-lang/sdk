@@ -66,7 +66,7 @@ class TestHelper implements PackageProvider {
 
     logSubscription = barback.log.listen((entry) {
       // Ignore info messages.
-      if (entry.level == LogLevel.INFO) return;
+      if (entry.level == LogLevel.INFO || entry.level == LogLevel.FINE) return;
       if (entry.level == LogLevel.ERROR) errorSeen = true;
       // We only check messages when an expectation is provided.
       if (messages == null) return;
