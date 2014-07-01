@@ -1057,8 +1057,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= fields.At(i);
-    member_mirror = CreateVariableMirror(field, owner_mirror);
-    member_mirrors.Add(member_mirror);
+    if (!field.is_synthetic()) {
+      member_mirror = CreateVariableMirror(field, owner_mirror);
+      member_mirrors.Add(member_mirror);
+    }
   }
 
   Function& func = Function::Handle();
@@ -1145,8 +1147,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       }
     } else if (entry.IsField()) {
       const Field& field = Field::Cast(entry);
-      member_mirror = CreateVariableMirror(field, owner_mirror);
-      member_mirrors.Add(member_mirror);
+      if (!field.is_synthetic()) {
+        member_mirror = CreateVariableMirror(field, owner_mirror);
+        member_mirrors.Add(member_mirror);
+      }
     } else if (entry.IsFunction()) {
       const Function& func = Function::Cast(entry);
       if (func.kind() == RawFunction::kRegularFunction ||

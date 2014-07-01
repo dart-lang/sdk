@@ -796,23 +796,6 @@ void Object::RegisterSingletonClassNames() {
 }
 
 
-void Object::CreateInternalMetaData() {
-  // Initialize meta data for VM internal classes.
-  Class& cls = Class::Handle();
-  Array& fields = Array::Handle();
-  Field& fld = Field::Handle();
-  String& name = String::Handle();
-
-  // TODO(iposva): Add more of the VM classes here.
-  cls = context_class_;
-  fields = Array::New(1, Heap::kOld);
-  name = Symbols::New("@parent_");
-  fld = Field::New(name, false, false, false, cls, 0);
-  fields.SetAt(0, fld);
-  cls.SetFields(fields);
-}
-
-
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
 // The unused part of the transformed object is marked as an TypedDataInt8Array
@@ -1388,7 +1371,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, cls, 0);                   \
+  field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -6863,6 +6846,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
+                     bool is_synthetic,
                      const Class& owner,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
@@ -6876,6 +6860,7 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
+  result.set_is_synthetic(is_synthetic);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
@@ -8475,6 +8460,7 @@ void Library::AddMetadata(const Class& cls,
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
+                                          true,   // is_synthetic
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -9838,6 +9824,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
+                                          true,   // is_synthetic
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
