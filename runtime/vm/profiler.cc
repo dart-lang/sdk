@@ -1665,15 +1665,15 @@ Sample* SampleBuffer::ReserveSample() {
 
 class ProfilerDartStackWalker : public ValueObject {
  public:
-  explicit ProfilerDartStackWalker(Sample* sample)
+  ProfilerDartStackWalker(Isolate* isolate, Sample* sample)
       : sample_(sample),
-        frame_iterator_() {
+        frame_iterator_(isolate) {
     ASSERT(sample_ != NULL);
   }
 
-  ProfilerDartStackWalker(Sample* sample, uword fp)
+  ProfilerDartStackWalker(Isolate* isolate, Sample* sample, uword fp)
       : sample_(sample),
-        frame_iterator_(fp) {
+        frame_iterator_(fp, isolate) {
     ASSERT(sample_ != NULL);
   }
 
@@ -1892,7 +1892,7 @@ void Profiler::RecordSampleInterruptCallback(
     if ((isolate->stub_code() != NULL) &&
         (isolate->top_exit_frame_info() != 0)) {
       // Collect only Dart frames.
-      ProfilerDartStackWalker stackWalker(sample);
+      ProfilerDartStackWalker stackWalker(isolate, sample);
       stackWalker.walk();
     } else {
       // Collect native and Dart frames.

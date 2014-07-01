@@ -116,6 +116,8 @@ class StubCode {
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
 
+  static bool InInvocationStubForIsolate(Isolate* isolate, uword pc);
+
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);
 

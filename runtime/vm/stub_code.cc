@@ -91,8 +91,14 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 bool StubCode::InInvocationStub(uword pc) {
-  return ((pc >= InvokeDartCodeEntryPoint()) &&
-          (pc < (InvokeDartCodeEntryPoint() + InvokeDartCodeSize())));
+  return InInvocationStubForIsolate(Isolate::Current(), pc);
+}
+
+
+bool StubCode::InInvocationStubForIsolate(Isolate* isolate, uword pc) {
+  uword entry = isolate->stub_code()->InvokeDartCodeEntryPoint();
+  uword size = isolate->stub_code()->InvokeDartCodeSize();
+  return (pc >= entry) && (pc < (entry + size));
 }
 
 

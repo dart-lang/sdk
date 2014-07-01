@@ -28,6 +28,7 @@ bool StackFrame::IsStubFrame() const {
 
 
 const char* StackFrame::ToCString() const {
+  ASSERT(isolate_ == Isolate::Current());
   Zone* zone = Isolate::Current()->current_zone();
   if (IsDartFrame()) {
     const Code& code = Code::Handle(LookupDartCode());
@@ -66,6 +67,7 @@ RawContext* EntryFrame::SavedContext() const {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  ASSERT(isolate() == Isolate::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
   RawObject** first = reinterpret_cast<RawObject**>(sp());
@@ -82,6 +84,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
+  ASSERT(isolate_ == Isolate::Current());
   ASSERT(visitor != NULL);
   NoGCScope no_gc;
   Code code;
@@ -159,6 +162,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 RawFunction* StackFrame::LookupDartFunction() const {
+  ASSERT(isolate_ == Isolate::Current());
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
     return code.function();
@@ -168,6 +172,7 @@ RawFunction* StackFrame::LookupDartFunction() const {
 
 
 RawCode* StackFrame::LookupDartCode() const {
+  ASSERT(isolate_ == Isolate::Current());
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
@@ -278,14 +283,29 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
-StackFrameIterator::StackFrameIterator(bool validate)
-    : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
+StackFrameIterator::StackFrameIterator(bool validate, Isolate* isolate)
+    : validate_(validate),
+      entry_(isolate),
+      exit_(isolate),
+      frames_(isolate),
+      current_frame_(NULL),
+      isolate_(isolate) {
+  ASSERT((isolate_ == Isolate::Current()) ||
+         OS::AllowStackFrameIteratorFromAnotherThread());
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
 
-StackFrameIterator::StackFrameIterator(uword last_fp, bool validate)
-    : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
+StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
+                                       Isolate* isolate)
+    : validate_(validate),
+      entry_(isolate),
+      exit_(isolate),
+      frames_(isolate),
+      current_frame_(NULL),
+      isolate_(isolate) {
+  ASSERT((isolate_ == Isolate::Current()) ||
+         OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
@@ -293,8 +313,15 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate)
 
 
 StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
-                                       bool validate)
-    : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
+                                       bool validate, Isolate* isolate)
+    : validate_(validate),
+      entry_(isolate),
+      exit_(isolate),
+      frames_(isolate),
+      current_frame_(NULL),
+      isolate_(isolate) {
+  ASSERT((isolate_ == Isolate::Current()) ||
+         OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;

@@ -78,6 +78,10 @@ class OS {
   // Returns the stack size limit.
   static uword GetStackSizeLimit();
 
+  // Returns true if StackFrameIterator can be used from an isolate that isn't
+  // the calling thread's current isolate.
+  static bool AllowStackFrameIteratorFromAnotherThread();
+
   // Returns number of available processor cores.
   static int NumberOfAvailableProcessors();
 
