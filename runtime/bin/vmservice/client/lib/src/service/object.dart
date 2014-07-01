@@ -7,6 +7,14 @@ part of service;
 /// A [ServiceObject] is an object known to the VM service and is tied
 /// to an owning [Isolate].
 abstract class ServiceObject extends Observable {
+  static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
+    return o1.name.compareTo(o2.name);
+  }
+
+  List removeDuplicatesAndSortLexical(List<ServiceObject> list) {
+    return list.toSet().toList()..sort(LexicalSortName);
+  }
+
   /// The owner of this [ServiceObject].  This can be an [Isolate], a
   /// [VM], or null.
   @reflectable ServiceObjectOwner get owner => _owner;
@@ -821,10 +829,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     error = map['error'];
 
     libraries.clear();
-    for (var lib in map['libraries']) {
-      libraries.add(lib);
-    }
-    libraries.sort((a,b) => a.name.compareTo(b.name));
+    libraries.addAll(map['libraries']);
+    libraries.sort(ServiceObject.LexicalSortName);
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -1055,15 +1061,18 @@ class Library extends ServiceObject with Coverage {
     _loaded = true;
     _upgradeCollection(map, isolate);
     imports.clear();
-    imports.addAll(map['imports']);
+    imports.addAll(removeDuplicatesAndSortLexical(map['imports']));
     scripts.clear();
-    scripts.addAll(map['scripts']);
+    scripts.addAll(removeDuplicatesAndSortLexical(map['scripts']));
     classes.clear();
     classes.addAll(map['classes']);
+    classes.sort(ServiceObject.LexicalSortName);
     variables.clear();
     variables.addAll(map['variables']);
+    variables.sort(ServiceObject.LexicalSortName);
     functions.clear();
     functions.addAll(map['functions']);
+    functions.sort(ServiceObject.LexicalSortName);
   }
 }
 
@@ -1171,12 +1180,15 @@ class Class extends ServiceObject with Coverage {
 
     subClasses.clear();
     subClasses.addAll(map['subclasses']);
+    subClasses.sort(ServiceObject.LexicalSortName);
 
     fields.clear();
     fields.addAll(map['fields']);
+    fields.sort(ServiceObject.LexicalSortName);
 
     functions.clear();
     functions.addAll(map['functions']);
+    functions.sort(ServiceObject.LexicalSortName);
 
     superClass = map['super'];
     if (superClass != null) {
