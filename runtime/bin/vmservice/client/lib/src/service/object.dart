@@ -403,13 +403,7 @@ abstract class VM extends ServiceObjectOwner {
   /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
-      var map;
-      try {
-        map = _parseJSON(response);
-      } catch (e, st) {
-        print('Hit V8 bug.');
-        return _decodeError(e);
-      }
+      var map = _parseJSON(response);
       return _processMap(map);
     }).catchError((error) {
       // ServiceError, forward to VM's ServiceError stream.
@@ -424,6 +418,12 @@ abstract class VM extends ServiceObjectOwner {
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
   Future<String> getString(String id);
+  /// Force the VM to disconnect.
+  void disconnect();
+  /// Completes when the VM first connects.
+  Future get onConnect;
+  /// Completes when the VM disconnects or there was an error connecting.
+  Future get onDisconnect;
 
   void _update(ObservableMap map, bool mapIsRef) {
     if (mapIsRef) {
@@ -695,12 +695,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     // Cache miss.  Get the object from the vm directly.
     return vm.getAsMap(relativeLink(id)).then((ObservableMap map) {
-        var obj = new ServiceObject._fromMap(this, map);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-        return obj;
-      });
+      var obj = new ServiceObject._fromMap(this, map);
+      if (obj.canCache) {
+        _cache.putIfAbsent(id, () => obj);
+      }
+      return obj;
+    });
   }
 
   @observable Class objectClass;

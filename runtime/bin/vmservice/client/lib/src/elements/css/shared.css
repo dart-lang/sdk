@@ -208,6 +208,12 @@ hr {
   flex-basis: 40%;
 }
 
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
 .flex-item-60-percent {
   flex-grow: 0;
   flex-shrink: 0;

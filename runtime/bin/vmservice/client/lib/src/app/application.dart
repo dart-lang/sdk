@@ -4,139 +4,45 @@
 
 part of app;
 
-/// A [Pane] controls the user interface of Observatory. At any given time
-/// one pane will be the current pane. Panes are registered at startup.
-/// When the user navigates within the application, each pane is asked if it
-/// can handle the current location, the first pane to say yes, wins.
-abstract class Pane extends Observable {
-  final ObservatoryApplication app;
-
-  @observable ObservatoryElement element;
-
-  Pane(this.app);
-
-  /// Called when the pane is installed, this callback must initialize
-  /// [element].
-  void onInstall();
-
-  /// Called when the pane is uninstalled, this callback must clear
-  /// [element].
-  void onUninstall() {
-    element = null;
-  }
-
-  /// Called when the pane should update its state based on [url].
-  /// NOTE: Only called when the pane is installed.
-  void visit(String url);
-
-  /// Called to test whether this pane can visit [url].
-  bool canVisit(String url);
-}
-
-/// A general service object viewer.
-class ServiceObjectPane extends Pane {
-  ServiceObjectPane(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      /// Lazily create pane.
-      element = new Element.tag('service-view');
-    }
-  }
-
-  void visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    if (url == '') {
-      // Nothing requested.
-      return;
-    }
-    /// Request url from VM and display it.
-    app.vm.get(url).then((obj) {
-      ServiceObjectViewElement pane = element;
-      pane.object = obj;
-    });
-  }
-
-  /// Catch all.
-  bool canVisit(String url) => true;
-}
-
-/// Class tree pane.
-class ClassTreePane extends Pane {
-  static const _urlPrefix = 'class-tree/';
-
-  ClassTreePane(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      element = new Element.tag('class-tree');
-    }
-  }
-
-  void visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    // ClassTree urls are 'class-tree/isolate-id', chop off prefix, leaving
-    // isolate url.
-    url = url.substring(_urlPrefix.length);
-    /// Request the isolate url.
-    app.vm.get(url).then((i) {
-      if (element != null) {
-        /// Update the pane.
-        ClassTreeElement pane = element;
-        pane.isolate = i;
-      }
-    });
-  }
-
-  /// Catch all.
-  bool canVisit(String url) => url.startsWith(_urlPrefix);
-}
-
-class ErrorViewPane extends Pane {
-  ErrorViewPane(app) : super(app);
-
-  void onInstall() {
-    if (element == null) {
-      /// Lazily create pane.
-      element = new Element.tag('service-view');
-    }
-  }
-
-  void visit(String url) {
-    assert(element != null);
-    assert(canVisit(url));
-    (element as ServiceObjectViewElement).object = app.lastErrorOrException;
-  }
-
-  bool canVisit(String url) => url.startsWith('error/');
-}
-
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
   final _paneRegistry = new List<Pane>();
-  ServiceObjectPane _serviceObjectPane;
   Pane _currentPane;
   @observable final LocationManager locationManager;
-  @observable final VM vm;
+  VM _vm;
+  VM get vm => _vm;
+  set vm(VM vm) {
+    if (_vm == vm) {
+      // Do nothing.
+      return;
+    }
+    if (_vm != null) {
+      // Disconnect from current VM.
+      _vm.disconnect();
+    }
+    if (vm != null) {
+      Logger.root.info('Registering new VM callbacks');
+      vm.onConnect.then(_vmConnected);
+      vm.onDisconnect.then(_vmDisconnected);
+      vm.errors.stream.listen(_onError);
+      vm.exceptions.stream.listen(_onException);
+    }
+    _vm = vm;
+  }
+  final TargetManager targets;
   @observable Isolate isolate;
   @reflectable final ObservatoryApplicationElement rootElement;
 
   @reflectable ServiceObject lastErrorOrException;
-
   @observable ObservableList<ServiceEvent> notifications =
       new ObservableList<ServiceEvent>();
 
-  void _initOnce() {
+  void _initOnce(bool chromium) {
+    assert(app == null);
     app = this;
-    vm.events.stream.listen(_handleEvent);
     _registerPanes();
-    vm.errors.stream.listen(_onError);
-    vm.exceptions.stream.listen(_onException);
-    location = locationManager;
     locationManager._init(this);
   }
 
@@ -186,17 +92,13 @@ class ObservatoryApplication extends Observable {
   }
 
   void _registerPanes() {
-    if (_serviceObjectPane != null) {
-      // Already done.
-      return;
-    }
     // Register ClassTreePane.
     _paneRegistry.add(new ClassTreePane(this));
+    _paneRegistry.add(new VMConnectPane(this));
     _paneRegistry.add(new ErrorViewPane(this));
     // Note that ServiceObjectPane must be the last entry in the list as it is
     // the catch all.
-    _serviceObjectPane = new ServiceObjectPane(this);
-    _paneRegistry.add(_serviceObjectPane);
+    _paneRegistry.add(new ServiceObjectPane(this));
   }
 
   void _onError(ServiceError error) {
@@ -206,7 +108,12 @@ class ObservatoryApplication extends Observable {
 
   void _onException(ServiceException exception) {
     lastErrorOrException = exception;
-    _visit('error/', null);
+    if (exception.kind == 'NetworkException') {
+      // Got a network exception, visit the vm-connect pane.
+      locationManager.go(locationManager.makeLink('/vm-connect/'));
+    } else {
+      _visit('error/', null);
+    }
   }
 
   void _visit(String url, String args) {
@@ -225,17 +132,22 @@ class ObservatoryApplication extends Observable {
   /// Set the Observatory application pane.
   void _installPane(Pane pane) {
     assert(pane != null);
-    print('Installing $pane');
     if (_currentPane == pane) {
       // Already isntalled.
       return;
     }
     if (_currentPane != null) {
+      Logger.root.info('Uninstalling pane: $_currentPane');
       _currentPane.onUninstall();
+      // Clear children.
+      rootElement.children.clear();
     }
-    pane.onInstall();
-    // Clear children.
-    rootElement.children.clear();
+    Logger.root.info('Installing pane: $pane');
+    try {
+      pane.onInstall();
+    } catch (e) {
+      Logger.root.severe('Failed to install pane: $e');
+    }
     // Add new pane.
     rootElement.children.add(pane.element);
     // Remember pane.
@@ -244,15 +156,30 @@ class ObservatoryApplication extends Observable {
 
   ObservatoryApplication.devtools(this.rootElement) :
       locationManager = new HashLocationManager(),
-      vm = new DartiumVM() {
-    _initOnce();
+      targets = null {
+    vm = new PostMessageVM();
+    _initOnce(true);
   }
 
   ObservatoryApplication(this.rootElement) :
       locationManager = new HashLocationManager(),
-      vm = new WebSocketVM() {
-    _initOnce();
+      targets = new TargetManager() {
+    vm = new WebSocketVM(targets.defaultTarget);
+    _initOnce(false);
+  }
+
+  _vmConnected(VM vm) {
+    if (vm is WebSocketVM) {
+      targets.add(vm.target);
+    }
+  }
+
+  _vmDisconnected(VM vm) {
+    if (this.vm != vm) {
+      // This disconnect event occured *after* a new VM was installed.
+      return;
+    }
+    this.vm = null;
+    locationManager.go(locationManager.makeLink('/vm-connect/'));
   }
 }
-
-LocationManager location;

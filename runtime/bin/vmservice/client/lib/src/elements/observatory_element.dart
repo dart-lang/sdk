@@ -4,6 +4,7 @@
 
 library observatory_element;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:observatory/app.dart';
 import 'package:polymer/polymer.dart';
@@ -18,6 +19,7 @@ class ObservatoryElement extends PolymerElement {
   @override
   void attached() {
     super.attached();
+    _startPoll();
   }
 
   @override
@@ -28,21 +30,68 @@ class ObservatoryElement extends PolymerElement {
   @override
   void detached() {
     super.detached();
+    _stopPoll();
   }
 
+  @override
   void ready() {
     super.ready();
   }
 
+  /// Set to a non-null value to enable polling on this element. When the poll
+  /// timer fires, onPoll will be called.
+  @observable Duration pollPeriod;
+  Timer _pollTimer;
+
+  /// Called every [pollPeriod] while the element is attached to the DOM.
+  void onPoll() { }
+
+  void pollPeriodChanged(oldValue) {
+    if (pollPeriod != null) {
+      _startPoll();
+    } else {
+      _stopPoll();
+    }
+  }
+
+  void _startPoll() {
+    if (pollPeriod == null) {
+      return;
+    }
+    if (_pollTimer != null) {
+      _pollTimer.cancel();
+    }
+    _pollTimer = new Timer(pollPeriod, _onPoll);
+  }
+
+  void _stopPoll() {
+    if (_pollTimer != null) {
+      _pollTimer.cancel();
+    }
+    _pollTimer = null;
+  }
+
+  void _onPoll() {
+    onPoll();
+    if (pollPeriod == null) {
+      // Stop polling.
+      _stopPoll();
+      return;
+    }
+    // Restart timer.
+    _pollTimer = new Timer(pollPeriod, _onPoll);
+  }
+
+  /// Utility method for handling on-click of <a> tags. Navigates
+  /// within the application using the [LocationManager].
   void goto(MouseEvent event, var detail, Element target) {
-    location.onGoto(event, detail, target);
+    app.locationManager.onGoto(event, detail, target);
   }
 
+  /// Create a link that can be consumed by [goto].
   String gotoLink(String url) {
-    return location.makeLink(url);
+    return app.locationManager.makeLink(url);
   }
-
-
 
   String formatTimePrecise(double time) => Utils.formatTimePrecise(time);
 

@@ -6,7 +6,6 @@ library nav_bar_element;
 
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -63,11 +62,11 @@ class NavControlElement extends ObservatoryElement {
   NavControlElement.created() : super.created();
 
   void forward(Event e, var detail, Element target) {
-    location.forward();
+    app.locationManager.forward();
   }
 
   void back(Event e, var detail, Element target) {
-    location.back();
+    app.locationManager.back();
   }
 }
 

@@ -123,4 +123,6 @@ class Utils {
   static String formatSeconds(double x) {
     return x.toStringAsFixed(2);
   }
+
+  static bool runningInJavaScript() => identical(1.0, 1);
 }

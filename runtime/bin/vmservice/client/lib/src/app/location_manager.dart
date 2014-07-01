@@ -22,13 +22,20 @@ abstract class LocationManager extends Observable {
   void _onStartup();
   void _onLocationChange(PopStateEvent event);
 
-  /// Go to a specific url.
-  void go(String url) {
+  void _pushUrl(String url) {
     if (_lastUrl != url) {
       Logger.root.info('Navigated to ${url}');
       window.history.pushState(url, document.title, url);
       _lastUrl = url;
     }
+  }
+
+  /// Go to a specific url.
+  void go(String url) {
+    if (_app.vm == null) {
+      url = makeLink('/vm-connect/');
+    }
+    _pushUrl(url);
     _go(url);
   }
 
@@ -67,13 +74,13 @@ abstract class LocationManager extends Observable {
   /// Handle clicking on an application url link.
   void onGoto(MouseEvent event, var detail, Element target) {
     var href = target.attributes['href'];
-    if (event.button > 1 || event.metaKey || event.ctrlKey ||
+    if (event.button > 0 || event.metaKey || event.ctrlKey ||
         event.shiftKey || event.altKey) {
       // Not a left-click or a left-click with a modifier key:
       // Let browser handle.
       return;
     }
-    location.go(href);
+    go(href);
     event.preventDefault();
   }
 

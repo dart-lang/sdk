@@ -14,140 +14,259 @@ import 'package:observatory/service.dart';
 // Export the service library.
 export 'package:observatory/service.dart';
 
-class HttpVM extends VM {
-  String host;
+/// Description of a VM target.
+class WebSocketVMTarget {
+  // Last time this VM has been connected to.
+  int lastConnectionTime = 0;
+  bool get hasEverConnected => lastConnectionTime > 0;
 
-  bool runningInJavaScript() => identical(1.0, 1);
+  // Chrome VM or standalone;
+  bool chrome = false;
+  bool get standalone => !chrome;
 
-  HttpVM() : super() {
-    if (runningInJavaScript()) {
-      // When we are running as JavaScript use the same hostname:port
-      // that the Observatory is loaded from.
-      host = 'http://${window.location.host}/';
-    } else {
-      // Otherwise, assume we are running from the Dart Editor and
-      // want to connect on the default port.
-      host = 'http://127.0.0.1:8181/';
+  // User defined name.
+  String name;
+  // Network address of VM.
+  String networkAddress;
+
+  WebSocketVMTarget(this.networkAddress) {
+    name = networkAddress;
+  }
+
+  WebSocketVMTarget.fromMap(Map json) {
+    lastConnectionTime = json['lastConnectionTime'];
+    chrome = json['chrome'];
+    name = json['name'];
+    networkAddress = json['networkAddress'];
+    if (name == null) {
+      name = networkAddress;
     }
   }
 
-  Future<String> getString(String id) {
-    // Ensure we don't request host//id.
-    if (host.endsWith('/') && id.startsWith('/')) {
-      id = id.substring(1);
-    }
-    Logger.root.info('Fetching $id from $host');
-    return HttpRequest.request(host + id,
-                               requestHeaders: {
-                                  'Observatory-Version': '1.0'
-                               }).then((HttpRequest request) {
-        return request.responseText;
-      }).catchError((error) {
-      // If we get an error here, the network request has failed.
-      Logger.root.severe('HttpRequest.request failed.');
-      var request = error.target;
-      return JSON.encode({
-          'type': 'ServiceException',
-          'id': '',
-          'response': request.responseText,
-          'kind': 'NetworkException',
-          'message': 'Could not connect to service (${request.statusText}). '
-                     'Check that you started the VM with the following flags: '
-                     '--observe'
-        });
-    });
+  Map toJson() {
+    return {
+      'lastConnectionTime': lastConnectionTime,
+      'chrome': chrome,
+      'name': name,
+      'networkAddress': networkAddress,
+    };
   }
 }
 
+class _WebSocketRequest {
+  final String id;
+  final Completer<String> completer;
+  _WebSocketRequest(this.id)
+      : completer = new Completer<String>();
+}
+
+/// The [WebSocketVM] communicates with a Dart VM over WebSocket. The Dart VM
+/// can be embedded in Chromium or standalone. In the case of Chromium, we
+/// make the service requests via the Chrome Remote Debugging Protocol.
 class WebSocketVM extends VM {
-  final Map<int, Completer> _pendingRequests =
-      new Map<int, Completer>();
+  final Completer _connected = new Completer();
+  final Completer _disconnected = new Completer();
+  final WebSocketVMTarget target;
+  final Map<String, _WebSocketRequest> _delayedRequests =
+        new Map<String, _WebSocketRequest>();
+  final Map<String, _WebSocketRequest> _pendingRequests =
+      new Map<String, _WebSocketRequest>();
   int _requestSerial = 0;
+  WebSocket _webSocket;
 
-  String _host;
-  Future<WebSocket> _socketFuture;
-
-  bool runningInJavaScript() => identical(1.0, 1);
-
-  WebSocketVM() : super() {
-    if (runningInJavaScript()) {
-      // When we are running as JavaScript use the same hostname:port
-      // that the Observatory is loaded from.
-      _host = 'ws://${window.location.host}/ws';
-    } else {
-      // Otherwise, assume we are running from the Dart Editor and
-      // want to connect on the default port.
-      _host = 'ws://127.0.0.1:8181/ws';
-    }
-
-    var completer = new Completer<WebSocket>();
-    _socketFuture = completer.future;
-    var socket = new WebSocket(_host);
-    socket.onOpen.first.then((_) {
-        socket.onMessage.listen(_handleMessage);
-        socket.onClose.first.then((_) {
-            _socketFuture = null;
-          });
-        completer.complete(socket);
-      });
-    socket.onError.first.then((_) {
-        _socketFuture = null;
-      });
+  WebSocketVM(this.target) {
+    assert(target != null);
   }
 
-  void _handleMessage(MessageEvent message) {
-    var map = JSON.decode(message.data);
-    int seq = map['seq'];
-    var response = map['response'];
-    if (seq == null) {
+  void _notifyConnect() {
+    if (!_connected.isCompleted) {
+      Logger.root.info('WebSocketVM connection opened: ${target.networkAddress}');
+      _connected.complete(this);
+    }
+  }
+  Future get onConnect => _connected.future;
+  void _notifyDisconnect() {
+    if (!_disconnected.isCompleted) {
+      Logger.root.info('WebSocketVM connection error: ${target.networkAddress}');
+      _disconnected.complete(this);
+    }
+  }
+  Future get onDisconnect => _disconnected.future;
+
+  void disconnect() {
+    if (_webSocket != null) {
+      _webSocket.close();
+    }
+    _cancelAllRequests();
+    _notifyDisconnect();
+  }
+
+  Future<String> getString(String id) {
+    if (_webSocket == null) {
+      // Create a WebSocket.
+      _webSocket = new WebSocket(target.networkAddress);
+      _webSocket.onClose.listen(_onClose);
+      _webSocket.onError.listen(_onError);
+      _webSocket.onOpen.listen(_onOpen);
+      _webSocket.onMessage.listen(_onMessage);
+    }
+    return _makeRequest(id);
+  }
+
+  /// Add a request for [id] to pending requests.
+  Future<String> _makeRequest(String id) {
+    assert(_webSocket != null);
+    // Create request.
+    String serial = (_requestSerial++).toString();
+    var request = new _WebSocketRequest(id);
+    if (_webSocket.readyState == WebSocket.OPEN) {
+      // Already connected, send request immediately.
+      _sendRequest(serial, request);
+    } else {
+      // Not connected yet, add to delayed requests.
+      _delayedRequests[serial] = request;
+    }
+    return request.completer.future;
+  }
+
+  void _onClose(CloseEvent event) {
+    _cancelAllRequests();
+    _notifyDisconnect();
+  }
+
+  // WebSocket error event handler.
+  void _onError(Event) {
+    _cancelAllRequests();
+    _notifyDisconnect();
+  }
+
+  // WebSocket open event handler.
+  void _onOpen(Event) {
+    target.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
+    _sendAllDelayedRequests();
+    _notifyConnect();
+  }
+
+  // WebSocket message event handler.
+  void _onMessage(MessageEvent event) {
+    var map = JSON.decode(event.data);
+    if (map == null) {
+      Logger.root.severe('WebSocketVM got empty message');
+      return;
+    }
+    // Extract serial and response.
+    var serial;
+    var response;
+    if (target.chrome) {
+      if (map['method'] != 'Dart.observatoryData') {
+        // ignore devtools protocol spam.
+        return;
+      }
+      serial = map['params']['id'].toString();
+      response = map['params']['data'];
+    } else {
+      serial = map['seq'];
+      response = map['response'];
+    }
+    if (serial == null) {
       // Messages without sequence numbers are asynchronous events
       // from the vm.
       postEventMessage(response);
       return;
     }
-    var completer = _pendingRequests.remove(seq);
-    if (completer == null) {
+    // Complete request.
+    var request = _pendingRequests.remove(serial);
+    if (request == null) {
       Logger.root.severe('Received unexpected message: ${map}');
-    } else {
-      completer.complete(response);
+      return;
+    }
+    request.completer.complete(response);
+  }
+
+  String _generateNetworkError(String userMessage) {
+    return JSON.encode({
+      'type': 'ServiceException',
+      'id': '',
+      'kind': 'NetworkException',
+      'message': userMessage
+    });
+  }
+
+  void _cancelRequests(Map<String, _WebSocketRequest> requests) {
+    requests.forEach((String serial, _WebSocketRequest request) {
+      request.completer.complete(
+          _generateNetworkError('WebSocket disconnected'));
+    });
+    requests.clear();
+  }
+
+  /// Cancel all pending and delayed requests by completing them with an error.
+  void _cancelAllRequests() {
+    if (_pendingRequests.length > 0) {
+      Logger.root.info('Cancelling all pending requests.');
+      _cancelRequests(_pendingRequests);
+    }
+    if (_delayedRequests.length > 0) {
+      Logger.root.info('Cancelling all delayed requests.');
+      _cancelRequests(_delayedRequests);
     }
   }
 
-  Future<String> getString(String id) {
-    if (_socketFuture == null) {
-      var errorResponse = JSON.encode({
-              'type': 'ServiceException',
-              'id': '',
-              'response': '',
-              'kind': 'NetworkException',
-              'message': 'Could not connect to service. Check that you started the'
-              ' VM with the following flags:\n --enable-vm-service'
-              ' --pause-isolates-on-exit'
-          });
-      return new Future.value(errorResponse);
+  /// Send all delayed requests.
+  void _sendAllDelayedRequests() {
+    assert(_webSocket != null);
+    if (_delayedRequests.length == 0) {
+      return;
     }
-    return _socketFuture.then((socket) {
-        int seq = _requestSerial++;
-        if (!id.endsWith('/profile/tag')) {
-          Logger.root.info('Fetching $id from $_host');
+    Logger.root.info('Sending all delayed requests.');
+    // Send all delayed requests.
+    _delayedRequests.forEach(_sendRequest);
+    // Clear all delayed requests.
+    _delayedRequests.clear();
+  }
+
+  /// Send the request over WebSocket.
+  void _sendRequest(String serial, _WebSocketRequest request) {
+    assert (_webSocket.readyState == WebSocket.OPEN);
+    if (!request.id.endsWith('/profile/tag')) {
+      Logger.root.info('GET ${request.id} from ${target.networkAddress}');
+    }
+    // Mark request as pending.
+    assert(_pendingRequests.containsKey(serial) == false);
+    _pendingRequests[serial] = request;
+    var message;
+    // Encode message.
+    if (target.chrome) {
+      message = JSON.encode({
+        'id': int.parse(serial),
+        'method': 'Dart.observatoryQuery',
+        'params': {
+          'id': serial,
+          'query': request.id
         }
-        var completer = new Completer<String>();
-        _pendingRequests[seq] = completer;
-        var message = JSON.encode({'seq': seq, 'request': id});
-        socket.send(message);
-        return completer.future;
       });
+    } else {
+      message = JSON.encode({'seq': serial, 'request': request.id});
+    }
+    // Send message.
+    _webSocket.send(message);
   }
 }
 
-class DartiumVM extends VM {
+// A VM that communicates with the service via posting messages from DevTools.
+class PostMessageVM extends VM {
+  final Completer _connected = new Completer();
+  final Completer _disconnected = new Completer();
+  void disconnect() { /* nope */ }
+  Future get onConnect => _connected.future;
+  Future get onDisconnect => _disconnected.future;
   final Map<String, Completer> _pendingRequests =
       new Map<String, Completer>();
   int _requestSerial = 0;
 
-  DartiumVM() : super() {
+  PostMessageVM() : super() {
     window.onMessage.listen(_messageHandler);
-    Logger.root.info('Connected to DartiumVM');
+    _connected.complete(this);
   }
 
   void _messageHandler(msg) {

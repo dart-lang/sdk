@@ -1,12 +1,13 @@
 name: observatory
 version: 1.6.0-dev.1
 dependencies:
+  args: any
   polymer: '>= 0.11.0-dev.6'
 transformers:
 - polymer:
-    entry_points: 
-      - web/index.html
-      - web/index_devtools.html
+    entry_points:
+    - web/index.html
+    - web/index_devtools.html
 - $dart2js:
     suppressWarnings: false
     $exclude: web/main.dart
