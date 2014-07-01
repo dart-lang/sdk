@@ -461,11 +461,12 @@ class AnalysisServer {
       Set<String> oldFiles = analysisServices[service];
       Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
       for (String file in todoFiles) {
+        Source source = _getSource(file);
+        AnalysisContext context = _getAnalysisContext(file);
+        // errors
         if (service == AnalysisService.ERRORS) {
-          Source source = _getSource(file);
-          AnalysisContext analysisContext = _getAnalysisContext(file);
-          LineInfo lineInfo = analysisContext.getLineInfo(source);
-          List<AnalysisError> errors = analysisContext.getErrors(source).errors;
+          LineInfo lineInfo = context.getLineInfo(source);
+          List<AnalysisError> errors = context.getErrors(source).errors;
           sendAnalysisNotificationErrors(this, file, lineInfo, errors);
         }
         // Dart unit notifications.
@@ -481,7 +482,7 @@ class AnalysisServer {
                 sendAnalysisNotificationNavigation(this, file, dartUnit);
                 break;
               case AnalysisService.OUTLINE:
-                sendAnalysisNotificationOutline(this, file, dartUnit);
+                sendAnalysisNotificationOutline(this, context, source, dartUnit);
                 break;
             }
           }

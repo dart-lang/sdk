@@ -8,20 +8,17 @@ import 'dart:async';
 import 'dart:io' show Directory;
 
 import 'package:analysis_server/src/index/index.dart';
-import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/index.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
 
-import '../mocks.dart';
+import '../abstract_context.dart';
 import '../reflective_tests.dart';
-import 'store/single_source_container.dart';
 import 'store/memory_node_manager.dart';
+import 'store/single_source_container.dart';
 
 
 main() {
@@ -43,30 +40,22 @@ Iterable<String> _toElementNames(List<Location> locations) {
 
 
 @ReflectiveTestCase()
-class LocalIndexTest {
-  static final DartSdk SDK = new MockSdk();
-
-  AnalysisContext context;
-  LocalIndex index;
+class LocalIndexTest extends AbstractContextTest {
   Directory indexDirectory;
-  MemoryResourceProvider provider = new MemoryResourceProvider();
+  LocalIndex index;
 
   void setUp() {
+    super.setUp();
     // prepare Index
     indexDirectory = Directory.systemTemp.createTempSync(
         'AnalysisServer_index');
     index = new LocalIndex(new MemoryNodeManager());
-    // prepare AnalysisContext
-    context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactory(<UriResolver>[new DartUriResolver(
-        SDK), new ResourceUriResolver(provider)]);
   }
 
   void tearDown() {
+    super.tearDown();
     indexDirectory.delete(recursive: true);
     index = null;
-    context = null;
-    provider = null;
   }
 
   Future test_clear() {
@@ -158,34 +147,20 @@ class LocalIndexTest {
     expect(index.statistics, '[0 locations, 0 sources, 0 names]');
   }
 
-  Source _addSource(String path, String content) {
-    File file = provider.newFile(path, content);
-    Source source = file.createSource(UriKind.FILE_URI);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    context.applyChanges(changeSet);
-    context.setContents(source, content);
-    return source;
-  }
-
   Future<List<Location>> _getDefinedFunctions() {
     return index.getRelationshipsAsync(UniverseElement.INSTANCE,
         IndexConstants.DEFINES_FUNCTION);
   }
 
   Source _indexLibraryUnit(String path, String content) {
-    Source source = _addSource(path, content);
-    CompilationUnit dartUnit = _resolveLibraryUnit(source);
+    Source source = addSource(path, content);
+    CompilationUnit dartUnit = resolveLibraryUnit(source);
     index.indexUnit(context, dartUnit);
     return source;
   }
 
   void _indexTest(String content) {
     _indexLibraryUnit('/test.dart', content);
-  }
-
-  CompilationUnit _resolveLibraryUnit(Source source) {
-    return context.resolveCompilationUnit2(source, source);
   }
 }
 

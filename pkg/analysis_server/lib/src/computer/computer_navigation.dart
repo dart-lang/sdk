@@ -4,13 +4,10 @@
 
 library computer.navigation;
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 import 'element.dart' as computer;
 
@@ -21,7 +18,7 @@ import 'element.dart' as computer;
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<Map<String, Object>> _regions = <HashMap<String, Object>>[];
+  final List<Map<String, Object>> _regions = <Map<String, Object>>[];
 
   DartUnitNavigationComputer(this._unit);
 
@@ -34,14 +31,17 @@ class DartUnitNavigationComputer {
   }
 
   void _addRegion(int offset, int length, Element element) {
-    Map<String, Object> target = _createTarget(element);
-    if (target == null) {
+    if (element == null) {
       return;
     }
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    var elementJson = new computer.Element.fromEngine(element).toJson();
     _regions.add({
       OFFSET: offset,
       LENGTH: length,
-      TARGETS: [target]
+      TARGETS: [elementJson]
     });
   }
 
@@ -73,37 +73,6 @@ class DartUnitNavigationComputer {
     int offset = a.offset;
     int length = b.end - offset;
     _addRegion(offset, length, element);
-  }
-
-  /**
-   * Returns the JSON for the given [Element], maybe `null` if `null` was given.
-   */
-  Map<String, Object> _createTarget(Element element) {
-    if (element == null) {
-      return null;
-    }
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    // prepare Source
-    Source source = element.source;
-    if (source == null) {
-      return null;
-    }
-    // prepare location
-    int offset = element.nameOffset;
-    int length = element.displayName.length;
-    if (element is CompilationUnitElement) {
-      offset = 0;
-      length = 0;
-    }
-    // return as JSON
-    return {
-      FILE: source.fullName,
-      OFFSET: offset,
-      LENGTH: length,
-      ELEMENT: new computer.Element.fromEngine(element).toJson()
-    };
   }
 }
 

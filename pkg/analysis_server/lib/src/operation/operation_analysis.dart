@@ -84,12 +84,12 @@ void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
 }
 
 
-void sendAnalysisNotificationOutline(AnalysisServer server, String file,
-    CompilationUnit dartUnit) {
+void sendAnalysisNotificationOutline(AnalysisServer server,
+    AnalysisContext context, Source source, CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_OUTLINE);
-  notification.setParameter(FILE, file);
-  notification.setParameter(OUTLINE, new DartUnitOutlineComputer(
-      dartUnit).compute());
+  notification.setParameter(FILE, source.fullName);
+  notification.setParameter(OUTLINE, new DartUnitOutlineComputer(context,
+      source, dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -153,7 +153,7 @@ class PerformAnalysisOperation extends ServerOperation {
           sendAnalysisNotificationNavigation(server, file, dartUnit);
         }
         if (server.hasAnalysisSubscription(AnalysisService.OUTLINE, file)) {
-          sendAnalysisNotificationOutline(server, file, dartUnit);
+          sendAnalysisNotificationOutline(server, context, source, dartUnit);
         }
       }
       // TODO(scheglov) use default subscriptions

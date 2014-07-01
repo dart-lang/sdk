@@ -18,25 +18,26 @@ import 'reflective_tests.dart';
 
 main() {
   group('notification.navigation', () {
-    runReflectiveTests(_AnalysisNotificationNavigationTest);
+    runReflectiveTests(AnalysisNotificationNavigationTest);
   });
 }
 
 
 @ReflectiveTestCase()
-class _AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
-  List<_NavigationRegion> regions;
-  _NavigationRegion testRegion;
-  List<_NavigationTarget> testTargets;
-  _NavigationTarget testTarget;
+class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
+  List<NavigationRegion> regions;
+  NavigationRegion testRegion;
+  List<Element> testTargets;
+  Element testTarget;
 
   /**
    * Validates that there is a target in [testTargets]  with [file], at [offset]
    * and with the given [length].
    */
   void assertHasFileTarget(String file, int offset, int length) {
-    for (_NavigationTarget target in testTargets) {
-      if (target.file == file && target.offset == offset && target.length ==
+    for (Element target in testTargets) {
+      Location location = target.location;
+      if (location.file == file && location.offset == offset && location.length ==
           length) {
         testTarget = target;
         return;
@@ -135,7 +136,7 @@ class _AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
    * If [exists] is `false`, then fails if such region exists.
    */
   void findRegion(int offset, int length, [bool exists]) {
-    for (_NavigationRegion region in regions) {
+    for (NavigationRegion region in regions) {
       if (region.offset == offset && (length == -1 || region.length == length))
           {
         if (exists == false) {
@@ -164,22 +165,17 @@ class _AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_NAVIGATION) {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
-        regions = [];
+        regions = <NavigationRegion>[];
         List<Map<String, Object>> regionsJson = notification.getParameter(
             REGIONS);
         for (Map<String, Object> regionJson in regionsJson) {
           var regionOffset = regionJson[OFFSET];
           var regionLength = regionJson[LENGTH];
-          List<_NavigationTarget> targets = [];
+          List<Element> targets = <Element>[];
           for (Map<String, Object> targetJson in regionJson[TARGETS]) {
-            var targetFile = targetJson[FILE];
-            var targetOffset = targetJson[OFFSET];
-            var targetLength = targetJson[LENGTH];
-            var elementJson = targetJson[ELEMENT];
-            targets.add(new _NavigationTarget(targetFile, targetOffset,
-                targetLength, new Element.fromJson(elementJson)));
+            targets.add(new Element.fromJson(targetJson));
           }
-          var region = new _NavigationRegion(regionOffset, regionLength,
+          var region = new NavigationRegion(regionOffset, regionLength,
               targets);
           regions.add(region);
         }
@@ -470,31 +466,25 @@ main() {
 ''');
     return prepareNavigation(() {
       assertHasRegionTarget('AAA aaa', 'AAA {}');
-      Element element = testTarget.element;
-      expect(element.kind, ElementKind.CLASS);
-      expect(element.name, 'AAA');
-      expect(element.isAbstract, false);
-      expect(element.parameters, isNull);
-      expect(element.returnType, isNull);
+      expect(testTarget.kind, ElementKind.CLASS);
+      expect(testTarget.name, 'AAA');
+      expect(testTarget.isAbstract, false);
+      expect(testTarget.parameters, isNull);
+      expect(testTarget.returnType, isNull);
     });
   }
 }
 
 
-class _NavigationRegion {
+class NavigationRegion {
   final int offset;
   final int length;
-  final List<_NavigationTarget> targets;
+  final List<Element> targets;
 
-  _NavigationRegion(this.offset, this.length, this.targets);
-}
+  NavigationRegion(this.offset, this.length, this.targets);
 
-
-class _NavigationTarget {
-  final String file;
-  final int offset;
-  final int length;
-  final Element element;
-
-  _NavigationTarget(this.file, this.offset, this.length, this.element);
+  @override
+  String toString() {
+    return 'NavigationRegion(offset=$offset; length=$length; targets=$targets';
+  }
 }

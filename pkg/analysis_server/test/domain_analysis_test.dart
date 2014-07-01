@@ -7,6 +7,7 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -170,23 +171,6 @@ class AnalysisError {
   String toString() {
     return 'AnalysisError(location=$location message=$message); '
         'errorCode=$errorCode; severity=$separator type=$type';
-  }
-}
-
-
-class Location {
-  final String file;
-  final int offset;
-  final int length;
-  final int startLine;
-  final int startColumn;
-  Location(this.file, this.offset, this.length, this.startLine,
-      this.startColumn);
-
-  @override
-  String toString() {
-    return 'Location(file=$file; offset=$offset; length=$length; '
-        'startLine=$startLine; startColumn=$startColumn)';
   }
 }
 
