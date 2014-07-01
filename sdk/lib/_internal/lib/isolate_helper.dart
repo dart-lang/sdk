@@ -701,7 +701,7 @@ get globalWindow {
 
 get globalWorker {
   requiresPreamble();
-  JS('', "self.Worker");
+  return JS('', "self.Worker");
 }
 bool get globalPostMessageDefined {
   requiresPreamble();
