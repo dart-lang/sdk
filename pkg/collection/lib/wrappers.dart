@@ -16,6 +16,7 @@ import "dart:math" show Random;
 
 export "dart:collection" show UnmodifiableListView;
 
+export "src/canonicalized_map.dart";
 part "src/unmodifiable_wrappers.dart";
 
 /**
