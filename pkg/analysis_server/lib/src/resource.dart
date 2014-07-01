@@ -173,6 +173,30 @@ class MemoryResourceException {
 
 
 /**
+ * An in-memory implementation of [File] which acts like a symbolic link to a
+ * non-existent file.
+ */
+class _MemoryDummyLink extends _MemoryResource implements File {
+  _MemoryDummyLink(MemoryResourceProvider provider, String path) :
+      super(provider, path);
+
+  @override
+  Source createSource(UriKind uriKind) {
+    throw new MemoryResourceException(path, "File '$path' could not be read");
+  }
+
+  String get _content {
+    throw new MemoryResourceException(path, "File '$path' could not be read");
+  }
+
+  int get _timestamp => _provider._pathToTimestamp[path];
+
+  @override
+  bool get exists => false;
+}
+
+
+/**
  * An in-memory implementation of [Source].
  */
 class _MemoryFileSource implements Source {
@@ -334,6 +358,20 @@ class MemoryResourceProvider implements ResourceProvider {
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
+  }
+
+  /**
+   * Create a resource representing a dummy link (that is, a File object which
+   * appears in its parent directory, but whose `exists` property is false)
+   */
+  File newDummyLink(String path) {
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
+    _MemoryDummyLink link = new _MemoryDummyLink(this, path);
+    _pathToResource[path] = link;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
+    return link;
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {

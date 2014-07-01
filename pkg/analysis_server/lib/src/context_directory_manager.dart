@@ -144,14 +144,14 @@ abstract class ContextDirectoryManager {
           // there is a pubspec.yaml?
           break;
         }
-        if (_shouldFileBeAnalyzed(event.path)) {
-          ChangeSet changeSet = new ChangeSet();
-          Resource resource = resourceProvider.getResource(event.path);
-          // If the file went away and was replaced by a folder before we
-          // had a chance to process the event, resource might be a Folder.  In
-          // that case don't add it.
-          if (resource is File) {
-            File file = resource;
+        Resource resource = resourceProvider.getResource(event.path);
+        // If the file went away and was replaced by a folder before we
+        // had a chance to process the event, resource might be a Folder.  In
+        // that case don't add it.
+        if (resource is File) {
+          File file = resource;
+          if (_shouldFileBeAnalyzed(file)) {
+            ChangeSet changeSet = new ChangeSet();
             Source source = file.createSource(UriKind.FILE_URI);
             changeSet.addedSource(source);
             applyChangesToContext(folder, changeSet);
@@ -211,7 +211,7 @@ abstract class ContextDirectoryManager {
     List<Resource> children = folder.getChildren();
     for (Resource child in children) {
       if (child is File) {
-        if (_shouldFileBeAnalyzed(child.path)) {
+        if (_shouldFileBeAnalyzed(child)) {
           Source source = child.createSource(UriKind.FILE_URI);
           changeSet.addedSource(source);
           info.sources[child.path] = source;
@@ -227,9 +227,17 @@ abstract class ContextDirectoryManager {
     }
   }
 
-  static bool _shouldFileBeAnalyzed(String path) {
-    return AnalysisEngine.isDartFileName(path)
-            || AnalysisEngine.isHtmlFileName(path);
+  static bool _shouldFileBeAnalyzed(File file) {
+    if (!(AnalysisEngine.isDartFileName(file.path)
+            || AnalysisEngine.isHtmlFileName(file.path))) {
+      return false;
+    }
+    // Emacs creates dummy links to track the fact that a file is open for
+    // editing and has unsaved changes (e.g. having unsaved changes to
+    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
+    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
+    // causing the analyzer to thrash, just ignore links to non-existent files.
+    return file.exists;
   }
 
   /**

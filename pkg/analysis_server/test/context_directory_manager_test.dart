@@ -133,6 +133,16 @@ main() {
       expect(filePaths, contains(filePath));
     });
 
+    test('add folder with dummy link', () {
+      String projPath = '/my/proj';
+      resourceProvider.newFolder(projPath);
+      String filePath = posix.join(projPath, 'foo.dart');
+      resourceProvider.newDummyLink(filePath);
+      manager.setRoots(<String>[projPath], <String>[]);
+      var filePaths = manager.currentContextFilePaths[projPath];
+      expect(filePaths, isEmpty);
+    });
+
     test('add folder with dart file in subdir', () {
       String projPath = '/my/proj';
       resourceProvider.newFolder(projPath);
@@ -188,6 +198,17 @@ main() {
       setUp(() {
         projPath = '/my/proj';
         resourceProvider.newFolder(projPath);
+      });
+
+      test('Add dummy link', () {
+        manager.setRoots(<String>[projPath], <String>[]);
+        Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
+        expect(filePaths, isEmpty);
+        String filePath = posix.join(projPath, 'foo.dart');
+        resourceProvider.newDummyLink(filePath);
+        return pumpEventQueue().then((_) {
+          expect(filePaths, isEmpty);
+        });
       });
 
       test('Add file', () {
