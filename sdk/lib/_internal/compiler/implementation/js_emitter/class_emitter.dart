@@ -224,11 +224,8 @@ class ClassEmitter extends CodeEmitterHelper {
             }
           }
           if (backend.isAccessibleByReflection(field)) {
-            reflectionMarker = '-';
-            if (backend.isNeededForReflection(field)) {
-              DartType type = field.type;
-              reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
-            }
+            DartType type = field.type;
+            reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
           }
           builder.addField('$fieldName$fieldCode$reflectionMarker');
           fieldsAdded = true;
@@ -313,7 +310,7 @@ class ClassEmitter extends CodeEmitterHelper {
       classBuilder.addProperty("@", metadata);
     }
 
-    if (backend.isNeededForReflection(classElement)) {
+    if (backend.isAccessibleByReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
       Iterable typeVariableProperties = task.typeVariableHandler
           .typeVariablesOf(classElement).map(js.number);
@@ -353,7 +350,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      if (!backend.isNeededForReflection(classElement)) {
+      if (!backend.isAccessibleByReflection(classElement)) {
         enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
         List<int> types = <int>[];
@@ -536,7 +533,7 @@ class ClassEmitter extends CodeEmitterHelper {
     task.precompiledFunction.add(
         js('#.prototype.# = function(#) { return #.# }',
            [className, getterName, args, receiver, fieldName]));
-    if (backend.isNeededForReflection(member)) {
+    if (backend.isAccessibleByReflection(member)) {
       task.precompiledFunction.add(
           js('#.prototype.#.${namer.reflectableField} = 1',
               [className, getterName]));
@@ -554,7 +551,7 @@ class ClassEmitter extends CodeEmitterHelper {
         // TODO: remove 'return'?
         js('#.prototype.# = function(#, v) { return #.# = v; }',
             [className, setterName, args, receiver, fieldName]));
-    if (backend.isNeededForReflection(member)) {
+    if (backend.isAccessibleByReflection(member)) {
       task.precompiledFunction.add(
           js('#.prototype.#.${namer.reflectableField} = 1',
               [className, setterName]));

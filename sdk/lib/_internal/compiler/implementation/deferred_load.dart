@@ -471,7 +471,7 @@ class DeferredLoadTask extends CompilerTask {
       // asked isNeededForReflection. Instead an internal error is triggered.
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
-      if (compiler.backend.isNeededForReflection(element)) {
+      if (compiler.backend.isAccessibleByReflection(element)) {
         _mapDependencies(element, deferredImport, isMirrorUsage: true);
       }
     }

@@ -65,6 +65,12 @@ class Universe {
   final Set<Element> genericClosures = new Set<Element>();
 
   /**
+   * Set of all closures in the program. Used by the mirror tracking system
+   * to find all live closure instances.
+   */
+  final Set<FunctionElement> allClosures = new Set<FunctionElement>();
+
+  /**
    * Set of methods in instantiated classes that are potentially
    * closurized.
    */

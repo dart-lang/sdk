@@ -70,6 +70,13 @@ class JavaScriptBackend extends Backend {
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
+  /// Set of classes that need to be considered for reflection although not
+  /// otherwise visible during resolution.
+  Iterable<ClassElement> get classesRequiredForReflection {
+    // TODO(herhut): Clean this up when classes needed for rti are tracked.
+    return [closureClass, jsIndexableClass];
+  }
+
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
@@ -298,9 +305,6 @@ class JavaScriptBackend extends Backend {
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
 
-  /// List of symbols that the user has requested for reflection.
-  final Set<String> symbolsUsed = new Set<String>();
-
   /// List of elements that the user has requested for reflection.
   final Set<Element> targetsUsed = new Set<Element>();
 
@@ -308,9 +312,19 @@ class JavaScriptBackend extends Backend {
   /// element must be retained.
   final Set<Element> metaTargetsUsed = new Set<Element>();
 
+  /// Set of methods that are needed by reflection. Computed using
+  /// [computeMembersNeededForReflection] on first use.
+  Iterable<Element> _membersNeededForReflection = null;
+  Iterable<Element> get membersNeededForReflection {
+    assert(_membersNeededForReflection != null);
+    return _membersNeededForReflection;
+  }
+
+  /// List of symbols that the user has requested for reflection.
+  final Set<String> symbolsUsed = new Set<String>();
+
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
-
 
   /// Set of typedefs that are used as type literals.
   final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
@@ -403,7 +417,7 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    return isNeededForReflection(element.declaration);
+    return isAccessibleByReflection(element.declaration);
   }
 
   bool canBeUsedForGlobalOptimizations(Element element) {
@@ -808,7 +822,10 @@ class JavaScriptBackend extends Backend {
     registerCheckedModeHelpers(registry);
   }
 
-  onResolutionComplete() => rti.computeClassesNeedingRti();
+  onResolutionComplete() {
+    computeMembersNeededForReflection();
+    rti.computeClassesNeedingRti();
+  }
 
   void registerGetRuntimeTypeArgument(Registry registry) {
     enqueueInResolution(getGetRuntimeTypeArgument(), registry);
@@ -1458,11 +1475,17 @@ class JavaScriptBackend extends Backend {
   void registerNewSymbol(Registry registry) {
   }
 
-  /// Should [element] (a getter) be retained for reflection?
-  bool shouldRetainGetter(Element element) => isNeededForReflection(element);
+  /// Should [element] (a getter) that would normally not be generated due to
+  /// treeshaking be retained for reflection?
+  bool shouldRetainGetter(Element element) {
+    return isTreeShakingDisabled && isAccessibleByReflection(element);
+  }
 
-  /// Should [element] (a setter) be retained for reflection?
-  bool shouldRetainSetter(Element element) => isNeededForReflection(element);
+  /// Should [element] (a setter) hat would normally not be generated due to
+  /// treeshaking be retained for reflection?
+  bool shouldRetainSetter(Element element) {
+    return isTreeShakingDisabled && isAccessibleByReflection(element);
+  }
 
   /// Should [name] be retained for reflection?
   bool shouldRetainName(String name) {
@@ -1475,7 +1498,7 @@ class JavaScriptBackend extends Backend {
 
   bool retainMetadataOf(Element element) {
     if (mustRetainMetadata) hasRetainedMetadata = true;
-    if (mustRetainMetadata && isNeededForReflection(element)) {
+    if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
         Constant constant = constants.getConstantForMetadata(metadata);
@@ -1706,54 +1729,51 @@ class JavaScriptBackend extends Backend {
    * system.
    */
   bool isAccessibleByReflection(Element element) {
-    // TODO(ahe): This isn't sufficient: simply importing dart:mirrors
-    // causes hasInsufficientMirrorsUsed to become true.
-    if (hasInsufficientMirrorsUsed) return true;
-    return isNeededForReflection(element);
+    if (element.isClass) {
+      element = getDartClass(element);
+    }
+    // We have to treat closure classes specially here, as they only come into
+    // existence after [membersNeededForReflection] has been computed.
+    if (element is SynthesizedCallMethodElementX) {
+      SynthesizedCallMethodElementX closure = element;
+      element = closure.expression;
+    } else if (element is ClosureClassElement) {
+      ClosureClassElement closure = element;
+      element = closure.methodElement;
+    }
+    return membersNeededForReflection.contains(element);
   }
 
   /**
-   * Returns `true` if the emitter must emit the element even though there
-   * is no direct use in the program, but because the reflective system may
-   * need to access it.
+   * Returns true if the element has to be resolved due to a mirrorsUsed
+   * annotation. If we have insufficient mirrors used annotations, we only
+   * keep additonal elements if treeshaking has been disabled.
    */
-  bool isNeededForReflection(Element element) {
-    if (!isTreeShakingDisabled) return false;
-    element = getDartClass(element);
-    if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
-    /// Record the name of [element] in [symbolsUsed]. Return true for
-    /// convenience.
-    bool registerNameOf(Element element) {
-      symbolsUsed.add(element.name);
-      if (element.isConstructor) {
-        symbolsUsed.add(element.enclosingClass.name);
-      }
-      return true;
-    }
+  bool requiredByMirrorSystem(Element element) {
+    return hasInsufficientMirrorsUsed && isTreeShakingDisabled ||
+           matchesMirrorsMetaTarget(element) ||
+           targetsUsed.contains(element);
+  }
 
-    Element enclosing = element.enclosingElement;
-    if (enclosing != null && isNeededForReflection(enclosing)) {
-      return registerNameOf(element);
-    }
+  /**
+   * Returns true if the element matches a mirrorsUsed annotation. If
+   * we have insufficient mirrorsUsed information, this returns true for
+   * all elements, as they might all be potentially referenced.
+   */
+  bool referencedFromMirrorSystem(Element element, [recursive = true]) {
+    Element enclosing = recursive ? element.enclosingElement : null;
 
-    if (isNeededThroughMetaTarget(element)) {
-      return registerNameOf(element);
-    }
-
-    if (!targetsUsed.isEmpty && targetsUsed.contains(element)) {
-      return registerNameOf(element);
-    }
-
-    // TODO(kasperl): Consider caching this information. It is consulted
-    // multiple times because of the way we deal with the enclosing element.
-    return false;
+    return hasInsufficientMirrorsUsed ||
+           matchesMirrorsMetaTarget(element) ||
+           targetsUsed.contains(element) ||
+           (enclosing != null && referencedFromMirrorSystem(enclosing));
   }
 
   /**
    * Returns `true` if the element is needed because it has an annotation
    * of a type that is used as a meta target for reflection.
    */
-  bool isNeededThroughMetaTarget(Element element) {
+  bool matchesMirrorsMetaTarget(Element element) {
     if (metaTargetsUsed.isEmpty) return false;
     for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
       MetadataAnnotation metadata = link.head;
@@ -1767,6 +1787,141 @@ class JavaScriptBackend extends Backend {
       if (metaTargetsUsed.contains(type.element)) return true;
     }
     return false;
+  }
+
+  /**
+   * Visits all classes and computes whether its members are needed for
+   * reflection.
+   *
+   * We have to precompute this set as we cannot easily answer the need for
+   * reflection locally when looking at the member: We lack the information by
+   * which classes a member is inherited. Called after resolution is complete.
+   *
+   * We filter out private libraries here, as their elements should not
+   * be visible by reflection unless some other interfaces makes them
+   * accessible.
+   */
+  computeMembersNeededForReflection() {
+    if (_membersNeededForReflection != null) return;
+    if (compiler.mirrorsLibrary == null) {
+      _membersNeededForReflection = const [];
+    }
+    // Compute a mapping from class to the closures it contains, so we
+    // can include the correct ones when including the class.
+    Map<ClassElement, List<Element>> closureMap =
+        new Map<ClassElement, List<Element>>();
+    for (FunctionElement closure in compiler.resolverWorld.allClosures) {
+      closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
+    }
+    bool foundClosure = false;
+    Set<Element> reflectableMembers = new Set<Element>();
+    ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
+    for (ClassElement cls in resolution.universe.instantiatedClasses) {
+      // Do not process internal classes.
+      if (cls.library.isInternalLibrary || cls.isInjected) continue;
+      if (referencedFromMirrorSystem(cls)) {
+        Set<Name> memberNames = new LinkedHashSet<Name>(
+            equals: (Name a, Name b) => a.isSimilarTo(b),
+            hashCode: (Name a) => a.similarHashCode);
+        // 1) the class (should be live)
+        assert(invariant(cls, resolution.isLive(cls)));
+        reflectableMembers.add(cls);
+        // 2) its constructors (if live)
+        cls.constructors.forEach((Element constructor) {
+          if (resolution.isLive(constructor)) {
+            reflectableMembers.add(constructor);
+          }
+        });
+        // 3) all members, including fields via getter/setters (if live)
+        cls.forEachClassMember((Member member) {
+          if (resolution.isLive(member.element)) {
+            memberNames.add(member.name);
+            reflectableMembers.add(member.element);
+          }
+        });
+        // 4) all overriding members of subclasses/subtypes (should be live)
+        if (compiler.world.hasAnySubtype(cls)) {
+          for (ClassElement subcls in compiler.world.subtypesOf(cls)) {
+            subcls.forEachClassMember((Member member) {
+              if (memberNames.contains(member.name)) {
+                assert(invariant(member.element,
+                    resolution.isLive(member.element)));
+                reflectableMembers.add(member.element);
+              }
+            });
+          }
+        }
+        // 5) all its closures
+        List<Element> closures = closureMap[cls];
+        if (closures != null) {
+          reflectableMembers.addAll(closures);
+          foundClosure = true;
+        }
+      } else {
+        // check members themselves
+        cls.constructors.forEach((ConstructorElement element) {
+          if (!compiler.enqueuer.resolution.isLive(element)) return;
+          if (referencedFromMirrorSystem(element, false)) {
+            reflectableMembers.add(element);
+          }
+        });
+        cls.forEachClassMember((Member member) {
+          if (!compiler.enqueuer.resolution.isLive(member.element)) return;
+          if (referencedFromMirrorSystem(member.element, false)) {
+            reflectableMembers.add(member.element);
+          }
+        });
+        // Also add in closures. Those might be reflectable is their enclosing
+        // member is.
+        List<Element> closures = closureMap[cls];
+        if (closures != null) {
+          for (Element closure in closures) {
+            if (referencedFromMirrorSystem(closure.enclosingMember, false)) {
+              reflectableMembers.add(closure);
+              foundClosure = true;
+            }
+          }
+        }
+      }
+    }
+    // We also need top-level non-class elements like static functions and
+    // global fields. We use the resolution queue to decide which elements are
+    // part of the live world.
+    for (LibraryElement lib in compiler.libraryLoader.libraries) {
+      if (lib.isInternalLibrary) continue;
+      lib.forEachLocalMember((Element member) {
+        if (!member.isClass &&
+            compiler.enqueuer.resolution.isLive(member) &&
+            referencedFromMirrorSystem(member)) {
+          reflectableMembers.add(member);
+        }
+      });
+    }
+    // And closures inside top-level elements that do not have a surrounding
+    // class. These will be in the [:null:] bucket of the [closureMap].
+    if (closureMap.containsKey(null)) {
+      for (Element closure in closureMap[null]) {
+        if (referencedFromMirrorSystem(closure)) {
+          reflectableMembers.add(closure);
+          foundClosure = true;
+        }
+      }
+    }
+    // As we do not think about closures as classes, yet, we have to make sure
+    // their superclasses are available for reflection manually.
+    if (foundClosure) {
+      reflectableMembers.add(closureClass);
+    }
+    // It would be nice to have a better means to select
+    Set<Element> closurizedMembers = compiler.resolverWorld.closurizedMembers;
+    if (closurizedMembers.any(reflectableMembers.contains)) {
+      reflectableMembers.add(boundClosureClass);
+    }
+    // Register all symbols of reflectable elements
+    for (Element element in reflectableMembers) {
+      symbolsUsed.add(element.name);
+    }
+    _membersNeededForReflection = reflectableMembers;
   }
 
   jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
@@ -1831,18 +1986,18 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when [enqueuer] is empty, but before it is closed.
-  void onQueueEmpty(Enqueuer enqueuer) {
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
     // Add elements referenced only via custom elements.  Return early if any
     // elements are added to avoid counting the elements as due to mirrors.
     customElementsAnalysis.onQueueEmpty(enqueuer);
-    if (!enqueuer.queueIsEmpty) return;
+    if (!enqueuer.queueIsEmpty) return false;
 
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
 
     if (isTreeShakingDisabled) {
-      enqueuer.enqueueEverything();
+      enqueuer.enqueueReflectiveElements(recentClasses);
     } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
@@ -1862,6 +2017,7 @@ class JavaScriptBackend extends Backend {
       }
       metadataConstants.clear();
     }
+    return true;
   }
 
   void onElementResolved(Element element, TreeElements elements) {

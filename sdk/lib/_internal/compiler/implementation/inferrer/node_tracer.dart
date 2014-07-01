@@ -364,7 +364,7 @@ abstract class TracerVisitor<T extends TypeInformation>
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
-    if (compiler.backend.isNeededForReflection(info.element)) {
+    if (compiler.backend.isAccessibleByReflection(info.element)) {
       bailout('Escape in reflection');
     }
     if (!inferrer.compiler.backend

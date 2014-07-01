@@ -221,6 +221,10 @@ abstract class Backend {
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
 
+  /// Set of classes that need to be considered for reflection although not
+  /// otherwise visible during resolution.
+  Iterable<ClassElement> classesRequiredForReflection = const [];
+
   // Given a [FunctionElement], return a buffer with the code generated for it
   // or null if no code was generated.
   CodeBuffer codeOf(Element element) => null;
@@ -402,9 +406,21 @@ abstract class Backend {
                            Set<Element> targets,
                            Set<Element> metaTargets) {}
 
-  /// Returns true if this element should be retained for reflection even if it
-  /// would normally be tree-shaken away.
-  bool isNeededForReflection(Element element) => false;
+  /// Returns true if this element needs reflection information at runtime.
+  bool isAccessibleByReflection(Element element) => true;
+
+  /// Returns true if this element is covered by a mirrorsUsed annotation.
+  ///
+  /// Note that it might still be ok to tree shake the element away if no
+  /// reflection is used in the program (and thus [isTreeShakingDisabled] is
+  /// still false). Therefore _do not_ use this predicate to decide inclusion
+  /// in the tree, use [requiredByMirrorSystem] instead.
+  bool referencedFromMirrorSystem(Element element, [recursive]) => false;
+
+  /// Returns true if this element has to be enqueued due to
+  /// mirror usage. Might be a subset of [referencedFromMirrorSystem] if
+  /// normal tree shaking is still active ([isTreeShakingDisabled] is false).
+  bool requiredByMirrorSystem(Element element) => false;
 
   /// Returns true if global optimizations such as type inferencing
   /// can apply to this element. One category of elements that do not
@@ -414,8 +430,22 @@ abstract class Backend {
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   /// This is used, for example, by the JS backend to enqueue additional
-  /// elements needed for reflection.
-  void onQueueEmpty(Enqueuer enqueuer) {}
+  /// elements needed for reflection. [recentClasses] is a collection of
+  /// all classes seen for the first time by the [enqueuer] since the last call
+  /// to [onQueueEmpty].
+  ///
+  /// A return value of [:true:] indicates that [recentClasses] has been
+  /// processed and its elements do not need to be seen in the next round. When
+  /// [:false:] is returned, [onQueueEmpty] will be called again once the
+  /// resolution queue has drained and [recentClasses] will be a superset of the
+  /// current value.
+  ///
+  /// There is no guarantee that a class is only present once in
+  /// [recentClasses], but every class seen by the [enqueuer] will be present in
+  /// [recentClasses] at least once.
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
+    return true;
+  }
 
   /// Called after [element] has been resolved.
   // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency

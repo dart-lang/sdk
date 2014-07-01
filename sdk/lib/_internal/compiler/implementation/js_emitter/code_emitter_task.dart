@@ -661,7 +661,8 @@ class CodeEmitterTask extends CompilerTask {
         elementOrSelector is Element &&
         // Make sure to retain names of unnamed constructors, and
         // for common native types.
-        (name == '' && backend.isNeededForReflection(elementOrSelector) ||
+        ((name == '' &&
+          backend.isAccessibleByReflection(elementOrSelector)) ||
          _isNativeTypeNeedingReflectionName(elementOrSelector))) {
 
       // TODO(ahe): Enable the next line when I can tell the difference between
