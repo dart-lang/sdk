@@ -4,8 +4,6 @@
 
 library resolver.package;
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
@@ -24,7 +22,7 @@ class PackageMapUriResolver extends UriResolver {
    * A table mapping package names to the path of the directories containing
    * the package.
    */
-  final HashMap<String, List<Folder>> packageMap;
+  final Map<String, List<Folder>> packageMap;
 
   /**
    * The [ResourceProvider] for this resolver.

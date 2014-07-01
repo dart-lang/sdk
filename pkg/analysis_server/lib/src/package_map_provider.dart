@@ -38,7 +38,7 @@ class PackageMapInfo {
    *
    * `null` if an error occurred.
    */
-  HashMap<String, List<Folder>> packageMap;
+  Map<String, List<Folder>> packageMap;
 
   /**
    * Dependency information.  This is a set of the paths which were consulted
@@ -127,9 +127,9 @@ class PubPackageMapProvider implements PackageMapProvider {
     //     "path/to/myapp/pubspec.lock"
     //   ]
     // }
-    HashMap<String, List<Folder>> packageMap = new HashMap<String, List<Folder>>();
-    HashMap obj = JSON.decode(jsonText);
-    HashMap packages = obj['packages'];
+    Map<String, List<Folder>> packageMap = new HashMap<String, List<Folder>>();
+    Map obj = JSON.decode(jsonText);
+    Map packages = obj['packages'];
     processPaths(String packageName, List paths) {
       List<Folder> folders = <Folder>[];
       for (var path in paths) {

@@ -21,20 +21,20 @@ import 'element.dart' as computer;
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<HashMap<String, Object>> _regions = <HashMap<String, Object>>[];
+  final List<Map<String, Object>> _regions = <HashMap<String, Object>>[];
 
   DartUnitNavigationComputer(this._unit);
 
   /**
    * Returns the computed navigation regions, not `null`.
    */
-  List<HashMap<String, Object>> compute() {
+  List<Map<String, Object>> compute() {
     _unit.accept(new _DartUnitNavigationComputerVisitor(this));
     return new List.from(_regions);
   }
 
   void _addRegion(int offset, int length, Element element) {
-    HashMap<String, Object> target = _createTarget(element);
+    Map<String, Object> target = _createTarget(element);
     if (target == null) {
       return;
     }
@@ -78,7 +78,7 @@ class DartUnitNavigationComputer {
   /**
    * Returns the JSON for the given [Element], maybe `null` if `null` was given.
    */
-  HashMap<String, Object> _createTarget(Element element) {
+  Map<String, Object> _createTarget(Element element) {
     if (element == null) {
       return null;
     }

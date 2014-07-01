@@ -18,14 +18,14 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
 
-  final List<HashMap<String, Object>> _regions = <HashMap<String, Object>>[];
+  final List<Map<String, Object>> _regions = <HashMap<String, Object>>[];
 
   DartUnitHighlightsComputer(this._unit);
 
   /**
    * Returns the computed highlight regions, not `null`.
    */
-  List<HashMap<String, Object>> compute() {
+  List<Map<String, Object>> compute() {
     _unit.accept(new _DartUnitHighlightsComputerVisitor(this));
     return _regions;
   }

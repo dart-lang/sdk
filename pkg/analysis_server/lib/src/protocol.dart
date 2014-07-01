@@ -78,7 +78,7 @@ class Request {
   /**
    * A table mapping the names of request parameters to their values.
    */
-  final HashMap<String, Object> params = new HashMap<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * A decoder that can be used to decode strings into JSON objects.
@@ -167,8 +167,8 @@ class Request {
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
-  HashMap<String, Object> toJson() {
-    HashMap<String, Object> jsonObject = new HashMap<String, Object>();
+  Map<String, Object> toJson() {
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
     if (params.isNotEmpty) {
@@ -211,7 +211,7 @@ class RequestDatum {
    * a [RequestDatum] containing the corresponding value.
    */
   RequestDatum operator [](String key) {
-    HashMap<String, Object> map = _asMap();
+    Map<String, Object> map = _asMap();
     if (!map.containsKey(key)) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "contain key '$key'"));
@@ -374,7 +374,7 @@ class RequestDatum {
   /**
    * Validate that the datum is a map, and return it in raw form.
    */
-  HashMap<String, Object> _asMap() {
+  Map<String, Object> _asMap() {
     if (!isMap) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a map"));
@@ -408,7 +408,7 @@ class RequestDatum {
   /**
    * Validate that the datum is a map from strings to strings, and return it.
    */
-  HashMap<String, String> asStringMap() {
+  Map<String, String> asStringMap() {
     if (!isStringMap) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string map"));
@@ -444,7 +444,7 @@ class RequestDatum {
    * Validate that the datum is a map from strings to string lists, and return
    * it.
    */
-  HashMap<String, List<String>> asStringListMap() {
+  Map<String, List<String>> asStringListMap() {
     if (!isStringListMap) {
       throw new RequestFailure(new Response.invalidParameter(request, path,
           "be a string list map"));
@@ -491,7 +491,7 @@ class Response {
    * A table mapping the names of result fields to their values. The table
    * should be empty if there was an error.
    */
-  final HashMap<String, Object> result = new HashMap<String, Object>();
+  final Map<String, Object> result = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created instance to represent a response to a request
@@ -580,7 +580,7 @@ class Response {
   /**
    * Initialize a newly created instance based upon the given JSON data
    */
-  factory Response.fromJson(HashMap<String, Object> json) {
+  factory Response.fromJson(Map<String, Object> json) {
     try {
       Object id = json[Response.ID];
       if (id is! String) {
@@ -623,8 +623,8 @@ class Response {
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
-  HashMap<String, Object> toJson() {
-    HashMap<String, Object> jsonObject = new HashMap<String, Object>();
+  Map<String, Object> toJson() {
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[ID] = id;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
@@ -715,7 +715,7 @@ class RequestError {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final HashMap<String, Object> data = new HashMap<String, Object>();
+  final Map<String, Object> data = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Error] to have the given [code] and [message].
@@ -762,11 +762,11 @@ class RequestError {
   /**
    * Initialize a newly created [Error] from the given JSON.
    */
-  factory RequestError.fromJson(HashMap<String, Object> json) {
+  factory RequestError.fromJson(Map<String, Object> json) {
     try {
       int code = json[RequestError.CODE];
       String message = json[RequestError.MESSAGE];
-      HashMap<String, Object> data = json[RequestError.DATA];
+      Map<String, Object> data = json[RequestError.DATA];
       RequestError requestError = new RequestError(code, message);
       if (data != null) {
         data.forEach((String key, Object value) {
@@ -796,8 +796,8 @@ class RequestError {
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
-  HashMap<String, Object> toJson() {
-    HashMap<String, Object> jsonObject = new HashMap<String, Object>();
+  Map<String, Object> toJson() {
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[CODE] = code;
     jsonObject[MESSAGE] = message;
     if (!data.isEmpty) {
@@ -834,7 +834,7 @@ class Notification {
   /**
    * A table mapping the names of notification parameters to their values.
    */
-  final HashMap<String, Object> params = new HashMap<String, Object>();
+  final Map<String, Object> params = new HashMap<String, Object>();
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.
@@ -844,7 +844,7 @@ class Notification {
   /**
    * Initialize a newly created instance based upon the given JSON data
    */
-  factory Notification.fromJson(HashMap<String, Object> json) {
+  factory Notification.fromJson(Map<String, Object> json) {
     try {
       String event = json[Notification.EVENT];
       Object params = json[Notification.PARAMS];
@@ -877,8 +877,8 @@ class Notification {
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */
-  HashMap<String, Object> toJson() {
-    HashMap<String, Object> jsonObject = new HashMap<String, Object>();
+  Map<String, Object> toJson() {
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[EVENT] = event;
     if (!params.isEmpty) {
       jsonObject[PARAMS] = params;

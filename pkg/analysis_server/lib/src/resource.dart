@@ -322,11 +322,11 @@ class _MemoryFolder extends _MemoryResource implements Folder {
  * Use `/` as a path separator.
  */
 class MemoryResourceProvider implements ResourceProvider {
-  final HashMap<String, _MemoryResource> _pathToResource =
+  final Map<String, _MemoryResource> _pathToResource =
       new HashMap<String, _MemoryResource>();
-  final HashMap<String, String> _pathToContent = new HashMap<String, String>();
-  final HashMap<String, int> _pathToTimestamp = new HashMap<String, int>();
-  final HashMap<String, List<StreamController<WatchEvent>>> _pathToWatchers =
+  final Map<String, String> _pathToContent = new HashMap<String, String>();
+  final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
+  final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 

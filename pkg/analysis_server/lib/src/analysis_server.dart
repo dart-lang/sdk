@@ -50,7 +50,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
       : super(resourceProvider, packageMapProvider);
 
   @override
-  void addContext(Folder folder, HashMap<String, List<Folder>> packageMap) {
+  void addContext(Folder folder, Map<String, List<Folder>> packageMap) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageMap);
@@ -72,7 +72,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
 
   @override
   void updateContextPackageMap(Folder contextFolder,
-                               HashMap<String, List<Folder>> packageMap) {
+                               Map<String, List<Folder>> packageMap) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     context.sourceFactory = _createSourceFactory(packageMap);
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -82,7 +82,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
    * Set up a [SourceFactory] that resolves packages using the given
    * [packageMap].
    */
-  SourceFactory _createSourceFactory(HashMap<String, List<Folder>> packageMap) {
+  SourceFactory _createSourceFactory(Map<String, List<Folder>> packageMap) {
     List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(analysisServer.defaultSdk),
         new ResourceUriResolver(resourceProvider),
@@ -141,7 +141,7 @@ class AnalysisServer {
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
-  final HashMap<Folder, AnalysisContext> folderMap =
+  final Map<Folder, AnalysisContext> folderMap =
       new HashMap<Folder, AnalysisContext>();
 
   /**
@@ -162,7 +162,7 @@ class AnalysisServer {
    * A table mapping [AnalysisService]s to the file paths for which these
    * notifications should be sent.
    */
-  HashMap<AnalysisService, Set<String>> analysisServices =
+  Map<AnalysisService, Set<String>> analysisServices =
       new HashMap<AnalysisService, Set<String>>();
 
   /**
@@ -222,7 +222,7 @@ class AnalysisServer {
    * Set the priority files to the given [files].
    */
   void setPriorityFiles(Request request, List<String> files) {
-    HashMap<AnalysisContext, List<Source>> sourceMap =
+    Map<AnalysisContext, List<Source>> sourceMap =
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
     files.forEach((file) {
@@ -399,7 +399,7 @@ class AnalysisServer {
     }
     statusAnalyzing = isAnalyzing;
     Notification notification = new Notification(SERVER_STATUS);
-    HashMap<String, Object> analysis = new HashMap();
+    Map<String, Object> analysis = new HashMap();
     analysis['analyzing'] = isAnalyzing;
     notification.params['analysis'] = analysis;
     channel.sendNotification(notification);
@@ -432,7 +432,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.updateContent`.
    */
-  void updateContent(HashMap<String, ContentChange> changes) {
+  void updateContent(Map<String, ContentChange> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = _getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
@@ -455,7 +455,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.setSubscriptions`.
    */
-  void setAnalysisSubscriptions(HashMap<AnalysisService, Set<String>> subscriptions) {
+  void setAnalysisSubscriptions(Map<AnalysisService, Set<String>> subscriptions) {
     // send notifications for already analyzed sources
     subscriptions.forEach((service, Set<String> newFiles) {
       Set<String> oldFiles = analysisServices[service];
