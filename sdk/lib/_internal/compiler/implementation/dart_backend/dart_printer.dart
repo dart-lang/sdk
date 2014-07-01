@@ -390,7 +390,7 @@ class LiteralSymbol extends Expression {
 class LiteralType extends Expression {
   final String name;
 
-  elements.TypeDeclarationElement element;
+  types.DartType type;
 
   LiteralType(this.name);
 }

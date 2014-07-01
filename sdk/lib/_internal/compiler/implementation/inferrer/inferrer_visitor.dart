@@ -740,8 +740,13 @@ abstract class InferrerVisitor
     return types.nonNullSubtype(compiler.symbolClass);
   }
 
-  T visitTypeReferenceSend(Send node) {
-    return elements.isTypeLiteral(node) ? types.typeType : types.dynamicType;
+  T visitTypePrefixSend(Send node) {
+    // TODO(johnniwinther): Remove the need for handling this node.
+    return types.dynamicType;
+  }
+
+  T visitTypeLiteralSend(Send node) {
+    return types.typeType;
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();

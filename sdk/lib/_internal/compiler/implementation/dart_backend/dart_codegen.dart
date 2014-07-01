@@ -630,8 +630,9 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   Expression visitType(TypeConstExp exp) {
-    return new LiteralType(exp.element.name)
-               ..element = exp.element;
+    DartType type = exp.type;
+    return new LiteralType(type.name)
+               ..type = type;
   }
 
   Expression visitVariable(VariableConstExp exp) {

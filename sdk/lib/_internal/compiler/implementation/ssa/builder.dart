@@ -4316,9 +4316,13 @@ class SsaBuilder extends ResolvedVisitor {
     return graph.addConstant(constant, compiler);
   }
 
-  visitTypeReferenceSend(ast.Send node) {
-    Element element = elements[node];
-    if (element.isClass || element.isTypedef) {
+  visitTypePrefixSend(ast.Send node) {
+    compiler.internalError(node, "visitTypePrefixSend should not be called.");
+  }
+
+  visitTypeLiteralSend(ast.Send node) {
+    DartType type = elements.getTypeLiteralType(node);
+    if (type.isInterfaceType || type.isTypedef || type.isDynamic) {
       // TODO(karlklose): add type representation
       if (node.isCall) {
         // The node itself is not a constant but we register the selector (the
@@ -4327,9 +4331,8 @@ class SsaBuilder extends ResolvedVisitor {
       } else {
         stack.add(addConstant(node));
       }
-    } else if (element.isTypeVariable) {
-      TypeVariableElement typeVariable = element;
-      DartType type = localsHandler.substInContext(typeVariable.type);
+    } else if (type.isTypeVariable) {
+      type = localsHandler.substInContext(type);
       HInstruction value = analyzeTypeArgument(type);
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
@@ -4339,7 +4342,7 @@ class SsaBuilder extends ResolvedVisitor {
                        backend.getCreateRuntimeType(),
                        [pop()]);
     } else {
-      internalError('unexpected element kind $element', node: node);
+      internalError('unexpected type kind ${type.kind}', node: node);
     }
     if (node.isCall) {
       // This send is of the form 'e(...)', where e is resolved to a type

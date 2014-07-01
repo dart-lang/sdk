@@ -141,8 +141,15 @@ class SendVisitor extends ResolvedVisitor {
     collector.internalError(reason, node: node);
   }
 
-  visitTypeReferenceSend(Send node) {
+  visitTypePrefixSend(Send node) {
     collector.makeElementPlaceholder(node.selector, elements[node]);
+  }
+
+  visitTypeLiteralSend(Send node) {
+    DartType type = elements.getTypeLiteralType(node);
+    if (!type.isDynamic) {
+      collector.makeElementPlaceholder(node.selector, type.element);
+    }
   }
 }
 

@@ -90,9 +90,12 @@ class SymbolConstExp extends ConstExp {
 
 /// Type literal.
 class TypeConstExp extends ConstExp {
-  final TypeDeclarationElement element;
+  /// Either [DynamicType] or a raw [GenericType].
+  final DartType type;
 
-  TypeConstExp(this.element);
+  TypeConstExp(this.type) {
+    assert(type is GenericType || type is DynamicType);
+  }
 
   accept(ConstExpVisitor visitor) => visitor.visitType(this);
 }

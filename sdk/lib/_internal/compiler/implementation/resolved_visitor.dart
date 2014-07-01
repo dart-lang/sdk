@@ -12,14 +12,17 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
 
   R visitSend(Send node) {
     Element element = elements[node];
-    if (node.isSuperCall) {
+    if (elements.isAssert(node)) {
+      return visitAssert(node);
+    } else if (elements.isTypeLiteral(node)) {
+      return visitTypeLiteralSend(node);
+    } else if (node.isSuperCall) {
       return visitSuperSend(node);
     } else if (node.isOperator) {
       return visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       if (!Elements.isUnresolved(element) && element.impliesType) {
-        // A reference to a class literal, typedef or type variable.
-        return visitTypeReferenceSend(node);
+        return visitTypePrefixSend(node);
       } else {
         return visitGetterSend(node);
       }
@@ -27,8 +30,6 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
       return visitStaticSend(node);
     } else if (Elements.isClosureSend(node, element)) {
       return visitClosureSend(node);
-    } else if (elements.isAssert(node)) {
-      return visitAssert(node);
     } else {
       if (Elements.isUnresolved(element)) {
         if (element == null) {
@@ -38,9 +39,6 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
         } else {
           return visitStaticSend(node);
         }
-      } else if (element.impliesType) {
-        // A reference to a class literal, typedef or type variable.
-        return visitTypeReferenceSend(node);
       } else if (element.isInstanceMember) {
         // Example: f() with 'f' bound to instance method.
         return visitDynamicSend(node);
@@ -62,7 +60,15 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
   R visitClosureSend(Send node);
   R visitDynamicSend(Send node);
   R visitStaticSend(Send node);
-  R visitTypeReferenceSend(Send node);
+
+  /// Visitor callback for a type literal.
+  R visitTypeLiteralSend(Send node);
+
+  /// Visitor callback for the class prefix of a static access, like `Foo` in
+  /// `Foo.staticField`.
+  // TODO(johnniwinther): Remove this when not needed by the dart backend.
+  R visitTypePrefixSend(Send node);
+
   R visitAssert(Send node);
 
   void internalError(String reason, {Node node});

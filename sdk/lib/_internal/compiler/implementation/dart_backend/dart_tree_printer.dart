@@ -494,10 +494,14 @@ class TreePrinter {
           makeList('.', exp.id.split('.').map(makeIdentifier)));
     } else if (exp is LiteralType) {
       precedence = TYPE_LITERAL;
+      elements.Element optionalElement = exp.type.element;
       result = new tree.Send(
-          makeStaticReceiver(exp.element),
+          optionalElement == null ? null : makeStaticReceiver(optionalElement),
           makeIdentifier(exp.name));
-      setElement(result, exp.element, exp);
+      treeElements.setType(result, exp.type);
+      if (optionalElement != null) { // dynamic does not have an element
+        setElement(result, optionalElement, exp);
+      }
     } else if (exp is ReifyTypeVar) {
       precedence = PRIMARY;
       result = new tree.Send(

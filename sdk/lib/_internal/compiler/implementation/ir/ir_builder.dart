@@ -1302,23 +1302,26 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
   }
 
-  ir.Primitive visitTypeReferenceSend(ast.Send node) {
-    assert(isOpen);
-    Element element = elements[node];
-    assert(element is TypeDeclarationElement || element.isTypeVariable);
+  visitTypePrefixSend(ast.Send node) {
+    compiler.internalError(node, "visitTypePrefixSend should not be called.");
+  }
 
+  ir.Primitive visitTypeLiteralSend(ast.Send node) {
+    assert(isOpen);
     // If the user is trying to invoke the type literal or variable,
     // it must be treated as a function call.
     if (node.argumentsNode != null) {
+      // TODO(sigurdm): Change this to match proposed semantics of issue #19725.
       return visitDynamicSend(node);
     }
 
-    if (element is TypeDeclarationElement) {
-      return translateConstant(node);
-    } else {
-      ir.Primitive prim = new ir.ReifyTypeVar(element);
+    DartType type = elements.getTypeLiteralType(node);
+    if (type is TypeVariableType) {
+      ir.Primitive prim = new ir.ReifyTypeVar(type.element);
       add(new ir.LetPrim(prim));
       return prim;
+    } else {
+      return translateConstant(node);
     }
   }
 
@@ -1597,8 +1600,9 @@ class ConstExpBuilder extends ast.Visitor<ConstExp> {
       else
         return new VariableConstExp(element);
     }
-    if (Elements.isClass(element) || Elements.isTypedef(element)) {
-      return new TypeConstExp(element);
+    DartType type = elements.getTypeLiteralType(node);
+    if (type != null) {
+      return new TypeConstExp(type);
     }
     throw "Unexpected constant Send: $node";
   }
