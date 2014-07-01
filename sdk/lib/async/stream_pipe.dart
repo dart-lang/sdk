@@ -67,15 +67,16 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
                                 void onDone(),
                                 bool cancelOnError }) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> result = _createSubscription(cancelOnError);
-    result.onData(onData);
-    result.onError(onError);
-    result.onDone(onDone);
-    return result;
+    return _createSubscription(onData, onError, onDone, cancelOnError);
   }
 
-  StreamSubscription<T> _createSubscription(bool cancelOnError) {
-    return new _ForwardingStreamSubscription<S, T>(this, cancelOnError);
+  StreamSubscription<T> _createSubscription(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) {
+    return new _ForwardingStreamSubscription<S, T>(
+        this, onData, onError, onDone, cancelOnError);
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -103,8 +104,10 @@ class _ForwardingStreamSubscription<S, T>
 
   StreamSubscription<S> _subscription;
 
-  _ForwardingStreamSubscription(this._stream, bool cancelOnError)
-      : super(cancelOnError) {
+  _ForwardingStreamSubscription(this._stream, void onData(T data),
+                                Function onError, void onDone(),
+                                bool cancelOnError)
+      : super(onData, onError, onDone, cancelOnError) {
     _subscription = _stream._source.listen(_handleData,
                                            onError: _handleError,
                                            onDone: _handleDone);

@@ -29,8 +29,11 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
   _BroadcastSubscriptionLink _previous;
 
   _BroadcastSubscription(_StreamControllerLifecycle controller,
+                         void onData(T data),
+                         Function onError,
+                         void onDone(),
                          bool cancelOnError)
-      : super(controller, cancelOnError) {
+      : super(controller, onData, onError, onDone, cancelOnError) {
     _next = _previous = this;
   }
 
@@ -178,12 +181,18 @@ abstract class _BroadcastStreamController<T>
 
   // _StreamControllerLifecycle interface.
 
-  StreamSubscription<T> _subscribe(bool cancelOnError) {
+  StreamSubscription<T> _subscribe(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) {
     if (isClosed) {
-      return new _DoneStreamSubscription<T>(_nullDoneHandler);
+      if (onDone == null) onDone = _nullDoneHandler;
+      return new _DoneStreamSubscription<T>(onDone);
     }
     StreamSubscription subscription =
-        new _BroadcastSubscription<T>(this, cancelOnError);
+        new _BroadcastSubscription<T>(this, onData, onError, onDone,
+                                      cancelOnError);
     _addListener(subscription);
     if (identical(_next, _previous)) {
       // Only one listener, so it must be the first listener.

@@ -196,7 +196,11 @@ abstract class StreamController<T> implements StreamSink<T> {
 
 
 abstract class _StreamControllerLifecycle<T> {
-  StreamSubscription<T> _subscribe(bool cancelOnError);
+  StreamSubscription<T> _subscribe(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError);
   void _recordPause(StreamSubscription<T> subscription) {}
   void _recordResume(StreamSubscription<T> subscription) {}
   Future _recordCancel(StreamSubscription<T> subscription) => null;
@@ -471,12 +475,17 @@ abstract class _StreamController<T> implements StreamController<T>,
 
   // _StreamControllerLifeCycle interface
 
-  StreamSubscription<T> _subscribe(bool cancelOnError) {
+  StreamSubscription<T> _subscribe(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) {
     if (!_isInitialState) {
       throw new StateError("Stream has already been listened to.");
     }
     _ControllerSubscription subscription =
-        new _ControllerSubscription(this, cancelOnError);
+        new _ControllerSubscription(this, onData, onError, onDone,
+                                    cancelOnError);
 
     _PendingEvents pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
@@ -653,8 +662,12 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   _ControllerStream(this._controller);
 
-  StreamSubscription<T> _createSubscription(bool cancelOnError) =>
-    _controller._subscribe(cancelOnError);
+  StreamSubscription<T> _createSubscription(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) =>
+    _controller._subscribe(onData, onError, onDone, cancelOnError);
 
   // Override == and hashCode so that new streams returned by the same
   // controller are considered equal. The controller returns a new stream
@@ -673,8 +686,9 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
   final _StreamControllerLifecycle<T> _controller;
 
-  _ControllerSubscription(this._controller, bool cancelOnError)
-      : super(cancelOnError);
+  _ControllerSubscription(this._controller, void onData(T data),
+                          Function onError, void onDone(), bool cancelOnError)
+      : super(onData, onError, onDone, cancelOnError);
 
   Future _onCancel() {
     return _controller._recordCancel(this);
