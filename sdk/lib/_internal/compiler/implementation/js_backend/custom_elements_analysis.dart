@@ -119,7 +119,7 @@ class CustomElementsAnalysis {
       codegenJoin.activeClasses.contains(classElement);
 
   List<Element> constructors(ClassElement classElement) =>
-      codegenJoin.escapingConstructors(classElement);
+      codegenJoin.computeEscapingConstructors(classElement);
 }
 
 
@@ -158,7 +158,11 @@ class CustomElementsAnalysisJoin {
           (isExtension &&
               (allClassesSelected || selectedClasses.contains(classElement)))) {
         newActiveClasses.add(classElement);
-        escapingConstructors(classElement).forEach(enqueuer.registerStaticUse);
+        Iterable<Element> escapingConstructors =
+            computeEscapingConstructors(classElement);
+        escapingConstructors.forEach(enqueuer.registerStaticUse);
+        escapingConstructors
+            .forEach(compiler.globalDependencies.registerDependency);
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         Constant constant = makeTypeConstant(classElement);
@@ -177,7 +181,7 @@ class CustomElementsAnalysisJoin {
     return new TypeConstant(elementType, constantType);
   }
 
-  List<Element> escapingConstructors(ClassElement classElement) {
+  List<Element> computeEscapingConstructors(ClassElement classElement) {
     List<Element> result = <Element>[];
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
