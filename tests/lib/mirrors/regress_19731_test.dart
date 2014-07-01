@@ -23,11 +23,13 @@ class OneField {
 method() {}
 
 main() {
-  var classFieldNames = reflectType(OneField).declarations.values
+  var classMirror = reflectType(OneField);
+  var classFieldNames = classMirror.declarations.values
     .where((v) => v is VariableMirror).map((v) => v.simpleName).toList();
   Expect.setEquals([#onlyClassField], classFieldNames);
 
-  var libraryFieldNames = reflectType(OneField).owner.declarations.values
+  var libraryMirror = classMirror.owner;
+  var libraryFieldNames = libraryMirror.declarations.values
     .where((v) => v is VariableMirror).map((v) => v.simpleName).toList();
   Expect.setEquals([#metadata], libraryFieldNames);
 }
