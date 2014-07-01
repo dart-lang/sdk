@@ -191,6 +191,7 @@ polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
+analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
