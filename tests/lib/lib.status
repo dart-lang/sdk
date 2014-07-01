@@ -245,6 +245,7 @@ mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
+mirrors/mirrors_used_inheritance_test: Skip # Issue 16048
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
