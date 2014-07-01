@@ -240,7 +240,17 @@ class _JsonMap implements LinkedHashMap {
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];
-      f(key, this[key]);
+
+      // Compute the value under the assumption that the property
+      // is present but potentially not processed.
+      var value = _getProperty(_processed, key);
+      if (_isUnprocessed(value)) {
+        value = _convertJsonToDartLazy(_getProperty(_original, key));
+        _setProperty(_processed, key, value);
+      }
+
+      // Do the callback.
+      f(key, value);
 
       // Check if invoking the callback function changed
       // the key set. If so, throw an exception.
