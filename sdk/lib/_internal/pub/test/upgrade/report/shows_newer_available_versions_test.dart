@@ -41,12 +41,12 @@ main() {
     // Upgrade everything.
     pubUpgrade(output: new RegExp(r"""
 Resolving dependencies\.\.\..*
-. multiple_newer 1\.0\.0 \(1 newer version available\)
-. multiple_newer_stable 1\.0\.0 \(2 newer versions available\)
-. multiple_newer_unstable 1\.0\.0 \(2 newer unstable versions available\)
+. multiple_newer 1\.0\.0 \(1\.0\.1 available\)
+. multiple_newer_stable 1\.0\.0 \(1\.0\.2\ available\)
+. multiple_newer_unstable 1\.0\.0 \(1\.0\.1-unstable\.2 available\)
 . no_newer 1\.0\.0
-. one_newer_stable 1\.0\.0 \(1 newer version available\)
-. one_newer_unstable 1\.0\.0 \(1 newer unstable version available\)
+. one_newer_stable 1\.0\.0 \(1\.0\.1 available\)
+. one_newer_unstable 1\.0\.0 \(1\.0\.1-unstable\.1 available\)
 """, multiLine: true));
   });
 }

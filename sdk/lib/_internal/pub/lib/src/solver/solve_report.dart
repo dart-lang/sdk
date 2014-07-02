@@ -9,6 +9,7 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../source_registry.dart';
 import '../utils.dart';
+import '../version.dart';
 import 'version_solver.dart';
 
 /// Unlike [SolveResult], which is the static data describing a resolution,
@@ -208,27 +209,25 @@ class SolveReport {
     // unable to upgrade to.
     if (newId != null) {
       var versions = _result.availableVersions[newId.name];
-      var newerStable = 0;
-      var newerUnstable = 0;
+      var newerStable = false;
+      var newerUnstable = false;
 
       for (var version in versions) {
         if (version > newId.version) {
           if (version.isPreRelease) {
-            newerUnstable++;
+            newerUnstable = true;
           } else {
-            newerStable++;
+            newerStable = true;
           }
         }
       }
 
       // If there are newer stable versions, only show those.
       var message;
-      if (newerStable > 0) {
-        message = "($newerStable newer "
-            "${pluralize('version', newerStable)} available)";
-      } else if (newerUnstable > 0) {
-        message = "($newerUnstable newer unstable "
-            "${pluralize('version', newerUnstable)} available)";
+      if (newerStable) {
+        message = "(${maxAll(versions, Version.prioritize)} available)";
+      } else if (newerUnstable) {
+        message = "(${maxAll(versions)} available)";
       }
 
       if (message != null) _output.write(" ${log.cyan(message)}");
