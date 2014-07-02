@@ -223,6 +223,14 @@ main() {
           File file = provider.getResource('/file.txt');
           expect(file == file, isTrue);
         });
+
+        test('before and after creation', () {
+          String path = '/file.txt';
+          File file1 = provider.getResource(path);
+          provider.newFile(path, 'contents');
+          File file2 = provider.getResource(path);
+          expect(file1 == file2, isTrue);
+        });
       });
 
       group('exists', () {
@@ -246,8 +254,11 @@ main() {
       });
 
       test('hashCode', () {
-        File file = provider.getResource('/foo/bar/file.txt');
-        file.hashCode;
+        String path = '/foo/bar/file.txt';
+        File file1 = provider.getResource(path);
+        provider.newFile(path, 'contents');
+        File file2 = provider.getResource(path);
+        expect(file1.hashCode, equals(file2.hashCode));
       });
 
       test('shortName', () {
@@ -271,9 +282,26 @@ main() {
 
     group('Folder', () {
       Folder folder;
+      const String path = '/foo/bar';
 
       setUp(() {
-        folder = provider.newFolder('/foo/bar');
+        folder = provider.newFolder(path);
+      });
+
+      test('hashCode', () {
+        Folder folder2 = provider.getResource(path);
+        expect(folder.hashCode, equals(folder2.hashCode));
+      });
+
+      test('equality: same path', () {
+        Folder folder2 = provider.getResource(path);
+        expect(folder == folder2, isTrue);
+      });
+
+      test('equality: different paths', () {
+        String path2 = '/foo/baz';
+        Folder folder2 = provider.newFolder(path2);
+        expect(folder == folder2, isFalse);
       });
 
       group('getChild', () {

@@ -116,7 +116,10 @@ abstract class _MemoryResource implements Resource {
 
   @override
   bool operator ==(other) {
-    return identical(this, other);
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+    return path == other.path;
   }
 
   @override
@@ -496,7 +499,15 @@ abstract class _PhysicalResource implements Resource {
   String get path => _entry.absolute.path;
 
   @override
-  get hashCode => _entry.hashCode;
+  get hashCode => path.hashCode;
+
+  @override
+  bool operator==(other) {
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+    return path == other.path;
+  }
 
   @override
   String get shortName => basename(path);

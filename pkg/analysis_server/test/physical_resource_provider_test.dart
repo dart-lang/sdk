@@ -150,7 +150,21 @@ main() {
         });
 
         test('hashCode', () {
-          file.hashCode;
+          new io.File(path).writeAsStringSync('contents');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file.hashCode, equals(file2.hashCode));
+        });
+
+        test('equality: same path', () {
+          new io.File(path).writeAsStringSync('contents');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file == file2, isTrue);
+        });
+
+        test('equality: different paths', () {
+          String path2 = join(tempPath, 'file2.txt');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+          expect(file == file2, isFalse);
         });
 
         test('shortName', () {
@@ -176,6 +190,23 @@ main() {
           path = join(tempPath, 'folder');
           new io.Directory(path).createSync();
           folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+        });
+
+        test('hashCode', () {
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(folder.hashCode, equals(folder2.hashCode));
+        });
+
+        test('equality: same path', () {
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(folder == folder2, isTrue);
+        });
+
+        test('equality: different paths', () {
+          String path2 = join(tempPath, 'folder2');
+          new io.Directory(path2).createSync();
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+          expect(folder == folder2, isFalse);
         });
 
         group('getChild', () {
