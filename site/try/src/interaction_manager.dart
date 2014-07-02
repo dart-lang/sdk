@@ -104,6 +104,8 @@ const Duration LIVE_COMPILE_INTERVAL = const Duration(seconds: 0);
 /// finished quickly.  The purpose is to reduce flicker in the UI.
 const Duration SLOW_COMPILE = const Duration(seconds: 1);
 
+const int TAB_WIDTH = 2;
+
 /**
  * UI interaction manager for the entire application.
  */
@@ -343,6 +345,23 @@ class InitialState extends InteractionState {
   }
 
   void onModifiedKeyUp(KeyboardEvent event) {
+    if (event.getModifierState("Shift")) return onShiftedKeyUp(event);
+    switch (event.keyCode) {
+      case KeyCode.S:
+        // Disable Ctrl-S, Cmd-S, etc. We have observed users hitting these
+        // keys often when using Try Dart and getting frustrated.
+        event.preventDefault();
+        // TODO(ahe): Consider starting a compilation.
+        break;
+    }
+  }
+
+  void onShiftedKeyUp(KeyboardEvent event) {
+    switch (event.keyCode) {
+      case KeyCode.TAB:
+        event.preventDefault();
+        break;
+    }
   }
 
   void onUnmodifiedKeyUp(KeyboardEvent event) {
@@ -370,6 +389,16 @@ class InitialState extends InteractionState {
                 ..error('Unexpected node')
                 ..dir(node);
           }
+        }
+        break;
+      }
+      case KeyCode.TAB: {
+        Selection selection = window.getSelection();
+        if (isCollapsed(selection)) {
+          event.preventDefault();
+          Text text = new Text(' ' * TAB_WIDTH);
+          selection.getRangeAt(0).insertNode(text);
+          selection.collapse(text, TAB_WIDTH);
         }
         break;
       }
