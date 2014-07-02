@@ -1,3 +1,7 @@
+## 0.14.1+2
+
+* Automatically log how long it takes long-running transforms to run.
+
 ## 0.14.1+1
 
 * Fix a bug where an event could be added to a closed stream.
