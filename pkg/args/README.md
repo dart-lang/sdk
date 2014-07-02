@@ -53,7 +53,7 @@ You can use the `callback` parameter to associate a function with an option.
 Later, when parsing occurs, the callback function is invoked with the value of
 the option:
 
-    parser.addOption('mode', callback: (mode) => print('Got mode $mode));
+    parser.addOption('mode', callback: (mode) => print('Got mode $mode'));
     parser.addFlag('verbose', callback: (verbose) {
       if (verbose) print('Verbose');
     });
