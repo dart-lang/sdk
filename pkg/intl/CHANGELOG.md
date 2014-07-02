@@ -1,3 +1,8 @@
+## 0.11.0
+
+ * Switch the message format from a custom JSON format to 
+   the ARB format ( https://code.google.com/p/arb/ )
+
 ## 0.10.0
  
  * Make message catalogs use deferred loading.
