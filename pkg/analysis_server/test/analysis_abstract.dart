@@ -229,9 +229,10 @@ class AbstractAnalysisTest {
   /**
    * Validates that the given [request] is handled successfully.
    */
-  void handleSuccessfulRequest(Request request) {
+  Response handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
+    return response;
   }
 
   static String _getCodeString(code) {

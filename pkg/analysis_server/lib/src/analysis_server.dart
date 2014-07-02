@@ -226,7 +226,7 @@ class AnalysisServer {
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
     files.forEach((file) {
-      AnalysisContext analysisContext = _getAnalysisContext(file);
+      AnalysisContext analysisContext = getAnalysisContext(file);
       if (analysisContext == null) {
         unanalyzed.add(file);
       } else {
@@ -235,7 +235,7 @@ class AnalysisServer {
           sourceList = <Source>[];
           sourceMap[analysisContext] = sourceList;
         }
-        sourceList.add(_getSource(file));
+        sourceList.add(getSource(file));
       }
     });
     if (unanalyzed.isNotEmpty) {
@@ -434,13 +434,13 @@ class AnalysisServer {
    */
   void updateContent(Map<String, ContentChange> changes) {
     changes.forEach((file, change) {
-      AnalysisContext analysisContext = _getAnalysisContext(file);
+      AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
       // than one context (e.g package A depends on package B using a local
       // path, user has both packages open for editing in separate contexts,
       // and user modifies a file in package B).
       if (analysisContext != null) {
-        Source source = _getSource(file);
+        Source source = getSource(file);
         if (change.offset == null) {
           analysisContext.setContents(source, change.content);
         } else {
@@ -461,8 +461,8 @@ class AnalysisServer {
       Set<String> oldFiles = analysisServices[service];
       Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
       for (String file in todoFiles) {
-        Source source = _getSource(file);
-        AnalysisContext context = _getAnalysisContext(file);
+        Source source = getSource(file);
+        AnalysisContext context = getAnalysisContext(file);
         // errors
         if (service == AnalysisService.ERRORS) {
           LineInfo lineInfo = context.getLineInfo(source);
@@ -497,7 +497,7 @@ class AnalysisServer {
    * Return the [AnalysisContext] that is used to analyze the given [path].
    * Return `null` if there is no such context.
    */
-  AnalysisContext _getAnalysisContext(String path) {
+  AnalysisContext getAnalysisContext(String path) {
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.path)) {
         return folderMap[folder];
@@ -509,7 +509,7 @@ class AnalysisServer {
   /**
    * Return the [Source] of the Dart file with the given [path].
    */
-  Source _getSource(String path) {
+  Source getSource(String path) {
     File file = contextDirectoryManager.resourceProvider.getResource(path);
     return file.createSource(UriKind.FILE_URI);
   }
@@ -522,12 +522,12 @@ class AnalysisServer {
    */
   CompilationUnit getResolvedCompilationUnitToResendNotification(String path) {
     // prepare AnalysisContext
-    AnalysisContext context = _getAnalysisContext(path);
+    AnalysisContext context = getAnalysisContext(path);
     if (context == null) {
       return null;
     }
     // prepare sources
-    Source unitSource = _getSource(path);
+    Source unitSource = getSource(path);
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     if (librarySources.isEmpty) {
       return null;
@@ -547,12 +547,12 @@ class AnalysisServer {
    */
   CompilationUnit test_getResolvedCompilationUnit(String path) {
     // prepare AnalysisContext
-    AnalysisContext context = _getAnalysisContext(path);
+    AnalysisContext context = getAnalysisContext(path);
     if (context == null) {
       return null;
     }
     // prepare sources
-    Source unitSource = _getSource(path);
+    Source unitSource = getSource(path);
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     if (librarySources.isEmpty) {
       return null;

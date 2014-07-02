@@ -4,6 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'analysis_hover_test.dart' as analysis_hover_test;
 import 'analysis_notification_highlights_test.dart' as analysis_notification_highlights_test;
 import 'analysis_notification_navigation_test.dart' as analysis_notification_navigation_test;
 import 'analysis_notification_outline_test.dart' as analysis_notification_outline_test;
@@ -30,6 +31,7 @@ import 'socket_server_test.dart' as socket_server_test;
 main() {
   groupSep = ' | ';
   group('analysis_server', () {
+    analysis_hover_test.main();
     analysis_notification_highlights_test.main();
     analysis_notification_navigation_test.main();
     analysis_notification_outline_test.main();
