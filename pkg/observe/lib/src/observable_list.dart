@@ -247,7 +247,11 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     notifyPropertyChange(#isNotEmpty, oldValue != 0, newValue != 0);
   }
 
-  void discardListChages() {
+  /// Deprecated. Name had a typo, use [discardListChanges] instead.
+  @deprecated
+  void discardListChages() => discardListChanges();
+
+  void discardListChanges() {
     // Leave _listRecords set so we don't schedule another delivery.
     if (_listRecords != null) _listRecords = [];
   }
