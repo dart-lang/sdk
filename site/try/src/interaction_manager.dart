@@ -1202,7 +1202,13 @@ void normalizeMutationRecord(MutationRecord record,
     }
   }
   if (!record.removedNodes.isEmpty) {
-    normalizedNodes.add(findLine(record.target));
+    var first = record.removedNodes.first;
+    var line = findLine(record.target);
+    
+    if (first is Text && first.data=="\n" && line.nextNode != null) {
+      normalizedNodes.add(line.nextNode);
+    }
+    normalizedNodes.add(line);
   }
   if (record.type == "characterData") {
     normalizedNodes.add(findLine(record.target));

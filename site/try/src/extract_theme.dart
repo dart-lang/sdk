@@ -6,9 +6,9 @@ import 'dart:io';
 
 StringBuffer themes = new StringBuffer();
 
-void main() {
+void main(List<String> arguments) {
   print('part of trydart.themes;\n');
-  new Options().arguments.forEach(extractTheme);
+  arguments.forEach(extractTheme);
   print('''
 /// List of known themes. The default is the first theme.
 const List<Theme> THEMES = const <Theme> [

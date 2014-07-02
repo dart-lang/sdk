@@ -46,6 +46,18 @@ void main() {
       simulateEnterKeyDown(interaction);
     }, checkAtBeginningOfSecondLine),
 
+    new TestCase('Clear and presetup the test', () {
+      clearEditorPaneWithoutNotifications();
+      mainEditorPane.text = 'var greeting = "Hello, World!\n";';
+    }, () { 
+      checkLineCount(2); 
+    }),
+    
+    new TestCase('Test removing a split line', () {
+      mainEditorPane.nodes.first.nodes.last.remove();
+    }, () { 
+      checkLineCount(1); 
+    }),
   ]);
 }
 
