@@ -481,6 +481,9 @@ class AnalysisServer {
                 // TODO(scheglov) consider support for one unit in 2+ libraries
                 sendAnalysisNotificationNavigation(this, file, dartUnit);
                 break;
+              case AnalysisService.OCCURRENCES:
+                sendAnalysisNotificationOccurrences(this, file, dartUnit);
+                break;
               case AnalysisService.OUTLINE:
                 sendAnalysisNotificationOutline(this, context, source, dartUnit);
                 break;
@@ -581,13 +584,15 @@ class AnalysisServer {
  * An enumeration of the services provided by the analysis domain.
  */
 class AnalysisService extends Enum2<AnalysisService> {
-  static const AnalysisService ERRORS = const AnalysisService('ERRORS', 0);
-  static const AnalysisService HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
-  static const AnalysisService NAVIGATION = const AnalysisService('NAVIGATION', 2);
-  static const AnalysisService OUTLINE = const AnalysisService('OUTLINE', 3);
+  static const ERRORS = const AnalysisService('ERRORS', 0);
+  static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
+  static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
+  static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
+  static const OUTLINE = const AnalysisService('OUTLINE', 4);
+  static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
 
   static const List<AnalysisService> VALUES =
-      const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
+      const [ERRORS, HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
 }

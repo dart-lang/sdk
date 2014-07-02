@@ -48,6 +48,8 @@ class ElementKindTest {
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(ElementKind.valueOf(ElementKind.GETTER.name), ElementKind.GETTER);
     expect(ElementKind.valueOf(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
+    expect(ElementKind.valueOf(ElementKind.LOCAL_VARIABLE.name),
+        ElementKind.LOCAL_VARIABLE);
     expect(ElementKind.valueOf(ElementKind.METHOD.name), ElementKind.METHOD);
     expect(ElementKind.valueOf(ElementKind.SETTER.name), ElementKind.SETTER);
     expect(ElementKind.valueOf(ElementKind.TOP_LEVEL_VARIABLE.name),
@@ -79,6 +81,8 @@ class ElementKindTest {
         ElementKind.GETTER);
     expect(ElementKind.valueOfEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
+    expect(ElementKind.valueOfEngine(engine.ElementKind.LOCAL_VARIABLE),
+        ElementKind.LOCAL_VARIABLE);
     expect(ElementKind.valueOfEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
     expect(ElementKind.valueOfEngine(engine.ElementKind.SETTER),
@@ -121,7 +125,8 @@ class A {
   const A.myConstructor(int a, [String b]);
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.ConstructorElement engineElement = findElementInUnit(unit, 'myConstructor');
+    engine.ConstructorElement engineElement = findElementInUnit(unit,
+        'myConstructor');
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -169,7 +174,8 @@ class A {
   String myGetter => 42;
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.PropertyAccessorElement engineElement = findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
+    engine.PropertyAccessorElement engineElement = findElementInUnit(unit,
+        'myGetter', engine.ElementKind.GETTER);
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.GETTER);

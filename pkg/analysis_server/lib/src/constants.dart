@@ -35,7 +35,9 @@ const String ANALYSIS_UPDATE_SDKS = 'analysis.updateSdks';
 const String ANALYSIS_ERRORS = 'analysis.errors';
 const String ANALYSIS_HIGHLIGHTS = 'analysis.highlights';
 const String ANALYSIS_NAVIGATION = 'analysis.navigation';
+const String ANALYSIS_OCCURRENCES = 'analysis.occurrences';
 const String ANALYSIS_OUTLINE = 'analysis.outline';
+const String ANALYSIS_OVERRIDES = 'analysis.overrides';
 
 //
 // Code Completion methods
@@ -103,7 +105,9 @@ const String LOCATION = 'location';
 const String MESSAGE = 'message';
 const String NAME = 'name';
 const String NEW_LENGTH = 'newLength';
+const String OCCURRENCES = 'occurrences';
 const String OFFSET = 'offset';
+const String OFFSETS = 'offsets';
 const String OLD_LENGTH = 'oldLength';
 const String OPTIONS = 'options';
 const String OUTLINE = 'outline';
