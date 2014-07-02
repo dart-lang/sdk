@@ -1603,10 +1603,10 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
 
-      emitMain(mainBuffer);
       jsAst.FunctionDeclaration precompiledFunctionAst =
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
+      emitMain(mainBuffer);
       if (!compiler.deferredLoadTask.splitProgram) {
         mainBuffer.add('})()\n');
       } else {
