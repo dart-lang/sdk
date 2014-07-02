@@ -166,18 +166,6 @@ class TransformNode {
   /// [_State.NEEDS_DECLARE], and always `null` otherwise.
   AggregateTransformController _applyController;
 
-  /// The number of secondary inputs that have been requested but not yet
-  /// produced.
-  int _pendingSecondaryInputs = 0;
-
-  /// A stopwatch that tracks the total time spent in a transformer's `apply`
-  /// function.
-  final _timeInTransformer = new Stopwatch();
-
-  /// A stopwatch that tracks the time in a transformer's `apply` function spent
-  /// waiting for [getInput] calls to complete.
-  final _timeAwaitingInputs = new Stopwatch();
-
   TransformNode(this.classifier, this.transformer, this.key, this._location) {
     _forced = transformer is! DeclaringAggregateTransformer;
 
@@ -560,8 +548,6 @@ class TransformNode {
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
-    _timeAwaitingInputs.start();
-    _pendingSecondaryInputs++;
     return phase.previous.getOutput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
@@ -576,9 +562,6 @@ class TransformNode {
       });
 
       return node.asset;
-    }).whenComplete(() {
-      _pendingSecondaryInputs--;
-      if (_pendingSecondaryInputs != 0) _timeAwaitingInputs.stop();
     });
   }
 
@@ -596,14 +579,8 @@ class TransformNode {
     _maybeFinishApplyController();
 
     return syncFuture(() {
-      _timeInTransformer.reset();
-      _timeAwaitingInputs.reset();
-      _timeInTransformer.start();
       return transformer.apply(controller.transform);
     }).whenComplete(() {
-      _timeInTransformer.stop();
-      _timeAwaitingInputs.stop();
-
       // Cancel the controller here even if `apply` wasn't interrupted. Since
       // the apply is finished, we want to close out the controller's streams.
       controller.cancel();
@@ -623,21 +600,6 @@ class TransformNode {
       if (_state == _State.NEEDS_APPLY) return false;
       if (_state == _State.NEEDS_DECLARE) return false;
       if (controller.loggedError) return true;
-
-      // If the transformer took long enough, log its duration in fine output.
-      // That way it's not always visible, but users running with "pub serve
-      // --verbose" can see it.
-      if (_timeInTransformer.elapsed > new Duration(seconds: 1) ||
-          (_timeInTransformer.elapsed - _timeAwaitingInputs.elapsed >
-              new Duration(milliseconds: 200))) {
-        _streams.onLogController.add(new LogEntry(
-            info, info.primaryId, LogLevel.FINE,
-            "Took ${niceDuration(_timeInTransformer.elapsed)} "
-              "(${niceDuration(_timeAwaitingInputs.elapsed)} awaiting "
-              "secondary inputs).",
-            null));
-      }
-
       _handleApplyResults(controller);
       return false;
     }).catchError((error, stackTrace) {
