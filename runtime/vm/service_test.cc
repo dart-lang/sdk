@@ -608,6 +608,119 @@ TEST_CASE(Service_Objects) {
 }
 
 
+TEST_CASE(Service_RetainingPath) {
+  const char* kScript =
+      "var port;\n"    // Set to our mock port by C++.
+      "var id0;\n"     // Set to an object id by C++.
+      "var id1;\n"     // Ditto.
+      "var idElem;\n"  // Ditto.
+      "class Foo {\n"
+      "  String f0;\n"
+      "  String f1;\n"
+      "}\n"
+      "Foo foo;\n"
+      "List<String> lst;\n"
+      "main() {\n"
+      "  foo = new Foo();\n"
+      "  lst = new List<String>(100);\n"
+      "}\n";
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_foo = Class::Handle(GetClass(lib, "Foo"));
+  EXPECT(!class_foo.IsNull());
+  Dart_Handle foo = Dart_GetField(h_lib, NewString("foo"));
+  Dart_Handle lst = Dart_GetField(h_lib, NewString("lst"));
+  const intptr_t kElemIndex = 42;
+  {
+    Dart_EnterScope();
+    ObjectIdRing* ring = isolate->object_id_ring();
+    {
+      const String& foo0 = String::Handle(String::New("foo0", Heap::kOld));
+      Dart_Handle h_foo0 = Api::NewHandle(isolate, foo0.raw());
+      EXPECT_VALID(Dart_SetField(foo, NewString("f0"), h_foo0));
+      Dart_Handle id0 = Dart_NewInteger(ring->GetIdForObject(foo0.raw()));
+      EXPECT_VALID(id0);
+      EXPECT_VALID(Dart_SetField(h_lib, NewString("id0"), id0));
+    }
+    {
+      const String& foo1 = String::Handle(String::New("foo1", Heap::kOld));
+      Dart_Handle h_foo1 = Api::NewHandle(isolate, foo1.raw());
+      EXPECT_VALID(Dart_SetField(foo, NewString("f1"), h_foo1));
+      Dart_Handle id1 = Dart_NewInteger(ring->GetIdForObject(foo1.raw()));
+      EXPECT_VALID(id1);
+      EXPECT_VALID(Dart_SetField(h_lib, NewString("id1"), id1));
+    }
+    {
+      const String& elem = String::Handle(String::New("elem", Heap::kOld));
+      Dart_Handle h_elem = Api::NewHandle(isolate, elem.raw());
+      EXPECT_VALID(Dart_ListSetAt(lst, kElemIndex, h_elem));
+      Dart_Handle idElem = Dart_NewInteger(ring->GetIdForObject(elem.raw()));
+      EXPECT_VALID(idElem);
+      EXPECT_VALID(Dart_SetField(h_lib, NewString("idElem"), idElem));
+    }
+    Dart_ExitScope();
+  }
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  Instance& service_msg = Instance::Handle();
+
+  // Retaining path to 'foo0', limit 2.
+  service_msg = Eval(
+      h_lib,
+      "[0, port, ['objects', '$id0', 'retaining_path'], ['limit'], ['2']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
+  ExpectSubstringF(handler.msg(), "\"parentField\":{\"type\":\"@Field\"");
+  ExpectSubstringF(handler.msg(), "\"name\":\"f0\"");
+  ExpectSubstringF(handler.msg(),
+      "{\"index\":1,\"value\":{\"type\":\"@Instance\"");
+
+  // Retaining path to 'foo1', limit 2.
+  service_msg = Eval(
+      h_lib,
+      "[0, port, ['objects', '$id1', 'retaining_path'], ['limit'], ['2']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
+  ExpectSubstringF(handler.msg(), "\"parentField\":{\"type\":\"@Field\"");
+  ExpectSubstringF(handler.msg(), "\"name\":\"f1\"");
+  ExpectSubstringF(handler.msg(),
+      "{\"index\":1,\"value\":{\"type\":\"@Instance\"");
+
+  // Retaining path to 'elem', limit 2.
+  service_msg = Eval(
+      h_lib,
+      "[0, port, ['objects', '$idElem', 'retaining_path'], ['limit'], ['2']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":2,"
+      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
+  ExpectSubstringF(handler.msg(), "\"parentListIndex\":%" Pd, kElemIndex);
+  ExpectSubstringF(handler.msg(),
+      "{\"index\":1,\"value\":{\"type\":\"@Array\"");
+}
+
+
 TEST_CASE(Service_Libraries) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.

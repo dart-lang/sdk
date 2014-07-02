@@ -45,14 +45,14 @@ TEST_CASE(ObjectGraph) {
   //  +   +
   //  |   v
   //  +-->d
-  Array& a = Array::Handle(Array::New(2, Heap::kNew));
+  Array& a = Array::Handle(Array::New(12, Heap::kNew));
   Array& b = Array::Handle(Array::New(2, Heap::kOld));
   Array& c = Array::Handle(Array::New(0, Heap::kOld));
   Array& d = Array::Handle(Array::New(0, Heap::kOld));
-  a.SetAt(0, b);
+  a.SetAt(10, b);
   b.SetAt(0, c);
   b.SetAt(1, d);
-  a.SetAt(1, d);
+  a.SetAt(11, d);
   intptr_t a_size = a.raw()->Size();
   intptr_t b_size = b.raw()->Size();
   intptr_t c_size = c.raw()->Size();
@@ -93,7 +93,7 @@ TEST_CASE(ObjectGraph) {
   }
   {
     // Get hold of c again.
-    b ^= a.At(0);
+    b ^= a.At(10);
     c ^= b.At(0);
     b = Array::null();
     ObjectGraph graph(isolate);
@@ -111,17 +111,26 @@ TEST_CASE(ObjectGraph) {
     }
     {
       HANDLESCOPE(isolate);
-      Array& path = Array::Handle(Array::New(3, Heap::kNew));
+      Array& path = Array::Handle(Array::New(6, Heap::kNew));
       intptr_t length = graph.RetainingPath(&c, path);
       EXPECT_LE(3, length);
       Array& expected_c = Array::Handle();
       expected_c ^= path.At(0);
+      // c is the first element in b.
+      Smi& offset_from_parent = Smi::Handle();
+      offset_from_parent ^= path.At(1);
+      EXPECT_EQ(Array::element_offset(0),
+                offset_from_parent.Value() * kWordSize);
       Array& expected_b = Array::Handle();
-      expected_b ^= path.At(1);
+      expected_b ^= path.At(2);
+      // b is the element with index 10 in a.
+      offset_from_parent ^= path.At(3);
+      EXPECT_EQ(Array::element_offset(10),
+                offset_from_parent.Value() * kWordSize);
       Array& expected_a = Array::Handle();
-      expected_a ^= path.At(2);
+      expected_a ^= path.At(4);
       EXPECT(expected_c.raw() == c.raw());
-      EXPECT(expected_b.raw() == a.At(0));
+      EXPECT(expected_b.raw() == a.At(10));
       EXPECT(expected_a.raw() == a.raw());
     }
   }

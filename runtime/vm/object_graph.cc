@@ -20,9 +20,7 @@ namespace dart {
 // its children are processed, to give the visitor a complete chain of parents.
 //
 // TODO(koda): Potential optimizations:
-// - Linked chunks instead of std::vector.
-// - Use smi/heap tag bit instead of full-word sentinel.
-// - Extend RawObject with incremental iteration (one child at a time).
+// - Use tag bits for compact Node and sentinel representations.
 class ObjectGraph::Stack : public ObjectPointerVisitor {
  public:
   explicit Stack(Isolate* isolate)
@@ -33,7 +31,10 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     for (RawObject** current = first; current <= last; ++current) {
       if ((*current)->IsHeapObject() && !(*current)->IsMarked()) {
         (*current)->SetMarkBit();
-        data_.Add(*current);
+        Node node;
+        node.ptr = current;
+        node.obj = *current;
+        data_.Add(node);
       }
     }
   }
@@ -41,15 +42,18 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   // Traverses the object graph from the current state.
   void TraverseGraph(ObjectGraph::Visitor* visitor) {
     while (!data_.is_empty()) {
-      RawObject* obj = data_.Last();
-      if (obj == kSentinel) {
+      Node node = data_.Last();
+      if (node.ptr == kSentinel) {
         data_.RemoveLast();
         // The node below the sentinel has already been visited.
         data_.RemoveLast();
         continue;
       }
+      RawObject* obj = node.obj;
       ASSERT(obj->IsHeapObject());
-      data_.Add(kSentinel);
+      Node sentinel;
+      sentinel.ptr = kSentinel;
+      data_.Add(sentinel);
       StackIterator it(this, data_.length() - 2);
       switch (visitor->VisitObject(&it)) {
         case ObjectGraph::Visitor::kProceed:
@@ -64,32 +68,70 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   }
 
  private:
-  static RawObject* const kSentinel;
+  struct Node {
+    RawObject** ptr;  // kSentinel for the sentinel node.
+    RawObject* obj;
+  };
+
+  static RawObject** const kSentinel;
   static const intptr_t kInitialCapacity = 1024;
-  GrowableArray<RawObject*> data_;
+  static const intptr_t kNoParent = -1;
+
+  intptr_t Parent(intptr_t index) const {
+    // The parent is just below the next sentinel.
+    for (intptr_t i = index; i >= 1; --i) {
+      if (data_[i].ptr == kSentinel) {
+        return i - 1;
+      }
+    }
+    return kNoParent;
+  }
+
+  GrowableArray<Node> data_;
   friend class StackIterator;
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
 
-// We only visit heap objects, so any Smi works as the sentinel.
-RawObject* const ObjectGraph::Stack::kSentinel = Smi::New(0);
+RawObject** const ObjectGraph::Stack::kSentinel = NULL;
 
 
 RawObject* ObjectGraph::StackIterator::Get() const {
-  return stack_->data_[index_];
+  return stack_->data_[index_].obj;
 }
 
 
 bool ObjectGraph::StackIterator::MoveToParent() {
-  // The parent is just below the next sentinel.
-  for (int i = index_; i >= 1; --i) {
-    if (stack_->data_[i] == Stack::kSentinel) {
-      index_ = i - 1;
-      return true;
-    }
+  intptr_t parent = stack_->Parent(index_);
+  if (parent == Stack::kNoParent) {
+    return false;
+  } else {
+    index_ = parent;
+    return true;
   }
-  return false;
+}
+
+
+intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
+  intptr_t parent_index = stack_->Parent(index_);
+  if (parent_index == Stack::kNoParent) {
+    return -1;
+  }
+  Stack::Node parent = stack_->data_[parent_index];
+  uword parent_start = RawObject::ToAddr(parent.obj);
+  Stack::Node child = stack_->data_[index_];
+  ASSERT(child.obj == *child.ptr);
+  uword child_ptr_addr = reinterpret_cast<uword>(child.ptr);
+  intptr_t offset = child_ptr_addr - parent_start;
+  if (offset > 0 && offset < parent.obj->Size()) {
+    ASSERT(Utils::IsAligned(offset, kWordSize));
+    return offset >> kWordSizeLog2;
+  } else {
+    // Some internal VM objects visit pointers not contained within the parent.
+    // For instance, RawCode::VisitCodePointers visits pointers in instructions.
+    ASSERT(!parent.obj->IsDartInstance());
+    return -1;
+  }
 }
 
 
@@ -224,10 +266,15 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     } else {
       HANDLESCOPE(Isolate::Current());
       Object& current = Object::Handle();
+      Smi& offset_from_parent = Smi::Handle();
       do {
-        if (!path_.IsNull() && length_ < path_.Length()) {
+        intptr_t obj_index = length_ * 2;
+        intptr_t offset_index = obj_index + 1;
+        if (!path_.IsNull() && offset_index < path_.Length()) {
           current = it->Get();
-          path_.SetAt(length_, current);
+          path_.SetAt(obj_index, current);
+          offset_from_parent = Smi::New(it->OffsetFromParentInWords());
+          path_.SetAt(offset_index, offset_from_parent);
         }
         ++length_;
       } while (it->MoveToParent());

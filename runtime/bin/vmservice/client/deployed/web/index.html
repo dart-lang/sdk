@@ -13847,6 +13847,12 @@ hr {
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
                     <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                    <template if="{{ element['parentField'] != null }}">
+                      in <field-ref ref="{{ element['parentField'] }}"></field-ref>
+                    </template>
+                    <template if="{{ element['parentListIndex'] != null }}">
+                      at list index {{ element['parentListIndex'] }} of
+                    </template>
                   </div>
                   </div>
                 </template>
@@ -17585,4 +17591,4 @@ hr {
 
   <observatory-application></observatory-application>
 
-<script src="index.html_bootstrap.dart.js" async=""></script></body></html>
+<script type="application/dart" src="index.html_bootstrap.dart"></script><script src="packages/browser/dart.js"></script></body></html>

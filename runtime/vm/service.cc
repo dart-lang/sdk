@@ -934,6 +934,54 @@ static bool ContainsNonInstance(const Object& obj) {
 }
 
 
+static bool HandleRetainingPath(Isolate* isolate,
+                                Object* obj,
+                                intptr_t limit,
+                                JSONStream* js) {
+  ObjectGraph graph(isolate);
+  Array& path = Array::Handle(Array::New(limit * 2));
+  intptr_t length = graph.RetainingPath(obj, path);
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "RetainingPath");
+  jsobj.AddProperty("id", "retaining_path");
+  jsobj.AddProperty("length", length);
+  JSONArray elements(&jsobj, "elements");
+  Object& element = Object::Handle();
+  Object& parent = Object::Handle();
+  Smi& offset_from_parent = Smi::Handle();
+  Class& parent_class = Class::Handle();
+  Array& parent_field_map = Array::Handle();
+  Field& field = Field::Handle();
+  limit = Utils::Minimum(limit, length);
+  for (intptr_t i = 0; i < limit; ++i) {
+    JSONObject jselement(&elements);
+    element = path.At(i * 2);
+    jselement.AddProperty("index", i);
+    jselement.AddProperty("value", element);
+    // Interpret the word offset from parent as list index or instance field.
+    // TODO(koda): User-friendly interpretation for map entries.
+    offset_from_parent ^= path.At((i * 2) + 1);
+    int parent_i = i + 1;
+    if (parent_i < limit) {
+      parent = path.At(parent_i * 2);
+      if (parent.IsArray()) {
+        intptr_t element_index = offset_from_parent.Value() -
+            (Array::element_offset(0) >> kWordSizeLog2);
+        jselement.AddProperty("parentListIndex", element_index);
+      } else if (parent.IsInstance()) {
+        parent_class ^= parent.clazz();
+        parent_field_map = parent_class.OffsetToFieldMap();
+        intptr_t offset = offset_from_parent.Value();
+        if (offset > 0 && offset < parent_field_map.Length()) {
+          field ^= parent_field_map.At(offset);
+          jselement.AddProperty("parentField", field);
+        }
+      }
+    }
+  }
+  return true;
+}
+
 // Takes an Object* only because RetainingPath temporarily clears it.
 static bool HandleInstanceCommands(Isolate* isolate,
                                    Object* obj,
@@ -992,22 +1040,7 @@ static bool HandleInstanceCommands(Isolate* isolate,
                  js->num_arguments());
       return true;
     }
-    ObjectGraph graph(isolate);
-    Array& path = Array::Handle(Array::New(limit));
-    intptr_t length = graph.RetainingPath(obj, path);
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "RetainingPath");
-    jsobj.AddProperty("id", "retaining_path");
-    jsobj.AddProperty("length", length);
-    JSONArray elements(&jsobj, "elements");
-    for (intptr_t i = 0; i < path.Length() && i < length; ++i) {
-      JSONObject jselement(&elements);
-      Object& element = Object::Handle();
-      element = path.At(i);
-      jselement.AddProperty("index", i);
-      jselement.AddProperty("value", element);
-    }
-    return true;
+    return HandleRetainingPath(isolate, obj, limit, js);
   }
 
   PrintError(js, "unrecognized action '%s'\n", action);

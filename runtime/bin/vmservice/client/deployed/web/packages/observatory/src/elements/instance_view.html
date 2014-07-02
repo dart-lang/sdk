@@ -81,6 +81,12 @@
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
                     <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                    <template if="{{ element['parentField'] != null }}">
+                      in <field-ref ref="{{ element['parentField'] }}"></field-ref>
+                    </template>
+                    <template if="{{ element['parentListIndex'] != null }}">
+                      at list index {{ element['parentListIndex'] }} of
+                    </template>
                   </div>
                   </div>
                 </template>

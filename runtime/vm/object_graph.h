@@ -27,6 +27,8 @@ class ObjectGraph : public StackResource {
     RawObject* Get() const;
     // Returns false if there is no parent.
     bool MoveToParent();
+    // Offset into parent for the pointer to current object. -1 if no parent.
+    intptr_t OffsetFromParentInWords() const;
    private:
     StackIterator(const Stack* stack, intptr_t index)
         : stack_(stack), index_(index) { }
@@ -69,9 +71,10 @@ class ObjectGraph : public StackResource {
   intptr_t SizeRetainedByClass(intptr_t class_id);
 
   // Finds some retaining path from the isolate roots to 'obj'. Populates the
-  // provided array, starting 'obj' itself, up to the smaller of the length of
-  // the array and the length of the path. Returns the length of the path. A
-  // null input array behaves like a zero-length input array.
+  // provided array with pairs of (object, offset from parent in words),
+  // starting with 'obj' itself, as far as there is room. Returns the number
+  // of objects on the full path. A null input array behaves like a zero-length
+  // input array. The 'offset' of a root is -1.
   //
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning. If no path is found (i.e., the
