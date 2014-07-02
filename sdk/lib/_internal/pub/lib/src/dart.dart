@@ -59,6 +59,7 @@ abstract class CompilerProvider {
 Future compile(String entrypoint, CompilerProvider provider, {
     Iterable<String> commandLineOptions,
     bool checked: false,
+    bool csp: false,
     bool minify: true,
     bool verbose: false,
     Map<String, String> environment,
@@ -73,6 +74,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
   return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
     if (checked) options.add('--enable-checked-mode');
+    if (csp) options.add('--csp');
     if (minify) options.add('--minify');
     if (verbose) options.add('--verbose');
     if (analyzeAll) options.add('--analyze-all');

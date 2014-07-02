@@ -24,7 +24,7 @@ import 'asset_environment.dart';
 
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
-  'commandLineOptions', 'checked', 'minify', 'verbose', 'environment',
+  'commandLineOptions', 'checked', 'csp', 'minify', 'verbose', 'environment',
   'analyzeAll', 'suppressWarnings', 'suppressHints', 'suppressPackageWarnings',
   'terse'
 ]);
@@ -135,6 +135,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     return Chain.track(dart.compile(
         entrypoint, provider,
         commandLineOptions: _configCommandLineOptions,
+        csp: _configBool('csp'),
         checked: _configBool('checked'),
         minify: _configBool(
             'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
