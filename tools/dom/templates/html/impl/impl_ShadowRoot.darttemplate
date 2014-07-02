@@ -10,7 +10,8 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 $if DART2JS
   static bool get supported =>
-      JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
+      JS('bool', '!!(Element.prototype.createShadowRoot||'
+                 'Element.prototype.webkitCreateShadowRoot)');
 $else
   static final bool supported = true;
 $endif

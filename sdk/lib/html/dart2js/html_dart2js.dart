@@ -23344,7 +23344,8 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   Selection getSelection() native;
 
   static bool get supported =>
-      JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
+      JS('bool', '!!(Element.prototype.createShadowRoot||'
+                 'Element.prototype.webkitCreateShadowRoot)');
 
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {
