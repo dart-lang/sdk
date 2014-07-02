@@ -10,6 +10,9 @@ class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final CodegenEnqueuer codegen;
 
+      } else if (element.isTypedef) {
+       TypedefElement typedef = element;
+       typedef.ensureResolved(compiler);
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
