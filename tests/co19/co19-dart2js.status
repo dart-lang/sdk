@@ -762,7 +762,6 @@ LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # co19-rol
 LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/element-names_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -776,7 +775,6 @@ LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please tr
 LayoutTests/fast/dom/delete-contents_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/document-set-title-mutations_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/document-set-title-no-child-on-empty_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/document-set-title-no-reuse_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dom-parse-serialize-display_t01: RuntimeError # co19-roll r738: Please triage this failure.
