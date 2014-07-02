@@ -661,7 +661,8 @@ class CodeEmitterTask extends CompilerTask {
         elementOrSelector is Element &&
         // Make sure to retain names of unnamed constructors, and
         // for common native types.
-        (name == '' && backend.isNeededForReflection(elementOrSelector) ||
+        ((name == '' &&
+          backend.isAccessibleByReflection(elementOrSelector)) ||
          _isNativeTypeNeedingReflectionName(elementOrSelector))) {
 
       // TODO(ahe): Enable the next line when I can tell the difference between
@@ -1058,9 +1059,9 @@ class CodeEmitterTask extends CompilerTask {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainFunction;
     jsAst.Expression mainCallClosure = null;
-    if (compiler.hasIsolateSupport()) {
+    if (compiler.hasIsolateSupport) {
       Element isolateMain =
-        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
+        backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
     } else {
       mainCallClosure = namer.elementAccess(main);
@@ -1660,24 +1661,20 @@ class CodeEmitterTask extends CompilerTask {
       }
       emitDeferredCode();
 
+      if (backend.requiresPreamble &&
+          !backend.htmlLibraryIsLoaded) {
+        compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      }
     });
     return compiler.assembledCode;
   }
 
   String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
     if (sourceMapUri != null && fileUri != null) {
-      // Using # is the new proposed standard. @ caused problems in Internet
-      // Explorer due to "Conditional Compilation Statements" in JScript,
-      // see:
-      // http://msdn.microsoft.com/en-us/library/7kx09ct1(v=vs.80).aspx
-      // About source maps, see:
-      // https://docs.google.com/a/google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit
-      // TODO(http://dartbug.com/11914): Remove @ line.
       String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
       return '''
 
 //# sourceMappingURL=$sourceMapFileName
-//@ sourceMappingURL=$sourceMapFileName
 ''';
     }
     return '';

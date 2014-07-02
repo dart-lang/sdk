@@ -22,6 +22,10 @@ main() {
   GoogleChart.initOnce().then((_) {
     // Charts loaded, initialize polymer.
     Logger.root.info('Initializing Polymer');
-    initPolymer();
+    try {
+      initPolymer();
+    } catch (e) {
+      Logger.root.severe('Error initializing polymer: $e');
+    }
   });
 }

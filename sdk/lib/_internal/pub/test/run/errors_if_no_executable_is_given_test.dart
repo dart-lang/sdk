@@ -19,6 +19,8 @@ Must specify an executable to run.
 
 Usage: pub run <executable> [args...]
 -h, --help    Print usage information for this command.
+
+Run "pub help" to see global options.
 """,
         exitCode: exit_codes.USAGE);
   });

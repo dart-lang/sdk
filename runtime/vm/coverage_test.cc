@@ -28,7 +28,7 @@ TEST_CASE(Coverage_Empty) {
   ExecuteScript(kScript);
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js);
+  CodeCoverage::PrintJSON(isolate, &js, NULL);
 
   EXPECT_SUBSTRING(
       "{\"source\":\"test-lib\",\"script\":{"
@@ -57,7 +57,7 @@ TEST_CASE(Coverage_MainWithClass) {
   ExecuteScript(kScript);
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js);
+  CodeCoverage::PrintJSON(isolate, &js, NULL);
 
   // Coverage data is printed per class, i.e., there should be two sections
   // for test-lib in the JSON data.

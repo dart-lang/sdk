@@ -186,17 +186,8 @@ def main():
   # root directory, set JAVA_HOME based on that.
   FixJavaHome()
   if name.startswith('dart-editor'):
-    # TODO(kustermann,ricow): This is a temporary hack until we can safely
-    # enable it on main waterfall. We need to remove this eventually
-    if name.startswith('dart-editor-fyi'):
-      match = re.search('dart-editor-fyi(.*)', name)
-      name = 'dart-editor' + match.group(1)
-      # In case we're an FYI builder, run 'tools/bots/editor.py'.
-      status = ProcessBot(name, 'editor',
-                          custom_env=EnvironmentWithoutBotoConfig())
-    else:
-      # Run the old annotated steps script
-      status = ProcessTools('release', name, version)
+    # Run the old annotated steps script
+    status = ProcessTools('release', name, version)
   elif name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):

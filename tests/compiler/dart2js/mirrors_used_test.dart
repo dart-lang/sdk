@@ -94,19 +94,19 @@ void main() {
         ..addAll(backend.emitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
-    for (var library in compiler.libraries.values) {
+    for (var library in compiler.libraryLoader.libraries) {
       library.forEachLocalMember((member) {
         if (library == compiler.mainApp && member.name == 'Foo') {
           Expect.isTrue(
-              compiler.backend.isNeededForReflection(member), '$member');
+              compiler.backend.isAccessibleByReflection(member), '$member');
           member.forEachLocalMember((classMember) {
             Expect.isTrue(
-                compiler.backend.isNeededForReflection(classMember),
+                compiler.backend.isAccessibleByReflection(classMember),
                 '$classMember');
           });
         } else {
           Expect.isFalse(
-              compiler.backend.isNeededForReflection(member), '$member');
+              compiler.backend.isAccessibleByReflection(member), '$member');
         }
       });
     }

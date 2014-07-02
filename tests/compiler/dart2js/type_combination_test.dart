@@ -679,7 +679,7 @@ void testRegressions(MockCompiler compiler) {
 void main() {
   asyncTest(() => MockCompiler.create((MockCompiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    compiler.interceptorsLibrary.forEachLocalMember((element) {
+    backend.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         compiler.enqueuer.resolution.registerInstantiatedClass(
             element, compiler.globalDependencies);

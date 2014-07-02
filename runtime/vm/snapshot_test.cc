@@ -2631,6 +2631,7 @@ UNIT_TEST_CASE(PostCObject) {
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
       "  var port = new RawReceivePort();\n"
+      "  var sendPort = port.sendPort;\n"
       "  port.handler = (message) {\n"
       "    if (messageCount < 8) {\n"
       "      exception = '$exception${message}';\n"
@@ -2643,15 +2644,15 @@ UNIT_TEST_CASE(PostCObject) {
       "    messageCount++;\n"
       "    if (messageCount == 9) throw new Exception(exception);\n"
       "  };\n"
-      "  return port;\n"
+      "  return sendPort;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
 
-  Dart_Handle recv_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(recv_port);
+  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(send_port);
   Dart_Port port_id;
-  Dart_Handle result = Dart_ReceivePortGetId(recv_port, &port_id);
+  Dart_Handle result = Dart_SendPortGetId(send_port, &port_id);
   ASSERT(!Dart_IsError(result));
 
   // Setup single object message.

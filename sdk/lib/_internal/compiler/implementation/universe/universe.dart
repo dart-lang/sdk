@@ -65,6 +65,12 @@ class Universe {
   final Set<Element> genericClosures = new Set<Element>();
 
   /**
+   * Set of all closures in the program. Used by the mirror tracking system
+   * to find all live closure instances.
+   */
+  final Set<FunctionElement> allClosures = new Set<FunctionElement>();
+
+  /**
    * Set of methods in instantiated classes that are potentially
    * closurized.
    */
@@ -374,9 +380,9 @@ class Selector {
 
   bool sameNameHack(Element element, Compiler compiler) {
     // TODO(ngeoffray): Remove workaround checks.
-    return element == compiler.assertMethod
-        || element.isConstructor
-        || name == element.name;
+    return element.isConstructor ||
+           name == element.name ||
+           name == 'assert' && compiler.backend.isAssertMethod(element);
   }
 
   bool applies(Element element, Compiler compiler) {

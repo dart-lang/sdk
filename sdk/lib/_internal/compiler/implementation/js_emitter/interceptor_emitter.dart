@@ -175,7 +175,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     }
 
     buffer.write(jsAst.prettyPrint(
-        js('''${namer.globalObjectFor(compiler.interceptorsLibrary)}.# =
+        js('''${namer.globalObjectFor(backend.interceptorsLibrary)}.# =
               function(receiver) { #; }''',
             [key, statements]),
         compiler));
@@ -339,7 +339,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
       }
 
       String invocationName = backend.namer.invocationName(selector);
-      String globalObject = namer.globalObjectFor(compiler.interceptorsLibrary);
+      String globalObject = namer.globalObjectFor(backend.interceptorsLibrary);
 
       jsAst.Statement optimizedPath =
           fastPathForOneShotInterceptor(selector, classes);

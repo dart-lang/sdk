@@ -29,6 +29,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
+#include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
@@ -795,23 +796,6 @@ void Object::RegisterSingletonClassNames() {
 }
 
 
-void Object::CreateInternalMetaData() {
-  // Initialize meta data for VM internal classes.
-  Class& cls = Class::Handle();
-  Array& fields = Array::Handle();
-  Field& fld = Field::Handle();
-  String& name = String::Handle();
-
-  // TODO(iposva): Add more of the VM classes here.
-  cls = context_class_;
-  fields = Array::New(1, Heap::kOld);
-  name = Symbols::New("@parent_");
-  fld = Field::New(name, false, false, false, cls, 0);
-  fields.SetAt(0, fld);
-  cls.SetFields(fields);
-}
-
-
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
 // The unused part of the transformed object is marked as an TypedDataInt8Array
@@ -1387,7 +1371,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, cls, 0);                   \
+  field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -6862,6 +6846,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
+                     bool is_synthetic,
                      const Class& owner,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
@@ -6875,6 +6860,7 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
+  result.set_is_synthetic(is_synthetic);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
@@ -8307,54 +8293,6 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawLibrary* Script::FindLibrary() const {
-  Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Script& script = Script::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    for (intptr_t j = 0; j < loaded_scripts.Length(); j++) {
-      script ^= loaded_scripts.At(j);
-      ASSERT(!script.IsNull());
-      if (script.raw() == raw()) {
-        return lib.raw();
-      }
-    }
-  }
-  return Library::null();
-}
-
-
-RawScript* Script::FindByUrl(const String& url) {
-  Isolate* isolate = Isolate::Current();
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Script& script = Script::Handle();
-  String& script_url = String::Handle();
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    for (intptr_t j = 0; j < loaded_scripts.Length(); j++) {
-      script ^= loaded_scripts.At(j);
-      ASSERT(!script.IsNull());
-      script_url ^= script.url();
-      if (script_url.Equals(url)) {
-        return script.raw();
-      }
-    }
-  }
-  return Script::null();
-}
-
-
 DictionaryIterator::DictionaryIterator(const Library& library)
     : array_(Array::Handle(library.dictionary())),
       // Last element in array is a Smi indicating the number of entries used.
@@ -8522,6 +8460,7 @@ void Library::AddMetadata(const Class& cls,
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
+                                          true,   // is_synthetic
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -8657,9 +8596,16 @@ RawObject* Library::ResolveName(const String& name) const {
 }
 
 
-static intptr_t ResolvedNameCacheSize(const Array& cache) {
-  return (cache.Length() - 1) / 2;
-}
+class StringEqualsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    return String::Cast(a).Equals(String::Cast(b));
+  }
+  static uword Hash(const Object& obj) {
+    return String::Cast(obj).Hash();
+  }
+};
+typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
 
 
 // Returns true if the name is found in the cache, false no cache hit.
@@ -8667,41 +8613,12 @@ static intptr_t ResolvedNameCacheSize(const Array& cache) {
 // name does not resolve to anything in this library.
 bool Library::LookupResolvedNamesCache(const String& name,
                                        Object* obj) const {
-  const Array& cache = Array::Handle(resolved_names());
-  const intptr_t cache_size = ResolvedNameCacheSize(cache);
-  intptr_t index = name.Hash() % cache_size;
-  String& entry_name = String::Handle();
-  entry_name ^= cache.At(index);
-  while (!entry_name.IsNull()) {
-    if (entry_name.Equals(name)) {
-      CompilerStats::num_lib_cache_hit++;
-      *obj = cache.At(index + cache_size);
-      return true;
-    }
-    index = (index + 1) % cache_size;
-    entry_name ^= cache.At(index);
-  }
-  *obj = Object::null();
-  return false;
-}
-
-
-void Library::GrowResolvedNamesCache() const {
-  const Array& old_cache = Array::Handle(resolved_names());
-  const intptr_t old_cache_size = ResolvedNameCacheSize(old_cache);
-
-  // Create empty new cache and add entries from the old cache.
-  const intptr_t new_cache_size = old_cache_size * 3 / 2;
-  InitResolvedNamesCache(new_cache_size);
-  String& name = String::Handle();
-  Object& entry = Object::Handle();
-  for (intptr_t i = 0; i < old_cache_size; i++) {
-    name ^= old_cache.At(i);
-    if (!name.IsNull()) {
-      entry = old_cache.At(i + old_cache_size);
-      AddToResolvedNamesCache(name, entry);
-    }
-  }
+  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  bool present = false;
+  *obj = cache.GetOrNull(name, &present);
+  RawArray* array = cache.Release();
+  ASSERT(array == resolved_names());
+  return present;
 }
 
 
@@ -8713,45 +8630,16 @@ void Library::AddToResolvedNamesCache(const String& name,
   if (!FLAG_use_lib_cache) {
     return;
   }
-  ASSERT(!Field::IsGetterName(name) && !Field::IsSetterName(name));
-  const Array& cache = Array::Handle(resolved_names());
-  // let N = cache.Length();
-  // The entry cache[N-1] is used as a counter
-  // The array entries [0..N-2] are used as cache entries.
-  //   cache[i] contains the name of the entry
-  //   cache[i+(N-1)/2] contains the resolved entity, or NULL if that name
-  //   is not present in the library.
-  const intptr_t counter_index = cache.Length() - 1;
-  intptr_t cache_size = ResolvedNameCacheSize(cache);
-  intptr_t index = name.Hash() % cache_size;
-  String& entry_name = String::Handle();
-  entry_name ^= cache.At(index);
-  // An empty spot will be found because we keep the hash set at most 75% full.
-  while (!entry_name.IsNull()) {
-    index = (index + 1) % cache_size;
-    entry_name ^= cache.At(index);
-  }
-  // Insert the object at the empty slot.
-  cache.SetAt(index, name);
-  ASSERT(cache.At(index + cache_size) == Object::null());
-  cache.SetAt(index + cache_size, obj);
-
-  // One more element added.
-  intptr_t num_used = Smi::Value(Smi::RawCast(cache.At(counter_index))) + 1;
-  cache.SetAt(counter_index, Smi::Handle(Smi::New(num_used)));
-  CompilerStats::num_names_cached++;
-
-  // Rehash if symbol_table is 75% full.
-  if (num_used > ((cache_size / 4) * 3)) {
-    CompilerStats::num_names_cached -= num_used;
-    GrowResolvedNamesCache();
-  }
+  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  cache.UpdateOrInsert(name, obj);
+  StorePointer(&raw_ptr()->resolved_names_, cache.Release());
 }
 
 
 void Library::InvalidateResolvedName(const String& name) const {
   Object& entry = Object::Handle();
   if (LookupResolvedNamesCache(name, &entry)) {
+    // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     InvalidateResolvedNamesCache();
   }
 }
@@ -9268,8 +9156,8 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 
 
 void Library::InitResolvedNamesCache(intptr_t size) const {
-  // Need space for 'size' names and 'size' resolved object entries.
-  StorePointer(&raw_ptr()->resolved_names_, NewDictionary(2 * size));
+  const Array& cache = Array::Handle(HashTables::New<ResolvedNamesMap>(size));
+  StorePointer(&raw_ptr()->resolved_names_, cache.raw());
 }
 
 
@@ -9936,6 +9824,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
+                                          true,   // is_synthetic
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -12857,6 +12746,12 @@ RawObject* Instance::Evaluate(const String& expr,
   return result.raw();
 }
 
+
+RawObject* Instance::HashCode() const {
+  // TODO(koda): Optimize for all builtin classes and all classes
+  // that do not override hashCode.
+  return DartLibraryCalls::HashCode(*this);
+}
 
 
 bool Instance::CanonicalizeEquals(const Instance& other) const {
@@ -16997,6 +16892,35 @@ RawString* String::ToUpperCase(const String& str, Heap::Space space) {
 RawString* String::ToLowerCase(const String& str, Heap::Space space) {
   // TODO(cshapiro): create a fast-path for OneByteString instances.
   return Transform(CaseMapping::ToLower, str, space);
+}
+
+bool String::ParseDouble(const String& str,
+                         intptr_t start, intptr_t end,
+                         double* result) {
+  ASSERT(0 <= start);
+  ASSERT(start <= end);
+  ASSERT(end <= str.Length());
+  int length = end - start;
+  NoGCScope no_gc;
+  const uint8_t* startChar;
+  if (str.IsOneByteString()) {
+    startChar = OneByteString::CharAddr(str, start);
+  } else if (str.IsExternalOneByteString()) {
+    startChar = ExternalOneByteString::CharAddr(str, start);
+  } else {
+    uint8_t* chars = Isolate::Current()->current_zone()->Alloc<uint8_t>(length);
+    for (int i = 0; i < length; i++) {
+      int ch = str.CharAt(start + i);
+      if (ch < 128) {
+        chars[i] = ch;
+      } else {
+        return false;  // Not ASCII, so definitely not valid double numeral.
+      }
+    }
+    startChar = chars;
+  }
+  return CStringToDouble(reinterpret_cast<const char*>(startChar),
+                         length, result);
 }
 
 

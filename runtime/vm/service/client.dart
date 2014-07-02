@@ -6,12 +6,12 @@ part of vmservice;
 
 // A service client.
 abstract class Client {
-  /// Port that lives as long as the network client.
-  final RawReceivePort receivePort = new RawReceivePort();
+  /// A port for receipt of asynchronous service events.
+  final RawReceivePort eventPort = new RawReceivePort();
   final VMService service;
 
   Client(this.service) {
-    receivePort.handler = (response) {
+    eventPort.handler = (response) {
       post(null, response);
     };
     service._addClient(this);
@@ -19,7 +19,7 @@ abstract class Client {
 
   /// When implementing, call [close] when the network connection closes.
   void close() {
-    receivePort.close();
+    eventPort.close();
     service._removeClient(this);
   }
 

@@ -390,9 +390,21 @@ class LiteralSymbol extends Expression {
 class LiteralType extends Expression {
   final String name;
 
-  elements.TypeDeclarationElement element;
+  types.DartType type;
 
   LiteralType(this.name);
+}
+
+/// Reference to a type variable.
+/// This is distinct from [Identifier] since the unparser needs to this
+/// distinguish a function invocation `T()` from a type variable invocation
+/// `(T)()` (the latter is invalid, but must be generated anyway).
+class ReifyTypeVar extends Expression {
+  final String name;
+
+  elements.TypeVariableElement element;
+
+  ReifyTypeVar(this.name);
 }
 
 /// StringConcat is used in place of string interpolation and juxtaposition.
@@ -864,6 +876,10 @@ class Unparser {
       write(e.id); // TODO(asgerf): Do we need to escape something here?
     } else if (e is LiteralType) {
       withPrecedence(TYPE_LITERAL, () {
+        write(e.name);
+      });
+    } else if (e is ReifyTypeVar) {
+      withPrecedence(PRIMARY, () {
         write(e.name);
       });
     } else if (e is StringConcat) {

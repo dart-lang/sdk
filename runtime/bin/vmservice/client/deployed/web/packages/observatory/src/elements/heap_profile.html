@@ -89,16 +89,20 @@
             </div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Collections</div>
+            <div class="memberName">collections</div>
             <div class="memberValue">{{ formattedCollections(true) }}</div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Average Collection Time</div>
+            <div class="memberName">average collection time</div>
             <div class="memberValue">{{ formattedAverage(true) }}</div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberName">cumulative collection time</div>
             <div class="memberValue">{{ formattedTotalCollectionTime(true) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">average time between collections</div>
+            <div class="memberValue">{{ isolate.newSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
         <div id="newPieChart" style="height: 300px"></div>
@@ -122,16 +126,20 @@
             </div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Collections</div>
+            <div class="memberName">collections</div>
             <div class="memberValue">{{ formattedCollections(false) }}</div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Average Collection Time</div>
+            <div class="memberName">average collection time</div>
             <div class="memberValue">{{ formattedAverage(false) }}</div>
           </div>
           <div class="memberItem">
-            <div class="memberName">Cumulative Collection Time</div>
+            <div class="memberName">cumulative collection time</div>
             <div class="memberValue">{{ formattedTotalCollectionTime(false) }}</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">average time between collections</div>
+            <div class="memberValue">{{ isolate.oldSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
         <div id="oldPieChart" style="height: 300px"></div>

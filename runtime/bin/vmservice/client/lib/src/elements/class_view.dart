@@ -40,4 +40,8 @@ class ClassViewElement extends ObservatoryElement {
     retainedBytes = null;
     cls.reload().whenComplete(done);
   }
+
+  void refreshCoverage(var done) {
+    cls.refreshCoverage().whenComplete(done);
+  }
 }

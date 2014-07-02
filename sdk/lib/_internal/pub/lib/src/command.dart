@@ -14,6 +14,7 @@ import 'command/build.dart';
 import 'command/cache.dart';
 import 'command/deps.dart';
 import 'command/get.dart';
+import 'command/global.dart';
 import 'command/help.dart';
 import 'command/lish.dart';
 import 'command/list_package_dirs.dart';
@@ -26,6 +27,7 @@ import 'entrypoint.dart';
 import 'exceptions.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
+import 'global_packages.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
@@ -55,7 +57,9 @@ abstract class PubCommand {
     buffer.write(_listCommands(mainCommands));
     buffer.writeln();
     buffer.writeln(
-        'Use "pub help [command]" for more information about a command.');
+        'Run "pub help [command]" for more information about a command.');
+    buffer.writeln(
+        'See http://dartlang.org/tools/pub for detailed documentation.');
 
     log.message(buffer);
   }
@@ -95,7 +99,11 @@ abstract class PubCommand {
     return buffer.toString();
   }
 
-  SystemCache cache;
+  SystemCache get cache => _cache;
+  SystemCache _cache;
+
+  GlobalPackages get globals => _globals;
+  GlobalPackages _globals;
 
   /// The parsed options for this command.
   ArgResults get commandOptions => _commandOptions;
@@ -118,6 +126,9 @@ abstract class PubCommand {
 
   /// How to invoke this command (e.g. `"pub get [package]"`).
   String get usage;
+
+  /// The URL for web documentation for this command.
+  String get docUrl => null;
 
   /// Whether or not this command requires [entrypoint] to be defined.
   ///
@@ -170,7 +181,8 @@ abstract class PubCommand {
   Future run(String cacheDir, ArgResults options) {
     _commandOptions = options;
 
-    cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
+    _cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
+    _globals = new GlobalPackages(_cache);
 
     if (requiresEntrypoint) {
       // TODO(rnystrom): Will eventually need better logic to walk up
@@ -209,14 +221,6 @@ abstract class PubCommand {
     throw new UsageException(message, _getUsage());
   }
 
-  /// Throw a [DataException] with [message] to indicate that the command has
-  /// failed because of invalid input data.
-  ///
-  /// This will report the error and cause pub to exit with [exit_codes.DATA].
-  void dataError(String message) {
-    throw new DataException(message);
-  }
-
   /// Parses a user-supplied integer [intString] named [name].
   ///
   /// If the parsing fails, prints a usage message and exits.
@@ -244,6 +248,12 @@ abstract class PubCommand {
       buffer.write(_listCommands(subcommands));
     }
 
+    buffer.writeln();
+    buffer.writeln('Run "pub help" to see global options.');
+    if (docUrl != null) {
+      buffer.writeln("See $docUrl for detailed documentation.");
+    }
+
     return buffer.toString();
   }
 }
@@ -252,9 +262,10 @@ _initCommands() {
   var commands = {
     'build': new BuildCommand(),
     'cache': new CacheCommand(),
+    'deps': new DepsCommand(),
+    'global': new GlobalCommand(),
     'get': new GetCommand(),
     'help': new HelpCommand(),
-    'deps': new DepsCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
     'run': new RunCommand(),
@@ -295,6 +306,8 @@ ArgParser _initArgParser() {
       });
   argParser.addFlag('verbose', abbr: 'v', negatable: false,
       help: 'Shortcut for "--verbosity=all".');
+  argParser.addFlag('with-prejudice', hide: !isAprilFools, negatable: false,
+      help: 'Execute commands with prejudice.');
 
   // Register the commands.
   PubCommand.mainCommands.forEach((name, command) {

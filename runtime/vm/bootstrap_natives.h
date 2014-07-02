@@ -78,7 +78,7 @@ namespace dart {
   V(Double_ceil, 1)                                                            \
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
-  V(Double_parse, 1)                                                           \
+  V(Double_parse, 3)                                                           \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \

@@ -2344,19 +2344,6 @@ class ScannerTest_ExpectedLocation {
 }
 
 /**
- * The class `TokenFactory` defines utility methods that can be used to create tokens.
- */
-class TokenFactory {
-  static Token tokenFromKeyword(Keyword keyword) => new KeywordToken(keyword, 0);
-
-  static Token tokenFromString(String lexeme) => new StringToken(TokenType.STRING, lexeme, 0);
-
-  static Token tokenFromType(TokenType type) => new Token(type, 0);
-
-  static Token tokenFromTypeAndString(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
-}
-
-/**
  * Instances of the class `TokenStreamValidator` are used to validate the correct construction
  * of a stream of tokens.
  */

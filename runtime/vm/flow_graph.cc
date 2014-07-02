@@ -93,18 +93,14 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
 
 
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  // Check if the constant is already in the pool.
-  GrowableArray<Definition*>* pool = graph_entry_->initial_definitions();
-  for (intptr_t i = 0; i < pool->length(); ++i) {
-    ConstantInstr* constant = (*pool)[i]->AsConstant();
-    if ((constant != NULL) && (constant->value().raw() == object.raw())) {
-      return constant;
-    }
+  ConstantInstr* constant = constant_instr_pool_.Lookup(object);
+  if (constant == NULL) {
+    // Otherwise, allocate and add it to the pool.
+    constant = new(isolate()) ConstantInstr(object);
+    constant->set_ssa_temp_index(alloc_ssa_temp_index());
+    AddToInitialDefinitions(constant);
+    constant_instr_pool_.Insert(constant);
   }
-  // Otherwise, allocate and add it to the pool.
-  ConstantInstr* constant = new(isolate()) ConstantInstr(object);
-  constant->set_ssa_temp_index(alloc_ssa_temp_index());
-  AddToInitialDefinitions(constant);
   return constant;
 }
 

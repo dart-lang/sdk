@@ -5,13 +5,12 @@
 library dart_tree;
 
 import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart'
-    show Element, FunctionElement, FunctionSignature, ParameterElement,
-         ClassElement;
+import '../elements/elements.dart';
 import '../universe/universe.dart';
 import '../ir/ir_nodes.dart' as ir;
 import '../dart_types.dart' show DartType, GenericType;
 import '../universe/universe.dart' show Selector;
+import '../ir/const_expression.dart';
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -135,6 +134,15 @@ class InvokeMethod extends Expression implements Invoke {
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethod(this);
 }
 
+class InvokeSuperMethod extends Expression implements Invoke {
+  final Selector selector;
+  final List<Expression> arguments;
+
+  InvokeSuperMethod(this.selector, this.arguments) ;
+
+  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+}
+
 /**
  * Call to a factory or generative constructor.
  */
@@ -167,9 +175,14 @@ class ConcatenateStrings extends Expression {
  * A constant.
  */
 class Constant extends Expression {
-  dart2js.Constant value;
+  final ConstExp expression;
+  final dart2js.Constant value;
 
-  Constant(this.value);
+  Constant(this.expression, this.value);
+
+  Constant.primitive(dart2js.PrimitiveConstant primitiveValue)
+      : expression = new PrimitiveConstExp(primitiveValue),
+        value = primitiveValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 }
@@ -178,12 +191,19 @@ class This extends Expression {
   accept(Visitor visitor) => visitor.visitThis(this);
 }
 
+class ReifyTypeVar extends Expression {
+  TypeVariableElement element;
+
+  ReifyTypeVar(this.element);
+
+  accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
+}
+
 class LiteralList extends Expression {
   final GenericType type;
   final List<Expression> values;
-  final dart2js.Constant constant;
 
-  LiteralList(this.type, this.values, [this.constant]);
+  LiteralList(this.type, this.values);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
 }
@@ -192,9 +212,8 @@ class LiteralMap extends Expression {
   final GenericType type;
   final List<Expression> keys;
   final List<Expression> values;
-  final dart2js.Constant constant;
 
-  LiteralMap(this.type, this.keys, this.values, [this.constant]);
+  LiteralMap(this.type, this.keys, this.values);
 
   accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
 }
@@ -423,8 +442,9 @@ class ExpressionStatement extends Statement {
 class FunctionDefinition extends Node {
   final List<Variable> parameters;
   Statement body;
+  final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.parameters, this.body);
+  FunctionDefinition(this.parameters, this.body, this.localConstants);
 }
 
 abstract class ExpressionVisitor<E> {
@@ -432,10 +452,12 @@ abstract class ExpressionVisitor<E> {
   E visitVariable(Variable node);
   E visitInvokeStatic(InvokeStatic node);
   E visitInvokeMethod(InvokeMethod node);
+  E visitInvokeSuperMethod(InvokeSuperMethod node);
   E visitInvokeConstructor(InvokeConstructor node);
   E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitThis(This node);
+  E visitReifyTypeVar(ReifyTypeVar node);
   E visitConditional(Conditional node);
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
@@ -548,7 +570,6 @@ class Builder extends ir.Visitor<Node> {
   }
 
   FunctionDefinition build(ir.FunctionDefinition node) {
-    new ir.RegisterAllocator().visit(node);
     visit(node);
     return function;
   }
@@ -670,7 +691,8 @@ class Builder extends ir.Visitor<Node> {
       assert(parameter != null);
       parameters.add(parameter);
     }
-    function = new FunctionDefinition(parameters, visit(node.body));
+    function = new FunctionDefinition(parameters, visit(node.body),
+        node.localConstants);
     return null;
   }
 
@@ -719,6 +741,20 @@ class Builder extends ir.Visitor<Node> {
     Expression receiver = getVariableReference(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
+    ir.Continuation cont = node.continuation.definition;
+    if (cont == returnContinuation) {
+      return new Return(invoke);
+    } else {
+      assert(cont.hasExactlyOneUse);
+      assert(cont.parameters.length == 1);
+      return buildContinuationAssignment(cont.parameters.single, invoke,
+          () => visit(cont.body));
+    }
+  }
+
+  Statement visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
+    List<Expression> arguments = translateArguments(node.arguments);
+    Expression invoke = new InvokeSuperMethod(node.selector, arguments);
     ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       return new Return(invoke);
@@ -825,36 +861,29 @@ class Builder extends ir.Visitor<Node> {
     return new If(condition, thenStatement, elseStatement);
   }
 
-  Expression visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
-    return new InvokeConstructor(
-        node.type,
-        node.constructor,
-        node.selector,
-        translateArguments(node.arguments),
-        node.constant);
-  }
-
   Expression visitConstant(ir.Constant node) {
-    return new Constant(node.value);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitThis(ir.This node) {
     return new This();
   }
 
+  Expression visitReifyTypeVar(ir.ReifyTypeVar node) {
+    return new ReifyTypeVar(node.element);
+  }
+
   Expression visitLiteralList(ir.LiteralList node) {
     return new LiteralList(
             node.type,
-            translateArguments(node.values),
-            node.constant);
+            translateArguments(node.values));
   }
 
   Expression visitLiteralMap(ir.LiteralMap node) {
     return new LiteralMap(
         node.type,
         translateArguments(node.keys),
-        translateArguments(node.values),
-        node.constant);
+        translateArguments(node.values));
   }
 
   Expression visitIsCheck(ir.IsCheck node) {
@@ -980,7 +1009,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 
   /// Returns the redirect target of [label] or [label] itself if it should not
   /// be redirected.
-  Jump redirect(Break jump) {
+  Jump redirect(Jump jump) {
     Jump newJump = labelRedirects[jump.target];
     return newJump != null ? newJump : jump;
   }
@@ -1044,6 +1073,13 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+    for (int i = node.arguments.length - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+    return node;
+  }
+
   Expression visitInvokeConstructor(InvokeConstructor node) {
     for (int i = node.arguments.length - 1; i >= 0; --i) {
       node.arguments[i] = visitExpression(node.arguments[i]);
@@ -1097,12 +1133,12 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     // Redirect through chain of breaks.
     // Note that useCount was accounted for at visitLabeledStatement.
     // Note redirect may return either a Break or Continue statement.
-    node = redirect(node);
-    if (node is Break && node.target.useCount == 1) {
-      --node.target.useCount;
-      return visitStatement(node.target.binding.next);
+    Jump jump = redirect(node);
+    if (jump is Break && jump.target.useCount == 1) {
+      --jump.target.useCount;
+      return visitStatement(jump.target.binding.next);
     }
-    return node;
+    return jump;
   }
 
   Statement visitContinue(Continue node) {
@@ -1196,6 +1232,10 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitThis(This node) {
+    return node;
+  }
+
+  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 
@@ -1691,6 +1731,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitInvokeSuperMethod(InvokeSuperMethod node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   Expression visitInvokeConstructor(InvokeConstructor node) {
     _rewriteList(node.arguments);
     return node;
@@ -1722,6 +1767,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitThis(This node) {
+    return node;
+  }
+
+  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 
@@ -1903,7 +1952,8 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     if (e is Constant && e.value is dart2js.BoolConstant) {
       // !true ==> false
       if (!polarity) {
-        e.value = (e.value as dart2js.BoolConstant).negate();
+        dart2js.BoolConstant value = e.value;
+        return new Constant.primitive(value.negate());
       }
       return e;
     }

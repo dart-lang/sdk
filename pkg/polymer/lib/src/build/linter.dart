@@ -287,7 +287,14 @@ class _LinterVisitor extends TreeVisitor {
       _dartTagSeen = true;
     }
 
-    if (src == null) return;
+    var isEmpty = node.innerHtml.trim() == '';
+
+    if (src == null) {
+      if (isDart && isEmpty) {
+        _logger.warning('script tag seems empty.', span: node.sourceSpan);
+      }
+      return;
+    }
 
     if (src.endsWith('.dart') && !isDart) {
       _logger.warning('Wrong script type, expected type="application/dart".',
@@ -301,7 +308,7 @@ class _LinterVisitor extends TreeVisitor {
       return;
     }
 
-    if (node.innerHtml.trim() != '') {
+    if (!isEmpty) {
       _logger.warning('script tag has "src" attribute and also has script '
           'text.', span: node.sourceSpan);
     }

@@ -3554,6 +3554,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->has_static,
                              field->has_final,
                              field->has_const,
+                             false,  // Not synthetic.
                              current_class(),
                              field->name_pos);
     class_field.set_type(*field->type);
@@ -4691,6 +4692,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
   // Const fields are implicitly final.
   const bool is_final = is_const || (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
+  const bool is_synthetic = false;
   const AbstractType& type = AbstractType::ZoneHandle(I,
       ParseConstFinalVarOrType(ClassFinalizer::kResolveTypeParameters));
   Field& field = Field::Handle(I);
@@ -4719,7 +4721,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                   var_name.ToCString());
     }
 
-    field = Field::New(var_name, is_static, is_final, is_const,
+    field = Field::New(var_name, is_static, is_final, is_const, is_synthetic,
                        current_class(), name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(I, Instance::null()));

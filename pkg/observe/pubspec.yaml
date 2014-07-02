@@ -1,5 +1,5 @@
 name: observe
-version: 0.10.1-dev
+version: 0.10.1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in template_binding.

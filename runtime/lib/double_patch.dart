@@ -7,34 +7,17 @@
 
 patch class double {
 
-  static double _native_parse(_OneByteString string) native "Double_parse";
+  static double _nativeParse(String str,
+                             int start, int end) native "Double_parse";
 
   static double _parse(var str) {
-    str = str.trim();
+    int len = str.length;
+    int start = str._firstNonWhitespace();
+    if (start == len) return null;  // All whitespace.
+    int end = str._lastNonWhitespace() + 1;
+    assert(start < end);
 
-    if (str.length == 0) return null;
-
-    final ccid = ClassID.getID(str);
-    _OneByteString oneByteString;
-    // TODO(Srdjan): Allow _ExternalOneByteStrings.
-    if (ccid == ClassID.cidOneByteString) {
-      oneByteString = str;
-    } else {
-      int length = str.length;
-      var s = _OneByteString._allocate(length);
-      for (int i = 0; i < length; i++) {
-        int currentUnit = str.codeUnitAt(i);
-        // All valid trimmed double strings must be ASCII.
-        if (currentUnit < 128) {
-          s._setAt(i, currentUnit);
-        } else {
-          return null;
-        }
-      }
-      oneByteString = s;
-    }
-
-    return _native_parse(oneByteString);
+    return _nativeParse(str, start, end);
   }
 
   /* patch */ static double parse(String str,

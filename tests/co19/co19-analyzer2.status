@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash # co19 issue 692
-LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # co19 issue 692
-
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 
 # invalid argument for constant constructor

@@ -1139,21 +1139,7 @@ Representation LoadIndexedInstr::representation() const {
 }
 
 
-static bool CanBeImmediateIndex(Value* value,
-                                intptr_t cid,
-                                bool is_external,
-                                bool is_load) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
-    return false;
-  }
-  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const int64_t offset = index * scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  if (!Utils::IsAbsoluteUint(12, offset)) {
-    return false;
-  }
+static bool CanHoldImmediateOffset(bool is_load, intptr_t cid, int64_t offset) {
   int32_t offset_mask = 0;
   if (is_load) {
     return Address::CanHoldLoadOffset(Address::OperandSizeFor(cid),
@@ -1166,6 +1152,43 @@ static bool CanBeImmediateIndex(Value* value,
   }
 }
 
+static bool CanBeImmediateIndex(Value* value,
+                                intptr_t cid,
+                                bool is_external,
+                                bool is_load,
+                                bool* needs_base) {
+  if ((cid == kTypedDataInt32x4ArrayCid) ||
+      (cid == kTypedDataFloat32x4ArrayCid) ||
+      (cid == kTypedDataFloat64x2ArrayCid)) {
+    // We are using vldmd/vstmd which do not support offset.
+    return false;
+  }
+
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
+  const intptr_t scale = Instance::ElementSizeFor(cid);
+  const intptr_t base_offset =
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = index * scale + base_offset;
+  if (!Utils::IsAbsoluteUint(12, offset)) {
+    return false;
+  }
+  if (CanHoldImmediateOffset(is_load, cid, offset)) {
+    *needs_base = false;
+    return true;
+  }
+
+  if (CanHoldImmediateOffset(is_load, cid, offset - base_offset)) {
+    *needs_base = true;
+    return true;
+  }
+
+  return false;
+}
+
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
@@ -1174,7 +1197,10 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(), true /*load*/)) {
+  bool needs_base = false;
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
+                          true,  // Load.
+                          &needs_base)) {
     // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
@@ -1203,15 +1229,28 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-static Address ElementAddressForIntIndex(bool is_external,
+static Address ElementAddressForIntIndex(Assembler* assembler,
+                                         bool is_load,
+                                         bool is_external,
                                          intptr_t cid,
                                          intptr_t index_scale,
                                          Register array,
-                                         intptr_t index) {
-  const int64_t offset = static_cast<int64_t>(index) * index_scale +
+                                         intptr_t index,
+                                         Register temp) {
+  const int64_t offset_base =
       (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = offset_base +
+      static_cast<int64_t>(index) * index_scale;
   ASSERT(Utils::IsInt(32, offset));
-  return Address(array, static_cast<int32_t>(offset));
+
+  if (CanHoldImmediateOffset(is_load, cid, offset)) {
+    return Address(array, static_cast<int32_t>(offset));
+  } else {
+    ASSERT(CanHoldImmediateOffset(is_load, cid, offset - offset_base));
+    assembler->AddImmediate(
+        temp, array, static_cast<int32_t>(offset_base));
+    return Address(temp, static_cast<int32_t>(offset - offset_base));
+  }
 }
 
 
@@ -1270,8 +1309,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                   true,  // Load.
                                   IsExternal(), class_id(), index_scale(),
                                   array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      : ElementAddressForIntIndex(compiler->assembler(),
+                                  true,  // Load.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value(),
+                                  IP);  // Temp register.
   // Warning: element_address may use register IP as base.
 
   if ((representation() == kUnboxedDouble)    ||
@@ -1421,16 +1463,30 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id(), IsExternal(), false /*store*/)) {
+  LocationSummary* locs;
+
+  bool needs_base = false;
+  if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
+                          false,  // Store.
+                          &needs_base)) {
+    const intptr_t kNumTemps = needs_base ? 1 : 0;
+    locs = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
     // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->BoundConstant()));
+    if (needs_base) {
+      locs->set_temp(0, Location::RequiresRegister());
+    }
   } else {
+    const intptr_t kNumTemps = 0;
+    locs = new(isolate) LocationSummary(
+        isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+
     locs->set_in(1, Location::WritableRegister());
   }
+  locs->set_in(0, Location::RequiresRegister());
+
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
@@ -1481,14 +1537,19 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
+  const Register temp =
+      (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
 
   Address element_address = index.IsRegister()
       ? ElementAddressForRegIndex(compiler->assembler(),
                                   false,  // Store.
                                   IsExternal(), class_id(), index_scale(),
                                   array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      : ElementAddressForIntIndex(compiler->assembler(),
+                                  false,  // Store.
+                                  IsExternal(), class_id(), index_scale(),
+                                  array, Smi::Cast(index.constant()).Value(),
+                                  temp);
 
   switch (class_id()) {
     case kArrayCid:
@@ -5972,7 +6033,7 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
 
   Label* deopt = NULL;
-  if (FLAG_throw_on_javascript_int_overflow) {
+  if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
   }
   switch (op_kind()) {
@@ -5993,9 +6054,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     break;
     case Token::kADD:
     case Token::kSUB: {
-      if (!FLAG_throw_on_javascript_int_overflow) {
-        deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryMintOp);
-      }
       if (op_kind() == Token::kADD) {
         __ adds(out_lo, left_lo, Operand(right_lo));
         __ adcs(out_hi, left_hi, Operand(right_hi));
@@ -6004,8 +6062,10 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ subs(out_lo, left_lo, Operand(right_lo));
         __ sbcs(out_hi, left_hi, Operand(right_hi));
       }
-      // Deopt on overflow.
-      __ b(deopt, VS);
+      if (can_overflow()) {
+        // Deopt on overflow.
+        __ b(deopt, VS);
+      }
       break;
     }
     default:
@@ -6034,6 +6094,14 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static const intptr_t kMintShiftCountLimit = 63;
+
+bool ShiftMintOpInstr::has_shift_count_check() const {
+  return (right()->definition()->range() == NULL)
+      || !right()->definition()->range()->IsWithin(0, kMintShiftCountLimit);
+}
+
+
 void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
@@ -6044,25 +6112,21 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   Register temp = locs()->temp(0).reg();
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
-  Label done;
-
-  // Early out if shift is 0.
-  __ CompareImmediate(shift, 0);
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
+  }
   __ mov(out_lo, Operand(left_lo));
   __ mov(out_hi, Operand(left_hi));
-  __ b(&done, EQ);
 
   // Untag shift count.
   __ SmiUntag(shift);
 
-  // Deopt if shift is negative.
-  __ CompareImmediate(shift, 1);
-  __ b(deopt, LT);
-
-  // Deopt if shift is larger than 63.
-  __ CompareImmediate(shift, 63);
-  __ b(deopt, GT);
+  // Deopt if shift is larger than 63 or less than 0.
+  if (has_shift_count_check()) {
+    __ CompareImmediate(shift, kMintShiftCountLimit);
+    __ b(deopt, HI);
+  }
 
   switch (op_kind()) {
     case Token::kSHR: {
@@ -6087,15 +6151,16 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ mov(out_lo, Operand(out_lo, LSL, shift));
 
       // Check for overflow.
-
-      // Copy high word from output.
-      __ mov(temp, Operand(out_hi));
-      // Shift copy right.
-      __ Asr(temp, temp, shift);
-      // Compare with high word from input.
-      __ cmp(temp, Operand(left_hi));
-      // Overflow if they aren't equal.
-      __ b(deopt, NE);
+      if (can_overflow()) {
+        // Copy high word from output.
+        __ mov(temp, Operand(out_hi));
+        // Shift copy right.
+        __ Asr(temp, temp, shift);
+        // Compare with high word from input.
+        __ cmp(temp, Operand(left_hi));
+        // Overflow if they aren't equal.
+        __ b(deopt, NE);
+      }
       break;
     }
     default:
@@ -6103,7 +6168,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
   }
 
-  __ Bind(&done);
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
   }

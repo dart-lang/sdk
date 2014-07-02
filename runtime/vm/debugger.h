@@ -275,12 +275,14 @@ class DebuggerEvent {
     kIsolateInterrupted = 6,
   };
 
-  explicit DebuggerEvent(EventType event_type)
-      : type_(event_type),
+  explicit DebuggerEvent(Isolate* isolate, EventType event_type)
+      : isolate_(isolate),
+        type_(event_type),
         top_frame_(NULL),
         breakpoint_(NULL),
-        exception_(NULL),
-        isolate_id_(0) {}
+        exception_(NULL) {}
+
+  Isolate* isolate() const { return isolate_; }
 
   EventType type() const { return type_; }
 
@@ -312,16 +314,7 @@ class DebuggerEvent {
   }
 
   Dart_Port isolate_id() const {
-    ASSERT(type_ == kIsolateCreated ||
-           type_ == kIsolateShutdown ||
-           type_ == kIsolateInterrupted);
-    return isolate_id_;
-  }
-  void set_isolate_id(Dart_Port isolate_id) {
-    ASSERT(type_ == kIsolateCreated ||
-           type_ == kIsolateShutdown ||
-           type_ == kIsolateInterrupted);
-    isolate_id_ = isolate_id;
+    return isolate_->main_port();
   }
 
   void PrintJSON(JSONStream* js) const;
@@ -329,17 +322,17 @@ class DebuggerEvent {
   static const char* EventTypeToCString(EventType type);
 
  private:
+  Isolate* isolate_;
   EventType type_;
   ActivationFrame* top_frame_;
   SourceBreakpoint* breakpoint_;
   const Object* exception_;
-  Dart_Port isolate_id_;
 };
 
 
 class Debugger {
  public:
-  typedef void EventHandler(DebuggerEvent *event);
+  typedef void EventHandler(DebuggerEvent* event);
 
   Debugger();
   ~Debugger();
@@ -446,6 +439,9 @@ class Debugger {
     kStepOut,
     kSingleStep
   };
+
+  static bool HasEventHandler();
+  static void InvokeEventHandler(DebuggerEvent* event);
 
   void FindCompiledFunctions(const Script& script,
                              intptr_t start_pos,

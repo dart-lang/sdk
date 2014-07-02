@@ -4,12 +4,14 @@
 
 library test.operation.analysis;
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
+import '../index/store/typed_mocks.dart';
 import '../reflective_tests.dart';
 
 main() {
@@ -21,56 +23,84 @@ main() {
 }
 
 
+class AnalysisErrorMock extends TypedMock implements AnalysisError {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
 @ReflectiveTestCase()
 class Test_errorToJson {
   Source source = new SourceMock();
+  LineInfo lineInfo;
   AnalysisError analysisError = new AnalysisErrorMock();
 
-  setUp() {
+  void setUp() {
     // prepare Source
     when(source.fullName).thenReturn('foo.dart');
+    // prepare LineInfo
+    lineInfo = new LineInfo([0, 5, 9, 20]);
     // prepare AnalysisError
     when(analysisError.source).thenReturn(source);
-    when(analysisError.errorCode).thenReturn(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    when(analysisError.errorCode).thenReturn(
+        CompileTimeErrorCode.AMBIGUOUS_EXPORT);
     when(analysisError.message).thenReturn('my message');
     when(analysisError.offset).thenReturn(10);
     when(analysisError.length).thenReturn(20);
   }
 
-  tearDown() {
+  void tearDown() {
     source = null;
     analysisError = null;
   }
 
-  test_noCorrection() {
+  void test_noCorrection() {
+    Map<String, Object> json = errorToJson(lineInfo, analysisError);
+    expect(json, {
+      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message'
+    });
+  }
+
+  void test_noLineInfo() {
+    Map<String, Object> json = errorToJson(null, analysisError);
+    expect(json, {
+      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20
+      },
+      MESSAGE: 'my message'
+    });
+  }
+
+  void test_withCorrection() {
     when(analysisError.correction).thenReturn('my correction');
-    Map<String, Object> json = errorToJson(analysisError);
+    Map<String, Object> json = errorToJson(lineInfo, analysisError);
     expect(json, {
-      'file': 'foo.dart',
-      'errorCode': 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
-      'offset': 10,
-      'length': 20,
-      'message': 'my message',
-      'correction': 'my correction'});
+      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message',
+      CORRECTION: 'my correction'
+    });
   }
-
-  test_withCorrection() {
-    Map<String, Object> json = errorToJson(analysisError);
-    expect(json, {
-      'file': 'foo.dart',
-      'errorCode': 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
-      'offset': 10,
-      'length': 20,
-      'message': 'my message'});
-  }
-}
-
-
-class SourceMock extends TypedMock implements Source {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-
-class AnalysisErrorMock extends TypedMock implements AnalysisError {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

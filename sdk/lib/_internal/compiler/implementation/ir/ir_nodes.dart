@@ -6,13 +6,13 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant;
-import '../elements/elements.dart'
-    show FunctionElement, LibraryElement, ParameterElement, ClassElement,
-    Element, VariableElement;
+import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
+  StringConstant, ListConstant, MapConstant;
+import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import '../helpers/helpers.dart';
+import 'const_expression.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -60,9 +60,6 @@ abstract class Primitive extends Definition {
   /// Separate register spaces are used for primitives with different [element].
   /// Assigned by [RegisterAllocator], is null before that phase.
   int registerIndex;
-
-  /// If non-null, this primitive is a reference to the given constant.
-  dart2js.Constant get constant;
 
   /// Use the given element as a hint for naming this primitive.
   ///
@@ -154,8 +151,8 @@ class InvokeStatic extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
-/// Invoke a method, operator, getter, setter, or index getter/setter in
-/// tail position.
+/// Invoke a method, operator, getter, setter, or index getter/setter.
+/// Converting a method to a function object is treated as a getter invocation.
 class InvokeMethod extends Expression implements Invoke {
   final Reference receiver;
   final Selector selector;
@@ -179,6 +176,30 @@ class InvokeMethod extends Expression implements Invoke {
   }
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
+}
+
+/// Invoke a method, operator, getter, setter, or index getter/setter from the
+/// super class in tail position.
+class InvokeSuperMethod extends Expression implements Invoke {
+  final Selector selector;
+  final Reference continuation;
+  final List<Reference> arguments;
+
+  InvokeSuperMethod(this.selector,
+                    Continuation cont,
+                    List<Definition> args)
+      : continuation = new Reference(cont),
+        arguments = _referenceList(args) {
+    assert(selector != null);
+    assert(selector.kind == SelectorKind.CALL ||
+           selector.kind == SelectorKind.OPERATOR ||
+           (selector.kind == SelectorKind.GETTER && arguments.isEmpty) ||
+           (selector.kind == SelectorKind.SETTER && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 1) ||
+           (selector.kind == SelectorKind.INDEX && arguments.length == 2));
+  }
+
+  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
 }
 
 /// Non-const call to a constructor. The [target] may be a generative
@@ -221,35 +242,6 @@ class AsCast extends Expression {
         this.continuation = new Reference(cont);
 
   accept(Visitor visitor) => visitor.visitAsCast(this);
-}
-
-class InvokeConstConstructor extends Primitive {
-  final GenericType type;
-  final FunctionElement constructor;
-  final List<Reference> arguments;
-  final Selector selector;
-
-  final dart2js.ConstructedConstant constant;
-
-  /// The class being instantiated. This is the same as `target.enclosingClass`
-  /// and `type.element`.
-  ClassElement get targetClass => constructor.enclosingElement;
-
-  /// True if this is an invocation of a factory constructor.
-  bool get isFactory => constructor.isFactoryConstructor;
-
-  InvokeConstConstructor(this.type,
-                    this.constructor,
-                    this.selector,
-                    List<Definition> args,
-                    this.constant)
-      : arguments = _referenceList(args) {
-    assert(constructor.isConstructor);
-    assert(type.element == constructor.enclosingElement);
-    assert(constant.type == type);
-  }
-
-  accept(Visitor visitor) => visitor.visitInvokeConstConstructor(this);
 }
 
 /// Invoke [toString] on each argument and concatenate the results.
@@ -310,11 +302,10 @@ class Branch extends Expression {
 }
 
 class Constant extends Primitive {
+  final ConstExp expression;
   final dart2js.Constant value;
 
-  Constant(this.value);
-
-  dart2js.Constant get constant => value;
+  Constant(this.expression, this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -322,9 +313,19 @@ class Constant extends Primitive {
 class This extends Primitive {
   This();
 
+  accept(Visitor visitor) => visitor.visitThis(this);
+}
+
+/// Reify the given type variable as a [Type].
+/// This depends on the current binding of 'this'.
+class ReifyTypeVar extends Primitive {
+  final TypeVariableElement element;
+
+  ReifyTypeVar(this.element);
+
   dart2js.Constant get constant => null;
 
-  accept(Visitor visitor) => visitor.visitThis(this);
+  accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
 }
 
 class LiteralList extends Primitive {
@@ -332,10 +333,7 @@ class LiteralList extends Primitive {
   final GenericType type;
   final List<Reference> values;
 
-  /// Set to null if this is not a const literal list.
-  final dart2js.Constant constant;
-
-  LiteralList(this.type, List<Primitive> values, [this.constant])
+  LiteralList(this.type, List<Primitive> values)
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -346,11 +344,7 @@ class LiteralMap extends Primitive {
   final List<Reference> keys;
   final List<Reference> values;
 
-  /// Set to null if this is not a const literal map.
-  final dart2js.Constant constant;
-
-  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values,
-             [this.constant])
+  LiteralMap(this.type, List<Primitive> keys, List<Primitive> values)
       : this.keys = _referenceList(keys),
         this.values = _referenceList(values);
 
@@ -373,8 +367,6 @@ class Parameter extends Primitive {
   Parameter(Element element) {
     super.element = element;
   }
-
-  dart2js.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
@@ -402,8 +394,10 @@ class FunctionDefinition extends Node {
   final Continuation returnContinuation;
   final List<Parameter> parameters;
   final Expression body;
+  final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.returnContinuation, this.parameters, this.body);
+  FunctionDefinition(this.returnContinuation, this.parameters, this.body,
+      this.localConstants);
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -430,6 +424,7 @@ abstract class Visitor<T> {
   T visitInvokeStatic(InvokeStatic node) => visitExpression(node);
   T visitInvokeContinuation(InvokeContinuation node) => visitExpression(node);
   T visitInvokeMethod(InvokeMethod node) => visitExpression(node);
+  T visitInvokeSuperMethod(InvokeSuperMethod node) => visitExpression(node);
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
@@ -441,7 +436,7 @@ abstract class Visitor<T> {
   T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
-  T visitInvokeConstConstructor(InvokeConstConstructor node) => visitPrimitive(node);
+  T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 
@@ -563,6 +558,14 @@ class SExpressionStringifier extends Visitor<String> {
     return '(Constant ${node.value})';
   }
 
+  String visitThis(This node) {
+    return '(This)';
+  }
+
+  String visitReifyTypeVar(ReifyTypeVar node) {
+    return '(ReifyTypeVar ${node.element.name})';
+  }
+
   String visitParameter(Parameter node) {
     // Parameters are visited directly in visitLetCont.
     return '(Unexpected Parameter)';
@@ -584,6 +587,7 @@ class RegisterArray {
   int nextIndex = 0;
   final List<int> freeStack = <int>[];
 
+  /// Returns an index that is currently unused.
   int makeIndex() {
     if (freeStack.isEmpty) {
       return nextIndex++;
@@ -670,6 +674,10 @@ class RegisterAllocator extends Visitor {
     node.arguments.forEach(visitReference);
   }
 
+  void visitInvokeSuperMethod(InvokeSuperMethod node) {
+    node.arguments.forEach(visitReference);
+  }
+
   void visitInvokeConstructor(InvokeConstructor node) {
     node.arguments.forEach(visitReference);
   }
@@ -680,10 +688,6 @@ class RegisterAllocator extends Visitor {
 
   void visitBranch(Branch node) {
     visit(node.condition);
-  }
-
-  void visitInvokeConstConstructor(InvokeConstConstructor node) {
-    node.arguments.forEach(visitReference);
   }
 
   void visitLiteralList(LiteralList node) {
@@ -702,6 +706,12 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitConstant(Constant node) {
+  }
+
+  void visitThis(This node) {
+  }
+
+  void visitReifyTypeVar(ReifyTypeVar node) {
   }
 
   void visitParameter(Parameter node) {

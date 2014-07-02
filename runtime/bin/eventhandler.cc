@@ -92,11 +92,11 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   } else {
     id = Socket::GetSocketIdNativeField(sender);
   }
-  // Get the id out of the receive port. If the handle is not a receive port
+  // Get the id out of the send port. If the handle is not a send port
   // we will get an error and propagate that out.
   Dart_Handle handle = Dart_GetNativeArgument(args, 1);
   Dart_Port dart_port;
-  handle = Dart_ReceivePortGetId(handle, &dart_port);
+  handle = Dart_SendPortGetId(handle, &dart_port);
   if (Dart_IsError(handle)) {
     Dart_PropagateError(handle);
     UNREACHABLE();

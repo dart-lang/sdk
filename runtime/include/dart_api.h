@@ -1177,30 +1177,16 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
 
-
-DART_EXPORT Dart_Handle Dart_ReceivePortGetId(Dart_Handle port,
-                                              Dart_Port* port_id);
-
 /**
- * Gets the ReceivePort for the provided port id.
- * Returns Dart_Null if a port with the provided port id is not associated with
- * the current isolate.
- *
- * Note that there is at most one ReceivePort for a given port id.
+ * Gets the SendPort id for the provided SendPort.
+ * \param port A SendPort object whose id is desired.
+ * \param port_id Returns the id of the SendPort.
+ * \return Success if no error occurs. Otherwise returns
+ *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id);
+DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
+                                           Dart_Port* port_id);
 
-
-/**
- * Posts an object to the send port.
- *
- * \param send_port A Dart SendPort.
- * \param object An object from the current isolate.
- *
- * \return Success if no error occurs. Otherwise returns an error handle.
- */
-DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle send_port,
-                                         Dart_Handle object);
 
 /*
  * ======

@@ -112,10 +112,8 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
     if (_typeArguments == null) {
       _typeArguments = <TypeMirror>[];
       if (!_type.isRaw) {
-        Link<DartType> type = _type.typeArguments;
-        while (type != null && type.head != null) {
-          _typeArguments.add(_getTypeMirror(type.head));
-          type = type.tail;
+        for (DartType type in _type.typeArguments) {
+          _typeArguments.add(_getTypeMirror(type));
         }
       }
     }
@@ -157,20 +155,20 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
                               'with ${newTypeArguments.length} arguments, '
                               'expect ${typeVariables.length} arguments.');
     }
-    LinkBuilder<DartType> builder = new LinkBuilder<DartType>();
+    List<DartType> builder = <DartType>[];
     for (TypeSourceMirror newTypeArgument in newTypeArguments) {
       if (newTypeArgument.isVoid) {
         throw new ArgumentError('Cannot use void as type argument.');
       }
       if (newTypeArgument is Dart2JsTypeMirror) {
-        builder.addLast(newTypeArgument._type);
+        builder.add(newTypeArgument._type);
       } else {
         throw new UnsupportedError(
             'Cannot create instantiation using a type '
             'mirror from a different mirrorSystem implementation.');
       }
     }
-    return owner._getTypeMirror(_type.createInstantiation(builder.toLink()));
+    return owner._getTypeMirror(_type.createInstantiation(builder));
   }
 }
 

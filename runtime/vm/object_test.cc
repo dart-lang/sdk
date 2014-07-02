@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(zra): Remove when tests are ready to enable.
 #include "platform/globals.h"
 
 #include "vm/assembler.h"
@@ -253,7 +252,7 @@ TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
-       Field::New(field_name, false, false, false, one_field_class, 0));
+      Field::New(field_name, false, false, false, false, one_field_class, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2061,9 +2060,15 @@ TEST_CASE(GrowableObjectArray) {
     value = Smi::New(i);
     array.Add(value);
   }
+  Heap* heap = Isolate::Current()->heap();
+  heap->CollectAllGarbage();
+  intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeArray(array);
   EXPECT_EQ(1, new_array.Length());
-  Isolate::Current()->heap()->CollectAllGarbage();
+  heap->CollectAllGarbage();
+  intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
+  // Page should shrink.
+  EXPECT_LT(capacity_after, capacity_before);
   EXPECT_EQ(1, new_array.Length());
 }
 
@@ -2222,13 +2227,6 @@ TEST_CASE(Script) {
   EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  Script& script2 = Script::Handle(
-      Script::FindByUrl(String::Handle(String::New("test-lib"))));
-  EXPECT(!script2.IsNull());
-  const Library& lib2 = Library::Handle(script2.FindLibrary());
-  EXPECT_EQ(lib2.raw(), lib.raw());
-  script2 = Script::FindByUrl(String::Handle(String::New("non-there.dart")));
-  EXPECT(script2.IsNull());
 }
 
 
@@ -2743,7 +2741,7 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, cls, 0));
+      Field::Handle(Field::New(field_name, true, false, false, false, cls, 0));
   return field.raw();
 }
 
@@ -4088,6 +4086,29 @@ TEST_CASE(InstanceEquality) {
   EXPECT(a0.OperatorEquals(a1));
   EXPECT(a0.IsIdenticalTo(a0));
   EXPECT(!a0.IsIdenticalTo(a1));
+}
+
+
+TEST_CASE(HashCode) {
+  // Ensure C++ overrides of Instance::HashCode match the Dart implementations.
+  const char* kScript =
+      "foo() {\n"
+      "  return \"foo\".hashCode;\n"
+      "}";
+
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(h_result);
+  Integer& result = Integer::Handle();
+  result ^= Api::UnwrapHandle(h_result);
+  String& foo = String::Handle(String::New("foo"));
+  Integer& expected = Integer::Handle();
+  expected ^= foo.HashCode();
+  EXPECT(result.IsIdenticalTo(expected));
 }
 
 }  // namespace dart

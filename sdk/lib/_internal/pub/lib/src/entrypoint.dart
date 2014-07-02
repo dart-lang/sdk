@@ -43,13 +43,6 @@ class Entrypoint {
   /// the network.
   final SystemCache cache;
 
-  /// A map of the [Future]s that were or are being used to asynchronously get
-  /// packages.
-  ///
-  /// Includes packages that are in-transit and ones that have already
-  /// completed.
-  final _pendingGets = new Map<PackageId, Future<PackageId>>();
-
   /// Loads the entrypoint from a package at [rootDir].
   Entrypoint(String rootDir, SystemCache cache)
       : root = new Package.load(null, rootDir, cache.sources),
@@ -94,7 +87,7 @@ class Entrypoint {
 
       // Install the packages.
       cleanDir(packagesDir);
-      return Future.wait(result.packages.map(_get).toList()).then((ids) {
+      return Future.wait(result.packages.map(_get)).then((ids) {
         _saveLockFile(ids);
         _linkSelf();
         _linkSecondaryPackageDirs();
@@ -111,20 +104,11 @@ class Entrypoint {
   Future<PackageId> _get(PackageId id) {
     if (id.isRoot) return new Future.value(id);
 
-    var pending = _pendingGets[id];
-    if (pending != null) return pending;
+    var packageDir = path.join(packagesDir, id.name);
+    if (entryExists(packageDir)) deleteEntry(packageDir);
 
-    var future = syncFuture(() {
-      var packageDir = path.join(packagesDir, id.name);
-      if (entryExists(packageDir)) deleteEntry(packageDir);
-
-      var source = cache.sources[id.source];
-      return source.get(id, packageDir).then((_) => source.resolveId(id));
-    });
-
-    _pendingGets[id] = future;
-
-    return future;
+    var source = cache.sources[id.source];
+    return source.get(id, packageDir).then((_) => source.resolveId(id));
   }
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
@@ -245,11 +229,7 @@ class Entrypoint {
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
   void _saveLockFile(List<PackageId> packageIds) {
-    var lockFile = new LockFile.empty();
-    for (var id in packageIds) {
-      if (!id.isRoot) lockFile.packages[id.name] = id;
-    }
-
+    var lockFile = new LockFile(packageIds);
     var lockFilePath = path.join(root.dir, 'pubspec.lock');
     writeTextFile(lockFilePath, lockFile.serialize(root.dir, cache.sources));
   }

@@ -33,7 +33,7 @@ polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_path_declarative_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
 polymer/test/events_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
@@ -42,6 +42,7 @@ polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/property_change_test: Pass, Timeout # Issue 18931
 polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/register_test: Pass, RuntimeError # Issue 18931
@@ -69,6 +70,7 @@ smoke/test/codegen/recorder_test: Skip  # Times out
 template_binding/test/template_binding_test: Skip  # Times out
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 barback/test/package_graph/repetition_test: Skip  # Times out
+scheduled_test/test/scheduled_server_test: Pass, Fail, Slow # 13524
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
@@ -89,6 +91,13 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+http/test/html/client_test: Fail # Issue 19750
+scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
+json_rpc_2/test/server/server_test: Fail # Issue 19750
+stack_trace/test/trace_test: Fail # Issue 19750
+shelf/test/log_middleware_test: Fail # Issue 19750
+
 [ $compiler == dart2js && $runtime == drt ]
 third_party/angular_tests/browser_test/core_dom/compiler: Fail # Issue 19329
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
@@ -107,7 +116,14 @@ crypto/test/base64_test: Timeout # Issue 12486
 collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
+[ $runtime == d8 ]
+analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756
+analysis_server/test/domain_search_test: Pass, Slow # Issue 19756
+
 [ $runtime == jsshell ]
+analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 16473, 19756
+analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 16473, 19756
+analysis_server/test/domain_analysis_test: Pass, Slow # Issue 16473, 19756
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
@@ -189,6 +205,7 @@ polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
+analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
@@ -254,10 +271,8 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
 analyzer/test/error_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/ast_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/parser_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer/test/options_test: Fail, OK # Uses dart:io.
@@ -397,9 +412,6 @@ watcher/test/*/windows_test: Skip
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
-
-[ $runtime == chrome ] # Note: this only fails on Chrome 35. They pass 36+
-polymer/test/entered_view_test: Fail # Chrome 35 
 
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.

@@ -550,6 +550,22 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 }
 
 
+void Isolate::DoneLoading() {
+  GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(this, object_store()->libraries());
+  Library& lib = Library::Handle(this);
+  intptr_t num_libs = libs.Length();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    // If this library was loaded with Dart_LoadLibrary, it was marked
+    // as 'load in progres'. Set the status to 'loaded'.
+    if (lib.LoadInProgress()) {
+      lib.SetLoaded();
+    }
+  }
+}
+
+
 bool Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
   // Can't use MutexLocker here because MutexLocker is
@@ -962,11 +978,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   // TODO(turnidge): Make the debugger support paused_on_start/exit.
   if (message_handler()->paused_on_start()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateCreated);
+    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateCreated);
     jsobj.AddProperty("pauseEvent", &pauseEvent);
   } else if (message_handler()->paused_on_exit()) {
     ASSERT(debugger()->PauseEvent() == NULL);
-    DebuggerEvent pauseEvent(DebuggerEvent::kIsolateShutdown);
+    DebuggerEvent pauseEvent(this, DebuggerEvent::kIsolateShutdown);
     jsobj.AddProperty("pauseEvent", &pauseEvent);
   } else if (debugger()->PauseEvent() != NULL) {
     jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());

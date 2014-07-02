@@ -48,8 +48,8 @@ class _Directory {
 class _EventHandler {
   @patch
   static void _sendData(Object sender,
-                              RawReceivePort receivePort,
-                              int data) {
+                        SendPort sendPort,
+                        int data) {
     throw new UnsupportedError("EventHandler._sendData");
   }
 }

@@ -154,6 +154,21 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     return link;
   }
 
+  List<T> toList() {
+    if (length == 0) return new List<T>(0);
+    List<T> list = new List<T>(length);
+    int index = 0;
+    Link<T> link = head;
+    while (!link.isEmpty) {
+      list[index] = link.head;
+      link = link.tail;
+      index++;
+    }
+    lastLink = null;
+    head = null;
+    return list;
+  }
+
   void addLast(T t) {
     length++;
     LinkEntry<T> entry = new LinkEntry<T>(t, null);

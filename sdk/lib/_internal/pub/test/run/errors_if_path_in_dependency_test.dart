@@ -26,6 +26,8 @@ Can not run an executable in a subdirectory of a dependency.
 
 Usage: pub run <executable> [args...]
 -h, --help    Print usage information for this command.
+
+Run "pub help" to see global options.
 """,
         exitCode: exit_codes.USAGE);
   });

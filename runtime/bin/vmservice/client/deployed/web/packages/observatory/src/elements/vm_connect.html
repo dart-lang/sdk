@@ -1,0 +1,96 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+
+<polymer-element name="vm-connect-target" extends="observatory-element">
+  <template>
+    <style>
+      .delete-button {
+        padding: 4px;
+        background: transparent;
+        border: none !important;
+      }
+      .delete-button:hover {
+        background: #ff0000;
+      }
+    </style>
+    <link rel="stylesheet" href="css/shared.css">
+    <span>
+      <template if="{{ isCurrentTarget }}">
+        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
+      </template>
+      <template if="{{ !isCurrentTarget }}">
+        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
+      </template>
+      <template if="{{ !isChromeTarget }}">
+        <button class="delete-button" on-click="{{ deleteVm }}">&#10006; Remove</button>
+      </template>
+    </span>
+  </template>
+</polymer-element>
+
+<polymer-element name="vm-connect" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .textbox {
+        width: 20em;
+        font: 400 16px 'Montserrat', sans-serif;
+      }
+    </style>
+
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content-centered">
+      <h1>Connect to a Dart VM</h1>
+      <br>
+      <hr>
+      <div class="flex-row">
+        <div class="flex-item-40-percent">
+          <h2><img style="height: 48px" src="img/dart_icon.png">Standalone</h2>
+          <br>
+          <ul>
+            <template repeat="{{ target in app.targets.history }}">
+              <template if="{{ target.standalone }}">
+                <li><vm-connect-target target="{{ target }}"></vm-connect-target></li>
+              </template>
+            </template>
+          </ul>
+          <hr>
+          <form autocomplete="on">
+            <input class="textbox" placeholder="localhost:8181" type="text" value="{{ standaloneVmAddress }}">
+            <input class="button" type="submit" value="Connect" on-click="{{ connectStandalone }}">
+          </form>
+          <br>
+          <pre class="well">Run Standalone with: '--observe'</pre>
+          <hr>
+        </div>
+
+        <div class="flex-item-20-percent"></div>
+        <div class="flex-item-40-percent">
+          <h2><img style="height: 48px" src="img/chromium_icon.png">Chromium</h2>
+          <br>
+          <ul>
+            <template repeat="{{ target in chromeTargets }}">
+              <li><vm-connect-target target="{{ target }}"></vm-connect-target></li>
+            </template>
+          </ul>
+          <hr>
+          <form autocomplete="on">
+            <input class="textbox" placeholder="localhost:9222" type="text" value="{{ chromiumAddress }}">
+            <input class="button" type="submit" value="Get Tabs" on-click="{{ getTabs }}">
+          </form>
+          <br>
+          <pre class="well">Run Chromium with:
+'--remote-debugging-port=9222'</pre>
+          <hr>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="vm_connect.dart"></script>

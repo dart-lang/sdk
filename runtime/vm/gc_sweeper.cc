@@ -56,12 +56,12 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 }
 
 
-bool GCSweeper::SweepLargePage(HeapPage* page) {
-  bool in_use = false;
+intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
+  intptr_t words_to_end = 0;
   RawObject* raw_obj = RawObject::FromAddr(page->object_start());
   if (raw_obj->IsMarked()) {
     raw_obj->ClearMarkBit();
-    in_use = true;
+    words_to_end = (raw_obj->Size() >> kWordSizeLog2);
   }
 #ifdef DEBUG
   // String::MakeExternal and Array::MakeArray create trailing filler objects,
@@ -74,7 +74,7 @@ bool GCSweeper::SweepLargePage(HeapPage* page) {
     current += cur_obj->Size();
   }
 #endif  // DEBUG
-  return in_use;
+  return words_to_end;
 }
 
 }  // namespace dart

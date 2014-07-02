@@ -39,7 +39,6 @@ def UploadSetACL(gsutil, local, remote):
 
 def UploadAPKs(options):
   with bot.BuildStep('Upload apk'):
-    revision = utils.GetSVNRevision()
     bot_name = os.environ.get("BUILDBOT_BUILDERNAME")
     channel = bot_utils.GetChannelFromName(bot_name)
     namer = bot_utils.GCSNamer(channel=channel)
@@ -49,14 +48,16 @@ def UploadAPKs(options):
 
     # Archive content shell
     local = os.path.join(options.build_products_dir, CS_LOCATION)
-    # TODO(whesse): pass in arch and mode from reciepe
-    remote = namer.dartium_android_apk_filepath(revision,
-                                                'content_shell-android',
-                                                'arm',
-                                                'release')
-    content_shell_link = string.replace(remote, 'gs://', web_link_prefix)
-    UploadSetACL(gsutil, local, remote)
-    print "Uploaded content shell, available from: %s" % content_shell_link
+
+    for revision in [utils.GetSVNRevision(), 'latest']:
+      # TODO(whesse): pass in arch and mode from reciepe
+      remote = namer.dartium_android_apk_filepath(revision,
+                                                  'content_shell-android',
+                                                  'arm',
+                                                  'release')
+      content_shell_link = string.replace(remote, 'gs://', web_link_prefix)
+      UploadSetACL(gsutil, local, remote)
+      print "Uploaded content shell, available from: %s" % content_shell_link
 
 
 def RunContentShellTests(options):

@@ -248,22 +248,9 @@ void runDateTests(Function subsetFunc) {
     }
   });
 
-  test('Patterns and symbols have the same coverage',() {
-    // Don't run if we have just one locale, so checking coverage isn't
-    // very meaningful.
-    if (subset.length <= 1) return;
-    var patterns = new List.from(dateTimePatterns.keys);
-    var compare = (a, b) => a.compareTo(b);
-    patterns.sort(compare);
-    var symbols = allLocales();
-    // Workaround for a dartj2 issue that treats the keys as immutable
-    symbols = new List.from(symbols);
-    symbols.sort(compare);
-    for (var i = 0; i < patterns.length; i++) {
-      expect(patterns[i], equals(symbols[i]));
-    }
-    expect(patterns.length, equals(symbols.length));
-  });
+  // TODO(alanknight): The coverage for patterns and symbols differs
+  // at the source, in CLDR 25, so we can't guarantee that all patterns
+  // have symbols or vice versa. Wish we could.
 
   test('Test malformed locales', () {
     // Don't run if we have just one locale, which may not include these.

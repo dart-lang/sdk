@@ -15,16 +15,14 @@ import 'package:compiler/implementation/elements/elements.dart'
     show Element,
          TypeDeclarationElement,
          ClassElement;
-import 'package:compiler/implementation/util/util.dart'
-    show Link, LinkBuilder;
 
 GenericType instantiate(TypeDeclarationElement element,
                         List<DartType> arguments) {
   if (element.isClass) {
-    return new InterfaceType(element, new Link<DartType>.fromList(arguments));
+    return new InterfaceType(element, arguments);
   } else {
     assert(element.isTypedef);
-    return new TypedefType(element, new Link<DartType>.fromList(arguments));
+    return new TypedefType(element, arguments);
   }
 }
 
@@ -117,23 +115,19 @@ class TypeEnvironment {
 
   FunctionType functionType(DartType returnType,
                             List<DartType> parameters,
-                            {List<DartType> optionalParameters,
+                            {List<DartType> optionalParameters:
+                                 const <DartType>[],
                              Map<String,DartType> namedParameters}) {
-    Link<DartType> parameterTypes =
-        new Link<DartType>.fromList(parameters);
-    Link<DartType> optionalParameterTypes = optionalParameters != null
-        ? new Link<DartType>.fromList(optionalParameters)
-        : const Link<DartType>();
-    var namedParameterNames = new LinkBuilder<String>();
-    var namedParameterTypes = new LinkBuilder<DartType>();
+    List<String> namedParameterNames = <String>[];
+    List<DartType> namedParameterTypes = <DartType>[];
     if (namedParameters != null) {
       namedParameters.forEach((String name, DartType type) {
-        namedParameterNames.addLast(name);
-        namedParameterTypes.addLast(type);
+        namedParameterNames.add(name);
+        namedParameterTypes.add(type);
       });
     }
     return new FunctionType.synthesized(
-        returnType, parameterTypes, optionalParameterTypes,
-        namedParameterNames.toLink(), namedParameterTypes.toLink());
+        returnType, parameters, optionalParameters,
+        namedParameterNames, namedParameterTypes);
   }
 }

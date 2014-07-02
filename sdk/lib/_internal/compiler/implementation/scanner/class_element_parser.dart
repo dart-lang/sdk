@@ -34,6 +34,8 @@ class PartialClassElement extends ClassElementX {
     super.resolutionState = state;
   }
 
+  bool get hasNode => cachedNode != null;
+
   ClassNode get node {
     assert(invariant(this, cachedNode != null,
         message: "Node has not been computed for $this."));

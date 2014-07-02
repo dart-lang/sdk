@@ -244,6 +244,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
                         InterfaceType sourceType,
                         List<Constant> keys,
                         List<Constant> values) {
+    JavaScriptBackend backend = compiler.backend;
+
     bool onlyStringKeys = true;
     Constant protoValue = null;
     for (int i = 0; i < keys.length ; i++) {
@@ -265,8 +267,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
     if (sourceType.treatAsRaw) {
       keysType = compiler.listClass.rawType;
     } else {
-      Link<DartType> arguments =
-          new Link<DartType>.fromList([sourceType.typeArguments.head]);
+      List<DartType> arguments = <DartType>[sourceType.typeArguments.first];
       keysType = new InterfaceType(compiler.listClass, arguments);
     }
     ListConstant keysList = new ListConstant(keysType, keys);
@@ -274,9 +275,9 @@ class JavaScriptConstantSystem extends ConstantSystem {
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = compiler.jsHelperLibrary.find(className);
+    ClassElement classElement = backend.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
-    Link<DartType> typeArgument = sourceType.typeArguments;
+    List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;
     if (sourceType.treatAsRaw) {
       type = classElement.rawType;

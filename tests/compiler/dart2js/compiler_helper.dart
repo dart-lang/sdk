@@ -1,7 +1,6 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Test constant folding.
 
 library compiler_helper;
 
@@ -170,7 +169,7 @@ types.TypeMask findTypeMask(compiler, String name,
   var sourceName = name;
   var element = compiler.mainApp.find(sourceName);
   if (element == null) {
-    element = compiler.interceptorsLibrary.find(sourceName);
+    element = compiler.backend.interceptorsLibrary.find(sourceName);
   }
   if (element == null) {
     element = compiler.coreLibrary.find(sourceName);

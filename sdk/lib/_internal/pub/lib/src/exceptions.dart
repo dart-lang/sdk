@@ -39,6 +39,15 @@ class WrappedException extends ApplicationException {
         super(message);
 }
 
+/// A class for exceptions that shouldn't be printed at the top level.
+///
+/// This is usually used when an exception has already been printed using
+/// [log.exception].
+class SilentException extends WrappedException {
+  SilentException(innerError, [StackTrace innerTrace])
+      : super(innerError.toString(), innerError, innerTrace);
+}
+
 /// A class for command usage exceptions.
 class UsageException extends ApplicationException {
   /// The command usage information.

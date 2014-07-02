@@ -7,6 +7,7 @@ library closureToClassMapper;
 import "elements/elements.dart";
 import "dart2jslib.dart";
 import "dart_types.dart";
+import "js_backend/js_backend.dart" show JavaScriptBackend;
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
@@ -89,6 +90,8 @@ class ClosureFieldElement extends ElementX implements VariableElement {
 
   ClosureClassElement get closureClass => enclosingElement;
 
+  bool get hasNode => false;
+
   Node get node {
     throw new SpannableAssertionFailure(
         variableElement,
@@ -145,9 +148,10 @@ class ClosureClassElement extends ClassElementX {
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId(),
               STATE_DONE) {
+    JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? compiler.boundClosureClass
-        : compiler.closureClass;
+        ? backend.boundClosureClass
+        : backend.closureClass;
     superclass.ensureResolved(compiler);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
@@ -156,6 +160,8 @@ class ClosureClassElement extends ClassElementX {
         superclass.allSupertypesAndSelf.extendClass(thisType);
     callType = methodElement.type;
   }
+
+  bool get hasNode => true;
 
   bool get isClosure => true;
 
@@ -243,6 +249,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX {
   }
 
   ClosureClassElement get closureClass => enclosingElement;
+
+  bool get hasNode => expression.hasNode;
 
   FunctionExpression get node => expression.node;
 
@@ -587,8 +595,7 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeCast) {
       DartType type = elements.getType(node.arguments.head);
       analyzeType(type);
-    } else if (element == compiler.assertMethod
-               && !compiler.enableUserAssertions) {
+    } else if (elements.isAssert(node) && !compiler.enableUserAssertions) {
       return;
     }
     node.visitChildren(this);
@@ -766,9 +773,11 @@ class ClosureTranslator extends Visitor {
     ClosureContainer enclosing = element.enclosingElement;
     enclosing.nestedClosures.add(callElement);
     globalizedElement.addMember(callElement, compiler);
+    globalizedElement.computeAllClassMembers(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
+
     return new ClosureClassMap(element, globalizedElement,
                                callElement, thisElement);
   }

@@ -246,9 +246,11 @@ class _TransformerLoader {
   /// If any library hasn't yet been loaded via [load], it will be ignored.
   Future<List<Set<Transformer>>> transformersForPhases(
       Iterable<Set<TransformerConfig>> phases) {
-    return Future.wait(phases.map((phase) =>
-            Future.wait(phase.map(transformersFor)).then(unionAll)))
-        // Return a growable list so that callers can add phases.
-        .then((phases) => phases.toList());
+    return Future.wait(phases.map((phase) {
+      return waitAndPrintErrors(phase.map(transformersFor)).then(unionAll);
+    })).then((phases) {
+      // Return a growable list so that callers can add phases.
+      return phases.toList();
+    });
   }
 }

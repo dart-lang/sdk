@@ -37,6 +37,7 @@ class IsolateRunStateElement extends ObservatoryElement {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
         assert(result.serviceType == 'Success');
+        app.removePauseEvents(isolate);
         return isolate.reload();
       });
   }

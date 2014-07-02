@@ -223,6 +223,14 @@ main() {
           File file = provider.getResource('/file.txt');
           expect(file == file, isTrue);
         });
+
+        test('before and after creation', () {
+          String path = '/file.txt';
+          File file1 = provider.getResource(path);
+          provider.newFile(path, 'contents');
+          File file2 = provider.getResource(path);
+          expect(file1 == file2, isTrue);
+        });
       });
 
       group('exists', () {
@@ -246,8 +254,11 @@ main() {
       });
 
       test('hashCode', () {
-        File file = provider.getResource('/foo/bar/file.txt');
-        file.hashCode;
+        String path = '/foo/bar/file.txt';
+        File file1 = provider.getResource(path);
+        provider.newFile(path, 'contents');
+        File file2 = provider.getResource(path);
+        expect(file1.hashCode, equals(file2.hashCode));
       });
 
       test('shortName', () {
@@ -259,13 +270,38 @@ main() {
         File file = provider.getResource('/foo/bar/file.txt');
         expect(file.toString(), '/foo/bar/file.txt');
       });
+
+      test('parent', () {
+        provider.newFile('/foo/bar/file.txt', 'content');
+        File file = provider.getResource('/foo/bar/file.txt');
+        Resource parent = file.parent;
+        expect(parent, new isInstanceOf<Folder>());
+        expect(parent.path, equals('/foo/bar'));
+      });
     });
 
     group('Folder', () {
       Folder folder;
+      const String path = '/foo/bar';
 
       setUp(() {
-        folder = provider.newFolder('/foo/bar');
+        folder = provider.newFolder(path);
+      });
+
+      test('hashCode', () {
+        Folder folder2 = provider.getResource(path);
+        expect(folder.hashCode, equals(folder2.hashCode));
+      });
+
+      test('equality: same path', () {
+        Folder folder2 = provider.getResource(path);
+        expect(folder == folder2, isTrue);
+      });
+
+      test('equality: different paths', () {
+        String path2 = '/foo/baz';
+        Folder folder2 = provider.newFolder(path2);
+        expect(folder == folder2, isFalse);
       });
 
       group('getChild', () {
@@ -310,6 +346,25 @@ main() {
         expect(children[0], _isFile);
         expect(children[1], _isFolder);
         expect(children[2], _isFile);
+      });
+
+      test('parent', () {
+        Resource parent1 = folder.parent;
+        expect(parent1, new isInstanceOf<Folder>());
+        expect(parent1.path, equals('/foo'));
+        Resource parent2 = parent1.parent;
+        expect(parent2, new isInstanceOf<Folder>());
+        expect(parent2.path, equals('/'));
+        expect(parent2.parent, isNull);
+      });
+
+      test('canonicalizePath', () {
+        expect(folder.canonicalizePath('baz'), equals('/foo/bar/baz'));
+        expect(folder.canonicalizePath('/baz'), equals('/baz'));
+        expect(folder.canonicalizePath('../baz'), equals('/foo/baz'));
+        expect(folder.canonicalizePath('/a/b/../c'), equals('/a/c'));
+        expect(folder.canonicalizePath('./baz'), equals('/foo/bar/baz'));
+        expect(folder.canonicalizePath('/a/b/./c'), equals('/a/b/c'));
       });
     });
 

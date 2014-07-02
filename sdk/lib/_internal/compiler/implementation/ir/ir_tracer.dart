@@ -119,6 +119,15 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         "InvokeMethod $receiver $callName ($args) $kont");
   }
 
+  visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
+    String dummy = names.name(node);
+    String callName = node.selector.name;
+    String args = node.arguments.map(formatReference).join(', ');
+    String kont = formatReference(node.continuation);
+    printStmt(dummy,
+        "InvokeSuperMethod $callName ($args) $kont");
+  }
+
   visitInvokeConstructor(ir.InvokeConstructor node) {
     String dummy = names.name(node);
     String callName;
@@ -170,17 +179,6 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "AsCast ($receiver ${node.type})");
   }
 
-  visitInvokeConstConstructor(ir.InvokeConstConstructor node) {
-    String dummy = names.name(node);
-    String values = node.arguments.map(formatReference).join(', ');
-    printStmt(dummy, "ConstConstruction ($values)");
-  }
-
-  visitThis(ir.This node) {
-    String dummy = names.name(node);
-    printStmt(dummy, "This");
-  }
-
   visitInvokeContinuation(ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
@@ -221,6 +219,14 @@ class IRTracer extends TracerUtil implements ir.Visitor {
 
   visitIsTrue(ir.IsTrue node) {
     return "IsTrue(${names.name(node.value.definition)})";
+  }
+
+  visitThis(ir.This node) {
+    return "This";
+  }
+
+  visitReifyTypeVar(ir.ReifyTypeVar node) {
+    return "ReifyTypeVar ${node.element.name}";
   }
 
   visitCondition(ir.Condition c) {}

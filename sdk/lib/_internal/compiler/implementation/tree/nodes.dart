@@ -968,7 +968,11 @@ class LiteralSymbol extends Expression {
 
   Token getEndToken() => identifiers.getEndToken();
 
-  String get slowNameString => '${identifiers}';
+  String get slowNameString {
+    Unparser unparser = new Unparser();
+    unparser.unparseNodeListOfIdentifiers(identifiers);
+    return unparser.result;
+  }
 }
 
 class Identifier extends Expression {

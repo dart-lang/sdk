@@ -476,7 +476,6 @@ class Object {
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
   static void RegisterSingletonClassNames();
-  static void CreateInternalMetaData();
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
                                          intptr_t used_size);
@@ -2171,6 +2170,9 @@ class Field : public Object {
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
+  bool is_synthetic() const {
+    return SyntheticBit::decode(raw_ptr()->kind_bits_);
+  }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value_in_bytes) const;
@@ -2192,6 +2194,7 @@ class Field : public Object {
                        bool is_static,
                        bool is_final,
                        bool is_const,
+                       bool is_synthetic,
                        const Class& owner,
                        intptr_t token_pos);
 
@@ -2326,7 +2329,8 @@ class Field : public Object {
     kStaticBit,
     kFinalBit,
     kHasInitializerBit,
-    kUnboxingCandidateBit
+    kUnboxingCandidateBit,
+    kSyntheticBit
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -2335,6 +2339,7 @@ class Field : public Object {
   class UnboxingCandidateBit : public BitField<bool,
                                                kUnboxingCandidateBit, 1> {
   };
+  class SyntheticBit : public BitField<bool, kSyntheticBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -2349,6 +2354,9 @@ class Field : public Object {
   }
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
+  }
+  void set_is_synthetic(bool value) const {
+    set_kind_bits(SyntheticBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -2519,8 +2527,6 @@ class Script : public Object {
                         intptr_t* first_token_index,
                         intptr_t* last_token_index) const;
 
-  RawLibrary* FindLibrary() const;
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -2528,8 +2534,6 @@ class Script : public Object {
   static RawScript* New(const String& url,
                         const String& source,
                         RawScript::Kind kind);
-
-  static RawScript* FindByUrl(const String& url);
 
  private:
   void set_url(const String& value) const;
@@ -4248,6 +4252,9 @@ class Instance : public Object {
                       const Array& param_names,
                       const Array& param_values) const;
 
+  // Equivalent to invoking hashCode on this instance.
+  virtual RawObject* HashCode() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -4946,6 +4953,8 @@ class Integer : public Number {
     return false;
   }
 
+  virtual RawObject* HashCode() const { return raw(); }
+
   // Integer is an abstract class.
   virtual bool IsZero() const {
     UNREACHABLE();
@@ -5317,6 +5326,8 @@ class String : public Instance {
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
 
+  virtual RawObject* HashCode() const { return Integer::New(Hash()); }
+
   int32_t CharAt(intptr_t index) const;
 
   Scanner::CharAtFunc CharAtFunc() const;
@@ -5491,6 +5502,11 @@ class String : public Instance {
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
   static RawString* NewFormattedV(const char* format, va_list args);
+
+  static bool ParseDouble(const String& str,
+                          intptr_t start,
+                          intptr_t end,
+                          double* result);
 
  protected:
   bool HasHash() const {

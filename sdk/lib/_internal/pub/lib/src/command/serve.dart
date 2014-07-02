@@ -24,6 +24,7 @@ class ServeCommand extends BarbackCommand {
       'By default, this serves "web/" and "test/", but an explicit list of \n'
       'directories to serve can be provided as well.';
   String get usage => "pub serve [directories...]";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-serve.html";
 
   PubPackageProvider _provider;
 

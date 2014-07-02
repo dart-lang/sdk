@@ -18,9 +18,9 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-import 'scanner_test.dart' show TokenFactory;
-import 'ast_test.dart' show AstFactory;
-import 'element_test.dart' show ElementFactory;
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 
 class AnalysisErrorListener_SimpleParserTest_computeStringValue implements AnalysisErrorListener {
   @override
@@ -4659,7 +4659,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPartDirective() {
     PartDirective fromNode = AstFactory.partDirective2("part.dart");
-    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl.forNode(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
     PartDirective toNode = AstFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -4668,7 +4668,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPartOfDirective() {
     PartOfDirective fromNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = new LibraryElementImpl(null, AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl.forNode(null, AstFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
     PartOfDirective toNode = AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
     ResolutionCopier.copyResolutionData(fromNode, toNode);

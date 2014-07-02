@@ -836,12 +836,25 @@ void Scavenger::WriteProtect(bool read_only) {
 
 
 void Scavenger::PrintToJSONObject(JSONObject* object) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
   JSONObject space(object, "new");
   space.AddProperty("type", "Scavenger");
   space.AddProperty("id", "heaps/new");
   space.AddProperty("name", "Scavenger");
   space.AddProperty("user_name", "new");
   space.AddProperty("collections", collections());
+  if (collections() > 0) {
+    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
+    double run_time_millis = MicrosecondsToMilliseconds(run_time);
+    double avg_time_between_collections =
+        run_time_millis / static_cast<double>(collections());
+    space.AddProperty("avgCollectionPeriodMillis",
+                      avg_time_between_collections);
+  } else {
+    space.AddProperty("avgCollectionPeriodMillis", 0.0);
+  }
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);
   space.AddProperty("external", ExternalInWords() * kWordSize);

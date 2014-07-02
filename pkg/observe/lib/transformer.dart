@@ -59,9 +59,7 @@ class ObservableTransformer extends Transformer {
       // Do a quick string check to determine if this is this file even
       // plausibly might need to be transformed. If not, we can avoid an
       // expensive parse.
-      if (!content.contains("@observable") && !content.contains("@published")) {
-        return;
-      }
+      if (!observableMatcher.hasMatch(content)) return;
 
       var id = transform.primaryInput.id;
       // TODO(sigmund): improve how we compute this url
@@ -420,3 +418,9 @@ Token _findFieldSeperator(Token token) {
   }
   return token;
 }
+
+// TODO(sigmund): remove hard coded Polymer support (@published). The proper way
+// to do this would be to switch to use the analyzer to resolve whether
+// annotations are subtypes of ObservableProperty.
+final observableMatcher =
+    new RegExp("@(published|observable|PublishedProperty|ObservableProperty)");

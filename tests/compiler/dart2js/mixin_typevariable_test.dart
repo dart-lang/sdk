@@ -44,13 +44,13 @@ void testMixinSupertypes() {
 
     void testSupertypes(ClassElement element) {
       if (element != Object) {
-        Expect.isTrue(element.typeVariables.slowLength() == 1);
+        Expect.isTrue(element.typeVariables.length == 1);
         Expect.equals(element,
-                      element.typeVariables.head.element.enclosingElement);
+                      element.typeVariables.first.element.enclosingElement);
       }
       for (InterfaceType supertype in element.allSupertypesAndSelf.types) {
         if (!supertype.typeArguments.isEmpty) {
-          Expect.equals(element.typeVariables, supertype.typeArguments,
+          Expect.listEquals(element.typeVariables, supertype.typeArguments,
               "Type argument mismatch on supertype $supertype of $element.");
         } else {
           Expect.equals(Object, supertype.element);
@@ -113,17 +113,17 @@ void testNonTrivialSubstitutions() {
     void testSupertypes(ClassElement element,
                         Map<ClassElement, List<DartType>> typeArguments) {
       if (element != Object) {
-        Expect.isTrue(element.typeVariables.slowLength() == 1);
+        Expect.isTrue(element.typeVariables.length == 1);
         Expect.equals(element,
-                      element.typeVariables.head.element.enclosingElement);
+                      element.typeVariables.first.element.enclosingElement);
       }
       for (InterfaceType supertype in element.allSupertypesAndSelf.types) {
         if (typeArguments.containsKey(supertype.element)) {
           Expect.listEquals(typeArguments[supertype.element],
-                            supertype.typeArguments.toList(),
+                            supertype.typeArguments,
               "Type argument mismatch on supertype $supertype of $element.");
         } else if (!supertype.typeArguments.isEmpty) {
-          Expect.equals(element.typeVariables, supertype.typeArguments,
+          Expect.listEquals(element.typeVariables, supertype.typeArguments,
               "Type argument mismatch on supertype $supertype of $element.");
         } else {
           Expect.equals(Object, supertype.element);
@@ -135,24 +135,24 @@ void testNonTrivialSubstitutions() {
     testSupertypes(C1.superclass, {A: [_dynamic], B: [_dynamic, _dynamic]});
     testSupertypes(C2, {A: [_dynamic], B: [_dynamic, _dynamic]});
 
-    DartType D1_T = D1.typeVariables.head;
+    DartType D1_T = D1.typeVariables.first;
     testSupertypes(D1, {A: [D1_T], B: [D1_T, instantiate(A, [D1_T])]});
-    DartType D1_superclass_T = D1.superclass.typeVariables.head;
+    DartType D1_superclass_T = D1.superclass.typeVariables.first;
     testSupertypes(D1.superclass,
         {A: [D1_superclass_T],
          B: [D1_superclass_T, instantiate(A, [D1_superclass_T])]});
-    DartType D2_T = D2.typeVariables.head;
+    DartType D2_T = D2.typeVariables.first;
     testSupertypes(D2, {A: [D2_T], B: [D2_T, instantiate(A, [D2_T])]});
 
     testSupertypes(E1, {A: [_], B: [_, instantiate(A, [_])]});
     testSupertypes(E1.superclass, {A: [_], B: [_, instantiate(A, [_])]});
     testSupertypes(E2, {A: [_], B: [_, instantiate(A, [_])]});
 
-    DartType F1_T = F1.typeVariables.head;
+    DartType F1_T = F1.typeVariables.first;
     testSupertypes(F1, {A: [_], B: [_, instantiate(B, [F1_T, _])]});
-    DartType F1_superclass_T = F1.superclass.typeVariables.head;
+    DartType F1_superclass_T = F1.superclass.typeVariables.first;
     testSupertypes(F1.superclass, {A: [_], B: [_, instantiate(B, [F1_superclass_T, _])]});
-    DartType F2_T = F2.typeVariables.head;
+    DartType F2_T = F2.typeVariables.first;
     testSupertypes(F2, {A: [_], B: [_, instantiate(B, [F2_T, _])]});
   }));
 }

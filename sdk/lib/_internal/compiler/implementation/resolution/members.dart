@@ -32,6 +32,7 @@ abstract class TreeElements {
   void setCurrentSelector(ForIn node, Selector selector);
   void setConstant(Node node, Constant constant);
   Constant getConstant(Node node);
+  bool isAssert(Send send);
 
   /**
    * Returns [:true:] if [node] is a type literal.
@@ -78,6 +79,7 @@ class TreeElementMapping implements TreeElements {
   final Map<Node, Map<VariableElement, List<Node>>> accessedByClosureIn =
       new Map<Node, Map<VariableElement, List<Node>>>();
   final Setlet<Element> elements = new Setlet<Element>();
+  final Setlet<Send> asserts = new Setlet<Send>();
 
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
@@ -254,6 +256,14 @@ class TreeElementMapping implements TreeElements {
   Iterable<Element> get allElements => elements;
 
   void forEachConstantNode(f(Node n, Constant c)) => constants.forEach(f);
+
+  void setAssert(Send node) {
+    asserts.add(node);
+  }
+
+  bool isAssert(Send node) {
+    return asserts.contains(node);
+  }
 }
 
 class ResolverTask extends CompilerTask {
@@ -1694,14 +1704,14 @@ class TypeResolver {
     DartType type;
 
     DartType checkNoTypeArguments(DartType type) {
-      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
+      List<DartType> arguments = new List<DartType>();
       bool hasTypeArgumentMismatch = resolveTypeArguments(
-          visitor, node, const Link<DartType>(), arguments);
+          visitor, node, const <DartType>[], arguments);
       if (hasTypeArgumentMismatch) {
         return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                 {'type': node}, typeName.source, visitor.enclosingElement),
-                type, arguments.toLink());
+                type, arguments);
       }
       return type;
     }
@@ -1745,10 +1755,10 @@ class TypeResolver {
             messageKind, messageArguments, typeName.source,
             visitor.enclosingElement);
       }
-      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
-      resolveTypeArguments(visitor, node, null, arguments);
+      List<DartType> arguments = <DartType>[];
+      resolveTypeArguments(visitor, node, const <DartType>[], arguments);
       return new MalformedType(erroneousElement,
-              userProvidedBadType, arguments.toLink());
+              userProvidedBadType, arguments);
     }
 
     // Try to construct the type from the element.
@@ -1776,18 +1786,18 @@ class TypeResolver {
         // [computeType].
         compiler.resolver._ensureClassWillBeResolved(cls);
         element.computeType(compiler);
-        var arguments = new LinkBuilder<DartType>();
+        List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, cls.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
           type = new BadInterfaceType(cls.declaration,
               new InterfaceType.forUserProvidedBadType(cls.declaration,
-                                                       arguments.toLink()));
+                                                       arguments));
         } else {
           if (arguments.isEmpty) {
             type = cls.rawType;
           } else {
-            type = new InterfaceType(cls.declaration, arguments.toLink());
+            type = new InterfaceType(cls.declaration, arguments.toList(growable: false));
             addTypeVariableBoundsCheck = true;
           }
         }
@@ -1796,18 +1806,17 @@ class TypeResolver {
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
         typdef.ensureResolved(compiler);
         element.computeType(compiler);
-        var arguments = new LinkBuilder<DartType>();
+        List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
           type = new BadTypedefType(typdef,
-              new TypedefType.forUserProvidedBadType(typdef,
-                                                     arguments.toLink()));
+              new TypedefType.forUserProvidedBadType(typdef, arguments));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;
           } else {
-            type = new TypedefType(typdef, arguments.toLink());
+            type = new TypedefType(typdef, arguments.toList(growable: false));
             addTypeVariableBoundsCheck = true;
           }
         }
@@ -1868,30 +1877,29 @@ class TypeResolver {
    * Returns [: true :] if the number of type arguments did not match the
    * number of type variables.
    */
-  bool resolveTypeArguments(
-      MappingVisitor visitor,
-      TypeAnnotation node,
-      Link<DartType> typeVariables,
-      LinkBuilder<DartType> arguments) {
+  bool resolveTypeArguments(MappingVisitor visitor,
+                            TypeAnnotation node,
+                            List<DartType> typeVariables,
+                            List<DartType> arguments) {
     if (node.typeArguments == null) {
       return false;
     }
+    int expectedVariables = typeVariables.length;
+    int index = 0;
     bool typeArgumentCountMismatch = false;
     for (Link<Node> typeArguments = node.typeArguments.nodes;
          !typeArguments.isEmpty;
-         typeArguments = typeArguments.tail) {
-      if (typeVariables != null && typeVariables.isEmpty) {
+         typeArguments = typeArguments.tail, index++) {
+      if (index > expectedVariables - 1) {
         visitor.warning(
             typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
         typeArgumentCountMismatch = true;
       }
       DartType argType = resolveTypeAnnotation(visitor, typeArguments.head);
-      arguments.addLast(argType);
-      if (typeVariables != null && !typeVariables.isEmpty) {
-        typeVariables = typeVariables.tail;
-      }
+      // TODO(karlklose): rewrite to not modify [arguments].
+      arguments.add(argType);
     }
-    if (typeVariables != null && !typeVariables.isEmpty) {
+    if (index < expectedVariables) {
       visitor.warning(node.typeArguments,
                       MessageKind.MISSING_TYPE_ARGUMENT);
       typeArgumentCountMismatch = true;
@@ -2357,7 +2365,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
                 MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
                 {'argumentCount': selector.namedArgumentCount});
         }
-        return compiler.assertMethod;
+        registry.registerAssert(node);
+        // TODO(johnniwinther): Return a marker to indicated that this is
+        // a call to assert.
+        return null;
       }
 
       return node.selector.accept(this);
@@ -2740,7 +2751,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     String operatorName = node.assignmentOperator.source;
     String source = operatorName;
     bool isComplex = !identical(source, '=');
-    if (!Elements.isUnresolved(target)) {
+    if (!(registry.isAssert(node) || Elements.isUnresolved(target))) {
       if (target.isAbstractField) {
         AbstractFieldElement field = target;
         setter = field.setter;
@@ -3239,8 +3250,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         compiler.reportError(arguments.nodes.head,
             MessageKind.TYPE_VARIABLE_IN_CONSTANT);
       }
-      listType = new InterfaceType(compiler.listClass,
-                                   new Link<DartType>.fromList([typeArgument]));
+      listType = new InterfaceType(compiler.listClass, [typeArgument]);
     } else {
       compiler.listClass.computeType(compiler);
       listType = compiler.listClass.rawType;
@@ -3462,7 +3472,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     DartType mapType;
     if (valueTypeArgument != null) {
       mapType = new InterfaceType(compiler.mapClass,
-          new Link<DartType>.fromList([keyTypeArgument, valueTypeArgument]));
+          [keyTypeArgument, valueTypeArgument]);
     } else {
       compiler.mapClass.computeType(compiler);
       mapType = compiler.mapClass.rawType;
@@ -3763,12 +3773,13 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
 
-    var nameSet = new Setlet<String>();
+    Setlet<String> nameSet = new Setlet<String>();
     // Resolve the bounds of type variables.
-    Link<DartType> typeLink = element.typeVariables;
+    Iterator<DartType> types = element.typeVariables.iterator;
     Link<Node> nodeLink = node.nodes;
     while (!nodeLink.isEmpty) {
-      TypeVariableType typeVariable = typeLink.head;
+      types.moveNext();
+      TypeVariableType typeVariable = types.current;
       String typeName = typeVariable.name;
       TypeVariable typeNode = nodeLink.head;
       registry.useType(typeNode, typeVariable);
@@ -3809,9 +3820,8 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         variableElement.boundCache = objectType;
       }
       nodeLink = nodeLink.tail;
-      typeLink = typeLink.tail;
     }
-    assert(typeLink.isEmpty);
+    assert(!types.moveNext());
   }
 }
 
@@ -4089,23 +4099,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         node,
         new Modifiers.withFlags(new NodeList.empty(), Modifiers.FLAG_ABSTRACT));
     // Create synthetic type variables for the mixin application.
-    LinkBuilder<DartType> typeVariablesBuilder = new LinkBuilder<DartType>();
+    List<DartType> typeVariables = <DartType>[];
     element.typeVariables.forEach((TypeVariableType type) {
       TypeVariableElementX typeVariableElement = new TypeVariableElementX(
           type.name, mixinApplication, type.element.node);
       TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
-      typeVariablesBuilder.addLast(typeVariable);
+      typeVariables.add(typeVariable);
     });
-    Link<DartType> typeVariables = typeVariablesBuilder.toLink();
     // Setup bounds on the synthetic type variables.
-    Link<DartType> link = typeVariables;
+    List<DartType> link = typeVariables;
+    int index = 0;
     element.typeVariables.forEach((TypeVariableType type) {
-      TypeVariableType typeVariable = link.head;
+      TypeVariableType typeVariable = typeVariables[index++];
       TypeVariableElementX typeVariableElement = typeVariable.element;
       typeVariableElement.typeCache = typeVariable;
       typeVariableElement.boundCache =
           type.element.bound.subst(typeVariables, element.typeVariables);
-      link = link.tail;
     });
     // Setup this and raw type for the mixin application.
     mixinApplication.computeThisAndRawType(compiler, typeVariables);
@@ -4350,8 +4359,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     LibraryElement lib = element.library;
     return
       !identical(lib, compiler.coreLibrary) &&
-      !identical(lib, compiler.jsHelperLibrary) &&
-      !identical(lib, compiler.interceptorsLibrary) &&
+      !compiler.backend.isBackendLibrary(lib) &&
       (type.isDynamic ||
        identical(type.element, compiler.boolClass) ||
        identical(type.element, compiler.numClass) ||

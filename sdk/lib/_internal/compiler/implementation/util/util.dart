@@ -47,6 +47,16 @@ class SpannableAssertionFailure {
                        '${message != null ? ': $message' : ''}';
 }
 
+bool equalElements(List a, List b) {
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (a[index] != b[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * File name prefix used to shorten the file name in stack traces printed by
  * [trace].

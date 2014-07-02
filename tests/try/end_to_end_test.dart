@@ -71,14 +71,27 @@ void onIframeLoaded(Event event) {
 void main() {
   asyncStart();
   window.onMessage.listen((MessageEvent e) {
-    if (e.data == 'Hello, World!\n') {
-      // Clear the DOM to work around a bug in test.dart.
-      document.body.nodes.clear();
+    switch (e.data) {
+      case 'Hello, World!\n':
+        // Clear the DOM to work around a bug in test.dart.
+        document.body.nodes.clear();
 
-      // Clean up after ourselves.
-      window.localStorage.clear();
+        // Clean up after ourselves.
+        window.localStorage.clear();
 
-      asyncEnd();
+        asyncEnd();
+        break;
+
+      case 'dart-calling-main':
+      case 'dart-main-done':
+      case 'unittest-suite-done':
+      case 'unittest-suite-fail':
+      case 'unittest-suite-success':
+      case 'unittest-suite-wait-for-done':
+        break;
+
+      default:
+        throw 'Unexpected message: ${e.data}';
     }
   });
 

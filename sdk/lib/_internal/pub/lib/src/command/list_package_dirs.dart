@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../command.dart';
 import '../log.dart' as log;
+import '../utils.dart';
 
 /// Handles the `list-package-dirs` pub command.
 class ListPackageDirsCommand extends PubCommand {

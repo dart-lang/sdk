@@ -67,7 +67,9 @@ main() {
     _testInitializers('this.a, {this.b}', '(a, {b}) : __\$a = a, __\$b = b');
   });
 
-  for (var annotation in ['observable', 'published']) {
+  var annotations =  ['observable', 'published',
+      'ObservableProperty()', 'PublishedProperty(reflect: true)'];
+  for (var annotation in annotations) {
     group('@$annotation full text', () {
       test('with changes', () {
         return _transform(_sampleObservable(annotation)).then(

@@ -258,6 +258,59 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
 }
 
 /**
+ * An implementation of an non-existing [Source].
+ */
+class NonExistingSource implements Source {
+  final String _name;
+
+  final UriKind uriKind;
+
+  NonExistingSource(this._name, this.uriKind);
+
+  @override
+  bool operator ==(Object obj) {
+    if (obj is NonExistingSource) {
+      NonExistingSource other = obj;
+      return other.uriKind == uriKind && (other._name == _name);
+    }
+    return false;
+  }
+
+  @override
+  bool exists() => false;
+
+  @override
+  TimestampedData<String> get contents {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+
+  @override
+  String get encoding {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+
+  @override
+  String get fullName => _name;
+
+  @override
+  int get modificationStamp => 0;
+
+  @override
+  String get shortName => _name;
+
+  @override
+  int get hashCode => _name.hashCode;
+
+  @override
+  bool get isInSystemLibrary => false;
+
+  @override
+  Source resolveRelative(Uri relativeUri) {
+    throw new UnsupportedOperationException("${_name}does not exist.");
+  }
+}
+
+/**
  * The interface `Source` defines the behavior of objects representing source code that can be
  * analyzed by the analysis engine.
  *

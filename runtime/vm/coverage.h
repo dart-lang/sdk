@@ -23,20 +23,27 @@ class Library;
 class Script;
 class String;
 
+class CoverageFilter : public ValueObject {
+ public:
+  virtual bool ShouldOutputCoverageFor(const Library& lib,
+                                       const String& script_url,
+                                       const Class& cls,
+                                       const Function& func) const = 0;
+  virtual ~CoverageFilter() {}
+};
+
 class CodeCoverage : public AllStatic {
  public:
   static void Write(Isolate* isolate);
-  static void PrintJSON(Isolate* isolate, JSONStream* stream);
-
-  static void PrintJSONForScript(const Script& script, JSONStream* stream);
-  static void PrintJSONForLibrary(
-      const Library& lib, const Script& script_filter, JSONStream* stream);
-  static void PrintJSONForClass(const Class& lib, JSONStream* stream);
+  static void PrintJSON(Isolate* isolate,
+                        JSONStream* stream,
+                        CoverageFilter* filter);
 
  private:
-  static void PrintClass(const Class& cls,
+  static void PrintClass(const Library& lib,
+                         const Class& cls,
                          const JSONArray& arr,
-                         const Script& script_filter);
+                         CoverageFilter* filter);
   static void CompileAndAdd(const Function& function,
                             const JSONArray& hits_arr,
                             const GrowableArray<intptr_t>& pos_to_line);

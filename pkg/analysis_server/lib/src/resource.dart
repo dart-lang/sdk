@@ -47,6 +47,16 @@ abstract class Folder extends Resource {
    * folders, including folders reachable via links).
    */
   Stream<WatchEvent> get changes;
+
+  /**
+   * If the path [path] is a relative path, convert it to an absolute path
+   * by interpreting it relative to this folder.  If it is already an aboslute
+   * path, then don't change it.
+   *
+   * However, regardless of whether [path] is relative or absolute, normalize
+   * it by removing path components of the form '.' or '..'.
+   */
+  String canonicalizePath(String path);
 }
 
 
@@ -69,6 +79,12 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Return the [Folder] that contains this resource, or `null` if this resource
+   * is a root folder.
+   */
+  Folder get parent;
 }
 
 
@@ -100,7 +116,10 @@ abstract class _MemoryResource implements Resource {
 
   @override
   bool operator ==(other) {
-    return identical(this, other);
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+    return path == other.path;
   }
 
   @override
@@ -114,6 +133,15 @@ abstract class _MemoryResource implements Resource {
 
   @override
   String toString() => path;
+
+  @override
+  Folder get parent {
+    String parentPath = posix.dirname(path);
+    if (parentPath == path) {
+      return null;
+    }
+    return _provider.getResource(parentPath);
+  }
 }
 
 
@@ -154,6 +182,30 @@ class MemoryResourceException {
   String toString() {
     return "MemoryResourceException(path=$path; message=$message)";
   }
+}
+
+
+/**
+ * An in-memory implementation of [File] which acts like a symbolic link to a
+ * non-existent file.
+ */
+class _MemoryDummyLink extends _MemoryResource implements File {
+  _MemoryDummyLink(MemoryResourceProvider provider, String path) :
+      super(provider, path);
+
+  @override
+  Source createSource(UriKind uriKind) {
+    throw new MemoryResourceException(path, "File '$path' could not be read");
+  }
+
+  String get _content {
+    throw new MemoryResourceException(path, "File '$path' could not be read");
+  }
+
+  int get _timestamp => _provider._pathToTimestamp[path];
+
+  @override
+  bool get exists => false;
 }
 
 
@@ -223,9 +275,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       super(provider, path);
   @override
   Resource getChild(String relPath) {
-    relPath = posix.normalize(relPath);
-    String childPath = posix.join(path, relPath);
-    childPath = posix.normalize(childPath);
+    String childPath = canonicalizePath(relPath);
     _MemoryResource resource = _provider._pathToResource[childPath];
     if (resource == null) {
       resource = new _MemoryFile(_provider, childPath);
@@ -259,6 +309,14 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     });
     return streamController.stream;
   }
+
+  @override
+  String canonicalizePath(String relPath) {
+    relPath = posix.normalize(relPath);
+    String childPath = posix.join(path, relPath);
+    childPath = posix.normalize(childPath);
+    return childPath;
+  }
 }
 
 
@@ -290,28 +348,24 @@ class MemoryResourceProvider implements ResourceProvider {
     if (!path.startsWith('/')) {
       throw new ArgumentError("Path must start with '/'");
     }
-    _MemoryFolder folder = null;
-    String partialPath = "";
-    for (String pathPart in path.split('/')) {
-      if (pathPart.isEmpty) {
-        continue;
+    _MemoryResource resource = _pathToResource[path];
+    if (resource == null) {
+      String parentPath = posix.dirname(path);
+      if (parentPath != path) {
+        newFolder(parentPath);
       }
-      partialPath += '/' + pathPart;
-      _MemoryResource resource = _pathToResource[partialPath];
-      if (resource == null) {
-        folder = new _MemoryFolder(this, partialPath);
-        _pathToResource[partialPath] = folder;
-        _pathToTimestamp[partialPath] = nextStamp++;
-      } else if (resource is _MemoryFolder) {
-        folder = resource;
-      } else {
-        String message = 'Folder expected at '
-                         "'$partialPath'"
-                         'but ${resource.runtimeType} found';
-        throw new ArgumentError(message);
-      }
+      _MemoryFolder folder = new _MemoryFolder(this, path);
+      _pathToResource[path] = folder;
+      _pathToTimestamp[path] = nextStamp++;
+      return folder;
+    } else if (resource is _MemoryFolder) {
+      return resource;
+    } else {
+      String message = 'Folder expected at '
+                       "'$path'"
+                       'but ${resource.runtimeType} found';
+      throw new ArgumentError(message);
     }
-    return folder;
   }
 
   File newFile(String path, String content) {
@@ -323,6 +377,20 @@ class MemoryResourceProvider implements ResourceProvider {
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
+  }
+
+  /**
+   * Create a resource representing a dummy link (that is, a File object which
+   * appears in its parent directory, but whose `exists` property is false)
+   */
+  File newDummyLink(String path) {
+    path = posix.normalize(path);
+    newFolder(posix.dirname(path));
+    _MemoryDummyLink link = new _MemoryDummyLink(this, path);
+    _pathToResource[path] = link;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
+    return link;
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
@@ -386,8 +454,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Resource getChild(String relPath) {
-    String childPath = join(_entry.absolute.path, relPath);
-    return PhysicalResourceProvider.INSTANCE.getResource(childPath);
+    return PhysicalResourceProvider.INSTANCE.getResource(canonicalizePath(relPath));
   }
 
   @override
@@ -409,6 +476,11 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
+
+  @override
+  String canonicalizePath(String relPath) {
+    return normalize(join(_entry.absolute.path, relPath));
+  }
 }
 
 
@@ -427,13 +499,30 @@ abstract class _PhysicalResource implements Resource {
   String get path => _entry.absolute.path;
 
   @override
-  get hashCode => _entry.hashCode;
+  get hashCode => path.hashCode;
+
+  @override
+  bool operator==(other) {
+    if (runtimeType != other.runtimeType) {
+      return false;
+    }
+    return path == other.path;
+  }
 
   @override
   String get shortName => basename(path);
 
   @override
   String toString() => path;
+
+  @override
+  Folder get parent {
+    String parentPath = dirname(path);
+    if (parentPath == path) {
+      return null;
+    }
+    return new _PhysicalFolder(new io.Directory(parentPath));
+  }
 }
 
 

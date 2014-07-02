@@ -3210,10 +3210,10 @@ void BinarySmiOpInstr::InferRange() {
   // Calculate overflowed status before clamping.
   const bool overflowed = range_->min().LowerBound().OverflowedSmi() ||
                           range_->max().UpperBound().OverflowedSmi();
+  set_overflow(overflowed);
+
   // Clamp value to be within smi range.
   range_->Clamp(RangeBoundary::kRangeBoundarySmi);
-
-  set_overflow(overflowed);
 }
 
 
@@ -3250,6 +3250,11 @@ void BinaryMintOpInstr::InferRange() {
 
   ASSERT(!range_->min().IsUnknown() && !range_->max().IsUnknown());
 
+  // Calculate overflowed status before clamping.
+  const bool overflowed = range_->min().LowerBound().OverflowedMint() ||
+                          range_->max().UpperBound().OverflowedMint();
+  set_can_overflow(overflowed);
+
   // Clamp value to be within mint range.
   range_->Clamp(RangeBoundary::kRangeBoundaryInt64);
 }
@@ -3285,6 +3290,11 @@ void ShiftMintOpInstr::InferRange() {
   range_ = possible_range;
 
   ASSERT(!range_->min().IsUnknown() && !range_->max().IsUnknown());
+
+  // Calculate overflowed status before clamping.
+  const bool overflowed = range_->min().LowerBound().OverflowedMint() ||
+                          range_->max().UpperBound().OverflowedMint();
+  set_can_overflow(overflowed);
 
   // Clamp value to be within mint range.
   range_->Clamp(RangeBoundary::kRangeBoundaryInt64);

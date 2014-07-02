@@ -38,7 +38,7 @@ Compiler reuseCompiler(
       !compiler.hasIncrementalSupport ||
       compiler.hasCrashed ||
       compiler.compilerWasCancelled ||
-      compiler.enqueuer.resolution.hasEnqueuedEverything ||
+      compiler.enqueuer.resolution.hasEnqueuedReflectiveElements ||
       compiler.deferredLoadTask.splitProgram) {
     if (compiler != null && compiler.hasIncrementalSupport) {
       print('***FLUSH***');
@@ -46,7 +46,7 @@ Compiler reuseCompiler(
         print('Unable to reuse compiler due to crash.');
       } else if (compiler.compilerWasCancelled) {
         print('Unable to reuse compiler due to cancel.');
-      } else if (compiler.enqueuer.resolution.hasEnqueuedEverything) {
+      } else if (compiler.enqueuer.resolution.hasEnqueuedReflectiveElements) {
         print('Unable to reuse compiler due to dart:mirrors.');
       } else if (compiler.deferredLoadTask.splitProgram) {
         print('Unable to reuse compiler due to deferred loading.');
@@ -68,10 +68,10 @@ Compiler reuseCompiler(
         ..provider = inputProvider
         ..handler = diagnosticHandler
         ..enqueuer.resolution.queueIsClosed = false
-        ..enqueuer.resolution.hasEnqueuedEverything = false
+        ..enqueuer.resolution.hasEnqueuedReflectiveElements = false
         ..enqueuer.resolution.hasEnqueuedReflectiveStaticFields = false
         ..enqueuer.codegen.queueIsClosed = false
-        ..enqueuer.codegen.hasEnqueuedEverything = false
+        ..enqueuer.codegen.hasEnqueuedReflectiveElements = false
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
         ..assembledCode = null
         ..compilationFailed = false;
@@ -130,15 +130,9 @@ Compiler reuseCompiler(
     backend
         ..preMirrorsMethodCount = 0;
 
-    Map libraries = new Map.from(compiler.libraries);
-    compiler.libraries.clear();
-    compiler.libraryLoader.reset();
-    libraries.forEach((String uri, LibraryElement library) {
-      if (library.isPlatformLibrary ||
-          (packagesAreImmutable && library.isPackageLibrary)) {
-        compiler.libraries[uri] = library;
-        compiler.libraryLoader.reuseLibrary(library);
-      }
+    compiler.libraryLoader.reset(reuseLibrary: (LibraryElement library) {
+      return library.isPlatformLibrary ||
+             (packagesAreImmutable && library.isPackageLibrary);
     });
   }
   oldTag.makeCurrent();

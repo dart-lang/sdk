@@ -7050,7 +7050,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
                            Value* left,
                            Value* right,
                            intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : op_kind_(op_kind), can_overflow_(true) {
     SetInputAt(0, left);
     SetInputAt(1, right);
     // Override generated deopt-id.
@@ -7062,11 +7062,15 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
+  bool can_overflow() const { return can_overflow_; }
+  void set_can_overflow(bool value) { can_overflow_ = value; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow ||
-        (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
+    return FLAG_throw_on_javascript_int_overflow
+        || (can_overflow() && ((op_kind() == Token::kADD) ||
+                               (op_kind() == Token::kSUB)));
   }
 
   virtual Representation representation() const {
@@ -7103,6 +7107,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
 
  private:
   const Token::Kind op_kind_;
+  bool can_overflow_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
@@ -7114,7 +7119,7 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
                    Value* left,
                    Value* right,
                    intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : op_kind_(op_kind), can_overflow_(true) {
     ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -7127,9 +7132,18 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
+  bool can_overflow() const { return can_overflow_; }
+  void set_can_overflow(bool value) { can_overflow_ = value; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  bool has_shift_count_check() const;
+
+  virtual bool CanDeoptimize() const {
+    return FLAG_throw_on_javascript_int_overflow
+        || has_shift_count_check()
+        || (can_overflow() && (op_kind() == Token::kSHL));
+  }
 
   virtual CompileType ComputeType() const;
 
@@ -7163,6 +7177,7 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
 
  private:
   const Token::Kind op_kind_;
+  bool can_overflow_;
 
   DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
 };

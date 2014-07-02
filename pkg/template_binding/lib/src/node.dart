@@ -22,8 +22,8 @@ class NodeBindExtension {
   NodeBindExtension._(this._node);
 
   /**
-   * Binds the attribute [name] to the [path] of the [model].
-   * Path is a String of accessors such as `foo.bar.baz`.
+   * Binds the attribute [name] to [value]. [value] can be a simple value when
+   * [oneTime] is true, or a [Bindable] like [PathObserver].
    * Returns the [Bindable] instance.
    */
   Bindable bind(String name, value, {bool oneTime: false}) {

@@ -27,6 +27,7 @@ static const char* kCustomIsolateScriptChars =
     "import 'dart:isolate';\n"
     "\n"
     "final RawReceivePort mainPort = new RawReceivePort();\n"
+    "final SendPort mainSendPort = mainPort.sendPort;\n"
     "\n"
     "echo(arg) native \"native_echo\";\n"
     "\n"
@@ -286,10 +287,10 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
                                              NativeLookup);
   EXPECT_VALID(lib);
 
-  Dart_Handle main_port = Dart_GetField(lib, NewString("mainPort"));
-  EXPECT_VALID(main_port);
+  Dart_Handle main_send_port = Dart_GetField(lib, NewString("mainSendPort"));
+  EXPECT_VALID(main_send_port);
   Dart_Port main_port_id;
-  Dart_Handle err = Dart_ReceivePortGetId(main_port, &main_port_id);
+  Dart_Handle err = Dart_SendPortGetId(main_send_port, &main_port_id);
   EXPECT_VALID(err);
 
   OS::Print("-- Adding StartEvent to queue --\n");

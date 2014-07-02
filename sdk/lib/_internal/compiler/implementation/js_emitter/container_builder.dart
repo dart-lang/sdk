@@ -149,7 +149,7 @@ class ContainerBuilder extends CodeEmitterHelper {
                          [bool canTearOff = false]) {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
-      if (cls.supertype.element == compiler.boundClosureClass) {
+      if (cls.supertype.element == backend.boundClosureClass) {
         compiler.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember) {

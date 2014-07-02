@@ -27,6 +27,7 @@ void runTests({bool js: true, bool csp: false}) {
   var ext = js ? (csp ? '.precompiled.js' : '.js') : '';
   var type = js ? '' : 'type="application/dart" ';
   var dartJsTag = js ? '' : DART_JS_TAG;
+  var async = js ? ' async=""' : '';
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
@@ -53,7 +54,7 @@ void runTests({bool js: true, bool csp: false}) {
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
           '</head><body>'
-          '<script ${type}src="a.dart$ext"></script>'
+          '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
           '</body></html>',
     });
@@ -70,7 +71,7 @@ void runTests({bool js: true, bool csp: false}) {
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
           '</head><body>'
-          '<script ${type}src="a.dart$ext"></script>'
+          '<script ${type}src="a.dart$ext"$async></script>'
           '$dartJsTag'
           '</body></html>',
     });

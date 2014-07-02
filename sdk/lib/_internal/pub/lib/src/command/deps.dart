@@ -19,6 +19,7 @@ class DepsCommand extends PubCommand {
   String get description => "Print package dependencies.";
   List<String> get aliases => const ["dependencies", "tab"];
   String get usage => "pub deps";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-deps.html";
 
   /// The loaded package graph.
   PackageGraph _graph;

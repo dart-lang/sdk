@@ -150,7 +150,21 @@ main() {
         });
 
         test('hashCode', () {
-          file.hashCode;
+          new io.File(path).writeAsStringSync('contents');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file.hashCode, equals(file2.hashCode));
+        });
+
+        test('equality: same path', () {
+          new io.File(path).writeAsStringSync('contents');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file == file2, isTrue);
+        });
+
+        test('equality: different paths', () {
+          String path2 = join(tempPath, 'file2.txt');
+          File file2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+          expect(file == file2, isFalse);
         });
 
         test('shortName', () {
@@ -159,6 +173,12 @@ main() {
 
         test('toString', () {
           expect(file.toString(), path);
+        });
+
+        test('parent', () {
+          Resource parent = file.parent;
+          expect(parent, new isInstanceOf<Folder>());
+          expect(parent.path, equals(tempPath));
         });
       });
 
@@ -170,6 +190,23 @@ main() {
           path = join(tempPath, 'folder');
           new io.Directory(path).createSync();
           folder = PhysicalResourceProvider.INSTANCE.getResource(path);
+        });
+
+        test('hashCode', () {
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(folder.hashCode, equals(folder2.hashCode));
+        });
+
+        test('equality: same path', () {
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(folder == folder2, isTrue);
+        });
+
+        test('equality: different paths', () {
+          String path2 = join(tempPath, 'folder2');
+          new io.Directory(path2).createSync();
+          Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
+          expect(folder == folder2, isFalse);
         });
 
         group('getChild', () {
@@ -215,6 +252,37 @@ main() {
           expect(children[0], _isFile);
           expect(children[1], _isFolder);
           expect(children[2], _isFile);
+        });
+
+        test('parent', () {
+          Resource parent = folder.parent;
+          expect(parent, new isInstanceOf<Folder>());
+          expect(parent.path, equals(tempPath));
+
+          // Since the OS is in control of where tempPath is, we don't know how
+          // far it should be from the root.  So just verify that each call to
+          // parent results in a a folder with a shorter path, and that we
+          // reach the root eventually.
+          while (true) {
+            Resource grandParent = parent.parent;
+            if (grandParent == null) {
+              break;
+            }
+            expect(grandParent, new isInstanceOf<Folder>());
+            expect(grandParent.path.length, lessThan(parent.path.length));
+            parent = grandParent;
+          }
+        });
+
+        test('canonicalizePath', () {
+          String path2 = join(tempPath, 'folder2');
+          String path3 = join(tempPath, 'folder3');
+          expect(folder.canonicalizePath('baz'), equals(join(path, 'baz')));
+          expect(folder.canonicalizePath(path2), equals(path2));
+          expect(folder.canonicalizePath(join('..', 'folder2')), equals(path2));
+          expect(folder.canonicalizePath(join(path2, '..', 'folder3')), equals(path3));
+          expect(folder.canonicalizePath(join('.', 'baz')), equals(join(path, 'baz')));
+          expect(folder.canonicalizePath(join(path2, '.', 'baz')), equals(join(path2, 'baz')));
         });
       });
     });

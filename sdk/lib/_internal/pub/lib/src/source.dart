@@ -94,14 +94,6 @@ abstract class Source {
   /// external code should not call this. Instead, call [describe].
   Future<Pubspec> doDescribe(PackageId id);
 
-  /// Ensures that the package identified by [id] is present on the local file
-  /// system.
-  ///
-  /// For cached sources, this ensures the package is in the system cache. (If
-  /// already cached, it does nothing.) For uncached sources, it does nothing
-  /// since the package is already local.
-  Future ensureLocal(PackageId id);
-
   /// Ensures [id] is available locally and creates a symlink at [symlink]
   /// pointing it.
   Future get(PackageId id, String symlink);

@@ -7,13 +7,13 @@ interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-form_data_test/functional: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-indexeddb_5_test: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 blob_constructor_test: Fail # Issue 19500
 transferables_test: Fail # Issue 19500
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 xhr_test/xhr: RuntimeError # Issue 18049
+form_data_test/functional: Skip # Issue 19726
+indexeddb_4_test: Skip # Issue 19726
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
@@ -399,8 +399,6 @@ speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
 [ $runtime == ff ]
-messageevent_test: RuntimeError # Issue 15651
-serialized_script_value_test: RuntimeError # Issue 15651
 client_rect_test: Fail # Issue 16890
 
 [ $runtime == ff ]
@@ -459,6 +457,12 @@ touchevent_test/supported: Fail
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
+
+[ $compiler == none && $runtime == drt && $system == linux && $arch == x64 ]
+indexeddb_5_test: Pass, RuntimeError # Issue 19778, 19503
+
+[ $compiler == none && $runtime == dartium && $system == linux && $arch == ia32 ]
+indexeddb_5_test: Pass, Timeout # Issue 19778, 19503
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning

@@ -808,7 +808,7 @@ abstract class LibraryElement extends Element
   Uri get canonicalUri;
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
-  Link<LibraryTag> get tags;
+  Iterable<LibraryTag> get tags;
   LibraryName get libraryTag;
   Link<Element> get exports;
 
@@ -1056,7 +1056,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
    * available until the type of the element has been computed through
    * [computeType].
    */
-  Link<DartType> get typeVariables;
+  List<DartType> get typeVariables;
 
   bool get isResolved;
 
@@ -1161,7 +1161,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachBackendMember(void f(Element member));
 
-  Link<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Compiler compiler);
 
   /// Looks up the member [name] in this class.
   Member lookupClassMember(Name name);
@@ -1266,9 +1266,13 @@ abstract class AnalyzableElement extends Element {
 ///
 /// Synthesized elements may return `null` from [node].
 abstract class AstElement extends AnalyzableElement {
+  /// `true` if [node] is available and non-null.
+  bool get hasNode;
+
   /// The AST node of this element.
   Node get node;
 
+  /// `true` if [resolvedAst] is available.
   bool get hasResolvedAst;
 
   /// The defining AST node of this element with is corresponding

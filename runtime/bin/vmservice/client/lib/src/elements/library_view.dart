@@ -24,4 +24,8 @@ class LibraryViewElement extends ObservatoryElement {
   void refresh(var done) {
     library.reload().whenComplete(done);
   }
+
+  void refreshCoverage(var done) {
+    library.refreshCoverage().whenComplete(done);
+  }
 }

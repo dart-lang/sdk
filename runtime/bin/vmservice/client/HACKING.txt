@@ -22,6 +22,10 @@ for review. Upload your change and get an LGTM.
 5. Run pub build
 6. Run ./deploy.sh
 
+Note: If you run pub from within the editor you need to make sure that it runs
+in release mode (--mode=release), i.e., output is minified and does not include
+any .dart source files.
+
 At this point you should rebuild your VM and:
 
 7. Launch dart --observe script.dart

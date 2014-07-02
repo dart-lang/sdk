@@ -13,6 +13,7 @@ class WebSocketClient extends Client {
   WebSocketClient(this.socket, service) : super(service) {
     socket.listen((message) => onWebSocketMessage(message));
     socket.done.then((_) => close());
+    service.subscribe('debug', this);
   }
 
   void onWebSocketMessage(message) {

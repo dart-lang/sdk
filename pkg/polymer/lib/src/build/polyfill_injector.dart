@@ -78,6 +78,9 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
           if (src.endsWith('.dart')) {
             script.attributes.remove('type');
             script.attributes['src'] = '$src$csp.js';
+            // TODO(sigmund): we shouldn't need 'async' here. Remove this
+            // workaround for dartbug.com/19653.
+            script.attributes['async'] = '';
           }
         }
       } else {

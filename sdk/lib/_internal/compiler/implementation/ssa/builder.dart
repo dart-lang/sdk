@@ -1668,21 +1668,24 @@ class SsaBuilder extends ResolvedVisitor {
         // of both.
         InterfaceType type = currentClass.thisType.asInstanceOf(enclosingClass);
         type = localsHandler.substInContext(type);
-        Link<DartType> typeVariables = enclosingClass.typeVariables;
-        type.typeArguments.forEach((DartType argument) {
-          localsHandler.updateLocal(
-              typeVariables.head.element,
-              analyzeTypeArgument(argument));
-          typeVariables = typeVariables.tail;
-        });
-        // If the supertype is a raw type, we need to set to null the
-        // type variables.
-        assert(typeVariables.isEmpty
-               || enclosingClass.typeVariables == typeVariables);
-        while (!typeVariables.isEmpty) {
-          localsHandler.updateLocal(typeVariables.head.element,
-              graph.addConstantNull(compiler));
-          typeVariables = typeVariables.tail;
+        List<DartType> arguments = type.typeArguments;
+        List<DartType> typeVariables = enclosingClass.typeVariables;
+        if (!type.isRaw) {
+          assert(arguments.length == typeVariables.length);
+          Iterator<DartType> variables = typeVariables.iterator;
+          type.typeArguments.forEach((DartType argument) {
+            variables.moveNext();
+            localsHandler.updateLocal(
+                variables.current.element,
+                analyzeTypeArgument(argument));
+          });
+        } else {
+          // If the supertype is a raw type, we need to set to null the
+          // type variables.
+          for (DartType variable in typeVariables) {
+            localsHandler.updateLocal(variable.element,
+                graph.addConstantNull(compiler));
+          }
         }
       }
 
@@ -1984,7 +1987,8 @@ class SsaBuilder extends ResolvedVisitor {
       bool allIndexed = true;
       int expectedIndex = 0;
       ClassElement contextClass;  // The class of `this`.
-      Link typeVariables;  // The list of 'remaining type variables' of `this`.
+      int remainingTypeVariables;  // The number of 'remaining type variables'
+                                   // of `this`.
 
       /// Helper to identify instructions that read a type variable without
       /// substitution (that is, directly use the index). These instructions
@@ -2010,15 +2014,15 @@ class SsaBuilder extends ResolvedVisitor {
           // many arguments we need to process.
           source = newSource;
           contextClass = source.sourceElement.enclosingClass;
-          typeVariables = contextClass.typeVariables;
+          remainingTypeVariables = contextClass.typeVariables.length;
         } else {
           assert(source == newSource);
         }
         // If there are no more type variables, then there are more type
         // arguments for the new object than the source has, and it can't be
         // a copy.  Otherwise remove one argument.
-        if (typeVariables.isEmpty) return false;
-        typeVariables = typeVariables.tail;
+        if (remainingTypeVariables == 0) return false;
+        remainingTypeVariables--;
         // Check that the index is the one we expect.
         IntConstant constant = index.constant;
         return constant.value == expectedIndex++;
@@ -2033,7 +2037,7 @@ class SsaBuilder extends ResolvedVisitor {
         typeArguments.add(argument);
       });
 
-      if (source != null && allIndexed && typeVariables.isEmpty) {
+      if (source != null && allIndexed && remainingTypeVariables == 0) {
         copyRuntimeTypeInfo(source, newObject);
       } else {
         newObject =
@@ -2229,7 +2233,7 @@ class SsaBuilder extends ResolvedVisitor {
       List arguments = [buildFunctionType(type), original];
       pushInvokeDynamic(
           null,
-          new Selector.call(name, compiler.jsHelperLibrary, 1),
+          new Selector.call(name, backend.jsHelperLibrary, 1),
           arguments);
 
       return new HTypeConversion(type, kind, original.instructionType, pop());
@@ -2663,13 +2667,11 @@ class SsaBuilder extends ResolvedVisitor {
     assert(isReachable);
     assert(node.body != null);
     void buildInitializer() {
-      if (node.initializer == null) return;
       ast.Node initializer = node.initializer;
-      if (initializer != null) {
-        visit(initializer);
-        if (initializer.asExpression() != null) {
-          pop();
-        }
+      if (initializer == null) return;
+      visit(initializer);
+      if (initializer.asExpression() != null) {
+        pop();
       }
     }
     HInstruction buildCondition() {
@@ -2977,11 +2979,10 @@ class SsaBuilder extends ResolvedVisitor {
     return pop();
   }
 
-  String getTargetName(ErroneousElement error, [String prefix]) {
+  String noSuchMethodTargetSymbolString(ErroneousElement error,
+                                        [String prefix]) {
     String result = error.name;
-    if (prefix != null) {
-      result = '$prefix $result';
-    }
+    if (prefix == "set") return "$result=";
     return result;
   }
 
@@ -3077,7 +3078,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'get'),
+                                noSuchMethodTargetSymbolString(element, 'get'),
                                 argumentNodes: const Link<ast.Node>());
     } else {
       stack.add(localsHandler.readLocal(element));
@@ -3128,7 +3129,8 @@ class SsaBuilder extends ResolvedVisitor {
       List<HInstruction> arguments =
           send == null ? const <HInstruction>[] : <HInstruction>[value];
       // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(location, getTargetName(element, 'set'),
+      generateThrowNoSuchMethod(location,
+                                noSuchMethodTargetSymbolString(element, 'set'),
                                 argumentValues: arguments);
     } else {
       stack.add(value);
@@ -3248,7 +3250,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
-          node, new Selector.call('_isTest', compiler.jsHelperLibrary, 1),
+          node, new Selector.call('_isTest', backend.jsHelperLibrary, 1),
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.isTypeVariable) {
@@ -3444,7 +3446,7 @@ class SsaBuilder extends ResolvedVisitor {
           'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we just generate code
       // to fetch the current isolate.
       String name = backend.namer.currentIsolate;
@@ -3455,7 +3457,7 @@ class SsaBuilder extends ResolvedVisitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateHelperLibrary.find('_currentIsolate');
+      Element element = backend.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
         compiler.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -3559,7 +3561,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void handleForeignJsCallInIsolate(ast.Send node) {
     Link<ast.Node> link = node.arguments;
-    if (!compiler.hasIsolateSupport()) {
+    if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
@@ -3569,7 +3571,7 @@ class SsaBuilder extends ResolvedVisitor {
                               backend.dynamicType));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateHelperLibrary.find('_callInIsolate');
+      Element element = backend.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
         compiler.internalError(node,
             'Isolate library and compiler mismatch.');
@@ -3714,8 +3716,7 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
-      Element element = compiler.findHelper(
-          'JavaScriptIndexingBehavior');
+      Element element = backend.findHelper('JavaScriptIndexingBehavior');
       stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
@@ -4152,14 +4153,7 @@ class SsaBuilder extends ResolvedVisitor {
         generateAbstractClassInstantiationError(send, cls.name);
         return;
       }
-      if (backend.classNeedsRti(cls)) {
-        Link<DartType> typeVariable = cls.typeVariables;
-        expectedType.typeArguments.forEach((DartType argument) {
-          inputs.add(analyzeTypeArgument(argument));
-          typeVariable = typeVariable.tail;
-        });
-        assert(typeVariable.isEmpty);
-      }
+      potentiallyAddTypeArguments(inputs, cls, expectedType);
 
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor, inputs, elementType);
@@ -4193,6 +4187,16 @@ class SsaBuilder extends ResolvedVisitor {
         stack.add(checked);
       }
     }
+  }
+
+  void potentiallyAddTypeArguments(List<HInstruction> inputs, ClassElement cls,
+                                   InterfaceType expectedType) {
+    if (!backend.classNeedsRti(cls)) return;
+    assert(expectedType.typeArguments.isEmpty ||
+        cls.typeVariables.length == expectedType.typeArguments.length);
+    expectedType.typeArguments.forEach((DartType argument) {
+      inputs.add(analyzeTypeArgument(argument));
+    });
   }
 
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
@@ -4256,12 +4260,19 @@ class SsaBuilder extends ResolvedVisitor {
       stack.add(graph.addConstantNull(compiler));
       return;
     }
+    // TODO(johnniwinther): Don't handle assert like a regular static call.
+    // It breaks the selector name check since the assert helper method cannot
+    // be called `assert` and therefore does not match the selector like a
+    // regular method.
     visitStaticSend(node);
   }
 
   visitStaticSend(ast.Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (elements.isAssert(node)) {
+      element = backend.assertMethod;
+    }
     if (element.isForeign(compiler) && element.isFunction) {
       visitForeignSend(node);
       return;
@@ -4270,7 +4281,7 @@ class SsaBuilder extends ResolvedVisitor {
       // An erroneous element indicates that the funciton could not be resolved
       // (a warning has been issued).
       generateThrowNoSuchMethod(node,
-                                getTargetName(element),
+                                noSuchMethodTargetSymbolString(element),
                                 argumentNodes: node.arguments);
       return;
     }
@@ -4312,9 +4323,13 @@ class SsaBuilder extends ResolvedVisitor {
     return graph.addConstant(constant, compiler);
   }
 
-  visitTypeReferenceSend(ast.Send node) {
-    Element element = elements[node];
-    if (element.isClass || element.isTypedef) {
+  visitTypePrefixSend(ast.Send node) {
+    compiler.internalError(node, "visitTypePrefixSend should not be called.");
+  }
+
+  visitTypeLiteralSend(ast.Send node) {
+    DartType type = elements.getTypeLiteralType(node);
+    if (type.isInterfaceType || type.isTypedef || type.isDynamic) {
       // TODO(karlklose): add type representation
       if (node.isCall) {
         // The node itself is not a constant but we register the selector (the
@@ -4323,9 +4338,8 @@ class SsaBuilder extends ResolvedVisitor {
       } else {
         stack.add(addConstant(node));
       }
-    } else if (element.isTypeVariable) {
-      TypeVariableElement typeVariable = element;
-      DartType type = localsHandler.substInContext(typeVariable.type);
+    } else if (type.isTypeVariable) {
+      type = localsHandler.substInContext(type);
       HInstruction value = analyzeTypeArgument(type);
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
@@ -4335,7 +4349,7 @@ class SsaBuilder extends ResolvedVisitor {
                        backend.getCreateRuntimeType(),
                        [pop()]);
     } else {
-      internalError('unexpected element kind $element', node: node);
+      internalError('unexpected type kind ${type.kind}', node: node);
     }
     if (node.isCall) {
       // This send is of the form 'e(...)', where e is resolved to a type
@@ -4449,9 +4463,10 @@ class SsaBuilder extends ResolvedVisitor {
     if (Elements.isErroneousElement(element)) {
       ErroneousElement error = element;
       if (error.messageKind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
-        generateThrowNoSuchMethod(node.send,
-                                  getTargetName(error, 'constructor'),
-                                  argumentNodes: node.send.arguments);
+        generateThrowNoSuchMethod(
+            node.send,
+            noSuchMethodTargetSymbolString(error, 'constructor'),
+            argumentNodes: node.send.arguments);
       } else {
         Message message = error.messageKind.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
@@ -4883,7 +4898,6 @@ class SsaBuilder extends ResolvedVisitor {
       for (; i < targetOptionals.length; i++) {
         inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
       }
-
       ClassElement targetClass = targetConstructor.enclosingClass;
       if (backend.classNeedsRti(targetClass)) {
         ClassElement cls = redirectingConstructor.enclosingClass;
@@ -5197,12 +5211,10 @@ class SsaBuilder extends ResolvedVisitor {
     ClassElement cls = constructor.enclosingClass;
 
     if (backend.classNeedsRti(cls)) {
-      Link<DartType> typeVariable = cls.typeVariables;
+      List<DartType> typeVariable = cls.typeVariables;
       expectedType.typeArguments.forEach((DartType argument) {
-            inputs.add(analyzeTypeArgument(argument));
-            typeVariable = typeVariable.tail;
-          });
-      assert(typeVariable.isEmpty);
+        inputs.add(analyzeTypeArgument(argument));
+      });
     }
 
     // The instruction type will always be a subtype of the mapLiteralClass, but
@@ -6301,13 +6313,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
+    ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
     builder.push(new HVoidType(type, new TypeMask.exact(cls)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('RuntimeType');
+    ClassElement cls = builder.backend.findHelper('RuntimeType');
     TypeMask instructionType = new TypeMask.subclass(cls);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
@@ -6335,17 +6347,17 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
       inputs.add(builder.pop());
     }
 
-    Link<DartType> namedParameterTypes = type.namedParameterTypes;
-    for (String name in type.namedParameters) {
-      ast.DartString dartString = new ast.DartString.literal(name);
+    List<DartType> namedParameterTypes = type.namedParameterTypes;
+    List<String> names = type.namedParameters;
+    for (int index = 0; index < names.length; index++) {
+      ast.DartString dartString = new ast.DartString.literal(names[index]);
       inputs.add(
           builder.graph.addConstantString(dartString, builder.compiler));
-      namedParameterTypes.head.accept(this, builder);
+      namedParameterTypes[index].accept(this, builder);
       inputs.add(builder.pop());
-      namedParameterTypes = namedParameterTypes.tail;
     }
 
-    ClassElement cls = builder.compiler.findHelper('RuntimeFunctionType');
+    ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
     builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
   }
 
@@ -6369,9 +6381,9 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     }
     ClassElement cls;
     if (type.typeArguments.isEmpty) {
-      cls = builder.compiler.findHelper('RuntimeTypePlain');
+      cls = builder.backend.findHelper('RuntimeTypePlain');
     } else {
-      cls = builder.compiler.findHelper('RuntimeTypeGeneric');
+      cls = builder.backend.findHelper('RuntimeTypeGeneric');
     }
     builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
   }
@@ -6383,7 +6395,8 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   }
 
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
-    ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
+    JavaScriptBackend backend = builder.compiler.backend;
+    ClassElement cls = backend.findHelper('DynamicRuntimeType');
     builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }
 }

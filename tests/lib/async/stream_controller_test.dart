@@ -657,6 +657,22 @@ void testAsBroadcastListenAfterClosePaused() {
   });
 }
 
+void testEventInListen() {
+  asyncStart();
+  // Regression test for http://dartbug.com/19722
+  var c;
+  void send() {
+    c.add(1);
+  }
+  int i = 1;
+  c = new StreamController.broadcast(onListen: send, sync: true);
+  c.stream.listen((v) {
+    Expect.equals(i++, v);
+  }, onDone: asyncEnd);
+  c.add(2);
+  c.close();
+}
+
 main() {
   asyncStart();
   testMultiController();
@@ -674,5 +690,6 @@ main() {
   testBroadcastListenAfterClosePaused();
   testAsBroadcastListenAfterClose();
   testAsBroadcastListenAfterClosePaused();
+  testEventInListen();
   asyncEnd();
 }

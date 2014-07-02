@@ -26,8 +26,8 @@
             'defines': [
               'ANDROID',
               'USE_STLPORT=1',
+              '__GNU_SOURCE=1',
               '_STLP_USE_PTR_SPECIALIZATIONS=1',
-              '_STLP_NO_CSTD_FUNCTION_IMPORTS=1',
               'HAVE_OFF64_T',
               'HAVE_SYS_UIO_H',
             ],
@@ -86,6 +86,7 @@
               '-fstack-protector',
             ],
             'cflags': [
+              '--sysroot=<(android_sysroot)',
               '-I<(android_ndk_include)',
               '-I<(android_ndk_root)/sources/cxx-stl/stlport/stlport',
               '-fno-stack-protector',
@@ -141,6 +142,7 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'cflags': [
+              '--sysroot=<(android_sysroot)',
               '-I<(android_ndk_include)',
               '-I<(android_ndk_root)/sources/cxx-stl/stlport/stlport',
               '-march=armv7-a',

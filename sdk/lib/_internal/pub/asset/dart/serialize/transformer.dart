@@ -95,6 +95,10 @@ Map _serializeAggregateTransformer(AggregateTransformer transformer) {
 
 // Converts [group] into a serializable map.
 Map _serializeTransformerGroup(TransformerGroup group) {
+  if (group.phases == null) {
+    throw "TransformerGroup $group phases cannot be null.";
+  }
+
   return {
     'type': 'TransformerGroup',
     'toString': group.toString(),

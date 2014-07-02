@@ -14,6 +14,7 @@ class UpgradeCommand extends PubCommand {
   String get description =>
       "Upgrade the current package's dependencies to latest versions.";
   String get usage => "pub upgrade [dependencies...]";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-upgrade.html";
   List<String> get aliases => const ["update"];
   bool get takesArguments => true;
 

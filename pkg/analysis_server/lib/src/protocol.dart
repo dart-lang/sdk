@@ -168,7 +168,7 @@ class Request {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new Map<String, Object>();
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[ID] = id;
     jsonObject[METHOD] = method;
     if (params.isNotEmpty) {
@@ -624,7 +624,7 @@ class Response {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new Map<String, Object>();
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[ID] = id;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
@@ -797,7 +797,7 @@ class RequestError {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new Map<String, Object>();
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[CODE] = code;
     jsonObject[MESSAGE] = message;
     if (!data.isEmpty) {
@@ -878,7 +878,7 @@ class Notification {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new Map<String, Object>();
+    Map<String, Object> jsonObject = new HashMap<String, Object>();
     jsonObject[EVENT] = event;
     if (!params.isEmpty) {
       jsonObject[PARAMS] = params;

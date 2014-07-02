@@ -256,7 +256,7 @@ void testClassMembers() {
 
     ClassElement B = env.getElement('B');
     InterfaceType B_this = B.thisType;
-    TypeVariableType B_T = B_this.typeArguments.head;
+    TypeVariableType B_T = B_this.typeArguments.first;
     checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
                      interfaceMembers: true);
     checkMemberCount(B_this, 4 /*inherited*/ + 5 /*declared*/,
@@ -281,7 +281,7 @@ void testClassMembers() {
 
     ClassElement C = env.getElement('C');
     InterfaceType C_this = C.thisType;
-    TypeVariableType C_S = C_this.typeArguments.head;
+    TypeVariableType C_S = C_this.typeArguments.first;
     checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
     checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: false);
     InterfaceType B_S = instantiate(B, [C_S]);
@@ -629,8 +629,8 @@ void testMixinMembers() {
     ClassElement B = env.getElement('B');
     ClassElement C = env.getElement('C');
     InterfaceType C_this = C.thisType;
-    TypeVariableType C_U = C_this.typeArguments.head;
-    TypeVariableType C_V = C_this.typeArguments.tail.head;
+    TypeVariableType C_U = C_this.typeArguments[0];
+    TypeVariableType C_V = C_this.typeArguments[1];
     InterfaceType A_U = instantiate(A, [C_U]);
     InterfaceType B_V = instantiate(B, [C_V]);
 

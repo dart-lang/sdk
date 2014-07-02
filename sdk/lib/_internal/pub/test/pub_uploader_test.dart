@@ -28,6 +28,9 @@ Usage: pub uploader [options] {add/remove} <email>
 
     --package    The package whose uploaders will be modified.
                  (defaults to the current package)
+
+Run "pub help" to see global options.
+See http://dartlang.org/tools/pub/cmd/pub-uploader.html for detailed documentation.
 ''';
 
 ScheduledProcess startPubUploader(ScheduledServer server, List<String> args) {

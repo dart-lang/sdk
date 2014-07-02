@@ -313,6 +313,11 @@ uword OS::GetStackSizeLimit() {
 }
 
 
+bool OS::AllowStackFrameIteratorFromAnotherThread() {
+  return false;
+}
+
+
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }

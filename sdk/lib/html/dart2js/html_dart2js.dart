@@ -11981,7 +11981,7 @@ class ErrorEvent extends Event native "ErrorEvent" {
 
 
 @DomName('Event')
-class Event extends Interceptor native "Event" {
+class Event extends Interceptor native "Event,InputEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -18414,6 +18414,12 @@ class MessageEvent extends Event native "MessageEvent" {
       Window source, List messagePorts}) {
     if (source == null) {
       source = window;
+    }
+    if (!Device.isIE) { // TODO: This if check should be removed once IE
+      // implements the constructor.
+      return JS('MessageEvent', 'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
+          type, canBubble, cancelable, data, origin, lastEventId, source,
+          messagePorts);
     }
     var event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,

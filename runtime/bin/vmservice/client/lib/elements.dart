@@ -42,5 +42,6 @@ export 'package:observatory/src/elements/service_view.dart';
 export 'package:observatory/src/elements/sliding_checkbox.dart';
 export 'package:observatory/src/elements/stack_frame.dart';
 export 'package:observatory/src/elements/stack_trace.dart';
+export 'package:observatory/src/elements/vm_connect.dart';
 export 'package:observatory/src/elements/vm_ref.dart';
 export 'package:observatory/src/elements/vm_view.dart';

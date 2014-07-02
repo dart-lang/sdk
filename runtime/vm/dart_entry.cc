@@ -362,6 +362,24 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 }
 
 
+RawObject* DartLibraryCalls::HashCode(const Instance& receiver) {
+  const int kNumArguments = 1;  // Receiver.
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(receiver,
+                               Symbols::hashCode(),
+                               args_desc));
+  ASSERT(!function.IsNull());
+  const Array& args = Array::Handle(Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(function,
+                                                                  args));
+  ASSERT(result.IsInstance() || result.IsError());
+  return result.raw();
+}
+
+
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
   const int kNumArguments = 2;

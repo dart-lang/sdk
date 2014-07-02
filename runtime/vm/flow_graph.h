@@ -6,6 +6,7 @@
 #define VM_FLOW_GRAPH_H_
 
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/intermediate_language.h"
 #include "vm/parser.h"
 
@@ -38,6 +39,43 @@ class BlockIterator : public ValueObject {
  private:
   const GrowableArray<BlockEntryInstr*>& block_order_;
   intptr_t current_;
+};
+
+
+struct ConstantPoolTrait {
+  typedef ConstantInstr* Value;
+  typedef const Object& Key;
+  typedef ConstantInstr* Pair;
+
+  static Key KeyOf(Pair kv) {
+    return kv->value();
+  }
+
+  static Value ValueOf(Pair kv) {
+    return kv;
+  }
+
+  static inline intptr_t Hashcode(Key key) {
+    if (key.IsSmi()) {
+      return Smi::Cast(key).Value();
+    }
+    if (key.IsDouble()) {
+      return static_cast<intptr_t>(
+          bit_cast<int32_t, float>(
+              static_cast<float>(Double::Cast(key).value())));
+    }
+    if (key.IsMint()) {
+      return static_cast<intptr_t>(Mint::Cast(key).value());
+    }
+    if (key.IsString()) {
+      return String::Cast(key).Hash();
+    }
+    return key.GetClassId();
+  }
+
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    return kv->value().raw() == key.raw();
+  }
 };
 
 
@@ -301,6 +339,7 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
+  DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
 };
 
 

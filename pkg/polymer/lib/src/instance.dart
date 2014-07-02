@@ -304,7 +304,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     ready();
   }
 
-  /// Called when [prepareElement] is finished.
+  /// Called when [prepareElement] is finished, which means that the element's
+  /// shadowRoot has been created, its event listeners have been setup,
+  /// attributes have been reflected to properties, and property observers have
+  /// been setup. To wait until the element has been attached to the default
+  /// view, use [attached] or [domReady].
   void ready() {}
 
   /// domReady can be used to access elements in dom (descendants,

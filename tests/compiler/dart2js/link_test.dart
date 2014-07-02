@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'package:compiler/implementation/util/util.dart';
-import 'package:compiler/implementation/util/util_implementation.dart';
+import 'link_helper.dart';
 
 main() {
   test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),
@@ -24,7 +24,7 @@ main() {
 }
 
 testFromList(List list) {
-  test(new Link.fromList(list), list);
+  test(LinkFromList(list), list);
 }
 
 test(Link link, List list) {
@@ -48,7 +48,7 @@ test(Link link, List list) {
 }
 
 testSkip() {
-  var nonEmptyLink = new Link.fromList([0, 1, 2, 3, 4, 5]);
+  var nonEmptyLink = LinkFromList([0, 1, 2, 3, 4, 5]);
   for (int i = 0 ; i < 5; i++) {
     var link = nonEmptyLink.skip(i);
     Expect.isFalse(link.isEmpty);

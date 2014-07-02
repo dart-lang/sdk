@@ -31,8 +31,7 @@ class MockCompilationUnitElement extends TypedMock implements
 }
 
 
-class MockConstructorElement extends TypedMock implements
-    ConstructorElement {
+class MockConstructorElement extends TypedMock implements ConstructorElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -119,6 +118,11 @@ class MockSource extends TypedMock implements Source {
   MockSource(this._name);
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   String toString() => _name;
+}
+
+
+class SourceMock extends TypedMock implements Source {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 

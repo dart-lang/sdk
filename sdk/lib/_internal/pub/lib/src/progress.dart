@@ -81,14 +81,14 @@ class Progress {
 
     // Print a final message without a time indicator so that we don't leave a
     // misleading half-complete time indicator on the console.
-    stdout.writeln("\r$_message...");
+    stdout.writeln(log.format("\r$_message..."));
     _timer.cancel();
     _timer = null;
   }
 
   /// Refreshes the progress line.
   void _update() {
-    stdout.write("\r$_message... ");
+    stdout.write(log.format("\r$_message... "));
 
     // Show the time only once it gets noticeably long.
     if (_stopwatch.elapsed.inSeconds > 0) {

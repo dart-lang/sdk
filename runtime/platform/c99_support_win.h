@@ -13,6 +13,8 @@
 #include <float.h>
 #include <string.h>
 
+#include <cmath>
+
 static const unsigned __int64 kQuietNaNMask =
     static_cast<unsigned __int64>(0xfff) << 51;
 
@@ -25,6 +27,8 @@ static const unsigned __int64 kQuietNaNMask =
 #define INFINITY HUGE_VAL
 #define NAN \
     *reinterpret_cast<const double*>(&kQuietNaNMask)
+
+namespace std {
 
 static inline int isinf(double x) {
   return (_fpclass(x) & (_FPCLASS_PINF | _FPCLASS_NINF)) != 0;
@@ -41,6 +45,8 @@ static inline int signbit(double x) {
     return x < 0;
   }
 }
+
+}  // namespace std
 
 static inline double trunc(double x) {
   if (x < 0) {

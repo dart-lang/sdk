@@ -405,6 +405,15 @@ void main() {
       ]);
   });
 
+  _testLinter('script tags should have at least src url or inline code', {
+      'a|lib/test.html': '''<html>
+          <script type="application/dart"></script>
+          </html>'''.replaceAll('          ', ''),
+    }, [
+      'warning: script tag seems empty. '
+      '(lib/test.html 1 0)'
+    ]);
+
   _testLinter('script tags should have only src url or inline code', {
       'a|lib/test.html': '''<html>
           <script type="application/dart" src="foo.dart">more</script>
@@ -429,6 +438,19 @@ void main() {
         'warning: Inline event handlers are only supported inside '
         'declarations of <polymer-element>. '
         '(lib/test.html 1 5)'
+      ]);
+
+    _testLinter('on-foo uses the {{ binding }} syntax', {
+        'a|lib/test.html': '''<html><body>
+            <link rel="import" href="../../packages/polymer/polymer.html">
+            <polymer-element name="x-a"><div on-foo="bar"></div>
+            </polymer-element>
+            '''.replaceAll('            ', ''),
+      }, [
+        'warning: Invalid event handler body "bar". Declare a method '
+        'in your custom element "void handlerName(event, detail, target)" '
+        'and use the form on-foo="{{handlerName}}". '
+        '(lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo is not an expression', {

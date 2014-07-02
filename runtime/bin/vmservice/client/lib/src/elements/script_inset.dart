@@ -72,7 +72,7 @@ class ScriptInsetElement extends ObservatoryElement {
     startLine =
         (pos != null) ? script.tokenToLine(pos) - 1 : 0;
     endLine =
-        (endPos != null) ? script.tokenToLine(endPos) : script.lines.length;
+        (endPos != null) ? script.tokenToLine(endPos) : startLine + 1;
     // Add line numbers.
     lineNumbers.clear();
     for (var i = startLine; i < endLine; i++) {

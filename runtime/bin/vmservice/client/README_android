@@ -1,0 +1,20 @@
+Running Observatory against content_shell:
+
+0) Open your mobile web application in Dart Editor and launch it on mobile.
+
+1) Forward localhost:9222 to the content_shell's remote debugging protocol:
+
+$ adb forward tcp:9222 localabstract:content_shell_devtools_remote
+
+2) Start the Observatory servers:
+
+$ ./run.sh
+
+By default Observatory will be available on localhost:9090
+
+3) Release the content_shell's remote debugging protocol by clicking the 'Stop'
+button in the Dart Editor's debugger. By releasing the debugging protocol,
+Observatory can communicate with the content_shell.
+
+4) On Observatory's connect to VM page you should see the name of your app 
+on the right hand side of the page.

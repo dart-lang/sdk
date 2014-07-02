@@ -9,21 +9,27 @@ import 'package:path/path.dart' as p;
 
 import 'version.dart';
 
-/// The currently supported versions of the Barback package that this version of
-/// pub works with.
+/// The currently supported versions of packages that this version of pub works
+/// with.
 ///
-/// Pub implicitly constrains barback to these versions.
+/// Pub implicitly constrains these packages to these versions as long as
+/// barback is a dependency.
 ///
-/// Barback is in a unique position. Pub imports it, so a copy of Barback is
-/// physically included in the SDK. Packages also depend on Barback (from
-/// pub.dartlang.org) when they implement their own transformers. Pub's plug-in
-/// API dynamically loads transformers into their own isolate.
+/// Users' transformers are loaded in an isolate that uses the entrypoint
+/// package's dependency versions. However, that isolate also loads code
+/// provided by pub (`asset/dart/transformer_isolate.dart` and associated
+/// files). This code uses these packages as well, so these constraints exist to
+/// ensure that its usage of the packages remains valid.
 ///
-/// This includes a Dart file (`asset/dart/transformer_isolate.dart`) which
-/// imports "package:barback/barback.dart". This file is included in the SDK,
-/// but that import is resolved using the application’s version of Barback. That
-/// means pub must tightly control which version of Barback the application is
-/// using so that it's one that pub supports.
+/// Most constraints here are like normal version constraints in that their
+/// upper bound is the next major version of the package (or minor version for
+/// pre-1.0.0 packages). If a new major version of the package is released,
+/// these *must* be incremented to synchronize with that.
+///
+/// The constraint on barback is different. Its upper bound is the next *patch*
+/// version of barback—that is, the next version with new features. This is
+/// because most barback features need additional serialization code to be fully
+/// supported in pub, even if they're otherwise backwards-compatible.
 ///
 /// Whenever a new minor or patch version of barback is published, this *must*
 /// be incremented to synchronize with that. See the barback [compatibility
@@ -31,7 +37,11 @@ import 'version.dart';
 /// constraint and barback's version.
 ///
 /// [compat]: https://gist.github.com/nex3/10942218
-final supportedVersions = new VersionConstraint.parse(">=0.13.0 <0.14.2");
+final pubConstraints = {
+  "barback": new VersionConstraint.parse(">=0.13.0 <0.14.2"),
+  "source_maps": new VersionConstraint.parse(">=0.9.0 <0.10.0"),
+  "stack_trace": new VersionConstraint.parse(">=0.9.1 <2.0.0")
+};
 
 /// Converts [id] to a "package:" URI.
 ///

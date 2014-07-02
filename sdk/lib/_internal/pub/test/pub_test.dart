@@ -32,6 +32,7 @@ final USAGE_STRING = """
       cache      Work with the system cache.
       deps       Print package dependencies.
       get        Get the current package's dependencies.
+      global     Work with global packages.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
       run        Run an executable from a package.
@@ -40,7 +41,8 @@ final USAGE_STRING = """
       uploader   Manage uploaders for a package on pub.dartlang.org.
       version    Print pub version.
 
-    Use "pub help [command]" for more information about a command.
+    Run "pub help [command]" for more information about a command.
+    See http://dartlang.org/tools/pub for detailed documentation.
     """;
 
 final VERSION_STRING = '''
@@ -62,6 +64,10 @@ main() {
     schedulePub(args: ['-h'], output: USAGE_STRING);
   });
 
+  integration('running pub with --with-prejudice upcases everything', () {
+    schedulePub(args: ['--with-prejudice'], output: USAGE_STRING.toUpperCase());
+  });
+
   integration('running pub with --help after command shows command usage', () {
     schedulePub(args: ['get', '--help'],
         output: '''
@@ -71,6 +77,9 @@ main() {
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
           -n, --dry-run         Report what dependencies would change but don't change any.
+
+          Run "pub help" to see global options.
+          See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
 
@@ -83,6 +92,9 @@ main() {
           -h, --help            Print usage information for this command.
               --[no-]offline    Use cached packages instead of accessing the network.
           -n, --dry-run         Report what dependencies would change but don't change any.
+
+          Run "pub help" to see global options.
+          See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
 
@@ -98,6 +110,9 @@ main() {
           Available subcommands:
             add      Install a package.
             repair   Reinstall cached packages.
+
+          Run "pub help" to see global options.
+          See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
      ''');
   });
 
@@ -116,6 +131,7 @@ main() {
           cache      Work with the system cache.
           deps       Print package dependencies.
           get        Get the current package's dependencies.
+          global     Work with global packages.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
           run        Run an executable from a package.
@@ -138,6 +154,9 @@ main() {
         Available subcommands:
           add      Install a package.
           repair   Reinstall cached packages.
+
+        Run "pub help" to see global options.
+        See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -169,6 +188,8 @@ main() {
 
         Usage: pub version
          -h, --help    Print usage information for this command.
+
+        Run "pub help" to see global options.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -184,6 +205,9 @@ main() {
         Available subcommands:
           add      Install a package.
           repair   Reinstall cached packages.
+
+        Run "pub help" to see global options.
+        See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -202,6 +226,9 @@ main() {
             -h, --help            Print usage information for this command.
                 --[no-]offline    Use cached packages instead of accessing the network.
             -n, --dry-run         Report what dependencies would change but don't change any.
+
+            Run "pub help" to see global options.
+            See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
             ''');
     });
 
@@ -216,6 +243,9 @@ main() {
             -f, --force      Publish without confirmation if there are no errors.
                 --server     The package server to which to upload this package.
                              (defaults to "https://pub.dartlang.org")
+
+            Run "pub help" to see global options.
+            See http://dartlang.org/tools/pub/cmd/pub-lish.html for detailed documentation.
             ''');
     });
 
@@ -243,6 +273,9 @@ main() {
                                      (defaults to on)
 
                 --[no-]force-poll    Force the use of a polling filesystem watcher.
+
+            Run "pub help" to see global options.
+            See http://dartlang.org/tools/pub/cmd/pub-serve.html for detailed documentation.
             ''');
     });
 
@@ -253,6 +286,8 @@ main() {
 
             Usage: pub cache list
             -h, --help    Print usage information for this command.
+
+            Run "pub help" to see global options.
             ''');
     });
 
@@ -266,6 +301,7 @@ main() {
               cache      Work with the system cache.
               deps       Print package dependencies.
               get        Get the current package's dependencies.
+              global     Work with global packages.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.
               run        Run an executable from a package.
@@ -288,6 +324,9 @@ main() {
             Available subcommands:
               add      Install a package.
               repair   Reinstall cached packages.
+
+            Run "pub help" to see global options.
+            See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
             ''',
             exitCode: exit_codes.USAGE);
     });
@@ -299,6 +338,8 @@ main() {
 
             Usage: pub version
             -h, --help    Print usage information for this command.
+
+            Run "pub help" to see global options.
             ''',
             exitCode: exit_codes.USAGE);
     });

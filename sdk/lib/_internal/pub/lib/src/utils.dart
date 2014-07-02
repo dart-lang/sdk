@@ -16,6 +16,7 @@ import 'package:path/path.dart' as path;
 import "package:stack_trace/stack_trace.dart";
 
 import 'exceptions.dart';
+import 'log.dart' as log;
 
 export '../../asset/dart/utils.dart';
 
@@ -122,6 +123,21 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
   }
 
   return completer.future;
+}
+
+/// Like [Future.wait], but prints all errors from the futures as they occur and
+/// only returns once all Futures have completed, successfully or not.
+///
+/// This will wrap the first error thrown in a [SilentException] and rethrow it.
+Future waitAndPrintErrors(Iterable<Future> futures) {
+  return Future.wait(futures.map((future) {
+    return future.catchError((error, stackTrace) {
+      log.exception(error, stackTrace);
+      throw error;
+    });
+  })).catchError((error, stackTrace) {
+    throw new SilentException(error, stackTrace);
+  });
 }
 
 /// Returns a [StreamTransformer] that will call [onDone] when the stream
@@ -343,9 +359,14 @@ Set<String> createDirectoryFilter(Iterable<String> dirs) {
   }).toSet();
 }
 
-/// Returns the maximum value in [iter].
-int maxAll(Iterable<int> iter) =>
-    iter.reduce((max, element) => element > max ? element : max);
+/// Returns the maximum value in [iter] by [compare].
+///
+/// [compare] defaults to [Comparable.compare].
+maxAll(Iterable iter, [int compare(element1, element2)]) {
+  if (compare == null) compare = Comparable.compare;
+  return iter.reduce((max, element) =>
+      compare(element, max) > 0 ? element : max);
+}
 
 /// Replace each instance of [matcher] in [source] with the return value of
 /// [fn].
@@ -714,6 +735,15 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// test that has explicitly set this.
 bool runningAsTest = Platform.environment.containsKey('_PUB_TESTING');
 
+/// Whether today is April Fools' day.
+bool get isAprilFools {
+  // Tests should never see April Fools' output.
+  if (runningAsTest) return false;
+
+  var date = new DateTime.now();
+  return date.month == 4 && date.day == 1;
+}
+
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
 ///
@@ -809,4 +839,12 @@ void fail(String message, [innerError, StackTrace innerTrace]) {
   } else {
     throw new ApplicationException(message);
   }
+}
+
+/// Throw a [DataException] with [message] to indicate that the command has
+/// failed because of invalid input data.
+///
+/// This will report the error and cause pub to exit with [exit_codes.DATA].
+void dataError(String message) {
+  throw new DataException(message);
 }

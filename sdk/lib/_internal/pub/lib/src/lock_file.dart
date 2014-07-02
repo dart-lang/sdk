@@ -17,6 +17,16 @@ class LockFile {
   /// The packages this lockfile pins.
   Map<String, PackageId> packages;
 
+  /// Creates a new lockfile containing [ids].
+  factory LockFile(List<PackageId> ids) {
+    var lockFile = new LockFile.empty();
+    for (var id in ids) {
+      if (!id.isRoot) lockFile.packages[id.name] = id;
+    }
+
+    return lockFile;
+  }
+
   LockFile._(this.packages);
 
   LockFile.empty()

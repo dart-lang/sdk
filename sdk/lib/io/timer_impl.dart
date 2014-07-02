@@ -235,7 +235,7 @@ class _Timer implements Timer {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_receivePort != null) {
-        _EventHandler._sendData(null, _receivePort, _NO_TIMER);
+        _EventHandler._sendData(null, _sendPort, _NO_TIMER);
         _shutdownTimerHandler();
       }
     } else {
@@ -248,7 +248,7 @@ class _Timer implements Timer {
         _sendPort.send(null);
       } else {
         _EventHandler._sendData(null,
-                                _receivePort,
+                                _sendPort,
                                 _heap.first._wakeupTime);
       }
     }
@@ -316,6 +316,7 @@ class _Timer implements Timer {
   static void _shutdownTimerHandler() {
     _receivePort.close();
     _receivePort = null;
+    _sendPort = null;
   }
 }
 

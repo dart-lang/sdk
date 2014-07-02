@@ -4,6 +4,9 @@
 
 test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 
+test/global/deactivate/unexpected_arguments_test: RuntimeError # Issue 19784
+test/global/deactivate/missing_package_arg_test: RuntimeError # Issue 19784
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip

@@ -266,7 +266,7 @@ abstract class ElementX extends Element {
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-  bool isForeign(Compiler compiler) => library == compiler.foreignLibrary;
+  bool isForeign(Compiler compiler) => compiler.backend.isForeign(this);
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
@@ -317,6 +317,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   Link<MetadataAnnotation> get metadata => unsupported();
+  bool get hasNode => false;
   get node => unsupported();
   get hasResolvedAst => false;
   get resolvedAst => unsupported();
@@ -751,7 +752,8 @@ class LibraryElementX
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
-  Link<LibraryTag> tags = const Link<LibraryTag>();
+  LinkBuilder<LibraryTag> tagsBuilder = new LinkBuilder<LibraryTag>();
+  List<LibraryTag> tagsCache;
   LibraryName libraryTag;
   bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
@@ -803,7 +805,19 @@ class LibraryElementX
   }
 
   void addTag(LibraryTag tag, DiagnosticListener listener) {
-    tags = tags.prepend(tag);
+    if (tagsCache != null) {
+      listener.internalError(tag,
+          "Library tags for $this have already been computed.");
+    }
+    tagsBuilder.addLast(tag);
+  }
+
+  Iterable<LibraryTag> get tags {
+    if (tagsCache == null) {
+      tagsCache = tagsBuilder.toList();
+      tagsBuilder = null;
+    }
+    return tagsCache;
   }
 
   void recordResolvedTag(LibraryDependency tag, LibraryElement library) {
@@ -1051,6 +1065,8 @@ class TypedefElementX extends ElementX
   TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
+  bool get hasNode => cachedNode != null;
+
   Typedef get node {
     assert(invariant(this, cachedNode != null,
         message: "Node has not been computed for $this."));
@@ -1081,7 +1097,7 @@ class TypedefElementX extends ElementX
     }
   }
 
-  TypedefType createType(Link<DartType> typeArguments) {
+  TypedefType createType(List<DartType> typeArguments) {
     return new TypedefType(this, typeArguments);
   }
 
@@ -1160,6 +1176,8 @@ class VariableElementX extends ElementX with AstElementMixin
 
   // A variable cannot be patched therefore defines itself.
   AstElement get definingElement => this;
+
+  bool get hasNode => definitionsCache != null;
 
   VariableDefinitions get node {
     assert(invariant(this, definitionsCache != null,
@@ -1335,6 +1353,8 @@ class ParameterElementX extends ElementX
             message: "Parameter signature has not been set for $this."));
     return functionSignatureCache;
   }
+
+  bool get hasNode => true;
 
   VariableDefinitions get node => definitions;
 
@@ -1590,6 +1610,8 @@ class LocalFunctionElementX extends BaseFunctionElementX {
                         Element enclosing)
       : super(name, kind, modifiers, enclosing, false);
 
+  bool get hasNode => true;
+
   FunctionExpression parseNode(DiagnosticListener listener) => node;
 
   Token get position {
@@ -1681,6 +1703,8 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
 
+  bool get hasNode => false;
+
   FunctionExpression get node => null;
 }
 
@@ -1696,6 +1720,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
               constructor.enclosingElement, false) {
     functionSignatureCache = constructor.functionSignature;
   }
+
+  bool get hasNode => constructor.hasNode;
 
   FunctionExpression get node => constructor.node;
 
@@ -1739,6 +1765,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
       : this('', superMember, enclosing, true);
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
+
+  bool get hasNode => false;
 
   FunctionExpression get node => null;
 
@@ -1816,9 +1844,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     return rawTypeCache;
   }
 
-  T createType(Link<DartType> typeArguments);
+  T createType(List<DartType> typeArguments);
 
-  void setThisAndRawTypes(Compiler compiler, Link<DartType> typeParameters) {
+  void setThisAndRawTypes(Compiler compiler, List<DartType> typeParameters) {
     assert(invariant(this, thisTypeCache == null,
         message: "This type has already been set on $this."));
     assert(invariant(this, rawTypeCache == null,
@@ -1827,37 +1855,36 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     if (typeParameters.isEmpty) {
       rawTypeCache = thisTypeCache;
     } else {
-      Link<DartType> dynamicParameters = const Link<DartType>();
-      typeParameters.forEach((_) {
-        dynamicParameters =
-            dynamicParameters.prepend(const DynamicType());
-      });
+      List<DartType> dynamicParameters =
+          new List.filled(typeParameters.length, const DynamicType());
       rawTypeCache = createType(dynamicParameters);
     }
   }
 
-  Link<DartType> get typeVariables => thisType.typeArguments;
+  List<DartType> get typeVariables => thisType.typeArguments;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
    * type variables declared in [parameter] on [element]. The bounds of the type
    * variables are not set until [element] has been resolved.
    */
-  Link<DartType> createTypeVariables(NodeList parameters) {
-    if (parameters == null) return const Link<DartType>();
+  List<DartType> createTypeVariables(NodeList parameters) {
+    if (parameters == null) return const <DartType>[];
 
     // Create types and elements for type variable.
-    LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
-    for (Link<Node> link = parameters.nodes; !link.isEmpty; link = link.tail) {
-      TypeVariable node = link.head;
+    Link<Node> nodes = parameters.nodes;
+    List<DartType> arguments =
+        new List.generate(nodes.slowLength(), (_) {
+      TypeVariable node = nodes.head;
       String variableName = node.name.source;
+      nodes = nodes.tail;
       TypeVariableElementX variableElement =
           new TypeVariableElementX(variableName, this, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
       variableElement.typeCache = variableType;
-      arguments.addLast(variableType);
-    }
-    return arguments.toLink();
+      return variableType;
+    }, growable: false);
+    return arguments;
   }
 
   bool get isResolved => resolutionState == STATE_DONE;
@@ -1911,7 +1938,7 @@ abstract class BaseClassElementX extends ElementX
     return thisTypeCache;
   }
 
-  void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
+  void computeThisAndRawType(Compiler compiler, List<DartType> typeVariables) {
     if (thisTypeCache == null) {
       if (origin == null) {
         setThisAndRawTypes(compiler, typeVariables);
@@ -1922,11 +1949,11 @@ abstract class BaseClassElementX extends ElementX
     }
   }
 
-  InterfaceType createType(Link<DartType> typeArguments) {
+  InterfaceType createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Compiler compiler);
 
   InterfaceType asInstanceOf(ClassElement cls) {
     if (cls == this) return thisType;
@@ -2322,7 +2349,7 @@ abstract class ClassElementX extends BaseClassElementX {
     addMember(constructor, compiler);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler) {
+  List<DartType> computeTypeParameters(Compiler compiler) {
     ClassNode node = parseNode(compiler);
     return createTypeVariables(node.typeParameters);
   }
@@ -2362,6 +2389,8 @@ class MixinApplicationElementX extends BaseClassElementX
 
   get patch => null;
   get origin => null;
+
+  bool get hasNode => true;
 
   Token get position => node.getBeginToken();
 
@@ -2409,7 +2438,7 @@ class MixinApplicationElementX extends BaseClassElementX
     addConstructor(constructor);
   }
 
-  Link<DartType> computeTypeParameters(Compiler compiler) {
+  List<DartType> computeTypeParameters(Compiler compiler) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
       throw new SpannableAssertionFailure(node,
@@ -2512,6 +2541,8 @@ class TypeVariableElementX extends ElementX with AstElementMixin
         message: "Bound has not been set on $this."));
     return boundCache;
   }
+
+  bool get hasNode => true;
 
   Node parseNode(compiler) => node;
 

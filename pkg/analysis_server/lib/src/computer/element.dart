@@ -6,6 +6,7 @@ library computer.element;
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
 
@@ -17,17 +18,10 @@ class Element {
 
   static const int FLAG_ABSTRACT = 0x01;
   static const int FLAG_CONST = 0x02;
-  static const int FLAG_DEPRECATED = 0x20;
   static const int FLAG_FINAL = 0x04;
-  static const int FLAG_PRIVATE = 0x10;
   static const int FLAG_STATIC = 0x08;
-
-  final bool isAbstract;
-  final bool isConst;
-  final bool isDeprecated;
-  final bool isFinal;
-  final bool isPrivate;
-  final bool isStatic;
+  static const int FLAG_PRIVATE = 0x10;
+  static const int FLAG_DEPRECATED = 0x20;
 
   /**
    * The kind of the element.
@@ -35,19 +29,14 @@ class Element {
   final ElementKind kind;
 
   /**
-   * The length of the name of the element.
-   */
-  final int length;
-
-  /**
    * The name of the element. This is typically used as the label in the outline.
    */
   final String name;
 
   /**
-   * The offset of the name of the element.
+   * The location of the element.
    */
-  final int offset;
+  final Location location;
 
   /**
    * The parameter list for the element.
@@ -63,17 +52,23 @@ class Element {
    */
   final String returnType;
 
-  Element(this.kind, this.name, this.offset, this.length, this.isPrivate,
+  final bool isAbstract;
+  final bool isConst;
+  final bool isFinal;
+  final bool isStatic;
+  final bool isPrivate;
+  final bool isDeprecated;
+
+  Element(this.kind, this.name, this.location, this.isPrivate,
       this.isDeprecated, {this.parameters, this.returnType, this.isAbstract: false,
       this.isConst: false, this.isFinal: false, this.isStatic: false});
 
   factory Element.fromEngine(engine.Element element) {
     String name = element.displayName;
-    int nameLength = name != null ? name.length : 0;
     String elementParameters = _getParametersString(element);
     String elementReturnType = _getReturnTypeString(element);
     return new Element(ElementKind.valueOfEngine(element.kind), name,
-        element.nameOffset, nameLength, element.isPrivate, element.isDeprecated,
+        new Location.fromElement(element), element.isPrivate, element.isDeprecated,
         parameters: elementParameters, returnType: elementReturnType, isAbstract:
         _isAbstract(element), isConst: _isConst(element), isFinal: _isFinal(element),
         isStatic: _isStatic(element));
@@ -82,8 +77,8 @@ class Element {
   factory Element.fromJson(Map<String, Object> map) {
     ElementKind kind = ElementKind.valueOf(map[KIND]);
     int flags = map[FLAGS];
-    return new Element(kind, map[NAME], map[OFFSET], map[LENGTH], _hasFlag(
-        flags, FLAG_PRIVATE), _hasFlag(flags, FLAG_DEPRECATED), parameters:
+    return new Element(kind, map[NAME], new Location.fromJson(map[LOCATION]),
+        _hasFlag(flags, FLAG_PRIVATE), _hasFlag(flags, FLAG_DEPRECATED), parameters:
         map[PARAMETERS], returnType: map[RETURN_TYPE], isAbstract: _hasFlag(flags,
         FLAG_ABSTRACT), isConst: _hasFlag(flags, FLAG_CONST), isFinal: _hasFlag(flags,
         FLAG_FINAL), isStatic: _hasFlag(flags, FLAG_STATIC));
@@ -104,8 +99,7 @@ class Element {
     Map<String, Object> json = {
       KIND: kind.name,
       NAME: name,
-      OFFSET: offset,
-      LENGTH: length,
+      LOCATION: location.toJson(),
       FLAGS: flags
     };
     if (parameters != null) {
@@ -282,5 +276,62 @@ class ElementKind {
       return TOP_LEVEL_VARIABLE;
     }
     return UNKNOWN;
+  }
+}
+
+
+/**
+ * Information about a location.
+ */
+class Location {
+  final String file;
+  final int offset;
+  final int length;
+  final int startLine;
+  final int startColumn;
+
+  Location(this.file, this.offset, this.length, this.startLine,
+      this.startColumn);
+
+  factory Location.fromElement(engine.Element element) {
+    Source source = element.source;
+    LineInfo lineInfo = element.context.getLineInfo(source);
+    String name = element.displayName;
+    // prepare location
+    int offset = element.nameOffset;
+    int length = name != null ? name.length : 0;
+    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+    int startLine = lineLocation.lineNumber;
+    int startColumn = lineLocation.columnNumber;
+    if (element is engine.CompilationUnitElement) {
+      offset = 0;
+      length = 0;
+      startLine = 1;
+      startColumn = 1;
+    }
+    // done
+    return new Location(source.fullName, offset, length, startLine,
+        startColumn);
+  }
+
+  factory Location.fromJson(Map<String, Object> map) {
+    return new Location(map[FILE], map[OFFSET], map[LENGTH], map[START_LINE],
+        map[START_COLUMN]);
+  }
+
+  Map<String, Object> toJson() {
+    return {
+      FILE: file,
+      OFFSET: offset,
+      LENGTH: length,
+      START_LINE: startLine,
+      START_COLUMN: startColumn
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Location(file=$file; offset=$offset; length=$length; '
+        'startLine=$startLine; startColumn=$startColumn)';
   }
 }

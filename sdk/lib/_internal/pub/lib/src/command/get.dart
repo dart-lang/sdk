@@ -12,6 +12,7 @@ import '../command.dart';
 class GetCommand extends PubCommand {
   String get description => "Get the current package's dependencies.";
   String get usage => "pub get";
+  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-get.html";
   List<String> get aliases => const ["install"];
   bool get isOffline => commandOptions["offline"];
 

@@ -471,7 +471,7 @@ class DeferredLoadTask extends CompilerTask {
       // asked isNeededForReflection. Instead an internal error is triggered.
       // So we have to filter them out here.
       if (element is AnalyzableElementX && !element.hasTreeElements) return;
-      if (compiler.backend.isNeededForReflection(element)) {
+      if (compiler.backend.isAccessibleByReflection(element)) {
         _mapDependencies(element, deferredImport, isMirrorUsage: true);
       }
     }
@@ -695,7 +695,7 @@ class DeferredLoadTask extends CompilerTask {
     Setlet<String> usedPrefixes = new Setlet<String>();
     // The last deferred import we saw with a given prefix (if any).
     Map<String, Import> prefixDeferredImport = new Map<String, Import>();
-    for (LibraryElement library in compiler.libraries.values) {
+    for (LibraryElement library in compiler.libraryLoader.libraries) {
       compiler.withCurrentElement(library, () {
         prefixDeferredImport.clear();
         usedPrefixes.clear();
@@ -741,8 +741,7 @@ class DeferredLoadTask extends CompilerTask {
     }
     if (splitProgram && backend is DartBackend) {
       // TODO(sigurdm): Implement deferred loading for dart2dart.
-      splitProgram = false;
-      compiler.reportInfo(
+      compiler.reportFatalError(
           lastDeferred,
           MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     }

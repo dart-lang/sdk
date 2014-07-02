@@ -535,13 +535,13 @@ class _JsonStringifier {
       Map<String, Object> m = object;
       _sink.write('{');
       String separator = '"';
-      for (String key in m.keys) {
+      m.forEach((String key, value) {
         _sink.write(separator);
         separator = ',"';
         escape(key);
         _sink.write('":');
-        stringifyValue(m[key]);
-      }
+        stringifyValue(value);
+      });
       _sink.write('}');
       _removeSeen(object);
       return true;

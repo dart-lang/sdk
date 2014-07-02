@@ -126,6 +126,10 @@ class IsolateViewElement extends ObservatoryElement {
     isolate.reload().whenComplete(done);
   }
 
+  void refreshCoverage(var done) {
+    isolate.refreshCoverage().whenComplete(done);
+  }
+
   Future pause(_) {
     return isolate.get("debug/pause").then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors

@@ -6,7 +6,6 @@ library nav_bar_element;
 
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -63,11 +62,11 @@ class NavControlElement extends ObservatoryElement {
   NavControlElement.created() : super.created();
 
   void forward(Event e, var detail, Element target) {
-    location.forward();
+    app.locationManager.forward();
   }
 
   void back(Event e, var detail, Element target) {
-    location.back();
+    app.locationManager.back();
   }
 }
 
@@ -111,8 +110,27 @@ class LibraryNavMenuElement extends ObservatoryElement {
 
 @CustomTag('class-nav-menu')
 class ClassNavMenuElement extends ObservatoryElement {
-  @published ServiceMap cls;
+  @published Class cls;
   @published bool last = false;
 
   ClassNavMenuElement.created() : super.created();
+}
+
+@CustomTag('nav-notify')
+class NavNotifyElement extends ObservatoryElement {
+  @published ObservableList<ServiceEvent> events;
+  
+  NavNotifyElement.created() : super.created();
+}
+
+@CustomTag('nav-notify-item')
+class NavNotifyItemElement extends ObservatoryElement {
+  @published ObservableList<ServiceEvent> events;
+  @published ServiceEvent event;
+  
+  void closeItem(MouseEvent e, var detail, Element target) {
+    events.remove(event);
+  }
+
+  NavNotifyItemElement.created() : super.created();
 }

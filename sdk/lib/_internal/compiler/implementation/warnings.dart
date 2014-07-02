@@ -1175,8 +1175,7 @@ main() => A.A = 1;
 
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "Deferred loading is not supported by the dart backend yet. "
-          "Will not split the output.");
+          "Deferred loading is not supported by the dart backend yet.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
@@ -1927,6 +1926,11 @@ Please include the following information:
 
   static const MessageKind HIDDEN_HINTS = const MessageKind(
       "#{hints} hint(s) suppressed in #{uri}.");
+
+  static const MessageKind PREAMBLE = const MessageKind(
+    "When run on the command-line, the compiled output might"
+    " require a preamble file located in:\n"
+    "  <sdk>/lib/_internal/lib/preambles.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

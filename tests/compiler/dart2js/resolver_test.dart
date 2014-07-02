@@ -13,6 +13,7 @@ import "parser_helper.dart";
 
 import 'package:compiler/implementation/dart_types.dart';
 import 'package:compiler/implementation/elements/modelx.dart';
+import 'link_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -21,7 +22,7 @@ Node buildInitialization(String name) =>
       (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
 
 createLocals(List variables) {
-  var locals = [];
+  var locals = <Node>[];
   for (final variable in variables) {
     String name = variable[0];
     bool init = variable[1];
@@ -31,7 +32,7 @@ createLocals(List variables) {
       locals.add(buildIdentifier(name));
     }
   }
-  var definitions = new NodeList(null, new Link.fromList(locals), null, null);
+  var definitions = new NodeList(null, LinkFromList(locals), null, null);
   return new VariableDefinitions(null, Modifiers.EMPTY, definitions);
 }
 
@@ -134,14 +135,12 @@ Future testTypeVariables() {
     visitor.visit(definition.type);
     InterfaceType type = visitor.registry.mapping.getType(definition.type);
     Expect.equals(definition.type.typeArguments.slowLength(),
-                  length(type.typeArguments));
+                  type.typeArguments.length);
     int index = 0;
-    Link<DartType> arguments = type.typeArguments;
-    while (!arguments.isEmpty) {
+    for (DartType argument in type.typeArguments) {
       Expect.equals(true, index < expectedElements.length);
-      Expect.equals(expectedElements[index], arguments.head.element);
+      Expect.equals(expectedElements[index], argument.element);
       index++;
-      arguments = arguments.tail;
     }
     Expect.equals(index, expectedElements.length);
   }
@@ -208,7 +207,7 @@ Future testSuperCalls() {
         new ResolverVisitor(compiler, fooB,
             new ResolutionRegistry.internal(compiler,
                 new CollectingTreeElements(fooB)));
-    FunctionExpression node = fooB.parseNode(compiler);
+    FunctionExpression node = (fooB as FunctionElementX).parseNode(compiler);
     visitor.visit(node.body);
     Map mapping = map(visitor);
 
@@ -250,7 +249,8 @@ Future testThis() {
           new ResolverVisitor(compiler, funElement,
               new ResolutionRegistry.internal(compiler,
                   new CollectingTreeElements(funElement)));
-      FunctionExpression function = funElement.parseNode(compiler);
+      FunctionExpression function =
+          (funElement as FunctionElementX).parseNode(compiler);
       visitor.visit(function.body);
       Map mapping = map(visitor);
       List<Element> values = mapping.values.toList();
@@ -272,7 +272,8 @@ Future testThis() {
       ResolverVisitor visitor = new ResolverVisitor(compiler, funElement,
           new ResolutionRegistry.internal(compiler,
               new CollectingTreeElements(funElement)));
-      FunctionExpression function = funElement.parseNode(compiler);
+      FunctionExpression function =
+          (funElement as FunctionElementX).parseNode(compiler);
       visitor.visit(function.body);
       Expect.equals(0, compiler.warnings.length);
       Expect.equals(1, compiler.errors.length);
@@ -621,7 +622,7 @@ Future testFunctionExpression() {
     });
     Expect.equals(ElementKind.FUNCTION, element.kind);
     Expect.equals('f', element.name);
-    Expect.equals(element.parseNode(compiler), node);
+    Expect.equals((element as FunctionElement).node, node);
   });
 }
 
@@ -629,11 +630,14 @@ Future testNewExpression() {
   return MockCompiler.create((MockCompiler compiler) {
     compiler.parseScript("class A {} foo() { print(new A()); }");
     ClassElement aElement = compiler.mainApp.find('A');
+
     FunctionElement fooElement = compiler.mainApp.find('foo');
+    compiler.resolver.resolve(fooElement);
+
     Expect.isNotNull(aElement);
     Expect.isNotNull(fooElement);
 
-    fooElement.parseNode(compiler);
+    fooElement.node;
     compiler.resolver.resolve(fooElement);
 
     TreeElements elements = compiler.resolveStatement("new A();");
@@ -690,7 +694,7 @@ Future resolveConstructor(
           new Selector.callDefaultConstructor(classElement.library));
     }
 
-    FunctionExpression tree = element.parseNode(compiler);
+    FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, element,
             new ResolutionRegistry.internal(compiler,

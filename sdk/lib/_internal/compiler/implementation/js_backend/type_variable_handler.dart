@@ -53,12 +53,12 @@ class TypeVariableHandler {
       bool hasMemberNeededForReflection(ClassElement cls) {
         bool result = false;
         cls.implementation.forEachMember((ClassElement cls, Element member) {
-          result = result || backend.isNeededForReflection(member);
+          result = result || backend.referencedFromMirrorSystem(member);
         });
         return result;
       }
 
-      if (!backend.isNeededForReflection(cls) &&
+      if (!backend.referencedFromMirrorSystem(cls) &&
           !hasMemberNeededForReflection(cls)) {
         return;
       }

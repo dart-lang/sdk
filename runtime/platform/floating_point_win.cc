@@ -5,7 +5,6 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
-#include <math.h>  // NOLINT
 #include <limits>  // NOLINT
 
 // Taken from third_party/v8/src/platform-win32.cc

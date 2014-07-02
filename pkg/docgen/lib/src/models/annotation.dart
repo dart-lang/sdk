@@ -83,7 +83,7 @@ class ResolvedNodeMirrorFinder extends Unparser {
     recursionLevel--;
   }
 
-  unparseNodeListFrom(NodeList node, var from) {
+  unparseNodeListFrom(NodeList node, var from, {spaces}) {
     if (from.isEmpty) return;
 
     visit(from.head);
@@ -109,6 +109,6 @@ class ResolvedNodeMirrorFinder extends Unparser {
       unparseNodeListFrom(node, node.nodes);
       recursionLevel--;
     }
-    if (node.endToken != null) add(node.endToken.value);
+    if (node.endToken != null) write(node.endToken.value);
   }
 }

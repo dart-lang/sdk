@@ -65,7 +65,7 @@ class Dart2JsLibraryMirror
     if (_element.libraryTag != null) {
       return _element.libraryTag.getBeginToken();
     } else if (!_element.tags.isEmpty) {
-      return _element.tags.reverse().head.getBeginToken();
+      return _element.tags.first.getBeginToken();
     }
     return null;
   }
@@ -76,7 +76,7 @@ class Dart2JsLibraryMirror
    */
   Token getEndToken() {
     if (!_element.tags.isEmpty) {
-      return _element.tags.head.getEndToken();
+      return _element.tags.last.getEndToken();
     }
     return null;
   }
@@ -84,7 +84,7 @@ class Dart2JsLibraryMirror
   void _ensureLibraryDependenciesAnalyzed() {
     if (_libraryDependencies == null) {
       _libraryDependencies = <LibraryDependencySourceMirror>[];
-      for (LibraryTag node in _element.tags.reverse()) {
+      for (LibraryTag node in _element.tags) {
         LibraryDependency libraryDependency = node.asLibraryDependency();
         if (libraryDependency != null) {
           LibraryElement targetLibraryElement =

@@ -95,8 +95,11 @@ class B {
         Element element_A = outline_A.element;
         expect(element_A.kind, ElementKind.CLASS);
         expect(element_A.name, "A");
-        expect(element_A.offset, testCode.indexOf("A {"));
-        expect(element_A.length, 1);
+        {
+          Location location = element_A.location;
+          expect(location.offset, testCode.indexOf("A {"));
+          expect(location.length, 1);
+        }
         expect(element_A.parameters, null);
         expect(element_A.returnType, null);
         // A children
@@ -131,8 +134,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.CONSTRUCTOR);
           expect(element.name, "A");
-          expect(element.offset, testCode.indexOf("A(int i, String s);"));
-          expect(element.length, "A".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("A(int i, String s);"));
+            expect(location.length, "A".length);
+          }
           expect(element.parameters, "(int i, String s)");
           expect(element.returnType, isNull);
           expect(element.isAbstract, isFalse);
@@ -143,8 +149,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.CONSTRUCTOR);
           expect(element.name, "A.name");
-          expect(element.offset, testCode.indexOf("name(num p);"));
-          expect(element.length, "name".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("name(num p);"));
+            expect(location.length, "name".length);
+          }
           expect(element.parameters, "(num p)");
           expect(element.returnType, isNull);
           expect(element.isAbstract, isFalse);
@@ -155,8 +164,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.CONSTRUCTOR);
           expect(element.name, "A._privateName");
-          expect(element.offset, testCode.indexOf("_privateName(num p);"));
-          expect(element.length, "_privateName".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("_privateName(num p);"));
+            expect(location.length, "_privateName".length);
+          }
           expect(element.parameters, "(num p)");
           expect(element.returnType, isNull);
           expect(element.isAbstract, isFalse);
@@ -167,8 +179,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.METHOD);
           expect(element.name, "ma");
-          expect(element.offset, testCode.indexOf("ma(int pa) => null;"));
-          expect(element.length, "ma".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("ma(int pa) => null;"));
+            expect(location.length, "ma".length);
+          }
           expect(element.parameters, "(int pa)");
           expect(element.returnType, "String");
           expect(element.isAbstract, isFalse);
@@ -179,8 +194,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.METHOD);
           expect(element.name, "_mb");
-          expect(element.offset, testCode.indexOf("_mb(int pb);"));
-          expect(element.length, "_mb".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("_mb(int pb);"));
+            expect(location.length, "_mb".length);
+          }
           expect(element.parameters, "(int pb)");
           expect(element.returnType, "");
           expect(element.isAbstract, isTrue);
@@ -191,8 +209,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.GETTER);
           expect(element.name, "propA");
-          expect(element.offset, testCode.indexOf("propA => null;"));
-          expect(element.length, "propA".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("propA => null;"));
+            expect(location.length, "propA".length);
+          }
           expect(element.parameters, "");
           expect(element.returnType, "String");
         }
@@ -201,8 +222,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.SETTER);
           expect(element.name, "propB");
-          expect(element.offset, testCode.indexOf("propB(int v) {}"));
-          expect(element.length, "propB".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("propB(int v) {}"));
+            expect(location.length, "propB".length);
+          }
           expect(element.parameters, "(int v)");
           expect(element.returnType, "");
         }
@@ -213,8 +237,11 @@ class B {
         Element element_B = outline_B.element;
         expect(element_B.kind, ElementKind.CLASS);
         expect(element_B.name, "B");
-        expect(element_B.offset, testCode.indexOf("B {"));
-        expect(element_B.length, 1);
+        {
+          Location location = element_B.location;
+          expect(location.offset, testCode.indexOf("B {"));
+          expect(location.length, 1);
+        }
         expect(element_B.parameters, null);
         expect(element_B.returnType, null);
         // B children
@@ -225,8 +252,11 @@ class B {
           Element element = outline.element;
           expect(element.kind, ElementKind.CONSTRUCTOR);
           expect(element.name, "B");
-          expect(element.offset, testCode.indexOf("B(int p);"));
-          expect(element.length, "B".length);
+          {
+            Location location = element.location;
+            expect(location.offset, testCode.indexOf("B(int p);"));
+            expect(location.length, "B".length);
+          }
           expect(element.parameters, "(int p)");
           expect(element.returnType, isNull);
         }
@@ -261,8 +291,11 @@ f() {
         Element element_A = outline_A.element;
         expect(element_A.kind, ElementKind.CLASS);
         expect(element_A.name, "A");
-        expect(element_A.offset, testCode.indexOf("A {"));
-        expect(element_A.length, "A".length);
+        {
+          Location location = element_A.location;
+          expect(location.offset, testCode.indexOf("A {"));
+          expect(location.length, "A".length);
+        }
         expect(element_A.parameters, null);
         expect(element_A.returnType, null);
         // A children
@@ -273,8 +306,11 @@ f() {
           Element constructorElement = constructorOutline.element;
           expect(constructorElement.kind, ElementKind.CONSTRUCTOR);
           expect(constructorElement.name, "A");
-          expect(constructorElement.offset, testCode.indexOf("A() {"));
-          expect(constructorElement.length, "A".length);
+          {
+            Location location = constructorElement.location;
+            expect(location.offset, testCode.indexOf("A() {"));
+            expect(location.length, "A".length);
+          }
           expect(constructorElement.parameters, "()");
           expect(constructorElement.returnType, isNull);
           // local function
@@ -285,8 +321,11 @@ f() {
             Element element = outline.element;
             expect(element.kind, ElementKind.FUNCTION);
             expect(element.name, "local_A");
-            expect(element.offset, testCode.indexOf("local_A() {}"));
-            expect(element.length, "local_A".length);
+            {
+              Location location = element.location;
+              expect(location.offset, testCode.indexOf("local_A() {}"));
+              expect(location.length, "local_A".length);
+            }
             expect(element.parameters, "()");
             expect(element.returnType, "int");
           }
@@ -296,8 +335,11 @@ f() {
           Element element_m = outline_m.element;
           expect(element_m.kind, ElementKind.METHOD);
           expect(element_m.name, "m");
-          expect(element_m.offset, testCode.indexOf("m() {"));
-          expect(element_m.length, "m".length);
+          {
+            Location location = element_m.location;
+            expect(location.offset, testCode.indexOf("m() {"));
+            expect(location.length, "m".length);
+          }
           expect(element_m.parameters, "()");
           expect(element_m.returnType, "");
           // local function
@@ -308,8 +350,11 @@ f() {
             Element element = outline.element;
             expect(element.kind, ElementKind.FUNCTION);
             expect(element.name, "local_m");
-            expect(element.offset, testCode.indexOf("local_m() {}"));
-            expect(element.length, "local_m".length);
+            {
+              Location location = element.location;
+              expect(location.offset, testCode.indexOf("local_m() {}"));
+              expect(location.length, "local_m".length);
+            }
             expect(element.parameters, "()");
             expect(element.returnType, "");
           }
@@ -321,8 +366,11 @@ f() {
         Element element_f = outline_f.element;
         expect(element_f.kind, ElementKind.FUNCTION);
         expect(element_f.name, "f");
-        expect(element_f.offset, testCode.indexOf("f() {"));
-        expect(element_f.length, "f".length);
+        {
+          Location location = element_f.location;
+          expect(location.offset, testCode.indexOf("f() {"));
+          expect(location.length, "f".length);
+        }
         expect(element_f.parameters, "()");
         expect(element_f.returnType, "");
         // f() children
@@ -333,8 +381,11 @@ f() {
           Element element_f1 = outline_f1.element;
           expect(element_f1.kind, ElementKind.FUNCTION);
           expect(element_f1.name, "local_f1");
-          expect(element_f1.offset, testCode.indexOf("local_f1(int i) {}"));
-          expect(element_f1.length, "local_f1".length);
+          {
+            Location location = element_f1.location;
+            expect(location.offset, testCode.indexOf("local_f1(int i) {}"));
+            expect(location.length, "local_f1".length);
+          }
           expect(element_f1.parameters, "(int i)");
           expect(element_f1.returnType, "");
         }
@@ -343,8 +394,11 @@ f() {
           Element element_f2 = outline_f2.element;
           expect(element_f2.kind, ElementKind.FUNCTION);
           expect(element_f2.name, "local_f2");
-          expect(element_f2.offset, testCode.indexOf("local_f2(String s) {"));
-          expect(element_f2.length, "local_f2".length);
+          {
+            Location location = element_f2.location;
+            expect(location.offset, testCode.indexOf("local_f2(String s) {"));
+            expect(location.length, "local_f2".length);
+          }
           expect(element_f2.parameters, "(String s)");
           expect(element_f2.returnType, "");
           // local_f2() local function
@@ -355,8 +409,11 @@ f() {
             Element element_f21 = outline_f21.element;
             expect(element_f21.kind, ElementKind.FUNCTION);
             expect(element_f21.name, "local_f21");
-            expect(element_f21.offset, testCode.indexOf("local_f21(int p) {"));
-            expect(element_f21.length, "local_f21".length);
+            {
+              Location location = element_f21.location;
+              expect(location.offset, testCode.indexOf("local_f21(int p) {"));
+              expect(location.length, "local_f21".length);
+            }
             expect(element_f21.parameters, "(int p)");
             expect(element_f21.returnType, "");
           }
@@ -597,8 +654,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
         expect(element.name, "FTA");
-        expect(element.offset, testCode.indexOf("FTA("));
-        expect(element.length, "FTA".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("FTA("));
+          expect(location.length, "FTA".length);
+        }
         expect(element.parameters, "(int i, String s)");
         expect(element.returnType, "String");
       }
@@ -608,8 +668,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
         expect(element.name, "FTB");
-        expect(element.offset, testCode.indexOf("FTB("));
-        expect(element.length, "FTB".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("FTB("));
+          expect(location.length, "FTB".length);
+        }
         expect(element.parameters, "(int p)");
         expect(element.returnType, "");
       }
@@ -619,8 +682,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.CLASS_TYPE_ALIAS);
         expect(element.name, "CTA");
-        expect(element.offset, testCode.indexOf("CTA ="));
-        expect(element.length, "CTA".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("CTA ="));
+          expect(location.length, "CTA".length);
+        }
         expect(element.parameters, isNull);
         expect(element.returnType, isNull);
       }
@@ -630,8 +696,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.FUNCTION);
         expect(element.name, "fA");
-        expect(element.offset, testCode.indexOf("fA("));
-        expect(element.length, "fA".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("fA("));
+          expect(location.length, "fA".length);
+        }
         expect(element.parameters, "(int i, String s)");
         expect(element.returnType, "String");
       }
@@ -641,8 +710,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.FUNCTION);
         expect(element.name, "fB");
-        expect(element.offset, testCode.indexOf("fB("));
-        expect(element.length, "fB".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("fB("));
+          expect(location.length, "fB".length);
+        }
         expect(element.parameters, "(int p)");
         expect(element.returnType, "");
       }
@@ -652,8 +724,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.GETTER);
         expect(element.name, "propA");
-        expect(element.offset, testCode.indexOf("propA => null;"));
-        expect(element.length, "propA".length);
+        {
+          Location location = element.location;
+          expect(element.location.offset, testCode.indexOf("propA => null;"));
+          expect(element.location.length, "propA".length);
+        }
         expect(element.parameters, "");
         expect(element.returnType, "String");
       }
@@ -663,8 +738,11 @@ set propB(int v) {}
         Element element = outline.element;
         expect(element.kind, ElementKind.SETTER);
         expect(element.name, "propB");
-        expect(element.offset, testCode.indexOf("propB(int v) {}"));
-        expect(element.length, "propB".length);
+        {
+          Location location = element.location;
+          expect(location.offset, testCode.indexOf("propB(int v) {}"));
+          expect(location.length, "propB".length);
+        }
         expect(element.parameters, "(int v)");
         expect(element.returnType, "");
       }

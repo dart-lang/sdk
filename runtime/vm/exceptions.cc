@@ -280,6 +280,14 @@ static void JumpToExceptionHandler(Isolate* isolate,
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
 
+  // The following three operations are part of the 'epilogue' of the
+  // CallToRuntime, CallBootstrapCFunction, and CallNativeCFunction stubs.
+  // In the case of an exception, we skip the epilogues and must set the
+  // correct state here.
+  isolate->set_vm_tag(VMTag::kScriptTagId);
+  isolate->set_top_exit_frame_info(0);
+  isolate->set_top_context(Context::null());
+
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
@@ -288,8 +296,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
   // Continue simulating at the given pc in the given frame after setting up the
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
-  isolate->set_vm_tag(VMTag::kScriptTagId);
-  isolate->set_top_context(Context::null());
+
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
                                 raw_exception, raw_stacktrace);
 #else
@@ -312,8 +319,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
   uword current_sp = reinterpret_cast<uword>(&program_counter) - 1024;
   __asan_unpoison_memory_region(reinterpret_cast<void*>(current_sp),
                                 stack_pointer - current_sp);
-  isolate->set_vm_tag(VMTag::kScriptTagId);
-  isolate->set_top_context(Context::null());
+
   func(program_counter, stack_pointer, frame_pointer,
        raw_exception, raw_stacktrace);
 #endif

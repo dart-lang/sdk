@@ -337,7 +337,8 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
       counter += 1;
     }
 
-    List<LibraryElement> sortedLibraries = compiler.libraries.values.toList();
+    List<LibraryElement> sortedLibraries =
+        compiler.libraryLoader.libraries.toList();
     sortedLibraries.sort((LibraryElement l1, LibraryElement l2) {
       if (l1.isPlatformLibrary && !l2.isPlatformLibrary) {
         return 1;

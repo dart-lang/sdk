@@ -235,5 +235,5 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
 
 useCompiler(dart2jslib.Compiler compiler) {
   compiler.libraryLoader.reset();
-  compiler.libraryLoader.reuseLibrary(null);
+  compiler.libraryLoader.lookupLibrary(null);
 }

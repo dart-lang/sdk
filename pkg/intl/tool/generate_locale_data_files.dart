@@ -8,7 +8,7 @@
  * This should be run any time the locale data changes.
  *
  * The files are written under "data/dates", in two subdirectories, "symbols"
- * and "patterns". In "data/dates" it will also generate "localeList.dart",
+ * and "patterns". In "data/dates" it will also generate "locale_list.dart",
  * which is sourced by the date_symbol_data... files.
  */
 
@@ -28,14 +28,13 @@ main() {
 }
 
 void writeLocaleList() {
-  var file = new File(path.join(dataDirectory, 'localeList.dart'));
+  var file = new File(path.join(dataDirectory, 'locale_list.dart'));
   var output = file.openWrite();
   output.write(
       '// Copyright (c) 2012, the Dart project authors.  Please see the '
       'AUTHORS file\n// for details. All rights reserved. Use of this source'
       'code is governed by a\n// BSD-style license that can be found in the'
       ' LICENSE file.\n\n'
-      'part of date_symbol_data_json;\n\n'
       '/// Hard-coded list of all available locales for dates.\n');
   output.write('final availableLocalesForDateFormatting = const [');
   List<String> allLocales = DateFormat.allLocalesWithSymbols();

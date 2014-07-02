@@ -7,6 +7,14 @@ part of service;
 /// A [ServiceObject] is an object known to the VM service and is tied
 /// to an owning [Isolate].
 abstract class ServiceObject extends Observable {
+  static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
+    return o1.name.compareTo(o2.name);
+  }
+
+  List removeDuplicatesAndSortLexical(List<ServiceObject> list) {
+    return list.toSet().toList()..sort(LexicalSortName);
+  }
+
   /// The owner of this [ServiceObject].  This can be an [Isolate], a
   /// [VM], or null.
   @reflectable ServiceObjectOwner get owner => _owner;
@@ -72,13 +80,16 @@ abstract class ServiceObject extends Observable {
         obj = new DartError._empty(owner);
         break;
       case 'Isolate':
-        obj = new Isolate._empty(owner);
+        obj = new Isolate._empty(owner.vm);
         break;
       case 'Library':
         obj = new Library._empty(owner);
         break;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
+        break;
+      case 'ServiceEvent':
+        obj = new ServiceEvent._empty(owner);
         break;
       case 'ServiceException':
         obj = new ServiceException._empty(owner);
@@ -160,6 +171,38 @@ abstract class ServiceObject extends Observable {
 
   // Updates internal state from [map]. [map] can be a reference.
   void _update(ObservableMap map, bool mapIsRef);
+
+  String relativeLink(String id) {
+    assert(id != null);
+    return "${link}/${id}";
+  }
+}
+
+abstract class Coverage {
+  // Following getters and functions will be provided by [ServiceObject].
+  ServiceObjectOwner get owner;
+  String get serviceType;
+  VM get vm;
+  String relativeLink(String id);
+
+  /// Default handler for coverage data.
+  void processCoverageData(List coverageData) {
+    coverageData.forEach((scriptCoverage) {
+      assert(scriptCoverage['script'] != null);
+      scriptCoverage['script']._processHits(scriptCoverage['hits']);
+    });
+  }
+
+  Future refreshCoverage() {
+    return vm.getAsMap(relativeLink('coverage')).then((ObservableMap map) {
+      var coverageOwner = (serviceType == 'Isolate') ? this : owner;
+      var coverage = new ServiceObject._fromMap(coverageOwner, map);
+      assert(coverage.serviceType == 'CodeCoverage');
+      var coverageList = coverage['coverage'];
+      assert(coverageList != null);
+      processCoverageData(coverageList);
+    });
+  }
 }
 
 abstract class ServiceObjectOwner extends ServiceObject {
@@ -204,6 +247,29 @@ abstract class VM extends ServiceObjectOwner {
       new StreamController.broadcast();
   final StreamController<ServiceError> errors =
       new StreamController.broadcast();
+  final StreamController<ServiceEvent> events =
+      new StreamController.broadcast();
+
+  void postEventMessage(String eventMessage) {
+      var map;
+      try {
+        map = _parseJSON(eventMessage);
+      } catch (e, st) {
+        Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
+        return;
+      }
+      if (map['type'] != 'ServiceEvent') {
+        Logger.root.severe(
+            "Expected 'ServiceEvent' but found '${map['type']}'");
+        return;
+      }
+      // Extract the owning isolate from the event itself.
+      String owningIsolateId = map['isolate']['id'];
+      _getIsolate(owningIsolateId).then((owningIsolate) {
+          var event = new ServiceObject._fromMap(owningIsolate, map);
+          events.add(event);
+      });
+  }
 
   static final RegExp _currentIsolateMatcher = new RegExp(r'isolates/\d+');
   static final RegExp _currentObjectMatcher = new RegExp(r'isolates/\d+/');
@@ -345,13 +411,7 @@ abstract class VM extends ServiceObjectOwner {
   /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
-      var map;
-      try {
-        map = _parseJSON(response);
-      } catch (e, st) {
-        print('Hit V8 bug.');
-        return _decodeError(e);
-      }
+      var map = _parseJSON(response);
       return _processMap(map);
     }).catchError((error) {
       // ServiceError, forward to VM's ServiceError stream.
@@ -366,6 +426,12 @@ abstract class VM extends ServiceObjectOwner {
 
   /// Get [id] as a [String] from the service directly. See [getAsMap].
   Future<String> getString(String id);
+  /// Force the VM to disconnect.
+  void disconnect();
+  /// Completes when the VM first connects.
+  Future get onConnect;
+  /// Completes when the VM disconnects or there was an error connecting.
+  Future get onDisconnect;
 
   void _update(ObservableMap map, bool mapIsRef) {
     if (mapIsRef) {
@@ -495,6 +561,7 @@ class HeapSpace extends Observable {
   @observable int external = 0;
   @observable int collections = 0;
   @observable double totalCollectionTimeInSeconds = 0.0;
+  @observable double averageCollectionPeriodInMillis = 0.0;
 
   void update(Map heapMap) {
     used = heapMap['used'];
@@ -502,18 +569,19 @@ class HeapSpace extends Observable {
     external = heapMap['external'];
     collections = heapMap['collections'];
     totalCollectionTimeInSeconds = heapMap['time'];
+    averageCollectionPeriodInMillis = heapMap['avgCollectionPeriodMillis'];
   }
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner {
+class Isolate extends ServiceObjectOwner with Coverage {
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable ObservableMap counters = new ObservableMap();
 
   String get link => '/${_id}';
 
-  @observable ServiceMap pauseEvent = null;
+  @observable ServiceEvent pauseEvent = null;
   bool get _isPaused => pauseEvent != null;
 
   @observable bool running = false;
@@ -572,27 +640,6 @@ class Isolate extends ServiceObjectOwner {
       Code code = codeRegion['code'];
       code.updateProfileData(codeRegion, codeTable, sampleCount);
     }
-  }
-
-  Future refreshCoverage() {
-    return get('coverage').then(_processCoverage);
-  }
-
-  void _processCoverage(ServiceMap coverage) {
-    assert(coverage.serviceType == 'CodeCoverage');
-    var coverageList = coverage['coverage'];
-    assert(coverageList != null);
-    coverageList.forEach((scriptCoverage) {
-      _processScriptCoverage(scriptCoverage);
-    });
-  }
-
-  void _processScriptCoverage(ObservableMap scriptCoverage) {
-    // Because the coverage data was upgraded into a ServiceObject,
-    // the script can be directly accessed.
-    Script script = scriptCoverage['script'];
-    assert(_cache.containsValue(script));
-    script._processHits(scriptCoverage['hits']);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -656,12 +703,12 @@ class Isolate extends ServiceObjectOwner {
     }
     // Cache miss.  Get the object from the vm directly.
     return vm.getAsMap(relativeLink(id)).then((ObservableMap map) {
-        var obj = new ServiceObject._fromMap(this, map);
-        if (obj.canCache) {
-          _cache.putIfAbsent(id, () => obj);
-        }
-        return obj;
-      });
+      var obj = new ServiceObject._fromMap(this, map);
+      if (obj.canCache) {
+        _cache.putIfAbsent(id, () => obj);
+      }
+      return obj;
+    });
   }
 
   @observable Class objectClass;
@@ -701,6 +748,18 @@ class Isolate extends ServiceObjectOwner {
     }
     _loaded = true;
     loading = false;
+
+    // Remap DebuggerEvent to ServiceEvent so that the observatory can
+    // work against 1.5 vms in the short term.
+    //
+    // TODO(turnidge): Remove this when no longer needed.
+    var pause = map['pauseEvent'];
+    if (pause != null) {
+      if (pause['type'] == 'DebuggerEvent') {
+        pause['type'] = 'ServiceEvent';
+      }
+    }
+
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -770,10 +829,8 @@ class Isolate extends ServiceObjectOwner {
     error = map['error'];
 
     libraries.clear();
-    for (var lib in map['libraries']) {
-      libraries.add(lib);
-    }
-    libraries.sort((a,b) => a.name.compareTo(b.name));
+    libraries.addAll(map['libraries']);
+    libraries.sort(ServiceObject.LexicalSortName);
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -950,7 +1007,30 @@ class ServiceException extends ServiceObject {
   }
 }
 
-class Library extends ServiceObject {
+/// A [ServiceEvent] is an asynchronous event notification from the vm.
+class ServiceEvent extends ServiceObject {
+  ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  @observable String eventType;
+  @observable ServiceMap breakpoint;
+  @observable ServiceMap exception;
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    eventType = map['eventType'];
+    name = 'ServiceEvent $eventType';
+    vmName = name;
+    if (map['breakpoint'] != null) {
+      breakpoint = map['breakpoint'];
+    }
+    if (map['exception'] != null) {
+      exception = map['exception'];
+    }
+  }
+}
+
+class Library extends ServiceObject with Coverage {
   @observable String url;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -981,15 +1061,18 @@ class Library extends ServiceObject {
     _loaded = true;
     _upgradeCollection(map, isolate);
     imports.clear();
-    imports.addAll(map['imports']);
+    imports.addAll(removeDuplicatesAndSortLexical(map['imports']));
     scripts.clear();
-    scripts.addAll(map['scripts']);
+    scripts.addAll(removeDuplicatesAndSortLexical(map['scripts']));
     classes.clear();
     classes.addAll(map['classes']);
+    classes.sort(ServiceObject.LexicalSortName);
     variables.clear();
     variables.addAll(map['variables']);
+    variables.sort(ServiceObject.LexicalSortName);
     functions.clear();
     functions.addAll(map['functions']);
+    functions.sort(ServiceObject.LexicalSortName);
   }
 }
 
@@ -1029,7 +1112,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends ServiceObject {
+class Class extends ServiceObject with Coverage {
   @observable Library library;
   @observable Script script;
   @observable Class superClass;
@@ -1097,12 +1180,15 @@ class Class extends ServiceObject {
 
     subClasses.clear();
     subClasses.addAll(map['subclasses']);
+    subClasses.sort(ServiceObject.LexicalSortName);
 
     fields.clear();
     fields.addAll(map['fields']);
+    fields.sort(ServiceObject.LexicalSortName);
 
     functions.clear();
     functions.addAll(map['functions']);
+    functions.sort(ServiceObject.LexicalSortName);
 
     superClass = map['super'];
     if (superClass != null) {
@@ -1136,7 +1222,7 @@ class ScriptLine extends Observable {
   ScriptLine(this.line, this.text);
 }
 
-class Script extends ServiceObject {
+class Script extends ServiceObject with Coverage {
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
   @observable String kind;
@@ -1382,7 +1468,7 @@ class CodeInstruction extends Observable {
     int address = _getJumpAddress();
     if (address == 0) {
       // Could not determine jump address.
-      print('Could not determine jump address for $human');
+      Logger.root.severe('Could not determine jump address for $human');
       return;
     }
     for (var i = 0; i < instructions.length; i++) {
@@ -1392,7 +1478,8 @@ class CodeInstruction extends Observable {
         return;
       }
     }
-    print('Could not find instruction at ${address.toRadixString(16)}');
+    Logger.root.severe(
+        'Could not find instruction at ${address.toRadixString(16)}');
   }
 }
 

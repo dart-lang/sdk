@@ -194,7 +194,7 @@ abstract class MembersCreator {
             addDeclaredMember(name.setter, type,
                 new FunctionType.synthesized(
                                  const VoidType(),
-                                 const Link<DartType>().prepend(type)));
+                                 <DartType>[type]));
           }
         } else if (element.isGetter) {
           FunctionType functionType = element.computeType(compiler);
@@ -204,7 +204,7 @@ abstract class MembersCreator {
           FunctionType functionType = element.computeType(compiler);
           DartType type;
           if (!functionType.parameterTypes.isEmpty) {
-            type = functionType.parameterTypes.head;
+            type = functionType.parameterTypes.first;
           } else {
             type = const DynamicType();
           }
@@ -297,6 +297,25 @@ abstract class MembersCreator {
     // TODO(johnniwinther): If [cls] is not abstract, check that for all
     // interface members, there is a class member whose type is a subtype of
     // the interface member.
+  }
+
+  /// Checks that [cls], if it implements Function, has defined call().
+  void checkImplementsFunctionWithCall() {
+    assert(!cls.isAbstract);
+
+    if (cls.asInstanceOf(compiler.functionClass) == null) return;
+    if (cls.lookupMember(Compiler.CALL_OPERATOR_NAME) != null) return;
+    // TODO(johnniwinther): Make separate methods for backend exceptions.
+    // Avoid warnings on backend implementation classes for closures.
+    if (compiler.backend.isBackendLibrary(cls.library)) return;
+
+    reportMessage(compiler.functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
+      compiler.reportWarning(cls, MessageKind.UNIMPLEMENTED_METHOD_ONE,
+          {'class': cls.name,
+           'name': Compiler.CALL_OPERATOR_NAME,
+           'method': Compiler.CALL_OPERATOR_NAME,
+           'declarer': compiler.functionClass.name});
+    });
   }
 
   /// Checks that a class member exists for every interface member.
@@ -588,6 +607,7 @@ class InterfaceMembersCreator extends MembersCreator {
   /// Checks that a class member exists for every interface member.
   void checkInterfaceImplementation() {
     LibraryElement library = cls.library;
+    checkImplementsFunctionWithCall();
     interfaceMembers.forEach((Name name, MemberSignature interfaceMember) {
       if (!name.isAccessibleFrom(library)) return;
       Member classMember = classMembers[name];
@@ -706,8 +726,8 @@ class InterfaceMembersCreator extends MembersCreator {
         FunctionType type = member.type;
         type.namedParameters.forEach(
             (String name) => names.add(name));
-        requiredParameters = type.parameterTypes.slowLength();
-        optionalParameters = type.optionalParameterTypes.slowLength();
+        requiredParameters = type.parameterTypes.length;
+        optionalParameters = type.optionalParameterTypes.length;
       }
       int positionalParameters = requiredParameters + optionalParameters;
       if (minRequiredParameters == null ||
@@ -724,25 +744,15 @@ class InterfaceMembersCreator extends MembersCreator {
     // TODO(johnniwinther): Support function types with both optional
     // and named parameters?
     if (optionalParameters == 0 || names.isEmpty) {
-      Link<DartType> requiredParameterTypes = const Link<DartType>();
-      while (--minRequiredParameters >= 0) {
-        requiredParameterTypes =
-            requiredParameterTypes.prepend(const DynamicType());
-      }
-      Link<DartType> optionalParameterTypes = const Link<DartType>();
-      while (--optionalParameters >= 0) {
-        optionalParameterTypes =
-            optionalParameterTypes.prepend(const DynamicType());
-      }
-      Link<String> namedParameters = const Link<String>();
-      Link<DartType> namedParameterTypes = const Link<DartType>();
-      List<String> namesReversed =
-          names.toList()..sort((a, b) => -a.compareTo(b));
-      for (String name in namesReversed) {
-        namedParameters = namedParameters.prepend(name);
-        namedParameterTypes =
-            namedParameterTypes.prepend(const DynamicType());
-      }
+      DartType dynamic = const DynamicType();
+      List<DartType> requiredParameterTypes =
+          new List.filled(minRequiredParameters, dynamic);
+      List<DartType> optionalParameterTypes =
+          new List.filled(optionalParameters, dynamic);
+      List<String> namedParameters =
+          names.toList()..sort((a, b) => a.compareTo(b));
+      List<DartType> namedParameterTypes =
+          new List.filled(namedParameters.length, dynamic);
       FunctionType memberType = new FunctionType.synthesized(
           const DynamicType(),
           requiredParameterTypes,

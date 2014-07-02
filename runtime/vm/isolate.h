@@ -287,6 +287,9 @@ class Isolate : public BaseIsolate {
   void ScheduleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
 
+  // Marks all libraries as loaded.
+  void DoneLoading();
+
   bool MakeRunnable();
   void Run();
 

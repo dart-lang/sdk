@@ -47,9 +47,9 @@ main() {
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isFalse(compiler.compilationFailed);
-    Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);
+    Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveElements);
     Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
-    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
+    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveElements);
     Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.disableTypeInference);
     JavaScriptBackend backend = compiler.backend;

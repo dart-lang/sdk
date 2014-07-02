@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -23,7 +24,8 @@ main() {
         })
       ]).create();
 
-      pubCommand(command, error: 'Could not resolve URL "http://pub.invalid".');
+      pubCommand(command, error: 'Could not resolve URL "http://pub.invalid".',
+          exitCode: exit_codes.UNAVAILABLE);
     });
   });
 }

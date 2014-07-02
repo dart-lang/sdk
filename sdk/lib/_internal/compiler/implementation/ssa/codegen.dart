@@ -1503,7 +1503,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name = backend.namer.getInterceptorName(
         backend.getInterceptorMethod, node.interceptedClasses);
     var isolate = new js.VariableUse(
-        backend.namer.globalObjectFor(compiler.interceptorsLibrary));
+        backend.namer.globalObjectFor(backend.interceptorsLibrary));
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, name, arguments), node);
@@ -1556,7 +1556,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
     var isolate = new js.VariableUse(
-        backend.namer.globalObjectFor(compiler.interceptorsLibrary));
+        backend.namer.globalObjectFor(backend.interceptorsLibrary));
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     String methodName = backend.registerOneShotInterceptor(selector);
     push(jsPropertyCall(isolate, methodName, arguments), node);
@@ -2018,7 +2018,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateThrowWithHelper(String helperName, argument) {
-    Element helper = compiler.findHelper(helperName);
+    Element helper = backend.findHelper(helperName);
     registry.registerStaticUse(helper);
     js.Expression jsHelper = backend.namer.elementAccess(helper);
     List arguments = [];
@@ -2050,7 +2050,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction argument = node.inputs[0];
     use(argument);
 
-    Element helper = compiler.findHelper("throwExpression");
+    Element helper = backend.findHelper("throwExpression");
     registry.registerStaticUse(helper);
 
     js.Expression jsHelper = backend.namer.elementAccess(helper);
@@ -2661,7 +2661,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitReadTypeVariable(HReadTypeVariable node) {
     TypeVariableElement element = node.dartType.element;
-    Element helperElement = compiler.findHelper('convertRtiToRuntimeType');
+    Element helperElement = backend.findHelper('convertRtiToRuntimeType');
     registry.registerStaticUse(helperElement);
 
     use(node.inputs[0]);
@@ -2680,7 +2680,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       push(js.js('#(#)', [
           backend.namer.elementAccess(
-              compiler.findHelper('convertRtiToRuntimeType')),
+              backend.findHelper('convertRtiToRuntimeType')),
           pop()]));
     }
   }
@@ -2709,7 +2709,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   js.PropertyAccess accessHelper(String name) {
-    Element helper = compiler.findHelper(name);
+    Element helper = backend.findHelper(name);
     if (helper == null) {
       // For mocked-up tests.
       return js.js('(void 0).$name');

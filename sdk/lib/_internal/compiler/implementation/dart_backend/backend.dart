@@ -56,6 +56,8 @@ class DartBackend extends Backend {
 
   DartConstantTask constantCompilerTask;
 
+  DartResolutionCallbacks resolutionCallbacks;
+
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
   /**
@@ -110,7 +112,9 @@ class DartBackend extends Backend {
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask  = new DartConstantTask(compiler),
-        super(compiler);
+        super(compiler) {
+    resolutionCallbacks = new DartResolutionCallbacks(this);
+  }
 
   bool classNeedsRti(ClassElement cls) => false;
   bool methodNeedsRti(FunctionElement function) => false;
@@ -159,11 +163,13 @@ class DartBackend extends Backend {
     // however as of today there are problems with names of some core library
     // interfaces, most probably for interfaces of literals.
     final fixedMemberNames = new Set<String>();
-    for (final library in compiler.libraries.values) {
+    for (final library in compiler.libraryLoader.libraries) {
       if (!library.isPlatformLibrary) continue;
-      library.implementation.forEachLocalMember((Element element) {
+      library.forEachLocalMember((Element element) {
         if (element.isClass) {
           ClassElement classElement = element;
+          assert(invariant(classElement, classElement.isResolved,
+              message: "Unresolved platform class."));
           classElement.forEachLocalMember((member) {
             final name = member.name;
             // Skip operator names.
@@ -221,9 +227,8 @@ class DartBackend extends Backend {
     final elementAsts = new Map<Element, ElementAst>();
 
     ElementAst parse(AstElement element) {
-      Node node;
       if (!compiler.irBuilder.hasIr(element)) {
-        node = element.node;
+        return new ElementAst(element);
       } else {
         ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         tree.Builder builder = new tree.Builder(compiler);
@@ -238,9 +243,9 @@ class DartBackend extends Backend {
         compiler.tracer.traceGraph('Loop rewriter', definition);
         new tree.LogicalRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Logical rewriter', definition);
-        node = dart_codegen.emit(element, treeElements, definition);
+        Node node = dart_codegen.emit(element, treeElements, definition);
+        return new ElementAst.internal(node, treeElements);
       }
-      return new ElementAst(element);
     }
 
     Set<Element> topLevelElements = new Set<Element>();
@@ -428,7 +433,8 @@ class DartBackend extends Backend {
       mirrorRenamer.addRenames(renames, topLevelNodes, collector);
     }
 
-    final unparser = new EmitterUnparser(renames);
+    final unparser = new EmitterUnparser(renames, stripTypes: forceStripTypes,
+        minify: compiler.enableMinification);
     emitCode(unparser, imports, topLevelNodes, memberNodes);
     String assembledCode = unparser.result;
     compiler.outputProvider('', 'dart')
@@ -443,7 +449,7 @@ class DartBackend extends Backend {
 
   void logResultBundleSizeInfo(Set<Element> topLevelElements) {
     Iterable<LibraryElement> referencedLibraries =
-        compiler.libraries.values.where(isUserLibrary);
+        compiler.libraryLoader.libraries.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {
@@ -459,6 +465,18 @@ class DartBackend extends Backend {
   log(String message) => compiler.log('[DartBackend] $message');
 
   Future onLibrariesLoaded(Map<Uri, LibraryElement> loadedLibraries) {
+    // All platform classes must be resolved to ensure that their member names
+    // are preserved.
+    loadedLibraries.values.forEach((LibraryElement library) {
+      if (library.isPlatformLibrary) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            ClassElement classElement = element;
+            classElement.ensureResolved(compiler);
+          }
+        });
+      }
+    });
     if (useMirrorHelperLibrary &&
         loadedLibraries.containsKey(Compiler.DART_MIRRORS)) {
       return compiler.libraryLoader.loadLibrary(
@@ -474,12 +492,6 @@ class DartBackend extends Backend {
       });
     }
     return new Future.value();
-  }
-
-  void onTypeLiteral(DartType type, Registry registry) {
-    if (type.isInterfaceType) {
-      usedTypeLiterals.add(type.element);
-    }
   }
 
   void registerStaticSend(Element element, Node node) {
@@ -503,14 +515,27 @@ class DartBackend extends Backend {
   }
 }
 
+class DartResolutionCallbacks extends ResolutionCallbacks {
+  final DartBackend backend;
+
+  DartResolutionCallbacks(this.backend);
+
+  void onTypeLiteral(DartType type, Registry registry) {
+    if (type.isInterfaceType) {
+      backend.usedTypeLiterals.add(type.element);
+    }
+  }
+}
+
 class EmitterUnparser extends Unparser {
   final Map<Node, String> renames;
 
-  EmitterUnparser(this.renames);
+  EmitterUnparser(this.renames, {bool minify, bool stripTypes})
+      : super(minify: minify, stripTypes: stripTypes);
 
   visit(Node node) {
     if (node != null && renames.containsKey(node)) {
-      sb.write(renames[node]);
+      write(renames[node]);
     } else {
       super.visit(node);
     }
@@ -524,7 +549,7 @@ class EmitterUnparser extends Unparser {
 
   unparseFunctionName(Node name) {
     if (name != null && renames.containsKey(name)) {
-      sb.write(renames[name]);
+      write(renames[name]);
     } else {
       super.unparseFunctionName(name);
     }

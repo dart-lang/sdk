@@ -4,6 +4,7 @@
 
 library pub.barback.transformer_config;
 
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:yaml/yaml.dart';
 
@@ -52,6 +53,14 @@ class TransformerConfig {
   /// Returns whether this config excludes certain asset ids from being
   /// processed.
   bool get hasExclusions => includes != null || excludes != null;
+
+  /// Returns whether this transformer might transform a file that's visible to
+  /// the package's dependers.
+  bool get canTransformPublicFiles {
+    if (includes == null) return true;
+    return includes.any((path) =>
+        p.url.isWithin('lib', path) || p.url.isWithin('bin', path));
+  }
 
   /// Parses [identifier] as a [TransformerId] with [configuration].
   ///

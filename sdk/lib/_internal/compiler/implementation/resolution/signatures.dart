@@ -300,12 +300,13 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     for (ParameterElement parameter in parameters) {
        parameterTypes.addLast(parameter.type);
     }
-    Link<DartType> optionalParameterTypes = const Link<DartType>();
-    Link<String> namedParameters = const Link<String>();
-    Link<DartType> namedParameterTypes = const Link<DartType>();
+    List<DartType> optionalParameterTypes = const <DartType>[];
+    List<String> namedParameters = const <String>[];
+    List<DartType> namedParameterTypes = const <DartType>[];
     List<Element> orderedOptionalParameters =
         visitor.optionalParameters.toList();
     if (visitor.optionalParametersAreNamed) {
+      // TODO(karlklose); replace when [visitor.optinalParameters] is a [List].
       orderedOptionalParameters.sort((Element a, Element b) {
           return a.name.compareTo(b.name);
       });
@@ -316,20 +317,23 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
         namedParametersBuilder.addLast(parameter.name);
         namedParameterTypesBuilder.addLast(parameter.type);
       }
-      namedParameters = namedParametersBuilder.toLink();
-      namedParameterTypes = namedParameterTypesBuilder.toLink();
+      namedParameters = namedParametersBuilder.toLink().toList(growable: false);
+      namedParameterTypes = namedParameterTypesBuilder.toLink()
+          .toList(growable: false);
     } else {
+      // TODO(karlklose); replace when [visitor.optinalParameters] is a [List].
       LinkBuilder<DartType> optionalParameterTypesBuilder =
           new LinkBuilder<DartType>();
       for (ParameterElement parameter in visitor.optionalParameters) {
         optionalParameterTypesBuilder.addLast(parameter.type);
       }
-      optionalParameterTypes = optionalParameterTypesBuilder.toLink();
+      optionalParameterTypes = optionalParameterTypesBuilder.toLink()
+          .toList(growable: false);
     }
     FunctionType type = new FunctionType(
         element.declaration,
         returnType,
-        parameterTypes.toLink(),
+        parameterTypes.toLink().toList(growable: false),
         optionalParameterTypes,
         namedParameters,
         namedParameterTypes);

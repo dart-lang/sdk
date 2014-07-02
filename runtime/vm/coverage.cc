@@ -18,6 +18,17 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
             "Enable writing coverage data into specified directory.");
 
 
+class CoverageFilterAll : public CoverageFilter {
+ public:
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const String& script_url,
+                               const Class& cls,
+                               const Function& func) const {
+    return true;
+  }
+};
+
+
 // map[token_pos] -> line-number.
 static void ComputeTokenPosToLineNumberMap(const Script& script,
                                            GrowableArray<intptr_t>* map) {
@@ -38,12 +49,6 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
     }
     tkit.Advance();
   }
-}
-
-
-static inline void PrintJSONPreamble(JSONObject* jsobj) {
-  jsobj->AddProperty("type", "CodeCoverage");
-  jsobj->AddProperty("id", "coverage");
 }
 
 
@@ -129,9 +134,10 @@ void CodeCoverage::CompileAndAdd(const Function& function,
 }
 
 
-void CodeCoverage::PrintClass(const Class& cls,
+void CodeCoverage::PrintClass(const Library& lib,
+                              const Class& cls,
                               const JSONArray& jsarr,
-                              const Script& script_filter) {
+                              CoverageFilter* filter) {
   Isolate* isolate = Isolate::Current();
   if (cls.EnsureIsFinalized(isolate) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
@@ -150,11 +156,11 @@ void CodeCoverage::PrintClass(const Class& cls,
     HANDLESCOPE(isolate);
     function ^= functions.At(i);
     script = function.script();
-    if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+    saved_url = script.url();
+    if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
       i++;
       continue;
     }
-    saved_url = script.url();
     ComputeTokenPosToLineNumberMap(script, &pos_to_line);
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("source", saved_url.ToCString());
@@ -191,11 +197,11 @@ void CodeCoverage::PrintClass(const Class& cls,
       HANDLESCOPE(isolate);
       function ^= closures.At(i);
       script = function.script();
-      if (!script_filter.IsNull() && script_filter.raw() != script.raw()) {
+      saved_url = script.url();
+      if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
         i++;
         continue;
       }
-      saved_url = script.url();
       ComputeTokenPosToLineNumberMap(script, &pos_to_line);
       JSONObject jsobj(&jsarr);
       jsobj.AddProperty("source", saved_url.ToCString());
@@ -220,44 +226,6 @@ void CodeCoverage::PrintClass(const Class& cls,
 }
 
 
-void CodeCoverage::PrintJSONForClass(const Class& cls,
-                                     JSONStream* stream) {
-  JSONObject coverage(stream);
-  PrintJSONPreamble(&coverage);
-  {
-    JSONArray jsarr(&coverage, "coverage");
-    PrintClass(cls, jsarr, Script::Handle());
-  }
-}
-
-
-void CodeCoverage::PrintJSONForLibrary(const Library& lib,
-                                       const Script& script_filter,
-                                       JSONStream* stream) {
-  Class& cls = Class::Handle();
-  JSONObject coverage(stream);
-  PrintJSONPreamble(&coverage);
-  {
-    JSONArray jsarr(&coverage, "coverage");
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      ASSERT(!cls.IsNull());
-      PrintClass(cls, jsarr, script_filter);
-    }
-  }
-}
-
-
-void CodeCoverage::PrintJSONForScript(const Script& script,
-                                      JSONStream* stream) {
-  Library& lib = Library::Handle();
-  lib = script.FindLibrary();
-  ASSERT(!lib.IsNull());
-  PrintJSONForLibrary(lib, script, stream);
-}
-
-
 void CodeCoverage::Write(Isolate* isolate) {
   if (FLAG_coverage_dir == NULL) {
     return;
@@ -271,7 +239,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   }
 
   JSONStream stream;
-  PrintJSON(isolate, &stream);
+  PrintJSON(isolate, &stream, NULL);
 
   const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
@@ -290,7 +258,13 @@ void CodeCoverage::Write(Isolate* isolate) {
 }
 
 
-void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
+void CodeCoverage::PrintJSON(Isolate* isolate,
+                             JSONStream* stream,
+                             CoverageFilter* filter) {
+  CoverageFilterAll default_filter;
+  if (filter == NULL) {
+    filter = &default_filter;
+  }
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
@@ -306,7 +280,7 @@ void CodeCoverage::PrintJSON(Isolate* isolate, JSONStream* stream) {
       while (it.HasNext()) {
         cls = it.GetNextClass();
         ASSERT(!cls.IsNull());
-        PrintClass(cls, jsarr, Script::Handle());
+        PrintClass(lib, cls, jsarr, filter);
       }
     }
   }

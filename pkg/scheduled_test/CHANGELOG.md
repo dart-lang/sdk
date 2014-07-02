@@ -1,3 +1,7 @@
+## 0.11.1
+
+* Add a top-level `tearDown` function.
+
 ## 0.11.0+7
 
 * A `nothing()` descriptor will fail if a broken symlink is present.

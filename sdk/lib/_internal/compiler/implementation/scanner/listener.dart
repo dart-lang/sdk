@@ -2206,6 +2206,8 @@ abstract class PartialFunctionMixin implements FunctionElement {
         name, enclosingElement.name);
   }
 
+  bool get hasNode => cachedNode != null;
+
   FunctionExpression get node {
     assert(invariant(this, cachedNode != null,
         message: "Node has not been computed for $this."));

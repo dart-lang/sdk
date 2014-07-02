@@ -845,7 +845,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   void sendToEventHandler(int data) {
     assert(!isClosing);
     connectToEventHandler();
-    _EventHandler._sendData(this, eventPort, data);
+    _EventHandler._sendData(this, eventPort.sendPort, data);
   }
 
   void connectToEventHandler() {

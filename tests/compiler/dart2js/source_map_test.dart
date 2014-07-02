@@ -49,10 +49,8 @@ void test({String out, String sourceMap, String mapping, String file}) {
     Expect.isNotNull(jsOutput);
     if (mapping != null) {
       find(jsOutput, '//# sourceMappingURL=$mapping', true);
-      find(jsOutput, '//@ sourceMappingURL=$mapping', true);
     } else {
       find(jsOutput, '//# sourceMappingURL=', false);
-      find(jsOutput, '//@ sourceMappingURL=', false);
     }
     String jsSourceMapOutput = collector.getOutput('', 'js.map');
     Expect.isNotNull(jsSourceMapOutput);
