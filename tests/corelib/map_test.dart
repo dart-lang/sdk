@@ -7,7 +7,10 @@ import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:convert' show JSON;
 
-Map newJsonMap() => JSON.decode('{}');
+Map newJsonMap()
+    => JSON.decode('{}');
+Map newJsonMapCustomReviver()
+    => JSON.decode('{}', reviver: (key, value) => value);
 
 void main() {
   test(new HashMap());
@@ -19,6 +22,7 @@ void main() {
   test(new MapBaseMap());
   test(new MapMixinMap());
   test(newJsonMap());
+  test(newJsonMapCustomReviver());
   testLinkedHashMap();
   testMapLiteral();
   testNullValue();
@@ -35,6 +39,7 @@ void main() {
   testWeirdStringKeys(new MapBaseMap<String, String>());
   testWeirdStringKeys(new MapMixinMap<String, String>());
   testWeirdStringKeys(newJsonMap());
+  testWeirdStringKeys(newJsonMapCustomReviver());
 
   testNumericKeys(new Map());
   testNumericKeys(new Map<num, String>());
@@ -49,6 +54,7 @@ void main() {
   testNumericKeys(new MapBaseMap<num, String>());
   testNumericKeys(new MapMixinMap<num, String>());
   testNumericKeys(newJsonMap());
+  testNumericKeys(newJsonMapCustomReviver());
 
   testNaNKeys(new Map());
   testNaNKeys(new Map<num, String>());
@@ -59,6 +65,7 @@ void main() {
   testNaNKeys(new MapBaseMap<num, String>());
   testNaNKeys(new MapMixinMap<num, String>());
   testNaNKeys(newJsonMap());
+  testNaNKeys(newJsonMapCustomReviver());
   // Identity maps fail the NaN-keys tests because the test assumes that
   // NaN is not equal to NaN.
 
@@ -87,6 +94,7 @@ void main() {
   testIterationOrder(new LinkedHashMap());
   testIterationOrder(new LinkedHashMap.identity());
   testIterationOrder(newJsonMap());
+  testIterationOrder(newJsonMapCustomReviver());
 
   testOtherKeys(new SplayTreeMap<int, int>());
   testOtherKeys(new SplayTreeMap<int, int>((int a, int b) => a - b,
@@ -110,6 +118,7 @@ void main() {
   testOtherKeys(new MapBaseMap<int, int>());
   testOtherKeys(new MapMixinMap<int, int>());
   testOtherKeys(newJsonMap());
+  testOtherKeys(newJsonMapCustomReviver());
 
   testUnmodifiableMap(const {1 : 37});
   testUnmodifiableMap(new UnmodifiableMapView({1 : 37}));

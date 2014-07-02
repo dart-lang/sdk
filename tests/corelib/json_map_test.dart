@@ -8,7 +8,13 @@ import "package:expect/expect.dart";
 import 'dart:convert' show JSON;
 import 'dart:collection' show LinkedHashMap, HashMap;
 
-Map jsonify(Map map) => JSON.decode(JSON.encode(map));
+bool useReviver = false;
+Map jsonify(Map map) {
+  String encoded = JSON.encode(map);
+  return useReviver
+      ? JSON.decode(encoded, reviver: (key, value) => value)
+      : JSON.decode(encoded);
+}
 
 List listEach(Map map) {
   var result = [];
@@ -20,6 +26,12 @@ List listEach(Map map) {
 }
 
 void main() {
+  test(false);
+  test(true);
+}
+
+void test(bool revive) {
+  useReviver = revive;
   testEmpty(jsonify({}));
   testAtoB(jsonify({'a': 'b'}));
 
@@ -45,6 +57,7 @@ void main() {
   testClear();
 
   testListEntry();
+  testMutation();
 }
 
 void testEmpty(Map map) {
@@ -321,4 +334,13 @@ void testListEntry() {
   Expect.equals(7, list[0]);
   Expect.equals(8, list[1]);
   Expect.equals(9, list[2]['b']);
+}
+
+void testMutation() {
+  Map map = jsonify({'a': 0});
+  Expect.listEquals(['a', 0], listEach(map));
+  map['a'] = 1;
+  Expect.listEquals(['a', 1], listEach(map));
+  map['a']++;
+  Expect.listEquals(['a', 2], listEach(map));
 }

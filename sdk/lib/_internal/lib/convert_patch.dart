@@ -52,8 +52,7 @@ _parseJson(String source, reviver(key, value)) {
  * in-place.
  */
 _convertJsonToDart(json, reviver(key, value)) {
-  var revive = reviver == null ? (key, value) => value : reviver;
-
+  assert(reviver != null);
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
     if (JS('bool', '# == null', e) || JS('bool', 'typeof # != "object"', e)) {
@@ -64,41 +63,36 @@ _convertJsonToDart(json, reviver(key, value)) {
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
     if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
-      // Teach compiler the type is known by passing it through a JS-expression.
-      var list = JS('JSExtendableArray', '#', e);
       // In-place update of the elements since JS Array is a Dart List.
-      for (int i = 0; i < list.length; i++) {
+      for (int i = 0; i < JS('int', '#.length', e); i++) {
         // Use JS indexing to avoid range checks.  We know this is the only
         // reference to the list, but the compiler will likely never be able to
         // tell that this instance of the list cannot have its length changed by
         // the reviver even though it later will be passed to the reviver at the
         // outer level.
-        var item = JS('', '#[#]', list, i);
-        JS('', '#[#]=#', list, i, revive(i, walk(item)));
+        var item = JS('', '#[#]', e, i);
+        JS('', '#[#]=#', e, i, reviver(i, walk(item)));
       }
-      return list;
+      return e;
     }
 
-    // Otherwise it is a plain Object, so copy to a Map.
-    var keys = JS('JSExtendableArray', 'Object.keys(#)', e);
-    Map map = {};
+    // Otherwise it is a plain object, so copy to a JSON map, so we process
+    // and revive all entries recursively.
+    _JsonMap map = new _JsonMap(e);
+    var processed = map._processed;
+    List<String> keys = map._computeKeys();
     for (int i = 0; i < keys.length; i++) {
       String key = keys[i];
-      map[key] = revive(key, walk(JS('', '#[#]', e, key)));
+      var revived = reviver(key, walk(JS('', '#[#]', e, key)));
+      JS('', '#[#]=#', processed, key, revived);
     }
-    // V8 has a bug with properties named "__proto__"
-    // https://code.google.com/p/v8/issues/detail?id=621
-    var proto = JS('', '#.__proto__', e);
-    // __proto__ can be undefined on IE9.
-    if (JS('bool',
-           'typeof # !== "undefined" && # !== Object.prototype',
-           proto, proto)) {
-      map['__proto__'] = revive('__proto__', walk(proto));
-    }
+
+    // Update the JSON map structure so future access is cheaper.
+    map._original = processed;  // Don't keep two objects around.
     return map;
   }
 
-  return revive(null, walk(json));
+  return reviver(null, walk(json));
 }
 
 _convertJsonToDartLazy(object) {
@@ -179,8 +173,12 @@ class _JsonMap implements LinkedHashMap {
     if (_isUpgraded) {
       _upgradedMap[key] = value;
     } else if (containsKey(key)) {
-      _setProperty(_processed, key, value);
-      _setProperty(_original, key, null);  // Reclaim memory.
+      var processed = _processed;
+      _setProperty(processed, key, value);
+      var original = _original;
+      if (!identical(original, processed)) {
+        _setProperty(original, key, null);  // Reclaim memory.
+      }
     } else {
       _upgrade()[key] = value;
     }
