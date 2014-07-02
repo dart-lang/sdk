@@ -1820,9 +1820,7 @@ class JavaScriptBackend extends Backend {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
-        Set<Name> memberNames = new LinkedHashSet<Name>(
-            equals: (Name a, Name b) => a.isSimilarTo(b),
-            hashCode: (Name a) => a.similarHashCode);
+        Set<Name> memberNames = new Set<Name>();
         // 1) the class (should be live)
         assert(invariant(cls, resolution.isLive(cls)));
         reflectableMembers.add(cls);

@@ -158,8 +158,13 @@ Future compileSources(Map<String, String> sources,
   });
 }
 
-lego.Element findElement(compiler, String name) {
-  var element = compiler.mainApp.find(name);
+lego.Element findElement(compiler, String name, [Uri library]) {
+  lego.LibraryElement lib = compiler.mainApp;
+  if (library != null) {
+    lib = compiler.libraryLoader.lookupLibrary(library);
+    Expect.isNotNull(lib, 'Could not locate library $library.');
+  }
+  var element = lib.find(name);
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;
 }

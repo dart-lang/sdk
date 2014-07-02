@@ -1,0 +1,49 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Test that final fields in @MirrorsUsed are still inferred.
+
+import 'package:expect/expect.dart';
+import "package:async_helper/async_helper.dart";
+import 'memory_compiler.dart' show compilerFor;
+import 'compiler_helper.dart' show findElement;
+
+const MEMORY_SOURCE_FILES = const <String, String> {
+  'main.dart': """
+@MirrorsUsed(targets: 'Super')
+import 'dart:mirrors';
+import 'lib.dart';
+
+
+class Subclass extends Super {
+  int _private;
+
+  int magic() => _private++;
+}
+
+main() {
+  var objects = [new Super(), new Subclass()];
+}
+""",
+  'lib.dart': """
+class Super {
+  int _private;
+
+  int magic() => _private++;
+}
+"""
+};
+
+void main() {
+  var compiler = compilerFor(MEMORY_SOURCE_FILES);
+  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+
+    var superclass = findElement(compiler, 'Super', Uri.parse('memory:lib.dart'));
+    var subclass = findElement(compiler, 'Subclass');
+    var oracle = compiler.backend.isAccessibleByReflection;
+    print(superclass.lookupMember('_private'));
+    Expect.isTrue(oracle(superclass.lookupMember('_private')));
+    Expect.isFalse(oracle(subclass.lookupMember('_private')));
+  }));
+}
