@@ -134,20 +134,20 @@ void checkResult(ProcessResult previousResult) {
 }
 
 Future<ProcessResult> extractMessages(ProcessResult previousResult) => run(
-    previousResult, [asTestDirPath('extract_to_json.dart'),
+    previousResult, [asTestDirPath('../../bin/extract_to_arb.dart'),
     '--suppress-warnings', 'sample_with_messages.dart',
     'part_of_sample_with_messages.dart']);
 
 Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
     run(previousResult,
         [asTestDirPath('make_hardcoded_translation.dart'),
-        'intl_messages.json']);
+        'intl_messages.arb']);
 
 Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
-    => run(previousResult, [asTestDirPath('generate_from_json.dart'),
+    => run(previousResult, [asTestDirPath('../../bin/generate_from_arb.dart'),
     '--generated-file-prefix=foo_', 'sample_with_messages.dart',
-    'part_of_sample_with_messages.dart', 'translation_fr.json',
-    'translation_de_DE.json']);
+    'part_of_sample_with_messages.dart', 'translation_fr.arb',
+    'translation_de_DE.arb']);
 
 Future<ProcessResult> runAndVerify(ProcessResult previousResult) => run(
     previousResult, [asTempDirPath('run_and_verify.dart')]);
