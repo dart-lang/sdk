@@ -8413,8 +8413,8 @@ void Library::SetLoaded() const {
 
 
 void Library::SetLoadError() const {
-  // Should not be already loaded or just allocated.
-  ASSERT(LoadInProgress() || LoadRequested());
+  // Should not be already successfully loaded or just allocated.
+  ASSERT(LoadInProgress() || LoadRequested() || LoadError());
   raw_ptr()->load_state_ = RawLibrary::kLoadError;
 }
 
