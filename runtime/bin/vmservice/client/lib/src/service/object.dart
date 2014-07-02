@@ -1124,6 +1124,7 @@ class Class extends ServiceObject with Coverage {
   @observable bool isImplemented;
 
   @observable int tokenPos;
+  @observable int endTokenPos;
 
   @observable ServiceMap error;
 
@@ -1177,6 +1178,7 @@ class Class extends ServiceObject with Coverage {
     isImplemented = map['implemented'];
 
     tokenPos = map['tokenPos'];
+    endTokenPos = map['endTokenPos'];
 
     subClasses.clear();
     subClasses.addAll(map['subclasses']);

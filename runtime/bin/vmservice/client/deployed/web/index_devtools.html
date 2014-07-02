@@ -2496,6 +2496,7 @@ hr {
 
 
 
+
 <polymer-element name="eval-box" extends="observatory-element">
   <template>
     <style>
@@ -3404,6 +3405,42 @@ hr {
 
 
 
+<polymer-element name="script-inset" extends="observatory-element">
+  <template>
+    <style>
+      .sourceInset {
+        padding-left: 15%;
+        padding-right: 15%;
+      }
+      .grayBox {
+        width: 100%;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+     }
+    </style>
+    <div class="sourceInset">
+      <content></content>
+      <div class="grayBox">
+        <table>
+          <tbody>
+            <tr template="" repeat="{{ lineNumber in lineNumbers }}">
+              <td style="{{ styleForHits(script.lines[lineNumber].hits) }}"><span>  </span></td>
+              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{script.lines[lineNumber].line}}</td>
+              <td>&nbsp;</td>
+              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{script.lines[lineNumber].text}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+
+
+
+
 
 <polymer-element name="script-ref" extends="service-ref">
 <template>
@@ -4078,6 +4115,11 @@ hr {
     <div class="content">
       <eval-box callback="{{ eval }}"></eval-box>
     </div>
+
+    <hr>
+    <script-inset script="{{ cls.script }}" pos="{{ cls.tokenPos }}" endpos="{{ cls.endTokenPos }}">
+    </script-inset>
+
     <br><br><br><br>
     <br><br><br><br>
   </template>
@@ -6219,42 +6261,6 @@ hr {
 
 
 
-
-
-
-
-
-<polymer-element name="script-inset" extends="observatory-element">
-  <template>
-    <style>
-      .sourceInset {
-        padding-left: 15%;
-        padding-right: 15%;
-      }
-      .grayBox {
-        width: 100%;
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-     }
-    </style>
-    <div class="sourceInset">
-      <content></content>
-      <div class="grayBox">
-        <table>
-          <tbody>
-            <tr template="" repeat="{{ lineNumber in lineNumbers }}">
-              <td style="{{ styleForHits(script.lines[lineNumber].hits) }}"><span>  </span></td>
-              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{script.lines[lineNumber].line}}</td>
-              <td>&nbsp;</td>
-              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{script.lines[lineNumber].text}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </template>
-</polymer-element>
 
 
 <polymer-element name="function-view" extends="observatory-element">
@@ -17591,4 +17597,4 @@ hr {
 
   <observatory-application devtools="true"></observatory-application>
 
-<script type="application/dart" src="index_devtools.html_bootstrap.dart"></script><script src="packages/browser/dart.js"></script></body></html>
+<script src="index_devtools.html_bootstrap.dart.js" async=""></script></body></html>

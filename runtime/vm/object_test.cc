@@ -221,6 +221,35 @@ TEST_CASE(GenerateExactSource) {
 }
 
 
+TEST_CASE(Class_ComputeEndTokenPos) {
+  const char* kScript =
+  "\n"
+  "class A {\n"
+  "  /**\n"
+  "   * Description of foo().\n"
+  "   */\n"
+  "  foo(a) { return '''\"}'''; }\n"
+  "  // }\n"
+  "  var bar = '\\'}';\n"
+  "  var baz = \"${foo('}')}\";\n"
+  "}\n";
+  Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib_h);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(lib_h);
+  EXPECT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(String::New("A"))));
+  EXPECT(!cls.IsNull());
+  const intptr_t end_token_pos = cls.ComputeEndTokenPos();
+  const Script& scr = Script::Handle(cls.script());
+  intptr_t line;
+  intptr_t col;
+  scr.GetTokenLocation(end_token_pos, &line, &col);
+  EXPECT(line == 10 && col == 1);
+}
+
+
 TEST_CASE(InstanceClass) {
   // Allocate the class first.
   String& class_name = String::Handle(Symbols::New("EmptyClass"));

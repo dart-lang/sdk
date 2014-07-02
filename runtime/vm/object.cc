@@ -3252,6 +3252,32 @@ void Class::set_token_pos(intptr_t token_pos) const {
 }
 
 
+intptr_t Class::ComputeEndTokenPos() const {
+  // Return the begin token for synthetic classes.
+  if (IsSignatureClass() || IsMixinApplication() || IsTopLevel()) {
+    return token_pos();
+  }
+  const Script& scr = Script::Handle(script());
+  ASSERT(!scr.IsNull());
+  const TokenStream& tkns = TokenStream::Handle(scr.tokens());
+  TokenStream::Iterator tkit(
+      tkns, token_pos(), TokenStream::Iterator::kNoNewlines);
+  intptr_t level = 0;
+  while (tkit.CurrentTokenKind() != Token::kEOS) {
+    if (tkit.CurrentTokenKind() == Token::kLBRACE) {
+      level++;
+    } else if (tkit.CurrentTokenKind() == Token::kRBRACE) {
+      if (--level == 0) {
+        return tkit.CurrentPosition();
+      }
+    }
+    tkit.Advance();
+  }
+  UNREACHABLE();
+  return 0;
+}
+
+
 void Class::set_is_implemented() const {
   set_state_bits(ImplementedBit::update(true, raw_ptr()->state_bits_));
 }
@@ -4008,6 +4034,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!script.IsNull()) {
     jsobj.AddProperty("script", script);
     jsobj.AddProperty("tokenPos", token_pos());
+    jsobj.AddProperty("endTokenPos", ComputeEndTokenPos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");

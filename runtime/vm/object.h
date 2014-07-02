@@ -748,6 +748,8 @@ class Class : public Object {
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(intptr_t value) const;
 
+  intptr_t ComputeEndTokenPos() const;
+
   // This class represents the signature class of a closure function if
   // signature_function() is not null.
   // The associated function may be a closure function (with code) or a
