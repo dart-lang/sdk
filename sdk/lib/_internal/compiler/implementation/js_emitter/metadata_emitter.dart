@@ -90,8 +90,20 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   void emitMetadata(CodeBuffer buffer) {
-    buffer.write('init.metadata$_=$_[');
-    for (String metadata in globalMetadata) {
+    var literals = backend.typedefTypeLiterals.toList();
+    Elements.sortedByPosition(literals);
+    var properties = [];
+    for (TypedefElement literal in literals) {
+      var key = namer.getNameX(literal);
+      var value = js.number(reifyType(literal.rawType));
+      properties.add(new jsAst.Property(js.string(key), value));
+    }
+    var map = new jsAst.ObjectInitializer(properties);
+    buffer.write(
+        jsAst.prettyPrint(
+            js.statement('init.functionAliases = #', map), compiler));
+    buffer.write('${N}init.metadata$_=$_[');
+    for (var metadata in globalMetadata) {
       if (metadata is String) {
         if (metadata != 'null') {
           buffer.write(metadata);
