@@ -446,15 +446,13 @@ part "test_unit.dart";
   }
 
   test_string_part_unresolvedUri() {
-    // TODO(scheglov) why do we throw MemoryResourceException here?
-    // This Source/File does not exist.
-//    addTestFile('''
-//library lib;
-//part "test_unit.dart";
-//''');
-//    return prepareNavigation(() {
-//      assertNoRegionString('part "test_unit.dart"');
-//    });
+    addTestFile('''
+library lib;
+part "test_unit.dart";
+''');
+    return prepareNavigation(() {
+      assertNoRegionString('part "test_unit.dart"');
+    });
   }
 
   test_targetElement() {
