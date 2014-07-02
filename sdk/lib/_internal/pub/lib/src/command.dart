@@ -25,7 +25,6 @@ import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
 import 'exceptions.dart';
-import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'global_packages.dart';
 import 'system_cache.dart';
@@ -68,7 +67,7 @@ abstract class PubCommand {
   /// [commands].
   static void usageErrorWithCommands(Map<String, PubCommand> commands,
                                 String message) {
-    throw new UsageException(message, _listCommands(commands));
+    throw new UsageException(message)..bindUsage(_listCommands(commands));
   }
 
   /// Writes [commands] in a nicely formatted list to [buffer].
@@ -191,7 +190,10 @@ abstract class PubCommand {
       entrypoint = new Entrypoint(path.current, cache);
     }
 
-    return syncFuture(onRun);
+    return syncFuture(onRun).catchError((error) {
+      if (error is UsageException) error.bindUsage(_getUsage());
+      throw error;
+    });
   }
 
   /// Override this to perform the specific command.
@@ -212,13 +214,6 @@ abstract class PubCommand {
   void printUsage([String description]) {
     if (description == null) description = this.description;
     log.message('$description\n\n${_getUsage()}');
-  }
-
-  // TODO(rnystrom): Use this in other places handle usage failures.
-  /// Throw a [UsageException] for a usage error of this command with
-  /// [message].
-  void usageError(String message) {
-    throw new UsageException(message, _getUsage());
   }
 
   /// Parses a user-supplied integer [intString] named [name].

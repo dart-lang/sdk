@@ -36,7 +36,7 @@ class ListPackageDirsCommand extends PubCommand {
     // Include the local paths to all locked packages.
     var packages = {};
     var futures = [];
-    entrypoint.loadLockFile().packages.forEach((name, package) {
+    entrypoint.lockFile.packages.forEach((name, package) {
       var source = entrypoint.cache.sources[package.source];
       futures.add(source.getDirectory(package).then((packageDir) {
         packages[name] = path.join(packageDir, "lib");

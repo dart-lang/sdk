@@ -4,7 +4,6 @@
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
 
 const SCRIPT = """
 main() {
@@ -51,8 +50,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"],
-          transformers: ["myapp/src/transformer"]);
+      var pub = pubRun(args: ["script"]);
 
       pub.stderr.expect("[Error from Failing]:");
       pub.stderr.expect("myapp|bin/script.dart.");

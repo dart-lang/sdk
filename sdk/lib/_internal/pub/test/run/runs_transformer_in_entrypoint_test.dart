@@ -5,7 +5,6 @@
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
-import 'utils.dart';
 
 const SCRIPT = """
 const TOKEN = "hi";
@@ -33,8 +32,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["hi"],
-          transformers: ["myapp/src/transformer"]);
+      var pub = pubRun(args: ["hi"]);
 
       pub.stdout.expect("(hi, transformed)");
       pub.shouldExit();

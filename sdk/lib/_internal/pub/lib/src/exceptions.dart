@@ -51,12 +51,23 @@ class SilentException extends WrappedException {
 /// A class for command usage exceptions.
 class UsageException extends ApplicationException {
   /// The command usage information.
-  final String usage;
+  String _usage;
 
-  UsageException(String message, this.usage)
+  UsageException(String message)
       : super(message);
 
-  String toString() => "$message\n\n$usage";
+  String toString() {
+    if (_usage == null) return message;
+    return "$message\n\n$_usage";
+  }
+
+  /// Attach usage information to the exception.
+  ///
+  /// This is done after the exception is created so that code outside of the
+  /// command can still generate usage errors.
+  void bindUsage(String usage) {
+    _usage = usage;
+  }
 }
 
 /// A class for errors in a command's input data.

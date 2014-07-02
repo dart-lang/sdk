@@ -225,7 +225,11 @@ Map<String, List<Map>> _servedPackages;
 /// If [replace] is false, subsequent calls to [servePackages] will add to the
 /// set of packages that are being served. Previous packages will continue to be
 /// served. Otherwise, the previous packages will no longer be served.
-void servePackages(List<Map> pubspecs, {bool replace: false}) {
+///
+/// If [contents] is given, its contents are added to every served
+/// package.
+void servePackages(List<Map> pubspecs, {bool replace: false,
+    Iterable<d.Descriptor> contents}) {
   if (_servedPackages == null || _servedPackageDir == null) {
     _servedPackages = <String, List<Map>>{};
     _servedApiPackageDir = d.dir('packages', []);
@@ -246,11 +250,11 @@ void servePackages(List<Map> pubspecs, {bool replace: false}) {
     return awaitObject(pubspecs).then((resolvedPubspecs) {
       if (replace) _servedPackages.clear();
 
-      for (var spec in resolvedPubspecs) {
-        var name = spec['name'];
-        var version = spec['version'];
+      for (var pubspec in resolvedPubspecs) {
+        var name = pubspec['name'];
+        var version = pubspec['version'];
         var versions = _servedPackages.putIfAbsent(name, () => []);
-        versions.add(spec);
+        versions.add(pubspec);
       }
 
       _servedApiPackageDir.contents.clear();
@@ -273,10 +277,17 @@ void servePackages(List<Map> pubspecs, {bool replace: false}) {
         _servedPackageDir.contents.add(d.dir(name, [
           d.dir('versions', _servedPackages[name].map((pubspec) {
             var version = pubspec['version'];
-            return d.tar('$version.tar.gz', [
-              d.file('pubspec.yaml', JSON.encode(pubspec)),
-              d.libDir(name, '$name $version')
-            ]);
+
+            var archiveContents = [
+                d.file('pubspec.yaml', JSON.encode(pubspec)),
+                d.libDir(name, '$name $version')
+            ];
+
+            if (contents != null) {
+              archiveContents.addAll(contents);
+            }
+
+            return d.tar('$version.tar.gz', archiveContents);
           }))
         ]));
       }
@@ -375,6 +386,25 @@ void pubGet({Iterable<String> args, output, error, warning, int exitCode}) {
 void pubUpgrade({Iterable<String> args, output, error, warning, int exitCode}) {
   pubCommand(RunCommand.upgrade, args: args, output: output, error: error,
       warning: warning, exitCode: exitCode);
+}
+
+/// Schedules starting the "pub [global] run" process and validates the
+/// expected startup output.
+///
+/// If [global] is `true`, this invokes "pub global run", otherwise it does
+/// "pub run".
+///
+/// Returns the `pub run` process.
+ScheduledProcess pubRun({bool global: false, Iterable<String> args}) {
+  var pubArgs = global ? ["global", "run"] : ["run"];
+  pubArgs.addAll(args);
+  var pub = startPub(args: pubArgs);
+
+  // Loading sources and transformers isn't normally printed, but the pub test
+  // infrastructure runs pub in verbose mode, which enables this.
+  pub.stdout.expect(consumeWhile(startsWith("Loading")));
+
+  return pub;
 }
 
 /// Defines an integration test.
@@ -670,6 +700,42 @@ void ensureGit() {
   }
 }
 
+/// Schedules activating a global package [package] without running
+/// "pub global activate".
+///
+/// This is useful because global packages must be hosted, but the test hosted
+/// server doesn't serve barback. The other parameters here follow
+/// [createLockFile].
+void makeGlobalPackage(String package, String version,
+    Iterable<d.Descriptor> contents, {Iterable<String> pkg,
+    Map<String, String> hosted}) {
+  // Start the server so we know what port to use in the cache directory name.
+  servePackages([]);
+
+  // Create the package in the hosted cache.
+  d.hostedCache([
+    d.dir("$package-$version", contents)
+  ]).create();
+
+  var lockFile = _createLockFile(pkg: pkg, hosted: hosted);
+
+  // Add the root package to the lockfile.
+  var id = new PackageId(package, "hosted", new Version.parse(version),
+      package);
+  lockFile.packages[package] = id;
+
+  // Write the lockfile to the global cache.
+  var sources = new SourceRegistry();
+  sources.register(new HostedSource());
+  sources.register(new PathSource());
+
+  d.dir(cachePath, [
+    d.dir("global_packages", [
+      d.file("$package.lock", lockFile.serialize(null, sources))
+    ])
+  ]).create();
+}
+
 /// Creates a lock file for [package] without running `pub get`.
 ///
 /// [sandbox] is a list of path dependencies to be found in the sandbox
@@ -681,6 +747,27 @@ void ensureGit() {
 /// hosted packages.
 void createLockFile(String package, {Iterable<String> sandbox,
     Iterable<String> pkg, Map<String, String> hosted}) {
+  var lockFile = _createLockFile(sandbox: sandbox, pkg: pkg, hosted: hosted);
+
+  var sources = new SourceRegistry();
+  sources.register(new HostedSource());
+  sources.register(new PathSource());
+
+  d.file(path.join(package, 'pubspec.lock'),
+      lockFile.serialize(null, sources)).create();
+}
+
+/// Creates a lock file for [package] without running `pub get`.
+///
+/// [sandbox] is a list of path dependencies to be found in the sandbox
+/// directory. [pkg] is a list of packages in the Dart repo's "pkg" directory;
+/// each package listed here and all its dependencies will be linked to the
+/// version in the Dart repo.
+///
+/// [hosted] is a list of package names to version strings for dependencies on
+/// hosted packages.
+LockFile _createLockFile({Iterable<String> sandbox,
+Iterable<String> pkg, Map<String, String> hosted}) {
   var dependencies = {};
 
   if (sandbox != null) {
@@ -732,12 +819,7 @@ void createLockFile(String package, {Iterable<String> sandbox,
     });
   }
 
-  var sources = new SourceRegistry();
-  sources.register(new HostedSource());
-  sources.register(new PathSource());
-
-  d.file(path.join(package, 'pubspec.lock'),
-      lockFile.serialize(null, sources)).create();
+  return lockFile;
 }
 
 /// Uses [client] as the mock HTTP client for this test.

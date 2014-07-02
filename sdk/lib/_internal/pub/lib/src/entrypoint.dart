@@ -43,17 +43,36 @@ class Entrypoint {
   /// the network.
   final SystemCache cache;
 
+  /// The lockfile for the entrypoint.
+  ///
+  /// If not provided to the entrypoint, it will be laoded lazily from disc.
+  LockFile _lockFile;
+
   /// Loads the entrypoint from a package at [rootDir].
   Entrypoint(String rootDir, SystemCache cache)
       : root = new Package.load(null, rootDir, cache.sources),
         cache = cache;
 
-  // TODO(rnystrom): Make this path configurable.
+  /// Creates an entrypoint given package and lockfile objects.
+  Entrypoint.inMemory(this.root, this._lockFile, this.cache);
+
   /// The path to the entrypoint's "packages" directory.
   String get packagesDir => path.join(root.dir, 'packages');
 
   /// `true` if the entrypoint package currently has a lock file.
-  bool get lockFileExists => entryExists(lockFilePath);
+  bool get lockFileExists => _lockFile != null || entryExists(lockFilePath);
+
+  LockFile get lockFile {
+    if (_lockFile != null) return _lockFile;
+
+    if (!lockFileExists) {
+      _lockFile = new LockFile.empty();
+    } else {
+      _lockFile = new LockFile.load(lockFilePath, cache.sources);
+    }
+
+    return _lockFile;
+  }
 
   /// The path to the entrypoint package's lockfile.
   String get lockFilePath => path.join(root.dir, 'pubspec.lock');
@@ -73,7 +92,7 @@ class Entrypoint {
   Future acquireDependencies({List<String> useLatest, bool isUpgrade: false,
       bool dryRun: false}) {
     return syncFuture(() {
-      return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
+      return resolveVersions(cache.sources, root, lockFile: lockFile,
           useLatest: useLatest, upgradeAll: isUpgrade && useLatest.isEmpty);
     }).then((result) {
       if (!result.succeeded) throw result.error;
@@ -109,15 +128,6 @@ class Entrypoint {
 
     var source = cache.sources[id.source];
     return source.get(id, packageDir).then((_) => source.resolveId(id));
-  }
-
-  /// Loads the list of concrete package versions from the `pubspec.lock`, if it
-  /// exists.
-  ///
-  /// If it doesn't, this completes to an empty [LockFile].
-  LockFile loadLockFile() {
-    if (!lockFileExists) return new LockFile.empty();
-    return new LockFile.load(lockFilePath, cache.sources);
   }
 
   /// Determines whether or not the lockfile is out of date with respect to the
@@ -174,8 +184,6 @@ class Entrypoint {
   /// pubspec.
   Future _ensureLockFileIsUpToDate() {
     return syncFuture(() {
-      var lockFile = loadLockFile();
-
       // If we don't have a current lock file, we definitely need to install.
       if (!_isLockFileUpToDate(lockFile)) {
         if (lockFileExists) {
@@ -214,7 +222,6 @@ class Entrypoint {
   /// and up to date.
   Future<PackageGraph> loadPackageGraph() {
     return _ensureLockFileIsUpToDate().then((_) {
-      var lockFile = loadLockFile();
       return Future.wait(lockFile.packages.values.map((id) {
         var source = cache.sources[id.source];
         return source.getDirectory(id)

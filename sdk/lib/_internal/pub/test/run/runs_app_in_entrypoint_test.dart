@@ -4,7 +4,6 @@
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
 
 const SCRIPT = """
 import 'dart:io';
