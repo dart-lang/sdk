@@ -35,6 +35,10 @@ Map<TransformerId, Set<TransformerId>> computeTransformersNeededByTransformers(
       for (var config in phase) {
         var id = config.id;
         if (id.isBuiltInTransformer) continue;
+        if (id.package != graph.entrypoint.root.name &&
+            !config.canTransformPublicFiles) {
+          continue;
+        }
         result[id] = computer.transformersNeededByTransformer(id);
       }
     }
