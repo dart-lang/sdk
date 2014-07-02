@@ -56,7 +56,7 @@ css_test/supportsPointConversions: Skip # Times out. Issue 19127
 element_offset_test/offset: Skip # Issue 17550
 indexeddb_1_test/functional: RuntimeError # Issue 19127. Actually a timeout, but do not skip.
 mouse_event_test: Skip # Times out. Issue 19127
-request_animation_frame_test: Timeout # Issue 19127. Do not skip, for stability.
+request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 xhr_test/xhr: RuntimeError # Issue 19127
 
 [ $compiler == none && $runtime == drt && $system == windows ]

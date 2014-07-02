@@ -19,4 +19,8 @@ dart2js_test: Skip # Uses dart:io.
 [ $compiler == dart2js && $mode == debug ]
 source_mirrors_test: Slow, Pass
 dummy_compiler_test: Slow, Pass
-source_mirrors_test: Slow, Pass
+
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+dummy_compiler_test: RuntimeError # http://dartbug.com/17662
+recursive_import_test: RuntimeError # http://dartbug.com/17662
+source_mirrors_test: RuntimeError # http://dartbug.com/17662

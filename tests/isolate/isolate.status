@@ -26,6 +26,9 @@ handle_error_test: Fail   # Not implemented yet
 handle_error2_test: Fail  # Not implemented yet
 handle_error3_test: Fail  # Not implemented yet
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+*: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
+
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 
