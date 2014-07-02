@@ -320,11 +320,13 @@ abstract class Enqueuer {
   /// needed for reflection.
   void enqueueReflectiveMember(Element element, bool enclosingWasIncluded) {
     if (shouldIncludeElementDueToMirrors(element,
-            includedEnclosing: enclosingWasIncluded)
-        // Do not enqueue typedefs.
-        && !element.impliesType) {
+            includedEnclosing: enclosingWasIncluded)) {
       logEnqueueReflectiveAction(element);
-      if (Elements.isStaticOrTopLevel(element)) {
+      if (element.isTypedef) {
+        TypedefElement typedef = element;
+        typedef.ensureResolved(compiler);
+        compiler.world.allTypedefs.add(element);
+      } else if (Elements.isStaticOrTopLevel(element)) {
         registerStaticUse(element.declaration);
       } else if (element.isInstanceMember) {
         // We need to enqueue all members matching this one in subclasses, as

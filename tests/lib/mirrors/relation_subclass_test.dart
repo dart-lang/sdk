@@ -57,13 +57,12 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(Obj.isSubclassOf(Func));
 
   // Function typedef.
-  // TODO(16939): retrieve via declaration when dart2js supports it.
-  var NumPred = reflectType(NumberPredicate);
-  var IntPred = reflectType(IntegerPredicate);
-  var DubPred = reflectType(DoublePredicate);
-  var NumGen = reflectType(NumberGenerator);
-  var IntGen = reflectType(IntegerGenerator);
-  var DubGen = reflectType(DoubleGenerator);
+  var NumPred = thisLibrary.declarations[#NumberPredicate];
+  var IntPred = thisLibrary.declarations[#IntegerPredicate];
+  var DubPred = thisLibrary.declarations[#DoublePredicate];
+  var NumGen = thisLibrary.declarations[#NumberGenerator];
+  var IntGen = thisLibrary.declarations[#IntegerGenerator];
+  var DubGen = thisLibrary.declarations[#DoubleGenerator];
 
   isArgumentOrTypeError(e) => e is ArgumentError || e is TypeError;
   Expect.throws(() => Func.isSubclassOf(NumPred), isArgumentOrTypeError);
