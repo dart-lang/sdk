@@ -1034,11 +1034,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Primitive receiver;
     ir.Primitive index;
 
-    if (Elements.isErroneousElement(element)) {
-      giveup(node, 'Erroneous element on GetterSend');
-      return null;
-    }
-
     if (element != null && element.isConst) {
       // Reference to constant local, top-level or static field
 
@@ -1072,11 +1067,10 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
           createDynamicInvoke(node, selector, receiver, k, arguments);
       add(new ir.LetCont(k, invoke));
       result = v;
-    } else if (element.isField || element.isGetter ||
+    } else if (element.isField || element.isGetter || element.isErroneous ||
         // Access to a static field or getter (non-static case handled above).
         // Even if there is only a setter, we compile as if it was a getter,
         // so the vm can fail at runtime.
-
         element.isSetter) {
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
@@ -1244,7 +1238,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     if (op.source == "is") {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) return giveup(node, "Malformed type for is");
       ir.Primitive receiver = visit(node.receiver);
       ir.IsCheck isCheck = new ir.IsCheck(receiver, type);
       add(new ir.LetPrim(isCheck));
@@ -1252,7 +1245,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     if (op.source == "as") {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) return giveup(node, "Malformed type for as");
       ir.Primitive receiver = visit(node.receiver);
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
@@ -1260,7 +1252,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       add(new ir.LetCont(k, asCast));
       return v;
     }
-    return giveup(node);
+    compiler.internalError(node, "Unknown operator '${op.source}'");
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
@@ -1268,17 +1260,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor) return giveup(node, 'StaticSend: constructor');
+    assert(!element.isConstructor);
     // TODO(lry): support foreign functions.
     if (element.isForeign(compiler)) return giveup(node, 'StaticSend: foreign');
-    // TODO(lry): for elements that could not be resolved emit code to throw a
-    // [NoSuchMethodError].
-    if (element.isErroneous) return giveup(node, 'StaticSend: erroneous');
-    // TODO(lry): generate IR for object identicality.
-    if (element == compiler.identicalFunction) {
-      return giveup(node, 'StaticSend: identical');
-    }
 
     Selector selector = elements.getSelector(node);
 
@@ -1389,7 +1373,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (Elements.isLocal(element)) {
       valueToStore.useElementAsHint(element);
       assignedVars[variableIndex[element]] = valueToStore;
-    } else if (Elements.isStaticOrTopLevel(element)) {
+    } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
+                Elements.isStaticOrTopLevel(element)) {
       assert(element.isField || element.isSetter);
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
@@ -1398,9 +1383,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
           new ir.InvokeStatic(element, selector, k, [valueToStore]);
       add(new ir.LetCont(k, invoke));
     } else {
-      if (element != null && Elements.isUnresolved(element)) {
-        return giveup(node, 'SendSet: non-local, non-static, unresolved');
-      }
       // Setter or index-setter invocation
       ir.Parameter v = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([v]);
@@ -1429,12 +1411,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       return translateConstant(node);
     }
     FunctionElement element = elements[node.send];
-    if (Elements.isUnresolved(element)) {
-      return giveup(node, 'NewExpression: unresolved constructor');
-    }
     Selector selector = elements.getSelector(node.send);
     ast.Node selectorNode = node.send.selector;
-    GenericType type = elements.getType(node);
+    DartType type = elements.getType(node);
     List<ir.Primitive> args =
         node.send.arguments.mapToList(visit, growable:false);
     ir.Parameter v = new ir.Parameter(null);

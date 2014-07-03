@@ -183,6 +183,11 @@ label_test: Skip
 [ $compiler == dart2dart && $builder_tag == new_backend ]
 type_variable_conflict2_test/01: Fail # Issue 19725
 
+[ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
+# This test happens not to fail in minified, because the type-argument is
+# renamed, but the unresolved reference to it is not.
+type_variable_conflict2_test/04: Fail # Issue 19725
+
 [ $compiler == dart2dart ]
 type_variable_conflict2_test/02: MissingCompileTimeError # Issue 19725
 type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180

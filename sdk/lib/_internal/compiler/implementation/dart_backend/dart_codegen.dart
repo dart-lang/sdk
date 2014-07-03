@@ -554,9 +554,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       return new TypeAnnotation("dynamic")
           ..dartType = type;
     } else if (type is MalformedType) {
-      // treat malformed types as dynamic
-      return new TypeAnnotation("dynamic")
-          ..dartType = const DynamicType();
+      return new TypeAnnotation(type.name)
+          ..dartType = type;
     } else {
       throw "Unsupported type annotation: $type";
     }

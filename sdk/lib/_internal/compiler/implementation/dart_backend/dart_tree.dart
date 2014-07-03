@@ -147,7 +147,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
  * Call to a factory or generative constructor.
  */
 class InvokeConstructor extends Expression implements Invoke {
-  final GenericType type;
+  final DartType type;
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;

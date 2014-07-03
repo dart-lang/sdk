@@ -205,7 +205,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
 /// Non-const call to a constructor. The [target] may be a generative
 /// constructor, factory, or redirecting factory.
 class InvokeConstructor extends Expression implements Invoke {
-  final GenericType type;
+  final DartType type;
   final FunctionElement target;
   final Reference continuation;
   final List<Reference> arguments;
@@ -225,8 +225,9 @@ class InvokeConstructor extends Expression implements Invoke {
                     List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(target.isConstructor);
-    assert(type.element == target.enclosingElement);
+    assert(target.isErroneous || target.isConstructor);
+    assert((target.isErroneous && type.isDynamic) ||
+        type.element == target.enclosingElement);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
