@@ -21,7 +21,8 @@ void DebuggerConnectionImpl::ThreadEntry(uword args) {
     FATAL("Accepting new debugger connection failed.\n");
   }
   ClientSocket* socket = new ClientSocket(client_socket);
-  DebuggerConnectionHandler::AcceptDbgConnection(reinterpret_cast<int>(socket));
+  DebuggerConnectionHandler::AcceptDbgConnection(
+      reinterpret_cast<intptr_t>(socket));
 }
 
 

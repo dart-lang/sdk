@@ -76,7 +76,7 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
     if (DebuggerConnectionHandler::IsConnected()) {
       FATAL("Cannot connect to more than one debugger.\n");
     }
-    int fd = ServerSocket::Accept(ident);
+    intptr_t fd = ServerSocket::Accept(ident);
     if (fd < 0) {
       FATAL("Accepting new debugger connection failed.\n");
     }

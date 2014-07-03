@@ -29,7 +29,7 @@ void DebuggerConnectionImpl::HandleEvent(struct epoll_event* event) {
     if (DebuggerConnectionHandler::IsConnected()) {
       FATAL("Cannot connect to more than one debugger.\n");
     }
-    int fd = ServerSocket::Accept(event->data.fd);
+    intptr_t fd = ServerSocket::Accept(event->data.fd);
     if (fd < 0) {
       FATAL("Accepting new debugger connection failed.\n");
     }

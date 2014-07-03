@@ -37,11 +37,11 @@ class MessageBuffer;
 
 class DebuggerConnectionHandler {
  public:
-  explicit DebuggerConnectionHandler(int debug_fd);
+  explicit DebuggerConnectionHandler(intptr_t debug_fd);
   ~DebuggerConnectionHandler();
 
   // Accessors.
-  int debug_fd() const { return debug_fd_; }
+  intptr_t debug_fd() const { return debug_fd_; }
 
   // Return message id of current debug command message.
   int MessageId();
@@ -61,8 +61,8 @@ class DebuggerConnectionHandler {
   static void WaitForConnection();
 
   // Sends a reply or an error message to a specific debugger client.
-  static void SendMsg(int debug_fd, dart::TextBuffer* msg);
-  static void SendError(int debug_fd, int msg_id, const char* err_msg);
+  static void SendMsg(intptr_t debug_fd, dart::TextBuffer* msg);
+  static void SendError(intptr_t debug_fd, int msg_id, const char* err_msg);
 
   // Sends an event message to all debugger clients that are connected.
   static void BroadcastMsg(dart::TextBuffer* msg);
@@ -75,7 +75,7 @@ class DebuggerConnectionHandler {
 
   // The socket that connects with the debugger client.
   // The descriptor is created and closed by the debugger connection thread.
-  int debug_fd_;
+  intptr_t debug_fd_;
 
   // Buffer holding the messages received over the wire from the debugger
   // front end..
@@ -83,7 +83,7 @@ class DebuggerConnectionHandler {
 
   // Accepts connection requests from debugger client and sets up a
   // connection handler object to read and handle messages from the client.
-  static void AcceptDbgConnection(int debug_fd);
+  static void AcceptDbgConnection(intptr_t debug_fd);
 
   // Handlers for generic debug command messages which are not specific to
   // an isolate.
@@ -91,13 +91,14 @@ class DebuggerConnectionHandler {
   static void HandleIsolatesListCmd(DbgMessage* msg);
 
   // Helper methods to manage debugger client connections.
-  static void AddNewDebuggerConnection(int debug_fd);
-  static void RemoveDebuggerConnection(int debug_fd);
-  static DebuggerConnectionHandler* GetDebuggerConnectionHandler(int debug_fd);
+  static void AddNewDebuggerConnection(intptr_t debug_fd);
+  static void RemoveDebuggerConnection(intptr_t debug_fd);
+  static DebuggerConnectionHandler* GetDebuggerConnectionHandler(
+                                       intptr_t debug_fd);
   static bool IsConnected();
 
   // Helper method for sending messages back to a debugger client.
-  static void SendMsgHelper(int debug_fd, dart::TextBuffer* msg);
+  static void SendMsgHelper(intptr_t debug_fd, dart::TextBuffer* msg);
 
   // mutex/condition variable used by isolates when writing back to the
   // debugger. This is also used to ensure that the isolate waits for
@@ -110,7 +111,7 @@ class DebuggerConnectionHandler {
 
   // The socket that is listening for incoming debugger connections.
   // This descriptor is created and closed by a native thread.
-  static int listener_fd_;
+  static intptr_t listener_fd_;
 
   friend class DebuggerConnectionImpl;
 

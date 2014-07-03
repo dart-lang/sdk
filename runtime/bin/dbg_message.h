@@ -63,7 +63,7 @@ class MessageParser {
 class DbgMessage {
  public:
   DbgMessage(int32_t cmd_idx, const char* start,
-             const char* end, int debug_fd)
+             const char* end, intptr_t debug_fd)
       : next_(NULL), cmd_idx_(cmd_idx),
         buffer_(NULL), buffer_len_(end - start),
         debug_fd_(debug_fd) {
@@ -81,7 +81,7 @@ class DbgMessage {
   void set_next(DbgMessage* next) { next_ = next; }
   char* buffer() const { return buffer_; }
   int32_t buffer_len() const { return buffer_len_; }
-  int debug_fd() const { return debug_fd_; }
+  intptr_t debug_fd() const { return debug_fd_; }
 
   // Handle debugger command message.
   // Returns true if the execution needs to resume after this message is
@@ -121,7 +121,7 @@ class DbgMessage {
   int32_t cmd_idx_;  // Isolate specific debugger command index.
   char* buffer_;  // Debugger command message.
   int32_t buffer_len_;  // Length of the debugger command message.
-  int debug_fd_;  // Debugger connection on which replies are to be sent.
+  intptr_t debug_fd_;  // Debugger connection on which replies are to be sent.
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(DbgMessage);
 };
@@ -160,7 +160,7 @@ class DbgMsgQueue {
   void AddMessage(int32_t cmd_idx,
                   const char* start,
                   const char* end,
-                  int debug_fd);
+                  intptr_t debug_fd);
 
   // Notify an isolate of a pending vmservice message.
   void Notify();
@@ -232,7 +232,7 @@ class DbgMsgQueueList {
                                 int32_t cmd_idx,
                                 const char* start,
                                 const char* end,
-                                int debug_fd);
+                                intptr_t debug_fd);
 
   // Notify an isolate of a pending vmservice message.
   static void NotifyIsolate(Dart_Isolate isolate);

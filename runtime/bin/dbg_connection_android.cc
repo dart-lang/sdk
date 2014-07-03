@@ -21,7 +21,7 @@
 namespace dart {
 namespace bin {
 
-int DebuggerConnectionImpl::epoll_fd_ = -1;
+intptr_t DebuggerConnectionImpl::epoll_fd_ = -1;
 int DebuggerConnectionImpl::wakeup_fds_[2] = {-1, -1};
 
 
@@ -30,7 +30,7 @@ void DebuggerConnectionImpl::HandleEvent(struct epoll_event* event) {
     if (DebuggerConnectionHandler::IsConnected()) {
       FATAL("Cannot connect to more than one debugger.\n");
     }
-    int fd = ServerSocket::Accept(event->data.fd);
+    intptr_t fd = ServerSocket::Accept(event->data.fd);
     if (fd < 0) {
       FATAL("Accepting new debugger connection failed.\n");
     }
