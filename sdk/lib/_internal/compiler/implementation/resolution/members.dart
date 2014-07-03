@@ -1953,7 +1953,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
  * Do not subclass or instantiate this class outside this library
  * except for testing.
  */
-class ResolverVisitor extends MappingVisitor<Element> {
+class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /**
    * The current enclosing element for the visited AST nodes.
    *
@@ -2109,7 +2109,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return new ErroneousElementX(kind, arguments, name, enclosingElement);
   }
 
-  Element visitIdentifier(Identifier node) {
+  ResolutionResult visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) {
         error(node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': node});
@@ -2152,19 +2152,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
         ClassElement classElement = element;
         classElement.ensureResolved(compiler);
       }
-      return registry.useElement(node, element);
+      return new ElementResult(registry.useElement(node, element));
     }
   }
 
-  Element visitTypeAnnotation(TypeAnnotation node) {
+  ResolutionResult visitTypeAnnotation(TypeAnnotation node) {
     DartType type = resolveTypeAnnotation(node);
-    if (type != null) {
-      if (inCheckContext) {
-        registry.registerIsCheck(type);
-      }
-      return type.element;
+    if (inCheckContext) {
+      registry.registerIsCheck(type);
     }
-    return null;
+    return new TypeResult(type);
   }
 
   bool isNamedConstructor(Send node) => node.receiver != null;
@@ -2254,9 +2251,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   visitIn(Node node, Scope nestedScope) {
     Scope oldScope = scope;
     scope = nestedScope;
-    Element element = visit(node);
+    ResolutionResult result = visit(node);
     scope = oldScope;
-    return element;
+    return result;
   }
 
   /**
@@ -2348,7 +2345,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     visitIn(node.elsePart, new BlockScope(scope));
   }
 
-  Element resolveSend(Send node) {
+  ResolutionResult resolveSend(Send node) {
     Selector selector = resolveSelector(node, null);
     if (node.isSuperCall) registry.registerSuperUse(node);
 
@@ -2366,9 +2363,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
                 {'argumentCount': selector.namedArgumentCount});
         }
         registry.registerAssert(node);
-        // TODO(johnniwinther): Return a marker to indicated that this is
-        // a call to assert.
-        return null;
+        return const AssertResult();
       }
 
       return node.selector.accept(this);
@@ -2376,7 +2371,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
     var oldCategory = allowedCategory;
     allowedCategory |= ElementCategory.PREFIX | ElementCategory.SUPER;
-    Element resolvedReceiver = visit(node.receiver);
+    ResolutionResult resolvedReceiver = visit(node.receiver);
     allowedCategory = oldCategory;
 
     Element target;
@@ -2418,10 +2413,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
         registry.registerDynamicInvocation(selector);
         registry.registerSuperNoSuchMethod();
       }
-    } else if (Elements.isUnresolved(resolvedReceiver)) {
+    } else if (resolvedReceiver == null ||
+               Elements.isUnresolved(resolvedReceiver.element)) {
       return null;
-    } else if (resolvedReceiver.isClass) {
-      ClassElement receiverClass = resolvedReceiver;
+    } else if (resolvedReceiver.element.isClass) {
+      ClassElement receiverClass = resolvedReceiver.element;
       receiverClass.ensureResolved(compiler);
       if (node.isOperator) {
         // When the resolved receiver is a class, we can have two cases:
@@ -2447,18 +2443,18 @@ class ResolverVisitor extends MappingVisitor<Element> {
         MessageKind kind = (target == null)
             ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
-        return warnAndCreateErroneousElement(node, name, kind,
-                                             {'className': receiverClass.name,
-                                              'memberName': name});
+        return new ElementResult(warnAndCreateErroneousElement(
+            node, name, kind,
+            {'className': receiverClass.name, 'memberName': name}));
       }
-    } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
-      PrefixElement prefix = resolvedReceiver;
+    } else if (resolvedReceiver.element.isPrefix) {
+      PrefixElement prefix = resolvedReceiver.element;
       target = prefix.lookupLocalMember(name);
       if (Elements.isUnresolved(target)) {
         registry.registerThrowNoSuchMethod();
-        return warnAndCreateErroneousElement(
+        return new ElementResult(warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
-            {'libraryName': prefix.name, 'memberName': name});
+            {'libraryName': prefix.name, 'memberName': name}));
       } else if (target.isAmbiguous) {
         registry.registerThrowNoSuchMethod();
         AmbiguousElement ambiguous = target;
@@ -2466,13 +2462,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
                                                ambiguous.messageKind,
                                                ambiguous.messageArguments);
         ambiguous.diagnose(enclosingElement, compiler);
-        return target;
+        return new ElementResult(target);
       } else if (target.kind == ElementKind.CLASS) {
         ClassElement classElement = target;
         classElement.ensureResolved(compiler);
       }
     }
-    return target;
+    return new ElementResult(target);
   }
 
   static Selector computeSendSelector(Send node,
@@ -2575,16 +2571,18 @@ class ResolverVisitor extends MappingVisitor<Element> {
     sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
-  visitSend(Send node) {
+  ResolutionResult visitSend(Send node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    Element target;
+    ResolutionResult result;
     if (node.isLogicalAnd) {
-      target = doInPromotionScope(node.receiver, () => resolveSend(node));
+      result = doInPromotionScope(node.receiver, () => resolveSend(node));
     } else {
-      target = resolveSend(node);
+      result = resolveSend(node);
     }
     sendIsMemberAccess = oldSendIsMemberAccess;
+
+    Element target = result != null ? result.element : null;
 
     if (target != null
         && target == compiler.mirrorSystemGetNameFunction
@@ -2727,7 +2725,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
       registry.registerGetOfStaticFunction(target.declaration);
     }
-    return node.isPropertyAccess ? target : null;
+    return node.isPropertyAccess ? new ElementResult(target) : null;
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
@@ -2741,17 +2739,18 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return cls.computeType(compiler);
   }
 
-  visitSendSet(SendSet node) {
+  ResolutionResult visitSendSet(SendSet node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    Element target = resolveSend(node);
+    ResolutionResult result = resolveSend(node);
     sendIsMemberAccess = oldSendIsMemberAccess;
+    Element target = result != null ? result.element : null;
     Element setter = target;
     Element getter = target;
     String operatorName = node.assignmentOperator.source;
     String source = operatorName;
     bool isComplex = !identical(source, '=');
-    if (!(registry.isAssert(node) || Elements.isUnresolved(target))) {
+    if (!(result is AssertResult || Elements.isUnresolved(target))) {
       if (target.isAbstractField) {
         AbstractFieldElement field = target;
         setter = field.setter;
@@ -2838,7 +2837,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     registerSend(selector, setter);
-    return registry.useElement(node, setter);
+    return new ElementResult(registry.useElement(node, setter));
   }
 
   void registerSend(Selector selector, Element target) {
@@ -3059,7 +3058,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
-  visitNewExpression(NewExpression node) {
+  ResolutionResult visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
@@ -3068,7 +3067,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Selector callSelector = resolveSelector(node.send, constructor);
     resolveArguments(node.send.argumentsNode);
     registry.useElement(node.send, constructor);
-    if (Elements.isUnresolved(constructor)) return constructor;
+    if (Elements.isUnresolved(constructor)) {
+      return new ElementResult(constructor);
+    }
     if (!callSelector.applies(constructor, compiler)) {
       registry.registerThrowNoSuchMethod();
     }
@@ -3202,7 +3203,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   ConstructorElement resolveRedirectingFactory(Return node,
-                                            {bool inConstContext: false}) {
+                                               {bool inConstContext: false}) {
     return node.accept(new ConstructorResolver(compiler, this,
                                                inConstContext: inConstContext));
   }
@@ -3213,7 +3214,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     DartType type = typeResolver.resolveTypeAnnotation(
         this, node, malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    if (type == null) return null;
     if (inCheckContext) {
       registry.registerIsCheck(type);
       registry.registerRequiredType(type, enclosingElement);
@@ -4706,4 +4706,46 @@ abstract class AnalyzableElementX implements AnalyzableElement {
         message: "TreeElements have not been computed for $this."));
     return _treeElements;
   }
+}
+
+/// The result of resolving a node.
+abstract class ResolutionResult {
+  Element get element;
+}
+
+/// The result for the resolution of a node that points to an [Element].
+class ElementResult implements ResolutionResult {
+  final Element element;
+
+  // TODO(johnniwinther): Remove this factory constructor when `null` is never
+  // passed as an element result.
+  factory ElementResult(Element element) {
+    return element != null ? new ElementResult.internal(element) : null;
+  }
+
+  ElementResult.internal(this.element);
+
+  String toString() => 'ElementResult($element)';
+}
+
+/// The result for the resolution of a node that points to an [DartType].
+class TypeResult implements ResolutionResult {
+  final DartType type;
+
+  TypeResult(this.type) {
+    assert(type != null);
+  }
+
+  Element get element => type.element;
+
+  String toString() => 'TypeResult($type)';
+}
+
+/// The result for the resolution of the `assert` method.
+class AssertResult implements ResolutionResult {
+  const AssertResult();
+
+  Element get element => null;
+
+  String toString() => 'AssertResult()';
 }

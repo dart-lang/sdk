@@ -39,7 +39,8 @@ createLocals(List variables) {
 Future testLocals(List variables) {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
-    Element element = visitor.visit(createLocals(variables));
+    ResolutionResult result = visitor.visit(createLocals(variables));
+    Element element = result != null ? result.element : null;
     // A VariableDefinitions does not have an element.
     Expect.equals(null, element);
     Expect.equals(variables.length, map(visitor).length);
@@ -47,7 +48,9 @@ Future testLocals(List variables) {
     for (final variable in variables) {
       final name = variable[0];
       Identifier id = buildIdentifier(name);
-      final VariableElement variableElement = visitor.visit(id);
+      ResolutionResult result = visitor.visit(id);
+      final VariableElement variableElement =
+          result != null ? result.element : null;
       MethodScope scope = visitor.scope;
       Expect.equals(variableElement, scope.elements[name]);
     }
