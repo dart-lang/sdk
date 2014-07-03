@@ -87,6 +87,7 @@ const String DART_DOC = 'dartdoc';
 const String DEFAULT = 'default';
 const String ELEMENT = 'element';
 const String ELEMENT_DESCRIPTION = 'elementDescription';
+const String ELEMENT_KIND = 'elementKind';
 const String EXCLUDED = 'excluded';
 const String ERROR_CODE = 'errorCode';
 const String ERRORS = 'errors';

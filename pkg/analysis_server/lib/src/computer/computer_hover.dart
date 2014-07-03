@@ -71,7 +71,7 @@ class DartUnitHoverComputer {
   Map<String, Object> compute() {
     AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
     if (node is Expression) {
-      Hover hover = new Hover();
+      Hover hover = new Hover(node.offset, node.length);
       // element
       Element element = ElementLocator.locateWithOffset(node, _offset);
       if (element != null) {
@@ -84,6 +84,7 @@ class DartUnitHoverComputer {
         }
         // description
         hover.elementDescription = element.toString();
+        hover.elementKind = element.kind.displayName;
         // library
         LibraryElement library = element.library;
         if (library != null) {
@@ -112,22 +113,28 @@ class DartUnitHoverComputer {
 
 
 class Hover {
+  final int offset;
+  final int length;
   String containingLibraryName;
   String containingLibraryPath;
   String dartDoc;
   String elementDescription;
+  String elementKind;
   String parameter;
   String propagatedType;
   String staticType;
 
-  Hover();
+  Hover(this.offset, this.length);
 
   factory Hover.fromJson(Map<String, Object> map) {
-    Hover hover = new Hover();
+    int offset = map[OFFSET];
+    int length = map[LENGTH];
+    Hover hover = new Hover(offset, length);
     hover.containingLibraryName = map[CONTAINING_LIBRARY_NAME];
     hover.containingLibraryPath = map[CONTAINING_LIBRARY_PATH];
     hover.dartDoc = map[DART_DOC];
     hover.elementDescription = map[ELEMENT_DESCRIPTION];
+    hover.elementKind = map[ELEMENT_KIND];
     hover.parameter = map[PARAMETER];
     hover.propagatedType = map[PROPAGATED_TYPE];
     hover.staticType = map[STATIC_TYPE];
@@ -136,6 +143,8 @@ class Hover {
 
   Map<String, Object> toJson() {
     Map<String, Object> json = new HashMap<String, Object>();
+    json[OFFSET] = offset;
+    json[LENGTH] = length;
     if (containingLibraryName != null) {
       json[CONTAINING_LIBRARY_NAME] = containingLibraryName;
     }
@@ -147,6 +156,9 @@ class Hover {
     }
     if (elementDescription != null) {
       json[ELEMENT_DESCRIPTION] = elementDescription;
+    }
+    if (elementKind != null) {
+      json[ELEMENT_KIND] = elementKind;
     }
     if (parameter != null) {
       json[PARAMETER] = parameter;

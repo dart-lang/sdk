@@ -95,6 +95,7 @@ List<String> fff(int a, String b) {
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
+      expect(hover.elementKind, 'function');
       // types
       expect(hover.staticType, '(int, String) → List<String>');
       expect(hover.propagatedType, isNull);
@@ -113,6 +114,7 @@ foo(Object myParameter) {}
     return prepareHover('123', () {
       // literal, no Element
       expect(hover.elementDescription, isNull);
+      expect(hover.elementKind, isNull);
       // types
       expect(hover.staticType, 'int');
       expect(hover.propagatedType, isNull);
@@ -137,8 +139,37 @@ class A {
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
+      expect(hover.elementKind, 'method');
       // types
       expect(hover.staticType, '(int, String) → List<String>');
+      expect(hover.propagatedType, isNull);
+      // no parameter
+      expect(hover.parameter, isNull);
+    });
+  }
+
+  test_expression_method_nvocation() {
+    addTestFile('''
+library my.library;
+class A {
+  List<String> mmm(int a, String b) {
+  }
+}
+main(A a) {
+  a.mmm(42, 'foo');
+}
+''');
+    return prepareHover('mm(42, ', () {
+      // range
+      expect(hover.offset, findOffset('mmm(42, '));
+      expect(hover.length, 'mmm'.length);
+      // element
+      expect(hover.containingLibraryName, 'my.library');
+      expect(hover.containingLibraryPath, testFile);
+      expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
+      expect(hover.elementKind, 'method');
+      // types
+      expect(hover.staticType, isNull);
       expect(hover.propagatedType, isNull);
       // no parameter
       expect(hover.parameter, isNull);
@@ -163,6 +194,7 @@ main(A a) {
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'String fff');
+      expect(hover.elementKind, 'field');
       // types
       expect(hover.staticType, 'String');
       expect(hover.propagatedType, isNull);
@@ -183,6 +215,7 @@ main() {
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartDoc, isNull);
       expect(hover.elementDescription, 'dynamic vvv');
+      expect(hover.elementKind, 'local variable');
       // types
       expect(hover.staticType, 'dynamic');
       expect(hover.propagatedType, 'int');
