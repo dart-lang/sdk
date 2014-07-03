@@ -81,7 +81,7 @@ spawn_uri_nested_vm_test: Skip # Issue 14463
 [ $jscl || $runtime == ie9 ]
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
-[ $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == dart2dart) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 pause_test: Fail         # Not implemented yet
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
