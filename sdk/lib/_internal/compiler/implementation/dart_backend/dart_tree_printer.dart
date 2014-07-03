@@ -326,8 +326,11 @@ class TreePrinter {
       }
     } else if (exp is CallMethod) {
       precedence = CALLEE;
+      tree.Node receiver = exp.object is This
+          ? null
+          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
       result = new tree.Send(
-          makeExp(exp.object, PRIMARY, beginStmt: beginStmt),
+          receiver,
           makeIdentifier(exp.methodName),
           argList(exp.arguments.map(makeArgument)));
     } else if (exp is CallNew) {
@@ -370,9 +373,10 @@ class TreePrinter {
           colon);
     } else if (exp is FieldExpression) {
       precedence = PRIMARY;
-      result = new tree.Send(
-          makeExp(exp.object, PRIMARY, beginStmt: beginStmt),
-          makeIdentifier(exp.fieldName));
+      tree.Node receiver = exp.object is This
+          ? null
+          : makeExp(exp.object, PRIMARY, beginStmt: beginStmt);
+      result = new tree.Send(receiver, makeIdentifier(exp.fieldName));
     } else if (exp is FunctionExpression) {
       precedence = PRIMARY;
       if (beginStmt && exp.name != null) {

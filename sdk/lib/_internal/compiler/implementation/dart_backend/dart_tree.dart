@@ -188,7 +188,7 @@ class Constant extends Expression {
 }
 
 class This extends Expression {
-  accept(Visitor visitor) => visitor.visitThis(this);
+  accept(ExpressionVisitor visitor) => visitor.visitThis(this);
 }
 
 class ReifyTypeVar extends Expression {
@@ -196,7 +196,7 @@ class ReifyTypeVar extends Expression {
 
   ReifyTypeVar(this.element);
 
-  accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
+  accept(ExpressionVisitor visitor) => visitor.visitReifyTypeVar(this);
 }
 
 class LiteralList extends Expression {
