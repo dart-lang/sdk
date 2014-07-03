@@ -55,8 +55,6 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
-  List<TypedefElement> typedefsNeededForReflection;
-
   JavaScriptBackend get backend => compiler.backend;
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
 
@@ -65,12 +63,9 @@ class CodeEmitterTask extends CompilerTask {
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
 
-  CodeBuffer getBuffer(OutputUnit outputUnit) {
-    return outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
-  }
-
   CodeBuffer get mainBuffer {
-    return getBuffer(compiler.deferredLoadTask.mainOutputUnit);
+    return outputBuffers.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+        () => new CodeBuffer());
   }
 
   /**
@@ -755,8 +750,6 @@ class CodeEmitterTask extends CompilerTask {
       ClassElement cls = element;
       if (cls.isUnnamedMixinApplication) return null;
       return cls.name;
-    } else if (element.isTypedef) {
-      return element.name;
     }
     throw compiler.internalError(element,
         'Do not know how to reflect on this $element.');
@@ -866,7 +859,7 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       ClassBuilder builder = new ClassBuilder(namer);
       containerBuilder.addMember(element, builder);
-      getElementDescriptor(element).properties.addAll(builder.properties);
+      getElementDecriptor(element).properties.addAll(builder.properties);
     }
   }
 
@@ -1152,15 +1145,10 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  /// Compute all the classes and typedefs that must be emitted.
-  void computeNeededDeclarations() {
-    // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(
-        compiler.world.allTypedefs
-            .where(backend.isAccessibleByReflection)
-            .toList());
-
-    // Compute needed classes.
+  /**
+   * Compute all the classes that must be emitted.
+   */
+  void computeNeededClasses() {
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
@@ -1315,17 +1303,21 @@ class CodeEmitterTask extends CompilerTask {
     if (uri.scheme == 'file' && compiler.outputUri != null) {
       uri = relativize(compiler.outputUri, library.canonicalUri, false);
     }
-    Map<OutputUnit, ClassBuilder> descriptors = elementDescriptors[library];
+    Map<OutputUnit, ClassBuilder> descriptors =
+        elementDescriptors[library];
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
-      if (!descriptors.containsKey(outputUnit)) continue;
-
-      ClassBuilder descriptor = descriptors[outputUnit];
+      ClassBuilder descriptor =
+          descriptors.putIfAbsent(outputUnit, () => new ClassBuilder(namer));
+      if (descriptor.properties.isEmpty) continue;
+      bool isDeferred =
+          outputUnit != compiler.deferredLoadTask.mainOutputUnit;
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
 
-      jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
-      CodeBuffer outputBuffer = getBuffer(outputUnit);
-
+      jsAst.ObjectInitializer initializers =
+          descriptor.toObjectInitializer();
+      CodeBuffer outputBuffer =
+          outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
       int sizeBefore = outputBuffer.length;
       outputBuffers[outputUnit]
           ..write('["${library.getLibraryName()}",$_')
@@ -1351,7 +1343,7 @@ class CodeEmitterTask extends CompilerTask {
       // 'is$' method.
       typeTestEmitter.computeRequiredTypeChecks();
 
-      computeNeededDeclarations();
+      computeNeededClasses();
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
@@ -1386,8 +1378,7 @@ class CodeEmitterTask extends CompilerTask {
       // Only output the classesCollector if we actually have any classes.
       if (!(nativeClasses.isEmpty &&
             compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
-          outputClassLists.values.every((classList) => classList.isEmpty) &&
-          typedefsNeededForReflection.isEmpty)) {
+          outputClassLists.values.every((classList) => classList.isEmpty))) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
@@ -1411,7 +1402,7 @@ class CodeEmitterTask extends CompilerTask {
       // Might create methodClosures.
       for (List<ClassElement> outputClassList in outputClassLists.values) {
         for (ClassElement element in outputClassList) {
-          generateClass(element, getElementDescriptor(element));
+          generateClass(element, getElementDecriptor(element));
         }
       }
 
@@ -1431,8 +1422,6 @@ class CodeEmitterTask extends CompilerTask {
           mainBuffer.write(';');
         }
 
-        // TODO(karlklose): document what kinds of fields this loop adds to the
-        // library class builder.
         for (Element element in elementDescriptors.keys) {
           // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
           // not see libraries that only have fields.
@@ -1446,28 +1435,6 @@ class CodeEmitterTask extends CompilerTask {
                   .properties.addAll(builder.toObjectInitializer().properties);
             }
           }
-        }
-
-        // Emit all required typedef declarations into the main output unit.
-        // TODO(karlklose): unify required classes and typedefs to declarations
-        // and have builders for each kind.
-        for (TypedefElement typedef in typedefsNeededForReflection) {
-          OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
-          LibraryElement library = typedef.library;
-          // TODO(karlklose): add a TypedefBuilder and move this code there.
-          DartType type = typedef.alias;
-          int typeIndex = metadataEmitter.reifyType(type);
-          String typeReference =
-              encoding.encodeTypedefFieldDescriptor(typeIndex);
-          jsAst.Property descriptor = new jsAst.Property(
-              js.string(namer.classDescriptorProperty),
-              js.string(typeReference));
-          jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
-          String mangledName = namer.getNameX(typedef);
-          String reflectionName = getReflectionName(typedef, mangledName);
-          getElementDescriptorForOutputUnit(library, mainUnit)
-              ..addProperty(mangledName, declaration)
-              ..addProperty("+$reflectionName", js.string(''));
         }
 
         if (!mangledFieldNames.isEmpty) {
@@ -1722,7 +1689,7 @@ class CodeEmitterTask extends CompilerTask {
         () => new ClassBuilder(namer));
   }
 
-  ClassBuilder getElementDescriptor(Element element) {
+  ClassBuilder getElementDecriptor(Element element) {
     Element owner = element.library;
     if (!element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer

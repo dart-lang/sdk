@@ -4,7 +4,7 @@
 
 library dart._js_mirrors;
 
-import '../compiler/implementation/runtime_data.dart' as encoding;
+import 'dart:async';
 
 import 'dart:collection' show
     UnmodifiableListView,
@@ -319,12 +319,10 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       var cls = reflectClassByMangledName(className);
       if (cls is ClassMirror) {
         cls = cls.originalDeclaration;
-      }
-      if (cls is JsClassMirror) {
-        result[cls.simpleName] = cls;
-        cls._owner = this;
-      } else  if (cls is JsTypedefMirror) {
-        result[cls.simpleName] = cls;
+        if (cls is JsClassMirror) {
+          result[cls.simpleName] = cls;
+          cls._owner = this;
+        }
       }
     }
     return _cachedClasses =
@@ -559,6 +557,12 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   }
   var constructor = JS('var', 'init.allClasses[#]', mangledName);
   if (constructor == null) {
+    int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
+    if (index != null) {
+      mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
+      JsCache.update(classMirrors, mangledName, mirror);
+      return mirror;
+    }
     // Probably an intercepted class.
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
@@ -583,28 +587,23 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     }
   }
 
-  if (encoding.isTypedefDescriptor(fields)) {
-    int index = encoding.getTypeFromTypedef(fields);
-    mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
+  var superclassName = fields.split(';')[0];
+  var mixins = superclassName.split('+');
+  if (mixins.length > 1 && mangledGlobalNames[mangledName] == null) {
+    mirror = reflectMixinApplication(mixins, mangledName);
   } else {
-    var superclassName = fields.split(';')[0];
-    var mixins = superclassName.split('+');
-    if (mixins.length > 1 && mangledGlobalNames[mangledName] == null) {
-      mirror = reflectMixinApplication(mixins, mangledName);
+    ClassMirror classMirror = new JsClassMirror(
+        symbol, mangledName, constructor, fields, fieldsMetadata);
+    List typeVariables =
+        JS('JSExtendableArray|Null', '#.prototype["<>"]', constructor);
+    if (typeVariables == null || typeVariables.length == 0) {
+      mirror = classMirror;
     } else {
-      ClassMirror classMirror = new JsClassMirror(
-          symbol, mangledName, constructor, fields, fieldsMetadata);
-      List typeVariables =
-          JS('JSExtendableArray|Null', '#.prototype["<>"]', constructor);
-      if (typeVariables == null || typeVariables.length == 0) {
-        mirror = classMirror;
-      } else {
-        String typeArguments = 'dynamic';
-        for (int i = 1; i < typeVariables.length; i++) {
-          typeArguments += ',dynamic';
-        }
-        mirror = new JsTypeBoundClassMirror(classMirror, typeArguments);
+      String typeArguments = 'dynamic';
+      for (int i = 1; i < typeVariables.length; i++) {
+        typeArguments += ',dynamic';
       }
+      mirror = new JsTypeBoundClassMirror(classMirror, typeArguments);
     }
   }
 

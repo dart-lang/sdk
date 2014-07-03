@@ -326,6 +326,9 @@ class JavaScriptBackend extends Backend {
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
 
+  /// Set of typedefs that are used as type literals.
+  final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
+
   /// All the checked mode helpers.
   static const checkedModeHelpers = CheckedModeHelper.helpers;
 
@@ -1907,13 +1910,11 @@ class JavaScriptBackend extends Backend {
     if (foundClosure) {
       reflectableMembers.add(closureClass);
     }
+    // It would be nice to have a better means to select
     Set<Element> closurizedMembers = compiler.resolverWorld.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
       reflectableMembers.add(boundClosureClass);
     }
-    // Add typedefs.
-    reflectableMembers
-        .addAll(compiler.world.allTypedefs.where(referencedFromMirrorSystem));
     // Register all symbols of reflectable elements
     for (Element element in reflectableMembers) {
       symbolsUsed.add(element.name);
@@ -2134,7 +2135,7 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
     // when reflection is used.  However, as long as we disable tree-shaking
     // eagerly it doesn't matter.
     if (type.isTypedef) {
-      backend.compiler.world.allTypedefs.add(type.element);
+      backend.typedefTypeLiterals.add(type.element);
     }
     backend.customElementsAnalysis.registerTypeLiteral(type, registry);
   }
