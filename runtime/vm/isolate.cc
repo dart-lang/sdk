@@ -83,6 +83,13 @@ class IsolateMessageHandler : public MessageHandler {
                                          const UnhandledException& error);
 
  private:
+  // Keep in sync with isolate_patch.dart.
+  enum {
+    kPauseMsg = 1,
+    kResumeMsg
+  };
+
+  void HandleLibMessage(const Array& message);
   bool ProcessUnhandledException(const Object& message, const Error& result);
   RawFunction* ResolveCallbackFunction();
   Isolate* isolate_;
@@ -99,6 +106,51 @@ IsolateMessageHandler::~IsolateMessageHandler() {
 
 const char* IsolateMessageHandler::name() const {
   return isolate_->name();
+}
+
+
+// Isolate library OOB messages are fixed sized arrays which have the
+// following format:
+// [ OOB dispatch, Isolate library dispatch, <message specific data> ]
+void IsolateMessageHandler::HandleLibMessage(const Array& message) {
+  if (message.Length() < 2) return;
+  const Object& type = Object::Handle(I, message.At(1));
+  if (!type.IsSmi()) return;
+  const Smi& msg_type = Smi::Cast(type);
+  switch (msg_type.Value()) {
+    case kPauseMsg: {
+      // [ OOB, kPauseMsg, pause capability, resume capability ]
+      if (message.Length() != 4) return;
+      Object& obj = Object::Handle(I, message.At(2));
+      if (!obj.IsCapability()) return;
+      if (!I->VerifyPauseCapability(Capability::Cast(obj))) return;
+      obj = message.At(3);
+      if (!obj.IsCapability()) return;
+      if (I->AddResumeCapability(Capability::Cast(obj))) {
+        increment_paused();
+      }
+      break;
+    }
+    case kResumeMsg: {
+      // [ OOB, kResumeMsg, pause capability, resume capability ]
+      if (message.Length() != 4) return;
+      Object& obj = Object::Handle(I, message.At(2));
+      if (!obj.IsCapability()) return;
+      if (!I->VerifyPauseCapability(Capability::Cast(obj))) return;
+      obj = message.At(3);
+      if (!obj.IsCapability()) return;
+      if (I->RemoveResumeCapability(Capability::Cast(obj))) {
+        decrement_paused();
+      }
+      break;
+    }
+#if defined(DEBUG)
+    // Malformed OOB messages are silently ignored in release builds.
+    default:
+      UNREACHABLE();
+      break;
+#endif  // defined(DEBUG)
+  }
 }
 
 
@@ -129,6 +181,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   if (!message->IsOOB()) {
     msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
     if (msg_handler.IsError()) {
+      delete message;
       return ProcessUnhandledException(Object::null_instance(),
                                        Error::Cast(msg_handler));
     }
@@ -149,6 +202,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   const Object& msg_obj = Object::Handle(I, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
+    delete message;
     return ProcessUnhandledException(Object::null_instance(),
                                      Error::Cast(msg_obj));
   }
@@ -166,17 +220,32 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   bool success = true;
   if (message->IsOOB()) {
-    ASSERT(msg.IsArray());
-    const Object& oob_tag = Object::Handle(I, Array::Cast(msg).At(0));
-    ASSERT(oob_tag.IsSmi());
-    switch (Smi::Cast(oob_tag).Value()) {
-      case Message::kServiceOOBMsg: {
-        Service::HandleIsolateMessage(I, msg);
-        break;
-      }
-      default: {
-        UNREACHABLE();
-        break;
+    // OOB messages are expected to be fixed length arrays where the first
+    // element is a Smi describing the OOB destination. Messages that do not
+    // confirm to this layout are silently ignored.
+    if (msg.IsArray()) {
+      const Array& oob_msg = Array::Cast(msg);
+      if (oob_msg.Length() > 0) {
+        const Object& oob_tag = Object::Handle(I, oob_msg.At(0));
+        if (oob_tag.IsSmi()) {
+          switch (Smi::Cast(oob_tag).Value()) {
+            case Message::kServiceOOBMsg: {
+              Service::HandleIsolateMessage(I, oob_msg);
+              break;
+            }
+            case Message::kIsolateLibOOBMsg: {
+              HandleLibMessage(oob_msg);
+              break;
+            }
+#if defined(DEBUG)
+            // Malformed OOB messages are silently ignored in release builds.
+            default: {
+              UNREACHABLE();
+              break;
+            }
+#endif  // defined(DEBUG)
+          }
+        }
       }
     }
   } else {
@@ -320,6 +389,8 @@ Isolate::Isolate()
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
       main_port_(0),
+      pause_capability_(0),
+      terminate_capability_(0),
       heap_(NULL),
       object_store_(NULL),
       top_context_(Context::null()),
@@ -463,6 +534,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
   // main thread.
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
+  result->set_pause_capability(result->random()->NextUInt64());
+  result->set_terminate_capability(result->random()->NextUInt64());
+
   result->BuildName(name_prefix);
 
   result->debugger_ = new Debugger();
@@ -590,6 +664,61 @@ bool Isolate::MakeRunnable() {
   }
   mutex_->Unlock();
   return true;
+}
+
+
+bool Isolate::VerifyPauseCapability(const Capability& capability) const {
+  return !capability.IsNull() && (pause_capability() == capability.Id());
+}
+
+
+bool Isolate::AddResumeCapability(const Capability& capability) {
+  // Ensure a limit for the number of resume capabilities remembered.
+  static const intptr_t kMaxResumeCapabilities = kSmiMax / (6*kWordSize);
+
+  const GrowableObjectArray& caps = GrowableObjectArray::Handle(
+      this, object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(this);
+  intptr_t insertion_index = -1;
+  for (intptr_t i = 0; i < caps.Length(); i++) {
+    current ^= caps.At(i);
+    if (current.IsNull()) {
+      if (insertion_index < 0) {
+        insertion_index = i;
+      }
+    } else if (current.Id() == capability.Id()) {
+      return false;
+    }
+  }
+  if (insertion_index < 0) {
+    if (caps.Length() >= kMaxResumeCapabilities) {
+      // Cannot grow the array of resume capabilities beyond its max. Additional
+      // pause requests are ignored. In practice will never happen as we will
+      // run out of memory beforehand.
+      return false;
+    }
+    caps.Add(capability);
+  } else {
+    caps.SetAt(insertion_index, capability);
+  }
+  return true;
+}
+
+
+bool Isolate::RemoveResumeCapability(const Capability& capability) {
+  const GrowableObjectArray& caps = GrowableObjectArray::Handle(
+       this, object_store()->resume_capabilities());
+  Capability& current = Capability::Handle(this);
+  for (intptr_t i = 0; i < caps.Length(); i++) {
+    current ^= caps.At(i);
+    if (!current.IsNull() && (current.Id() == capability.Id())) {
+      // Remove the matching capability from the list.
+      current = Capability::null();
+      caps.SetAt(i, current);
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -772,7 +901,7 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    handle->UpdateUnreachable(isolate());
+    handle->UpdateUnreachable(I);
   }
 
  private:
@@ -1212,7 +1341,7 @@ RawObject* IsolateSpawnState::ResolveFunction() {
       return LanguageError::New(msg);
     }
   } else {
-    lib = isolate()->object_store()->root_library();
+    lib = I->object_store()->root_library();
   }
   ASSERT(!lib.IsNull());
 
@@ -1254,7 +1383,7 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 
 
 void IsolateSpawnState::Cleanup() {
-  SwitchIsolateScope switch_scope(isolate());
+  SwitchIsolateScope switch_scope(I);
   Dart::ShutdownIsolate();
 }
 

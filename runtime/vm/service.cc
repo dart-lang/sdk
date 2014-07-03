@@ -675,27 +675,25 @@ static void PrintErrorWithKind(JSONStream* js,
 }
 
 
-void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
+void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
-  ASSERT(msg.IsArray());
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
 
-    const Array& message = Array::Cast(msg);
     // Message is a list with five entries.
-    ASSERT(message.Length() == 5);
+    ASSERT(msg.Length() == 5);
 
     Instance& reply_port = Instance::Handle(isolate);
     GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
     Array& option_keys = Array::Handle(isolate);
     Array& option_values = Array::Handle(isolate);
-    reply_port ^= message.At(1);
-    path ^= message.At(2);
-    option_keys ^= message.At(3);
-    option_values ^= message.At(4);
+    reply_port ^= msg.At(1);
+    path ^= msg.At(2);
+    option_keys ^= msg.At(3);
+    option_values ^= msg.At(4);
 
     ASSERT(!path.IsNull());
     ASSERT(!option_keys.IsNull());

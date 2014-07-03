@@ -12,12 +12,10 @@ patch class ReceivePort {
 }
 
 patch class Capability {
-  /* patch */ factory Capability() {
-    throw new UnimplementedError();
-  }
+  /* patch */ factory Capability() = _CapabilityImpl;
 }
 
-class _CapabilityImpl {
+class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
 }
 
@@ -231,14 +229,18 @@ patch class Isolate {
     // `paused` isn't handled yet.
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
-      SendPort controlPort = _spawnFunction(entryPoint);
+      List spawnData = _spawnFunction(entryPoint);
+      assert(spawnData.length == 3);
+      SendPort controlPort = spawnData[0];
       RawReceivePort readyPort = new RawReceivePort();
       controlPort.send([readyPort.sendPort, message]);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
-        completer.complete(new Isolate(controlPort));
+        completer.complete(new Isolate(controlPort,
+                                       pauseCapability: spawnData[1],
+                                       terminateCapability: spawnData[2]));
       };
       return completer.future;
     } catch (e, st) {
@@ -251,14 +253,18 @@ patch class Isolate {
     // `paused` isn't handled yet.
     try {
       // The VM will invoke [_startIsolate] and not `main`.
-      SendPort controlPort = _spawnUri(uri.toString());
+      List spawnData = _spawnUri(uri.toString());
+      assert(spawnData.length == 3);
+      SendPort controlPort = spawnData[0];
       RawReceivePort readyPort = new RawReceivePort();
       controlPort.send([readyPort.sendPort, args, message]);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
-        completer.complete(new Isolate(controlPort));
+        completer.complete(new Isolate(controlPort,
+                                       pauseCapability: spawnData[1],
+                                       terminateCapability: spawnData[2]));
       };
       return completer.future;
     } catch (e, st) {
@@ -270,17 +276,35 @@ patch class Isolate {
   static final RawReceivePort _self = _mainPort;
   static RawReceivePort get _mainPort native "Isolate_mainPort";
 
-  static SendPort _spawnFunction(Function topLevelFunction)
+  // TODO(iposva): Cleanup to have only one definition.
+  // These values need to be kept in sync with the class IsolateMessageHandler
+  // in vm/isolate.cc.
+  static const _PAUSE = 1;
+  static const _RESUME = 2;
+
+  static List _spawnFunction(Function topLevelFunction)
       native "Isolate_spawnFunction";
 
-  static SendPort _spawnUri(String uri) native "Isolate_spawnUri";
+  static List _spawnUri(String uri) native "Isolate_spawnUri";
+
+  static void _sendOOB(port, msg) native "Isolate_sendOOB";
 
   /* patch */ void _pause(Capability resumeCapability) {
-    throw new UnsupportedError("pause");
+    var msg = new List(4)
+        ..[0] = 0  // Make room for OOM message type.
+        ..[1] = _PAUSE
+        ..[2] = pauseCapability
+        ..[3] = resumeCapability;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void resume(Capability resumeCapability) {
-    throw new UnsupportedError("resume");
+    var msg = new List(4)
+        ..[0] = 0  // Make room for OOM message type.
+        ..[1] = _RESUME
+        ..[2] = pauseCapability
+        ..[3] = resumeCapability;
+    _sendOOB(controlPort, msg);
   }
 
   /* patch */ void addOnExitListener(SendPort responsePort) {

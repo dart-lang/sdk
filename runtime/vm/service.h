@@ -16,6 +16,7 @@ class EmbedderServiceHandler;
 class Instance;
 class Isolate;
 class JSONStream;
+class Array;
 class RawInstance;
 class String;
 
@@ -25,7 +26,7 @@ class Service : public AllStatic {
   static void HandleRootMessage(const Instance& message);
 
   // Handles a message which is directed to a particular isolate.
-  static void HandleIsolateMessage(Isolate* isolate, const Instance& message);
+  static void HandleIsolateMessage(Isolate* isolate, const Array& message);
 
   static Isolate* GetServiceIsolate(void* callback_data);
   static bool SendIsolateStartupMessage();
