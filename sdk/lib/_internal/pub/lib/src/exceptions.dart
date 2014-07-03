@@ -66,6 +66,8 @@ class UsageException extends ApplicationException {
   /// This is done after the exception is created so that code outside of the
   /// command can still generate usage errors.
   void bindUsage(String usage) {
+    // Only bind if not already bound.
+    if (_usage != null) return;
     _usage = usage;
   }
 }

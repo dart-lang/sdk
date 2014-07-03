@@ -227,6 +227,11 @@ abstract class PubCommand {
     }
   }
 
+  /// Fails with a usage error [message] for this command.
+  void usageError(String message) {
+    throw new UsageException(message)..bindUsage(_getUsage());
+  }
+
   /// Generates a string of usage information for this command.
   String _getUsage() {
     var buffer = new StringBuffer();
