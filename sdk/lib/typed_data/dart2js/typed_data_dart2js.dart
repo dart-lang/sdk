@@ -1056,9 +1056,8 @@ class Int32x4List
    */
   factory Int32x4List.fromList(List<Int32x4> list) {
     if (list is Int32x4List) {
-      Int32x4List nativeList = list as Int32x4List;
       return new Int32x4List._externalStorage(
-          new Uint32List.fromList(nativeList._storage));
+          new Uint32List.fromList(list._storage));
     } else {
       return new Int32x4List._slowFromList(list);
     }
@@ -1081,8 +1080,8 @@ class Int32x4List
    */
   Int32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = buffer.asInt32List(byteOffset,
-                                      length != null ? length * 4 : null);
+      : _storage = buffer.asUint32List(byteOffset,
+                                       length != null ? length * 4 : null);
 
   static const int BYTES_PER_ELEMENT = 16;
 

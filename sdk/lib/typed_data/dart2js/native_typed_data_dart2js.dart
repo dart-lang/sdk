@@ -69,7 +69,7 @@ class NativeByteBuffer implements ByteBuffer native "ArrayBuffer" {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
   Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
-    return new NativeInt32x4List.view(this, offsetInBytes, length);
+    throw new UnimplementedError();
   }
   Float32List asFloat32List([int offsetInBytes = 0, int length]) {
     return new NativeFloat32List.view(this, offsetInBytes, length);
@@ -78,10 +78,10 @@ class NativeByteBuffer implements ByteBuffer native "ArrayBuffer" {
     return new NativeFloat64List.view(this, offsetInBytes, length);
   }
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
-    return new NativeFloat32x4List.view(this, offsetInBytes, length);
+    throw new UnimplementedError();
   }
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
-    return new NativeFloat64x2List.view(this, offsetInBytes, length);
+    throw new UnimplementedError();
   }
   ByteData asByteData([int offsetInBytes = 0, int length]) {
     return new NativeByteData.view(this, offsetInBytes, length);
