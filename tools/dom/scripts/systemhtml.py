@@ -1145,12 +1145,6 @@ class Dart2JSBackend(HtmlDartGenerator):
   def CustomJSMembers(self):
     return _js_custom_members
 
-  def _NarrowToImplementationType(self, type_name):
-    return self._type_registry.TypeInfo(type_name).narrow_dart_type()
-
-  def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
-
   def _FindShadowedAttribute(self, attr):
     """Returns (attribute, superinterface) or (None, None)."""
     def FindInParent(interface):

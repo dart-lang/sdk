@@ -3655,7 +3655,7 @@ Native_IDBDatabase_deleteObjectStore_Callback(mthis, name) native "IDBDatabase_d
 
   // Generated overload resolver
 Native_IDBDatabase_transaction(mthis, storeName_OR_storeNames, mode) {
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
       return Native_IDBDatabase__transaction_1_Callback(mthis, storeName_OR_storeNames, mode);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {

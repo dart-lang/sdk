@@ -11981,7 +11981,7 @@ class ErrorEvent extends Event native "ErrorEvent" {
 
 
 @DomName('Event')
-class Event extends Interceptor native "Event" {
+class Event extends Interceptor native "Event,InputEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
