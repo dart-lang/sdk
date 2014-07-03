@@ -9,16 +9,15 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_search.dart';
-import 'package:analysis_server/src/index/index.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'index/store/memory_node_manager.dart';
 import 'mocks.dart';
 import 'reflective_tests.dart';
+import 'package:analyzer/src/index/local_index.dart';
+import 'package:analyzer/index/index.dart';
 
 main() {
   groupSep = ' | ';
@@ -82,7 +81,7 @@ class SearchDomainTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return new LocalIndex(new MemoryNodeManager());
+    return createLocalMemorySplitIndex();
   }
 
   @override
@@ -101,7 +100,7 @@ class AAA {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return index.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return index.getRelationships(UniverseElement.INSTANCE,
           IndexConstants.DEFINES_CLASS).then((List<Location> locations) {
         bool hasClassFunction = false;
         bool hasClassAAA = false;

@@ -9,5 +9,6 @@ dependencies:
   args: '>=0.10.0 <0.12.0'
   logging: '>=0.9.0 <0.10.0'
   path: '>=0.9.0 <2.0.0'
+  typed_mock: any
 dev_dependencies:
   unittest: '>=0.9.0 <0.12.0'

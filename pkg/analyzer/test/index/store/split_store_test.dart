@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.split_store;
+library test.engine.src.index.split_store;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/index/store/codec.dart';
-import 'package:analysis_server/src/index/store/split_store.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
-import 'memory_node_manager.dart';
 import 'single_source_container.dart';
 import 'typed_mocks.dart';
+import 'package:analyzer/src/index/store/split_store.dart';
+import 'package:analyzer/index/index.dart';
+import 'package:analyzer/src/index/store/codec.dart';
+import 'package:analyzer/src/index/store/memory_node_manager.dart';
 
 
 main() {
@@ -560,17 +560,17 @@ class _SplitIndexStoreTest {
     expect(store.aboutToIndexDart(instrumentedContext, unitElementA), isFalse);
   }
 
-  void test_aboutToIndexDart_library_first() {
+  Future test_aboutToIndexDart_library_first() {
     when(libraryElement.parts).thenReturn(<CompilationUnitElement>[unitElementA,
         unitElementB]);
     {
       store.aboutToIndexDart(contextA, libraryUnitElement);
       store.doneIndex();
     }
-    {
-      List<Location> locations = store.getRelationships(elementA, relationship);
+    return store.getRelationships(elementA, relationship).then(
+        (List<Location> locations) {
       assertLocations(locations, []);
-    }
+    });
   }
 
   test_aboutToIndexDart_library_secondWithoutOneUnit() {
@@ -587,17 +587,17 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
       // apply "libraryUnitElement", only with "B"
       when(libraryElement.parts).thenReturn([unitElementB]);
       {
         store.aboutToIndexDart(contextA, libraryUnitElement);
         store.doneIndex();
       }
-      return store.getRelationshipsAsync(elementA, relationship).then(
+    }).then((_) {
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -632,7 +632,7 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
@@ -655,7 +655,7 @@ class _SplitIndexStoreTest {
   }
 
   test_getRelationships_empty() {
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       expect(locations, isEmpty);
     });
@@ -714,7 +714,7 @@ class _SplitIndexStoreTest {
       store.recordRelationship(elementA, relationship, locationB);
       store.doneIndex();
     }
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
@@ -725,7 +725,7 @@ class _SplitIndexStoreTest {
     store.aboutToIndexDart(contextA, unitElementA);
     store.recordRelationship(elementA, relationship, locationA);
     store.doneIndex();
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA]);
     });
@@ -738,7 +738,7 @@ class _SplitIndexStoreTest {
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementA, relationship, locationB);
     store.doneIndex();
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
@@ -758,13 +758,13 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
-    }).then((_) {
       // remove "A" context
       store.removeContext(contextA);
-      return store.getRelationshipsAsync(elementA, relationship).then(
+    }).then((_) {
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, []);
       });
@@ -795,13 +795,13 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "librarySource"
       store.removeSource(contextA, librarySource);
-      return store.getRelationshipsAsync(elementA, relationship).then(
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, []);
       });
@@ -832,13 +832,13 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
       store.removeSource(contextA, sourceA);
-      return store.getRelationshipsAsync(elementA, relationship).then(
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, [locationB, locationC]);
       });
@@ -859,13 +859,13 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "librarySource"
       store.removeSources(contextA, new SingleSourceContainer(librarySource));
-      return store.getRelationshipsAsync(elementA, relationship).then(
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, []);
       });
@@ -896,14 +896,14 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationshipsAsync(elementA, relationship).then(
+    return store.getRelationships(elementA, relationship).then(
         (List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
       store.removeSources(contextA, new SingleSourceContainer(sourceA));
       store.removeSource(contextA, sourceA);
-      return store.getRelationshipsAsync(elementA, relationship).then(
+      return store.getRelationships(elementA, relationship).then(
           (List<Location> locations) {
         assertLocations(locations, [locationB, locationC]);
       });
@@ -928,14 +928,14 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // get relationships
-    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
+    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
+        (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // re-index "unitElementA"
       store.aboutToIndexDart(contextA, unitElementA);
       store.doneIndex();
-      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return store.getRelationships(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -959,13 +959,13 @@ class _SplitIndexStoreTest {
           locationB);
       store.doneIndex();
     }
-    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
+    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
+        (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // clear
       store.clear();
-      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return store.getRelationships(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         expect(locations, isEmpty);
       });
@@ -989,13 +989,13 @@ class _SplitIndexStoreTest {
           locationB);
       store.doneIndex();
     }
-    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
+    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
+        (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "contextA"
       store.removeContext(contextA);
-      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return store.getRelationships(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -1019,13 +1019,13 @@ class _SplitIndexStoreTest {
           locationB);
       store.doneIndex();
     }
-    return store.getRelationshipsAsync(UniverseElement.INSTANCE,
-        relationship).then((List<Location> locations) {
+    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
+        (List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "sourceA"
       store.removeSource(contextA, sourceA);
-      return store.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return store.getRelationships(UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });

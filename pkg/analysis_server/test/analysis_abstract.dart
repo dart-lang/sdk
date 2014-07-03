@@ -7,15 +7,42 @@ library test.domain.analysis.abstract;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
-import 'package:analyzer/src/generated/index.dart';
+
+
+int findIdentifierLength(String search) {
+  int length = 0;
+  while (length < search.length) {
+    int c = search.codeUnitAt(length);
+    if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
+          c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
+          c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+      break;
+    }
+    length++;
+  }
+  return length;
+}
+
+
+
+AnalysisError _jsonToAnalysisError(Map<String, Object> json) {
+  return new AnalysisError(
+      json['file'],
+      json['errorCode'],
+      json['offset'],
+      json['length'],
+      json['message'],
+      json['correction']);
+}
 
 
 /**
@@ -42,26 +69,6 @@ class AbstractAnalysisTest {
   AbstractAnalysisTest() {
   }
 
-  void setUp() {
-    serverChannel = new MockServerChannel();
-    resourceProvider = new MemoryResourceProvider();
-    packageMapProvider = new MockPackageMapProvider();
-    Index index = createIndex();
-    server = new AnalysisServer(
-        serverChannel, resourceProvider, packageMapProvider, index);
-    server.defaultSdk = new MockSdk();
-    handler = new AnalysisDomainHandler(server);
-    // listen for notifications
-    Stream<Notification> notificationStream = serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
-      processNotification(notification);
-    });
-  }
-
-  Index createIndex() {
-    return null;
-  }
-
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service.name];
@@ -76,36 +83,30 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
-  void tearDown() {
-    server.done();
-    handler = null;
-    server = null;
-    resourceProvider = null;
-    serverChannel = null;
+  String addFile(String path, String content) {
+    resourceProvider.newFile(path, content);
+    return path;
   }
 
-  void processNotification(Notification notification) {
-//    if (notification.event == NOTIFICATION_ERRORS) {
-//      String file = notification.getParameter(FILE);
-//      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-//      filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
-//    }
-//    if (notification.event == NOTIFICATION_HIGHLIGHTS) {
-//      String file = notification.getParameter(FILE);
-//      filesHighlights[file] = notification.getParameter(REGIONS);
-//    }
-//    if (notification.event == NOTIFICATION_NAVIGATION) {
-//      String file = notification.getParameter(FILE);
-//      filesNavigation[file] = notification.getParameter(REGIONS);
-//    }
+  String addTestFile(String content) {
+    addFile(testFile, content);
+    this.testCode = content;
+    return testFile;
+  }
+
+  Index createIndex() {
+    return null;
   }
 
   /**
-   * Returns a [Future] that completes when the [AnalysisServer] finishes
-   * all its scheduled tasks.
+   * Creates a project `/project`.
    */
-  Future waitForTasksFinished() {
-    return waitForServerOperationsPerformed(server);
+  void createProject() {
+    resourceProvider.newFolder(projectPath);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
+    request.setParameter(INCLUDED, [projectPath]);
+    request.setParameter(EXCLUDED, []);
+    handleSuccessfulRequest(request);
   }
 
   /**
@@ -128,6 +129,15 @@ class AbstractAnalysisTest {
     int offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
+  }
+
+  /**
+   * Validates that the given [request] is handled successfully.
+   */
+  Response handleSuccessfulRequest(Request request) {
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess('0'));
+    return response;
   }
 
 //  /**
@@ -190,15 +200,20 @@ class AbstractAnalysisTest {
 //    return getNavigation(testFile);
 //  }
 
-  /**
-   * Creates a project `/project`.
-   */
-  void createProject() {
-    resourceProvider.newFolder(projectPath);
-    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-    request.setParameter(INCLUDED, [projectPath]);
-    request.setParameter(EXCLUDED, []);
-    handleSuccessfulRequest(request);
+  void processNotification(Notification notification) {
+//    if (notification.event == NOTIFICATION_ERRORS) {
+//      String file = notification.getParameter(FILE);
+//      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
+//      filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+//    }
+//    if (notification.event == NOTIFICATION_HIGHLIGHTS) {
+//      String file = notification.getParameter(FILE);
+//      filesHighlights[file] = notification.getParameter(REGIONS);
+//    }
+//    if (notification.event == NOTIFICATION_NAVIGATION) {
+//      String file = notification.getParameter(FILE);
+//      filesNavigation[file] = notification.getParameter(REGIONS);
+//    }
   }
 
 //  /**
@@ -215,24 +230,36 @@ class AbstractAnalysisTest {
 //    handleSuccessfulRequest(request);
 //  }
 
-  String addFile(String path, String content) {
-    resourceProvider.newFile(path, content);
-    return path;
+  void setUp() {
+    serverChannel = new MockServerChannel();
+    resourceProvider = new MemoryResourceProvider();
+    packageMapProvider = new MockPackageMapProvider();
+    Index index = createIndex();
+    server = new AnalysisServer(
+        serverChannel, resourceProvider, packageMapProvider, index);
+    server.defaultSdk = new MockSdk();
+    handler = new AnalysisDomainHandler(server);
+    // listen for notifications
+    Stream<Notification> notificationStream = serverChannel.notificationController.stream;
+    notificationStream.listen((Notification notification) {
+      processNotification(notification);
+    });
   }
 
-  String addTestFile(String content) {
-    addFile(testFile, content);
-    this.testCode = content;
-    return testFile;
+  void tearDown() {
+    server.done();
+    handler = null;
+    server = null;
+    resourceProvider = null;
+    serverChannel = null;
   }
 
   /**
-   * Validates that the given [request] is handled successfully.
+   * Returns a [Future] that completes when the [AnalysisServer] finishes
+   * all its scheduled tasks.
    */
-  Response handleSuccessfulRequest(Request request) {
-    Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess('0'));
-    return response;
+  Future waitForTasksFinished() {
+    return waitForServerOperationsPerformed(server);
   }
 
   static String _getCodeString(code) {
@@ -242,7 +269,6 @@ class AbstractAnalysisTest {
     return code as String;
   }
 }
-
 
 
 class AnalysisError {
@@ -260,30 +286,4 @@ class AnalysisError {
     return 'NotificationError(file=$file; errorCode=$errorCode; '
         'offset=$offset; length=$length; message=$message)';
   }
-}
-
-
-AnalysisError _jsonToAnalysisError(Map<String, Object> json) {
-  return new AnalysisError(
-      json['file'],
-      json['errorCode'],
-      json['offset'],
-      json['length'],
-      json['message'],
-      json['correction']);
-}
-
-
-int findIdentifierLength(String search) {
-  int length = 0;
-  while (length < search.length) {
-    int c = search.codeUnitAt(length);
-    if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
-          c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-          c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
-      break;
-    }
-    length++;
-  }
-  return length;
 }

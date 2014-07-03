@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.store.codec;
+library engine.src.index.store.codec;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/index/store/collection.dart';
+import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/index.dart';
+import 'package:analyzer/src/index/store/collection.dart';
 
 
 /**
@@ -67,17 +67,17 @@ class ContextCodec {
  * A helper that encodes/decodes [Element]s to/from integers.
  */
 class ElementCodec {
-  /**
-   * A list that works as a mapping of integers to element encodings (in form of integer arrays).
-   */
-  List<List<int>> _indexToPath = [];
-
-  /**
-   * A table mapping element locations (in form of integer arrays) into a single integer.
-   */
-  IntArrayToIntMap _pathToIndex = new IntArrayToIntMap();
-
   final StringCodec _stringCodec;
+
+  /**
+   * A table mapping element encodings to a single integer.
+   */
+  final IntArrayToIntMap _pathToIndex = new IntArrayToIntMap();
+
+  /**
+   * A list that works as a mapping of integers to element encodings.
+   */
+  final List<List<int>> _indexToPath = <List<int>>[];
 
   ElementCodec(this._stringCodec);
 
@@ -189,12 +189,12 @@ class StringCodec {
   /**
    * A table mapping names to their unique indices.
    */
-  final Map<String, int> nameToIndex = {};
+  final Map<String, int> nameToIndex = new HashMap<String, int>();
 
   /**
    * A table mapping indices to the corresponding strings.
    */
-  List<String> _indexToName = [];
+  final List<String> _indexToName = <String>[];
 
   /**
    * Returns the [String] that corresponds to the given index.

@@ -8,6 +8,10 @@
 library engine.search_engine_test;
 
 
+main() {
+}
+
+
 //class AndSearchPatternTest extends EngineTestCase {
 //  Element _element = mock(Element);
 //

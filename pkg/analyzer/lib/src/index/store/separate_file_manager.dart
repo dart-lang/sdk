@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.store.separate_file_mananer;
+library engine.src.index.store.separate_file_mananer;
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/index/store/split_store.dart';
+import 'package:analyzer/src/index/store/split_store.dart';
 import 'package:path/path.dart' as pathos;
 
 

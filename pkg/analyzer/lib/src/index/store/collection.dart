@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.store.collection;
+library engine.src.index.store.collection;
 
 import 'dart:collection';
 import 'dart:typed_data';
@@ -18,7 +18,7 @@ class IntArrayToIntMap {
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.
    */
-  int operator[](List<int> key) {
+  int operator [](List<int> key) {
     Int32List typedKey = _getTypedKey(key);
     return map[typedKey];
   }
@@ -29,7 +29,7 @@ class IntArrayToIntMap {
    * If the key was already in the map, its associated value is changed.
    * Otherwise the key-value pair is added to the map.
    */
-  void operator[]=(List<int> key, int value) {
+  void operator []=(List<int> key, int value) {
     Int32List typedKey = _getTypedKey(key);
     map[typedKey] = value;
   }

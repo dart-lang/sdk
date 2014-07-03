@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.store.typed_mocks;
+library test.engine.src.index.store.typed_mocks;
 
-import 'package:analysis_server/src/index/store/codec.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
+import 'package:analyzer/src/index/store/codec.dart';
+import 'package:analyzer/index/index.dart';
 
 
 class MockAnalysisContext extends TypedMock implements AnalysisContext {

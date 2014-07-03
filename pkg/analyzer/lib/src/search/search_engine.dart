@@ -7,8 +7,6 @@
 
 library engine.src.search_engine;
 
-
-
 ///**
 // * Instances of the class <code>AndSearchPattern</code> implement a search pattern that matches
 // * elements that match all of several other search patterns.

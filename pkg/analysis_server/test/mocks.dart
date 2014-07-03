@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analyzer/src/generated/index.dart';
+import 'package:analyzer/index/index.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running

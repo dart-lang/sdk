@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.store.separate_file_mananer;
+library test.engine.src.index.store.separate_file_mananer;
 
 import 'dart:io';
 
-import 'package:analysis_server/src/index/store/separate_file_manager.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import 'package:analyzer/src/index/store/separate_file_manager.dart';
 
 
 main() {
@@ -23,8 +23,8 @@ main() {
 
 @ReflectiveTestCase()
 class _SeparateFileManagerTest {
-  SeparateFileManager fileManager;
   Directory tempDir;
+  SeparateFileManager fileManager;
 
   void setUp() {
     tempDir = Directory.systemTemp.createTempSync('AnalysisServer_index');

@@ -13,11 +13,11 @@ import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 

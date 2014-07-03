@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library index.split_store;
+library engine.src.index.split_store;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:analysis_server/src/index/store/collection.dart';
+import 'package:analyzer/index/index.dart';
+import 'package:analyzer/index/index_store.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/index/store/codec.dart';
+import 'package:analyzer/src/index/store/codec.dart';
+import 'package:analyzer/src/index/store/collection.dart';
 
 
 /**
@@ -50,21 +51,17 @@ abstract class FileManager {
 class FileNodeManager implements NodeManager {
   static int _VERSION = 1;
 
-  final ContextCodec contextCodec;
-
-  final ElementCodec elementCodec;
-
-  final StringCodec stringCodec;
-
   final FileManager _fileManager;
+  final Logger _logger;
+
+  final ContextCodec contextCodec;
+  final ElementCodec elementCodec;
+  final StringCodec stringCodec;
+  final RelationshipCodec _relationshipCodec;
 
   int _locationCount = 0;
 
-  final Logger _logger;
-
   Map<String, int> _nodeLocationCounts = new HashMap<String, int>();
-
-  final RelationshipCodec _relationshipCodec;
 
   FileNodeManager(this._fileManager, this._logger, this.stringCodec,
       this.contextCodec, this.elementCodec, this._relationshipCodec);
@@ -214,11 +211,11 @@ class IndexNode {
   final AnalysisContext context;
 
   final ElementCodec _elementCodec;
+  final RelationshipCodec _relationshipCodec;
 
   Map<RelationKeyData, List<LocationData>> _relations =
       new HashMap<RelationKeyData, List<LocationData>>();
 
-  final RelationshipCodec _relationshipCodec;
 
   IndexNode(this.context, this._elementCodec, this._relationshipCodec);
 
@@ -239,19 +236,21 @@ class IndexNode {
   Map<RelationKeyData, List<LocationData>> get relations => _relations;
 
   /**
-   * Sets relations data. This method is used during loading data from a storage.
+   * Sets relations data.
+   * This method is used during loading data from a storage.
    */
   void set relations(Map<RelationKeyData, List<LocationData>> relations) {
-    this._relations.clear();
-    this._relations.addAll(relations);
+    _relations = relations;
   }
 
   /**
-   * Return the locations of the elements that have the given relationship with the given element.
+   * Returns the locations of the elements that have the given relationship with
+   * the given element.
    *
-   * @param element the the element that has the relationship with the locations to be returned
-   * @param relationship the [Relationship] between the given element and the locations to be
-   *          returned
+   * [element] - the the element that has the relationship with the locations to
+   *    be returned.
+   * [relationship] - the [Relationship] between the given [element] and the
+   *    locations to be returned
    */
   List<Location> getRelationships(Element element, Relationship relationship) {
     // prepare key
@@ -274,11 +273,11 @@ class IndexNode {
   }
 
   /**
-   * Records that the given element and location have the given relationship.
+   * Records that the given [element] and [location] have the given [relationship].
    *
-   * @param element the element that is related to the location
-   * @param relationship the [Relationship] between the element and the location
-   * @param location the [Location] where relationship happens
+   * [element] - the [Element] that is related to the location.
+   * [relationship] - the [Relationship] between [element] and [location].
+   * [location] - the [Location] where relationship happens.
    */
   void recordRelationship(Element element, Relationship relationship,
       Location location) {
@@ -301,8 +300,8 @@ class IndexNode {
  */
 class LocationData {
   final int elementId;
-  final int length;
   final int offset;
+  final int length;
 
   LocationData.forData(this.elementId, this.offset, this.length);
 
@@ -606,13 +605,7 @@ class SplitIndexStore implements IndexStore {
     }
   }
 
-  @override
-  List<Location> getRelationships(Element element, Relationship relationship) {
-    // TODO(scheglov) make IndexStore interface async
-    return <Location>[];
-  }
-
-  Future<List<Location>> getRelationshipsAsync(Element element,
+  Future<List<Location>> getRelationships(Element element,
       Relationship relationship) {
     // special support for UniverseElement
     if (identical(element, UniverseElement.INSTANCE)) {

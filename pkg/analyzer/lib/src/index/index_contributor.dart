@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.src.index;
+library engine.src.index_contributor;
 
 import 'dart:collection' show Queue;
 
@@ -27,11 +27,21 @@ import 'package:analyzer/src/generated/source.dart';
  */
 void indexDartUnit(IndexStore store, AnalysisContext context,
     CompilationUnit unit) {
+  // check unit
+  if (unit == null) {
+    return;
+  }
+  // prepare unit element
   CompilationUnitElement unitElement = unit.element;
+  if (unitElement == null) {
+    return;
+  }
+  // about to index
   bool mayIndex = store.aboutToIndexDart(context, unitElement);
   if (!mayIndex) {
     return;
   }
+  // do index
   unit.accept(new _IndexContributor(store));
   unit.accept(new _AngularDartIndexContributor(store));
   store.doneIndex();
@@ -43,11 +53,21 @@ void indexDartUnit(IndexStore store, AnalysisContext context,
  */
 void indexHtmlUnit(IndexStore store, AnalysisContext context, ht.HtmlUnit unit)
     {
+  // check unit
+  if (unit == null) {
+    return;
+  }
+  // prepare unit element
   HtmlElement unitElement = unit.element;
+  if (unitElement == null) {
+    return;
+  }
+  // about to index
   bool mayIndex = store.aboutToIndexHtml(context, unitElement);
   if (!mayIndex) {
     return;
   }
+  // do index
   unit.accept(new _AngularHtmlIndexContributor(store));
   store.doneIndex();
 }
