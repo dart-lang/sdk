@@ -24,6 +24,67 @@ export 'dart:_native_typed_data' show Endianness;
  */
 abstract class ByteBuffer {
   int get lengthInBytes;
+
+  /**
+   * Creates a new [Uint8List] view of this buffer.
+   */
+  Uint8List asUint8List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Int8List] view of this buffer.
+   */
+  Int8List asInt8List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Uint8Clamped] view of this buffer.
+   */
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Uint16List] view of this buffer.
+   */
+  Uint16List asUint16List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Int16List] view of this buffer.
+   */
+  Int16List asInt16List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Uint32List] view of this buffer.
+   */
+  Uint32List asUint32List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Int32List] view of this buffer.
+   */
+  Int32List asInt32List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Uint64List] view of this buffer.
+   */
+  Uint64List asUint64List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Int64List] view of this buffer.
+   */
+  Int64List asInt64List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Int32x4List] view of this buffer.
+   */
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Float32List] view of this buffer.
+   */
+  Float32List asFloat32List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Float64List] view of this buffer.
+   */
+  Float64List asFloat64List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Float32x4List] view of this buffer.
+   */
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [Float64x2List] view of this buffer.
+   */
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]);
+  /**
+   * Creates a new [ByteData] view of this buffer.
+   */
+  ByteData asByteData([int offsetInBytes = 0, int length]);
 }
 
 
@@ -94,7 +155,7 @@ abstract class ByteData extends TypedData {
    */
   factory ByteData.view(ByteBuffer buffer,
                         [int offsetInBytes = 0, int length]) =>
-      new NativeByteData.view(buffer, offsetInBytes, length);
+      buffer.asByteData(offsetInBytes, length);
 
   int get elementSizeInBytes => 1;
 
@@ -371,7 +432,7 @@ abstract class Float32List implements TypedData, List<double> {
    */
   factory Float32List.view(ByteBuffer buffer,
                            [int offsetInBytes = 0, int length]) =>
-      new NativeFloat32List.view(buffer, offsetInBytes, length);
+      buffer.asFloat32List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 }
@@ -414,7 +475,7 @@ abstract class Float64List implements TypedData, List<double> {
    */
   factory Float64List.view(ByteBuffer buffer,
                            [int offsetInBytes = 0, int length]) =>
-      new NativeFloat64List.view(buffer, offsetInBytes, length);
+      buffer.asFloat64List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 8;
 }
@@ -456,7 +517,7 @@ abstract class Int16List extends TypedData implements List<int> {
    */
   factory Int16List.view(ByteBuffer buffer,
                          [int offsetInBytes = 0, int length]) =>
-      new NativeInt16List.view(buffer, offsetInBytes, length);
+      buffer.asInt16List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 }
@@ -498,7 +559,7 @@ abstract class Int32List implements TypedData, List<int> {
    */
   factory Int32List.view(ByteBuffer buffer,
                          [int offsetInBytes = 0, int length]) =>
-      new NativeInt32List.view(buffer, offsetInBytes, length);
+      buffer.asInt32List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 }
@@ -536,8 +597,8 @@ abstract class Int8List implements TypedData, List<int> {
    * the length of [buffer].
    */
   factory Int8List.view(ByteBuffer buffer,
-                        [int offsetInBytes = 0, int length])
-      => new NativeInt8List.view(buffer, offsetInBytes, length);
+                        [int offsetInBytes = 0, int length]) =>
+      buffer.asInt8List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 }
@@ -579,7 +640,7 @@ abstract class Uint16List implements TypedData, List<int> {
    */
   factory Uint16List.view(ByteBuffer buffer,
                           [int offsetInBytes = 0, int length]) =>
-      new NativeUint16List.view(buffer, offsetInBytes, length);
+      buffer.asUint16List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 }
@@ -621,7 +682,7 @@ abstract class Uint32List implements TypedData, List<int> {
    */
   factory Uint32List.view(ByteBuffer buffer,
                           [int offsetInBytes = 0, int length]) =>
-      new NativeUint32List.view(buffer, offsetInBytes, length);
+      buffer.asUint32List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 }
@@ -661,7 +722,7 @@ abstract class Uint8ClampedList implements TypedData, List<int> {
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
                                 [int offsetInBytes = 0, int length]) =>
-      new NativeUint8ClampedList.view(buffer, offsetInBytes, length);
+      buffer.asUint8ClampedList(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 }
@@ -700,7 +761,7 @@ abstract class Uint8List implements TypedData, List<int> {
    */
   factory Uint8List.view(ByteBuffer buffer,
                          [int offsetInBytes = 0, int length]) =>
-      new NativeUint8List.view(buffer, offsetInBytes, length);
+      buffer.asUint8List(offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 }
@@ -892,7 +953,7 @@ class Float32x4List
    */
   Float32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = new Float32List.view(buffer, byteOffset,
+      : _storage = buffer.asFloat32List(byteOffset,
                                         length != null ? length * 4 : null);
 
   static const int BYTES_PER_ELEMENT = 16;
@@ -1020,8 +1081,8 @@ class Int32x4List
    */
   Int32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = new Uint32List.view(buffer, byteOffset,
-                                       length != null ? length * 4 : null);
+      : _storage = buffer.asInt32List(byteOffset,
+                                      length != null ? length * 4 : null);
 
   static const int BYTES_PER_ELEMENT = 16;
 
@@ -1144,7 +1205,7 @@ class Float64x2List
    */
   Float64x2List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = new Float64List.view(buffer, byteOffset,
+      : _storage = buffer.asFloat64List(byteOffset,
                                         length != null ? length * 2 : null);
 
   static const int BYTES_PER_ELEMENT = 16;

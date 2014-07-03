@@ -303,7 +303,8 @@ void testSetAtIndex(TypedData list,
 
 testViewCreation() {
   var bytes = new Uint8List(1024).buffer;
-  var view = new ByteData.view(bytes, 24);
+  var view;
+  view = new ByteData.view(bytes, 24);
   Expect.equals(1000, view.lengthInBytes);
   view = new Uint8List.view(bytes, 24);
   Expect.equals(1000, view.lengthInBytes);
@@ -327,6 +328,74 @@ testViewCreation() {
   Expect.equals(1000, view.lengthInBytes);
   view = new Float64List.view(bytes, 24);
   Expect.equals(1000, view.lengthInBytes);
+  view = new Int32x4List.view(bytes, 16);
+  Expect.equals(1008, view.lengthInBytes);  // Must be 16-byte aligned.
+  view = new Float32x4List.view(bytes, 16);
+  Expect.equals(1008, view.lengthInBytes);
+  view = new Float64x2List.view(bytes, 16);
+  Expect.equals(1008, view.lengthInBytes);
+
+  view = bytes.asByteData(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asUint8List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asInt8List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asUint8ClampedList(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asUint16List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asInt16List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asUint32List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asInt32List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asUint64List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asInt64List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asFloat32List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asFloat64List(24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = bytes.asInt32x4List(16);
+  Expect.equals(1008, view.lengthInBytes);
+  view = bytes.asFloat32x4List(16);
+  Expect.equals(1008, view.lengthInBytes);
+  view = bytes.asFloat64x2List(16);
+  Expect.equals(1008, view.lengthInBytes);
+
+  view = bytes.asByteData(24, 800);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asUint8List(24, 800);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asInt8List(24, 800);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asUint8ClampedList(24, 800);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asUint16List(24, 400);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asInt16List(24, 400);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asUint32List(24, 200 );
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asInt32List(24, 200);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asUint64List(24, 100);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asInt64List(24, 100);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asFloat32List(24, 200);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asFloat64List(24, 100);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asInt32x4List(32, 50);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asFloat32x4List(32, 50);
+  Expect.equals(800, view.lengthInBytes);
+  view = bytes.asFloat64x2List(32, 50);
+  Expect.equals(800, view.lengthInBytes);
 }
 
 testWhere() {

@@ -40,6 +40,52 @@ class NativeByteBuffer implements ByteBuffer native "ArrayBuffer" {
   final int lengthInBytes;
 
   Type get runtimeType => ByteBuffer;
+
+  Uint8List asUint8List([int offsetInBytes = 0, int length]) {
+    return new NativeUint8List.view(this, offsetInBytes, length);
+  }
+  Int8List asInt8List([int offsetInBytes = 0, int length]) {
+    return new NativeInt8List.view(this, offsetInBytes, length);
+  }
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
+    return new NativeUint8ClampedList.view(this, offsetInBytes, length);
+  }
+  Uint16List asUint16List([int offsetInBytes = 0, int length]) {
+    return new NativeUint16List.view(this, offsetInBytes, length);
+  }
+  Int16List asInt16List([int offsetInBytes = 0, int length]) {
+    return new NativeInt16List.view(this, offsetInBytes, length);
+  }
+  Uint32List asUint32List([int offsetInBytes = 0, int length]) {
+    return new NativeUint32List.view(this, offsetInBytes, length);
+  }
+  Int32List asInt32List([int offsetInBytes = 0, int length]) {
+    return new NativeInt32List.view(this, offsetInBytes, length);
+  }
+  Uint64List asUint64List([int offsetInBytes = 0, int length]) {
+    throw new UnsupportedError("Uint64List not supported by dart2js.");
+  }
+  Int64List asInt64List([int offsetInBytes = 0, int length]) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
+    return new NativeInt32x4List.view(this, offsetInBytes, length);
+  }
+  Float32List asFloat32List([int offsetInBytes = 0, int length]) {
+    return new NativeFloat32List.view(this, offsetInBytes, length);
+  }
+  Float64List asFloat64List([int offsetInBytes = 0, int length]) {
+    return new NativeFloat64List.view(this, offsetInBytes, length);
+  }
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
+    return new NativeFloat32x4List.view(this, offsetInBytes, length);
+  }
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
+    return new NativeFloat64x2List.view(this, offsetInBytes, length);
+  }
+  ByteData asByteData([int offsetInBytes = 0, int length]) {
+    return new NativeByteData.view(this, offsetInBytes, length);
+  }
 }
 
 class NativeTypedData implements TypedData native "ArrayBufferView" {
