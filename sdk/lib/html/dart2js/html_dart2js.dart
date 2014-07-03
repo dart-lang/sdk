@@ -12293,10 +12293,10 @@ class EventSource extends EventTarget native "EventSource" {
  *
  * Custom events can be declared as:
  *
- *    class DataGenerator {
- *      static EventStreamProvider<Event> dataEvent =
- *          new EventStreamProvider('data');
- *    }
+ *     class DataGenerator {
+ *       static EventStreamProvider<Event> dataEvent =
+ *           new EventStreamProvider('data');
+ *     }
  *
  * Then listeners should access the event with:
  *
