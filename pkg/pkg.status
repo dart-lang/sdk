@@ -117,10 +117,13 @@ collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
 [ $runtime == d8 ]
+analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19756
+analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756
 analysis_server/test/domain_search_test: Pass, Slow # Issue 19756
 
 [ $runtime == jsshell ]
+analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/domain_analysis_test: Pass, Slow # Issue 16473, 19756
