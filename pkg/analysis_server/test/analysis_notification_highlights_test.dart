@@ -18,40 +18,27 @@ import 'reflective_tests.dart';
 
 main() {
   group('notification.highlights', () {
-    runReflectiveTests(_AnalysisNotificationHighlightsTest);
+    runReflectiveTests(AnalysisNotificationHighlightsTest);
+  });
+  group('HighlightType', () {
+    runReflectiveTests(HighlightTypeTest);
   });
 }
 
 
 @ReflectiveTestCase()
-class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
-  List<_HighlightRegion> regions;
+class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
+  List<HighlightRegion> regions;
 
   void assertHasRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlightRegion region in regions) {
+    for (HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
-          type.name) {
+          type) {
         return;
       }
     }
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('Expected to find (type=');
-    buffer.write(type.name);
-    buffer.write('; offset=');
-    buffer.write(offset);
-    buffer.write('; length=');
-    buffer.write(length);
-    buffer.write(') in\n');
-    for (_HighlightRegion region in regions) {
-      buffer.write('  (type=');
-      buffer.write(region.type);
-      buffer.write('; offset=');
-      buffer.write(region.offset);
-      buffer.write('; length=');
-      buffer.write(region.length);
-      buffer.write(') in\n');
-    }
-    fail(buffer.toString());
+    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
+        '${regions.join('\n')}');
   }
 
   void assertHasRegion(HighlightType type, String search, [int length = -1]) {
@@ -61,9 +48,9 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
   void assertNoRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlightRegion region in regions) {
+    for (HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
-          type.name) {
+          type) {
         fail(
             'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
             '${regions.join('\n')}');
@@ -113,7 +100,7 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
         List<Map<String, Object>> regionsJson = notification.getParameter(
             REGIONS);
         for (Map<String, Object> regionJson in regionsJson) {
-          regions.add(new _HighlightRegion.fromJson(regionJson));
+          regions.add(new HighlightRegion.fromJson(regionJson));
         }
       }
     }
@@ -469,10 +456,9 @@ void my_function(String a) {
 }
 ''');
     return prepareHighlights(() {
-      // TODO(brianwilkerson) Make this test pass.
-//      assertHasRegion(HighlightType.COMMENT_END_OF_LINE, '//', 22);
-//      assertHasRegion(HighlightType.COMMENT_BLOCK, '/* b', 19);
-//      assertHasRegion(HighlightType.COMMENT_DOCUMENTATION, '/**', 32);
+      assertHasRegion(HighlightType.COMMENT_DOCUMENTATION, '/**', 32);
+      assertHasRegion(HighlightType.COMMENT_END_OF_LINE, '//', 22);
+      assertHasRegion(HighlightType.COMMENT_BLOCK, '/* b', 19);
     });
   }
 
@@ -794,14 +780,20 @@ class A<T> {
 }
 
 
-class _HighlightRegion {
-  final int length;
-  final int offset;
-  final String type;
+@ReflectiveTestCase()
+class HighlightTypeTest {
+  void test_toString() {
+    expect(HighlightType.CLASS.toString(), HighlightType.CLASS.name);
+  }
 
-  _HighlightRegion(this.type, this.offset, this.length);
+  void test_valueOf() {
+    expect(HighlightType.CLASS, HighlightType.valueOf(
+        HighlightType.CLASS.name));
+  }
 
-  factory _HighlightRegion.fromJson(Map<String, Object> map) {
-    return new _HighlightRegion(map[TYPE], map[OFFSET], map[LENGTH]);
+  void test_valueOf_unknown() {
+    expect(() {
+      HighlightType.valueOf('no-such-type');
+    }, throws);
   }
 }
