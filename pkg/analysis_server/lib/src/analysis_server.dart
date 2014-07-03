@@ -487,6 +487,9 @@ class AnalysisServer {
               case AnalysisService.OUTLINE:
                 sendAnalysisNotificationOutline(this, context, source, dartUnit);
                 break;
+              case AnalysisService.OVERRIDES:
+                sendAnalysisNotificationOverrides(this, file, dartUnit);
+                break;
             }
           }
         }

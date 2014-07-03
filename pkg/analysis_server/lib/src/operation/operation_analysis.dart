@@ -9,6 +9,7 @@ import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -105,6 +106,16 @@ void sendAnalysisNotificationOutline(AnalysisServer server,
 }
 
 
+void sendAnalysisNotificationOverrides(AnalysisServer server,
+    String file, CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_OVERRIDES);
+  notification.setParameter(FILE, file);
+  notification.setParameter(OVERRIDES, new DartUnitOverridesComputer(
+      dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+
 /**
  * Instances of [PerformAnalysisOperation] perform a single analysis task.
  */
@@ -168,6 +179,9 @@ class PerformAnalysisOperation extends ServerOperation {
         }
         if (server.hasAnalysisSubscription(AnalysisService.OUTLINE, file)) {
           sendAnalysisNotificationOutline(server, context, source, dartUnit);
+        }
+        if (server.hasAnalysisSubscription(AnalysisService.OVERRIDES, file)) {
+          sendAnalysisNotificationOverrides(server, file, dartUnit);
         }
       }
       // TODO(scheglov) use default subscriptions
