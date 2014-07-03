@@ -741,17 +741,18 @@ class BrowserTestingStatus {
 
   // This is currently not used for anything except for error reporting.
   // Given the usefulness of this in debugging issues this should not be
-  // removed even when we have really stable system.
+  // removed even when we have a really stable system.
   BrowserTest lastTest;
   bool timeout = false;
   Timer nextTestTimeout;
+  Stopwatch timeSinceRestart = new Stopwatch();
 
   BrowserTestingStatus(Browser this.browser);
 }
 
 
 /**
- * Describes a single test to be run int the browser.
+ * Describes a single test to be run in the browser.
  */
 class BrowserTest {
   // TODO(ricow): Add timeout callback instead of the string passing hack.
@@ -802,6 +803,7 @@ class BrowserTestOutput {
 class BrowserTestRunner {
   static const int MAX_NEXT_TEST_TIMEOUTS = 10;
   static const Duration NEXT_TEST_TIMEOUT = const Duration(seconds: 60);
+  static const Duration RESTART_BROWSER_INTERVAL = const Duration(seconds: 60);
 
   final Map globalConfiguration;
   final bool checkedMode; // needed for dartium
@@ -864,6 +866,7 @@ class BrowserTestRunner {
               var status = new BrowserTestingStatus(browser);
               browserStatus[browser.id] = status;
               status.nextTestTimeout = createNextTestTimer(status);
+              status.timeSinceRestart.start();
             }
             return success;
           });
@@ -1048,6 +1051,7 @@ class BrowserTestRunner {
     var status = new BrowserTestingStatus(browser);
     browserStatus[new_id] = status;
     status.nextTestTimeout = createNextTestTimer(status);
+    status.timeSinceRestart.start();
     browser.start(testingServer.getDriverUrl(new_id)).then((success) {
       // We may have started terminating in the mean time.
       if (underTermination) {
@@ -1082,6 +1086,22 @@ class BrowserTestRunner {
 
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
+
+    // Restart content_shell and dartium on Android if they have been
+    // running for longer than RESTART_BROWSER_INTERVAL. The tests have
+    // had flaky timeouts, and this may help.
+    if ((browserName == 'ContentShellOnAndroid' ||
+         browserName == 'DartiumOnAndroid' ) &&
+        status.timeSinceRestart.elapsed > RESTART_BROWSER_INTERVAL) {
+      var id = status.browser.id;
+      status.browser.close().then((_) {
+        // We don't want to start a new browser if we are terminating.
+        if (underTermination) return;
+        restartBrowser(id);
+      });
+      // Don't send a test to the browser we are restarting.
+      return null;
+    }
 
     BrowserTest test = testQueue.removeLast();
     if (status.currentTest == null) {
