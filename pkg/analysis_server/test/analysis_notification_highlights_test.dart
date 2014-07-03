@@ -34,8 +34,24 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
         return;
       }
     }
-    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
-        '${regions.join('\n')}');
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected to find (type=');
+    buffer.write(type.name);
+    buffer.write('; offset=');
+    buffer.write(offset);
+    buffer.write('; length=');
+    buffer.write(length);
+    buffer.write(') in\n');
+    for (_HighlightRegion region in regions) {
+      buffer.write('  (type=');
+      buffer.write(region.type);
+      buffer.write('; offset=');
+      buffer.write(region.offset);
+      buffer.write('; length=');
+      buffer.write(region.length);
+      buffer.write(') in\n');
+    }
+    fail(buffer.toString());
   }
 
   void assertHasRegion(HighlightType type, String search, [int length = -1]) {
@@ -435,6 +451,28 @@ void f() {}
 ''');
     return prepareHighlights(() {
       assertNoRegion(HighlightType.CLASS, 'void f()');
+    });
+  }
+
+  test_COMMENT() {
+    addTestFile('''
+/**
+ * documentation comment
+ */ 
+void main() {
+  // end-of-line comment
+  my_function(1);
+}
+
+void my_function(String a) {
+ /* block comment */
+}
+''');
+    return prepareHighlights(() {
+      // TODO(brianwilkerson) Make this test pass.
+//      assertHasRegion(HighlightType.COMMENT_END_OF_LINE, '//', 22);
+//      assertHasRegion(HighlightType.COMMENT_BLOCK, '/* b', 19);
+//      assertHasRegion(HighlightType.COMMENT_DOCUMENTATION, '/**', 32);
     });
   }
 
