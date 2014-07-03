@@ -31,6 +31,8 @@ import 'package:compiler/implementation/deferred_load.dart'
     show DeferredLoadTask,
          OutputUnit;
 
+import 'mock_libraries.dart';
+
 class WarningMessage {
   Spannable node;
   Message message;
@@ -39,230 +41,7 @@ class WarningMessage {
   toString() => message.toString();
 }
 
-const String DEFAULT_HELPERLIB = r'''
-  const patch = 0;
-  wrapException(x) { return x; }
-  iae(x) { throw x; } ioore(x) { throw x; }
-  guard$array(x) { return x; }
-  guard$num(x) { return x; }
-  guard$string(x) { return x; }
-  guard$stringOrArray(x) { return x; }
-  makeLiteralMap(List keyValuePairs) {}
-  setRuntimeTypeInfo(a, b) {}
-  getRuntimeTypeInfo(a) {}
-  stringTypeCheck(x) {}
-  stringTypeCast(x) {}
-  propertyTypeCast(x) {}
-  boolConversionCheck(x) {}
-  abstract class JavaScriptIndexingBehavior {}
-  class JSInvocationMirror {}
-  abstract class BoundClosure extends Closure {
-    var self;
-    var target;
-    var receiver;
-  }
-  abstract class Closure implements Function { }
-  class ConstantMap {}
-  class ConstantStringMap {}
-  class TypeImpl {}
-  S() {}
-  throwCyclicInit() {}
-  throwExpression(e) {}
-  unwrapException(e) {}
-  assertHelper(a) {}
-  isJsIndexable(a, b) {}
-  createRuntimeType(a) {}
-  createInvocationMirror(a0, a1, a2, a3, a4, a5) {}
-  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
-  throwAbstractClassInstantiationError(className) {}
-  boolTypeCheck(value) {}
-  propertyTypeCheck(value, property) {}
-  interceptedTypeCheck(value, property) {}
-  functionSubtypeCast(Object object, String signatureName,
-                      String contextName, var context) {}
-  checkFunctionSubtype(var target, String signatureName,
-                       String contextName, var context,
-                       var typeArguments) {}
-  computeSignature(var signature, var context, var contextName) {}
-  getRuntimeTypeArguments(target, substitutionName) {}
-  voidTypeCheck(value) {}''';
-
-const String FOREIGN_LIBRARY = r'''
-  dynamic JS(String typeDescription, String codeTemplate,
-    [var arg0, var arg1, var arg2, var arg3, var arg4, var arg5, var arg6,
-     var arg7, var arg8, var arg9, var arg10, var arg11]) {}''';
-
-const String DEFAULT_INTERCEPTORSLIB = r'''
-  class Interceptor {
-    toString() {}
-    bool operator==(other) => identical(this, other);
-    get hashCode => throw "Interceptor.hashCode not implemented.";
-    noSuchMethod(im) { throw im; }
-  }
-  abstract class JSIndexable {
-    get length;
-    operator[](index);
-  }
-  abstract class JSMutableIndexable extends JSIndexable {}
-  class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
-    JSArray();
-    factory JSArray.typed(a) => a;
-    var length;
-    operator[](index) => this[index];
-    operator[]=(index, value) { this[index] = value; }
-    add(value) { this[length + 1] = value; }
-    insert(index, value) {}
-    E get first => this[0];
-    E get last => this[0];
-    E get single => this[0];
-    E removeLast() => this[0];
-    E removeAt(index) => this[0];
-    E elementAt(index) => this[0];
-    E singleWhere(f) => this[0];
-  }
-  class JSMutableArray extends JSArray implements JSMutableIndexable {}
-  class JSFixedArray extends JSMutableArray {}
-  class JSExtendableArray extends JSMutableArray {}
-  class JSString extends Interceptor implements String, JSIndexable {
-    var length;
-    operator[](index) {}
-    toString() {}
-    operator+(other) => this;
-  }
-  class JSPositiveInt extends JSInt {}
-  class JSUInt32 extends JSPositiveInt {}
-  class JSUInt31 extends JSUInt32 {}
-  class JSNumber extends Interceptor implements num {
-    // All these methods return a number to please type inferencing.
-    operator-() => (this is JSInt) ? 42 : 42.2;
-    operator +(other) => (this is JSInt) ? 42 : 42.2;
-    operator -(other) => (this is JSInt) ? 42 : 42.2;
-    operator ~/(other) => _tdivFast(other);
-    operator /(other) => (this is JSInt) ? 42 : 42.2;
-    operator *(other) => (this is JSInt) ? 42 : 42.2;
-    operator %(other) => (this is JSInt) ? 42 : 42.2;
-    operator <<(other) => _shlPositive(other);
-    operator >>(other) {
-      return _shrBothPositive(other) + _shrReceiverPositive(other) +
-        _shrOtherPositive(other);
-    }
-    operator |(other) => 42;
-    operator &(other) => 42;
-    operator ^(other) => 42;
-
-    operator >(other) => true;
-    operator >=(other) => true;
-    operator <(other) => true;
-    operator <=(other) => true;
-    operator ==(other) => true;
-    get hashCode => throw "JSNumber.hashCode not implemented.";
-
-    // We force side effects on _tdivFast to mimic the shortcomings of
-    // the effect analysis: because the `_tdivFast` implementation of
-    // the core library has calls that may not already be analyzed,
-    // the analysis will conclude that `_tdivFast` may have side
-    // effects.
-    _tdivFast(other) => new List()..length = 42;
-    _shlPositive(other) => 42;
-    _shrBothPositive(other) => 42;
-    _shrReceiverPositive(other) => 42;
-    _shrOtherPositive(other) => 42;
-
-    abs() => (this is JSInt) ? 42 : 42.2;
-    remainder(other) => (this is JSInt) ? 42 : 42.2;
-    truncate() => 42;
-  }
-  class JSInt extends JSNumber implements int {
-  }
-  class JSDouble extends JSNumber implements double {
-  }
-  class JSNull extends Interceptor {
-    bool operator==(other) => identical(null, other);
-    get hashCode => throw "JSNull.hashCode not implemented.";
-    String toString() => 'Null';
-    Type get runtimeType => null;
-    noSuchMethod(x) => super.noSuchMethod(x);
-  }
-  class JSBool extends Interceptor implements bool {
-  }
-  abstract class JSFunction extends Interceptor implements Function {
-  }
-  class ObjectInterceptor {
-  }
-  getInterceptor(x) {}
-  getNativeInterceptor(x) {}
-  var dispatchPropertyName;
-  var mapTypeToInterceptor;
-  getDispatchProperty(o) {}
-  initializeDispatchProperty(f,p,i) {}
-  initializeDispatchPropertyCSP(f,p,i) {}
-''';
-
-const String DEFAULT_CORELIB = r'''
-  print(var obj) {}
-  abstract class num {}
-  abstract class int extends num { }
-  abstract class double extends num {
-    static var NAN = 0;
-    static parse(s) {}
-  }
-  class bool {}
-  class String implements Pattern {}
-  class Object {
-    const Object();
-    operator ==(other) { return true; }
-    get hashCode => throw "Object.hashCode not implemented.";
-    String toString() { return null; }
-    noSuchMethod(im) { throw im; }
-  }
-  class Null {}
-  abstract class StackTrace {}
-  class Type {}
-  class Function {}
-  class List<E> {
-    var length;
-    List([length]);
-    List.filled(length, element);
-    E get first => null;
-    E get last => null;
-    E get single => null;
-    E removeLast() => null;
-    E removeAt(i) => null;
-    E elementAt(i) => null;
-    E singleWhere(f) => null;
-  }
-  abstract class Map<K,V> {}
-  class LinkedHashMap {
-    factory LinkedHashMap._empty() => null;
-    factory LinkedHashMap._literal(elements) => null;
-  }
-  class DateTime {
-    DateTime(year);
-    DateTime.utc(year);
-  }
-  abstract class Pattern {}
-  bool identical(Object a, Object b) { return true; }
-  const proxy = 0;''';
-
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
-
-const String PATCH_CORE_SOURCE = r'''
-import 'dart:_js_helper';
-import 'dart:_interceptors';
-import 'dart:_isolate_helper';
-''';
-
-const String DEFAULT_ISOLATE_HELPERLIB = r'''
-  var startRootIsolate;
-  var _currentIsolate;
-  var _callInIsolate;
-  class _WorkerBase {}''';
-
-const String DEFAULT_MIRRORS = r'''
-class Comment {}
-class MirrorSystem {}
-class MirrorsUsed {}
-''';
 
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
@@ -280,8 +59,7 @@ class MockCompiler extends Compiler {
   Node parsedTree;
 
   MockCompiler.internal(
-      {String coreSource: DEFAULT_CORELIB,
-       String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
+      {Map<String, String> coreSource,
        bool enableTypeAssertions: false,
        bool enableMinification: false,
        bool enableConcreteTypeInference: false,
@@ -313,15 +91,20 @@ class MockCompiler extends Compiler {
 
     clearMessages();
 
-    registerSource(Compiler.DART_CORE, coreSource);
-    registerSource(PATCH_CORE, PATCH_CORE_SOURCE);
+    registerSource(Compiler.DART_CORE,
+                   buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
+    registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
-    registerSource(JavaScriptBackend.DART_JS_HELPER, DEFAULT_HELPERLIB);
-    registerSource(JavaScriptBackend.DART_FOREIGN_HELPER, FOREIGN_LIBRARY);
-    registerSource(JavaScriptBackend.DART_INTERCEPTORS, interceptorsSource);
+    registerSource(JavaScriptBackend.DART_JS_HELPER,
+                   buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
+    registerSource(JavaScriptBackend.DART_FOREIGN_HELPER,
+                   buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
+    registerSource(JavaScriptBackend.DART_INTERCEPTORS,
+                   buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
     registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
-                   DEFAULT_ISOLATE_HELPERLIB);
-    registerSource(Compiler.DART_MIRRORS, DEFAULT_MIRRORS);
+                   buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
+    registerSource(Compiler.DART_MIRRORS,
+                   buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
   }
 
   /// Initialize the mock compiler with an empty main library.

@@ -261,97 +261,9 @@ BELOW_ZERO_CHECK,
 // TODO(ahe): It would probably be better if this test used the real
 // core library sources, as its purpose is to detect failure to
 // optimize fixed-sized arrays.
-const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
-  print(var obj) {}
-  abstract class num {}
-  abstract class int extends num { }
-  abstract class double extends num { }
-  class bool {}
-  class String {}
-  class Object {
-    Object();
-  }
-  class Type {}
-  class Function {}
-  class List {
-    List([int length]);
-  }
-  abstract class Map {}
-  class Closure {}
-  class Null {}
-  class Dynamic_ {}
-  class StackTrace {}
-  bool identical(Object a, Object b) {}
-  const proxy = 0;''';
-
-const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
-  class Interceptor {
-    toString() {}
-    bool operator==(other) => identical(this, other);
-    noSuchMethod(im) { throw im; }
-  }
-  abstract class JSIndexable {
-    get length;
-  }
-  abstract class JSMutableIndexable extends JSIndexable {}
-  class JSArray implements JSIndexable {
-    JSArray() {}
-    JSArray.typed(a) => a;
-    var length;
-    var removeLast;
-    operator[] (_) {}
-  }
-  class JSMutableArray extends JSArray implements JSMutableIndexable {}
-  class JSFixedArray extends JSMutableArray {}
-  class JSExtendableArray extends JSMutableArray {}
-  class JSString implements JSIndexable {
-    var length;
-  }
-  class JSNumber {
-    operator +(other) {}
-    operator -(other) {}
-    operator ~/(other) {}
-    operator /(other) {}
-    operator *(other) {}
-    operator <<(other) {}
-    operator >>(other) {}
-    operator |(other) {}
-    operator &(other) {}
-    operator ^(other) {}
-    operator <(other) {}
-    operator >(other) {}
-    operator <=(other) {}
-    operator >=(other) {}
-    operator ==(other) {}
-  }
-  class JSInt extends JSNumber {
-    operator~() => this;
-  }
-  class JSDouble extends JSNumber {
-  }
-  class JSNull {
-    bool operator==(other) => identical(null, other);
-    get hashCode => throw "JSNull.hashCode not implemented.";
-    String toString() => 'Null';
-    Type get runtimeType => Null;
-    noSuchMethod(x) => super.noSuchMethod(x);
-  }
-  class JSBool {
-  }
-  class JSFunction {
-  }
-  class ObjectInterceptor {
-  }
-  class JSPositiveInt extends JSInt {}
-  class JSUInt32 extends JSPositiveInt {}
-  class JSUInt31 extends JSUInt32 {}
-  getInterceptor(x) {}''';
-
 Future expect(String code, int kind) {
   return compile(
       code,
-      coreSource: DEFAULT_CORELIB_WITH_LIST_INTERFACE,
-      interceptorsSource: INTERCEPTORSLIB_WITH_MEMBERS,
       check: (String generated) {
     switch (kind) {
       case REMOVED:

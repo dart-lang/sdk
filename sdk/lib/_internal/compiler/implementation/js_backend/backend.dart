@@ -376,12 +376,17 @@ class JavaScriptBackend extends Backend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  // TODO(karlklose): split into findHelperFunction and findHelperClass and
+  // TODO(karlklose): Split into findHelperFunction and findHelperClass and
   // add a check that the element has the expected kind.
-  Element findHelper(String name)
-      => jsHelperLibrary.findLocal(name);
-  Element findInterceptor(String name)
-      => interceptorsLibrary.findLocal(name);
+  Element findHelper(String name) => find(jsHelperLibrary, name);
+  Element findInterceptor(String name) => find(interceptorsLibrary, name);
+
+  Element find(LibraryElement library, String name) {
+    Element element = library.findLocal(name);
+    assert(invariant(library, element != null,
+        message: "Element '$name' not found in '${library.canonicalUri}'."));
+    return element;
+  }
 
   bool isForeign(Element element) => element.library == foreignLibrary;
 
@@ -780,7 +785,6 @@ class JavaScriptBackend extends Backend {
       // Because we cannot enqueue elements at the time of emission,
       // we make sure they are always generated.
       enqueue(enqueuer, findHelper('isJsIndexable'), registry);
-      enqueue(enqueuer, findInterceptor('dispatchPropertyName'), registry);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
@@ -934,12 +938,12 @@ class JavaScriptBackend extends Backend {
       for (String name in const [START_ROOT_ISOLATE,
                                  '_currentIsolate',
                                  '_callInIsolate']) {
-        Element element = isolateHelperLibrary.find(name);
+        Element element = find(isolateHelperLibrary, name);
         enqueuer.addToWorkList(element);
         compiler.globalDependencies.registerDependency(element);
       }
     } else {
-      enqueuer.addToWorkList(isolateHelperLibrary.find(START_ROOT_ISOLATE));
+      enqueuer.addToWorkList(find(isolateHelperLibrary, START_ROOT_ISOLATE));
     }
   }
 
@@ -1525,7 +1529,7 @@ class JavaScriptBackend extends Backend {
   void initializeHelperClasses() {
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
-      ClassElement result = jsHelperLibrary.find(name);
+      ClassElement result = findHelper(name);
       if (result == null) {
         missingHelperClasses.add(name);
       }
@@ -1545,17 +1549,16 @@ class JavaScriptBackend extends Backend {
     return super.onLibraryScanned(library, loader).then((_) {
       Uri uri = library.canonicalUri;
 
-      // TODO(johnniwinther): Assert that the elements are found.
       VariableElement findVariable(String name) {
-        return library.find(name);
+        return find(library, name);
       }
 
       FunctionElement findMethod(String name) {
-        return library.find(name);
+        return find(library, name);
       }
 
       ClassElement findClass(String name) {
-        return library.find(name);
+        return find(library, name);
       }
 
       if (uri == DART_INTERCEPTORS) {
@@ -1589,7 +1592,7 @@ class JavaScriptBackend extends Backend {
         jsMutableIndexableClass = findClass('JSMutableIndexable');
       } else if (uri == DART_JS_HELPER) {
         initializeHelperClasses();
-        assertMethod = jsHelperLibrary.find('assertHelper');
+        assertMethod = findHelper('assertHelper');
 
         typeLiteralClass = findClass('TypeImpl');
         constMapLiteralClass = findClass('ConstantMap');
@@ -1602,14 +1605,14 @@ class JavaScriptBackend extends Backend {
         noInlineClass = findClass('NoInline');
         irRepresentationClass = findClass('IrRepresentation');
 
-        getIsolateAffinityTagMarker = library.find('getIsolateAffinityTag');
+        getIsolateAffinityTagMarker = findMethod('getIsolateAffinityTag');
 
-        requiresPreambleMarker = library.find('requiresPreamble');
+        requiresPreambleMarker = findMethod('requiresPreamble');
       } else if (uri == DART_JS_MIRRORS) {
-        disableTreeShakingMarker = library.find('disableTreeShaking');
-        preserveMetadataMarker = library.find('preserveMetadata');
+        disableTreeShakingMarker = find(library, 'disableTreeShaking');
+        preserveMetadataMarker = find(library, 'preserveMetadata');
       } else if (uri == DART_JS_NAMES) {
-        preserveNamesMarker = library.find('preserveNames');
+        preserveNamesMarker = find(library, 'preserveNames');
       } else if (uri == DART_HTML) {
         htmlLibraryIsLoaded = true;
       }
@@ -1633,6 +1636,8 @@ class JavaScriptBackend extends Backend {
     // [LinkedHashMap] is reexported from dart:collection and can therefore not
     // be loaded from dart:core in [onLibraryScanned].
     mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
+    assert(invariant(compiler.coreLibrary, mapLiteralClass != null,
+        message: "Element 'LinkedHashMap' not found in 'dart:core'."));
 
     implementationClasses = <ClassElement, ClassElement>{};
     implementationClasses[compiler.intClass] = jsIntClass;
@@ -2191,14 +2196,15 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
     }
     if (type is FunctionType) {
       registerBackendStaticInvocation(
-          backend.findHelper('functionTypeTestMetaHelper'), registry);
+          backend.find(backend.jsHelperLibrary, 'functionTypeTestMetaHelper'),
+          registry);
     }
     if (type.element != null && type.element.isNative) {
       // We will neeed to add the "$is" and "$as" properties on the
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       registerBackendStaticInvocation(
-          backend.findHelper('defineProperty'), registry);
+          backend.find(backend.jsHelperLibrary, 'defineProperty'), registry);
     }
   }
 
@@ -2254,7 +2260,7 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
   void onConstantMap(Registry registry) {
     assert(registry.isForResolution);
     void enqueue(String name) {
-      Element e = backend.findHelper(name);
+      Element e = backend.find(backend.jsHelperLibrary, name);
       registerBackendInstantiation(e, registry);
     }
 

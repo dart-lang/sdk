@@ -1997,54 +1997,42 @@ String returnWithType(String type, expression) {
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
 
-const String NUM_SOURCE = '''
-abstract class num {
-  num operator +(num other);
-  num operator -(num other);
-  num operator *(num other);
-  num operator %(num other);
-  double operator /(num other);
-  int operator ~/(num other);
-  num operator -();
-  bool operator <(num other);
-  bool operator <=(num other);
-  bool operator >(num other);
-  bool operator >=(num other);
-}
-''';
-
-const String INT_SOURCE = '''
-abstract class int extends num {
-  int operator &(int other);
-  int operator |(int other);
-  int operator ^(int other);
-  int operator ~();
-  int operator <<(int shiftAmount);
-  int operator >>(int shiftAmount);
-  int operator -();
-}
-''';
-
-const String STRING_SOURCE = '''
-class String implements Pattern {
-  String operator +(String other) => this;
-}
-''';
+const Map<String, String> ALT_SOURCE = const <String, String>{
+  'num': r'''
+      abstract class num {
+        num operator +(num other);
+        num operator -(num other);
+        num operator *(num other);
+        num operator %(num other);
+        double operator /(num other);
+        int operator ~/(num other);
+        num operator -();
+        bool operator <(num other);
+        bool operator <=(num other);
+        bool operator >(num other);
+        bool operator >=(num other);
+      }
+      ''',
+  'int': r'''
+      abstract class int extends num {
+        int operator &(int other);
+        int operator |(int other);
+        int operator ^(int other);
+        int operator ~();
+        int operator <<(int shiftAmount);
+        int operator >>(int shiftAmount);
+        int operator -();
+      }
+      ''',
+  'String': r'''
+      class String implements Pattern {
+        String operator +(String other) => this;
+      }
+      ''',
+};
 
 Future setup(test(MockCompiler compiler)) {
-  RegExp classNum = new RegExp(r'abstract class num {}');
-  Expect.isTrue(DEFAULT_CORELIB.contains(classNum));
-  RegExp classInt = new RegExp(r'abstract class int extends num { }');
-  Expect.isTrue(DEFAULT_CORELIB.contains(classInt));
-  RegExp classString = new RegExp('class String implements Pattern {}');
-  Expect.isTrue(DEFAULT_CORELIB.contains(classString));
-
-  String CORE_SOURCE = DEFAULT_CORELIB
-      .replaceAll(classNum, NUM_SOURCE)
-      .replaceAll(classInt, INT_SOURCE)
-      .replaceAll(classString, STRING_SOURCE);
-
-  MockCompiler compiler = new MockCompiler.internal(coreSource: CORE_SOURCE);
+  MockCompiler compiler = new MockCompiler.internal(coreSource: ALT_SOURCE);
   return compiler.init().then((_) => test(compiler));
 }
 

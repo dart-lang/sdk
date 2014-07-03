@@ -525,8 +525,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           world, backend.findHelper(name), compiler.globalDependencies);
     }
 
-    staticUse('dynamicFunction');
-    staticUse('dynamicSetMetadata');
     staticUse('defineProperty');
     staticUse('toStringForNativeObject');
     staticUse('hashCodeForNativeObject');

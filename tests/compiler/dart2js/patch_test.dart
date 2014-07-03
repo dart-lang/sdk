@@ -10,16 +10,17 @@ import "package:compiler/implementation/elements/elements.dart";
 import "package:compiler/implementation/tree/tree.dart";
 import "package:compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
+import "mock_libraries.dart";
 import "parser_helper.dart";
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false}) {
-  String core = "$DEFAULT_CORELIB\n$script";
+  Map<String, String> core = <String, String>{'script': script};
   MockCompiler compiler = new MockCompiler.internal(coreSource: core,
                                                     analyzeAll: analyzeAll,
                                                     analyzeOnly: analyzeOnly);
   var uri = Uri.parse("patch:core");
-  compiler.registerSource(uri, "$PATCH_CORE_SOURCE\n$patch");
+  compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
   return compiler.init().then((_) => compiler);
 }
 
