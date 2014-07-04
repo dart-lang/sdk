@@ -270,7 +270,8 @@ class _HttpClientResponse
       return new Stream.fromIterable([]).listen(null, onDone: onDone);
     }
     var stream = _incoming;
-    if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
+    if (_httpClient.autoUncompress &&
+        headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
       stream = stream.transform(GZIP.decoder);
     }
     return stream.listen(onData,
@@ -1649,6 +1650,8 @@ class _HttpClient implements HttpClient {
   Duration get idleTimeout => _idleTimeout;
 
   int maxConnectionsPerHost;
+
+  bool autoUncompress = true;
 
   String userAgent = _getHttpVersion();
 

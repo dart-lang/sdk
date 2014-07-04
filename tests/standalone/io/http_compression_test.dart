@@ -11,7 +11,7 @@ import 'package:expect/expect.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
-void testServerCompress() {
+void testServerCompress({bool clientAutoUncompress: true}) {
   void test(List<int> data) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
@@ -19,6 +19,7 @@ void testServerCompress() {
         request.response.close();
       });
       var client = new HttpClient();
+      client.autoUncompress = clientAutoUncompress;
       client.get("127.0.0.1", server.port, "/")
           .then((request) {
             request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
@@ -32,7 +33,11 @@ void testServerCompress() {
                   list.addAll(b);
                   return list;
                 }).then((list) {
-                  Expect.listEquals(data, list);
+                  if (clientAutoUncompress) {
+                    Expect.listEquals(data, list);
+                  } else {
+                    Expect.listEquals(data, GZIP.decode(list));
+                  }
                   server.close();
                   client.close();
                 });
@@ -89,5 +94,6 @@ void testAcceptEncodingHeader() {
 
 void main() {
   testServerCompress();
+  testServerCompress(clientAutoUncompress: false);
   testAcceptEncodingHeader();
 }
