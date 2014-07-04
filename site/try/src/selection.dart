@@ -6,11 +6,17 @@ library trydart.selection;
 
 import 'dart:html' show
     CharacterData,
+    Element,
     Node,
     NodeFilter,
     Selection,
     Text,
     TreeWalker;
+
+import 'shadow_root.dart' show
+    WALKER_NEXT,
+    WALKER_RETURN,
+    walkNodes;
 
 import 'decoration.dart';
 
@@ -70,18 +76,23 @@ class TrySelection {
     if (anchorOffset == -1) return -1;
 
     int offset = 0;
-    TreeWalker walker = new TreeWalker(root, NodeFilter.SHOW_TEXT);
-    for (Node node = walker.nextNode();
-         node != null;
-         node = walker.nextNode()) {
-      CharacterData text = node;
-      if (anchorNode == text) {
-        return anchorOffset + offset;
+    bool found = false;
+    walkNodes(root, (Node node) {
+      if (anchorNode == node) {
+        offset += anchorOffset;
+        found = true;
+        return WALKER_RETURN;
       }
-      offset += text.data.length;
-    }
-
-    return -1;
+      switch (node.nodeType) {
+        case Node.CDATA_SECTION_NODE:
+        case Node.TEXT_NODE:
+          CharacterData text = node;
+          offset += text.data.length;
+          break;
+      }
+      return WALKER_NEXT;
+    });
+    return found ? offset : -1;
   }
 }
 

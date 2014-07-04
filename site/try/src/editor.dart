@@ -257,12 +257,15 @@ Decoration getDecoration(Token token) {
   return currentTheme.foreground;
 }
 
-diagnostic(text, tip) {
-  if (text is String) {
-    text = new Text(text);
+diagnostic(content, tip) {
+  if (content is String) {
+    content = new Text(content);
+  }
+  if (content is! List) {
+    content = [content];
   }
   return new AnchorElement()
       ..classes.add('diagnostic')
-      ..append(text)
-      ..append(tip);
+      ..append(tip) // Should be first for better Firefox editing.
+      ..nodes.addAll(content);
 }

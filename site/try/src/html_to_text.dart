@@ -8,15 +8,20 @@ import 'dart:math' show
     max;
 
 import 'dart:html' show
+    CharacterData,
     Element,
     Node,
     NodeFilter,
     ShadowRoot,
-    Text,
     TreeWalker;
 
 import 'selection.dart' show
     TrySelection;
+
+import 'shadow_root.dart' show
+    WALKER_NEXT,
+    WALKER_SKIP_NODE,
+    walkNodes;
 
 /// Returns true if [node] is a block element, that is, not inline.
 bool isBlockElement(Node node) {
@@ -30,24 +35,6 @@ bool isBlockElement(Node node) {
   return element.getComputedStyle().display != 'inline';
 }
 
-/// Position [walker] at the last predecessor (that is, child of child of
-/// child...) of [node]. The next call to walker.nextNode will return the first
-/// node after [node].
-void skip(Node node, TreeWalker walker) {
-  if (walker.nextSibling() != null) {
-    walker.previousNode();
-    return;
-  }
-  for (Node current = walker.nextNode();
-       current != null;
-       current = walker.nextNode()) {
-    if (!node.contains(current)) {
-      walker.previousNode();
-      return;
-    }
-  }
-}
-
 /// Writes the text of [root] to [buffer]. Keeps track of [selection] and
 /// returns the new anchorOffset from beginning of [buffer] or -1 if the
 /// selection isn't in [root].
@@ -56,34 +43,30 @@ int htmlToText(Node root,
                TrySelection selection,
                {bool treatRootAsInline: false}) {
   int selectionOffset = -1;
-  TreeWalker walker = new TreeWalker(root, NodeFilter.SHOW_ALL);
-
-  for (Node node = root; node != null; node = walker.nextNode()) {
+  walkNodes(root, (Node node) {
+    if (selection.anchorNode == node) {
+      selectionOffset = selection.anchorOffset + buffer.length;
+    }
     switch (node.nodeType) {
       case Node.CDATA_SECTION_NODE:
       case Node.TEXT_NODE:
-        if (selection.anchorNode == node) {
-          selectionOffset = selection.anchorOffset + buffer.length;
-        }
-        Text text = node;
+        CharacterData text = node;
         buffer.write(text.data.replaceAll('\xA0', ' '));
         break;
 
       default:
-        if (!ShadowRoot.supported &&
-            node is Element &&
-            node.getAttribute('try-dart-shadow-root') != null) {
-          skip(node, walker);
-        } else if (node.nodeName == 'BR') {
+        if (node.nodeName == 'BR') {
           buffer.write('\n');
         } else if (node != root && isBlockElement(node)) {
           selectionOffset =
               max(selectionOffset, htmlToText(node, buffer, selection));
-          skip(node, walker);
+          return WALKER_SKIP_NODE;
         }
         break;
     }
-  }
+
+    return WALKER_NEXT;
+  });
 
   if (!treatRootAsInline && isBlockElement(root)) {
     buffer.write('\n');

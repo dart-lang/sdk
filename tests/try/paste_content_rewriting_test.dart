@@ -46,9 +46,8 @@ Future runTests() {
     String key = keys.current;
     print('Checking $key');
     queryDiagnosticNodes().forEach((Node node) {
-      node.parent.insertBefore(
-          new Text('<DIAGNOSTIC>'), node.parent.firstChild);
-      node.replaceWith(new Text('</DIAGNOSTIC>'));
+      node.parent.append(new Text('</DIAGNOSTIC>'));
+      node.replaceWith(new Text('<DIAGNOSTIC>'));
       observer.takeRecords(); // Discard mutations.
     });
     Expect.stringEquals(tests[key], mainEditorPane.text);

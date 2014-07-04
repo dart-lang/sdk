@@ -9,6 +9,9 @@ import 'dart:html';
 import 'shadow_root.dart' show
     setShadowRoot;
 
+import 'editor.dart' show
+    diagnostic;
+
 class Decoration {
   final String color;
   final bool bold;
@@ -65,11 +68,7 @@ class DiagnosticDecoration extends Decoration {
     if (kind == 'error') {
       tip = error(message);
     }
-    return element..append(
-        new AnchorElement()
-            ..classes.add('diagnostic')
-            ..nodes.addAll(nodes)
-            ..append(tip));
+    return element..append(diagnostic(nodes, tip));
   }
 }
 
