@@ -116,6 +116,17 @@ void main() {
           });
       });
 
+      testVirtualDir('dir-href', (dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        new Directory('${dir.path}/dir').createSync();
+        virDir.allowDirectoryListing = true;
+
+        return getAsString(virDir, '/')
+          .then((result) {
+            expect(result, contains('<a href="dir/">'));
+          });
+      });
+
       testVirtualDir('dirs', (dir) {
         var virDir = new VirtualDirectory(dir.path);
         for (int i = 0; i < 10; i++) {
@@ -194,7 +205,7 @@ void main() {
 
           return getAsString(virDir, '/')
             .then((result) {
-              expect(result, contains('%2Fjavascript%3Aalert(document)%3B%22'));
+              expect(result, contains('javascript%3Aalert(document)%3B%22/'));
             });
         });
 
@@ -206,7 +217,7 @@ void main() {
           return getAsString(virDir, '/')
             .then((result) {
               expect(result, contains('&lt;&gt;&amp;&quot;&#x2F;'));
-              expect(result, contains('href="%2F%3C%3E%26%22"'));
+              expect(result, contains('href="%3C%3E%26%22/"'));
             });
         });
       }

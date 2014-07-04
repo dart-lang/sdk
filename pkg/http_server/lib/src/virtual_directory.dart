@@ -286,14 +286,17 @@ $server
 
       response.write(header);
 
-      void add(String name, String modified, var size) {
-        try {
+      void add(String name, String modified, var size, bool folder) {
         if (size == null) size = "-";
         if (modified == null) modified = "";
         var encodedSize = new HtmlEscape().convert(size.toString());
         var encodedModified = new HtmlEscape().convert(modified);
         var encodedLink = new HtmlEscape(HtmlEscapeMode.ATTRIBUTE)
-            .convert(Uri.encodeComponent(normalize(join(path, name))));
+            .convert(Uri.encodeComponent(name));
+        if (folder) {
+          encodedLink += '/';
+          name += '/';
+        }
         var encodedName = new HtmlEscape().convert(name);
 
         var entry =
@@ -303,25 +306,25 @@ $server
     <td style="text-align: right">$encodedSize</td>
   </tr>''';
         response.write(entry);
-        } catch (e) {
-          print(e);
-        }
       }
 
       if (path != '/') {
-        add('../', null, null);
+        add('..', null, null, true);
       }
 
       dir.list(followLinks: true).listen((entity) {
+        var name = basename(entity.path);
+        var stat = entity.statSync();
         if (entity is File) {
-          var stat = entity.statSync();
-          add(basename(entity.path),
+          add(name,
               stat.modified.toString(),
-              stat.size);
+              stat.size,
+              false);
         } else if (entity is Directory) {
-          add(basename(entity.path) + '/',
-              entity.statSync().modified.toString(),
-              null);
+          add(name,
+              stat.modified.toString(),
+              null,
+              true);
         }
       }, onError: (e) {
         // TODO(kevmoo): log error
