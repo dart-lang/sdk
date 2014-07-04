@@ -216,7 +216,20 @@ Future _emitAllFiles(Barback barback, BarbackOptions options) {
   return barback.getAllAssets().then((assets) {
     // Delete existing output folder before we generate anything
     var dir = new Directory(options.outDir);
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+    // We get very long filenames which can cause us to not be able to delete
+    // using the normal dart:io deleteSync(recursive: true) on windows
+    if (dir.existsSync()) {
+      if (Platform.operatingSystem == 'windows' ) {
+        var result = Process.runSync('rmdir', ['/q', '/s', options.outDir]);
+        if (result.exitCode != 0) {
+          throw "Could not delete $dir, output was: \n"
+                 "stdout: ${result.stdout} \n"
+                 "stderr: ${result.stderr}";
+        }
+      } else {
+        dir.deleteSync(recursive: true);
+      }
+    }
     return _emitPackagesDir(options)
       .then((_) => _emitTransformedFiles(assets, options))
       .then((_) => _addPackagesSymlinks(assets, options))
