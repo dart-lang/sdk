@@ -61,7 +61,7 @@ main() {
     if (code == null) {
       throw 'Compilation failed';
     }
-  }, onError: (e) {
-      throw 'Compilation failed: $e';
+  }, onError: (e, s) {
+      throw 'Compilation failed: $e\n$s';
   }).then(asyncSuccess);
 }

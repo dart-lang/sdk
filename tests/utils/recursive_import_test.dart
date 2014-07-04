@@ -39,7 +39,7 @@ main() {
   int errorCount = 0;
   void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
     if (uri != null) {
-      // print('$uri:$begin:$end: $kind: $message');
+      print('$uri:$begin:$end: $kind: $message');
       Expect.equals('main', uri.scheme);
       if (kind == Diagnostic.WARNING) {
         warningCount++;
@@ -48,6 +48,8 @@ main() {
       } else {
         throw kind;
       }
+    } else {
+      print('$kind: $message');
     }
   }
 
@@ -64,7 +66,7 @@ main() {
     // first time.
     Expect.equals(2 * (count - 1), warningCount);
     Expect.equals(1, errorCount);
-  }, onError: (e) {
-      throw 'Compilation failed';
+  }, onError: (e, s) {
+      throw 'Compilation failed: $e\n$s';
   }).then(asyncSuccess);
 }
