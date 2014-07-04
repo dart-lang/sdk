@@ -230,8 +230,8 @@ class InvokeConstructor extends Expression implements Invoke {
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
     assert(target.isErroneous || target.isConstructor);
-    assert((target.isErroneous && type.isDynamic) ||
-        type.element == target.enclosingElement);
+    assert(target.isErroneous || type.isDynamic ||
+           type.element == target.enclosingElement);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);

@@ -1402,7 +1402,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       assignedVars[variableIndex[element]] = valueToStore;
     } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
                 Elements.isStaticOrTopLevel(element)) {
-      assert(element.isField || element.isSetter);
+      assert(element.isErroneous || element.isField || element.isSetter);
       Selector selector = elements.getSelector(node);
       continueWithExpression(
           (k) => new ir.InvokeStatic(element, selector, k, [valueToStore]));
