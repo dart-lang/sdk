@@ -177,9 +177,6 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   /// True if the two expressions are a reference to the same variable.
   bool isSameVariable(Receiver e1, Receiver e2) {
-    // TODO(asgerf): Using the annotated element isn't the best way to do this
-    // since elements are supposed to go away from codegen when we discard the
-    // old backend.
     return e1 is Identifier &&
            e2 is Identifier &&
            e1.element is VariableElement &&

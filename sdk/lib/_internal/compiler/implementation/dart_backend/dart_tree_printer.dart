@@ -688,7 +688,7 @@ class TreePrinter {
           makeParameters(stmt.parameters),
           makeFunctionBody(stmt.body),
           stmt.returnType != null ? makeType(stmt.returnType) : null,
-          makeEmptyModifiers(), // TODO(asgerf): Function modifiers?
+          makeEmptyModifiers(),
           null,  // initializers
           null);  // get/set
       setElement(function, stmt.function.element, stmt);

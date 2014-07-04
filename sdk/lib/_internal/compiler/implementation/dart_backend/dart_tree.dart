@@ -2109,7 +2109,6 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Statement visitExpressionStatement(ExpressionStatement node) {
-    // TODO(asgerf): in non-checked mode we can remove Not from the expression.
     node.expression = visitExpression(node.expression);
     node.next = visitStatement(node.next);
     return node;

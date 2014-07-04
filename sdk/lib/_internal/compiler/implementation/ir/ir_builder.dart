@@ -112,7 +112,7 @@ class IrBuilderTask extends CompilerTask {
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative) return false;
 
-    // TODO(asgerf): support syntax for redirecting factory constructors
+    // TODO(kmillikin,sigurdm): support syntax for redirecting factory
     if (function is ConstructorElement && function.isRedirectingFactory) {
       return false;
     }
@@ -532,7 +532,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitFor(ast.For node) {
     assert(isOpen);
-    // TODO(asgerf): Handle closure variables declared in a for-loop.
+    // TODO(kmillikin,sigurdm): Handle closure variables declared in a for-loop.
     if (node.initializer is ast.VariableDefinitions) {
       ast.VariableDefinitions definitions = node.initializer;
       for (ast.Node definition in definitions.definitions.nodes) {

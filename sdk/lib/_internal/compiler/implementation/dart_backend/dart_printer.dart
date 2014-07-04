@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(asgerf): Include metadata.
-// TODO(asgerf): Include cascade operator.
 library dart_printer;
 
 import '../dart2jslib.dart' as dart2js;
@@ -294,8 +292,6 @@ class Parameter extends Node {
 
   /// True if this is a function parameter.
   bool get isFunction => parameters != null;
-
-  // TODO(asgerf): Support modifiers on parameters (final, ...).
 }
 
 // EXPRESSIONS
@@ -712,7 +708,7 @@ class Unparser {
   }
 
   void writeOperator(String operator) {
-    write(" "); // TODO(asgerf): Minimize use of whitespace.
+    write(" "); // TODO(sigurdm,kmillikin): Minimize use of whitespace.
     write(operator);
     write(" ");
   }
@@ -752,9 +748,7 @@ class Unparser {
   /// Abusing terminology slightly, the function accepts a [Receiver] which
   /// may also be the [SuperReceiver] object.
   void writeExp(Receiver e, int minPrecedence, {beginStmt:false}) {
-    // TODO(asgerf):
-    //   Would there be a significant speedup using a Visitor or a method
-    //   on the AST instead of a chain of "if (e is T)" statements?
+    // TODO(kmillikin,sigurdm): it might be faster to use a Visitor.
     void withPrecedence(int actual, void action()) {
       if (actual < minPrecedence) {
         write("(");
@@ -786,8 +780,9 @@ class Unparser {
           write(e.name);
         }
         writeParameters(e.parameters);
-        if (stmt is Return) { // TODO(asgerf): Print {} for "return null;"
-          write('=> '); // TODO(asgerf): Minimize use of whitespace.
+        // TODO(sigurdm,kmillikin): Print {} for "return null;"
+        if (stmt is Return) {
+          write('=> ');
           writeExp(stmt.expression, EXPRESSION);
         } else {
           writeBlock(stmt);
@@ -799,7 +794,7 @@ class Unparser {
     } else if (e is Conditional) {
       withPrecedence(CONDITIONAL, () {
         writeExp(e.condition, LOGICAL_OR, beginStmt: beginStmt);
-        write(' ? '); // TODO(asgerf): Minimize use of whitespace.
+        write(' ? ');
         writeExp(e.thenExpression, EXPRESSION);
         write(' : ');
         writeExp(e.elseExpression, EXPRESSION);
@@ -832,7 +827,7 @@ class Unparser {
       }
     } else if (e is LiteralList) {
       if (e.isConst) {
-        write(' const '); // TODO(asgerf): Minimize use of whitespace.
+        write(' const ');
       }
       if (e.typeArgument != null) {
         write('<');
@@ -848,7 +843,7 @@ class Unparser {
       // are at the beginning of a statement.
       bool needParen = beginStmt;
       if (e.isConst) {
-        write(' const '); // TODO(asgerf): Minimize use of whitespace.
+        write(' const ');
         needParen = false;
       }
       if (e.typeArguments.length > 0) {
@@ -863,7 +858,7 @@ class Unparser {
       write('{');
       writeEach(',', e.entries, (LiteralMapEntry en) {
         writeExp(en.key, EXPRESSION);
-        write(' : '); // TODO(asgerf): Minimize use of whitespace.
+        write(' : ');
         writeExp(en.value, EXPRESSION);
       });
       write('}');
@@ -872,7 +867,7 @@ class Unparser {
       }
     } else if (e is LiteralSymbol) {
       write('#');
-      write(e.id); // TODO(asgerf): Do we need to escape something here?
+      write(e.id);
     } else if (e is LiteralType) {
       withPrecedence(TYPE_LITERAL, () {
         write(e.name);
@@ -899,7 +894,7 @@ class Unparser {
           operand is TypeOperator && operand.operator == 'is') {
         withPrecedence(RELATIONAL, () {
           writeExp(operand.expression, BITWISE_OR, beginStmt: beginStmt);
-          write(' is!'); // TODO(asgerf): Minimize use of whitespace.
+          write(' is!');
           writeType(operand.type);
         });
       }
@@ -965,7 +960,7 @@ class Unparser {
       });
     } else if (e is CallNew) {
       withPrecedence(CALLEE, () {
-        write(' '); // TODO(asgerf): Minimize use of whitespace.
+        write(' ');
         write(e.isConst ? 'const ' : 'new ');
         writeType(e.type);
         if (e.constructorName != null) {
@@ -1104,7 +1099,7 @@ class Unparser {
       write(')');
       writeStatement(stmt.body, shortIf: shortIf);
     } else if (stmt is DoWhile) {
-      write('do '); // TODO(asgerf): Minimize use of whitespace.
+      write('do ');
       writeStatement(stmt.body);
       write('while(');
       writeExp(stmt.condition, EXPRESSION);
@@ -1198,7 +1193,7 @@ class Unparser {
       writeParameters(stmt.parameters);
       Statement body = unfoldBlocks(stmt.body);
       if (body is Return) {
-        write('=> '); // TODO(asgerf): Minimize use of whitespace.
+        write('=> ');
         writeExp(body.expression, EXPRESSION);
         write(';');
       } else {
@@ -1273,7 +1268,7 @@ class Unparser {
   /// A list of string quotings that the printer may use to quote strings.
   // Ignore multiline quotings for now. Would need to make sure that no
   // newline (potentially prefixed by whitespace) follows the quoting.
-  // TODO(asgerf): Include multiline quotation schemes.
+  // TODO(sigurdm,kmillikin): Include multiline quotation schemes.
   static const _QUOTINGS = const <tree.StringQuoting>[
       const tree.StringQuoting(characters.$DQ, raw: false, leftQuoteLength: 1),
       const tree.StringQuoting(characters.$DQ, raw: true, leftQuoteLength: 1),
@@ -1282,7 +1277,7 @@ class Unparser {
   ];
 
   static StringLiteralOutput analyzeStringLiteral(Expression node) {
-    // TODO(asgerf): This might be a bit too expensive. Benchmark.
+    // TODO(sigurdm,kmillikin): This might be a bit too expensive. Benchmark.
     // Flatten the StringConcat tree.
     List parts = []; // Expression or int (char node)
     void collectParts(Expression e) {
