@@ -422,7 +422,7 @@ class Continue extends Jump {
  */
 class Assign extends Statement {
   Statement next;
-  final Variable variable;
+  Variable variable;
   Expression definition;
 
   /// If true, this declares a new copy of the closure variable.
@@ -1110,84 +1110,6 @@ class Builder extends ir.Visitor<Node> {
   }
 }
 
-/// Eliminates redundant variables and assignments that occur immediately after
-/// parameters are declared or after a function declaration.
-///
-/// These patterns arise when translating out of CPS where closure variables
-/// live in a separate space. Since function parameters are IR primitives they
-/// must be moved into a separate closure variable for inner functions to access
-/// them. For example:
-///
-///   foo(x) {
-///     let v1 = ref x in BODY
-///   }
-///    ==> (dart_tree Builder)
-///   foo(x) {
-///     var v1 = x;
-///     BODY..
-///   }
-///
-/// This phase attempts to merge v1 and x in the example above.
-/// A similar pattern can occur for local function declarations that are used
-/// from closures.
-class CopyPropagateClosureVariables extends RecursiveVisitor {
-
-  void rewrite(FunctionDefinition definition) {
-    visitFunctionDefinition(definition);
-  }
-
-  /// Performs the rewrite:
-  ///
-  ///   foo(x) { var v0 = x; S }
-  ///     ==> (move v0 into parameter)
-  ///   foo(v0) { S }
-  ///     ==> (change the name of v0 to be x, so we preserve the parameter name)
-  ///   foo(x) { S[v0\x] }
-  ///
-  ///   Condition: x cannot be used anywhere else.
-  visitFunctionDefinition(FunctionDefinition definition) {
-    while (definition.body is Assign) {
-      Assign assign = definition.body;
-      if (assign.definition is! Variable) break;
-
-      Variable rightHand = assign.definition;
-      if (rightHand.readCount != 1) break;
-
-      int paramIndex = definition.parameters.indexOf(rightHand);
-      if (paramIndex == -1) break;
-
-      // A variable may not occur as a parameter more than once.
-      if (definition.parameters.contains(assign.variable)) break;
-
-      definition.parameters[paramIndex] = assign.variable;
-      assign.variable.element = rightHand.element;
-      definition.body = assign.next;
-    }
-
-    visitStatement(definition.body); // Visit nested function definitions.
-  }
-
-  /// Performs the rewrite:
-  ///
-  ///   int v0() { S }
-  ///   foo = v0;
-  ///     ==>
-  ///   int foo() { S }
-  ///
-  ///   Condition: v0 cannot be used anywhere else.
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    Statement next = node.next;
-    if (next is Assign &&
-        next.definition == node.variable &&
-        node.variable.readCount == 1 &&
-        next.variable.writeCount == 1) {
-      node.variable = next.variable;
-      node.next = next.next;
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-}
 
 /**
  * Performs the following transformations on the tree:
@@ -1733,6 +1655,187 @@ class StatementRewriter extends Visitor<Statement, Expression> {
   }
 }
 
+/// Eliminates moving assignments, such as w := v, by assigning directly to w
+/// at the definition of v.
+///
+/// This compensates for suboptimal register allocation, and merges closure
+/// variables with local temporaries that were left behind when translating
+/// out of CPS (where closure variables live in a separate space).
+class CopyPropagator extends RecursiveVisitor {
+
+  /// After visitStatement returns, [move] maps a variable v to an
+  /// assignment A of form w := v, under the following conditions:
+  /// - there are no uses of w before A
+  /// - A is the only use of v
+  Map<Variable, Assign> move = <Variable, Assign>{};
+
+  /// Like [move], except w is the key instead of v.
+  Map<Variable, Assign> inverseMove = <Variable, Assign>{};
+
+  void rewrite(FunctionDefinition function) {
+    visitFunctionDefinition(function);
+  }
+
+  void visitFunctionDefinition(FunctionDefinition function) {
+    function.body = visitStatement(function.body);
+
+    // Try to propagate moving assignments into function parameters.
+    // For example:
+    // foo(x) {
+    //   var v1 = x;
+    //   BODY
+    // }
+    //   ==>
+    // foo(v1) {
+    //   BODY
+    // }
+
+    // Variables must not occur more than once in the parameter list, so
+    // invalidate all moving assignments that would propagate a parameter
+    // into another parameter. For example:
+    // foo(x,y) {
+    //   y = x;
+    //   BODY
+    // }
+    // Cannot declare function as foo(x,x)!
+    function.parameters.forEach(visitVariable);
+
+    // Now do the propagation.
+    for (int i=0; i<function.parameters.length; i++) {
+      Variable param = function.parameters[i];
+      Variable replacement = copyPropagateVariable(param);
+      replacement.element = param.element; // Preserve parameter name.
+      function.parameters[i] = replacement;
+    }
+  }
+
+  Statement visitBasicBlock(Statement node) {
+    node = visitStatement(node);
+    move.clear();
+    inverseMove.clear();
+    return node;
+  }
+
+  void visitVariable(Variable variable) {
+    // We have found a use of w.
+    // Remove assignments of form w := v from the move maps.
+    Assign movingAssignment = inverseMove.remove(variable);
+    if (movingAssignment != null) {
+      move.remove(movingAssignment.definition);
+    }
+  }
+
+  /**
+   * Called when a definition of [v] is encountered.
+   * Attempts to propagate the assignment through a moving assignment.
+   * Returns the variable to be assigned into, defaulting to [v] itself if
+   * no optimization could be performed.
+   */
+  Variable copyPropagateVariable(Variable v) {
+    Assign movingAssign = move[v];
+    if (movingAssign != null) {
+      // We found the pattern:
+      //   v := EXPR
+      //   BLOCK   (does not use w)
+      //   w := v  (only use of v)
+      //
+      // Rewrite to:
+      //   w := EXPR
+      //   BLOCK
+      //   w := w  (to be removed later)
+      Variable w = movingAssign.variable;
+
+      // Make w := w.
+      // We can't remove the statement from here because we don't have
+      // parent pointers. So just make it a no-op so it can be removed later.
+      movingAssign.definition = w;
+
+      // The intermediate variable 'v' should now be orphaned, so don't bother
+      // updating its read/write counters.
+      // Due to the nop trick, the variable 'w' now has one additional read
+      // and write.
+      ++w.writeCount;
+      ++w.readCount;
+
+      // Make w := EXPR
+      return w;
+    }
+    return v;
+  }
+
+  Statement visitAssign(Assign node) {
+    node.next = visitStatement(node.next);
+    node.variable = copyPropagateVariable(node.variable);
+    visitExpression(node.definition);
+    visitVariable(node.variable);
+
+    // If this is a moving assignment w := v, with this being the only use of v,
+    // try to propagate it backwards.
+    if (node.definition is Variable) {
+      Variable def = node.definition;
+      if (def.readCount == 1) {
+        move[node.definition] = node;
+        inverseMove[node.variable] = node;
+      }
+    }
+
+    return node;
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    node.next = visitBasicBlock(node.next);
+    node.body = visitStatement(node.body);
+    return node;
+  }
+
+  Statement visitReturn(Return node) {
+    visitExpression(node.value);
+    return node;
+  }
+
+  Statement visitBreak(Break node) {
+    return node;
+  }
+
+  Statement visitContinue(Continue node) {
+    return node;
+  }
+
+  Statement visitIf(If node) {
+    visitExpression(node.condition);
+    node.thenStatement = visitBasicBlock(node.thenStatement);
+    node.elseStatement = visitBasicBlock(node.elseStatement);
+    return node;
+  }
+
+  Statement visitWhileTrue(WhileTrue node) {
+    node.body = visitBasicBlock(node.body);
+    return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    throw "WhileCondition before LoopRewriter";
+  }
+
+  Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    new CopyPropagator().visitFunctionDefinition(node.definition);
+    node.next = visitStatement(node.next);
+    node.variable = copyPropagateVariable(node.variable);
+    return node;
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    visitExpression(node.expression);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  void visitFunctionExpression(FunctionExpression node) {
+    new CopyPropagator().visitFunctionDefinition(node.definition);
+  }
+
+}
+
 /// Rewrites [WhileTrue] statements with an [If] body into a [WhileCondition],
 /// in situations where only one of the branches contains a [Continue] to the
 /// loop. Schematically:
@@ -1771,6 +1874,12 @@ class LoopRewriter extends RecursiveVisitor {
   }
 
   Statement visitAssign(Assign node) {
+    // Clean up redundant assignments left behind in the previous phase.
+    if (node.variable == node.definition) {
+      --node.variable.readCount;
+      --node.variable.writeCount;
+      return visitStatement(node.next);
+    }
     visitExpression(node.definition);
     node.next = visitStatement(node.next);
     return node;
