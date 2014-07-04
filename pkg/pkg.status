@@ -273,14 +273,7 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
-analyzer/test/error_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/element_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer/test/generated/resolver_test: Fail, OK # Uses dart:io.
-analyzer/test/options_test: Fail, OK # Uses dart:io.
-analyzer/test/parse_compilation_unit_test: Fail, OK # Uses dart:io.
-analyzer/test/services/formatter_test: Fail, OK # Uses dart:io.
+analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
