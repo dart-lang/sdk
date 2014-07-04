@@ -666,11 +666,6 @@ class InitialState extends InteractionState {
     }
   }
 
-  /// Called when an exception occurs in an iframe.
-  void onErrorMessage(ErrorMessage message) {
-    outputDiv.appendText('$message\n');
-  }
-
   /// Called when an iframe is modified.
   void onScrollHeightMessage(int scrollHeight) {
     window.console.log('scrollHeight = $scrollHeight');
@@ -709,6 +704,7 @@ class InitialState extends InteractionState {
   }
 
   void onCompilationFailed() {
+    consolePrintLine('Compilation failed.');
   }
 
   void onCompilationDone() {
@@ -1204,7 +1200,7 @@ void normalizeMutationRecord(MutationRecord record,
   if (!record.removedNodes.isEmpty) {
     var first = record.removedNodes.first;
     var line = findLine(record.target);
-    
+
     if (first is Text && first.data=="\n" && line.nextNode != null) {
       normalizedNodes.add(line.nextNode);
     }

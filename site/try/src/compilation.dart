@@ -139,8 +139,7 @@ class CompilationProcess {
   }
 
   onFail(_) {
-    // TODO(ahe): Call interaction.onCompilationFailed().
-    interaction.consolePrintLine('Compilation failed');
+    interaction.onCompilationFailed();
   }
 
   onDone(_) {
@@ -256,6 +255,6 @@ self.importScripts("$url");
   }
 
   onCrash(data) {
-    interaction.consolePrintLine(data);
+    interaction.onCompilerCrash(data);
   }
 }

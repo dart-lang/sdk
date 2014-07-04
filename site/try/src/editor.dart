@@ -232,17 +232,6 @@ addDiagnostic(String kind, String message, int begin, int end) {
       mainEditorPane, childList: true, characterData: true, subtree: true);
 }
 
-void inlineChildren(Element element) {
-  if (element == null) return;
-  var parent = element.parentNode;
-  if (parent == null) return;
-  for (Node child in new List.from(element.nodes)) {
-    child.remove();
-    parent.insertBefore(child, element);
-  }
-  element.remove();
-}
-
 Decoration getDecoration(Token token) {
   if (token is ErrorToken) {
     isMalformedInput = true;
