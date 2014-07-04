@@ -488,9 +488,10 @@ class FunctionDefinition extends Node {
   final List<Variable> parameters;
   Statement body;
   final List<ConstDeclaration> localConstants;
+  final List<ConstExp> defaultParameterValues;
 
   FunctionDefinition(this.element, this.parameters, this.body,
-      this.localConstants);
+      this.localConstants, this.defaultParameterValues);
 }
 
 abstract class ExpressionVisitor<E> {
@@ -872,7 +873,7 @@ class Builder extends ir.Visitor<Node> {
   Expression visitFunctionDefinition(ir.FunctionDefinition node) {
     List<Variable> parameters = <Variable>[];
     function = new FunctionDefinition(node.element, parameters,
-        null, node.localConstants);
+        null, node.localConstants, node.defaultParameterValues);
     returnContinuation = node.returnContinuation;
     for (ir.Parameter p in node.parameters) {
       Variable parameter = getVariable(p);

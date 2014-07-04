@@ -78,7 +78,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   FunctionExpression emit(tree.FunctionDefinition definition) {
     functionElement = definition.element;
 
-    Parameters parameters = emitParameters(definition.element.functionSignature);
+    Parameters parameters = emitRootParameters(definition);
 
     // Declare parameters.
     for (tree.Variable param in definition.parameters) {
@@ -172,6 +172,26 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return new Parameters(
         signature.requiredParameters.mapToList(emitParameterFromElement),
         signature.optionalParameters.mapToList(emitParameterFromElement),
+        signature.optionalParametersAreNamed);
+  }
+
+  /// Emits parameters that are not nested inside other parameters.
+  /// Root parameters can have default values, while inner parameters cannot.
+  Parameters emitRootParameters(tree.FunctionDefinition function) {
+    FunctionSignature signature = function.element.functionSignature;
+    List<ConstExp> defaults = function.defaultParameterValues;
+    List<Parameter> required =
+        signature.requiredParameters.mapToList(emitParameterFromElement);
+    List<Parameter> optional = new List<Parameter>(defaults.length);
+    for (int i = 0; i < defaults.length; i++) {
+      ParameterElement element = signature.orderedOptionalParameters[i];
+      optional[i] = emitParameterFromElement(element);
+      Expression constant = emitConstant(defaults[i]);
+      if (!isNullLiteral(constant)) {
+        optional[i].defaultValue = constant;
+      }
+    }
+    return new Parameters(required, optional,
         signature.optionalParametersAreNamed);
   }
 

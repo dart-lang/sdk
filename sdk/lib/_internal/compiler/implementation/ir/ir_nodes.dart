@@ -149,7 +149,7 @@ class InvokeStatic extends Expression implements Invoke {
                List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(selector.name == target.name);
+    assert(target.isErroneous || selector.name == target.name);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
@@ -493,8 +493,12 @@ class FunctionDefinition extends Node {
   final Expression body;
   final List<ConstDeclaration> localConstants;
 
+  /// Values for optional parameters.
+  final List<ConstExp> defaultParameterValues;
+
   FunctionDefinition(this.element, this.returnContinuation,
-      this.parameters, this.body, this.localConstants);
+      this.parameters, this.body, this.localConstants,
+      this.defaultParameterValues);
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }

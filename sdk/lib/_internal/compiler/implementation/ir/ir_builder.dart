@@ -100,10 +100,6 @@ class IrBuilderTask extends CompilerTask {
 
     if (!compiler.backend.shouldOutput(function)) return false;
 
-    // TODO(kmillikin): support functions with optional parameters.
-    FunctionSignature signature = function.functionSignature;
-    if (signature.optionalParameterCount > 0) return false;
-
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
@@ -264,10 +260,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
     FunctionSignature signature = element.functionSignature;
     signature.orderedForEachParameter((ParameterElement parameterElement) {
-      // TODO(asgerf): Handle parameters with default values. (Use a ConstExp)
-      if (parameterElement.initializer != null) {
-        giveup(parameterElement.node, 'Function parameter with default value');
-      }
       ir.Parameter parameter = new ir.Parameter(parameterElement);
       parameters.add(parameter);
       if (isClosureVariable(parameterElement)) {
@@ -279,10 +271,19 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       }
     });
 
+    List<ConstExp> defaults = new List<ConstExp>();
+    signature.orderedOptionalParameters.forEach((ParameterElement element) {
+      if (element.initializer != null) {
+        defaults.add(constantBuilder.visit(element.initializer));
+      } else {
+        defaults.add(new PrimitiveConstExp(constantSystem.createNull()));
+      }
+    });
+
     visit(function.body);
     ensureReturn(function);
     return new ir.FunctionDefinition(element, returnContinuation, parameters,
-        root, localConstants);
+        root, localConstants, defaults);
   }
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;

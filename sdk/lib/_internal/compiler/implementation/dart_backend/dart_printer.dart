@@ -273,7 +273,7 @@ class Parameter extends Node {
   /// Type of parameter, or return type of function parameter.
   final TypeAnnotation type;
 
-  final Expression defaultValue;
+  Expression defaultValue;
 
   /// Parameters to function parameter. Null for non-function parameters.
   final Parameters parameters;
