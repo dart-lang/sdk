@@ -273,6 +273,14 @@ class JavaScriptBackend extends Backend {
   /// dart:mirrors has been loaded.
   FunctionElement preserveMetadataMarker;
 
+  /// Holds the method "preserveUris" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveUrisMarker;
+
+  /// Holds the method "preserveLibraryNames" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveLibraryNamesMarker;
+
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionElement requiresPreambleMarker;
 
@@ -285,6 +293,12 @@ class JavaScriptBackend extends Backend {
   /// example, if [mustRetainMetadata] is true but there is no metadata in the
   /// program, this variable will stil be false.
   bool hasRetainedMetadata = false;
+
+  /// True if a call to preserveUris has been seen.
+  bool mustRetainUris = false;
+
+  /// True if a call to preserveLibraryNames has been seen.
+  bool mustRetainLibraryNames = false;
 
   /// True if a call to preserveNames has been seen.
   bool mustPreserveNames = false;
@@ -1451,6 +1465,10 @@ class JavaScriptBackend extends Backend {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
       mustRetainMetadata = true;
+    } else if (element == preserveUrisMarker) {
+      mustRetainUris = true;
+    } else if (element == preserveLibraryNamesMarker) {
+      mustRetainLibraryNames = true;
     } else if (element == getIsolateAffinityTagMarker) {
       needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
@@ -1611,6 +1629,8 @@ class JavaScriptBackend extends Backend {
       } else if (uri == DART_JS_MIRRORS) {
         disableTreeShakingMarker = find(library, 'disableTreeShaking');
         preserveMetadataMarker = find(library, 'preserveMetadata');
+        preserveUrisMarker = find(library, 'preserveUris');
+        preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
       } else if (uri == DART_JS_NAMES) {
         preserveNamesMarker = find(library, 'preserveNames');
       } else if (uri == DART_HTML) {

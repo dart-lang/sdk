@@ -1299,10 +1299,17 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void writeLibraryDescriptors(LibraryElement library) {
-    var uri = library.canonicalUri;
-    if (uri.scheme == 'file' && compiler.outputUri != null) {
-      uri = relativize(compiler.outputUri, library.canonicalUri, false);
+    var uri = "";
+    if (!compiler.enableMinification || backend.mustRetainUris) {
+      uri = library.canonicalUri;
+      if (uri.scheme == 'file' && compiler.outputUri != null) {
+        uri = relativize(compiler.outputUri, library.canonicalUri, false);
+      }
     }
+    String libraryName =
+        (!compiler.enableMinification || backend.mustRetainLibraryNames) ?
+        library.getLibraryName() :
+        "";
     Map<OutputUnit, ClassBuilder> descriptors =
         elementDescriptors[library];
 
@@ -1320,7 +1327,7 @@ class CodeEmitterTask extends CompilerTask {
           outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
       int sizeBefore = outputBuffer.length;
       outputBuffers[outputUnit]
-          ..write('["${library.getLibraryName()}",$_')
+          ..write('["$libraryName",$_')
           ..write('"${uri}",$_')
           ..write(metadata == null ? "" : jsAst.prettyPrint(metadata, compiler))
           ..write(',$_')

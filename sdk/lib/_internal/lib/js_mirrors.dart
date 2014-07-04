@@ -64,6 +64,14 @@ disableTreeShaking() => preserveNames();
 /// preserved at runtime.
 preserveMetadata() {}
 
+/// No-op method that is called to inform the compiler that the compiler must
+/// preserve the URIs.
+preserveUris() {}
+
+/// No-op method that is called to inform the compiler that the compiler must
+/// preserve the library names.
+preserveLibraryNames() {}
+
 String getName(Symbol symbol) {
   preserveNames();
   return n(symbol);
@@ -278,7 +286,7 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
 class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     implements LibraryMirror {
-  final Uri uri;
+  final Uri _uri;
   final List<String> _classes;
   final List<String> _functions;
   final List _metadata;
@@ -297,16 +305,23 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
 
   JsLibraryMirror(Symbol simpleName,
-                  this.uri,
+                  this._uri,
                   this._classes,
                   this._functions,
                   this._metadata,
                   this._compactFieldSpecification,
                   this._isRoot,
                   this._globalObject)
-      : super(simpleName);
+      : super(simpleName) {
+    preserveLibraryNames();
+  }
 
   String get _prettyName => 'LibraryMirror';
+
+  Uri get uri {
+    preserveUris();
+    return _uri;
+  }
 
   Symbol get qualifiedName => simpleName;
 
