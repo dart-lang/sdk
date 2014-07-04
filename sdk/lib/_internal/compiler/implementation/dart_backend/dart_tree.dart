@@ -26,6 +26,9 @@ import '../ir/const_expression.dart';
 //
 // In contrast to the CPS-based IR, non-primitive expressions can be named and
 // arguments (to calls, primitives, and blocks) can be arbitrary expressions.
+//
+// Additionally, variables are considered in scope within inner functions;
+// closure variables are thus handled directly instead of using ref cells.
 
 /**
  * The base class of all Tree nodes.
@@ -82,13 +85,24 @@ class Label {
  * Variables are [Expression]s.
  */
 class Variable extends Expression {
+  /// Function that declares this variable.
+  FunctionDefinition host;
+
   /// Element used for synthesizing a name for the variable.
   /// Different variables may have the same element. May be null.
   Element element;
 
   int readCount = 0;
 
-  Variable(this.element);
+  /// Number of places where this variable occurs as:
+  /// - left-hand of an [Assign]
+  /// - left-hand of a [FunctionDeclaration]
+  /// - parameter in a [FunctionDefinition]
+  int writeCount = 0;
+
+  Variable(this.host, this.element) {
+    assert(host != null);
+  }
 
   accept(ExpressionVisitor visitor) => visitor.visitVariable(this);
 }
@@ -140,7 +154,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
 
   InvokeSuperMethod(this.selector, this.arguments) ;
 
-  accept(Visitor visitor) => visitor.visitInvokeSuperMethod(this);
+  accept(ExpressionVisitor visitor) => visitor.visitInvokeSuperMethod(this);
 }
 
 /**
@@ -192,9 +206,9 @@ class This extends Expression {
 }
 
 class ReifyTypeVar extends Expression {
-  TypeVariableElement element;
+  TypeVariableElement typeVariable;
 
-  ReifyTypeVar(this.element);
+  ReifyTypeVar(this.typeVariable);
 
   accept(ExpressionVisitor visitor) => visitor.visitReifyTypeVar(this);
 }
@@ -264,6 +278,33 @@ class Not extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitNot(this);
 }
 
+class FunctionExpression extends Expression {
+  final FunctionDefinition definition;
+
+  FunctionExpression(this.definition) {
+    assert(definition.element.functionSignature.type.returnType.treatAsDynamic);
+  }
+
+  accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
+}
+
+/// Declares a local function.
+/// Used for functions that may not occur in expression context due to
+/// being recursive or having a return type.
+/// The [variable] must not occur as the left-hand side of an [Assign] or
+/// any other [FunctionDeclaration].
+class FunctionDeclaration extends Statement {
+  Variable variable;
+  final FunctionDefinition definition;
+  Statement next;
+
+  FunctionDeclaration(this.variable, this.definition, this.next) {
+    ++variable.writeCount;
+  }
+
+  accept(StatementVisitor visitor) => visitor.visitFunctionDeclaration(this);
+}
+
 /// A [LabeledStatement] or [WhileTrue] or [WhileCondition].
 abstract class JumpTarget extends Statement {
   Label get label;
@@ -289,9 +330,6 @@ class LabeledStatement extends JumpTarget {
 
 /// A [WhileTrue] or [WhileCondition] loop.
 abstract class Loop extends JumpTarget {
-  /// When a [Continue] to a loop is executed, all update expressions are
-  /// evaluated right-to-left before control resumes at the head of the loop.
-  List<Expression> get updates;
 }
 
 /**
@@ -300,7 +338,6 @@ abstract class Loop extends JumpTarget {
 class WhileTrue extends Loop {
   final Label label;
   Statement body;
-  final List<Expression> updates = <Expression>[];
 
   WhileTrue(this.label, this.body) {
     assert(label.binding == null);
@@ -328,10 +365,9 @@ class WhileCondition extends Loop {
   Expression condition;
   Statement body;
   Statement next;
-  final List<Expression> updates;
 
   WhileCondition(this.label, this.condition, this.body,
-                 this.next, this.updates) {
+                 this.next) {
     assert(label.binding == null);
     label.binding = this;
   }
@@ -389,7 +425,15 @@ class Assign extends Statement {
   final Variable variable;
   Expression definition;
 
-  Assign(this.variable, this.definition, this.next);
+  /// If true, this declares a new copy of the closure variable.
+  /// The consequences are similar to [ir.SetClosureVariable].
+  /// All uses of the variable must be nested inside the [next] statement.
+  bool isDeclaration;
+
+  Assign(this.variable, this.definition, this.next,
+         { this.isDeclaration: false }) {
+    variable.writeCount++;
+  }
 
   bool get hasExactlyOneUse => variable.readCount == 1;
 
@@ -440,11 +484,13 @@ class ExpressionStatement extends Statement {
 }
 
 class FunctionDefinition extends Node {
+  final FunctionElement element;
   final List<Variable> parameters;
   Statement body;
   final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.parameters, this.body, this.localConstants);
+  FunctionDefinition(this.element, this.parameters, this.body,
+      this.localConstants);
 }
 
 abstract class ExpressionVisitor<E> {
@@ -464,6 +510,7 @@ abstract class ExpressionVisitor<E> {
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
+  E visitFunctionExpression(FunctionExpression node);
 }
 
 abstract class StatementVisitor<S> {
@@ -476,6 +523,7 @@ abstract class StatementVisitor<S> {
   S visitIf(If node);
   S visitWhileTrue(WhileTrue node);
   S visitWhileCondition(WhileCondition node);
+  S visitFunctionDeclaration(FunctionDeclaration node);
   S visitExpressionStatement(ExpressionStatement node);
 }
 
@@ -483,6 +531,120 @@ abstract class Visitor<S,E> implements ExpressionVisitor<E>,
                                        StatementVisitor<S> {
    E visitExpression(Expression e) => e.accept(this);
    S visitStatement(Statement s) => s.accept(this);
+}
+
+class RecursiveVisitor extends Visitor {
+  visitFunctionDefinition(FunctionDefinition node) {
+    visitStatement(node.body);
+  }
+
+  visitVariable(Variable node) {}
+
+  visitInvokeStatic(InvokeStatic node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitInvokeMethod(InvokeMethod node) {
+    visitExpression(node.receiver);
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitInvokeSuperMethod(InvokeSuperMethod node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitInvokeConstructor(InvokeConstructor node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitConcatenateStrings(ConcatenateStrings node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitConstant(Constant node) {}
+
+  visitThis(This node) {}
+
+  visitReifyTypeVar(ReifyTypeVar node) {}
+
+  visitConditional(Conditional node) {
+    visitExpression(node.condition);
+    visitExpression(node.thenExpression);
+    visitExpression(node.elseExpression);
+  }
+
+  visitLogicalOperator(LogicalOperator node) {
+    visitExpression(node.left);
+    visitExpression(node.right);
+  }
+
+  visitNot(Not node) {
+    visitExpression(node.operand);
+  }
+
+  visitLiteralList(LiteralList node) {
+    node.values.forEach(visitExpression);
+  }
+
+  visitLiteralMap(LiteralMap node) {
+    for (int i=0; i<node.keys.length; i++) {
+      visitExpression(node.keys[i]);
+      visitExpression(node.values[i]);
+    }
+  }
+
+  visitTypeOperator(TypeOperator node) {
+    visitExpression(node.receiver);
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    visitFunctionDefinition(node.definition);
+  }
+
+  visitLabeledStatement(LabeledStatement node) {
+    visitStatement(node.body);
+    visitStatement(node.next);
+  }
+
+  visitAssign(Assign node) {
+    visitExpression(node.definition);
+    visitVariable(node.variable);
+    visitStatement(node.next);
+  }
+
+  visitReturn(Return node) {
+    visitExpression(node.value);
+  }
+
+  visitBreak(Break node) {}
+
+  visitContinue(Continue node) {}
+
+  visitIf(If node) {
+    visitExpression(node.condition);
+    visitStatement(node.thenStatement);
+    visitStatement(node.elseStatement);
+  }
+
+  visitWhileTrue(WhileTrue node) {
+    visitStatement(node.body);
+  }
+
+  visitWhileCondition(WhileCondition node) {
+    visitExpression(node.condition);
+    visitStatement(node.body);
+    visitStatement(node.next);
+  }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    visitFunctionDefinition(node.definition);
+    visitStatement(node.next);
+  }
+
+  visitExpressionStatement(ExpressionStatement node) {
+    visitExpression(node.expression);
+    visitStatement(node.next);
+  }
 }
 
 /**
@@ -524,6 +686,10 @@ class Builder extends ir.Visitor<Node> {
   final Map<Element, List<Variable>> element2variables =
       <Element,List<Variable>>{};
 
+  /// Like [element2variables], except for closure variables. Closure variables
+  /// are not subject to SSA, so at most one variable is used per element.
+  final Map<Element, Variable> element2closure = <Element, Variable>{};
+
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
   final Map<ir.Continuation, Label> labels = <ir.Continuation, Label>{};
@@ -531,11 +697,29 @@ class Builder extends ir.Visitor<Node> {
   FunctionDefinition function;
   ir.Continuation returnContinuation;
 
-  /// Variable used in [buildPhiAssignments] as a temporary when swapping
-  /// variables.
-  final Variable tempVar = new Variable(null);
+  Builder parent;
 
   Builder(this.compiler);
+
+  Builder.inner(Builder parent)
+      : this.parent = parent,
+        compiler = parent.compiler;
+
+  /// Variable used in [buildPhiAssignments] as a temporary when swapping
+  /// variables.
+  Variable phiTempVar;
+
+  Variable getClosureVariable(Element element) {
+    if (element.enclosingElement != function.element) {
+      return parent.getClosureVariable(element);
+    }
+    Variable variable = element2closure[element];
+    if (variable == null) {
+      variable = new Variable(function, element);
+      element2closure[element] = variable;
+    }
+    return variable;
+  }
 
   /// Obtains the variable representing the given primitive. Returns null for
   /// primitives that have no reference and do not need a variable.
@@ -543,13 +727,13 @@ class Builder extends ir.Visitor<Node> {
     if (primitive.registerIndex == null) {
       return null; // variable is unused
     }
-    List<Variable> variables = element2variables[primitive.element];
+    List<Variable> variables = element2variables[primitive.hint];
     if (variables == null) {
       variables = <Variable>[];
-      element2variables[primitive.element] = variables;
+      element2variables[primitive.hint] = variables;
     }
     while (variables.length <= primitive.registerIndex) {
-      variables.add(new Variable(primitive.element));
+      variables.add(new Variable(function, primitive.hint));
     }
     return variables[primitive.registerIndex];
   }
@@ -652,9 +836,9 @@ class Builder extends ir.Visitor<Node> {
         // Cycle found; store argument in a temporary variable.
         // The temporary will then be used as right-hand side when the
         // assignment gets added.
-        if (assignmentSrc[i] != tempVar) { // Only move to temporary once.
-          assignmentSrc[i] = tempVar;
-          addAssignment(tempVar, arg);
+        if (assignmentSrc[i] != phiTempVar) { // Only move to temporary once.
+          assignmentSrc[i] = phiTempVar;
+          addAssignment(phiTempVar, arg);
         }
         return;
       }
@@ -683,24 +867,40 @@ class Builder extends ir.Visitor<Node> {
     return first;
   }
 
+  visitNode(ir.Node node) => throw "Unhandled node: $node";
+
   Expression visitFunctionDefinition(ir.FunctionDefinition node) {
-    returnContinuation = node.returnContinuation;
     List<Variable> parameters = <Variable>[];
+    function = new FunctionDefinition(node.element, parameters,
+        null, node.localConstants);
+    returnContinuation = node.returnContinuation;
     for (ir.Parameter p in node.parameters) {
       Variable parameter = getVariable(p);
       assert(parameter != null);
+      ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
     }
-    function = new FunctionDefinition(parameters, visit(node.body),
-        node.localConstants);
+    phiTempVar = new Variable(function, null);
+    function.body = visit(node.body);
     return null;
   }
 
   Statement visitLetPrim(ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
-    return variable == null
-        ? visit(node.body)
-        : new Assign(variable, visit(node.primitive), visit(node.body));
+
+    // Don't translate unused primitives.
+    if (variable == null) return visit(node.body);
+
+    Node definition = visit(node.primitive);
+
+    // visitPrimitive returns a Statement without successor if it cannot occur
+    // in expression context (currently only the case for FunctionDeclarations).
+    if (definition is Statement) {
+      definition.next = visit(node.body);
+      return definition;
+    } else {
+      return new Assign(variable, definition, visit(node.body));
+    }
   }
 
   Statement visitLetCont(ir.LetCont node) {
@@ -726,87 +926,69 @@ class Builder extends ir.Visitor<Node> {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeStatic(node.target, node.selector, arguments);
-    ir.Continuation cont = node.continuation.definition;
-    if (cont == returnContinuation) {
-      return new Return(invoke);
-    } else {
-      assert(cont.hasExactlyOneUse);
-      assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, invoke,
-          () => visit(cont.body));
-    }
+    return continueWithExpression(node.continuation, invoke);
   }
 
   Statement visitInvokeMethod(ir.InvokeMethod node) {
     Expression receiver = getVariableReference(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeMethod(receiver, node.selector, arguments);
-    ir.Continuation cont = node.continuation.definition;
-    if (cont == returnContinuation) {
-      return new Return(invoke);
-    } else {
-      assert(cont.hasExactlyOneUse);
-      assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, invoke,
-          () => visit(cont.body));
-    }
+    return continueWithExpression(node.continuation, invoke);
   }
 
   Statement visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeSuperMethod(node.selector, arguments);
-    ir.Continuation cont = node.continuation.definition;
-    if (cont == returnContinuation) {
-      return new Return(invoke);
-    } else {
-      assert(cont.hasExactlyOneUse);
-      assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, invoke,
-          () => visit(cont.body));
-    }
+    return continueWithExpression(node.continuation, invoke);
   }
 
   Statement visitConcatenateStrings(ir.ConcatenateStrings node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression concat = new ConcatenateStrings(arguments);
-    ir.Continuation cont = node.continuation.definition;
+    return continueWithExpression(node.continuation, concat);
+  }
+
+  Statement continueWithExpression(ir.Reference continuation,
+                                   Expression expression) {
+    ir.Continuation cont = continuation.definition;
     if (cont == returnContinuation) {
-      return new Return(concat);
+      return new Return(expression);
     } else {
       assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, concat,
+      return buildContinuationAssignment(cont.parameters.single, expression,
           () => visit(cont.body));
     }
+  }
+
+  Expression visitGetClosureVariable(ir.GetClosureVariable node) {
+    return getClosureVariable(node.variable);
+  }
+
+  Statement visitSetClosureVariable(ir.SetClosureVariable node) {
+    Variable variable = getClosureVariable(node.variable);
+    Expression value = getVariableReference(node.value);
+    return new Assign(variable, value, visit(node.body),
+                      isDeclaration: node.isDeclaration);
+  }
+
+  Statement visitDeclareFunction(ir.DeclareFunction node) {
+    Variable variable = getClosureVariable(node.variable);
+    FunctionDefinition function = makeSubFunction(node.definition);
+    return new FunctionDeclaration(variable, function, visit(node.body));
   }
 
   Statement visitAsCast(ir.AsCast node) {
     Expression receiver = getVariableReference(node.receiver);
     Expression concat = new TypeOperator(receiver, node.type, "as");
-    ir.Continuation cont = node.continuation.definition;
-    if (cont == returnContinuation) {
-      return new Return(concat);
-    } else {
-      assert(cont.hasExactlyOneUse);
-      assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, concat,
-          () => visit(cont.body));
-    }
+    return continueWithExpression(node.continuation, concat);
   }
 
   Statement visitInvokeConstructor(ir.InvokeConstructor node) {
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke =
         new InvokeConstructor(node.type, node.target, node.selector, arguments);
-    ir.Continuation cont = node.continuation.definition;
-    if (cont == returnContinuation) {
-      return new Return(invoke);
-    } else {
-      assert(cont.hasExactlyOneUse);
-      assert(cont.parameters.length == 1);
-      return buildContinuationAssignment(cont.parameters.single, invoke,
-          () => visit(cont.body));
-    }
+    return continueWithExpression(node.continuation, invoke);
   }
 
   Statement visitInvokeContinuation(ir.InvokeContinuation node) {
@@ -870,7 +1052,7 @@ class Builder extends ir.Visitor<Node> {
   }
 
   Expression visitReifyTypeVar(ir.ReifyTypeVar node) {
-    return new ReifyTypeVar(node.element);
+    return new ReifyTypeVar(node.typeVariable);
   }
 
   Expression visitLiteralList(ir.LiteralList node) {
@@ -884,6 +1066,23 @@ class Builder extends ir.Visitor<Node> {
         node.type,
         translateArguments(node.keys),
         translateArguments(node.values));
+  }
+
+  FunctionDefinition makeSubFunction(ir.FunctionDefinition function) {
+    return new Builder.inner(this).build(function);
+  }
+
+  Node visitCreateFunction(ir.CreateFunction node) {
+    FunctionDefinition def = makeSubFunction(node.definition);
+    FunctionSignature signature = node.definition.element.functionSignature;
+    bool hasReturnType = !signature.type.returnType.treatAsDynamic;
+    if (hasReturnType) {
+      // This function cannot occur in expression context.
+      // The successor will be filled in by visitLetPrim.
+      return new FunctionDeclaration(getVariable(node), def, null);
+    } else {
+      return new FunctionExpression(def);
+    }
   }
 
   Expression visitIsCheck(ir.IsCheck node) {
@@ -909,6 +1108,85 @@ class Builder extends ir.Visitor<Node> {
   Expression visitIsTrue(ir.IsTrue node) {
     return getVariableReference(node.value);
   }
+}
+
+/// Eliminates redundant variables and assignments that occur immediately after
+/// parameters are declared or after a function declaration.
+///
+/// These patterns arise when translating out of CPS where closure variables
+/// live in a separate space. Since function parameters are IR primitives they
+/// must be moved into a separate closure variable for inner functions to access
+/// them. For example:
+///
+///   foo(x) {
+///     let v1 = ref x in BODY
+///   }
+///    ==> (dart_tree Builder)
+///   foo(x) {
+///     var v1 = x;
+///     BODY..
+///   }
+///
+/// This phase attempts to merge v1 and x in the example above.
+/// A similar pattern can occur for local function declarations that are used
+/// from closures.
+class CopyPropagateClosureVariables extends RecursiveVisitor {
+
+  void rewrite(FunctionDefinition definition) {
+    visitFunctionDefinition(definition);
+  }
+
+  /// Performs the rewrite:
+  ///
+  ///   foo(x) { var v0 = x; S }
+  ///     ==> (move v0 into parameter)
+  ///   foo(v0) { S }
+  ///     ==> (change the name of v0 to be x, so we preserve the parameter name)
+  ///   foo(x) { S[v0\x] }
+  ///
+  ///   Condition: x cannot be used anywhere else.
+  visitFunctionDefinition(FunctionDefinition definition) {
+    while (definition.body is Assign) {
+      Assign assign = definition.body;
+      if (assign.definition is! Variable) break;
+
+      Variable rightHand = assign.definition;
+      if (rightHand.readCount != 1) break;
+
+      int paramIndex = definition.parameters.indexOf(rightHand);
+      if (paramIndex == -1) break;
+
+      // A variable may not occur as a parameter more than once.
+      if (definition.parameters.contains(assign.variable)) break;
+
+      definition.parameters[paramIndex] = assign.variable;
+      assign.variable.element = rightHand.element;
+      definition.body = assign.next;
+    }
+
+    visitStatement(definition.body); // Visit nested function definitions.
+  }
+
+  /// Performs the rewrite:
+  ///
+  ///   int v0() { S }
+  ///   foo = v0;
+  ///     ==>
+  ///   int foo() { S }
+  ///
+  ///   Condition: v0 cannot be used anywhere else.
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    Statement next = node.next;
+    if (next is Assign &&
+        next.definition == node.variable &&
+        node.variable.readCount == 1 &&
+        next.variable.writeCount == 1) {
+      node.variable = next.variable;
+      node.next = next.next;
+    }
+    super.visitFunctionDeclaration(node);
+  }
+
 }
 
 /**
@@ -1123,6 +1401,17 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     return node;
   }
 
+  Expression visitFunctionExpression(FunctionExpression node) {
+    new StatementRewriter().rewrite(node.definition);
+    return node;
+  }
+
+  Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    new StatementRewriter().rewrite(node.definition);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
   Statement visitReturn(Return node) {
     node.value = visitExpression(node.value);
     return node;
@@ -1303,6 +1592,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
     if (s is Assign && t is Assign && s.variable == t.variable) {
       Statement next = combineStatements(s.next, t.next);
       if (next != null) {
+        --t.variable.writeCount; // Two assignments become one.
         return new Assign(s.variable,
                           combine(s.definition, t.definition),
                           next);
@@ -1466,7 +1756,7 @@ class StatementRewriter extends Visitor<Statement, Expression> {
 ///
 /// Note that the above pattern needs no iteration since nested ifs
 /// have been collapsed previously in the [StatementRewriter] phase.
-class LoopRewriter extends StatementVisitor<Statement> {
+class LoopRewriter extends RecursiveVisitor {
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
@@ -1481,11 +1771,13 @@ class LoopRewriter extends StatementVisitor<Statement> {
   }
 
   Statement visitAssign(Assign node) {
+    visitExpression(node.definition);
     node.next = visitStatement(node.next);
     return node;
   }
 
   Statement visitReturn(Return node) {
+    visitExpression(node.value);
     return node;
   }
 
@@ -1499,6 +1791,7 @@ class LoopRewriter extends StatementVisitor<Statement> {
   }
 
   Statement visitIf(If node) {
+    visitExpression(node.condition);
     node.thenStatement = visitStatement(node.thenStatement);
     node.elseStatement = visitStatement(node.elseStatement);
     return node;
@@ -1518,16 +1811,14 @@ class LoopRewriter extends StatementVisitor<Statement> {
             node.label,
             body.condition,
             body.thenStatement,
-            body.elseStatement,
-            node.updates);
+            body.elseStatement);
       } else if (!thenHasContinue && elseHasContinue) {
         node.label.binding = null;
         return new WhileCondition(
             node.label,
             new Not(body.condition),
             body.elseStatement,
-            body.thenStatement,
-            node.updates);
+            body.thenStatement);
       }
     } else {
       node.body = visitStatement(node.body);
@@ -1538,26 +1829,26 @@ class LoopRewriter extends StatementVisitor<Statement> {
 
   Statement visitWhileCondition(WhileCondition node) {
     // Note: not reachable but the implementation is trivial
+    visitExpression(node.condition);
     node.body = visitStatement(node.body);
     node.next = visitStatement(node.next);
     return node;
   }
 
   Statement visitExpressionStatement(ExpressionStatement node) {
+    visitExpression(node.expression);
     node.next = visitStatement(node.next);
-    // for (;;) { ... E; continue* L ... }
-    //   ==>
-    // for(;;E) { ... continue* L ... }
-    if (node.next is Continue) {
-      Continue jump = node.next;
-      if (jump.target.useCount == 1) {
-        Loop target = jump.target.binding;
-        target.updates.add(node.expression);
-        return jump; // Return the continue statement.
-        // NOTE: The pattern may reclick in an enclosing expression statement.
-      }
-    }
     return node;
+  }
+
+  Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    new LoopRewriter().rewrite(node.definition);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  void visitFunctionExpression(FunctionExpression node) {
+    new LoopRewriter().rewrite(node.definition);
   }
 
 }
@@ -1771,6 +2062,17 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   Expression visitReifyTypeVar(ReifyTypeVar node) {
+    return node;
+  }
+
+  Expression visitFunctionExpression(FunctionExpression node) {
+    new LogicalRewriter().rewrite(node.definition);
+    return node;
+  }
+
+  Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    new LogicalRewriter().rewrite(node.definition);
+    node.next = visitStatement(node.next);
     return node;
   }
 
@@ -1992,3 +2294,4 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     }
   }
 }
+

@@ -240,15 +240,14 @@ class VariableDeclaration extends Node {
 
 
 class FunctionDeclaration extends Statement {
-  final TypeAnnotation returnType;
-  final Parameters parameters;
-  final String name;
-  final Statement body;
+  final FunctionExpression function;
 
-  FunctionDeclaration(this.name,
-                      this.parameters,
-                      this.body,
-                      [ this.returnType ]);
+  TypeAnnotation get returnType => function.returnType;
+  Parameters get parameters => function.parameters;
+  String get name => function.name;
+  Statement get body => function.body;
+
+  FunctionDeclaration(this.function);
 }
 
 class Parameters extends Node {
@@ -303,7 +302,7 @@ class Parameter extends Node {
 
 class FunctionExpression extends Expression {
   final TypeAnnotation returnType;
-  final String name;
+  String name;
   final Parameters parameters;
   final Statement body;
 

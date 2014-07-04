@@ -194,6 +194,21 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont)");
   }
 
+  visitSetClosureVariable(ir.SetClosureVariable node) {
+    String dummy = names.name(node);
+    String variable = node.variable.name;
+    String value = formatReference(node.value);
+    printStmt(dummy, 'SetClosureVariable $variable = $value');
+    visit(node.body);
+  }
+
+  visitDeclareFunction(ir.DeclareFunction node) {
+    String dummy = names.name(node);
+    String variable = node.variable.name;
+    printStmt(dummy, 'DeclareFunction $variable');
+    visit(node.body);
+  }
+
   String formatReference(ir.Reference ref) {
     ir.Definition target = ref.definition;
     if (target is ir.Continuation && target.body == null) {
@@ -226,8 +241,18 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   }
 
   visitReifyTypeVar(ir.ReifyTypeVar node) {
-    return "ReifyTypeVar ${node.element.name}";
+    return "ReifyTypeVar ${node.typeVariable.name}";
   }
+
+  visitCreateFunction(ir.CreateFunction node) {
+    return "CreateFunction ${node.definition.element.name}";
+  }
+
+  visitGetClosureVariable(ir.GetClosureVariable node) {
+    String variable = node.variable.name;
+    return 'GetClosureVariable $variable';
+  }
+
 
   visitCondition(ir.Condition c) {}
   visitExpression(ir.Expression e) {}
@@ -318,39 +343,39 @@ class BlockCollector extends ir.Visitor {
     visit(exp.body);
   }
 
-  visitInvokeStatic(ir.InvokeStatic exp) {
-    ir.Definition target = exp.continuation.definition;
+  void addEdgeToContinuation(ir.Reference continuation) {
+    ir.Definition target = continuation.definition;
     if (target is ir.Continuation && target.body != null) {
       current_block.addEdgeTo(getBlock(target));
     }
+  }
+
+  visitInvokeStatic(ir.InvokeStatic exp) {
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitInvokeMethod(ir.InvokeMethod exp) {
-    ir.Definition target = exp.continuation.definition;
-    if (target is ir.Continuation && target.body != null) {
-      current_block.addEdgeTo(getBlock(target));
-    }
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitInvokeConstructor(ir.InvokeConstructor exp) {
-    ir.Definition target = exp.continuation.definition;
-    if (target is ir.Continuation && target.body != null) {
-      current_block.addEdgeTo(getBlock(target));
-    }
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitConcatenateStrings(ir.ConcatenateStrings exp) {
-    ir.Definition target = exp.continuation.definition;
-    if (target is ir.Continuation && target.body != null) {
-      current_block.addEdgeTo(getBlock(target));
-    }
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitInvokeContinuation(ir.InvokeContinuation exp) {
-    ir.Definition target = exp.continuation.definition;
-    if (target is ir.Continuation && target.body != null) {
-      current_block.addEdgeTo(getBlock(target));
-    }
+    addEdgeToContinuation(exp.continuation);
+  }
+
+  visitSetClosureVariable(ir.SetClosureVariable exp) {
+    visit(exp.body);
+  }
+
+  visitDeclareFunction(ir.DeclareFunction exp) {
+    visit(exp.body);
   }
 
   visitBranch(ir.Branch exp) {

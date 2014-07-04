@@ -20,7 +20,7 @@ import '../ir/const_expression.dart';
 frontend.FunctionExpression emit(FunctionElement element,
                                  dart2js.TreeElementMapping treeElements,
                                  tree.FunctionDefinition definition) {
-  FunctionExpression fn = new ASTEmitter().emit(element, definition);
+  FunctionExpression fn = new ASTEmitter().emit(definition);
   return new TreePrinter(treeElements).makeExpression(fn);
 }
 
@@ -37,12 +37,11 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Maps local constants to their name.
   Map<VariableElement, String> constantNames = <VariableElement, String>{};
 
-  /// Maps variables to their declarations.
-  Map<tree.Variable, VariableDeclaration> variableDeclarations =
-      <tree.Variable, VariableDeclaration>{};
+  /// Variables that have had their declaration created.
+  Set<tree.Variable> declaredVariables = new Set<tree.Variable>();
 
   /// Variable names that have already been used. Used to avoid name clashes.
-  Set<String> usedVariableNames = new Set<String>();
+  Set<String> usedVariableNames;
 
   /// Statements emitted by the most recent call to [visitStatement].
   List<Statement> statementBuffer = <Statement>[];
@@ -66,23 +65,39 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// initializer.
   tree.Statement firstStatement;
 
-  FunctionExpression emit(FunctionElement element,
-                          tree.FunctionDefinition definition) {
-    functionElement = element;
+  /// Emitter for the enclosing function, or null if the current function is
+  /// not a local function.
+  ASTEmitter parent;
 
-    Parameters parameters = emitParameters(definition.parameters);
+  ASTEmitter() : usedVariableNames = new Set<String>();
+
+  ASTEmitter.inner(ASTEmitter parent)
+      : this.parent = parent,
+        usedVariableNames = parent.usedVariableNames;
+
+  FunctionExpression emit(tree.FunctionDefinition definition) {
+    functionElement = definition.element;
+
+    Parameters parameters = emitParameters(definition.element.functionSignature);
+
+    // Declare parameters.
+    for (tree.Variable param in definition.parameters) {
+      variableNames[param] = param.element.name;
+      usedVariableNames.add(param.element.name);
+      declaredVariables.add(param);
+    }
+
     firstStatement = definition.body;
     visitStatement(definition.body);
     removeTrailingReturn();
-    Statement body = new Block(statementBuffer);
 
     // Some of the variable declarations have already been added
     // if their first assignment could be pulled into the initializer.
     // Add the remaining variable declarations now.
     for (tree.Variable variable in variableNames.keys) {
-      if (variable.element is ParameterElement) continue;
-      if (variableDeclarations.containsKey(variable)) continue;
-      addDeclaration(variable);
+      if (!declaredVariables.contains(variable)) {
+        addDeclaration(variable);
+      }
     }
 
     // Add constant declarations.
@@ -104,24 +119,24 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (variables.length > 0) {
       bodyParts.add(new VariableDeclarations(variables));
     }
-    bodyParts.add(body);
+    bodyParts.addAll(statementBuffer);
 
-    FunctionType functionType = element.type;
+    FunctionType functionType = functionElement.type;
 
     return new FunctionExpression(
         parameters,
         new Block(bodyParts),
-        name: element.name,
+        name: functionElement.name,
         returnType: emitOptionalType(functionType.returnType))
-        ..element = element;
+        ..element = functionElement;
   }
 
   void addDeclaration(tree.Variable variable, [Expression initializer]) {
-    assert(!variableDeclarations.containsKey(variable));
+    assert(!declaredVariables.contains(variable));
     String name = getVariableName(variable);
     VariableDeclaration decl = new VariableDeclaration(name, initializer);
     decl.element = variable.element;
-    variableDeclarations[variable] = decl;
+    declaredVariables.add(variable);
     variables.add(decl);
   }
 
@@ -143,10 +158,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (element.functionSignature != null) {
       FunctionSignature signature = element.functionSignature;
       TypeAnnotation returnType = emitOptionalType(signature.type.returnType);
-      Parameters innerParameters = new Parameters(
-          signature.requiredParameters.mapToList(emitParameterFromElement),
-          signature.optionalParameters.mapToList(emitParameterFromElement),
-          signature.optionalParametersAreNamed);
+      Parameters innerParameters = emitParameters(signature);
       return new Parameter.function(name, returnType, innerParameters)
                  ..element = element;
     } else {
@@ -156,12 +168,11 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
-  Parameter emitParameter(tree.Variable param) {
-    return emitParameterFromElement(param.element, getVariableName(param));
-  }
-
-  Parameters emitParameters(List<tree.Variable> params) {
-    return new Parameters(params.map(emitParameter).toList(growable:false));
+  Parameters emitParameters(FunctionSignature signature) {
+    return new Parameters(
+        signature.requiredParameters.mapToList(emitParameterFromElement),
+        signature.optionalParameters.mapToList(emitParameterFromElement),
+        signature.optionalParametersAreNamed);
   }
 
   /// True if the two expressions are a reference to the same variable.
@@ -233,10 +244,23 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Generates a name for the given variable and synthesizes an element for it,
   /// if necessary.
   String getVariableName(tree.Variable variable) {
+    // If the variable belongs to an enclosing function, ask the parent emitter
+    // for the variable name.
+    if (variable.host.element != functionElement) {
+      return parent.getVariableName(variable);
+    }
+
+    // Get the name if we already have one.
     String name = variableNames[variable];
     if (name != null) {
       return name;
     }
+
+    // Synthesize a variable name that isn't used elsewhere.
+    // The [usedVariableNames] set is shared between nested emitters,
+    // so this also prevents clash with variables in an enclosing/inner scope.
+    // The renaming phase after codegen will further prefix local variables
+    // so they cannot clash with top-level variables or fields.
     String prefix = variable.element == null ? 'v' : variable.element.name;
     int counter = 0;
     name = variable.element == null ? '$prefix$counter' : variable.element.name;
@@ -259,6 +283,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   String getConstantName(VariableElement element) {
+    assert(element.kind == ElementKind.VARIABLE);
+    if (element.enclosingElement != functionElement) {
+      return parent.getConstantName(element);
+    }
     String name = constantNames[element];
     if (name != null) {
       return name;
@@ -274,18 +302,54 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     return name;
   }
 
+  bool isNullLiteral(Expression exp) => exp is Literal && exp.value.isNull;
+
   void visitAssign(tree.Assign stmt) {
+    // Try to emit a local function declaration. This is useful for functions
+    // that may occur in expression context, but could not be inlined anywhere.
+    if (stmt.variable.element is FunctionElement &&
+        stmt.definition is tree.FunctionExpression &&
+        !declaredVariables.contains(stmt.variable)) {
+      tree.FunctionExpression functionExp = stmt.definition;
+      FunctionExpression function = makeSubFunction(functionExp.definition);
+      FunctionDeclaration decl = new FunctionDeclaration(function);
+      statementBuffer.add(decl);
+      declaredVariables.add(stmt.variable);
+      visitStatement(stmt.next);
+      return;
+    }
+
     bool isFirstOccurrence = (variableNames[stmt.variable] == null);
+    bool isDeclaredHere = stmt.variable.host.element == functionElement;
     String name = getVariableName(stmt.variable);
     Expression definition = visitExpression(stmt.definition);
-    if (firstStatement == stmt && isFirstOccurrence) {
+
+    // Try to pull into initializer.
+    if (firstStatement == stmt && isFirstOccurrence && isDeclaredHere) {
+      if (isNullLiteral(definition)) definition = null;
       addDeclaration(stmt.variable, definition);
       firstStatement = stmt.next;
-    } else {
-      statementBuffer.add(new ExpressionStatement(makeAssignment(
-          visitVariable(stmt.variable),
-          definition)));
+      visitStatement(stmt.next);
+      return;
     }
+
+    // Emit a variable declaration if we are required to do so.
+    // This is to ensure that a fresh closure variable is created.
+    if (stmt.isDeclaration) {
+      assert(isFirstOccurrence);
+      assert(isDeclaredHere);
+      if (isNullLiteral(definition)) definition = null;
+      VariableDeclaration decl = new VariableDeclaration(name, definition)
+                                     ..element = stmt.variable.element;
+      declaredVariables.add(stmt.variable);
+      statementBuffer.add(new VariableDeclarations([decl]));
+      visitStatement(stmt.next);
+      return;
+    }
+
+    statementBuffer.add(new ExpressionStatement(makeAssignment(
+        visitVariable(stmt.variable),
+        definition)));
     visitStatement(stmt.next);
   }
 
@@ -331,10 +395,6 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   void visitWhileTrue(tree.WhileTrue stmt) {
-    List<Expression> updates = stmt.updates.reversed
-                                           .map(visitExpression)
-                                           .toList(growable:false);
-
     List<Statement> savedBuffer = statementBuffer;
     tree.Statement savedFallthrough = fallthrough;
     statementBuffer = <Statement>[];
@@ -342,7 +402,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     visitStatement(stmt.body);
     Statement body = new Block(statementBuffer);
-    Statement statement = new For(null, null, updates, body);
+    Statement statement = new While(new Literal(new dart2js.TrueConstant()),
+                                    body);
     if (usedLabels.remove(stmt.label.name)) {
       statement = new LabeledStatement(stmt.label.name, statement);
     }
@@ -354,9 +415,6 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   void visitWhileCondition(tree.WhileCondition stmt) {
     Expression condition = visitExpression(stmt.condition);
-    List<Expression> updates = stmt.updates.reversed
-                                           .map(visitExpression)
-                                           .toList(growable:false);
 
     List<Statement> savedBuffer = statementBuffer;
     tree.Statement savedFallthrough = fallthrough;
@@ -366,12 +424,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(stmt.body);
     Statement body = new Block(statementBuffer);
     Statement statement;
-    if (updates.isEmpty) {
-      // while(E) is the same as for(;E;), but the former is nicer
-      statement = new While(condition, body);
-    } else {
-      statement = new For(null, condition, updates, body);
-    }
+    statement = new While(condition, body);
     if (usedLabels.remove(stmt.label.name)) {
       statement = new LabeledStatement(stmt.label.name, statement);
     }
@@ -392,8 +445,8 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   }
 
   Expression visitReifyTypeVar(tree.ReifyTypeVar exp) {
-    return new ReifyTypeVar(exp.element.name)
-               ..element = exp.element;
+    return new ReifyTypeVar(exp.typeVariable.name)
+               ..element = exp.typeVariable;
   }
 
   Expression visitLiteralList(tree.LiteralList exp) {
@@ -538,6 +591,25 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                ..element = exp.element;
   }
 
+  FunctionExpression makeSubFunction(tree.FunctionDefinition function) {
+    return new ASTEmitter.inner(this).emit(function);
+  }
+
+  Expression visitFunctionExpression(tree.FunctionExpression exp) {
+    return makeSubFunction(exp.definition)..name = null;
+  }
+
+  void visitFunctionDeclaration(tree.FunctionDeclaration node) {
+    assert(variableNames[node.variable] == null);
+    String name = getVariableName(node.variable);
+    FunctionExpression inner = makeSubFunction(node.definition);
+    inner.name = name;
+    FunctionDeclaration decl = new FunctionDeclaration(inner);
+    declaredVariables.add(node.variable);
+    statementBuffer.add(decl);
+    visitStatement(node.next);
+  }
+
   TypeAnnotation emitType(DartType type) {
     if (type is GenericType) {
       return new TypeAnnotation(
@@ -635,14 +707,71 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   Expression visitVariable(VariableConstExp exp) {
-    String name = parent.getConstantName(exp.element);
+    Element element = exp.element;
+    if (element.kind != ElementKind.VARIABLE) {
+      return new Identifier(element.name)..element = element;
+    }
+    String name = parent.getConstantName(element);
     return new Identifier(name)
-               ..element = exp.element;
+               ..element = element;
   }
 
   Expression visitFunction(FunctionConstExp exp) {
     return new Identifier(exp.element.name)
                ..element = exp.element;
+  }
+
+}
+
+/// Moves function parameters into a separate variable if one of its uses is
+/// shadowed by an inner function parameter.
+/// This artifact is necessary because function parameters cannot be renamed.
+class UnshadowParameters extends tree.RecursiveVisitor {
+
+  /// Maps parameter names to their bindings.
+  Map<String, tree.Variable> environment = <String, tree.Variable>{};
+
+  /// Parameters that are currently shadowed by another parameter.
+  Set<tree.Variable> shadowedParameters = new Set<tree.Variable>();
+
+  /// Parameters that are used in a context where it is shadowed.
+  Set<tree.Variable> hasShadowedUse = new Set<tree.Variable>();
+
+  void unshadow(tree.FunctionDefinition definition) {
+    visitFunctionDefinition(definition);
+  }
+
+  visitFunctionDefinition(tree.FunctionDefinition definition) {
+    var oldShadow = shadowedParameters;
+    var oldEnvironment = environment;
+    environment = new Map<String, tree.Variable>.from(environment);
+    shadowedParameters = new Set<tree.Variable>.from(shadowedParameters);
+    for (tree.Variable param in definition.parameters) {
+      tree.Variable oldVariable = environment[param.element.name];
+      if (oldVariable != null) {
+        shadowedParameters.add(oldVariable);
+      }
+      environment[param.element.name] = param;
+    }
+    visitStatement(definition.body);
+    environment = oldEnvironment;
+    shadowedParameters = oldShadow;
+
+    for (int i=0; i<definition.parameters.length; i++) {
+      tree.Variable param = definition.parameters[i];
+      if (hasShadowedUse.remove(param)) {
+        tree.Variable newParam = new tree.Variable(definition, param.element);
+        definition.parameters[i] = newParam;
+        definition.body = new tree.Assign(param, newParam, definition.body);
+        newParam.writeCount = 1; // Being a parameter counts as a write.
+      }
+    }
+  }
+
+  visitVariable(tree.Variable variable) {
+    if (shadowedParameters.contains(variable)) {
+      hasShadowedUse.add(variable);
+    }
   }
 
 }
