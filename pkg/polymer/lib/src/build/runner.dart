@@ -220,7 +220,8 @@ Future _emitAllFiles(Barback barback, BarbackOptions options) {
     // using the normal dart:io deleteSync(recursive: true) on windows
     if (dir.existsSync()) {
       if (Platform.operatingSystem == 'windows' ) {
-        var result = Process.runSync('rmdir', ['/q', '/s', options.outDir]);
+        var result = Process.runSync('rmdir', ['/q', '/s', options.outDir],
+                                     runInShell: true);
         if (result.exitCode != 0) {
           throw "Could not delete $dir, output was: \n"
                  "stdout: ${result.stdout} \n"
