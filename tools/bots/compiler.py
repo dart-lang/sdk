@@ -24,7 +24,7 @@ import bot
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?(-(batch))?-?(\d*)-?(\d*)')
-DART2JS_FULL_BUILDER = r'dart2js-full-(linux|mac|windows-ie10|windows-ie11)(-checked)?(-minified)?-(\d+)-(\d+)'
+DART2JS_FULL_BUILDER = r'full-(linux|mac|win7|win8)(-(ie10|ie11))?(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
@@ -89,12 +89,10 @@ def GetBuildInfo(builder_name, is_buildbot):
     # windows-ie10 or windows-ie11 means a windows machine with that respective
     # version of ie installed. There is no difference in how we handle testing.
     # We use the builder tag to pass along this information.
-    if system.startswith('windows'):
-      system_and_ie = string.split(system, '-')
-      assert len(system_and_ie) == 2
-      assert system_and_ie[0] == 'windows'
-      assert system_and_ie[1] in IE_VERSIONS
-      builder_tag = system
+    if system.startswith('win'):
+      ie =  dart2js_full_pattern.group(3)
+      assert ie in IE_VERSIONS
+      builder_tag = 'windows-%s' % ie
       system = 'windows'
     if dart2js_full_pattern.group(2):
       checked = True
