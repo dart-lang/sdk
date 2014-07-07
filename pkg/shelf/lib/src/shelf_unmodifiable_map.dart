@@ -6,8 +6,6 @@ library shelf.shelf_unmodifiable_map;
 
 import 'dart:collection';
 
-// TODO(kevmoo): MapView lacks a const ctor, so we have to use DelegatingMap
-// from pkg/collection - https://codereview.chromium.org/294093003/
 import 'package:collection/wrappers.dart' as pc;
 
 /// A simple wrapper over [pc.UnmodifiableMapView] which avoids re-wrapping
@@ -33,15 +31,8 @@ class ShelfUnmodifiableMap<V> extends UnmodifiableMapView<String, V> {
     }
 
     if (ignoreKeyCase) {
-      // TODO(kevmoo) generalize this model with a 'canonical map' to align with
-      // similiar implementation in http pkg [BaseRequest].
-      var map = new LinkedHashMap<String, V>(
-          equals: (key1, key2) => key1.toLowerCase() == key2.toLowerCase(),
-          hashCode: (key) => key.toLowerCase().hashCode);
-
-      map.addAll(source);
-
-      source = map;
+      source = new pc.CanonicalizedMap<String, String, V>.from(source,
+          (key) => key.toLowerCase(), isValidKey: (key) => key != null);
     } else {
       source = new Map<String, V>.from(source);
     }
@@ -53,6 +44,8 @@ class ShelfUnmodifiableMap<V> extends UnmodifiableMapView<String, V> {
 }
 
 /// An const empty implementation of [ShelfUnmodifiableMap].
+// TODO(kevmoo): Consider using MapView from dart:collection which has a const
+// ctor. Would require updating min SDK to 1.5.
 class _EmptyShelfUnmodifiableMap<V> extends pc.DelegatingMap<String, V>
     implements ShelfUnmodifiableMap<V>  {
   const _EmptyShelfUnmodifiableMap() : super(const {});

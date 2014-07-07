@@ -1,3 +1,7 @@
+## 0.5.4+2
+
+* Updated headers map to use a more efficient case-insensitive backing store.
+
 ## 0.5.4+1
 
 * Widen the version constraint for `stack_trace`.
