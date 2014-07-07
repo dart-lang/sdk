@@ -4,31 +4,19 @@
 
 library test.analysis_server;
 
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
-import 'package:analysis_server/src/operation/operation.dart';
-
-class AnalysisServerTestHelper {
-  MockServerChannel channel;
-  AnalysisServer server;
-
-  AnalysisServerTestHelper({bool rethrowExceptions: true}) {
-    channel = new MockServerChannel();
-    server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
-        new MockPackageMapProvider(), null,
-        rethrowExceptions: rethrowExceptions);
-  }
-}
 
 main() {
   group('AnalysisServer', () {
@@ -113,6 +101,18 @@ main() {
       }
     });
   });
+}
+
+class AnalysisServerTestHelper {
+  MockServerChannel channel;
+  AnalysisServer server;
+
+  AnalysisServerTestHelper({bool rethrowExceptions: true}) {
+    channel = new MockServerChannel();
+    server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
+        new MockPackageMapProvider(), null,
+        rethrowExceptions: rethrowExceptions);
+  }
 }
 
 class EchoHandler implements RequestHandler {

@@ -23,7 +23,6 @@ import 'operation/test_all.dart' as operation_test_all;
 import 'package_map_provider_test.dart' as package_map_provider_test;
 import 'package_uri_resolver_test.dart' as package_uri_resolver_test;
 import 'protocol_test.dart' as protocol_test;
-import 'resource_test.dart' as resource_test;
 import 'socket_server_test.dart' as socket_server_test;
 
 /**
@@ -51,7 +50,6 @@ main() {
     package_map_provider_test.main();
     package_uri_resolver_test.main();
     protocol_test.main();
-    resource_test.main();
     socket_server_test.main();
   });
 }

@@ -15,10 +15,10 @@ import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/index/local_index.dart';
+import 'package:path/path.dart' as pathos;
 
 
 /**

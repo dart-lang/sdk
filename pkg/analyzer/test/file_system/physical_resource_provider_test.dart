@@ -2,16 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.physical.resource.provider;
+library test.physical_file_system;
 
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
+
+
+var _isFile = new isInstanceOf<File>();
+var _isFolder = new isInstanceOf<Folder>();
+
 
 main() {
   groupSep = ' | ';
@@ -287,7 +293,3 @@ main() {
       });
     });
 }
-
-var _isFile = new isInstanceOf<File>();
-var _isFolder = new isInstanceOf<Folder>();
-var _isMemoryResourceException = new isInstanceOf<MemoryResourceException>();

@@ -10,7 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';

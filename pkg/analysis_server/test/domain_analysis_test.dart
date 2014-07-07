@@ -6,12 +6,12 @@ library test.domain.analysis;
 
 import 'dart:async';
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';

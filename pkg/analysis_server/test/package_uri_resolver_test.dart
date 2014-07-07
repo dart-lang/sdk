@@ -7,7 +7,8 @@ library test.resolver.package;
 import 'dart:collection';
 
 import 'package:analysis_server/src/package_uri_resolver.dart';
-import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -33,12 +34,6 @@ class _PackageMapUriResolverTest {
   tearDown() {
   }
 
-  void test_isPackageUri() {
-    Uri uri = Uri.parse('package:test/test.dart');
-    expect(uri.scheme, 'package');
-    expect(PackageMapUriResolver.isPackageUri(uri), isTrue);
-  }
-
   void test_fromEncoding_nonPackage() {
     UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
     Uri uri = Uri.parse('file:/does/not/exist.dart');
@@ -52,6 +47,12 @@ class _PackageMapUriResolverTest {
     Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, uri);
     expect(result, isNotNull);
     expect(result.fullName, '/does/not/exist.dart');
+  }
+
+  void test_isPackageUri() {
+    Uri uri = Uri.parse('package:test/test.dart');
+    expect(uri.scheme, 'package');
+    expect(PackageMapUriResolver.isPackageUri(uri), isTrue);
   }
 
   void test_isPackageUri_null_scheme() {
