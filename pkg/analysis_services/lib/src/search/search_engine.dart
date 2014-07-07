@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.src.search_engine;
+library services.src.search.search_engine;
 
 ///**
 // * Instances of the class <code>AndSearchPattern</code> implement a search pattern that matches

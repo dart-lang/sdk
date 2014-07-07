@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.src.index.split_store;
+library services.src.index.store.split_store;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:analyzer/index/index.dart';
-import 'package:analyzer/index/index_store.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/index/index_store.dart';
+import 'package:analysis_services/src/index/store/codec.dart';
+import 'package:analysis_services/src/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/index/store/codec.dart';
-import 'package:analyzer/src/index/store/collection.dart';
 
 
 /**

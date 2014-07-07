@@ -6,7 +6,7 @@ library engine.index_store;
 
 import 'dart:async';
 
-import 'package:analyzer/index/index.dart';
+import 'package:analysis_services/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';

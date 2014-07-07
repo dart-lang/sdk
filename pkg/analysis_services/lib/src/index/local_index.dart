@@ -2,37 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.src.index.local_index;
+library services.src.index.local_index;
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:analyzer/index/index.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/src/index/index_contributor.dart' as contributors;
+import 'package:analysis_services/src/index/store/split_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/index/index_contributor.dart' as contributors;
-import 'package:analyzer/src/index/store/codec.dart';
-import 'package:analyzer/src/index/store/memory_node_manager.dart';
-import 'package:analyzer/src/index/store/separate_file_manager.dart';
-import 'package:analyzer/src/index/store/split_store.dart';
-
-
-Index createLocalFileSplitIndex(Directory directory) {
-  var fileManager = new SeparateFileManager(directory);
-  var stringCodec = new StringCodec();
-  var nodeManager = new FileNodeManager(fileManager,
-      AnalysisEngine.instance.logger, stringCodec, new ContextCodec(),
-      new ElementCodec(stringCodec), new RelationshipCodec(stringCodec));
-  return new LocalIndex(nodeManager);
-}
-
-
-Index createLocalMemorySplitIndex() {
-  return new LocalIndex(new MemoryNodeManager());
-}
 
 
 /**

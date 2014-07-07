@@ -19,7 +19,6 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analysis_services/index/index.dart';
 
 
 /**

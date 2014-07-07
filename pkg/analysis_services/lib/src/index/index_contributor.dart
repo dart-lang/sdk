@@ -5,12 +5,12 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.src.index_contributor;
+library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
-import 'package:analyzer/index/index.dart';
-import 'package:analyzer/index/index_store.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/index/index_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';

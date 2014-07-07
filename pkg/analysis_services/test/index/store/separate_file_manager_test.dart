@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.engine.src.index.store.separate_file_mananer;
+library test.services.src.index.store.separate_file_mananer;
 
 import 'dart:io';
 
+import 'package:analysis_services/src/index/store/separate_file_manager.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:analyzer/src/index/store/separate_file_manager.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 

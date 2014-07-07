@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.engine.src.index;
+library test.services.src.index.local_index;
 
 //import 'dart:async';
 //import 'dart:io' show Directory;

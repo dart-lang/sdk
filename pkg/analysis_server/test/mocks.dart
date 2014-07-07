@@ -10,6 +10,7 @@ import 'dart:io';
 @MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
+import 'package:analysis_services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analysis_server/src/analysis_server.dart';
@@ -19,12 +20,10 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:matcher/matcher.dart';
 import 'package:mock/mock.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analyzer/index/index.dart';
 
 /**
  * Answer the absolute path the the SDK relative to the currently running

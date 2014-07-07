@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.engine.src.index.store.collection;
+library test.services.src.index.store.collection;
 
+import 'package:analysis_services/src/index/store/collection.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:analyzer/src/index/store/collection.dart';
 import 'package:unittest/unittest.dart';
 
 

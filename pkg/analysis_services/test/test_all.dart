@@ -4,8 +4,10 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'index/test_all.dart' as index_all;
+
 /// Utility for manually running all tests.
 main() {
-//  group('analysis_services', () {
-//  });
+  groupSep = ' | ';
+  index_all.main();
 }

@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.engine.src.index.split_store;
+library test.services.src.index.store.split_store;
 
 import 'dart:async';
 
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/src/index/store/codec.dart';
+import 'package:analysis_services/src/index/store/memory_node_manager.dart';
+import 'package:analysis_services/src/index/store/split_store.dart';
 import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/index/store/codec.dart';
-import 'package:analyzer/src/index/store/memory_node_manager.dart';
-import 'package:analyzer/src/index/store/split_store.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 

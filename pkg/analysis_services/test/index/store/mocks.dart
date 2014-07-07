@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index.store.mocks;
+library test.services.index.store.mocks;
 
-import 'package:analyzer/index/index.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/src/index/store/codec.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/index/store/codec.dart';
 import 'package:typed_mock/typed_mock.dart';
 
 

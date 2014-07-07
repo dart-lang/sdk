@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.engine.src.index.store;
+library test.services.src.index.store;
 
 import 'package:unittest/unittest.dart';
 

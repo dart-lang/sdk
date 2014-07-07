@@ -10,11 +10,11 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/index/index.dart';
-import 'package:analyzer/src/index/local_index.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
@@ -78,11 +78,11 @@ main() {
 
 @ReflectiveTestCase()
 class SearchDomainTest extends AbstractAnalysisTest {
-  LocalIndex index;
+  Index index;
 
   @override
   Index createIndex() {
-    return createLocalMemorySplitIndex();
+    return createLocalMemoryIndex();
   }
 
   @override

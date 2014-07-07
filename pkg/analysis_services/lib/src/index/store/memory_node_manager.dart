@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.src.index.store_memory_node_manager;
+library services.src.index.store.store_memory_node_manager;
 
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_services/src/index/store/codec.dart';
+import 'package:analysis_services/src/index/store/split_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/index/store/codec.dart';
-import 'package:analyzer/src/index/store/split_store.dart';
 
 
 class MemoryNodeManager implements NodeManager {
