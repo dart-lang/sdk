@@ -1615,7 +1615,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
-  BranchLink(&StubCode::UpdateStoreBufferLabel());
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  BranchLink(&stub_code->UpdateStoreBufferLabel());
   PopList(regs);
   Bind(&done);
 }
@@ -3167,10 +3168,11 @@ void Assembler::TryAllocate(const Class& cls,
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
+    StubCode* stub_code = Isolate::Current()->stub_code();
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&StubCode::PrintStopMessageLabel());  // Passing message in R0.
+    BranchLink(&stub_code->PrintStopMessageLabel());  // Passing message in R0.
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can

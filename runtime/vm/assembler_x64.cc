@@ -28,7 +28,8 @@ Assembler::Assembler(bool use_far_branches)
       comments_() {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
-  if (Isolate::Current() != Dart::vm_isolate()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate != Dart::vm_isolate()) {
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
 
     // These objects and labels need to be accessible through every pool-pointer
@@ -48,8 +49,9 @@ Assembler::Assembler(bool use_far_branches)
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
 
-    if (StubCode::UpdateStoreBuffer_entry() != NULL) {
-      FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
+    StubCode* stub_code = isolate->stub_code();
+    if (stub_code->UpdateStoreBuffer_entry() != NULL) {
+      FindExternalLabel(&stub_code->UpdateStoreBufferLabel(), kNotPatchable);
     } else {
       object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
@@ -2707,7 +2709,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != RAX) {
     movq(RAX, object);
   }
-  Call(&StubCode::UpdateStoreBufferLabel(), PP);
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  Call(&stub_code->UpdateStoreBufferLabel(), PP);
   if (value != RAX) popq(RAX);
   Bind(&done);
 }

@@ -575,7 +575,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != T0) {
     mov(T0, object);
   }
-  BranchLink(&StubCode::UpdateStoreBufferLabel());
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  BranchLink(&stub_code->UpdateStoreBufferLabel());
   lw(RA, Address(SP, 0 * kWordSize));
   if (value != T0) {
     // Restore T0.

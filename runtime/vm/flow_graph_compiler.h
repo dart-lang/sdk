@@ -472,10 +472,10 @@ class FlowGraphCompiler : public ValueObject {
     return *deopt_id_to_ic_data_;
   }
 
+  Isolate* isolate() const { return isolate_; }
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-
-  Isolate* isolate() const { return isolate_; }
 
   void EmitFrameEntry();
 
