@@ -273,6 +273,7 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
+analysis_services/test/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
