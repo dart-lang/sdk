@@ -605,7 +605,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // Generate runtime call.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
     __ pushl(ECX);  // Instantiator.
@@ -677,7 +677,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(dst_type);  // Push the type of the destination.
@@ -703,7 +703,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ Bind(&runtime_call);
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
   __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   __ pushl(ECX);  // Instantiator.

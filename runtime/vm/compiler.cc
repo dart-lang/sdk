@@ -639,9 +639,9 @@ static void DisassembleCode(const Function& function, bool optimized) {
 
   OS::Print("Pointer offsets for function: {\n");
   // Pointer offsets are stored in descending order.
+  Object& obj = Object::Handle();
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
-    Object& obj = Object::Handle();
     obj = *reinterpret_cast<RawObject**>(addr);
     OS::Print(" %d : %#" Px " '%s'\n",
               code.GetPointerOffsetAt(i), addr, obj.ToCString());

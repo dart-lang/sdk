@@ -593,7 +593,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ lw(A2, Address(SP, 1 * kWordSize));
 
     __ addiu(SP, SP, Immediate(-6 * kWordSize));
-    __ LoadObject(TMP, Object::ZoneHandle());
+    __ LoadObject(TMP, Object::null_object());
     __ sw(TMP, Address(SP, 5 * kWordSize));  // Make room for the result.
     __ sw(A0, Address(SP, 4 * kWordSize));  // Push the instance.
     __ LoadObject(TMP, type);
@@ -666,7 +666,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {
     __ addiu(SP, SP, Immediate(-4 * kWordSize));
-    __ LoadObject(TMP, Object::ZoneHandle());
+    __ LoadObject(TMP, Object::null_object());
     __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
     __ sw(A0, Address(SP, 2 * kWordSize));  // Push the source object.
     __ LoadObject(TMP, dst_name);
@@ -701,7 +701,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ lw(A2, Address(SP, 1 * kWordSize));
 
   __ addiu(SP, SP, Immediate(-7 * kWordSize));
-  __ LoadObject(TMP, Object::ZoneHandle());
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 6 * kWordSize));  // Make room for the result.
   __ sw(A0, Address(SP, 5 * kWordSize));  // Push the source object.
   __ LoadObject(TMP, dst_type);

@@ -1329,7 +1329,7 @@ void Parser::BuildDispatcherScope(const Function& func,
     intptr_t index = i - desc.PositionalCount();
     p.name = &String::ZoneHandle(I, desc.NameAt(index));
     p.type = &Type::ZoneHandle(I, Type::DynamicType());
-    p.default_value = &Object::ZoneHandle();
+    p.default_value = &Object::null_object();
     params.parameters->Add(p);
     params.num_optional_parameters++;
     params.has_optional_named_parameters = true;
@@ -1697,7 +1697,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         params->has_optional_named_parameters) {
       // Implicit default value is null.
       params->num_optional_parameters++;
-      parameter.default_value = &Object::ZoneHandle();
+      parameter.default_value = &Object::null_object();
     } else {
       params->num_fixed_parameters++;
       ASSERT(params->num_optional_parameters == 0);

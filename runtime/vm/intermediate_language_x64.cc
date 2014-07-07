@@ -730,7 +730,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   StubCode* stub_code = compiler->isolate()->stub_code();
 
   // Push the result place holder initialized to NULL.
-  __ PushObject(Object::ZoneHandle(), PP);
+  __ PushObject(Object::null_object(), PP);
   // Pass a pointer to the first argument in RAX.
   if (!function().HasOptionalParameters()) {
     __ leaq(RAX, Address(RBP, (kParamEndSlotFromFp +
@@ -2004,7 +2004,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label slow_path, done;
       InlineArrayAllocation(compiler, length, &slow_path, &done);
       __ Bind(&slow_path);
-      __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+      __ PushObject(Object::null_object(), PP);  // Make room for the result.
       __ pushq(kLengthReg);
       __ pushq(kElemTypeReg);
       compiler->GenerateRuntimeCall(token_pos(),
@@ -2299,7 +2299,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
-  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(Object::null_object(), PP);  // Make room for the result.
   __ PushObject(type(), PP);
   __ pushq(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateRuntimeCall(token_pos(),
@@ -2370,7 +2370,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(Object::null_object(), PP);  // Make room for the result.
   __ PushObject(type_arguments(), PP);
   __ pushq(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateRuntimeCall(token_pos(),
@@ -2427,7 +2427,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register context_value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
+  __ PushObject(Object::null_object(), PP);  // Make room for the result.
   __ pushq(context_value);
   compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
