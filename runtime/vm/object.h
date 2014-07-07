@@ -3035,11 +3035,13 @@ class PcDescriptors : public Object {
   class Iterator : ValueObject {
    public:
     explicit Iterator(const PcDescriptors& descriptors)
-        : ValueObject(), descriptors_(descriptors), current_ix_(0) {}
+        : descriptors_(descriptors), current_ix_(0) {}
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
-        : descriptors_(iter.descriptors_), current_ix_(iter.current_ix_) {}
+        : ValueObject(),
+          descriptors_(iter.descriptors_),
+          current_ix_(iter.current_ix_) {}
 
     bool HasNext() { return current_ix_ < descriptors_.Length(); }
 
