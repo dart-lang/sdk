@@ -10195,16 +10195,16 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 }
 
 
-const char* PcDescriptors::KindAsStr(intptr_t index) const {
-  switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt:           return "deopt        ";
-    case PcDescriptors::kIcCall:          return "ic-call      ";
-    case PcDescriptors::kOptStaticCall:   return "opt-call     ";
-    case PcDescriptors::kUnoptStaticCall: return "unopt-call   ";
-    case PcDescriptors::kClosureCall:     return "closure-call ";
-    case PcDescriptors::kRuntimeCall:     return "runtime-call ";
-    case PcDescriptors::kOsrEntry:        return "osr-entry    ";
-    case PcDescriptors::kOther:           return "other        ";
+const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
+  switch (kind) {
+    case RawPcDescriptors::kDeopt:           return "deopt        ";
+    case RawPcDescriptors::kIcCall:          return "ic-call      ";
+    case RawPcDescriptors::kOptStaticCall:   return "opt-call     ";
+    case RawPcDescriptors::kUnoptStaticCall: return "unopt-call   ";
+    case RawPcDescriptors::kClosureCall:     return "closure-call ";
+    case RawPcDescriptors::kRuntimeCall:     return "runtime-call ";
+    case RawPcDescriptors::kOsrEntry:        return "osr-entry    ";
+    case RawPcDescriptors::kOther:           return "other        ";
   }
   UNREACHABLE();
   return "";
@@ -10233,25 +10233,29 @@ const char* PcDescriptors::ToCString() const {
       "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < Length(); i++) {
+  Iterator iter(*this);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                       PC(i),
-                       KindAsStr(i),
-                       DeoptId(i),
-                       TokenPos(i),
-                       TryIndex(i));
+                       rec.pc,
+                       KindAsStr(rec.kind()),
+                       rec.deopt_id,
+                       rec.token_pos,
+                       rec.try_index);
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
-  for (intptr_t i = 0; i < Length(); i++) {
+  Iterator iter2(*this);
+  while (iter2.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter2.Next();
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
-                         PC(i),
-                         KindAsStr(i),
-                         DeoptId(i),
-                         TokenPos(i),
-                         TryIndex(i));
+                         rec.pc,
+                         KindAsStr(rec.kind()),
+                         rec.deopt_id,
+                         rec.token_pos,
+                         rec.try_index);
   }
   return buffer;
 }
@@ -10264,13 +10268,15 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
   // generate an ID. Currently we only print PcDescriptors inline with a Code.
   jsobj->AddProperty("id", "");
   JSONArray members(jsobj, "members");
-  for (intptr_t i = 0; i < Length(); i++) {
+  Iterator iter(*this);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     JSONObject descriptor(&members);
-    descriptor.AddPropertyF("pc", "%" Px "", PC(i));
-    descriptor.AddProperty("kind", KindAsStr(i));
-    descriptor.AddProperty("deoptId", DeoptId(i));
-    descriptor.AddProperty("tokenPos", TokenPos(i));
-    descriptor.AddProperty("tryIndex", TryIndex(i));
+    descriptor.AddPropertyF("pc", "%" Px "", rec.pc);
+    descriptor.AddProperty("kind", KindAsStr(rec.kind()));
+    descriptor.AddProperty("deoptId",  static_cast<intptr_t>(rec.deopt_id));
+    descriptor.AddProperty("tokenPos",  static_cast<intptr_t>(rec.token_pos));
+    descriptor.AddProperty("tryIndex",  static_cast<intptr_t>(rec.try_index));
   }
 }
 
@@ -10297,17 +10303,21 @@ void PcDescriptors::Verify(const Function& function) const {
     return;
   }
   // Only check ids for unoptimized code that is optimizable.
-  if (!function.IsOptimizable()) return;
-  for (intptr_t i = 0; i < Length(); i++) {
-    PcDescriptors::Kind kind = DescriptorKind(i);
+  if (!function.IsOptimizable()) {
+    return;
+  }
+  Iterator iter(*this);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::Kind kind = rec.kind();
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if ((DescriptorKind(i) != PcDescriptors::kDeopt) ||
-        (DescriptorKind(i) != PcDescriptors::kIcCall)) {
+    if ((kind != RawPcDescriptors::kDeopt) ||
+        (kind != RawPcDescriptors::kIcCall)) {
       continue;
     }
 
-    deopt_id = DeoptId(i);
+    deopt_id = rec.deopt_id;
     if (Isolate::IsDeoptAfter(deopt_id)) {
       // TODO(vegorov): some instructions contain multiple calls and have
       // multiple "after" targets recorded. Right now it is benign but might
@@ -10315,10 +10325,12 @@ void PcDescriptors::Verify(const Function& function) const {
       continue;
     }
 
-    for (intptr_t k = i + 1; k < Length(); k++) {
-      if (kind == DescriptorKind(k)) {
+    Iterator nested(iter);
+    while (iter.HasNext()) {
+      const RawPcDescriptors::PcDescriptorRec& nested_rec = nested.Next();
+      if (kind == nested_rec.kind()) {
         if (deopt_id != Isolate::kNoDeoptId) {
-          ASSERT(DeoptId(k) != deopt_id);
+          ASSERT(nested_rec.deopt_id != deopt_id);
         }
       }
     }
@@ -10327,10 +10339,12 @@ void PcDescriptors::Verify(const Function& function) const {
 }
 
 
-uword PcDescriptors::GetPcForKind(Kind kind) const {
-  for (intptr_t i = 0; i < Length(); i++) {
-    if (DescriptorKind(i) == kind) {
-      return PC(i);
+uword PcDescriptors::GetPcForKind(RawPcDescriptors::Kind kind) const {
+  Iterator iter(*this);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if (rec.kind() == kind) {
+      return rec.pc;
     }
   }
   return 0;
@@ -11827,24 +11841,26 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 
 
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
-  intptr_t token_pos = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (descriptors.PC(i) == pc) {
-      token_pos = descriptors.TokenPos(i);
-      break;
+  PcDescriptors::Iterator iter(descriptors);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if (rec.pc == pc) {
+      return rec.token_pos;
     }
   }
-  return token_pos;
+  return -1;
 }
 
 
-uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
+uword Code::GetPcForDeoptId(intptr_t deopt_id,
+                            RawPcDescriptors::Kind kind) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if ((descriptors.DeoptId(i) == deopt_id) &&
-        (descriptors.DescriptorKind(i) == kind)) {
-      uword pc = descriptors.PC(i);
+  PcDescriptors::Iterator iter(descriptors);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if ((rec.deopt_id == deopt_id) && (rec.kind() == kind)) {
+      uword pc = rec.pc;
       ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
@@ -11855,10 +11871,11 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
 
 intptr_t Code::GetDeoptIdForOsr(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); ++i) {
-    if ((descriptors.PC(i) == pc) &&
-        (descriptors.DescriptorKind(i) == PcDescriptors::kOsrEntry)) {
-      return descriptors.DeoptId(i);
+  PcDescriptors::Iterator iter(descriptors);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if ((rec.pc == pc) && (rec.kind() == RawPcDescriptors::kOsrEntry)) {
+      return rec.deopt_id;
     }
   }
   return Isolate::kNoDeoptId;

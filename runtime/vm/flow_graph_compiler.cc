@@ -274,14 +274,14 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
       AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
     } else if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                            instr->deopt_id(),
                            Scanner::kNoSourcePos);
     }
@@ -487,7 +487,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 
 
 // Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
+void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              intptr_t token_pos) {
   pc_descriptors_list()->AddDescriptor(kind,

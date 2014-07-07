@@ -747,7 +747,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       &StubCode::CallNativeCFunctionLabel();
   compiler->GenerateCall(token_pos(),
                          stub_entry,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ popq(result);
 }
@@ -1560,7 +1560,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->temp(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2019,7 +2019,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2045,7 +2045,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2077,7 +2077,7 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2109,7 +2109,7 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2392,7 +2392,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
 }
 
@@ -2506,7 +2506,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
     if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
-      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
                                      0);  // No token position.
     }
@@ -3439,7 +3439,7 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->out(0).reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
@@ -5604,7 +5604,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching
     // code that matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kNoSourcePos);
   }
@@ -5630,7 +5630,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // after the edge counter for uniformity with ARM and MIPS, where we can
     // reuse pattern matching that matches backwards from the end of the
     // pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
   }
@@ -5772,7 +5772,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorq(RBX, RBX);
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(RCX);
-  compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kClosureCall,
                                  deopt_id(),
                                  token_pos());
   compiler->RecordSafepoint(locs());
@@ -5784,7 +5784,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_after,
                                    token_pos());
   }
@@ -5825,7 +5825,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }

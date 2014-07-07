@@ -6,7 +6,7 @@
 
 namespace dart {
 
-void DescriptorList::AddDescriptor(PcDescriptors::Kind kind,
+void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
                                    intptr_t token_index,

@@ -239,7 +239,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
   __ jalr(T2);
-  compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kClosureCall,
                                  deopt_id(),
                                  token_pos());
   compiler->RecordSafepoint(locs());
@@ -251,7 +251,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_after,
                                    token_pos());
   }
@@ -906,7 +906,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(A1, argc_tag);
   compiler->GenerateCall(token_pos(),
                          stub_entry,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Pop(result);
 }
@@ -1734,7 +1734,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ mov(locs->temp(0).reg(), V0);
     compiler->RestoreLiveRegisters(locs);
@@ -2113,7 +2113,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&slow_path);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2139,7 +2139,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     if (locs->out(0).reg() != V0) {
       __ mov(locs->out(0).reg(), V0);
@@ -2388,7 +2388,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
 }
 
@@ -2513,7 +2513,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
     if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
-      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
                                      0);  // No token position.
     }
@@ -4510,7 +4510,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // On MIPS the deoptimization descriptor points after the edge counter
     // code so that we can reuse the same pattern matching code as at call
     // sites, which matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kNoSourcePos);
   }
@@ -4537,7 +4537,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // points after the edge counter code so that we can reuse the same
     // pattern matching code as at call sites, which matches backwards from
     // the end of the pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
   }
@@ -4683,7 +4683,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }

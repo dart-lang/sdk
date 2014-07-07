@@ -1115,7 +1115,7 @@ void FlowGraphCompiler::CompileGraph() {
 
 void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
-                                     PcDescriptors::Kind kind,
+                                     RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ call(label);
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
@@ -1126,7 +1126,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          intptr_t token_pos,
                                          const ExternalLabel* label,
-                                         PcDescriptors::Kind kind,
+                                         RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ call(label);
   AddCurrentDescriptor(kind, deopt_id, token_pos);
@@ -1139,7 +1139,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
 
@@ -1150,7 +1150,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
   if (deopt_id != Isolate::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
@@ -1161,7 +1161,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
     }
   }
 }
@@ -1187,7 +1187,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    &target_label,
-                   PcDescriptors::kUnoptStaticCall,
+                   RawPcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
 #if defined(DEBUG)
@@ -1230,7 +1230,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
-                   PcDescriptors::kIcCall,
+                   RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
 }
@@ -1248,7 +1248,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
-                   PcDescriptors::kIcCall,
+                   RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
 #if defined(DEBUG)
@@ -1311,7 +1311,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(EDX, arguments_descriptor);
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
-  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(RawPcDescriptors::kOther,
+      Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
   __ Drop(argument_count);
@@ -1331,7 +1332,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    &StubCode::CallStaticFunctionLabel(),
-                   PcDescriptors::kOptStaticCall,
+                   RawPcDescriptors::kOptStaticCall,
                    locs);
   AddStaticCallTarget(function);
   __ Drop(argument_count);
@@ -1360,7 +1361,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
-      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
@@ -1388,7 +1389,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
-      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
@@ -1500,7 +1501,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     GenerateDartCall(deopt_id,
                      token_index,
                      &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kOptStaticCall,
+                     RawPcDescriptors::kOptStaticCall,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);

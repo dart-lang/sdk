@@ -301,13 +301,13 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateCall(intptr_t token_pos,
                     const ExternalLabel* label,
-                    PcDescriptors::Kind kind,
+                    RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         intptr_t token_pos,
                         const ExternalLabel* label,
-                        PcDescriptors::Kind kind,
+                        RawPcDescriptors::Kind kind,
                         LocationSummary* locs);
 
   void GenerateAssertAssignable(intptr_t token_pos,
@@ -415,7 +415,7 @@ class FlowGraphCompiler : public ValueObject {
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStacktrace(intptr_t try_index);
-  void AddCurrentDescriptor(PcDescriptors::Kind kind,
+  void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             intptr_t token_pos);
 

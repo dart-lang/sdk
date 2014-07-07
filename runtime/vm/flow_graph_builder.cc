@@ -1016,7 +1016,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   if ((node->token_pos() != Scanner::kNoSourcePos) &&
       !function.is_native() && FLAG_enable_debugger) {
     AddInstruction(new(I) DebugStepCheckInstr(node->token_pos(),
-                                              PcDescriptors::kRuntimeCall));
+                                              RawPcDescriptors::kRuntimeCall));
   }
 
   if (FLAG_enable_type_checks) {
@@ -3119,8 +3119,8 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   if (node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode()) {
     if (FLAG_enable_debugger) {
-      AddInstruction(new(I) DebugStepCheckInstr(node->token_pos(),
-                                                PcDescriptors::kRuntimeCall));
+      AddInstruction(new(I) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
     }
   }
 

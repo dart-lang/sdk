@@ -224,11 +224,11 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(isolate);
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   descriptors = code.pc_descriptors();
-  const intptr_t len = descriptors.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
-        (descriptors.TryIndex(i) != -1)) {
-      const intptr_t try_index = descriptors.TryIndex(i);
+  PcDescriptors::Iterator iter(descriptors);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if ((rec.pc == pc()) && (rec.try_index != -1)) {
+      const intptr_t try_index = rec.try_index;
       RawExceptionHandlers::HandlerInfo handler_info;
       handlers.GetHandlerInfo(try_index, &handler_info);
       *handler_pc = handler_info.handler_pc;
@@ -249,9 +249,11 @@ intptr_t StackFrame::GetTokenPos() const {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
-  for (int i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == pc()) {
-      return descriptors.TokenPos(i);
+  PcDescriptors::Iterator iter(descriptors);
+  while (iter.HasNext()) {
+    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    if (rec.pc == pc()) {
+      return rec.token_pos;
     }
   }
   return -1;

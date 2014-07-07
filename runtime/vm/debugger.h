@@ -79,7 +79,8 @@ class SourceBreakpoint {
 // function gets compiled as a regular function and as a closure.
 class CodeBreakpoint {
  public:
-  CodeBreakpoint(const Code& code, intptr_t pc_desc_index);
+  CodeBreakpoint(const Code& code,
+                 const RawPcDescriptors::PcDescriptorRec& rec);
   ~CodeBreakpoint();
 
   RawFunction* function() const;
@@ -105,13 +106,11 @@ class CodeBreakpoint {
 
   void set_next(CodeBreakpoint* value) { next_ = value; }
   CodeBreakpoint* next() const { return this->next_; }
-  intptr_t pc_desc_index() const { return pc_desc_index_; }
 
   void PatchCode();
   void RestoreCode();
 
   RawCode* code_;
-  intptr_t pc_desc_index_;
   intptr_t token_pos_;
   uword pc_;
   intptr_t line_number_;
@@ -120,7 +119,7 @@ class CodeBreakpoint {
   SourceBreakpoint* src_bpt_;
   CodeBreakpoint* next_;
 
-  PcDescriptors::Kind breakpoint_kind_;
+  RawPcDescriptors::Kind breakpoint_kind_;
   uword saved_value_;
 
   friend class Debugger;
@@ -191,7 +190,6 @@ class ActivationFrame : public ZoneAllocated {
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
 
-  intptr_t PcDescIndex();
   intptr_t TryIndex();
   void GetPcDescriptors();
   void GetVarDescriptors();
@@ -214,7 +212,8 @@ class ActivationFrame : public ZoneAllocated {
   const Code& code_;
   const Function& function_;
   intptr_t token_pos_;
-  intptr_t pc_desc_index_;
+  const RawPcDescriptors::PcDescriptorRec* desc_rec_;
+
   intptr_t line_number_;
   intptr_t column_number_;
   intptr_t context_level_;

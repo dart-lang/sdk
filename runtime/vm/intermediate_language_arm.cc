@@ -219,7 +219,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R5, 0);
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ blx(R2);
-  compiler->AddCurrentDescriptor(PcDescriptors::kClosureCall,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kClosureCall,
                                  deopt_id(),
                                  token_pos());
   compiler->RecordSafepoint(locs());
@@ -231,7 +231,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_after,
                                    token_pos());
   }
@@ -951,7 +951,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R1, argc_tag);
   compiler->GenerateCall(token_pos(),
                          stub_entry,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Pop(result);
 }
@@ -1931,7 +1931,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->temp(0).reg(), R0);
     compiler->RestoreLiveRegisters(locs);
@@ -2380,7 +2380,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -2405,7 +2405,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ MoveRegister(locs->out(0).reg(), R0);
     compiler->RestoreLiveRegisters(locs);
@@ -2437,7 +2437,7 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ mov(locs->out(0).reg(), Operand(R0));
     compiler->RestoreLiveRegisters(locs);
@@ -2469,7 +2469,7 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ mov(locs->out(0).reg(), Operand(R0));
     compiler->RestoreLiveRegisters(locs);
@@ -2754,7 +2754,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(StubCode::AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
 }
 
@@ -2869,7 +2869,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
     if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
-      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
                                      0);  // No token position.
     }
@@ -3705,7 +3705,7 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ mov(locs->out(0).reg(), Operand(R0));
     compiler->RestoreLiveRegisters(locs);
@@ -5925,7 +5925,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
-                           PcDescriptors::kOther,
+                           RawPcDescriptors::kOther,
                            locs);
     __ mov(locs->out(0).reg(), Operand(R0));
     compiler->RestoreLiveRegisters(locs);
@@ -6261,7 +6261,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // On ARM the deoptimization descriptor points after the edge counter
     // code so that we can reuse the same pattern matching code as at call
     // sites, which matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kNoSourcePos);
   }
@@ -6287,7 +6287,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // points after the edge counter code so that we can reuse the same
     // pattern matching code as at call sites, which matches backwards from
     // the end of the pattern.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
   }
@@ -6421,7 +6421,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          &label,
-                         PcDescriptors::kOther,
+                         RawPcDescriptors::kOther,
                          locs());
   __ Drop(ArgumentCount());  // Discard arguments.
 }

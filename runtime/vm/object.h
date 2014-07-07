@@ -2985,50 +2985,15 @@ class LocalVarDescriptors : public Object {
 
 class PcDescriptors : public Object {
  public:
-  enum Kind {
-    kDeopt,            // Deoptimization continuation point.
-    kIcCall,           // IC call.
-    kOptStaticCall,    // Call directly to known target, e.g. static call.
-    kUnoptStaticCall,  // Call to a known target via a stub.
-    kClosureCall,      // Closure call.
-    kRuntimeCall,      // Runtime call.
-    kOsrEntry,         // OSR entry point in unoptimized code.
-    kOther
-  };
-
-  intptr_t Length() const;
-
-  uword PC(intptr_t index) const {
-    ASSERT(index < Length());
-    return raw_ptr()->data()[index].pc;
-  }
-  PcDescriptors::Kind DescriptorKind(intptr_t index) const {
-    ASSERT(index < Length());
-    return static_cast<PcDescriptors::Kind>(raw_ptr()->data()[index].kind);
-  }
-  intptr_t DeoptId(intptr_t index) const {
-    ASSERT(index < Length());
-    return raw_ptr()->data()[index].deopt_id;
-  }
-  intptr_t TokenPos(intptr_t index) const {
-    ASSERT(index < Length());
-    return raw_ptr()->data()[index].token_pos;
-  }
-  intptr_t TryIndex(intptr_t index) const {
-    ASSERT(index < Length());
-    return raw_ptr()->data()[index].try_index;
-  }
-  const char* KindAsStr(intptr_t index) const;
-
   void AddDescriptor(intptr_t index,
                      uword pc,
-                     PcDescriptors::Kind kind,
+                     RawPcDescriptors::Kind kind,
                      int64_t deopt_id,
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
-    RawPcDescriptors::PcDescriptorRec* rec = &raw_ptr()->data()[index];
+    RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
     rec->pc = pc;
-    rec->kind = kind;
+    rec->kind_ = kind;
     ASSERT(Utils::IsInt(32, deopt_id));
     rec->deopt_id = deopt_id;
     ASSERT(Utils::IsInt(32, token_pos));
@@ -3055,7 +3020,7 @@ class PcDescriptors : public Object {
   static RawPcDescriptors* New(intptr_t num_descriptors);
 
   // Returns 0 if not found.
-  uword GetPcForKind(Kind kind) const;
+  uword GetPcForKind(RawPcDescriptors::Kind kind) const;
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -3067,7 +3032,36 @@ class PcDescriptors : public Object {
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
+  class Iterator : public ValueObject {
+   public:
+    explicit Iterator(const PcDescriptors& descriptors)
+        : descriptors_(descriptors), current_ix_(0) {}
+
+    // For nested iterations, starting at element after.
+    explicit Iterator(const Iterator& iter)
+        : descriptors_(iter.descriptors_), current_ix_(iter.current_ix_) {}
+
+    bool HasNext() { return current_ix_ < descriptors_.Length(); }
+
+    const RawPcDescriptors::PcDescriptorRec& Next() {
+      ASSERT(HasNext());
+      return *descriptors_.recAt(current_ix_++);
+    }
+
+   private:
+    const PcDescriptors& descriptors_;
+    intptr_t current_ix_;
+  };
+
  private:
+  static const char* KindAsStr(RawPcDescriptors::Kind kind);
+
+  intptr_t Length() const;
+
+  RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
+    ASSERT(ix < Length());
+    return &raw_ptr()->data()[ix];
+  }
   void SetLength(intptr_t value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
@@ -3684,7 +3678,7 @@ class Code : public Object {
   uword GetLazyDeoptPc() const;
 
   // Find pc, return 0 if not found.
-  uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
+  uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   // Returns true if there is an object in the code between 'start_offset'
