@@ -108,11 +108,16 @@ class Usage {
   }
 
   String getLongOption(Option option) {
+    var result;
     if (option.negatable) {
-      return '--[no-]${option.name}';
+      result = '--[no-]${option.name}';
     } else {
-      return '--${option.name}';
+      result = '--${option.name}';
     }
+
+    if (option.valueHelp != null) result += "=<${option.valueHelp}>";
+
+    return result;
   }
 
   String getAllowedTitle(String allowed) {

@@ -209,6 +209,11 @@ To define help text for an entire option, use the `help:` parameter:
         allowed: ['debug', 'release']);
     parser.addFlag('verbose', help: 'Show additional diagnostic info');
 
+For non-flag options, you can also provide a help string for the parameter:
+
+    parser.addOption('out', help: 'The output path', helpValue: 'path',
+        allowed: ['debug', 'release']);
+
 For non-flag options, you can also provide detailed help for each expected value
 by using the `allowedHelp:` parameter:
 
@@ -227,15 +232,11 @@ The resulting string looks something like this:
     --mode            The compiler configuration
                       [debug, release]
 
+    --out=<path>      The output path
     --[no-]verbose    Show additional diagnostic info
     --arch            The architecture to compile for
-
           [arm]       ARM Holding 32-bit chip
           [ia32]      Intel x86
-
-To assist the formatting of the usage help, single-line help text is followed by
-a single new line. Options with multi-line help text are followed by two new
-lines. This provides spatial diversity between options.
 
 [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
 [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
