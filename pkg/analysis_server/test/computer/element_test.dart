@@ -6,14 +6,14 @@ library test.computer.element;
 
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_testing/abstract_context.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:unittest/unittest.dart';
 
-import '../abstract_context.dart';
-import '../reflective_tests.dart';
 
 
 main() {

@@ -4,15 +4,14 @@
 
 library test.engine.src.index.store.codec;
 
+import 'package:analysis_testing/mocks.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/index/store/codec.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
-import 'typed_mocks.dart';
 
 
 main() {

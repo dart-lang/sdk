@@ -6,19 +6,20 @@ library test.engine.src.index.split_store;
 
 import 'dart:async';
 
+import 'package:analysis_testing/mocks.dart';
+import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/index/index.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/index/store/codec.dart';
+import 'package:analyzer/src/index/store/memory_node_manager.dart';
+import 'package:analyzer/src/index/store/split_store.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
+import 'mocks.dart';
 import 'single_source_container.dart';
-import 'typed_mocks.dart';
-import 'package:analyzer/src/index/store/split_store.dart';
-import 'package:analyzer/index/index.dart';
-import 'package:analyzer/src/index/store/codec.dart';
-import 'package:analyzer/src/index/store/memory_node_manager.dart';
 
 
 main() {
@@ -56,16 +57,19 @@ void _assertHasLocation(List<Location> locations, Element element, int offset,
 
 @ReflectiveTestCase()
 class _FileNodeManagerTest {
+  MockLogger logger = new MockLogger();
+  StringCodec stringCodec = new StringCodec();
+  RelationshipCodec relationshipCodec;
+
   AnalysisContext context = new MockAnalysisContext('context');
   ContextCodec contextCodec = new MockContextCodec();
   int contextId = 13;
+
   ElementCodec elementCodec = new MockElementCodec();
-  FileManager fileManager = new _MockFileManager();
-  MockLogger logger = new MockLogger();
   int nextElementId = 0;
+
   FileNodeManager nodeManager;
-  RelationshipCodec relationshipCodec;
-  StringCodec stringCodec = new StringCodec();
+  FileManager fileManager = new _MockFileManager();
 
   void setUp() {
     relationshipCodec = new RelationshipCodec(stringCodec);

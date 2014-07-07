@@ -6,13 +6,13 @@ library test.operation.analysis;
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
+import 'package:analysis_testing/mocks.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
-import '../typed_mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -30,7 +30,7 @@ class AnalysisErrorMock extends TypedMock implements AnalysisError {
 
 @ReflectiveTestCase()
 class Test_errorToJson {
-  Source source = new SourceMock();
+  Source source = new MockSource();
   LineInfo lineInfo;
   AnalysisError analysisError = new AnalysisErrorMock();
 

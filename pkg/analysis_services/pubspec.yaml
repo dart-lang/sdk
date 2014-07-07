@@ -8,4 +8,5 @@ environment:
 dependencies:
   analyzer: '>=0.15.1 <0.16.0'
 dev_dependencies:
+  analysis_testing: '>=0.1.0 <0.2.0'
   unittest: '>=0.10.0 <0.12.0'

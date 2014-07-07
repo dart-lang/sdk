@@ -6,19 +6,30 @@ library test.domain.analysis;
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
-import 'mocks.dart';
 import 'analysis_abstract.dart';
-import 'reflective_tests.dart';
+import 'mocks.dart';
+
+
+AnalysisError jsonToAnalysisError(Map<String, Object> json) {
+  Map<String, Object> jsonLocation = json[LOCATION];
+  Location location = new Location(jsonLocation[FILE], _getSafeInt(jsonLocation,
+      OFFSET, -1), _getSafeInt(jsonLocation, LENGTH, -1), _getSafeInt(jsonLocation,
+      START_LINE, -1), _getSafeInt(jsonLocation, START_COLUMN, -1));
+  return new AnalysisError(json[ERROR_CODE], json[SEVERITY], json[TYPE], location,
+      json['message'], json['correction']);
+}
 
 
 main() {
@@ -157,253 +168,6 @@ main() {
 }
 
 
-class AnalysisError {
-  final String errorCode;
-  final String severity;
-  final String type;
-  final Location location;
-  final String message;
-  final String correction;
-  AnalysisError(this.errorCode, this.severity, this.type, this.location,
-      this.message, this.correction);
-
-  @override
-  String toString() {
-    return 'AnalysisError(location=$location message=$message); '
-        'errorCode=$errorCode; severity=$separator type=$type';
-  }
-}
-
-
-AnalysisError jsonToAnalysisError(Map<String, Object> json) {
-  Map<String, Object> jsonLocation = json[LOCATION];
-  Location location = new Location(jsonLocation[FILE], _getSafeInt(jsonLocation,
-      OFFSET, -1), _getSafeInt(jsonLocation, LENGTH, -1), _getSafeInt(jsonLocation,
-      START_LINE, -1), _getSafeInt(jsonLocation, START_COLUMN, -1));
-  return new AnalysisError(json[ERROR_CODE], json[SEVERITY], json[TYPE], location,
-      json['message'], json['correction']);
-}
-
-
-int _getSafeInt(Map<String, Object> json, String key, int defaultValue) {
-  Object value = json[key];
-  if (value is int) {
-    return value;
-  }
-  return defaultValue;
-}
-
-
-/**
- * A helper to test 'analysis.*' requests.
- */
-class AnalysisTestHelper {
-  MockServerChannel serverChannel;
-  MemoryResourceProvider resourceProvider;
-  AnalysisServer server;
-  AnalysisDomainHandler handler;
-
-  Map<String, List<String>> analysisSubscriptions = {};
-
-  Map<String, List<AnalysisError>> filesErrors = {};
-  Map<String, List<Map<String, Object>>> filesHighlights = {};
-  Map<String, List<Map<String, Object>>> filesNavigation = {};
-
-  String testFile = '/project/bin/test.dart';
-  String testCode;
-
-  AnalysisTestHelper() {
-    serverChannel = new MockServerChannel();
-    resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null);
-    server.defaultSdk = new MockSdk();
-    handler = new AnalysisDomainHandler(server);
-    // listen for notifications
-    Stream<Notification> notificationStream =
-        serverChannel.notificationController.stream;
-    notificationStream.listen((Notification notification) {
-      if (notification.event == ANALYSIS_ERRORS) {
-        String file = notification.getParameter(FILE);
-        List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-        filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
-      }
-      if (notification.event == ANALYSIS_HIGHLIGHTS) {
-        String file = notification.getParameter(FILE);
-        filesHighlights[file] = notification.getParameter(REGIONS);
-      }
-      if (notification.event == ANALYSIS_NAVIGATION) {
-        String file = notification.getParameter(FILE);
-        filesNavigation[file] = notification.getParameter(REGIONS);
-      }
-    });
-  }
-
-  void addAnalysisSubscriptionHighlights(String file) {
-    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-  }
-
-  void addAnalysisSubscriptionNavigation(String file) {
-    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
-  }
-
-  void addAnalysisSubscription(AnalysisService service, String file) {
-    // add file to subscription
-    var files = analysisSubscriptions[service.name];
-    if (files == null) {
-      files = <String>[];
-      analysisSubscriptions[service.name] = files;
-    }
-    files.add(file);
-    // set subscriptions
-    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
-    request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
-    handleSuccessfulRequest(request);
-  }
-
-  /**
-   * Returns a [Future] that completes when this this helper finished all its
-   * scheduled tasks.
-   */
-  Future waitForOperationsFinished() {
-    return waitForServerOperationsPerformed(server);
-  }
-
-  /**
-   * Returns the offset of [search] in [testCode].
-   * Fails if not found.
-   */
-  int findOffset(String search) {
-    int offset = testCode.indexOf(search);
-    expect(offset, isNot(-1));
-    return offset;
-  }
-
-  /**
-   * Returns [AnalysisError]s recorded for the given [file].
-   * May be empty, but not `null`.
-   */
-  List<AnalysisError> getErrors(String file) {
-    List<AnalysisError> errors = filesErrors[file];
-    if (errors != null) {
-      return errors;
-    }
-    return <AnalysisError>[];
-  }
-
-  /**
-   * Returns highlights recorded for the given [file].
-   * May be empty, but not `null`.
-   */
-  List<Map<String, Object>> getHighlights(String file) {
-    List<Map<String, Object>> highlights = filesHighlights[file];
-    if (highlights != null) {
-      return highlights;
-    }
-    return [];
-  }
-
-  /**
-   * Returns navigation regions recorded for the given [file].
-   * May be empty, but not `null`.
-   */
-  List<Map<String, Object>> getNavigation(String file) {
-    List<Map<String, Object>> navigation = filesNavigation[file];
-    if (navigation != null) {
-      return navigation;
-    }
-    return [];
-  }
-
-  /**
-   * Returns [AnalysisError]s recorded for the [testFile].
-   * May be empty, but not `null`.
-   */
-  List<AnalysisError> getTestErrors() {
-    return getErrors(testFile);
-  }
-
-  /**
-   * Returns highlights recorded for the given [testFile].
-   * May be empty, but not `null`.
-   */
-  List<Map<String, Object>> getTestHighlights() {
-    return getHighlights(testFile);
-  }
-
-  /**
-   * Returns navigation information recorded for the given [testFile].
-   * May be empty, but not `null`.
-   */
-  List<Map<String, Object>> getTestNavigation() {
-    return getNavigation(testFile);
-  }
-
-  /**
-   * Creates an empty project `/project`.
-   */
-  void createEmptyProject() {
-    resourceProvider.newFolder('/project');
-    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-    request.setParameter(INCLUDED, ['/project']);
-    request.setParameter(EXCLUDED, []);
-    handleSuccessfulRequest(request);
-  }
-
-  /**
-   * Creates a project with a single Dart file `/project/bin/test.dart` with
-   * the given [code].
-   */
-  void createSingleFileProject(code) {
-    this.testCode = _getCodeString(code);
-    resourceProvider.newFolder('/project');
-    resourceProvider.newFile(testFile, testCode);
-    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-    request.setParameter(INCLUDED, ['/project']);
-    request.setParameter(EXCLUDED, []);
-    handleSuccessfulRequest(request);
-  }
-
-  String setFileContent(String path, String content) {
-    resourceProvider.newFile(path, content);
-    return path;
-  }
-
-  /**
-   * Validates that the given [request] is handled successfully.
-   */
-  void handleSuccessfulRequest(Request request) {
-    Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess('0'));
-  }
-
-  /**
-   * Stops the associated server.
-   */
-  void stopServer() {
-    server.done();
-  }
-
-  /**
-   * Send an `updateContent` request for [testFile].
-   */
-  void sendContentChange(Map contentChange) {
-    Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
-    request.setParameter('files', {
-      testFile: contentChange
-    });
-    handleSuccessfulRequest(request);
-  }
-
-  static String _getCodeString(code) {
-    if (code is List<String>) {
-      code = code.join('\n');
-    }
-    return code as String;
-  }
-}
-
-
 testNotificationErrors() {
   AnalysisTestHelper helper;
 
@@ -529,6 +293,7 @@ testUpdateContent() {
   });
 }
 
+
 void test_setSubscriptions() {
   test('before analysis', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
@@ -563,6 +328,15 @@ void test_setSubscriptions() {
 }
 
 
+int _getSafeInt(Map<String, Object> json, String key, int defaultValue) {
+  Object value = json[key];
+  if (value is int) {
+    return value;
+  }
+  return defaultValue;
+}
+
+
 @ReflectiveTestCase()
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
@@ -573,30 +347,6 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
       List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
       filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
     }
-  }
-
-  test_setRoots_packages() {
-    // prepare package
-    String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
-library lib_a;
-class A {}
-''');
-    packageMapProvider.packageMap['pkgA'] = [resourceProvider.getResource(
-        '/packages/pkgA')];
-    addTestFile('''
-import 'package:pkgA/libA.dart';
-main(A a) {
-}
-''');
-    // create project and wait for analysis
-    createProject();
-    return waitForTasksFinished().then((_) {
-      // if 'package:pkgA/libA.dart' was resolved, then there are no errors
-      expect(filesErrors[testFile], isEmpty);
-      // packages file also was resolved
-      expect(filesErrors[pkgFile], isEmpty);
-    });
   }
 
   test_packageMapDependencies() {
@@ -630,5 +380,256 @@ f(A a) {
         expect(filesErrors[testFile], isEmpty);
       });
     });
+  }
+
+  test_setRoots_packages() {
+    // prepare package
+    String pkgFile = '/packages/pkgA/libA.dart';
+    resourceProvider.newFile(pkgFile, '''
+library lib_a;
+class A {}
+''');
+    packageMapProvider.packageMap['pkgA'] = [resourceProvider.getResource(
+        '/packages/pkgA')];
+    addTestFile('''
+import 'package:pkgA/libA.dart';
+main(A a) {
+}
+''');
+    // create project and wait for analysis
+    createProject();
+    return waitForTasksFinished().then((_) {
+      // if 'package:pkgA/libA.dart' was resolved, then there are no errors
+      expect(filesErrors[testFile], isEmpty);
+      // packages file also was resolved
+      expect(filesErrors[pkgFile], isEmpty);
+    });
+  }
+}
+
+class AnalysisError {
+  final String errorCode;
+  final String severity;
+  final String type;
+  final Location location;
+  final String message;
+  final String correction;
+  AnalysisError(this.errorCode, this.severity, this.type, this.location,
+      this.message, this.correction);
+
+  @override
+  String toString() {
+    return 'AnalysisError(location=$location message=$message); '
+        'errorCode=$errorCode; severity=$separator type=$type';
+  }
+}
+
+
+/**
+ * A helper to test 'analysis.*' requests.
+ */
+class AnalysisTestHelper {
+  MockServerChannel serverChannel;
+  MemoryResourceProvider resourceProvider;
+  AnalysisServer server;
+  AnalysisDomainHandler handler;
+
+  Map<String, List<String>> analysisSubscriptions = {};
+
+  Map<String, List<AnalysisError>> filesErrors = {};
+  Map<String, List<Map<String, Object>>> filesHighlights = {};
+  Map<String, List<Map<String, Object>>> filesNavigation = {};
+
+  String testFile = '/project/bin/test.dart';
+  String testCode;
+
+  AnalysisTestHelper() {
+    serverChannel = new MockServerChannel();
+    resourceProvider = new MemoryResourceProvider();
+    server = new AnalysisServer(serverChannel, resourceProvider,
+        new MockPackageMapProvider(), null);
+    server.defaultSdk = new MockSdk();
+    handler = new AnalysisDomainHandler(server);
+    // listen for notifications
+    Stream<Notification> notificationStream =
+        serverChannel.notificationController.stream;
+    notificationStream.listen((Notification notification) {
+      if (notification.event == ANALYSIS_ERRORS) {
+        String file = notification.getParameter(FILE);
+        List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
+        filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+      }
+      if (notification.event == ANALYSIS_HIGHLIGHTS) {
+        String file = notification.getParameter(FILE);
+        filesHighlights[file] = notification.getParameter(REGIONS);
+      }
+      if (notification.event == ANALYSIS_NAVIGATION) {
+        String file = notification.getParameter(FILE);
+        filesNavigation[file] = notification.getParameter(REGIONS);
+      }
+    });
+  }
+
+  void addAnalysisSubscription(AnalysisService service, String file) {
+    // add file to subscription
+    var files = analysisSubscriptions[service.name];
+    if (files == null) {
+      files = <String>[];
+      analysisSubscriptions[service.name] = files;
+    }
+    files.add(file);
+    // set subscriptions
+    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
+    request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
+    handleSuccessfulRequest(request);
+  }
+
+  void addAnalysisSubscriptionHighlights(String file) {
+    addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
+  }
+
+  void addAnalysisSubscriptionNavigation(String file) {
+    addAnalysisSubscription(AnalysisService.NAVIGATION, file);
+  }
+
+  /**
+   * Creates an empty project `/project`.
+   */
+  void createEmptyProject() {
+    resourceProvider.newFolder('/project');
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
+    request.setParameter(INCLUDED, ['/project']);
+    request.setParameter(EXCLUDED, []);
+    handleSuccessfulRequest(request);
+  }
+
+  /**
+   * Creates a project with a single Dart file `/project/bin/test.dart` with
+   * the given [code].
+   */
+  void createSingleFileProject(code) {
+    this.testCode = _getCodeString(code);
+    resourceProvider.newFolder('/project');
+    resourceProvider.newFile(testFile, testCode);
+    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
+    request.setParameter(INCLUDED, ['/project']);
+    request.setParameter(EXCLUDED, []);
+    handleSuccessfulRequest(request);
+  }
+
+  /**
+   * Returns the offset of [search] in [testCode].
+   * Fails if not found.
+   */
+  int findOffset(String search) {
+    int offset = testCode.indexOf(search);
+    expect(offset, isNot(-1));
+    return offset;
+  }
+
+  /**
+   * Returns [AnalysisError]s recorded for the given [file].
+   * May be empty, but not `null`.
+   */
+  List<AnalysisError> getErrors(String file) {
+    List<AnalysisError> errors = filesErrors[file];
+    if (errors != null) {
+      return errors;
+    }
+    return <AnalysisError>[];
+  }
+
+  /**
+   * Returns highlights recorded for the given [file].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getHighlights(String file) {
+    List<Map<String, Object>> highlights = filesHighlights[file];
+    if (highlights != null) {
+      return highlights;
+    }
+    return [];
+  }
+
+  /**
+   * Returns navigation regions recorded for the given [file].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getNavigation(String file) {
+    List<Map<String, Object>> navigation = filesNavigation[file];
+    if (navigation != null) {
+      return navigation;
+    }
+    return [];
+  }
+
+  /**
+   * Returns [AnalysisError]s recorded for the [testFile].
+   * May be empty, but not `null`.
+   */
+  List<AnalysisError> getTestErrors() {
+    return getErrors(testFile);
+  }
+
+  /**
+   * Returns highlights recorded for the given [testFile].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getTestHighlights() {
+    return getHighlights(testFile);
+  }
+
+  /**
+   * Returns navigation information recorded for the given [testFile].
+   * May be empty, but not `null`.
+   */
+  List<Map<String, Object>> getTestNavigation() {
+    return getNavigation(testFile);
+  }
+
+  /**
+   * Validates that the given [request] is handled successfully.
+   */
+  void handleSuccessfulRequest(Request request) {
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess('0'));
+  }
+
+  /**
+   * Send an `updateContent` request for [testFile].
+   */
+  void sendContentChange(Map contentChange) {
+    Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
+    request.setParameter('files', {
+      testFile: contentChange
+    });
+    handleSuccessfulRequest(request);
+  }
+
+  String setFileContent(String path, String content) {
+    resourceProvider.newFile(path, content);
+    return path;
+  }
+
+  /**
+   * Stops the associated server.
+   */
+  void stopServer() {
+    server.done();
+  }
+
+  /**
+   * Returns a [Future] that completes when this this helper finished all its
+   * scheduled tasks.
+   */
+  Future waitForOperationsFinished() {
+    return waitForServerOperationsPerformed(server);
+  }
+
+  static String _getCodeString(code) {
+    if (code is List<String>) {
+      code = code.join('\n');
+    }
+    return code as String;
   }
 }

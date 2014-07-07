@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.index;
+library testing.abstract_context;
 
+import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -11,9 +13,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-
-import 'mocks.dart';
-import 'reflective_tests.dart';
 
 
 /**
@@ -45,8 +44,8 @@ typedef void _ElementVisitorFunction(Element element);
 class AbstractContextTest {
   static final DartSdk SDK = new MockSdk();
 
-  AnalysisContext context;
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  AnalysisContext context;
 
   Source addSource(String path, String content) {
     File file = provider.newFile(path, content);

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_edit.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
 

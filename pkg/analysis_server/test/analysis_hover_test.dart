@@ -9,10 +9,10 @@ import 'dart:async';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'reflective_tests.dart';
 
 
 main() {
