@@ -2436,8 +2436,8 @@ class TokenStream : public Object {
     };
 
     Iterator(const TokenStream& tokens,
-                   intptr_t token_pos,
-                   Iterator::StreamType stream_type = kNoNewlines);
+             intptr_t token_pos,
+             Iterator::StreamType stream_type = kNoNewlines);
 
     void SetStream(const TokenStream& tokens, intptr_t token_pos);
     bool IsValid() const;
@@ -3032,10 +3032,10 @@ class PcDescriptors : public Object {
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
-  class Iterator : public ValueObject {
+  class Iterator : ValueObject {
    public:
     explicit Iterator(const PcDescriptors& descriptors)
-        : descriptors_(descriptors), current_ix_(0) {}
+        : ValueObject(), descriptors_(descriptors), current_ix_(0) {}
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
