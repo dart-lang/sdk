@@ -1,3 +1,7 @@
+## 0.11.1
+
+ * Negative numbers were being parsed as positive.
+
 ## 0.11.0
 
  * Switch the message format from a custom JSON format to 
