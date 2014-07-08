@@ -2230,7 +2230,8 @@ class ConcreteTypesInferrer
   }
 
   @override
-  void setDefaultTypeOfParameter(Element parameter, ConcreteType type) {
+  void setDefaultTypeOfParameter(ParameterElement parameter,
+                                 ConcreteType type) {
     // We handle default parameters our own way in associateArguments
   }
 

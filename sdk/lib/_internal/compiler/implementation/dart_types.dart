@@ -1299,7 +1299,7 @@ class Types {
   static ClassElement getClassContext(DartType type) {
     TypeVariableType typeVariable = type.typeVariableOccurrence;
     if (typeVariable == null) return null;
-    return typeVariable.element.enclosingElement;
+    return typeVariable.element.typeDeclaration;
   }
 
   /**

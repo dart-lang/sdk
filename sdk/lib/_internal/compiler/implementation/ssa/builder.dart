@@ -392,14 +392,13 @@ class LocalsHandler {
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
-      Element redirect = redirectionMapping[element];
+      BoxFieldElement redirect = redirectionMapping[element];
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      assert(redirect.enclosingElement is BoxElement);
-      HInstruction box = readLocal(redirect.enclosingElement);
+      HInstruction box = readLocal(redirect.box);
       HInstruction lookup = new HFieldGet(
           redirect, box, builder.getTypeOfCapturedVariable(redirect));
       builder.add(lookup);
@@ -447,13 +446,12 @@ class LocalsHandler {
     if (isAccessedDirectly(element)) {
       directLocals[element] = value;
     } else if (isBoxed(element)) {
-      Element redirect = redirectionMapping[element];
+      BoxFieldElement redirect = redirectionMapping[element];
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
-      assert(redirect.enclosingElement is BoxElement);
-      HInstruction box = readLocal(redirect.enclosingElement);
+      HInstruction box = readLocal(redirect.box);
       builder.add(new HFieldSet(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
@@ -1385,7 +1383,7 @@ class SsaBuilder extends ResolvedVisitor {
   TypeMask getTypeOfThis() {
     TypeMask result = cachedTypeOfThis;
     if (result == null) {
-      Element element = localsHandler.closureData.thisElement;
+      ThisElement element = localsHandler.closureData.thisElement;
       ClassElement cls = element.enclosingElement.enclosingClass;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be

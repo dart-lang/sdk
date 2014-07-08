@@ -511,8 +511,8 @@ class InfoDumpVisitor extends ElementVisitor<InfoNode> {
     }
     if (element.isConstructor) {
       nameString = element.name == ""
-          ? "${element.enclosingElement.name}"
-          : "${element.enclosingElement.name}.${element.name}";
+          ? "${element.enclosingClass.name}"
+          : "${element.enclosingClass.name}.${element.name}";
       kindString = "constructor";
     }
     List contents = [];

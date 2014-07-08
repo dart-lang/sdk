@@ -871,14 +871,15 @@ class TypeGraphInferrerEngine
     }
   }
 
-  void setDefaultTypeOfParameter(Element parameter, TypeInformation type) {
-    assert(parameter.enclosingElement.isImplementation);
+  void setDefaultTypeOfParameter(ParameterElement parameter,
+                                 TypeInformation type) {
+    assert(parameter.functionDeclaration.isImplementation);
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOf(parameter);
     if (!info.abandonInferencing && existing != null && existing != type) {
       // Replace references to [existing] to use [type] instead.
-      if (parameter.enclosingElement.isInstanceMember) {
+      if (parameter.functionDeclaration.isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
         int count = assignments.assignments[existing];
         if (count == null) return;

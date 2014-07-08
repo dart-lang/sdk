@@ -426,7 +426,8 @@ class JavaScriptBackend extends Backend {
 
   bool invokedReflectively(Element element) {
     if (element.isParameter || element.isFieldParameter) {
-      if (invokedReflectively(element.enclosingElement)) return true;
+      ParameterElement parameter = element;
+      if (invokedReflectively(parameter.functionDeclaration)) return true;
     }
 
     if (element.isField) {

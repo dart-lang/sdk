@@ -1323,12 +1323,14 @@ class ParameterElementX extends ElementX
   FunctionSignature functionSignatureCache;
 
   ParameterElementX(ElementKind elementKind,
-                    Element enclosingElement,
+                    FunctionTypedElement enclosingElement,
                     this.definitions,
                     Identifier identifier,
                     this.initializer)
       : this.identifier = identifier,
         super(identifier.source, elementKind, enclosingElement);
+
+  FunctionTypedElement get functionDeclaration => enclosingElement;
 
   Modifiers get modifiers => definitions.modifiers;
 
@@ -1663,6 +1665,8 @@ abstract class ConstructorElementX extends FunctionElementX
   }
 
   ConstructorElement get definingConstructor => null;
+
+  ClassElement get enclosingClass => enclosingElement;
 }
 
 class DeferredLoaderGetterElementX extends FunctionElementX {
@@ -2525,8 +2529,10 @@ class TypeVariableElementX extends ElementX with AstElementMixin
   TypeVariableType typeCache;
   DartType boundCache;
 
-  TypeVariableElementX(String name, Element enclosing, this.node)
+  TypeVariableElementX(String name, TypeDeclarationElement enclosing, this.node)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
+
+  TypeDeclarationElement get typeDeclaration => enclosingElement;
 
   TypeVariableType computeType(compiler) => type;
 

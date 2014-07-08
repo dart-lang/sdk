@@ -2988,7 +2988,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     registry.registerStaticUse(redirectionTarget);
     registry.registerInstantiatedClass(
-        redirectionTarget.enclosingElement.declaration);
+        redirectionTarget.enclosingClass.declaration);
     if (isSymbolConstructor) {
       registry.registerSymbolConstructor();
     }

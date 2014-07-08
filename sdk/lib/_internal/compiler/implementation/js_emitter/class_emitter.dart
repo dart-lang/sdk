@@ -596,7 +596,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     Substitution substitution =
         backend.rti.computeSubstitution(
-            cls, element.enclosingElement, alwaysGenerateFunction: true);
+            cls, element.typeDeclaration, alwaysGenerateFunction: true);
     if (substitution != null) {
       jsAst.Expression typeArguments =
           js(r'#.apply(null, this.$builtinTypeInfo)',
