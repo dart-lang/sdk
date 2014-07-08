@@ -1673,11 +1673,16 @@ class CopyPropagator extends RecursiveVisitor {
   /// Like [move], except w is the key instead of v.
   Map<Variable, Assign> inverseMove = <Variable, Assign>{};
 
+  /// The function currently being rewritten.
+  FunctionElement functionElement;
+
   void rewrite(FunctionDefinition function) {
+    functionElement = function.element;
     visitFunctionDefinition(function);
   }
 
   void visitFunctionDefinition(FunctionDefinition function) {
+    assert(functionElement == function.element);
     function.body = visitStatement(function.body);
 
     // Try to propagate moving assignments into function parameters.
@@ -1771,10 +1776,12 @@ class CopyPropagator extends RecursiveVisitor {
     visitVariable(node.variable);
 
     // If this is a moving assignment w := v, with this being the only use of v,
-    // try to propagate it backwards.
+    // try to propagate it backwards.  Do not propagate assignments where w
+    // is from an outer function scope.
     if (node.definition is Variable) {
       Variable def = node.definition;
-      if (def.readCount == 1) {
+      if (def.readCount == 1 &&
+          node.variable.host.element == functionElement) {
         move[node.definition] = node;
         inverseMove[node.variable] = node;
       }
@@ -1819,20 +1826,20 @@ class CopyPropagator extends RecursiveVisitor {
   }
 
   Statement visitFunctionDeclaration(FunctionDeclaration node) {
-    new CopyPropagator().visitFunctionDefinition(node.definition);
+    new CopyPropagator().rewrite(node.definition);
     node.next = visitStatement(node.next);
     node.variable = copyPropagateVariable(node.variable);
     return node;
   }
 
   Statement visitExpressionStatement(ExpressionStatement node) {
-    visitExpression(node.expression);
     node.next = visitStatement(node.next);
+    visitExpression(node.expression);
     return node;
   }
 
   void visitFunctionExpression(FunctionExpression node) {
-    new CopyPropagator().visitFunctionDefinition(node.definition);
+    new CopyPropagator().rewrite(node.definition);
   }
 
 }
