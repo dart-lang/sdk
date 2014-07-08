@@ -150,11 +150,11 @@ void testQuotes() {
 
   fmt = new NumberFormat('a\'fo\'\'o\'b#');
   str = fmt.format(-123);
-  expect('afo\'ob-123', str);
+  expect('-afo\'ob123', str);
 
   fmt = new NumberFormat('a\'\'b#');
   str = fmt.format(-123);
-  expect('a\'b-123', str);
+  expect('-a\'b123', str);
 }
 
 void testZeros() {

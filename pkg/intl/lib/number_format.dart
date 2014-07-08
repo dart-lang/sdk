@@ -601,13 +601,13 @@ class _NumberParser {
     }
 
     checkPrefixes();
-    var basicNumber = parseNumber(input);
+    var parsed = parseNumber(input);
 
     if (gotPositive && !gotPositiveSuffix) invalidNumber();
     if (gotNegative && !gotNegativeSuffix) invalidNumber();
     if (!input.atEnd()) invalidNumber();
 
-    return gotNegative ? -basicNumber : basicNumber;
+    return parsed;
   }
 
   /** The number is invalid, throw a [FormatException]. */
@@ -704,8 +704,8 @@ class _NumberFormatParser {
       format._negativeSuffix = _parseAffix();
     } else {
       // If no negative affix is specified, they share the same positive affix.
-      format._negativePrefix = format._positivePrefix + format._negativePrefix;
-      format._negativeSuffix = format._negativeSuffix + format._positiveSuffix;
+      format._negativePrefix = format._negativePrefix + format._positivePrefix;
+      format._negativeSuffix = format._positiveSuffix + format._negativeSuffix;
     }
   }
 
