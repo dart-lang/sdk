@@ -445,6 +445,17 @@ class RegisterSet : public ValueObject {
     }
   }
 
+  bool Contains(Location loc) {
+    if (loc.IsRegister()) {
+      return ContainsRegister(loc.reg());
+    } else if (loc.IsFpuRegister()) {
+      return ContainsFpuRegister(loc.fpu_reg());
+    } else {
+      UNREACHABLE();
+      return false;
+    }
+  }
+
   void DebugPrint() {
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
       Register r = static_cast<Register>(i);

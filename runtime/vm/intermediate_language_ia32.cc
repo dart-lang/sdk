@@ -1717,7 +1717,8 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    locs->live_registers()->Remove(locs->temp(0));
+
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
@@ -2213,8 +2214,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
-
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
@@ -2248,7 +2248,7 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
@@ -2283,7 +2283,7 @@ class BoxFloat64x2SlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
@@ -2586,7 +2586,7 @@ class AllocateContextSlowPath : public SlowPathCode {
     __ Bind(entry_label());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
 
@@ -3631,7 +3631,7 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
@@ -5715,7 +5715,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->out(0));
+    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.

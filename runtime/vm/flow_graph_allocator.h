@@ -116,7 +116,6 @@ class FlowGraphAllocator : public ValueObject {
                        intptr_t vreg,
                        RegisterSet* live_registers);
   void ProcessOneOutput(BlockEntryInstr* block,
-                        Instruction* current,
                         intptr_t pos,
                         Location* out,
                         Definition* def,
@@ -143,7 +142,7 @@ class FlowGraphAllocator : public ValueObject {
   intptr_t NumberOfRegisters() const { return number_of_registers_; }
 
   // Find all safepoints that are covered by this live range.
-  void AssignSafepoints(LiveRange* range);
+  void AssignSafepoints(Definition* defn, LiveRange* range);
 
   void PrepareForAllocation(Location::Kind register_kind,
                             intptr_t number_of_registers,
