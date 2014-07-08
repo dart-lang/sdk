@@ -16,14 +16,14 @@ import 'package:observe/observe.dart';
 ///       MyModel() {
 ///         ...
 ///         _sub = onPropertyChange(_otherModel, #value,
-///             () => notifyProperty(this, #prop);
+///             () => notifyPropertyChange(#prop, oldValue, newValue);
 ///       }
 ///
 ///       String get prop => _otherModel.value;
 ///       set prop(String value) { _otherModel.value = value; }
 ///     }
 ///
-/// See also [notifyProperty].
+/// See also [notifyPropertyChange].
 // TODO(jmesserly): make this an instance method?
 StreamSubscription onPropertyChange(Observable source, Symbol sourceName,
     void callback()) {
