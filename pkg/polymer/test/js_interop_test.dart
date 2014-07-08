@@ -95,12 +95,21 @@ main() => initPolymer().run(() {
       // Text will update asynchronously
       expect(jsElem.shadowRoot.text, 'FOOBAR:40');
 
-      return new Future(() {
+      return _onTextChanged(jsElem.shadowRoot).then((_) {
         expect(jsElem.shadowRoot.text, 'FOOBAR:42');
       });
     });     
   });
 });
+
+Future<List<MutationRecord>> _onTextChanged(Node node) {
+  var completer = new Completer();
+  new MutationObserver((mutations, observer) {
+    observer.disconnect();
+    completer.complete(mutations);
+  })..observe(node, characterData: true, subtree: true);
+  return completer.future;
+}
 
 testInterop(jsElem) {
   expect(jsElem.shadowRoot.text, 'FOOBAR');
