@@ -41,7 +41,6 @@ class PathObserver extends _Observer implements Bindable {
   /// Sets the value at this path.
   void set value(Object newValue) {
     if (_path != null) _path.setValueFrom(_object, newValue);
-    _discardChanges();
   }
 
   int get _reportArgumentCount => 2;
@@ -509,7 +508,7 @@ abstract class _Observer extends Bindable {
   void _connect();
   void _disconnect();
   bool get _isClosed;
-  _check({bool skipChanges: false});
+  bool _check({bool skipChanges: false});
 
   bool get _isOpen => _notifyCallback != null;
 
@@ -548,7 +547,9 @@ abstract class _Observer extends Bindable {
     return _value;
   }
 
-  bool deliver() => _isOpen ? _dirtyCheck() : false;
+  void deliver() {
+    if (_isOpen) _dirtyCheck();
+  }
 
   bool _dirtyCheck() {
     var cycles = 0;

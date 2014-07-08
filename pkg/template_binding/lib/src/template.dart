@@ -5,7 +5,7 @@
 part of template_binding;
 
 /** Extensions to [Element]s that behave as templates. */
-class TemplateBindExtension extends _ElementExtension {
+class TemplateBindExtension extends NodeBindExtension {
   var _model;
   BindingDelegate _bindingDelegate;
   _TemplateIterator _iterator;
@@ -23,16 +23,15 @@ class TemplateBindExtension extends _ElementExtension {
 
   Node _refContent;
 
-  TemplateBindExtension._(Element node) : super(node);
+  TemplateBindExtension._(Element node) : super._(node);
 
   Element get _node => super._node;
 
-  TemplateBindExtension get _self => super._node is TemplateBindExtension
+  TemplateBindExtension get _self => _node is TemplateBindExtension
       ? _node : this;
 
   Bindable bind(String name, value, {bool oneTime: false}) {
     if (name != 'ref') return super.bind(name, value, oneTime: oneTime);
-
 
     var ref = oneTime ? value : value.open((ref) {
       _node.attributes['ref'] = ref;
@@ -43,7 +42,8 @@ class TemplateBindExtension extends _ElementExtension {
     _refChanged();
     if (oneTime) return null;
 
-    return _updateBindings('ref', value);
+    if (bindings == null) bindings = {};
+    return bindings['ref'] = value;
   }
 
   _TemplateIterator _processBindingDirectives(_TemplateBindingMap directives) {
@@ -78,7 +78,7 @@ class TemplateBindExtension extends _ElementExtension {
    *
    * If [instanceBindings] is supplied, each [Bindable] in the returned
    * instance will be added to the list. This makes it easy to close all of the
-   * bindings without walking the tree. This is not normally necesssary, but is
+   * bindings without walking the tree. This is not normally necessary, but is
    * used internally by the system.
    */
   DocumentFragment createInstance([model, BindingDelegate delegate]) {
@@ -525,6 +525,11 @@ _getInstanceRoot(node) {
   _InstanceExtension instance = _instanceExtension[node];
   return instance != null && instance._templateCreator != null ? node : null;
 }
+
+// Note: JS code tests that getElementById is present. We can't do that
+// easily, so instead check for the types known to implement it.
+bool _hasGetElementById(Node node) =>
+    node is Document || node is ShadowRoot || node is SvgSvgElement;
 
 final Expando<_InstanceExtension> _instanceExtension = new Expando();
 

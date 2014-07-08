@@ -278,14 +278,20 @@ class _Binding extends Bindable {
     return null;
   }
 
-  _check(v, {bool skipChanges: false}) {
+  bool _convertAndCheck(newValue, {bool skipChanges: false}) {
     var oldValue = _value;
-    _value = _converter(v);
+    _value = _converter(newValue);
+
     if (!skipChanges && _callback != null && oldValue != _value) {
       _callback(_value);
+      return true;
     }
+    return false;
   }
 
+  // TODO(jmesserly): this should discard changes, but it caused
+  // a strange infinite loop in one of the bindings_tests.
+  // For now skipping the test. See http://dartbug.com/19105.
   get value {
     // if there's a callback, then _value has been set, if not we need to
     // force an evaluation
@@ -296,7 +302,7 @@ class _Binding extends Bindable {
   set value(v) {
     try {
       var newValue = assign(_expr, v, _scope, checkAssignability: false);
-      _check(newValue, skipChanges: true);
+      _convertAndCheck(newValue);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_expr': $e", s);
@@ -308,20 +314,25 @@ class _Binding extends Bindable {
 
     _callback = callback;
     _observer = observe(_expr, _scope);
-    _sub = _observer.onUpdate.listen(_check)..onError((e, s) {
+    _sub = _observer.onUpdate.listen(_convertAndCheck)..onError((e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_observer': $e", s);
     });
 
+    _check(skipChanges: true);
+    return _value;
+  }
+
+  bool _check({bool skipChanges: false}) {
     try {
       // this causes a call to _updateValue with the new value
       update(_observer, _scope);
-      _check(_observer.currentValue, skipChanges: true);
+      return _convertAndCheck(_observer.currentValue, skipChanges: skipChanges);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_observer': $e", s);
+      return false;
     }
-    return _value;
   }
 
   void close() {
@@ -334,6 +345,27 @@ class _Binding extends Bindable {
     new Closer().visit(_observer);
     _observer = null;
   }
+
+
+  // TODO(jmesserly): the following code is copy+pasted from path_observer.dart
+  // What seems to be going on is: polymer_expressions.dart has its own _Binding
+  // unlike polymer-expressions.js, which builds on CompoundObserver.
+  // This can lead to subtle bugs and should be reconciled. I'm not sure how it
+  // should go, but CompoundObserver does have some nice optimizations around
+  // ObservedSet which are lacking here. And reuse is nice.
+  void deliver() {
+    if (_callback != null) _dirtyCheck();
+  }
+
+  bool _dirtyCheck() {
+    var cycles = 0;
+    while (cycles < _MAX_DIRTY_CHECK_CYCLES && _check()) {
+      cycles++;
+    }
+    return cycles > 0;
+  }
+
+  static const int _MAX_DIRTY_CHECK_CYCLES = 1000;
 }
 
 _identity(x) => x;

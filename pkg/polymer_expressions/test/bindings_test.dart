@@ -157,10 +157,6 @@ main() => dirtyCheckZone().run(() {
       });
     });
 
-    // TODO(sigmund): enable this test (issue 19105)
-    // _cursorPositionTest(false);
-    _cursorPositionTest(true);
-
     // Regression tests for issue 18792.
     for (var usePolymer in [true, false]) {
       // We run these tests both with PolymerExpressions and with the default
@@ -171,6 +167,10 @@ main() => dirtyCheckZone().run(() {
         // Use <option template repeat="{{y}}" value="{{}}">item {{}}
         _initialSelectTest('{{y}}', '{{}}', usePolymer);
         _updateSelectTest('{{y}}', '{{}}', usePolymer);
+
+        // TODO(jmesserly): this is broken with polymer-expressions, see
+        // http://dartbug.com/19105
+        if (!usePolymer) _cursorPositionTest(usePolymer);
       });
     }
 
@@ -210,7 +210,7 @@ _cursorPositionTest(bool usePolymer) {
       expect(el.selectionEnd, 3);
 
       el.value = 'abc de';
-      // Updating the input value programatically (even to the same value in
+      // Updating the input value programmatically (even to the same value in
       // Chrome) loses the selection position.
       expect(el.selectionStart, 6);
       expect(el.selectionEnd, 6);

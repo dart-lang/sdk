@@ -80,4 +80,6 @@ class ObserverTransform extends Bindable {
     }
     _bindable.value = newValue;
   }
+
+  deliver() => _bindable.deliver();
 }
