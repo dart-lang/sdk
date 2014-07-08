@@ -1,5 +1,5 @@
 name: analysis_testing
-version: 0.1.0
+version: 0.2.0
 author: Dart Team <misc@dartlang.org>
 description: A set of libraries for testing Analysis services and server
 homepage: http://www.dartlang.org

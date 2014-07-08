@@ -1075,6 +1075,7 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   static Location
       _getLocationWithTypeAssignedToField(SimpleIdentifier identifier,
       Element element, Location location) {
+    // TODO(scheglov) decide if we want to remember assigned types
     // we need accessor
     if (element is! PropertyAccessorElement) {
       return location;
@@ -1181,7 +1182,7 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       }
       Namespace namespace = new NamespaceBuilder(
           ).createImportNamespaceForDirective(importElement);
-      Set<Element> elements = new Set();
+      Set<Element> elements = new Set.from(namespace.definedNames.values);
       importElementsMap[importElement] = elements;
     }
     // use import namespace to choose correct one

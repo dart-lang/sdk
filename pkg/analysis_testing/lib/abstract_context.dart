@@ -5,7 +5,6 @@
 library testing.abstract_context;
 
 import 'package:analysis_testing/mock_sdk.dart';
-import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -16,12 +15,11 @@ import 'package:analyzer/src/generated/source_io.dart';
 
 
 /**
- * Finds an [engine.Element] with the given [name].
+ * Finds an [Element] with the given [name].
  */
-Element findElementInUnit(CompilationUnit unit, String name, [ElementKind kind])
-    {
+Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result = null;
-  unit.element.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -40,7 +38,6 @@ Element findElementInUnit(CompilationUnit unit, String name, [ElementKind kind])
 typedef void _ElementVisitorFunction(Element element);
 
 
-@ReflectiveTestCase()
 class AbstractContextTest {
   static final DartSdk SDK = new MockSdk();
 
@@ -55,6 +52,10 @@ class AbstractContextTest {
     context.applyChanges(changeSet);
     context.setContents(source, content);
     return source;
+  }
+
+  CompilationUnit resolveDartUnit(Source unitSource, Source librarySource) {
+    return context.resolveCompilationUnit2(unitSource, librarySource);
   }
 
   CompilationUnit resolveLibraryUnit(Source source) {

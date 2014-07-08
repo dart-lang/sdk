@@ -97,6 +97,11 @@ class ElementKindTest {
 
 @ReflectiveTestCase()
 class ElementTest extends AbstractContextTest {
+  engine.Element findElementInUnit(CompilationUnit unit, String name,
+      [engine.ElementKind kind]) {
+    return findChildElement(unit.element, name, kind);
+  }
+
   void test_fromElement_CLASS() {
     Source source = addSource('/test.dart', '''
 @deprecated
