@@ -774,7 +774,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       relational.block.rewrite(
           relational, graph.addConstantBool(true, compiler));
       relational.block.remove(relational);
-    } else if (reverseOperation(operation).apply(leftRange, rightRange)) {
+    } else if (negateOperation(operation).apply(leftRange, rightRange)) {
       relational.block.rewrite(
           relational, graph.addConstantBool(false, compiler));
       relational.block.remove(relational);
@@ -885,7 +885,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return newInstruction;
   }
 
-  static BinaryOperation reverseOperation(BinaryOperation operation) {
+  static BinaryOperation negateOperation(BinaryOperation operation) {
     if (operation == const LessOperation()) {
       return const GreaterEqualOperation();
     } else if (operation == const LessEqualOperation()) {
@@ -894,6 +894,20 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return const LessEqualOperation();
     } else if (operation == const GreaterEqualOperation()) {
       return const LessOperation();
+    } else {
+      return null;
+    }
+  }
+
+  static BinaryOperation flipOperation(BinaryOperation operation) {
+    if (operation == const LessOperation()) {
+      return const GreaterOperation();
+    } else if (operation == const LessEqualOperation()) {
+      return const GreaterEqualOperation();
+    } else if (operation == const GreaterOperation()) {
+      return const LessOperation();
+    } else if (operation == const GreaterEqualOperation()) {
+      return const LessEqualOperation();
     } else {
       return null;
     }
@@ -932,7 +946,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range rightRange = ranges[right];
     Range leftRange = ranges[left];
     Operation operation = condition.operation(constantSystem);
-    Operation reverse = reverseOperation(operation);
+    Operation mirrorOp = flipOperation(operation);
     // Only update the true branch if this block is the only
     // predecessor.
     if (branch.trueBranch.predecessors.length == 1) {
@@ -946,7 +960,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
         ranges[instruction] = range;
       }
 
-      range = computeConstrainedRange(reverse, rightRange, leftRange);
+      range = computeConstrainedRange(mirrorOp, rightRange, leftRange);
       if (rightRange != range) {
         HInstruction instruction =
             createRangeConversion(branch.trueBranch.first, right);
@@ -958,6 +972,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // predecessor.
     if (branch.falseBranch.predecessors.length == 1) {
       assert(branch.falseBranch.predecessors[0] == branch.block);
+      Operation reverse = negateOperation(operation);
+      Operation reversedMirror = flipOperation(reverse);
       // Update the false branch to use narrower ranges for [left] and
       // [right].
       Range range = computeConstrainedRange(reverse, leftRange, rightRange);
@@ -967,7 +983,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
         ranges[instruction] = range;
       }
 
-      range = computeConstrainedRange(operation, rightRange, leftRange);
+      range = computeConstrainedRange(reversedMirror, rightRange, leftRange);
       if (rightRange != range) {
         HInstruction instruction =
             createRangeConversion(branch.falseBranch.first, right);
