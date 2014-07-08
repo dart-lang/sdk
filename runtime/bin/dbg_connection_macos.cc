@@ -71,7 +71,7 @@ bool DebuggerConnectionImpl::ReceiveMessage(Message* msg) {
 
 
 void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
-  int ident = event->ident;
+  intptr_t ident = event->ident;
   if (ident == DebuggerConnectionHandler::listener_fd_) {
     if (DebuggerConnectionHandler::IsConnected()) {
       FATAL("Cannot connect to more than one debugger.\n");
@@ -108,7 +108,7 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
 
 
 void DebuggerConnectionImpl::Handler(uword args) {
-  static const intptr_t kMaxEvents = 4;
+  static const int kMaxEvents = 4;
   struct kevent events[kMaxEvents];
 
   while (1) {

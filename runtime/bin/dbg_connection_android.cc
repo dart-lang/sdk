@@ -49,7 +49,7 @@ void DebuggerConnectionImpl::HandleEvent(struct epoll_event* event) {
 
 
 void DebuggerConnectionImpl::Handler(uword args) {
-  static const intptr_t kMaxEvents = 4;
+  static const int kMaxEvents = 4;
   struct epoll_event events[kMaxEvents];
   while (1) {
     const int no_timeout = -1;
