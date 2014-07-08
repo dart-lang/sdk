@@ -6,6 +6,9 @@
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
 
+[ $compiler == dart2js && $runtime == d8 ]
+source_mirrors_test: Pass, RuntimeError # Issue 19874
+
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Skip # http://dartbug.com/7233
 
