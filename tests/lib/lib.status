@@ -207,6 +207,7 @@ mirrors/mirrors_used_get_name2_test: RuntimeError
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
+convert/streamed_conversion_utf8_encode_test: Pass, Slow # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == ie9 ]
