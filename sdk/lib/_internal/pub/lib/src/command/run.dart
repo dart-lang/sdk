@@ -44,7 +44,7 @@ class RunCommand extends PubCommand {
       executable = components[1];
     }
 
-    return runExecutable(entrypoint, package, executable, args)
+    return runExecutable(this, entrypoint, package, executable, args)
         .then(flushThenExit);
   }
 }

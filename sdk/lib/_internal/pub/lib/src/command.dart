@@ -67,7 +67,7 @@ abstract class PubCommand {
   /// [commands].
   static void usageErrorWithCommands(Map<String, PubCommand> commands,
                                 String message) {
-    throw new UsageException(message)..bindUsage(_listCommands(commands));
+    throw new UsageException(message, _listCommands(commands));
   }
 
   /// Writes [commands] in a nicely formatted list to [buffer].
@@ -190,10 +190,7 @@ abstract class PubCommand {
       entrypoint = new Entrypoint(path.current, cache);
     }
 
-    return syncFuture(onRun).catchError((error) {
-      if (error is UsageException) error.bindUsage(_getUsage());
-      throw error;
-    });
+    return syncFuture(onRun);
   }
 
   /// Override this to perform the specific command.
@@ -216,6 +213,12 @@ abstract class PubCommand {
     log.message('$description\n\n${_getUsage()}');
   }
 
+  /// Throw a [UsageException] for a usage error of this command with
+  /// [message].
+  void usageError(String message) {
+    throw new UsageException(message, _getUsage());
+  }
+
   /// Parses a user-supplied integer [intString] named [name].
   ///
   /// If the parsing fails, prints a usage message and exits.
@@ -225,11 +228,6 @@ abstract class PubCommand {
     } on FormatException catch (_) {
       usageError('Could not parse $name "$intString".');
     }
-  }
-
-  /// Fails with a usage error [message] for this command.
-  void usageError(String message) {
-    throw new UsageException(message)..bindUsage(_getUsage());
   }
 
   /// Generates a string of usage information for this command.
