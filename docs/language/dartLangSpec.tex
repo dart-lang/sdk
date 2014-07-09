@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.4}}
+{\large Version 1.6}}
 %\author{The Dart Team}
 \begin{document}
 \maketitle
@@ -1253,7 +1253,7 @@ It is a compile-time error if $k$ explicitly specifies a default value for an op
 Default values specified in $k$ would be ignored, since it is the {\em actual} parameters that are passed to $k^\prime$. Hence, default values are disallowed.
 }
 
-It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections. %does not redirect to a non-redirecting factory constructor or to a generative constructor in a finite number of steps.
+It is a run-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections. %does not redirect to a non-redirecting factory constructor or to a generative constructor in a finite number of steps.
 
 % Make this a runtime error so deferred loading works
 
@@ -1499,7 +1499,7 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 %} 
 
 %It is a compile-time error if  the \EXTENDS{} clause of a class $C$ includes a type expression that does not denote a class available in the lexical scope of $C$. 
-It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies a malformed  type as a superclass.
+It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies a malformed  type or a deferred type (\ref{staticTypes}) as a superclass.
 % too strict? Do we e want extends List<Undeclared> to work as List<dynamic>? 
 
 \commentary{ The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope. The following code is therefore illegal and should cause a compile-time error:
@@ -1622,7 +1622,7 @@ A class has a set of direct superinterfaces. This set includes the interface of 
     .
 \end{grammar}
 
-It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a malformed type as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
+It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
 
 \rationale{
@@ -1788,7 +1788,8 @@ Reasonable answers exist for all these issues, but their implementation is non-t
 \subsection{Mixin Application}
 \label{mixinApplication}
 
-A mixin may be applied to a superclass, yielding a new class. Mixin application occurs when a mixin is mixed into a class declaration via its \WITH{} clause.  The mixin application may be used to extend a class per section (\ref{classes}); alternately, a class may be defined as a mixin application as described in this section.
+A mixin may be applied to a superclass, yielding a new class. Mixin application occurs when a mixin is mixed into a class declaration via its \WITH{} clause.  The mixin application may be used to extend a class per section (\ref{classes}); alternately, a class may be defined as a mixin application as described in this section.   It is a compile-time error if the \WITH{} clause of a mixin application $C$ includes a deferred type expression.
+
 
 \begin{grammar}
 {\bf  mixinApplicationClass:}
@@ -2112,17 +2113,17 @@ A constant expression is one of the following:
 \rationale{It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.  However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.}
 \item A literal symbol (\ref{symbols}).
 \item \NULL{} (\ref{null}).
-\item A qualified reference to a static constant variable (\ref{variables}). 
-\commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant.
+\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix. 
+\commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant  unless p is a deferred prefix.
 }
 \item An identifier expression that denotes a constant variable. %CHANGE in googledoc
 \item A simple or qualified identifier denoting a class or a type alias. 
 \commentary {For example, if C is a class or typedef C is a constant, and if C is imported with a prefix p,  p.C is a constant.
 }
-\item A constant constructor invocation (\ref{const}).  
+\item A constant constructor invocation (\ref{const}) that is not qualified by a deferred prefix.  
 \item A constant list literal (\ref{lists}).
 \item A constant map literal (\ref{maps}).
-\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}).
+\item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
 \item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
 \item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions  and \code{identical()} is statically bound to the predefined dart function   \code{identical()} discussed above (\ref{objectIdentity}).
 \item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric, string or boolean value or to \NULL{}.
@@ -2817,6 +2818,8 @@ Evaluation of $e$ proceeds as follows:
 
 First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated. 
 
+If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully loaded, a dynamic error occurs.
+
 Then, if $q$ is a non-factory constructor of an abstract class then an \code{AbstractClassInstantiationError} is thrown.
 
 If $T$  is malformed or if $T$ is a type variable a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs.
@@ -2838,7 +2841,8 @@ Otherwise, $q$ is a factory constructor (\ref{factories}). Then:
 
 If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots, p_{n+k}) = c;$ or of the form  $T.id(p_1, \ldots, p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression 
 
-$[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.
+$[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.  If evaluation of $q$ causes $q$ to be re-evaluated cyclically, a runtime error occurs.
+
 
 Otherwise, the body of $q$ is executed with respect to the bindings that resulted from the evaluation of the argument list and the type parameters (if any) of $q$ bound to the actual type arguments $V_1, \ldots, V_l$ resulting in an object $i$. The result of the evaluation of $e$ is $i$.
 
@@ -2879,7 +2883,7 @@ Let $e$ be a constant object expression of the form
 
 \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
 
-or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ does not denote a class accessible in the current scope. 
+or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ does not denote a class accessible in the current scope.  It is a compile-time error if $T$ is a deferred type (\ref{staticTypes}).
 
 \commentary{In particular, $T$ may not be a type variable.}
 
@@ -3148,6 +3152,14 @@ $id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$,
 
 where $id$ is an identifier or an identifier qualified with a library prefix. 
 
+If $id$ is qualified with a deferred prefix $p$ and $p$ has not been successfully loaded, then:
+\begin{itemize}
+\item
+If the invocation has the form $p$\code{.loadLibrary()} then an attempt to load the library represented by the prefix $p$ is initiated as discussed in section \ref{imports}. 
+\item
+ Otherwise, a \code{NoSuchMethodError} is thrown.
+ \end{itemize}
+
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
 \item
@@ -3305,7 +3317,8 @@ Note the requirement that $C$ {\em declare} the method. This means that static m
 
 Evaluation of $i$ proceeds as follows:
 
-If $C$ does not declare a static method or getter $m$ then the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated, after which a \code{NoSuchMethodError} is thrown. 
+If $C$ is a deferred type  (\ref{staticTypes}) with prefix $p$, and $p$ has not been successfully loaded, or
+if $C$ does not declare a static method or getter $m$ then the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated, after which a \code{NoSuchMethodError} is thrown. 
 
 Otherwise, evaluation proceeds as follows:
 \begin{itemize}
@@ -3431,8 +3444,18 @@ If the getter lookup has failed, then a new instance $im$  of the predefined cla
 \end{itemize}
 Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
+
+
 It is a static type warning if $S$ does not have a getter named $m$.  The static type of $i$ is the declared return type of $S.m$, if $S.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
 
+Evaluation of a getter invocation of the form $p.C.v$, where $p$ is a deferred prefix, proceeds as follows:
+
+If $p$ has been successfully loaded, the assignment is evaluated exactly like the invocation $K.v$, where $K$ denotes the top level member $C$ of the library represented by $p$. Otherwise a \code{NoSuchMethodError} is thrown.
+
+
+Evaluation of a top-level getter invocation $i$ of the form $p.m$, where $p$ is a deferred prefix and  $m$ is an identifier, proceeds as follows:
+
+If $p$ has been successfully loaded, the invocation is evaluated exactly like the invocation $w$, where $w$ denotes the top level member named $m$ of the library represented by $p$. Otherwise a \code{NoSuchMethodError} is thrown.
  
 
 
@@ -3507,6 +3530,14 @@ If the setter lookup has failed, then a new instance $im$  of the predefined cla
 
 Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with argument $im$. The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
+Evaluation of an assignment of the form $p.v \code{=} e$, where $p$ is a deferred prefix, proceeds as follows:
+
+If $p$ has been successfully loaded, the assignment is evaluated exactly like the assignment $w \code{=} e$, where $w$ denotes the top level member named $v$ of the library represented by $p$. Otherwise, $e$ is evaluated and then a \code{NoSuchMethodError} is thrown.
+
+Evaluation of an assignment of the form $p.C.v \code{=} e$, where $p$ is a deferred prefix, proceeds as follows:
+
+If $p$ has been successfully loaded, the assignment is evaluated exactly like the assignment $K.v = e$, where $K$ denotes the top level member $C$ of the library represented by $p$. Otherwise $e$ is evaluated and then a \code{NoSuchMethodError} is thrown.
+
 In checked mode, it is a dynamic type error if $o_2$ is not \NULL{} and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
 
 Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
@@ -3523,7 +3554,8 @@ It is as static warning if an assignment of the form $v = e$ occurs inside a top
 \label{compoundAssignment}
 
 A compound assignment of the form $v$ $op\code{=} e$ is equivalent to $v \code{=} v$ $op$ $e$. A compound assignment of the form $C.v$ $op \code{=} e$ is equivalent to $C.v \code{=} C.v$ $op$ $e$. A compound assignment of the form $e_1.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. A compound assignment of the form  $e_1[e_2]$ $op\code{=} e_3$ is equivalent to 
-\code{((a, i) $=>$ a[i] = a[i] $op$ $e_3$)($e_1, e_2$)} where $a$ and $i$ are a variables that are not used in $e_3$. 
+\code{((a, i) $=>$ a[i] = a[i] $op$ $e_3$)($e_1, e_2$)} where $a$ and $i$ are a variables that are not used in $e_3$. A compound assignment of the form $p.v$ $op\code{=} e$, where $p$ is a deferred prefix,  is equivalent to $p.v \code{=} p.v$ $op$ $e$. A compound assignment of the form $p.C.v$ $op\code{=} e$, where $p$ is a deferred prefix,  is equivalent to $p.C.v \code{=} p.C.v$ $op$ $e$.
+
 
 \begin{grammar}
 {\bf compoundAssignmentOperator:}`*=';
@@ -4072,7 +4104,7 @@ The {\em is-expression} tests if an object is a member of a type.
  
  Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
-The expression $e$ is evaluated to a value $v$. Then, if $T$ is malformed, a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to true. Otherwise it evaluates to false.
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to true. Otherwise it evaluates to false.
 
 \commentary{It follows that \code{$e$ \IS{} Object} is always true. This makes sense in a language where everything is an object. 
 
@@ -4117,7 +4149,7 @@ The {\em cast expression} ensures that an object is a member of a type.
  
  Evaluation of the cast expression \code{$e$ \AS{} $T$} proceeds as follows:
 
-The expression $e$ is evaluated to a value $v$. Then, if $T$ is malformed, a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is \NULL{}, the cast expression evaluates to $v$. 
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is \NULL{}, the cast expression evaluates to $v$. 
 In all other cases,  a \code{CastError} is thrown.
  
 The static type of a cast expression  \code{$e$ \AS{} $T$}  is $T$. 
@@ -4505,7 +4537,7 @@ The {\em switch statement} supports dispatching control among a large number of 
 \commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.  Note that the values of the expressions are known at compile-time, and are independent of any static type annotations.
 }
 
-It is a compile-time error if the class $C$ has an implementation of the operator $==$ other than the one inherited from \code{Object} unless the value of the expression is a string, an integer, literal symbol or the result of invoking a constant constructor class \cd{Symbol}.
+It is a compile-time error if the class $C$ has an implementation of the operator $==$ other than the one inherited from \code{Object} unless the value of the expression is a string, an integer, literal symbol or the result of invoking a constant constructor of class \cd{Symbol}.
  
  \rationale{
  The prohibition on user defined equality allows us to implement the switch efficiently for user defined types. We could formulate matching in terms of identity instead with the same efficiency. However, if a type defines an equality operator, programmers would find it quite surprising that equal objects did not match.
@@ -4664,10 +4696,10 @@ A \FINALLY{} clause, which consists of a block statement.
 The syntax is designed to be upward compatible with existing Javascript programs. The \ON{} clause can be omitted, leaving what looks like a Javascript catch clause.
 }
 
-An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$.  If $T$ is a malformed type, then performing a match causes a run time error.
+An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$.  If $T$ is a malformed or deferred type  (\ref{staticTypes}), then performing a match causes a run time error.
 
 \commentary {
-It is of course a static warning if $T$ is a malformed type (\ref{staticTypes}).
+It is of course a static warning if $T$ is a deferred or malformed type.
 }
 
 An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} introduces a new scope $CS$ in which local variables specified by $p_1$ and $p_2$ are defined. The statement $s$ is enclosed within $CS$.
@@ -5002,9 +5034,14 @@ The scope of a library $L$ consists of the names introduced by all top-level dec
 An {\em import} specifies a library to be used in the scope of another library. 
 \begin{grammar}
 {\bf libraryImport:}
-   metadata \IMPORT{}  uri (\AS{} identifier)?  combinator* `{\escapegrammar ;}'
+   metadata importSpecification
     .
-    
+ 
+ {\bf importSpecification:}
+    \IMPORT{}  uri (\AS{} identifier)?  combinator* `{\escapegrammar ;}';
+     \IMPORT{}  uri \DEFERRED{} \AS{} identifier  combinator* `{\escapegrammar ;}'
+    .
+       
 {\bf combinator:}\SHOW{} identifierList;
 \HIDE{} identifierList
     .
@@ -5014,19 +5051,61 @@ An {\em import} specifies a library to be used in the scope of another library.
  \end{grammar}
  
 
-An import specifies a URI $x$ where the declaration of an imported library is to be found. It is a compile-time error if  the specified URI does not refer to a library declaration.  The interpretation of URIs is described in section \ref{uris} below.
+An import specifies a URI $x$ where the declaration of an imported library is to be found. 
+
+Imports may be {\em deferred} or {\em immediate}. A deferred import is distinguished by the appearance of the built-in identifier \DEFERRED{} after the URI. Any import that is not deferred is immediate.
+
+It is a compile-time error if  the specified URI of an immediate import does not refer to a library declaration.  The interpretation of URIs is described in section \ref{uris} below.
+
+It is a static warning if the specified URI of a deferred import does not refer to a library declaration.
+
+\rationale{
+ One cannot detect the problem at compile time because compilation often occurs during execution and  one does not know what the URI refers to.  However the development environment should detect the problem.
+ }
+
  
 The {\em current library} is the library currently being compiled. The import modifies the  namespace of the current library in a manner that is determined by the imported library and by the optional elements of  the import.
      
-An import directive $I$ may optionally include:
-\begin{itemize}
-\item A prefix clause of the form \AS{} \code{Id} used to prefix names imported by $I$.
-\item Namespace combinator clauses used to restrict the set of names imported by $I$. Currently, two namespace combinators are supported: \HIDE{} and \SHOW{}.
-\end{itemize}
+An immediate import directive $I$ may optionally include a prefix clause of the form \AS{} \code{Id} used to prefix names imported by $I$. A deferred import must include a prefix clause or a compile time error occurs. It is a compile-time error if a prefix used in a deferred import is used in another import clause.
+
+An import directive $I$ may optionally include a namespace combinator clauses used to restrict the set of names imported by $I$. Currently, two namespace combinators are supported: \HIDE{} and \SHOW{}.
 
 Let $I$ be an import directive that refers to a URI via the string $s_1$. Evaluation of $I$  proceeds as follows:
 
-First,
+If $I$ is a deferred import, no evaluation takes place. Instead, the following names are added to the scope of $L$:
+\begin{itemize}
+\item
+The name of the prefix, $p$ denoting a deferred prefix declaration.
+\item
+The name \code{$p$.loadLibrary}, denoting a top level function with no arguments, whose semantics are described below.
+\end{itemize}
+ 
+A deferred prefix $p$ may be loaded explicitly via the function call \code{$p$.loadLibrary}, which returns a future $f$. The effect of the call is to cause an immediate import $IÕ$ to be executed at some future time, where $IÕ$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $IÕ$ executes without error, $f$ completes successfully. If $IÕ$ executes without error, we say that the call to \code{$p$.loadLibrary} has succeeded, otherwise we say the call has failed.
+
+After a call succeeds, the names $p$ and \code{$p$.loadLibrary} remain in the top-level scope of $L$, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
+
+The effect of a repeated call to \code{$p$.loadLibrary} is as follows:
+\begin{itemize}
+\item
+If another call to \code{$p$.loadLibrary} has already succeeded, the repeated call also succeeds. 
+Otherwise,
+\item
+If another call to  to \code{$p$.loadLibrary} has failed:
+\begin{itemize}
+\item
+If the failure is due to a compilation error, the repeated call fails for the same reason.
+\item
+If the failure is due to other causes, the repeated call behaves as if no previous call had been made.
+\end{itemize}
+\end{itemize}
+
+\commentary{
+In other words, one can retry a deferred load after a network failure or because a file is absent, but once one finds some content and loads it, one can no longer reload.
+
+We do not specify what value the future returned resolves to.
+}
+
+If $I$ is an immediate import then, first
 
  \begin{itemize}
  \item
@@ -5338,6 +5417,9 @@ A type $T$ is {\em malformed} iff:
 This ensures that the developer is spared a series of cascading warnings as the malformed type interacts with other types.
 }
 
+A type $T$ is deferred iff it is of the form $p.T$ where $p$ is a deferred prefix.
+It is a static warning to use a deferred type in a type annotation, type test, type cast or as a type parameter. However, all other static warnings must be issued under the assumption that all deferred libraries have successfully been loaded.
+
 
 \subsubsection{Type Promotion}
 \label{typePromotion}
@@ -5354,10 +5436,19 @@ Type promotion for a variable $v$ is allowed only when we can deduce that such p
 
 A Dart implementation must support execution in both {\em production mode} and {\em checked mode}.  Those dynamic checks specified as occurring specifically in checked mode must be performed iff the code is executed in checked mode.
 
+\commentary{
+Note that this is the case even if the deferred type belongs to a prefix that has already been loaded. This is regrettable, since it strongly discourages the use of type annotations that involve deferred types because Dart programmers use checked mode much of the time.
+
+In practice, many scenarios involving deferred loading involve deferred loading of classes that implement eagerly loaded interfaces, so the situation is often less onerous than it seems. The current semantics were adopted based on considerations of ease of implementation.
+
+Clearly, if a deferred type has not yet been loaded, it is impossible to do a correct subtype test involving it, and one would expect a dynamic failure, as is the case with type tests and casts. By the same token, one would expect checked mode to work seamlessly once a type had been loaded. We hope to adopt these semantics in the future; such a change would be upwardly compatible.
+
+}
+
 %It is a run-time type error to access an undeclared type outside .
 
 %It is a dynamic type error if a malformed type is used in a subtype test.  
-In checked mode, it is a dynamic type error if a malformed or malbounded (\ref{parameterizedTypes}) 
+In checked mode, it is a dynamic type error if a deferred, malformed or malbounded (\ref{parameterizedTypes}) 
 type is used in a subtype test.  
 
 %In production mode, an undeclared type is treated as an instance of type \DYNAMIC{}. 
