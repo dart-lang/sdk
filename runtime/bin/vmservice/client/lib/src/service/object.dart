@@ -79,12 +79,17 @@ abstract class ServiceObject extends Observable {
       case 'Error':
         obj = new DartError._empty(owner);
         break;
+      case 'Function':
+        obj = new ServiceFunction._empty(owner);
+        break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
         break;
       case 'Library':
         obj = new Library._empty(owner);
         break;
+      case 'Null':
+        return null;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
         break;
@@ -688,7 +693,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     // Build the object from the map directly.
     obj = new ServiceObject._fromMap(this, map);
-    if (obj.canCache) {
+    if (obj != null && obj.canCache) {
       _cache[id] = obj;
     }
     return obj;
@@ -1036,7 +1041,7 @@ class Library extends ServiceObject with Coverage {
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
   @reflectable final variables = new ObservableList<ServiceMap>();
-  @reflectable final functions = new ObservableList<ServiceMap>();
+  @reflectable final functions = new ObservableList<ServiceFunction>();
 
   bool get canCache => true;
   bool get immutable => false;
@@ -1136,7 +1141,7 @@ class Class extends ServiceObject with Coverage {
   @reflectable final children = new ObservableList<Class>();
   @reflectable final subClasses = new ObservableList<Class>();
   @reflectable final fields = new ObservableList<ServiceMap>();
-  @reflectable final functions = new ObservableList<ServiceMap>();
+  @reflectable final functions = new ObservableList<ServiceFunction>();
   @reflectable final interfaces = new ObservableList<Class>();
 
   bool get canCache => true;
@@ -1214,6 +1219,109 @@ class Class extends ServiceObject with Coverage {
 
   Future<ServiceObject> get(String command) {
     return isolate.get(id + "/$command");
+  }
+}
+
+class FunctionKind {
+  final String _strValue;
+  FunctionKind._internal(this._strValue);
+  toString() => _strValue;
+  bool isFake() => [kCollected, kNative, kTag, kReused].contains(this);
+
+  static FunctionKind fromJSON(String value) {
+    switch(value) {
+      case 'kRegularFunction': return kRegularFunction;
+      case 'kClosureFunction': return kClosureFunction;
+      case 'kGetterFunction': return kGetterFunction;
+      case 'kSetterFunction': return kSetterFunction;
+      case 'kConstructor': return kConstructor;
+      case 'kImplicitGetterFunction': return kImplicitGetterFunction;
+      case 'kImplicitSetterFunction': return kImplicitSetterFunction;
+      case 'kStaticInitializer': return kStaticInitializer;
+      case 'kMethodExtractor': return kMethodExtractor;
+      case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
+      case 'kInvokeFieldDispatcher': return kInvokeFieldDispatcher;
+      case 'Collected': return kCollected;
+      case 'Native': return kNative;
+      case 'Tag': return kTag;
+      case 'Reused': return kReused;
+    }
+    return kUNKNOWN;
+  }
+
+  static FunctionKind kRegularFunction = new FunctionKind._internal('function');
+  static FunctionKind kClosureFunction = new FunctionKind._internal('closure function');
+  static FunctionKind kGetterFunction = new FunctionKind._internal('getter function');
+  static FunctionKind kSetterFunction = new FunctionKind._internal('setter function');
+  static FunctionKind kConstructor = new FunctionKind._internal('constructor');
+  static FunctionKind kImplicitGetterFunction = new FunctionKind._internal('implicit getter function');
+  static FunctionKind kImplicitSetterFunction = new FunctionKind._internal('implicit setter function');
+  static FunctionKind kStaticInitializer = new FunctionKind._internal('static initializer');
+  static FunctionKind kMethodExtractor = new FunctionKind._internal('method extractor');
+  static FunctionKind kNoSuchMethodDispatcher = new FunctionKind._internal('noSuchMethod dispatcher');
+  static FunctionKind kInvokeFieldDispatcher = new FunctionKind._internal('invoke field dispatcher');
+  static FunctionKind kCollected = new FunctionKind._internal('Collected');
+  static FunctionKind kNative = new FunctionKind._internal('Native');
+  static FunctionKind kTag = new FunctionKind._internal('Tag');
+  static FunctionKind kReused = new FunctionKind._internal('Reused');
+  static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
+}
+
+class ServiceFunction extends ServiceObject {
+  @observable Class owningClass;
+  @observable Library owningLibrary;
+  @observable bool isStatic;
+  @observable bool isConst;
+  @observable ServiceFunction parent;
+  @observable Script script;
+  @observable int tokenPos;
+  @observable int endTokenPos;
+  @observable Code code;
+  @observable Code unoptimizedCode;
+  @observable bool isOptimizable;
+  @observable bool isInlinable;
+  @observable FunctionKind kind;
+  @observable int deoptimizations;
+  @observable String qualifiedName;
+  @observable int usageCounter;
+  @observable bool isDart;
+
+  ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['user_name'];
+    vmName = map['name'];
+
+    _upgradeCollection(map, isolate);
+
+    owningClass = map.containsKey('owningClass') ? map['owningClass'] : null;
+    owningLibrary = map.containsKey('owningLibrary') ? map['owningLibrary'] : null;
+    kind = FunctionKind.fromJSON(map['kind']);
+    isDart = !kind.isFake();
+
+    if (mapIsRef) { return; }
+
+    isStatic = map['isStatic'];
+    isConst = map['isConst'];
+    parent = map['parent'];
+    script = map['script'];
+    tokenPos = map['tokenPos'];
+    endTokenPos = map['endTokenPos'];
+    code = map['code'];
+    unoptimizedCode = map['unoptimized_code'];
+    isOptimizable = map['is_optimizable'];
+    isInlinable = map['is_inlinable'];
+    deoptimizations = map['deoptimizations'];
+    usageCounter = map['usage_counter'];
+
+    if (parent == null) {
+      qualifiedName = (owningClass != null) ?
+          "${owningClass.name}.${name}" :
+          name;
+    } else {
+      qualifiedName = "${parent.qualifiedName}.${name}";
+    }
+
   }
 }
 
@@ -1540,7 +1648,7 @@ class Code extends ServiceObject {
   @observable String formattedInclusiveTicks = '';
   @observable String formattedExclusiveTicks = '';
   @observable ServiceMap objectPool;
-  @observable ServiceMap function;
+  @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;
   String name;
@@ -1583,10 +1691,10 @@ class Code extends ServiceObject {
     if (function == null) {
       return;
     }
-    if (function['script'] == null) {
+    if (function.script == null) {
       // Attempt to load the function.
       function.load().then((func) {
-        var script = function['script'];
+        var script = function.script;
         if (script == null) {
           // Function doesn't have an associated script.
           return;
@@ -1597,7 +1705,7 @@ class Code extends ServiceObject {
       return;
     }
     // Load the script and then update descriptors.
-    function['script'].load().then(_updateDescriptors);
+    function.script.load().then(_updateDescriptors);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or

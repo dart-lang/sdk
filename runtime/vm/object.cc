@@ -6663,9 +6663,9 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("user_name", pretty_name);
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
-    jsobj.AddProperty("owner", library);
+    jsobj.AddProperty("owningLibrary", library);
   } else {
-    jsobj.AddProperty("owner", cls);
+    jsobj.AddProperty("owningClass", cls);
   }
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {

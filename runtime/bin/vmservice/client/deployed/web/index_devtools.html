@@ -3131,14 +3131,14 @@ hr {
   word-wrap: break-word;
 }
 </style><!-- These comments are here to allow newlines.
-     --><template if="{{ isDart }}"><!--
-       --><template if="{{ qualified &amp;&amp; !hasParent &amp;&amp; hasClass }}"><!--
-       --><class-ref ref="{{ ref['owner'] }}"></class-ref>.</template><!--
-     --><template if="{{ qualified &amp;&amp; hasParent }}"><!--
-       --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
+     --><template if="{{ ref.isDart }}"><!--
+       --><template if="{{ qualified &amp;&amp; ref.parent == null &amp;&amp; ref.owningClass != null }}"><!--
+       --><class-ref ref="{{ ref.owningClass] }}"></class-ref>.</template><!--
+     --><template if="{{ qualified &amp;&amp; ref.parent != null }}"><!--
+       --><function-ref ref="{{ ref.parent }}" qualified="{{ true }}">
           </function-ref>.<!--
      --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
-  --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
+  --></template><template if="{{ !ref.isDart }}"><span> {{ name }}</span></template></template>
 </polymer-element>
 
 
@@ -4738,7 +4738,7 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ code.isolate }}"></isolate-nav-menu>
-      <nav-menu link="." anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ code.link }}" anchor="{{ code.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -6556,12 +6556,12 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ function.isolate }}"></isolate-nav-menu>
-      <template if="{{ function['owner'].serviceType == 'Class' }}">
+      <template if="{{ function.owningClass != null }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu cls="{{ function['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ function.owningClass }}"></class-nav-menu>
       </template>
-      <template if="{{ function['owner'].serviceType == 'Library' }}">
-        <library-nav-menu library="{{ function['owner'] }}"></library-nav-menu>
+      <template if="{{ function.owningLibrary != null }}">
+        <library-nav-menu library="{{ function.owningLibrary }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ function.link }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -6569,78 +6569,78 @@ hr {
     </nav-bar>
 
     <div class="content">
-      <h1>function {{ qualifiedName }}</h1>
+      <h1>function {{ function.qualifiedName }}</h1>
 
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">kind</div>
           <div class="memberValue">
-            <template if="{{ function['is_static'] }}">static</template>
-            <template if="{{ function['is_const'] }}">const</template>
-            {{ kind }}
+            <template if="{{ function.isStatic }}">static</template>
+            <template if="{{ function.isConst }}">const</template>
+            {{ function.kind.toString() }}
           </div>
         </div>
-        <template if="{{ function['parent'] != null }}">
+        <template if="{{ function.parent != null }}">
           <div class="memberItem">
             <div class="memberName">parent function</div>
             <div class="memberValue">
-              <function-ref ref="{{ function['parent'] }}"></function-ref>
+              <function-ref ref="{{ function.parent }}"></function-ref>
             </div>
           </div>
         </template>
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ function['owner'].serviceType == 'Class' }}">
-              <class-ref ref="{{ function['owner'] }}"></class-ref>
+            <template if="{{ function.owningClass != null }}">
+              <class-ref ref="{{ function.owningClass }}"></class-ref>
             </template>
-            <template if="{{ function['owner'].serviceType != 'Class' }}">
-              <library-ref ref="{{ function['owner'] }}"></library-ref>
+            <template if="{{ function.owningLibrary != null }}">
+              <library-ref ref="{{ function.owningLibrary }}"></library-ref>
             </template>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ function['script'] }}" pos="{{ function['tokenPos'] }}">
+            <script-ref ref="{{ function.script }}" pos="{{ function.tokenPos }}">
             </script-ref>
           </div>
         </div>
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ function['code'] != null }}">
+        <template if="{{ function.code != null }}">
           <div class="memberItem">
             <div class="memberName">optimized code</div>
             <div class="memberValue">
-              <code-ref ref="{{ function['code'] }}"></code-ref>
+              <code-ref ref="{{ function.code }}"></code-ref>
             </div>
           </div>
         </template>
-        <template if="{{ function['unoptimized_code'] != null }}">
+        <template if="{{ function.unoptimizedCode != null }}">
           <div class="memberItem">
             <div class="memberName">unoptimized code</div>
             <div class="memberValue">
-              <code-ref ref="{{ function['unoptimized_code'] }}"></code-ref>
+              <code-ref ref="{{ function.unoptimizedCode }}"></code-ref>
             </div>
               <div class="memberValue">
                 <span title="This count is used to determine when a function will be optimized.  It is a combination of call counts and other factors.">
-                  (usage count: {{ function['usage_counter'] }})
+                  (usage count: {{ function.usageCounter }})
                 </span>
              </div>
            </div>
          </template>
          <div class="memberItem">
            <div class="memberName">deoptimizations</div>
-           <div class="memberValue">{{ function['deoptimizations'] }}</div>
+           <div class="memberValue">{{ function.deoptimizations }}</div>
          </div>
          <div class="memberItem">
            <div class="memberName">optimizable</div>
-           <div class="memberValue">{{ function['is_optimizable'] }}</div>
+           <div class="memberValue">{{ function.isOptimizable }}</div>
          </div>
          <div class="memberItem">
            <div class="memberName">inlinable</div>
-           <div class="memberValue">{{ function['is_inlinable'] }}</div>
+           <div class="memberValue">{{ function.isInlinable }}</div>
          </div>
          <template if="{{ function.name != function.vmName }}">
            <div class="memberItem">
@@ -6652,7 +6652,7 @@ hr {
     </div>
 
     <hr>
-    <script-inset script="{{ function['script'] }}" startpos="{{ function['tokenPos'] }}" endpos="{{ function['endTokenPos'] }}">
+    <script-inset script="{{ function.script }}" startpos="{{ function.tokenPos }}" endpos="{{ function.endTokenPos }}">
     </script-inset>
 
     <br>
