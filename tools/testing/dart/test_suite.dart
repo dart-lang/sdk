@@ -1341,7 +1341,8 @@ class StandardTestSuite extends TestSuite {
     if (packageRoot != null) args.add(packageRoot);
     args..add('package:polymer/deploy.dart')
         ..add('--test')..add(inputFile)
-        ..add('--out')..add(outputDir);
+        ..add('--out')..add(outputDir)
+        ..add('--file-filter')..add('.svn');
 
     return CommandBuilder.instance.getProcessCommand(
         'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);

@@ -36,6 +36,10 @@ main(List<String> arguments) {
 
   var test = args['test'];
   var outDir = args['out'];
+  var filters = [];
+  if (args['file-filter'] != null) {
+    filters = args['file-filter'].split(',');
+  }
 
   var options;
   if (test == null) {
@@ -50,7 +54,8 @@ main(List<String> arguments) {
         packagePhases: {'polymer': phasesForPolymer});
   } else {
     options = _createTestOptions(
-        test, outDir, args['js'], args['csp'], !args['debug']);
+        test, outDir, args['js'], args['csp'], !args['debug'],
+        filters);
   }
   if (options == null) exit(1);
 
@@ -63,7 +68,8 @@ main(List<String> arguments) {
 }
 
 BarbackOptions _createTestOptions(String testFile, String outDir,
-    bool directlyIncludeJS, bool contentSecurityPolicy, bool releaseMode) {
+    bool directlyIncludeJS, bool contentSecurityPolicy, bool releaseMode,
+    List<String> filters) {
 
   var testDir = path.normalize(path.dirname(testFile));
 
@@ -101,7 +107,8 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
       // TODO(sigmund): include here also smoke transformer when it's on by
       // default.
       packagePhases: {'polymer': phasesForPolymer},
-      transformTests: true);
+      transformTests: true,
+      fileFilter: filters);
 }
 
 String _findDirWithFile(String dir, String filename) {
@@ -140,6 +147,9 @@ ArgResults _parseArgs(arguments) {
           defaultsTo: false, negatable: false)
       ..addOption('out', abbr: 'o', help: 'Directory to generate files into.',
           defaultsTo: 'out')
+      ..addOption('file-filter', help: 'Do not copy in files that match \n'
+           'these filters to the deployed folder, e.g., ".svn"',
+          defaultsTo: null)
       ..addOption('test', help: 'Deploy the test at the given path.\n'
           'Note: currently this will deploy all tests in its directory,\n'
           'but it will eventually deploy only the specified test.')
