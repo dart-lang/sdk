@@ -183,7 +183,8 @@ String generateMainImportFile() {
   }
   output.write("\n");
   output.write("\nMap<String, Function> _deferredLibraries = {\n");
-  for (var locale in allLocales) {
+  for (var rawLocale in allLocales) {
+    var locale = Intl.canonicalizedLocale(rawLocale);
     output.write("  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n");
   }
   output.write("};\n");
