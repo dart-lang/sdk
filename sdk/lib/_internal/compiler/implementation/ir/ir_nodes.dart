@@ -565,8 +565,8 @@ class SExpressionStringifier extends Visitor<String> {
   String visitFunctionDefinition(FunctionDefinition node) {
     names[node.returnContinuation] = 'return';
     String parameters = node.parameters
-        .map((p) {
-          String name = p.element.name;
+        .map((Parameter p) {
+          String name = p.hint.name;
           names[p] = name;
           return name;
         })
@@ -586,7 +586,7 @@ class SExpressionStringifier extends Visitor<String> {
     String cont = newContinuationName();
     names[node.continuation] = cont;
     String parameters = node.continuation.parameters
-        .map((p) {
+        .map((Parameter p) {
           String name = newValueName();
           names[p] = name;
           return ' $name';
