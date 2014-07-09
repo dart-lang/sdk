@@ -164,7 +164,7 @@ addDiagnostic(String kind, String message, int begin, int end) {
         Element parent = node.parent;
         if (parent.classes.contains("diagnostic") &&
             !interaction.oldDiagnostics.contains(parent)) {
-          Element other = parent.lastChild;
+          Element other = parent.firstChild;
           other.remove();
           SpanElement wrapper = new SpanElement();
           wrapper.style
