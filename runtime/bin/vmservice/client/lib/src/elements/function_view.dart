@@ -25,12 +25,12 @@ class FunctionViewElement extends ObservatoryElement {
     if (parent != null) {
       return "${_getQualifiedName(parent)}.${function['user_name']}";
     }
-    var cls = (function != null &&
-               function['owner'] != null &&
-               function['owner'].serviceType == 'Class'
-               ? function['owner'] : null);
+    Class cls = (function != null &&
+                 function['owner'] != null &&
+                 function['owner'].serviceType == 'Class'
+                   ? function['owner'] : null);
     if (cls != null) {
-      return "${cls['user_name']}.${function['user_name']}";
+      return "${cls.name}.${function['user_name']}";
     }
     return "${function['user_name']}";
   }
