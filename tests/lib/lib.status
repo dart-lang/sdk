@@ -69,7 +69,6 @@ mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
-mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548

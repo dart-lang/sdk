@@ -4,8 +4,7 @@
 
 // VM-specific implementation of the dart:mirrors library.
 
-import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
-import "dart:_internal" show LRUMap;
+import "dart:collection";
 
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new UnmodifiableMapView({});
@@ -299,15 +298,21 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return identityHashCode(_reflectee) ^ 0x36363636;
   }
 
-  static var _getFieldClosures = new LRUMap.withShift(7);
-  static var _setFieldClosures = new LRUMap.withShift(7);
-  static var _getFieldCallCounts = new LRUMap.withShift(8);
-  static var _setFieldCallCounts = new LRUMap.withShift(8);
+  // TODO(18445): Use an LRU cache.
+  static var _getFieldClosures = new HashMap();
+  static var _setFieldClosures = new HashMap();
+  static var _getFieldCallCounts = new HashMap();
+  static var _setFieldCallCounts = new HashMap();
   static const _closureThreshold = 20;
+  static const _cacheSizeLimit = 255;
 
   _getFieldSlow(unwrapped) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
+    if (_getFieldCallCounts.length == 2 * _cacheSizeLimit) {
+      // Prevent unbounded cache growth.
+      _getFieldCallCounts = new HashMap();
+    }
     var callCount = _getFieldCallCounts[unwrapped];
     if (callCount == null) {
       callCount = 0;
@@ -326,7 +331,12 @@ class _LocalInstanceMirror extends _LocalObjectMirror
         var privateKey = unwrapped.substring(atPosition);
         f = _eval('(x) => x.$withoutKey', privateKey);
       }
+      if (_getFieldClosures.length == _cacheSizeLimit) {
+        // Prevent unbounded cache growth.
+        _getFieldClosures = new HashMap();
+      }
       _getFieldClosures[unwrapped] = f;
+      _getFieldCallCounts.remove(unwrapped);  // We won't look for this again.
       return reflect(f(_reflectee));
     }
     var result = reflect(_invokeGetter(_reflectee, unwrapped));
@@ -345,6 +355,9 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   _setFieldSlow(unwrapped, arg) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
+    if (_setFieldCallCounts.length == 2 * _cacheSizeLimit) {
+      _setFieldCallCounts = new HashMap();
+    }
     var callCount = _setFieldCallCounts[unwrapped];
     if (callCount == null) {
       callCount = 0;
@@ -363,7 +376,12 @@ class _LocalInstanceMirror extends _LocalObjectMirror
         var privateKey = unwrapped.substring(atPosition);
         f = _eval('(x, v) => x.$withoutKey = v', privateKey);
       }
+      if (_setFieldClosures.length == _cacheSizeLimit) {
+        // Prevent unbounded cache growth.
+        _setFieldClosures = new HashMap();
+      }
       _setFieldClosures[unwrapped] = f;
+      _setFieldCallCounts.remove(unwrapped);
       return reflect(f(_reflectee, arg));
     }
     _invokeSetter(_reflectee, unwrapped, arg);
