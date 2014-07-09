@@ -585,7 +585,13 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
 
 void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
-  isolate->debugger()->SignalExceptionThrown(exception);
+  // Do not notify debugger on stack overflow and out of memory exceptions.
+  // The VM would crash when the debugger calls back into the VM to
+  // get values of variables.
+  if (exception.raw() != isolate->object_store()->out_of_memory() &&
+      exception.raw() != isolate->object_store()->stack_overflow()) {
+    isolate->debugger()->SignalExceptionThrown(exception);
+  }
   // Null object is a valid exception object.
   ThrowExceptionHelper(isolate, exception, Instance::Handle(isolate), false);
 }
