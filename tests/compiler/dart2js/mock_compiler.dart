@@ -386,4 +386,6 @@ class MockElement extends FunctionElementX {
   get node => null;
 
   parseNode(_) => null;
+
+  bool get hasNode => false;
 }

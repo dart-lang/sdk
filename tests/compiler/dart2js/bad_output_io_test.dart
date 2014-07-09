@@ -48,6 +48,10 @@ class CollectingFormattingDiagnosticHandler
   String prefixMessage(String message, Diagnostic kind) {
     return message;
   }
+
+  int fatalCount;
+
+  int throwOnErrorCount;
 }
 
 testOutputProvider(script, libraryRoot, packageRoot, inputProvider, handler,

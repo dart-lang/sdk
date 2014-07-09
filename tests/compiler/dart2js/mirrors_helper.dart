@@ -68,7 +68,7 @@ class _PrivateClass {
   void set _privateSetter(value) => _privateField = value;
   void _privateMethod() {}
   _PrivateClass._privateConstructor();
-  factory _PrivateClass._privateFactoryConstructor() => new _PrivateClass();
+  factory _PrivateClass._privateFactoryConstructor() => null;
 }
 
 const metadata = const Metadata(null);

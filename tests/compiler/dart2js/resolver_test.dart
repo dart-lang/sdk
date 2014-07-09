@@ -314,7 +314,7 @@ Future testLocalsTwo() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -329,7 +329,7 @@ Future testLocalsThree() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -343,7 +343,7 @@ Future testLocalsFour() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -358,7 +358,7 @@ Future testLocalsFive() {
     ResolverVisitor visitor = compiler.resolverVisitor();
     If tree =
         parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);

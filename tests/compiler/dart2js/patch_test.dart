@@ -8,10 +8,9 @@ import "package:async_helper/async_helper.dart";
 import "package:compiler/implementation/dart2jslib.dart";
 import "package:compiler/implementation/elements/elements.dart";
 import "package:compiler/implementation/tree/tree.dart";
-import "package:compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "mock_libraries.dart";
-import "parser_helper.dart";
+import 'package:compiler/implementation/elements/modelx.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false, bool analyzeOnly: false}) {
@@ -24,7 +23,7 @@ Future<Compiler> applyPatch(String script, String patch,
   return compiler.init().then((_) => compiler);
 }
 
-void expectHasBody(compiler, Element element) {
+void expectHasBody(compiler, ElementX element) {
     var node = element.parseNode(compiler);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isNotNull(node.body);
@@ -34,7 +33,7 @@ void expectHasBody(compiler, Element element) {
     Expect.notEquals(node.body.getBeginToken(), node.body.getEndToken());
 }
 
-void expectHasNoBody(compiler, Element element) {
+void expectHasNoBody(compiler, ElementX element) {
     var node = element.parseNode(compiler);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isFalse(node.hasBody());

@@ -13,7 +13,7 @@ import 'mock_compiler.dart';
 import 'parser_helper.dart';
 
 import 'package:compiler/implementation/elements/modelx.dart'
-  show ElementX, CompilationUnitElementX, FunctionElementX;
+  show ClassElementX, CompilationUnitElementX, ElementX, FunctionElementX;
 
 import 'package:compiler/implementation/dart2jslib.dart';
 
@@ -2056,7 +2056,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     Link<Element> topLevelElements =
         parseUnit(text, compiler, library).reverse();
 
-    Element element = null;
+    ElementX element = null;
     Node node;
     TreeElements mapping;
     // Resolve all declarations and members.
@@ -2065,7 +2065,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
          elements = elements.tail) {
       element = elements.head;
       if (element.isClass) {
-        ClassElement classElement = element;
+        ClassElementX classElement = element;
         classElement.ensureResolved(compiler);
         classElement.forEachLocalMember((Element e) {
           if (!e.isSynthesized) {
