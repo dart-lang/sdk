@@ -94,12 +94,12 @@ def GetBuildInfo(builder_name, is_buildbot):
       assert ie in IE_VERSIONS
       builder_tag = 'windows-%s' % ie
       system = 'windows'
-    if dart2js_full_pattern.group(2):
+    if dart2js_full_pattern.group(4):
       checked = True
-    if dart2js_full_pattern.group(3):
+    if dart2js_full_pattern.group(5):
       minified = True
-    shard_index = dart2js_full_pattern.group(4)
-    total_shards = dart2js_full_pattern.group(5)
+    shard_index = dart2js_full_pattern.group(6)
+    total_shards = dart2js_full_pattern.group(7)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
