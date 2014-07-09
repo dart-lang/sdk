@@ -16,9 +16,19 @@
     <nav-control></nav-control>
   </nav-bar>
 
-  <script-inset id="scriptInset" script="{{ script }}" pos="{{ script.firstTokenPos }}" endPos="{{ script.lastTokenPos }}">
-  <h1>script {{ script.name }}</h1>
-  </script-inset>
+  <template if="{{ args['pos'] == null }}">
+    <script-inset id="scriptInset" script="{{ script }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
+  <template if="{{ args['pos'] != null }}">
+    <script-inset id="scriptInset" script="{{ script }}"
+                  currentPos="{{ args['pos'] | parseInt }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
 </template>
 </polymer-element>
 

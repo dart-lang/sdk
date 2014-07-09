@@ -4,47 +4,54 @@
 
 part of app;
 
-/// A [Pane] controls the user interface of Observatory. At any given time
-/// one pane will be the current pane. Panes are registered at startup.
-/// When the user navigates within the application, each pane is asked if it
-/// can handle the current location, the first pane to say yes, wins.
-abstract class Pane extends Observable {
+/// A [Page] controls the user interface of Observatory. At any given time
+/// one page will be the current page. Pages are registered at startup.
+/// When the user navigates within the application, each page is asked if it
+/// can handle the current location, the first page to say yes, wins.
+abstract class Page extends Observable {
   final ObservatoryApplication app;
 
   @observable ObservatoryElement element;
+  @observable ObservableMap args;
 
-  Pane(this.app);
+  Page(this.app);
 
-  /// Called when the pane is installed, this callback must initialize
+  /// Called when the page is installed, this callback must initialize
   /// [element].
   void onInstall();
 
-  /// Called when the pane is uninstalled, this callback must clear
+  /// Called when the page is uninstalled, this callback must clear
   /// [element].
   void onUninstall() {
     element = null;
   }
 
-  /// Called when the pane should update its state based on [url].
-  /// NOTE: Only called when the pane is installed.
-  void visit(String url);
+  /// Called when the page should update its state based on [url].
+  /// NOTE: Only called when the page is installed.
+  void visit(String url, Map argsMap) {
+    args = toObservable(argsMap);
+    _visit(url);
+  }
 
-  /// Called to test whether this pane can visit [url].
+  // Overridden by subclasses.
+  void _visit(String url);
+
+  /// Called to test whether this page can visit [url].
   bool canVisit(String url);
 }
 
 /// A general service object viewer.
-class ServiceObjectPane extends Pane {
-  ServiceObjectPane(app) : super(app);
+class ServiceObjectPage extends Page {
+  ServiceObjectPage(app) : super(app);
 
   void onInstall() {
     if (element == null) {
-      /// Lazily create pane.
+      /// Lazily create page.
       element = new Element.tag('service-view');
     }
   }
 
-  void visit(String url) {
+  void _visit(String url) {
     assert(element != null);
     assert(canVisit(url));
     if (url == '') {
@@ -53,10 +60,10 @@ class ServiceObjectPane extends Pane {
     }
     /// Request url from VM and display it.
     app.vm.get(url).then((obj) {
-      ServiceObjectViewElement pane = element;
-      pane.object = obj;
+      ServiceObjectViewElement serviceElement = element;
+      serviceElement.object = obj;
     }).catchError((e) {
-      Logger.root.severe('ServiceObjectPane visit error: $e');
+      Logger.root.severe('ServiceObjectPage visit error: $e');
     });
   }
 
@@ -64,11 +71,11 @@ class ServiceObjectPane extends Pane {
   bool canVisit(String url) => true;
 }
 
-/// Class tree pane.
-class ClassTreePane extends Pane {
+/// Class tree page.
+class ClassTreePage extends Page {
   static const _urlPrefix = 'class-tree/';
 
-  ClassTreePane(app) : super(app);
+  ClassTreePage(app) : super(app);
 
   void onInstall() {
     if (element == null) {
@@ -76,7 +83,7 @@ class ClassTreePane extends Pane {
     }
   }
 
-  void visit(String url) {
+  void _visit(String url) {
     assert(element != null);
     assert(canVisit(url));
     // ClassTree urls are 'class-tree/isolate-id', chop off prefix, leaving
@@ -85,12 +92,12 @@ class ClassTreePane extends Pane {
     /// Request the isolate url.
     app.vm.get(url).then((i) {
       if (element != null) {
-        /// Update the pane.
-        ClassTreeElement pane = element;
-        pane.isolate = i;
+        /// Update the page.
+        ClassTreeElement page = element;
+        page.isolate = i;
       }
     }).catchError((e) {
-      Logger.root.severe('ClassTreePane visit error: $e');
+      Logger.root.severe('ClassTreePage visit error: $e');
     });
   }
 
@@ -98,17 +105,17 @@ class ClassTreePane extends Pane {
   bool canVisit(String url) => url.startsWith(_urlPrefix);
 }
 
-class ErrorViewPane extends Pane {
-  ErrorViewPane(app) : super(app);
+class ErrorViewPage extends Page {
+  ErrorViewPage(app) : super(app);
 
   void onInstall() {
     if (element == null) {
-      /// Lazily create pane.
+      /// Lazily create page.
       element = new Element.tag('service-view');
     }
   }
 
-  void visit(String url) {
+  void _visit(String url) {
     assert(element != null);
     assert(canVisit(url));
     (element as ServiceObjectViewElement).object = app.lastErrorOrException;
@@ -117,8 +124,8 @@ class ErrorViewPane extends Pane {
   bool canVisit(String url) => url.startsWith('error/');
 }
 
-class VMConnectPane extends Pane {
-  VMConnectPane(app) : super(app);
+class VMConnectPage extends Page {
+  VMConnectPage(app) : super(app);
 
   void onInstall() {
     if (element == null) {
@@ -127,7 +134,7 @@ class VMConnectPane extends Pane {
     assert(element != null);
   }
 
-  void visit(String url) {
+  void _visit(String url) {
     assert(element != null);
     assert(canVisit(url));
   }

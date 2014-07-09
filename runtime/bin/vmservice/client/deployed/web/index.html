@@ -3412,26 +3412,65 @@ hr {
         padding-left: 15%;
         padding-right: 15%;
       }
-      .grayBox {
+      .sourceBox {
         width: 100%;
         background-color: #f5f5f5;
         border: 1px solid #ccc;
         padding: 10px;
-     }
+        overflow-y: auto;
+      }
+      .sourceTable {
+        display: table;
+      }
+      .sourceRow {
+        display: table-row;
+      }
+      .sourceItem, .sourceItemCurrent {
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        line-height: 125%;
+        white-space: pre;
+      }
+      .sourceItemCurrent {
+        background-color: #6cf;
+      }
+      .hitsNone, .hitsNotExecuted, .hitsExecuted {
+        min-width: 32px;
+        text-align: right;
+      }
+      .hitsNotExecuted {
+        background-color: #e66;
+      }
+      .hitsExecuted {
+        background-color: #6d6;
+      }
     </style>
     <div class="sourceInset">
       <content></content>
-      <div class="grayBox">
-        <table>
-          <tbody>
-            <tr template="" repeat="{{ lineNumber in lineNumbers }}">
-              <td style="{{ styleForHits(script.lines[lineNumber].hits) }}"><span>  </span></td>
-              <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{script.lines[lineNumber].line}}</td>
-              <td>&nbsp;</td>
-              <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: pre;">{{script.lines[lineNumber].text}}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="sourceBox" style="height:{{height}}">
+        <div class="sourceTable">
+          <template repeat="{{ line in lines }}">
+            <div class="sourceRow" id="{{ makeLineId(line.line) }}">
+              <template if="{{ line.hits == null }}">
+                <div class="hitsNone">{{ line.line }}</div>
+              </template>
+              <template if="{{ line.hits == 0 }}">
+                <div class="hitsNotExecuted">{{ line.line }}</div>
+              </template>
+              <template if="{{ line.hits > 0 }}">
+                <div class="hitsExecuted">{{ line.line }}</div>
+              </template>
+              <div class="sourceItem">&nbsp;</div>
+              <template if="{{ line.line == currentLine }}">
+                <div id="currentLine" class="sourceItemCurrent">{{line.text}}</div>
+              </template>
+              <template if="{{ line.line != currentLine }}">
+                <div class="sourceItem">{{line.text}}</div>
+              </template>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </template>
@@ -4117,13 +4156,14 @@ hr {
     </div>
 
     <hr>
-    <script-inset script="{{ cls.script }}" pos="{{ cls.tokenPos }}" endpos="{{ cls.endTokenPos }}">
+    <script-inset script="{{ cls.script }}" startpos="{{ cls.tokenPos }}" endpos="{{ cls.endTokenPos }}">
     </script-inset>
 
     <br><br><br><br>
     <br><br><br><br>
   </template>
 </polymer-element>
+
 
 
 
@@ -6612,7 +6652,7 @@ hr {
     </div>
 
     <hr>
-    <script-inset script="{{ function['script'] }}" pos="{{ function['tokenPos'] }}" endpos="{{ function['endTokenPos'] }}">
+    <script-inset script="{{ function['script'] }}" startpos="{{ function['tokenPos'] }}" endpos="{{ function['endTokenPos'] }}">
     </script-inset>
 
     <br>
@@ -13438,7 +13478,7 @@ hr {
 
     <template if="{{ isolate.topFrame != null }}">
       <br>
-      <script-inset script="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}">
+      <script-inset script="{{ isolate.topFrame['script'] }}" currentpos="{{ isolate.topFrame['tokenPos'] }}" height="200px">
       </script-inset>
     </template>
 
@@ -15599,11 +15639,21 @@ hr {
     <nav-control></nav-control>
   </nav-bar>
 
-  <script-inset id="scriptInset" script="{{ script }}" pos="{{ script.firstTokenPos }}" endpos="{{ script.lastTokenPos }}">
-  <h1>script {{ script.name }}</h1>
-  </script-inset>
+  <template if="{{ args['pos'] == null }}">
+    <script-inset id="scriptInset" script="{{ script }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
+  <template if="{{ args['pos'] != null }}">
+    <script-inset id="scriptInset" script="{{ script }}" currentpos="{{ args['pos'] | parseInt }}">
+      <h1>script {{ script.name }}</h1>
+    </script-inset>
+  </template>
+
 </template>
 </polymer-element>
+
 
 
 

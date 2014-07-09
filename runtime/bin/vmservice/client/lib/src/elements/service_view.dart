@@ -14,6 +14,7 @@ import 'observatory_element.dart';
 @CustomTag('service-view')
 class ServiceObjectViewElement extends ObservatoryElement {
   @published ServiceObject object;
+  @published ObservableMap args;
 
   ServiceObjectViewElement.created() : super.created();
 

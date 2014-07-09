@@ -4,6 +4,7 @@
 
 library script_inset_element;
 
+import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
@@ -12,23 +13,56 @@ import 'package:polymer/polymer.dart';
 @CustomTag('script-inset')
 class ScriptInsetElement extends ObservatoryElement {
   @published Script script;
-  @published int pos;
+
+  /// Set the height to make the script inset scroll.  Otherwise it
+  /// will show from startPos to endPos.
+  @published String height = null;
+
+  @published int currentPos;
+  @published int startPos;
   @published int endPos;
-  final List<int> lineNumbers = new ObservableList<int>();
+
+  @observable int currentLine;
   @observable int startLine;
   @observable int endLine;
 
   @observable List<ScriptLine> lines = toObservable([]);
 
-  void attached() {
-    super.attached();
+  String makeLineId(int line) {
+    return 'line-$line';
   }
 
-  void scriptChanged(oldValue) {
+  MutationObserver _observer;
+
+  void _onMutation(mutations, observer) {
+    var line = shadowRoot.querySelector('#line-$currentLine');
+    if (line != null) {
+      line.scrollIntoView();
+    }
+  } 
+
+  void attached() {
+    super.attached();
+    var table = shadowRoot.querySelector('.sourceTable');
+    if (table != null) {
+      _observer = new MutationObserver(_onMutation);
+      _observer.observe(table, childList:true);
+    }
+  }
+
+  void detached() {
+    if (_observer != null) {
+      _observer.disconnect();
+      _observer = null;
+    }
+    super.detached();
+  }
+
+  void currentPosChanged(oldValue) {
     _updateLines();
   }
 
-  void posChanged(oldValue) {
+  void startPosChanged(oldValue) {
     _updateLines();
   }
 
@@ -36,21 +70,8 @@ class ScriptInsetElement extends ObservatoryElement {
     _updateLines();
   }
 
-  static const hitStyleNone = 'min-width:32px;';
-  static const hitStyleExecuted = 'min-width:32px; background-color:green';
-  static const hitStyleNotExecuted = 'min-width:32px; background-color:red';
-
-  /// [hits] can be null which indicates that the line is not executable.
-  /// When [hits] is 0, the line is executable but hasn't been executed and
-  /// when [hits] is positive, the line is executable and has been executed.
-  String styleForHits(int hits) {
-    if (hits == null) {
-      return hitStyleNone;
-    } else if (hits == 0) {
-      return hitStyleNotExecuted;
-    }
-    assert(hits > 0);
-    return hitStyleExecuted;
+  void scriptChanged(oldValue) {
+    _updateLines();
   }
 
   var _updateFuture;
@@ -58,6 +79,10 @@ class ScriptInsetElement extends ObservatoryElement {
   void _updateLines() {
     if (_updateFuture != null) {
       // Already scheduled.
+      return;
+    }
+    if (script == null) {
+      // Wait for script to be assigned.
       return;
     }
     if (!script.loaded) {
@@ -69,14 +94,18 @@ class ScriptInsetElement extends ObservatoryElement {
       });
       return;
     }
-    startLine =
-        (pos != null) ? script.tokenToLine(pos) - 1 : 0;
-    endLine =
-        (endPos != null) ? script.tokenToLine(endPos) : startLine + 1;
-    // Add line numbers.
-    lineNumbers.clear();
-    for (var i = startLine; i < endLine; i++) {
-      lineNumbers.add(i);
+    startLine = (startPos != null
+                 ? script.tokenToLine(startPos)
+                 : 1);
+    currentLine = (currentPos != null
+                   ? script.tokenToLine(currentPos)
+                   : null);
+    endLine = (endPos != null
+               ? script.tokenToLine(endPos)
+               : script.lines.length);
+    lines.clear();
+    for (int i = (startLine - 1); i <= (endLine - 1); i++) {
+      lines.add(script.lines[i]);
     }
   }
 

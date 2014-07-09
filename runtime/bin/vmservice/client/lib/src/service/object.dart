@@ -1245,11 +1245,11 @@ class Script extends ServiceObject with Coverage {
 
   /// This function maps a token position to a line number.
   int tokenToLine(int token) => _tokenToLine[token];
-  Map _tokenToLine;
+  Map _tokenToLine = {};
 
   /// This function maps a token position to a column number.
   int tokenToCol(int token) => _tokenToCol[token];
-  Map _tokenToCol;
+  Map _tokenToCol = {};
 
   void _update(ObservableMap map, bool mapIsRef) {
     kind = map['kind'];
@@ -1265,8 +1265,8 @@ class Script extends ServiceObject with Coverage {
     if (table == null) {
       return;
     }
-    _tokenToLine = {};
-    _tokenToCol = {};
+    _tokenToLine.clear();
+    _tokenToCol.clear();
     firstTokenPos = null;
     lastTokenPos = null;
     for (var line in table) {
