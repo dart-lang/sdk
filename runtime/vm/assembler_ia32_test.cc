@@ -3019,6 +3019,26 @@ ASSEMBLER_TEST_RUN(ConditionalMovesSign, test) {
 }
 
 
+// Return 1 if equal, 0 if not equal.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
+  __ xorl(EAX, EAX);
+  __ movl(ECX, Immediate(1));
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ cmpl(EDX, Immediate(785));
+  __ cmove(EAX, ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
+  typedef int (*ConditionalMovesSignCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(785);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(-12);
+  EXPECT_EQ(0, res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
   __ movl(EDX, Immediate(1));  // Greater equal.
   __ movl(ECX, Immediate(-1));  // Less

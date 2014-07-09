@@ -2949,6 +2949,26 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
   EXPECT_EQ(-1, res);  // Less.
 }
 
+
+// Return 1 if equal, 0 if not equal.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
+  __ xorq(RAX, RAX);
+  __ movq(RCX, Immediate(1));
+  __ movq(RDX, CallingConventions::kArg1Reg);
+  __ cmpq(RDX, Immediate(785));
+  __ cmoveq(RAX, RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
+  typedef int (*ConditionalMovesEqualCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(785);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(-12);
+  EXPECT_EQ(0, res);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

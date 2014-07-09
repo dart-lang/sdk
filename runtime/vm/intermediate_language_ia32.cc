@@ -935,17 +935,21 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(isolate,
-                               kNumInputs,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
 }
 
 
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadTaggedClassIdMayBeSmi(result, object);
+  Register tmp = locs()->temp(0).reg();
+  __ LoadTaggedClassIdMayBeSmi(result, object, tmp);
 }
 
 

@@ -348,6 +348,7 @@ class Assembler : public ValueObject {
 
   void leal(Register dst, const Address& src);
 
+  void cmove(Register dst, Register src);
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);
 
@@ -686,7 +687,9 @@ class Assembler : public ValueObject {
 
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
-  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void LoadTaggedClassIdMayBeSmi(Register result,
+                                 Register object,
+                                 Register tmp);
 
   /*
    * Misc. functionality

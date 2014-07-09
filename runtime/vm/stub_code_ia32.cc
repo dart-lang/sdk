@@ -1325,7 +1325,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // arguments descriptor array and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+  __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
 
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
@@ -1337,7 +1337,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+      __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
 
       // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
@@ -1356,7 +1356,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (num_args > 1) {
     __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
-    __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+    __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;

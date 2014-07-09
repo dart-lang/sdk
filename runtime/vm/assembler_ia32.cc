@@ -273,6 +273,14 @@ void Assembler::leal(Register dst, const Address& src) {
 }
 
 
+void Assembler::cmove(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x44);
+  EmitRegisterOperand(dst, src);
+}
+
+
 void Assembler::cmovs(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
@@ -2658,16 +2666,29 @@ void Assembler::CompareClassId(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  testl(object, Immediate(kSmiTagMask));
-  Label not_smi, done;
-  j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  movl(result, Immediate(Smi::RawValue(kSmiCid)));
-  jmp(&done, Assembler::kNearJump);
-  Bind(&not_smi);
-  LoadClassId(result, object);
+void Assembler::LoadTaggedClassIdMayBeSmi(
+    Register result, Register object, Register tmp) {
+  ASSERT(object != tmp);
+  ASSERT(result != tmp);
+
+  // Make a copy of object since result and object can be the same register.
+  movl(tmp, object);
+  // Load up a null object. We only need it so we can use LoadClassId on it in
+  // the case that object is a Smi.
+  movl(result, Immediate(reinterpret_cast<intptr_t>(Object::null())));
+  // Check if the object is a Smi.
+  testl(tmp, Immediate(kSmiTagMask));
+  // If the object *is* a Smi, load the null object into tmp. o/w leave alone.
+  cmove(tmp, result);
+  // Loads either the cid of the object if it isn't a Smi, or the cid of null
+  // if it is a Smi, which will be ignored.
+  LoadClassId(result, tmp);
+
+  movl(tmp, Immediate(kSmiCid));
+  // If object is a Smi, move the Smi cid into result. o/w leave alone.
+  cmove(result, tmp);
+  // Finally, tag the result.
   SmiTag(result);
-  Bind(&done);
 }
 
 

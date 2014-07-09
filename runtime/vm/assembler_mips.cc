@@ -692,15 +692,27 @@ void Assembler::LoadClass(Register result, Register object) {
 
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  Label load, done;
-  andi(CMPRES1, object, Immediate(kSmiTagMask));
-  bne(CMPRES1, ZR, &load);
-  LoadImmediate(result, Smi::RawValue(kSmiCid));
-  b(&done);
-  Bind(&load);
-  LoadClassId(result, object);
+  ASSERT(object != TMP);
+  ASSERT(result != TMP);
+
+  // Make a copy of object since result and object can be the same register.
+  mov(TMP, object);
+  // Load up a null object. We only need it so we can use LoadClassId on it in
+  // the case that object is a Smi.
+  LoadImmediate(result, reinterpret_cast<intptr_t>(Object::null()));
+  // Check if the object is a Smi.
+  andi(CMPRES1, TMP, Immediate(kSmiTagMask));
+  // If the object *is* a Smi, load the null object into tmp. o/w leave alone.
+  movz(TMP, result, CMPRES1);
+  // Loads either the cid of the object if it isn't a Smi, or the cid of null
+  // if it is a Smi, which will be ignored.
+  LoadClassId(result, TMP);
+
+  LoadImmediate(TMP, kSmiCid);
+  // If object is a Smi, move the Smi cid into result. o/w leave alone.
+  movz(result, TMP, CMPRES1);
+  // Finally, tag the result.
   SmiTag(result);
-  Bind(&done);
 }
 
 
