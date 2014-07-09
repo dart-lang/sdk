@@ -2952,9 +2952,9 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
 
 // Return 1 if equal, 0 if not equal.
 ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
+  __ movq(RDX, CallingConventions::kArg1Reg);
   __ xorq(RAX, RAX);
   __ movq(RCX, Immediate(1));
-  __ movq(RDX, CallingConventions::kArg1Reg);
   __ cmpq(RDX, Immediate(785));
   __ cmoveq(RAX, RCX);
   __ ret();
