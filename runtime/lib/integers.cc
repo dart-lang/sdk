@@ -282,12 +282,16 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();
     const int count = Utils::HighestBit(mint_value);
-    if ((count + amount.Value()) < Mint::kBits) {
+    intptr_t shift_count = amount.Value();
+    if (kind == Token::kSHR) {
+      shift_count = -shift_count;
+    }
+    if ((count + shift_count) < Mint::kBits) {
       switch (kind) {
         case Token::kSHL:
-          return Integer::New(mint_value << amount.Value(), Heap::kNew, silent);
+          return Integer::New(mint_value << shift_count, Heap::kNew, silent);
         case Token::kSHR:
-          return Integer::New(mint_value >> amount.Value(), Heap::kNew, silent);
+          return Integer::New(mint_value >> -shift_count, Heap::kNew, silent);
         default:
           UNIMPLEMENTED();
       }

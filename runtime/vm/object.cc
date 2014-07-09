@@ -15228,8 +15228,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
-  // 64-bit signed result, except the product of two Smis (unless the Smis are
-  // 32-bit or less).
+  // 64-bit signed result, except the product of two Smis (see below).
   if (IsSmi() && other.IsSmi()) {
     const intptr_t left_value = Smi::Value(Smi::RawCast(raw()));
     const intptr_t right_value = Smi::Value(Smi::RawCast(other.raw()));
@@ -15244,10 +15243,12 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
           return Integer::New(static_cast<int64_t>(left_value) *
                               static_cast<int64_t>(right_value));
         } else {
-          // In 64-bit mode, the product of two 32-bit signed integers fits in a
-          // 64-bit result.
+          // In 64-bit mode, the product of two signed integers fits in a
+          // 64-bit result if the sum of the highest bits of their absolute
+          // values is smaller than 62.
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+          if ((Utils::HighestBit(left_value) +
+               Utils::HighestBit(right_value)) < 62) {
             return Integer::New(left_value * right_value);
           }
         }
@@ -15271,42 +15272,41 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  // In 32-bit mode, the result of any operation between two 63-bit signed
-  // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
+  // In 32-bit mode, the result of any operation (except multiplication) between
+  // two 63-bit signed integers will fit in a 64-bit signed result.
+  // For the multiplication result to fit, the sum of the highest bits of the
+  // absolute values of the operands must be smaller than 62.
   // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
   if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
     const int64_t left_value = AsInt64Value();
-    if (Utils::IsInt(63, left_value)) {
-      const int64_t right_value = other.AsInt64Value();
-      if (Utils::IsInt(63, right_value)) {
-        switch (operation) {
-        case Token::kADD:
-          return Integer::New(left_value + right_value);
-        case Token::kSUB:
-          return Integer::New(left_value - right_value);
-        case Token::kMUL: {
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
-            return Integer::New(left_value * right_value);
+    const int64_t right_value = other.AsInt64Value();
+    if (operation == Token::kMUL) {
+      if ((Utils::HighestBit(left_value) +
+           Utils::HighestBit(right_value)) < 62) {
+        return Integer::New(left_value * right_value);
+      }
+      // Perform a Bigint multiplication below.
+    } else if (Utils::IsInt(63, left_value) && Utils::IsInt(63, right_value)) {
+      switch (operation) {
+      case Token::kADD:
+        return Integer::New(left_value + right_value);
+      case Token::kSUB:
+        return Integer::New(left_value - right_value);
+      case Token::kTRUNCDIV:
+        return Integer::New(left_value / right_value);
+      case Token::kMOD: {
+        const int64_t remainder = left_value % right_value;
+        if (remainder < 0) {
+          if (right_value < 0) {
+            return Integer::New(remainder - right_value);
+          } else {
+            return Integer::New(remainder + right_value);
           }
-          // Perform a Bigint multiplication below.
-          break;
         }
-        case Token::kTRUNCDIV:
-          return Integer::New(left_value / right_value);
-        case Token::kMOD: {
-          const int64_t remainder = left_value % right_value;
-          if (remainder < 0) {
-            if (right_value < 0) {
-              return Integer::New(remainder - right_value);
-            } else {
-              return Integer::New(remainder + right_value);
-            }
-          }
-          return Integer::New(remainder);
-        }
-        default:
-          UNIMPLEMENTED();
-        }
+        return Integer::New(remainder);
+      }
+      default:
+        UNIMPLEMENTED();
       }
     }
   }
