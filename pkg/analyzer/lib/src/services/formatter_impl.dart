@@ -385,6 +385,9 @@ class SourceVisitor implements AstVisitor {
   /// A weight for potential breakpoints.
   int currentBreakWeight = DEFAULT_SPACE_WEIGHT;
 
+  /// The last issued space weight.
+  int lastSpaceWeight = 0;
+
   /// Original pre-format selection information (may be null).
   final Selection preSelection;
 
@@ -423,8 +426,13 @@ class SourceVisitor implements AstVisitor {
 
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
-    breakableNonSpace();
-    visitCommaSeparatedNodes(node.arguments);
+    if (node.arguments.isNotEmpty) {
+      int weight = lastSpaceWeight++;
+      levelSpace(weight, 0);
+      visitCommaSeparatedNodes(
+          node.arguments,
+          followedBy: () => levelSpace(weight));
+    }
     token(node.rightParenthesis);
   }
 
@@ -455,11 +463,29 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitBinaryExpression(BinaryExpression node) {
-    visit(node.leftOperand);
-    space();
-    token(node.operator);
-    space();
-    visit(node.rightOperand);
+    Token operator = node.operator;
+    TokenType operatorType = operator.type;
+    int addOperands(List<Expression> operands, Expression e, int i) {
+      if (e is BinaryExpression && e.operator.type == operatorType) {
+        i = addOperands(operands, e.leftOperand, i);
+        i = addOperands(operands, e.rightOperand, i);
+      } else {
+        operands.insert(i++, e);
+      }
+      return i;
+    }
+    List<Expression> operands = [];
+    addOperands(operands, node.leftOperand, 0);
+    addOperands(operands, node.rightOperand, operands.length);
+    int weight = lastSpaceWeight++;
+    for (int i = 0; i < operands.length; i++) {
+      if (i != 0) {
+        space();
+        token(operator);
+        levelSpace(weight);
+      }
+      visit(operands[i]);
+    }
   }
 
   visitBlock(Block node) {
@@ -595,15 +621,16 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitConditionalExpression(ConditionalExpression node) {
+    int weight = lastSpaceWeight++;
     visit(node.condition);
     space();
     token(node.question);
     allowContinuedLines((){
-      space();
+      levelSpace(weight);
       visit(node.thenExpression);
       space();
       token(node.colon);
-      space();
+      levelSpace(weight);
       visit(node.elseExpression);
     });
   }
@@ -748,8 +775,9 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    int weight = lastSpaceWeight++;
     token(node.functionDefinition);
-    space();
+    levelSpace(weight);
     visit(node.expression);
     token(node.semicolon);
   }
@@ -1019,11 +1047,15 @@ class SourceVisitor implements AstVisitor {
   }
 
   visitListLiteral(ListLiteral node) {
+    int weight = lastSpaceWeight++;
     modifier(node.constKeyword);
     visit(node.typeArguments);
     token(node.leftBracket);
     indent();
-    visitCommaSeparatedNodes(node.elements /*, followedBy: breakableSpace*/);
+    levelSpace(weight, 0);
+    visitCommaSeparatedNodes(
+        node.elements,
+        followedBy: () => levelSpace(weight));
     optionalTrailingComma(node.rightBracket);
     token(node.rightBracket, precededBy: unindent);
   }
@@ -1319,14 +1351,24 @@ class SourceVisitor implements AstVisitor {
       space();
       token(node.equals);
       var initializer = node.initializer;
-      if (initializer is! ListLiteral && initializer is! MapLiteral) {
-        allowContinuedLines((){
+      if (initializer is ListLiteral || initializer is MapLiteral) {
+        space();
+        visit(initializer);
+      } else if (initializer is BinaryExpression) {
+        allowContinuedLines(() {
+          levelSpace(lastSpaceWeight);
+          visit(initializer);
+        });
+      } else if (initializer is ConditionalExpression) {
+        allowContinuedLines(() {
           space();
           visit(initializer);
         });
       } else {
-        space();
-        visit(initializer);
+        allowContinuedLines(() {
+          levelSpace(lastSpaceWeight++);
+          visit(initializer);
+        });
       }
     }
   }
@@ -1573,6 +1615,12 @@ class SourceVisitor implements AstVisitor {
     emitEmptySpaces = true;
   }
 
+  /// Emit level spaces, even if empty (works as a break point).
+  levelSpace(int weight, [int n = 1]) {
+    space(n: n, breakWeight: weight);
+    emitEmptySpaces = true;
+  }
+
   /// Emit a non-breakable space.
   nonBreakingSpace() {
     space(breakWeight: UNBREAKABLE_SPACE_WEIGHT);
@@ -1583,7 +1631,7 @@ class SourceVisitor implements AstVisitor {
   /// indent-level), otherwise line-leading spaces will be ignored.
   space({n: 1, allowLineLeading: false, breakWeight: DEFAULT_SPACE_WEIGHT}) {
     //TODO(pquitslund): replace with a proper space token
-    leadingSpaces+=n;
+    leadingSpaces += n;
     allowLineLeadingSpaces = allowLineLeading;
     currentBreakWeight = breakWeight;
   }

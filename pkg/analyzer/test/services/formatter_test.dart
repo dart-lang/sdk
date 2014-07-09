@@ -42,6 +42,13 @@ main() {
     });
   });
 
+  /// Data-driven wrapping tests
+  group('wrap_tests.data', () {
+    runTests('wrap_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
+
   /// Formatter tests
   group('formatter', () {
 
@@ -1331,7 +1338,10 @@ main() {
         new SimpleLineBreaker(maxLength).breakLine(line);
 
     String printLine(Line line, int maxLength) =>
-        new SimpleLineBreaker(maxLength).printLine(line);
+        new SimpleLineBreaker(
+            maxLength,
+            (n) => new List.filled(n, '  ').join()
+        ).printLine(line);
 
     Line line(List tokens) {
       var line = new Line();
@@ -1349,7 +1359,9 @@ main() {
     }
 
 
-    final SP_1 = new SpaceToken(1, breakWeight: 1);
+    final SP_1 = new SpaceToken(1, breakWeight: DEFAULT_SPACE_WEIGHT);
+    final SP_w1 = new SpaceToken(1, breakWeight: 1);
+    final SP_w2 = new SpaceToken(1, breakWeight: 2);
 
     // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
     final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
@@ -1389,24 +1401,40 @@ main() {
       expectTextsEqual(chunks, ['  foo bar baz', 'foo bar baz']);
     });
 
+    test('breakLine - use weights - 1', () {
+      var source = line(['111', SP_w2, '222', SP_w1, '333', SP_w2,
+                           '444', SP_w1, '555', SP_w2, '666']);
+      var chunks = breakLine(source, 12);
+      expectTextsEqual(chunks, ['111 222', '333 444', '555 666']);
+    });
+
     test('printLine - 1', () {
       var line = printLine(LINE_1, 1);
-      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+      expect(line, 'foo\n    bar\n    baz\n    foo\n    bar\n    baz');
     });
 
     test('printLine - 2', () {
       var line = printLine(LINE_1, 4);
-      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+      expect(line, 'foo\n    bar\n    baz\n    foo\n    bar\n    baz');
     });
 
     test('printLine - 3', () {
       var line = printLine(LINE_1, 8);
-      expect(line, 'foo bar\nbaz foo\nbar baz');
+      expect(line, 'foo bar\n    baz foo\n    bar baz');
     });
 
     test('printLine - 4', () {
       var line = printLine(LINE_1, 12);
-      expect(line, 'foo bar baz\nfoo bar baz');
+      expect(line, 'foo bar baz\n    foo bar baz');
+    });
+
+    test('printLine - use weight - 1', () {
+      var source = line(
+                     ['111111', SP_w2, '222222', SP_w1,
+                      '333333', SP_w2, '444444', SP_w1,
+                      '555555', SP_w2, '666666']);
+      var result = printLine(source, 20);
+      expect(result, '111111 222222\n    333333 444444\n    555555 666666');
     });
 
     test('isWhitespace', () {
