@@ -70,6 +70,11 @@ DEFINE_FLAG(int, deoptimize_every, 0,
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
 
+#ifdef DEBUG
+DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
+            "Perform a GC before allocation of instances of "
+            "the specified class");
+#endif
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
@@ -141,7 +146,20 @@ static intptr_t GetCallerLocation() {
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
+
+#ifdef DEBUG
+  if (FLAG_gc_at_instance_allocation != NULL) {
+    const String& name = String::Handle(cls.Name());
+    if (String::EqualsIgnoringPrivateKey(
+            name,
+            String::Handle(String::New(FLAG_gc_at_instance_allocation)))) {
+      Isolate::Current()->heap()->CollectAllGarbage();
+    }
+  }
+#endif
+
   const Instance& instance = Instance::Handle(Instance::New(cls));
+
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
     // No type arguments required for a non-parameterized type.

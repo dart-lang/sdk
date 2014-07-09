@@ -57,6 +57,8 @@ import 'resolution/resolution.dart' show
     TreeElements,
     AnalyzableElementX;
 
+import "dart:math" show min;
+
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
 ///
@@ -564,9 +566,21 @@ class DeferredLoadTask extends CompilerTask {
 
     void computeOutputUnitName(OutputUnit outputUnit) {
       if (generatedNames[outputUnit] != null) return;
-      String suggestedName = outputUnit.imports.map((import) {
+      Iterable<String> importNames = outputUnit.imports.map((import) {
         return importDeferName[import];
-      }).join('_');
+      });
+      String suggestedName = importNames.join('_');
+      // Avoid the name getting too long.
+      // Try to abbreviate the prefix-names
+      if (suggestedName.length > 15) {
+        suggestedName = importNames.map((name) {
+          return name.substring(0, min(2, name.length));
+        }).join('_');
+      }
+      // If this is still too long, truncate the whole name.
+      if (suggestedName.length > 15) {
+        suggestedName = suggestedName.substring(0, 15);
+      }
       outputUnit.name = makeUnique(suggestedName, usedOutputUnitNames);
       generatedNames[outputUnit] = outputUnit.name;
     }

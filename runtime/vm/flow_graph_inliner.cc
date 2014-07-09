@@ -1019,6 +1019,14 @@ class CallSiteInliner : public ValueObject {
         target ^= alloc->closure_function().raw();
         ASSERT(target.signature_class() == alloc->cls().raw());
       }
+      ConstantInstr* constant =
+          call->ArgumentAt(0)->OriginalDefinition()->AsConstant();
+      if ((constant != NULL) &&
+          constant->value().IsInstance() &&
+          Instance::Cast(constant->value()).IsClosure()) {
+        target ^= Closure::function(Instance::Cast(constant->value()));
+      }
+
       if (target.IsNull()) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
         continue;

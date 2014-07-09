@@ -15,6 +15,7 @@ import platform
 import re
 import shutil
 import socket
+import string
 import subprocess
 import sys
 
@@ -23,18 +24,24 @@ import bot
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?(-(batch))?-?(\d*)-?(\d*)')
-DART2JS_FULL_BUILDER = r'dart2js-full-(linux|mac|windows)(-checked)?(-minified)?-(\d+)-(\d+)'
+DART2JS_FULL_BUILDER = r'full-(linux|mac|win7|win8)(-(ie10|ie11))?(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ie11|ff|safari|chrome|chromeOnAndroid|safarimobilesim|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+
+IE_VERSIONS = ['ie10', 'ie11']
 
 DART2JS_FULL_CONFIGURATIONS = {
   'linux' : [ ],
   'mac' : [ ],
-  'windows' : [
-    {'runtime' : 'ie9'},
-    {'runtime' : 'ie9', 'additional_flags' : ['--checked']},
-    {'runtime' : 'ff'},
+  'windows-ie10' : [
+    {'runtime' : 'ie10'},
+    {'runtime' : 'ie10', 'additional_flags' : ['--checked']},
     {'runtime' : 'chrome'},
+  ],
+  'windows-ie11' : [
+    {'runtime' : 'ie11'},
+    {'runtime' : 'ie11', 'additional_flags' : ['--checked']},
+    {'runtime' : 'ff'},
   ],
 }
 
@@ -57,6 +64,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   arch = None
   dart2js_full = False
   batch = False
+  builder_tag = None
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
   dart2js_full_pattern = re.match(DART2JS_FULL_BUILDER, builder_name)
@@ -78,12 +86,20 @@ def GetBuildInfo(builder_name, is_buildbot):
     compiler = 'dart2js'
     dart2js_full = True
     system = dart2js_full_pattern.group(1)
-    if dart2js_full_pattern.group(2):
+    # windows-ie10 or windows-ie11 means a windows machine with that respective
+    # version of ie installed. There is no difference in how we handle testing.
+    # We use the builder tag to pass along this information.
+    if system.startswith('win'):
+      ie =  dart2js_full_pattern.group(3)
+      assert ie in IE_VERSIONS
+      builder_tag = 'windows-%s' % ie
+      system = 'windows'
+    if dart2js_full_pattern.group(4):
       checked = True
-    if dart2js_full_pattern.group(3):
+    if dart2js_full_pattern.group(5):
       minified = True
-    shard_index = dart2js_full_pattern.group(4)
-    total_shards = dart2js_full_pattern.group(5)
+    shard_index = dart2js_full_pattern.group(6)
+    total_shards = dart2js_full_pattern.group(7)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
@@ -135,7 +151,8 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
-                       test_set, csp, arch, dart2js_full, batch=batch)
+                       test_set, csp, arch, dart2js_full, batch=batch,
+                       builder_tag=builder_tag)
 
 
 def NeedsXterm(compiler, runtime):
@@ -341,7 +358,9 @@ def RunCompilerTests(build_info):
     arch = build_info.arch
     mode = build_info.mode
     is_buildbot = build_info.is_buildbot
-    for configuration in DART2JS_FULL_CONFIGURATIONS[system]:
+
+    config = build_info.builder_tag if system == 'windows' else system
+    for configuration in DART2JS_FULL_CONFIGURATIONS[config]:
       additional_flags = configuration.get('additional_flags', [])
       TestCompiler(configuration['runtime'], mode, system,
                    test_flags + additional_flags, is_buildbot, arch,

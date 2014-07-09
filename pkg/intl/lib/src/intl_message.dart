@@ -117,6 +117,7 @@ abstract class Message {
     if (value is String) return new LiteralString(value, parent);
     if (value is int) return new VariableSubstitution(value, parent);
     if (value is Iterable) {
+      if (value.length == 1) return Message.from(value[0], parent);
       var result = new CompositeMessage([], parent);
       var items = value.map((x) => from(x, result)).toList();
       result.pieces.addAll(items);

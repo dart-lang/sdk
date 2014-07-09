@@ -330,7 +330,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
   Dart2JsDeclarationMirror get owner {
     if (_owner == null) {
       _owner = mirrorSystem._getTypeDeclarationMirror(
-          _type.element.enclosingElement);
+          _type.element.typeDeclaration);
     }
     return _owner;
   }

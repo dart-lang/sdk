@@ -51,9 +51,10 @@ Assembler::Assembler(bool use_far_branches)
     object_pool_index_table_.Insert(ObjIndexPair(Bool::False().raw(), 2));
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
+    StubCode* stub_code = Isolate::Current()->stub_code();
 
-    if (StubCode::UpdateStoreBuffer_entry() != NULL) {
-      FindExternalLabel(&StubCode::UpdateStoreBufferLabel(), kNotPatchable);
+    if (stub_code->UpdateStoreBuffer_entry() != NULL) {
+      FindExternalLabel(&stub_code->UpdateStoreBufferLabel(), kNotPatchable);
     } else {
       object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
@@ -978,7 +979,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, object);
   }
-  BranchLink(&StubCode::UpdateStoreBufferLabel(), PP);
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  BranchLink(&stub_code->UpdateStoreBufferLabel(), PP);
   Pop(LR);
   if (value != R0) {
     // Restore R0.

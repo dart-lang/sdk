@@ -52,10 +52,10 @@ void CodeBreakpoint::PatchCode() {
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     switch (breakpoint_kind_) {
-      case PcDescriptors::kIcCall:
-      case PcDescriptors::kUnoptStaticCall:
-      case PcDescriptors::kRuntimeCall:
-      case PcDescriptors::kClosureCall: {
+      case RawPcDescriptors::kIcCall:
+      case RawPcDescriptors::kUnoptStaticCall:
+      case RawPcDescriptors::kRuntimeCall:
+      case RawPcDescriptors::kClosureCall: {
         int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
         ASSERT((offset > 0) && ((offset & 0x7) == 0));
         saved_value_ = static_cast<uword>(offset);
@@ -80,10 +80,10 @@ void CodeBreakpoint::RestoreCode() {
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     switch (breakpoint_kind_) {
-      case PcDescriptors::kIcCall:
-      case PcDescriptors::kUnoptStaticCall:
-      case PcDescriptors::kClosureCall:
-      case PcDescriptors::kRuntimeCall: {
+      case RawPcDescriptors::kIcCall:
+      case RawPcDescriptors::kUnoptStaticCall:
+      case RawPcDescriptors::kClosureCall:
+      case RawPcDescriptors::kRuntimeCall: {
         CodePatcher::SetPoolOffsetAt(pc_, static_cast<int32_t>(saved_value_));
         break;
       }

@@ -13,8 +13,7 @@ import "package:compiler/implementation/source_file.dart";
 import "package:compiler/implementation/util/util.dart";
 
 import "package:compiler/implementation/elements/modelx.dart"
-    show CompilationUnitElementX,
-         LibraryElementX;
+    show CompilationUnitElementX, ElementX, LibraryElementX;
 
 import "package:compiler/implementation/dart2jslib.dart";
 
@@ -94,7 +93,7 @@ Node parseStatement(String text) =>
   parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
 Node parseFunction(String text, Compiler compiler) {
-  Element element = parseUnit(text, compiler, compiler.mainApp).head;
+  ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);
   return element.parseNode(compiler);

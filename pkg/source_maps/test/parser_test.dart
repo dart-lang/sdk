@@ -99,4 +99,15 @@ main() {
     expect(entry.sourceLine, 0);
     expect(entry.sourceNameId, 0);
   });
+
+  test('parse and re-emit', () {
+    for (var expected in [
+        EXPECTED_MAP,
+        MAP_WITH_NO_SOURCE_LOCATION,
+        MAP_WITH_SOURCE_LOCATION,
+        MAP_WITH_SOURCE_LOCATION_AND_NAME]) {
+      var mapping = parseJson(expected);
+      expect(mapping.toJson(), equals(expected));
+    }
+  });
 }

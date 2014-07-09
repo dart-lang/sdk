@@ -46,8 +46,6 @@ export 'mock_compiler.dart';
 
 Future<String> compile(String code,
                        {String entry: 'main',
-                        String coreSource: DEFAULT_CORELIB,
-                        String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                         bool enableTypeAssertions: false,
                         bool minify: false,
                         bool analyzeAll: false,
@@ -55,11 +53,9 @@ Future<String> compile(String code,
                         void check(String generated)}) {
   MockCompiler compiler = new MockCompiler.internal(
       enableTypeAssertions: enableTypeAssertions,
-      coreSource: coreSource,
       // Type inference does not run when manually
       // compiling a method.
       disableTypeInference: true,
-      interceptorsSource: interceptorsSource,
       enableMinification: minify,
       disableInlining: disableInlining);
   return compiler.init().then((_) {
@@ -92,7 +88,7 @@ Future<String> compile(String code,
 MockCompiler compilerFor(String code, Uri uri,
                          {bool analyzeAll: false,
                           bool analyzeOnly: false,
-                          String coreSource: DEFAULT_CORELIB,
+                          Map<String, String> coreSource,
                           bool disableInlining: true,
                           bool minify: false,
                           int expectedErrors,
@@ -110,7 +106,7 @@ MockCompiler compilerFor(String code, Uri uri,
 }
 
 Future<String> compileAll(String code,
-                          {String coreSource: DEFAULT_CORELIB,
+                          {Map<String, String> coreSource,
                           bool disableInlining: true,
                           bool minify: false,
                           int expectedErrors,
@@ -158,8 +154,13 @@ Future compileSources(Map<String, String> sources,
   });
 }
 
-lego.Element findElement(compiler, String name) {
-  var element = compiler.mainApp.find(name);
+lego.Element findElement(compiler, String name, [Uri library]) {
+  lego.LibraryElement lib = compiler.mainApp;
+  if (library != null) {
+    lib = compiler.libraryLoader.lookupLibrary(library);
+    Expect.isNotNull(lib, 'Could not locate library $library.');
+  }
+  var element = lib.find(name);
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;
 }

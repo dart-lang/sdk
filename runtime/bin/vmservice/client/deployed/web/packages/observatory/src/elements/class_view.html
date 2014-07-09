@@ -8,6 +8,7 @@
 <link rel="import" href="library_ref.html">
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="script_inset.html">
 <link rel="import" href="script_ref.html">
 
 <polymer-element name="class-view" extends="observatory-element">
@@ -186,6 +187,11 @@
     <div class="content">
       <eval-box callback="{{ eval }}"></eval-box>
     </div>
+
+    <hr>
+    <script-inset script="{{ cls.script }}" pos="{{ cls.tokenPos }}" endPos="{{ cls.endTokenPos }}">
+    </script-inset>
+
     <br><br><br><br>
     <br><br><br><br>
   </template>

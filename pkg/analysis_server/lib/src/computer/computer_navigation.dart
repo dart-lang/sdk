@@ -77,7 +77,6 @@ class DartUnitNavigationComputer {
 }
 
 
-
 class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   final DartUnitNavigationComputer computer;
 

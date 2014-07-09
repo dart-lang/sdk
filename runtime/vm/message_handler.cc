@@ -34,6 +34,7 @@ MessageHandler::MessageHandler()
       oob_queue_(new MessageQueue()),
       control_ports_(0),
       live_ports_(0),
+      paused_(0),
       pause_on_start_(false),
       pause_on_exit_(false),
       paused_on_exit_(false),
@@ -126,7 +127,7 @@ void MessageHandler::PostMessage(Message* message) {
 Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
   // TODO(turnidge): Add assert that monitor_ is held here.
   Message* message = oob_queue_->Dequeue();
-  if (message == NULL && min_priority < Message::kOOBPriority) {
+  if ((message == NULL) && (min_priority < Message::kOOBPriority)) {
     message = queue_->Dequeue();
   }
   return message;
@@ -137,9 +138,8 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
                                     bool allow_multiple_normal_messages) {
   // TODO(turnidge): Add assert that monitor_ is held here.
   bool result = true;
-  Message::Priority min_priority = (allow_normal_messages
-                                    ? Message::kNormalPriority
-                                    : Message::kOOBPriority);
+  Message::Priority min_priority = (allow_normal_messages && !paused()) ?
+      Message::kNormalPriority : Message::kOOBPriority;
   Message* message = DequeueMessage(min_priority);
   while (message != NULL) {
     if (FLAG_trace_isolates) {
@@ -165,11 +165,17 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
       // If we hit an error, we're done processing messages.
       break;
     }
-    if (!allow_multiple_normal_messages &&
-        saved_priority == Message::kNormalPriority) {
-      // Some callers want to process only one normal message and then quit.
+    // Some callers want to process only one normal message and then quit. At
+    // the same time it is OK to process multiple OOB messages.
+    if ((saved_priority == Message::kNormalPriority) &&
+        !allow_multiple_normal_messages) {
       break;
     }
+
+    // Reevaluate the minimum allowable priority as the paused state might
+    // have changed as part of handling the message.
+    min_priority = (allow_normal_messages && !paused()) ?
+        Message::kNormalPriority : Message::kOOBPriority;
     message = DequeueMessage(min_priority);
   }
   return result;
@@ -216,6 +222,8 @@ void MessageHandler::TaskCallback() {
     }
 
     if (start_callback_) {
+      // Release the monitor_ temporarily while we call the start callback.
+      // The monitor was acquired with the MonitorLocker above.
       monitor_.Exit();
       ok = start_callback_(callback_data_);
       ASSERT(Isolate::Current() == NULL);

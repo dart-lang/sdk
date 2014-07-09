@@ -122,6 +122,17 @@ void main() {
           ''');
     });
 
+    test('the value help is shown', () {
+      var parser = new ArgParser();
+      parser.addOption('out', abbr: 'o', help: 'Where to write file',
+          valueHelp: 'path');
+
+      validateUsage(parser,
+          '''
+          -o, --out=<path>    Where to write file
+          ''');
+    });
+
     test('the allowed list is shown', () {
       var parser = new ArgParser();
       parser.addOption('suit', help: 'Like in cards',

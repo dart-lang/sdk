@@ -4,7 +4,6 @@
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
 
 const TRANSFORMER = """
 import 'dart:async';
@@ -41,8 +40,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"],
-          transformers: ["myapp/src/transformer"]);
+      var pub = pubRun(args: ["script"]);
 
       pub.stdout.expect("generated");
       pub.shouldExit();

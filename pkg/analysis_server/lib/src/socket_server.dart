@@ -13,12 +13,12 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_edit.dart';
 import 'package:analysis_server/src/domain_search.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/index/index.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
-import 'package:analyzer/src/generated/index.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/index/local_file_index.dart';
 
 
 /**
@@ -34,7 +34,7 @@ Index _createIndex() {
   if (!indexDirectory.existsSync()) {
     indexDirectory.createSync();
   }
-  Index index = createLocalFileSplitIndex(indexDirectory);
+  Index index = createLocalFileIndex(indexDirectory);
   index.run();
   return index;
 }

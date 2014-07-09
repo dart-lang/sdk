@@ -140,16 +140,16 @@ class StubCode {
 
   // Define the per-isolate stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static StubEntry* name##_entry() {                                           \
-    return Isolate::Current()->stub_code()->name##_entry_;                     \
+  StubEntry* name##_entry() {                                                  \
+    return name##_entry_;                                                      \
   }                                                                            \
-  static const ExternalLabel& name##Label() {                                  \
+  const ExternalLabel& name##Label() {                                         \
     return name##_entry()->label();                                            \
   }                                                                            \
-  static uword name##EntryPoint() {                                            \
+  uword name##EntryPoint() {                                                   \
     return name##_entry()->EntryPoint();                                       \
   }                                                                            \
-  static intptr_t name##Size() {                                               \
+  intptr_t name##Size() {                                                      \
     return name##_entry()->Size();                                             \
   }
   STUB_CODE_LIST(STUB_CODE_ACCESSOR);

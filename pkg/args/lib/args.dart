@@ -68,7 +68,7 @@ class ArgParser {
   /// * There is already an option using abbreviation [abbr].
   void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
       bool negatable: true, void callback(bool value), bool hide: false}) {
-    _addOption(name, abbr, help, null, null, defaultsTo, callback,
+    _addOption(name, abbr, help, null, null, null, defaultsTo, callback,
         isFlag: true, negatable: negatable, hide: hide);
   }
 
@@ -76,16 +76,16 @@ class ArgParser {
   ///
   /// * There is already an option with name [name].
   /// * There is already an option using abbreviation [abbr].
-  void addOption(String name, {String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, String defaultsTo,
+  void addOption(String name, {String abbr, String help, String valueHelp,
+      List<String> allowed, Map<String, String> allowedHelp, String defaultsTo,
       void callback(value), bool allowMultiple: false, bool hide: false}) {
-    _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
+    _addOption(name, abbr, help, valueHelp, allowed, allowedHelp, defaultsTo,
         callback, isFlag: false, allowMultiple: allowMultiple,
         hide: hide);
   }
 
-  void _addOption(String name, String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, defaultsTo,
+  void _addOption(String name, String abbr, String help, String valueHelp,
+      List<String> allowed, Map<String, String> allowedHelp, defaultsTo,
       void callback(value), {bool isFlag, bool negatable: false,
       bool allowMultiple: false, bool hide: false}) {
     // Make sure the name isn't in use.
@@ -102,8 +102,8 @@ class ArgParser {
       }
     }
 
-    _options[name] = new Option(name, abbr, help, allowed, allowedHelp,
-        defaultsTo, callback, isFlag: isFlag, negatable: negatable,
+    _options[name] = new Option(name, abbr, help, valueHelp, allowed,
+        allowedHelp, defaultsTo, callback, isFlag: isFlag, negatable: negatable,
         allowMultiple: allowMultiple, hide: hide);
   }
 

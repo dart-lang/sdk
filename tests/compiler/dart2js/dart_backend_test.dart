@@ -671,7 +671,7 @@ main() {
     FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
     compiler.processQueue(compiler.enqueuer.resolution, mainElement);
     PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
-    FunctionExpression mainNode = mainElement.parseNode(compiler);
+    FunctionExpression mainNode = mainElement.node;
     Block body = mainNode.body;
     FunctionDeclaration functionDeclaration = body.statements.nodes.head;
     FunctionExpression fooNode = functionDeclaration.function;

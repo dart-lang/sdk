@@ -8,11 +8,8 @@ library observe.src.bindable;
 // Normally this is used with 'package:template_binding'.
 // TODO(jmesserly): Node.bind polyfill calls this "observable"
 abstract class Bindable {
-  // TODO(jmesserly): since we have "value", should open be a void method?
   // Dart note: changed setValue to be "set value" and discardChanges() to
-  // be "get value". Also "set value" implies discard changes.
-  // TOOD(jmesserly): is this change too subtle? Is there any other way to
-  // make Bindable friendly in a world with getters/setters?
+  // be "get value".
 
   /// Initiates observation and returns the initial value.
   /// The callback will be called with the updated [value].
@@ -28,10 +25,18 @@ abstract class Bindable {
   void close();
 
   /// Gets the current value of the bindings.
+  /// Note: once the value of a [Bindable] is fetched, the callback passed to
+  /// [open] should not be called again with this new value.
+  /// In other words, any pending change notifications must be discarded.
+  // TODO(jmesserly): I don't like a getter with side effects. Should we just
+  // rename the getter/setter pair to discardChanges/setValue like they are in
+  // JavaScript?
   get value;
 
   /// This can be implemented for two-way bindings. By default does nothing.
-  /// Note: setting the value of a [Bindable] must not call the [callback] with
-  /// the new value. Any pending change notifications must be discarded.
   set value(newValue) {}
+
+  /// Deliver changes. Typically this will perform dirty-checking, if any is
+  /// needed.
+  void deliver() {}
 }

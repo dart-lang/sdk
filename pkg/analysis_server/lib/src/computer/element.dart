@@ -111,6 +111,9 @@ class Element {
     return json;
   }
 
+  @override
+  String toString() => toJson().toString();
+
   static String _getParametersString(engine.Element element) {
     // TODO(scheglov) expose the corresponding feature from ExecutableElement
     if (element is engine.ExecutableElement) {
@@ -208,6 +211,7 @@ class ElementKind {
   static const FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS');
   static const GETTER = const ElementKind('GETTER');
   static const LIBRARY = const ElementKind('LIBRARY');
+  static const LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE');
   static const METHOD = const ElementKind('METHOD');
   static const SETTER = const ElementKind('SETTER');
   static const TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE');
@@ -232,6 +236,7 @@ class ElementKind {
     if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
     if (GETTER.name == name) return GETTER;
     if (LIBRARY.name == name) return LIBRARY;
+    if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
     if (METHOD.name == name) return METHOD;
     if (SETTER.name == name) return SETTER;
     if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
@@ -265,6 +270,9 @@ class ElementKind {
     }
     if (kind == engine.ElementKind.LIBRARY) {
       return LIBRARY;
+    }
+    if (kind == engine.ElementKind.LOCAL_VARIABLE) {
+      return LOCAL_VARIABLE;
     }
     if (kind == engine.ElementKind.METHOD) {
       return METHOD;

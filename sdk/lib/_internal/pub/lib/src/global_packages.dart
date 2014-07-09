@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'entrypoint.dart';
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -50,13 +51,11 @@ class GlobalPackages {
   /// Finds the latest version of the hosted package with [name] that matches
   /// [constraint] and makes it the active global version.
   Future activate(String name, VersionConstraint constraint) {
-    var lockFilePath = p.join(_directory, name + ".lock");
-
     // See if we already have it activated.
     var lockFile;
     var currentVersion;
     try {
-      lockFile = new LockFile.load(lockFilePath, cache.sources);
+      lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
       currentVersion = lockFile.packages[name].version;
 
       // Pull the root package out of the lock file so the solver doesn't see
@@ -66,7 +65,7 @@ class GlobalPackages {
       log.message("Package ${log.bold(name)} is already active at "
           "version ${log.bold(currentVersion)}.");
     } on IOException catch (error) {
-      // If we couldn't read the lock and version file, it's not activated.
+      // If we couldn't read the lock file, it's not activated.
       lockFile = new LockFile.empty();
     }
 
@@ -98,7 +97,7 @@ class GlobalPackages {
       lockFile.packages[name] = id;
 
       ensureDir(_directory);
-      writeTextFile(lockFilePath,
+      writeTextFile(_getLockFilePath(name),
           lockFile.serialize(cache.rootDir, cache.sources));
 
       log.message("Activated ${log.bold(package.name)} ${package.version}.");
@@ -121,6 +120,35 @@ class GlobalPackages {
     } on IOException catch (error) {
       dataError("No active package ${log.bold(name)}.");
     }
+  }
+
+  /// Finds the active packge with [name].
+  ///
+  /// Returns an [Entrypoint] loaded with the active package if found.
+  Future<Entrypoint> find(String name) {
+    var lockFile;
+    var version;
+    return syncFuture(() {
+      try {
+        lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
+        version = lockFile.packages[name].version;
+      } on IOException catch (error) {
+        // If we couldn't read the lock file, it's not activated.
+        dataError("No active package ${log.bold(name)}.");
+      }
+    }).then((_) {
+      // Load the package from the cache.
+      var id = new PackageId(name, _source.name, version, name);
+      return _source.getDirectory(id);
+    }).then((dir) {
+      return new Package.load(name, dir, cache.sources);
+    }).then((package) {
+      // Pull the root package out of the lock file so the solver doesn't see
+      // it.
+      lockFile.packages.remove(name);
+
+      return new Entrypoint.inMemory(package, lockFile, cache);
+    });
   }
 
   /// Picks the best version of [package] to activate that meets [constraint].
@@ -149,4 +177,7 @@ class GlobalPackages {
       return versions.last;
     });
   }
+
+  /// Gets the path to the lock file for an activated package with [name].
+  String _getLockFilePath(name) => p.join(_directory, name + ".lock");
 }

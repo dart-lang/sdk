@@ -392,7 +392,11 @@ class PlainJavaScriptObject extends JavaScriptObject {
 /**
  * Interceptor for unclassified JavaScript objects, typically objects with a
  * non-trivial prototype chain.
+ *
+ * This class also serves as a fallback for unknown JavaScript exceptions.
  */
 class UnknownJavaScriptObject extends JavaScriptObject {
   const UnknownJavaScriptObject();
+
+  String toString() => JS('String', 'String(#)', this);
 }

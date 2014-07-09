@@ -14,6 +14,8 @@ main() {
 
             Usage: pub global deactivate <package>
             -h, --help    Print usage information for this command.
+
+            Run "pub help" to see global options.
             """,
         exitCode: exit_codes.USAGE);
   });

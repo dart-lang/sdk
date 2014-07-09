@@ -159,7 +159,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   /**
    * Records the default type of parameter [parameter].
    */
-  void setDefaultTypeOfParameter(Element parameter, T type);
+  void setDefaultTypeOfParameter(ParameterElement parameter, T type);
 
   /**
    * Returns the type of [element].
@@ -471,7 +471,7 @@ class SimpleTypeInferrerVisitor<T>
 
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.functionSignature;
-    signature.forEachOptionalParameter((element) {
+    signature.forEachOptionalParameter((ParameterElement element) {
       ast.Expression defaultValue = element.initializer;
       T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
       inferrer.setDefaultTypeOfParameter(element, type);

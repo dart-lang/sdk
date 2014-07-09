@@ -4,12 +4,12 @@
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
 
 const SCRIPT = """
 import 'dart:io';
 
 main() {
+  print("started");
   var line1 = stdin.readLineSync();
   print("between");
   var line2 = stdin.readLineSync();
@@ -30,6 +30,7 @@ main() {
 
     var pub = pubRun(args: ["script"]);
 
+    pub.stdout.expect("started");
     pub.writeLine("first");
     pub.stdout.expect("between");
     pub.writeLine("second");

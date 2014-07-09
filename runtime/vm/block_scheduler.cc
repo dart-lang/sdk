@@ -21,7 +21,8 @@ static intptr_t ComputeEdgeCount(const Code& unoptimized_code,
     // Assume everything was visited once.
     return 1;
   }
-  uword pc = unoptimized_code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt);
+  const uword pc =
+      unoptimized_code.GetPcForDeoptId(deopt_id, RawPcDescriptors::kDeopt);
   Array& array = Array::Handle();
   array ^= CodePatcher::GetEdgeCounterAt(pc, unoptimized_code);
   ASSERT(!array.IsNull());

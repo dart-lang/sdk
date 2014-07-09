@@ -38,6 +38,60 @@
   <dart-element></dart-element>
   <js-element></js-element>
 
+  <polymer-element name="js-element2" attributes="qux">
+    <template>QUX:{{qux.baz}}</template>
+    <script>Polymer('js-element2');</script>
+  </polymer-element>
+
+
+  <polymer-element name="dart-element2">
+    <template>
+     <js-element2 qux="{{quux}}"></js-element2>
+    </template>
+  </polymer-element>
+
+  <dart-element2>
+    <js-element baz="123" class="quux"></js-element>
+  </dart-element2>
+
+
+  <polymer-element name="js-element3" attributes="qux">
+    <template>FOOBAR</template>
+    <script>Polymer('js-element3', {
+      quxChanged: function() {
+        this.shadowRoot.textContent = 'js-element3[qux]:' +
+            this.qux.aDartMethod(321);
+      }
+    });</script>
+  </polymer-element>
+
+  <polymer-element name="dart-element3">
+    <template>
+      <js-element3 qux="{{quux}}"></js-element3>
+    </template>
+  </polymer-element>
+
+  <dart-element3></dart-element3>
+
+
+  <polymer-element name="js-two-way" attributes="foobar">
+    <template>FOOBAR:{{foobar}}</template>
+    <script>Polymer('js-two-way', {
+      foobar: 0,
+      aJsMethod: function(inc) {
+        this.foobar = this.foobar + inc;
+      },
+    });</script>
+  </polymer-element>
+
+  <polymer-element name="dart-two-way">
+    <template>
+      <js-two-way foobar="{{twoWay}}"></js-two-way>
+    </template>
+  </polymer-element>
+
+  <dart-two-way></dart-two-way>
+
   <script type="application/dart" src="js_interop_test.dart"></script>
 
   </body>

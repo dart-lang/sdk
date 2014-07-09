@@ -9,23 +9,9 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/resource.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:path/path.dart';
-
-/**
- * A PackageMapProvider is an entity capable of determining the mapping from
- * package name to source directory for a given folder.
- */
-abstract class PackageMapProvider {
-  /**
-   * Compute a package map for the given folder, if possible.
-   *
-   * If a package map can't be computed (e.g. because an error occurred), a
-   * [PackageMapInfo] will still be returned, but its packageMap will be null.
-   */
-  PackageMapInfo computePackageMap(Folder folder);
-}
 
 /**
  * Data structure output by PackageMapProvider.  This contains both the package
@@ -48,6 +34,20 @@ class PackageMapInfo {
   Set<String> dependencies;
 
   PackageMapInfo(this.packageMap, this.dependencies);
+}
+
+/**
+ * A PackageMapProvider is an entity capable of determining the mapping from
+ * package name to source directory for a given folder.
+ */
+abstract class PackageMapProvider {
+  /**
+   * Compute a package map for the given folder, if possible.
+   *
+   * If a package map can't be computed (e.g. because an error occurred), a
+   * [PackageMapInfo] will still be returned, but its packageMap will be null.
+   */
+  PackageMapInfo computePackageMap(Folder folder);
 }
 
 /**
@@ -100,18 +100,6 @@ class PubPackageMapProvider implements PackageMapProvider {
   }
 
   /**
-   * Create a PackageMapInfo object representing an error condition.
-   */
-  PackageMapInfo _error(Folder folder) {
-    // Even if an error occurs, we still need to know the dependencies, so that
-    // we'll know when to try running "pub list-package-dirs" again.
-    // Unfortunately, "pub list-package-dirs" doesn't tell us dependencies when
-    // an error occurs, so just assume there is one dependency, "pubspec.lock".
-    List<String> dependencies = <String>[join(folder.path, PUBSPEC_LOCK_NAME)];
-    return new PackageMapInfo(null, dependencies.toSet());
-  }
-
-  /**
    * Decode the JSON output from pub into a package map.  Paths in the
    * output are considered relative to [folder].
    */
@@ -161,5 +149,17 @@ class PubPackageMapProvider implements PackageMapProvider {
       }
     }
     return new PackageMapInfo(packageMap, dependencies);
+  }
+
+  /**
+   * Create a PackageMapInfo object representing an error condition.
+   */
+  PackageMapInfo _error(Folder folder) {
+    // Even if an error occurs, we still need to know the dependencies, so that
+    // we'll know when to try running "pub list-package-dirs" again.
+    // Unfortunately, "pub list-package-dirs" doesn't tell us dependencies when
+    // an error occurs, so just assume there is one dependency, "pubspec.lock".
+    List<String> dependencies = <String>[join(folder.path, PUBSPEC_LOCK_NAME)];
+    return new PackageMapInfo(null, dependencies.toSet());
   }
 }

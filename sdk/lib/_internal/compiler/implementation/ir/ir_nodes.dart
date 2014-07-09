@@ -49,12 +49,16 @@ abstract class Definition extends Node {
   }
 }
 
-/// A pure expression that cannot throw or diverge.
+/// An expression that cannot throw or diverge and has no side-effects.
 /// All primitives are named using the identity of the [Primitive] object.
+///
+/// Primitives may allocate objects, this is not considered side-effect here.
+///
+/// Although primitives may not mutate state, they may depend on state.
 abstract class Primitive extends Definition {
   /// The [VariableElement] or [ParameterElement] from which the primitive
   /// binding originated.
-  Element element;
+  Element hint;
 
   /// Register in which the variable binding this primitive can be allocated.
   /// Separate register spaces are used for primitives with different [element].
@@ -65,8 +69,8 @@ abstract class Primitive extends Definition {
   ///
   /// Has no effect if this primitive already has a non-null [element].
   void useElementAsHint(Element hint) {
-    if (element == null) {
-      element = hint;
+    if (this.hint == null) {
+      this.hint = hint;
     }
   }
 }
@@ -145,7 +149,7 @@ class InvokeStatic extends Expression implements Invoke {
                List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(selector.name == target.name);
+    assert(target.isErroneous || selector.name == target.name);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
@@ -205,7 +209,7 @@ class InvokeSuperMethod extends Expression implements Invoke {
 /// Non-const call to a constructor. The [target] may be a generative
 /// constructor, factory, or redirecting factory.
 class InvokeConstructor extends Expression implements Invoke {
-  final GenericType type;
+  final DartType type;
   final FunctionElement target;
   final Reference continuation;
   final List<Reference> arguments;
@@ -225,8 +229,9 @@ class InvokeConstructor extends Expression implements Invoke {
                     List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(target.isConstructor);
-    assert(type.element == target.enclosingElement);
+    assert(target.isErroneous || target.isConstructor);
+    assert(target.isErroneous || type.isDynamic ||
+           type.element == target.enclosingElement);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
@@ -254,6 +259,88 @@ class ConcatenateStrings extends Expression {
         arguments = _referenceList(args);
 
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+}
+
+/// Gets the value from a closure variable. The identity of the variable is
+/// determined by an [Element].
+///
+/// Closure variables can be seen as ref cells that are not first-class values.
+/// A [LetPrim] with a [GetClosureVariable] can then be seen as:
+///
+///   let prim p = ![variable] in [body]
+///
+class GetClosureVariable extends Primitive {
+  final Element variable;
+
+  GetClosureVariable(this.variable) {
+    assert(variable != null);
+  }
+
+  accept(Visitor visitor) => visitor.visitGetClosureVariable(this);
+}
+
+/// Assign or declare a closure variable. The identity of the variable is
+/// determined by an [Element].
+///
+/// Closure variables can be seen as ref cells that are not first-class values.
+/// If [isDeclaration], this can seen as a let binding:
+///
+///   let [variable] = ref [value] in [body]
+///
+/// And otherwise, it can be seen as a dereferencing assignment:
+///
+///   { ![variable] := [value]; [body] }
+///
+/// Closure variables without a declaring [SetClosureVariable] are implicitly
+/// declared at the entry to the [variable]'s enclosing function.
+class SetClosureVariable extends Expression {
+  final Element variable;
+  final Reference value;
+  Expression body;
+
+  /// If true, this declares a new copy of the closure variable. If so, all
+  /// uses of the closure variable must occur in the [body].
+  ///
+  /// There can be at most one declaration per closure variable. If there is no
+  /// declaration, only one copy exists (per function execution). It is best to
+  /// avoid declaring closure variables if it is not necessary.
+  final bool isDeclaration;
+
+  SetClosureVariable(this.variable, Primitive value,
+                      {this.isDeclaration : false })
+      : this.value = new Reference(value) {
+    assert(variable != null);
+  }
+
+  accept(Visitor visitor) => visitor.visitSetClosureVariable(this);
+
+  Expression plug(Expression expr) {
+    assert(body == null);
+    return body = expr;
+  }
+}
+
+/// Create a potentially recursive function and store it in a closure variable.
+/// The function can access itself using [GetClosureVariable] on [variable].
+/// There must not exist a [SetClosureVariable] to [variable].
+///
+/// This can be seen as a let rec binding:
+///
+///   let rec [variable] = [definition] in [body]
+///
+class DeclareFunction extends Expression {
+  final Element variable;
+  final FunctionDefinition definition;
+  Expression body;
+
+  DeclareFunction(this.variable, this.definition);
+
+  Expression plug(Expression expr) {
+    assert(body == null);
+    return body = expr;
+  }
+
+  accept(Visitor visitor) => visitor.visitDeclareFunction(this);
 }
 
 /// Invoke a continuation in tail position.
@@ -319,9 +406,9 @@ class This extends Primitive {
 /// Reify the given type variable as a [Type].
 /// This depends on the current binding of 'this'.
 class ReifyTypeVar extends Primitive {
-  final TypeVariableElement element;
+  final TypeVariableElement typeVariable;
 
-  ReifyTypeVar(this.element);
+  ReifyTypeVar(this.typeVariable);
 
   dart2js.Constant get constant => null;
 
@@ -351,6 +438,15 @@ class LiteralMap extends Primitive {
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 }
 
+/// Create a non-recursive function.
+class CreateFunction extends Primitive {
+  final FunctionDefinition definition;
+
+  CreateFunction(this.definition);
+
+  accept(Visitor visitor) => visitor.visitCreateFunction(this);
+}
+
 class IsCheck extends Primitive {
   final Reference receiver;
   final DartType type;
@@ -365,7 +461,7 @@ class IsCheck extends Primitive {
 
 class Parameter extends Primitive {
   Parameter(Element element) {
-    super.element = element;
+    super.hint = element;
   }
 
   accept(Visitor visitor) => visitor.visitParameter(this);
@@ -391,13 +487,18 @@ class Continuation extends Definition {
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
 class FunctionDefinition extends Node {
+  final FunctionElement element;
   final Continuation returnContinuation;
   final List<Parameter> parameters;
   final Expression body;
   final List<ConstDeclaration> localConstants;
 
-  FunctionDefinition(this.returnContinuation, this.parameters, this.body,
-      this.localConstants);
+  /// Values for optional parameters.
+  final List<ConstExp> defaultParameterValues;
+
+  FunctionDefinition(this.element, this.returnContinuation,
+      this.parameters, this.body, this.localConstants,
+      this.defaultParameterValues);
 
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
 }
@@ -429,6 +530,8 @@ abstract class Visitor<T> {
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
   T visitAsCast(AsCast node) => visitExpression(node);
+  T visitSetClosureVariable(SetClosureVariable node) => visitExpression(node);
+  T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
 
   // Definitions.
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
@@ -437,6 +540,8 @@ abstract class Visitor<T> {
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
   T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
+  T visitCreateFunction(CreateFunction node) => visitPrimitive(node);
+  T visitGetClosureVariable(GetClosureVariable node) => visitPrimitive(node);
   T visitParameter(Parameter node) => visitPrimitive(node);
   T visitContinuation(Continuation node) => visitDefinition(node);
 
@@ -460,8 +565,8 @@ class SExpressionStringifier extends Visitor<String> {
   String visitFunctionDefinition(FunctionDefinition node) {
     names[node.returnContinuation] = 'return';
     String parameters = node.parameters
-        .map((p) {
-          String name = p.element.name;
+        .map((Parameter p) {
+          String name = p.hint.name;
           names[p] = name;
           return name;
         })
@@ -481,7 +586,7 @@ class SExpressionStringifier extends Visitor<String> {
     String cont = newContinuationName();
     names[node.continuation] = cont;
     String parameters = node.continuation.parameters
-        .map((p) {
+        .map((Parameter p) {
           String name = newValueName();
           names[p] = name;
           return ' $name';
@@ -563,7 +668,12 @@ class SExpressionStringifier extends Visitor<String> {
   }
 
   String visitReifyTypeVar(ReifyTypeVar node) {
-    return '(ReifyTypeVar ${node.element.name})';
+    return '(ReifyTypeVar ${node.typeVariable.name})';
+  }
+
+  String visitCreateFunction(CreateFunction node) {
+    String function = visit(node.definition);
+    return '(CreateFunction ${node.definition.element} $function)';
   }
 
   String visitParameter(Parameter node) {
@@ -574,6 +684,22 @@ class SExpressionStringifier extends Visitor<String> {
   String visitContinuation(Continuation node) {
     // Continuations are visited directly in visitLetCont.
     return '(Unexpected Continuation)';
+  }
+
+  String visitGetClosureVariable(GetClosureVariable node) {
+    return '(GetClosureVariable ${node.variable.name})';
+  }
+
+  String visitSetClosureVariable(SetClosureVariable node) {
+    String value = names[node.value.definition];
+    String body = visit(node.body);
+    return '(SetClosureVariable ${node.variable.name} $value $body)';
+  }
+
+  String visitDeclareFunction(DeclareFunction node) {
+    String function = visit(node.definition);
+    String body = visit(node.body);
+    return '(DeclareFunction ${node.variable} = $function in $body)';
   }
 
   String visitIsTrue(IsTrue node) {
@@ -624,15 +750,15 @@ class RegisterAllocator extends Visitor {
 
   void allocate(Primitive primitive) {
     if (primitive.registerIndex == null) {
-      primitive.registerIndex = getRegisterArray(primitive.element).makeIndex();
+      primitive.registerIndex = getRegisterArray(primitive.hint).makeIndex();
     }
   }
 
   void release(Primitive primitive) {
     // Do not share indices for temporaries as this may obstruct inlining.
-    if (primitive.element == null) return;
+    if (primitive.hint == null) return;
     if (primitive.registerIndex != null) {
-      getRegisterArray(primitive.element).releaseIndex(primitive.registerIndex);
+      getRegisterArray(primitive.hint).releaseIndex(primitive.registerIndex);
     }
   }
 
@@ -712,6 +838,23 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitReifyTypeVar(ReifyTypeVar node) {
+  }
+
+  void visitCreateFunction(CreateFunction node) {
+    new RegisterAllocator().visit(node.definition);
+  }
+
+  void visitGetClosureVariable(GetClosureVariable node) {
+  }
+
+  void visitSetClosureVariable(SetClosureVariable node) {
+    visit(node.body);
+    visitReference(node.value);
+  }
+
+  void visitDeclareFunction(DeclareFunction node) {
+    new RegisterAllocator().visit(node.definition);
+    visit(node.body);
   }
 
   void visitParameter(Parameter node) {

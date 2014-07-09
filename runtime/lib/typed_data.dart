@@ -16,11 +16,6 @@ patch class Int8List {
     return new _Int8Array(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Int8List.view(ByteBuffer buffer,
-                                    [int offsetInBytes = 0, int length]) {
-    return new _Int8ArrayView(buffer, offsetInBytes, length);
-  }
 }
 
 
@@ -32,11 +27,6 @@ patch class Uint8List {
   /* patch */ factory Uint8List.fromList(List<int> elements) {
     return new _Uint8Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Uint8List.view(ByteBuffer buffer,
-                                     [int offsetInBytes = 0, int length]) {
-    return new _Uint8ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -50,12 +40,6 @@ patch class Uint8ClampedList {
     return new _Uint8ClampedArray(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Uint8ClampedList.view(ByteBuffer buffer,
-                                            [int offsetInBytes = 0,
-                                             int length]) {
-    return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
-  }
 }
 
 
@@ -67,11 +51,6 @@ patch class Int16List {
   /* patch */ factory Int16List.fromList(List<int> elements) {
     return new _Int16Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Int16List.view(ByteBuffer buffer,
-                                     [int offsetInBytes = 0, int length]) {
-    return new _Int16ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -85,11 +64,6 @@ patch class Uint16List {
     return new _Uint16Array(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Uint16List.view(ByteBuffer buffer,
-                                      [int offsetInBytes = 0, int length]) {
-    return new _Uint16ArrayView(buffer, offsetInBytes, length);
-  }
 }
 
 
@@ -101,11 +75,6 @@ patch class Int32List {
   /* patch */ factory Int32List.fromList(List<int> elements) {
     return new _Int32Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Int32List.view(ByteBuffer buffer,
-                                     [int offsetInBytes = 0, int length]) {
-    return new _Int32ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -119,11 +88,6 @@ patch class Uint32List {
     return new _Uint32Array(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Uint32List.view(ByteBuffer buffer,
-                                      [int offsetInBytes = 0, int length]) {
-    return new _Uint32ArrayView(buffer, offsetInBytes, length);
-  }
 }
 
 
@@ -135,11 +99,6 @@ patch class Int64List {
   /* patch */ factory Int64List.fromList(List<int> elements) {
     return new _Int64Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Int64List.view(ByteBuffer buffer,
-                                     [int offsetInBytes = 0, int length]) {
-    return new _Int64ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -153,11 +112,6 @@ patch class Uint64List {
     return new _Uint64Array(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Uint64List.view(ByteBuffer buffer,
-                                      [int offsetInBytes = 0, int length]) {
-    return new _Uint64ArrayView(buffer, offsetInBytes, length);
-  }
 }
 
 
@@ -169,11 +123,6 @@ patch class Float32List {
   /* patch */ factory Float32List.fromList(List<double> elements) {
     return new _Float32Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Float32List.view(ByteBuffer buffer,
-                                       [int offsetInBytes = 0, int length]) {
-    return new _Float32ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -187,12 +136,8 @@ patch class Float64List {
     return new _Float64Array(elements.length)
         ..setRange(0, elements.length, elements);
   }
-
-  /* patch */ factory Float64List.view(ByteBuffer buffer,
-                                       [int offsetInBytes = 0, int length]) {
-    return new _Float64ArrayView(buffer, offsetInBytes, length);
-  }
 }
+
 
 patch class Float32x4List {
   /* patch */ factory Float32x4List(int length) {
@@ -202,11 +147,6 @@ patch class Float32x4List {
   /* patch */ factory Float32x4List.fromList(List<Float32x4> elements) {
     return new _Float32x4Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Float32x4List.view(ByteBuffer buffer,
-                                         [int offsetInBytes = 0, int length]) {
-    return new _Float32x4ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -221,12 +161,7 @@ patch class Int32x4List {
         ..setRange(0, elements.length, elements);
   }
 
-  /* patch */ factory Int32x4List.view(ByteBuffer buffer,
-                                        [int offsetInBytes = 0, int length]) {
-    return new _Int32x4ArrayView(buffer, offsetInBytes, length);
-  }
 }
-
 
 patch class Float64x2List {
   /* patch */ factory Float64x2List(int length) {
@@ -236,11 +171,6 @@ patch class Float64x2List {
   /* patch */ factory Float64x2List.fromList(List<Float64x2> elements) {
     return new _Float64x2Array(elements.length)
         ..setRange(0, elements.length, elements);
-  }
-
-  /* patch */ factory Float64x2List.view(ByteBuffer buffer,
-                                         [int offsetInBytes = 0, int length]) {
-    return new _Float64x2ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -300,14 +230,6 @@ patch class ByteData {
   /* patch */ factory ByteData(int length) {
     var list = new _Uint8Array(length);
     return new _ByteDataView(list, 0, length);
-  }
-
-  /* patch */ factory ByteData.view(ByteBuffer buffer,
-                                    [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = buffer.lengthInBytes - offsetInBytes;
-    }
-    return new _ByteDataView(buffer._data, offsetInBytes, length);
   }
 
   // Called directly from C code.
@@ -621,6 +543,122 @@ class _ByteBuffer implements ByteBuffer {
   int get hashCode => _data.hashCode;
   bool operator==(Object other) =>
       (other is _ByteBuffer) && identical(_data, other._data);
+
+  ByteData asByteData([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = this.lengthInBytes - offsetInBytes;
+    }
+    return new _ByteDataView(this._data, offsetInBytes, length);
+  }
+
+  Int8List asInt8List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = this.lengthInBytes - offsetInBytes;
+    }
+    return new _Int8ArrayView(this, offsetInBytes, length);
+  }
+
+  Uint8List asUint8List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = this.lengthInBytes - offsetInBytes;
+    }
+    return new _Uint8ArrayView(this, offsetInBytes, length);
+  }
+
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = this.lengthInBytes - offsetInBytes;
+    }
+    return new _Uint8ClampedArrayView(this, offsetInBytes, length);
+  }
+
+  Int16List asInt16List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Int16List.BYTES_PER_ELEMENT;
+    }
+    return new _Int16ArrayView(this, offsetInBytes, length);
+  }
+
+  Uint16List asUint16List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Uint16List.BYTES_PER_ELEMENT;
+    }
+    return new _Uint16ArrayView(this, offsetInBytes, length);
+  }
+
+  Int32List asInt32List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Int32List.BYTES_PER_ELEMENT;
+    }
+    return new _Int32ArrayView(this, offsetInBytes, length);
+  }
+
+  Uint32List asUint32List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Uint32List.BYTES_PER_ELEMENT;
+    }
+    return new _Uint32ArrayView(this, offsetInBytes, length);
+  }
+
+  Int64List asInt64List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Int64List.BYTES_PER_ELEMENT;
+    }
+    return new _Int64ArrayView(this, offsetInBytes, length);
+  }
+
+  Uint64List asUint64List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Uint64List.BYTES_PER_ELEMENT;
+    }
+    return new _Uint64ArrayView(this, offsetInBytes, length);
+  }
+
+  Float32List asFloat32List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Float32List.BYTES_PER_ELEMENT;
+    }
+    return new _Float32ArrayView(this, offsetInBytes, length);
+  }
+
+  Float64List asFloat64List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Float64List.BYTES_PER_ELEMENT;
+    }
+    return new _Float64ArrayView(this, offsetInBytes, length);
+  }
+
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Float32x4List.BYTES_PER_ELEMENT;
+    }
+    return new _Float32x4ArrayView(this, offsetInBytes, length);
+  }
+
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Int32x4List.BYTES_PER_ELEMENT;
+    }
+    return new _Int32x4ArrayView(this, offsetInBytes, length);
+  }
+
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (this.lengthInBytes - offsetInBytes) ~/
+               Float64x2List.BYTES_PER_ELEMENT;
+    }
+    return new _Float64x2ArrayView(this, offsetInBytes, length);
+  }
 }
 
 
@@ -695,14 +733,6 @@ class _Int8Array extends _TypedList implements Int8List {
     return _new(length);
   }
 
-  factory _Int8Array.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = buffer.lengthInBytes - offsetInBytes;
-    }
-    return new _Int8ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Method(s) implementing List interface.
 
@@ -749,14 +779,6 @@ class _Uint8Array extends _TypedList implements Uint8List {
     return _new(length);
   }
 
-  factory _Uint8Array.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = buffer.lengthInBytes - offsetInBytes;
-    }
-    return new _Uint8ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Methods implementing List interface.
   int operator[](int index) {
@@ -799,14 +821,6 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
 
   factory _Uint8ClampedArray(int length) {
     return _new(length);
-  }
-
-  factory _Uint8ClampedArray.view(ByteBuffer buffer,
-                                  [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = buffer.lengthInBytes - offsetInBytes;
-    }
-    return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
 
   // Methods implementing List interface.
@@ -852,15 +866,6 @@ class _Int16Array extends _TypedList implements Int16List {
 
   factory _Int16Array(int length) {
     return _new(length);
-  }
-
-  factory _Int16Array.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Int16List.BYTES_PER_ELEMENT;
-    }
-    return new _Int16ArrayView(buffer, offsetInBytes, length);
   }
 
 
@@ -917,15 +922,6 @@ class _Uint16Array extends _TypedList implements Uint16List {
     return _new(length);
   }
 
-  factory _Uint16Array.view(ByteBuffer buffer,
-                            [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-                Uint16List.BYTES_PER_ELEMENT;
-    }
-    return new _Uint16ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Method(s) implementing the List interface.
 
@@ -978,15 +974,6 @@ class _Int32Array extends _TypedList implements Int32List {
 
   factory _Int32Array(int length) {
     return _new(length);
-  }
-
-  factory _Int32Array.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-                Int32List.BYTES_PER_ELEMENT;
-    }
-    return new _Int32ArrayView(buffer, offsetInBytes, length);
   }
 
 
@@ -1043,15 +1030,6 @@ class _Uint32Array extends _TypedList implements Uint32List {
     return _new(length);
   }
 
-  factory _Uint32Array.view(ByteBuffer buffer,
-                            [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-                Uint32List.BYTES_PER_ELEMENT;
-    }
-    return new _Uint32ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Method(s) implementing the List interface.
 
@@ -1104,15 +1082,6 @@ class _Int64Array extends _TypedList implements Int64List {
 
   factory _Int64Array(int length) {
     return _new(length);
-  }
-
-  factory _Int64Array.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-                Int32List.BYTES_PER_ELEMENT;
-    }
-    return new _Int64ArrayView(buffer, offsetInBytes, length);
   }
 
 
@@ -1169,15 +1138,6 @@ class _Uint64Array extends _TypedList implements Uint64List {
     return _new(length);
   }
 
-  factory _Uint64Array.view(ByteBuffer buffer,
-                            [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Uint64List.BYTES_PER_ELEMENT;
-    }
-    return new _Uint64ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Method(s) implementing the List interface.
 
@@ -1230,15 +1190,6 @@ class _Float32Array extends _TypedList implements Float32List {
 
   factory _Float32Array(int length) {
     return _new(length);
-  }
-
-  factory _Float32Array.view(ByteBuffer buffer,
-                             [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Float32List.BYTES_PER_ELEMENT;
-    }
-    return new _Float32ArrayView(buffer, offsetInBytes, length);
   }
 
 
@@ -1295,15 +1246,6 @@ class _Float64Array extends _TypedList implements Float64List {
     return _new(length);
   }
 
-  factory _Float64Array.view(ByteBuffer buffer,
-                             [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Float64List.BYTES_PER_ELEMENT;
-    }
-    return new _Float64ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   // Method(s) implementing the List interface.
 
@@ -1358,15 +1300,6 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
     return _new(length);
   }
 
-  factory _Float32x4Array.view(ByteBuffer buffer,
-                               [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Float32x4List.BYTES_PER_ELEMENT;
-    }
-    return new _Float32x4ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1419,15 +1352,6 @@ class _Int32x4Array extends _TypedList implements Int32x4List {
     return _new(length);
   }
 
-  factory _Int32x4Array.view(ByteBuffer buffer,
-                              [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Int32x4List.BYTES_PER_ELEMENT;
-    }
-    return new _Int32x4ArrayView(buffer, offsetInBytes, length);
-  }
-
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1478,15 +1402,6 @@ class _Float64x2Array extends _TypedList implements Float64x2List {
 
   factory _Float64x2Array(int length) {
     return _new(length);
-  }
-
-  factory _Float64x2Array.view(ByteBuffer buffer,
-                               [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Float64x2List.BYTES_PER_ELEMENT;
-    }
-    return new _Float64x2ArrayView(buffer, offsetInBytes, length);
   }
 
 

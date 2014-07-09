@@ -96,9 +96,9 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InInvocationStubForIsolate(Isolate* isolate, uword pc) {
-  StubEntry* invoke_dart_entry = isolate->stub_code()->InvokeDartCode_entry_;
-  uword entry = invoke_dart_entry->EntryPoint();
-  uword size = invoke_dart_entry->Size();
+  StubCode* stub_code = isolate->stub_code();
+  uword entry = stub_code->InvokeDartCodeEntryPoint();
+  uword size = stub_code->InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
 }
 
@@ -142,16 +142,22 @@ RawCode* StubCode::Generate(const char* name,
 
 
 const char* StubCode::NameOfStub(uword entry_point) {
-#define STUB_CODE_TESTER(name) \
+#define VM_STUB_CODE_TESTER(name)                                              \
   if ((name##_entry() != NULL) && (entry_point == name##EntryPoint())) {       \
     return ""#name;                                                            \
   }
+  VM_STUB_CODE_LIST(VM_STUB_CODE_TESTER);
 
-  VM_STUB_CODE_LIST(STUB_CODE_TESTER);
+#define STUB_CODE_TESTER(name)                                                 \
+  if ((isolate->stub_code()->name##_entry() != NULL) &&                        \
+      (entry_point == isolate->stub_code()->name##EntryPoint())) {             \
+    return ""#name;                                                            \
+  }
   Isolate* isolate = Isolate::Current();
   if ((isolate != NULL) && (isolate->stub_code() != NULL)) {
     STUB_CODE_LIST(STUB_CODE_TESTER);
   }
+#undef VM_STUB_CODE_TESTER
 #undef STUB_CODE_TESTER
   return NULL;
 }

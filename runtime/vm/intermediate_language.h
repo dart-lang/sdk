@@ -3884,7 +3884,7 @@ class NativeCallInstr : public TemplateDefinition<0> {
 class DebugStepCheckInstr : public TemplateInstruction<0> {
  public:
   DebugStepCheckInstr(intptr_t token_pos,
-                      PcDescriptors::Kind stub_kind)
+                      RawPcDescriptors::Kind stub_kind)
       : token_pos_(token_pos),
         stub_kind_(stub_kind) {
   }
@@ -3900,7 +3900,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0> {
 
  private:
   const intptr_t token_pos_;
-  const PcDescriptors::Kind stub_kind_;
+  const RawPcDescriptors::Kind stub_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };

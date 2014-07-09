@@ -6,7 +6,7 @@
 # dart2js-drt (Content Shell --dump-render-tree)
 # dart2js-chrome
 # dart2js-ff (Firefox)
-[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff) ]
+[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff && $runtime != safari) ]
 *: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
@@ -14,3 +14,6 @@ end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=3347
 
 [ $csp ]
 end_to_end_test: Fail, OK # http://dartbug.com/17935
+
+[ $runtime == safari ]
+cursor_position_test: Fail # http://dartbug.com/19836

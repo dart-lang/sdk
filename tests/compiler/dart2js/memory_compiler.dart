@@ -170,7 +170,8 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
       if (library.isPlatformLibrary) {
-        compiler.libraryLoader.mapLibrary(library);
+        var libraryLoader = compiler.libraryLoader;
+        libraryLoader.mapLibrary(library);
         compiler.onLibraryCreated(library);
         compiler.onLibraryScanned(library, null);
         if (library.isPatched) {

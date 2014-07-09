@@ -725,6 +725,7 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
                                              const TypeArguments& arguments,
                                              Error* bound_error) {
   if (!cls.is_type_finalized()) {
+    FinalizeTypeParameters(cls);
     FinalizeUpperBounds(cls);
   }
   // Note that when finalizing a type, we need to verify the bounds in both

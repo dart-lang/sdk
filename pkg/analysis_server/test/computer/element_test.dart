@@ -6,14 +6,14 @@ library test.computer.element;
 
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_testing/abstract_context.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 import 'package:unittest/unittest.dart';
 
-import '../abstract_context.dart';
-import '../reflective_tests.dart';
 
 
 main() {
@@ -48,6 +48,8 @@ class ElementKindTest {
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(ElementKind.valueOf(ElementKind.GETTER.name), ElementKind.GETTER);
     expect(ElementKind.valueOf(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
+    expect(ElementKind.valueOf(ElementKind.LOCAL_VARIABLE.name),
+        ElementKind.LOCAL_VARIABLE);
     expect(ElementKind.valueOf(ElementKind.METHOD.name), ElementKind.METHOD);
     expect(ElementKind.valueOf(ElementKind.SETTER.name), ElementKind.SETTER);
     expect(ElementKind.valueOf(ElementKind.TOP_LEVEL_VARIABLE.name),
@@ -79,6 +81,8 @@ class ElementKindTest {
         ElementKind.GETTER);
     expect(ElementKind.valueOfEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
+    expect(ElementKind.valueOfEngine(engine.ElementKind.LOCAL_VARIABLE),
+        ElementKind.LOCAL_VARIABLE);
     expect(ElementKind.valueOfEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
     expect(ElementKind.valueOfEngine(engine.ElementKind.SETTER),
@@ -93,6 +97,11 @@ class ElementKindTest {
 
 @ReflectiveTestCase()
 class ElementTest extends AbstractContextTest {
+  engine.Element findElementInUnit(CompilationUnit unit, String name,
+      [engine.ElementKind kind]) {
+    return findChildElement(unit.element, name, kind);
+  }
+
   void test_fromElement_CLASS() {
     Source source = addSource('/test.dart', '''
 @deprecated
@@ -121,7 +130,8 @@ class A {
   const A.myConstructor(int a, [String b]);
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.ConstructorElement engineElement = findElementInUnit(unit, 'myConstructor');
+    engine.ConstructorElement engineElement = findElementInUnit(unit,
+        'myConstructor');
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -169,7 +179,8 @@ class A {
   String myGetter => 42;
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.PropertyAccessorElement engineElement = findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
+    engine.PropertyAccessorElement engineElement = findElementInUnit(unit,
+        'myGetter', engine.ElementKind.GETTER);
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.GETTER);

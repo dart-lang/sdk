@@ -9,16 +9,16 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_search.dart';
-import 'package:analysis_server/src/index/index.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
-import 'package:analyzer/src/generated/index.dart';
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/index/local_memory_index.dart';
+import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'index/store/memory_node_manager.dart';
 import 'mocks.dart';
-import 'reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
@@ -78,11 +78,11 @@ main() {
 
 @ReflectiveTestCase()
 class SearchDomainTest extends AbstractAnalysisTest {
-  LocalIndex index;
+  Index index;
 
   @override
   Index createIndex() {
-    return new LocalIndex(new MemoryNodeManager());
+    return createLocalMemoryIndex();
   }
 
   @override
@@ -101,7 +101,7 @@ class AAA {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return index.getRelationshipsAsync(UniverseElement.INSTANCE,
+      return index.getRelationships(UniverseElement.INSTANCE,
           IndexConstants.DEFINES_CLASS).then((List<Location> locations) {
         bool hasClassFunction = false;
         bool hasClassAAA = false;

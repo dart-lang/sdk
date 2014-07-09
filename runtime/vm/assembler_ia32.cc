@@ -2141,7 +2141,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EAX) {
     movl(EAX, object);
   }
-  call(&StubCode::UpdateStoreBufferLabel());
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  call(&stub_code->UpdateStoreBufferLabel());
   if (value != EAX) popl(EAX);  // Restore EAX.
   Bind(&done);
 }
@@ -2509,9 +2510,10 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
+    StubCode* stub_code = Isolate::Current()->stub_code();
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-    call(&StubCode::PrintStopMessageLabel());  // Passing message in EAX.
+    call(&stub_code->PrintStopMessageLabel());  // Passing message in EAX.
     popl(EAX);  // Restore EAX.
   } else {
     // Emit the message address as immediate operand in the test instruction.

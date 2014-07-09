@@ -2054,7 +2054,7 @@ LocationSummary* JoinEntryInstr::MakeLocationSummary(Isolate* isolate,
 void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kNoSourcePos);
   }
@@ -2292,7 +2292,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
     compiler->GenerateInstanceCall(deopt_id(),
@@ -2355,7 +2355,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
     // and therefore need a deoptimization descriptor.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
   }

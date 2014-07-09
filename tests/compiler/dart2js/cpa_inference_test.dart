@@ -5,14 +5,11 @@
 import 'dart:async';
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/implementation/source_file.dart';
 import 'package:compiler/implementation/types/types.dart';
 import 'package:compiler/implementation/inferrer/concrete_types_inferrer.dart';
 
-import "parser_helper.dart";
 import "compiler_helper.dart";
 import "type_mask_test_helper.dart";
-import 'dart:mirrors';
 
 /**
  * Finds the node corresponding to the last occurence of the substring
@@ -66,8 +63,8 @@ class AnalysisResult {
     map = inferrer.baseTypes.mapBaseType;
     nullType = const NullBaseType();
     functionType = inferrer.baseTypes.functionBaseType;
-    Element mainElement = compiler.mainApp.find('main');
-    ast = mainElement.parseNode(compiler);
+    FunctionElement mainElement = compiler.mainApp.find('main');
+    ast = mainElement.node;
   }
 
   BaseType base(String className) {

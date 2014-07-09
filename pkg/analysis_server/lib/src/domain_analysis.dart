@@ -6,10 +6,13 @@ library domain.analysis;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analysis_server/src/computer/computer_hover.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -26,11 +29,38 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   AnalysisDomainHandler(this.server);
 
+  /**
+   * Implement the `analysis.getHover` request.
+   */
+  Response getAnalysisHover(Request request) {
+    // prepare parameters
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    // prepare hovers
+    List<Map<String, Object>> hovers = <Map<String, Object>>[];
+    {
+      Source source = server.getSource(file);
+      AnalysisContext context = server.getAnalysisContext(file);
+      List<Source> librarySources = context.getLibrariesContaining(source);
+      for (Source librarySource in librarySources) {
+        CompilationUnit unit = context.resolveCompilationUnit2(source,
+            librarySource);
+        hovers.add(new DartUnitHoverComputer(unit, offset).compute());
+      }
+    }
+    // send response
+    Response response = new Response(request.id);
+    response.setResult(HOVERS, hovers);
+    return response;
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
+      if (requestName == ANALYSIS_GET_HOVER) {
+        return getAnalysisHover(request);
+      } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
       } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);

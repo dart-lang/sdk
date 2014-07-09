@@ -44,12 +44,11 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const int argc = 2;
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
-  const Object& result = Object::ZoneHandle();
   const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());
   __ EnterDartFrame(0);
   __ LoadObject(CTX, context, PP);
-  __ PushObject(result, PP);  // Push Null object for return value.
+  __ PushObject(Object::null_object(), PP);  // Push Null obj for return value.
   __ PushObject(smi1, PP);  // Push argument 1 smi1.
   __ PushObject(smi2, PP);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);

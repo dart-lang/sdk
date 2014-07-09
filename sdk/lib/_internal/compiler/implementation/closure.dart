@@ -84,11 +84,15 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   final TypedElement variableElement;
 
   ClosureFieldElement(String name,
-                     this.variableElement,
-                     ClosureClassElement enclosing)
+                      this.variableElement,
+                      ClosureClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
 
-  ClosureClassElement get closureClass => enclosingElement;
+  /// Use [closureClass] instead.
+  @deprecated
+  get enclosingElement => super.enclosingElement;
+
+  ClosureClassElement get closureClass => super.enclosingElement;
 
   bool get hasNode => false;
 
@@ -207,6 +211,12 @@ class BoxFieldElement extends ElementX implements TypedElement {
                   BoxElement enclosingBox)
       : super(name, ElementKind.FIELD, enclosingBox);
 
+  /// Use [box] instead.
+  @deprecated
+  get enclosingElement;
+
+  BoxElement get box => super.enclosingElement;
+
   DartType computeType(Compiler compiler) => type;
 
   DartType get type => variableElement.type;
@@ -248,7 +258,11 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX {
     functionSignatureCache = other.functionSignature;
   }
 
-  ClosureClassElement get closureClass => enclosingElement;
+  /// Use [closureClass] instead.
+  @deprecated
+  get enclosingElement => super.enclosingElement;
+
+  ClosureClassElement get closureClass => super.enclosingElement;
 
   bool get hasNode => expression.hasNode;
 
@@ -436,9 +450,9 @@ class ClosureTranslator extends Visitor {
           fieldCaptures.add(updatedElement);
         } else {
           // A boxed element.
-          freeVariableMapping[fromElement] = updatedElement;
-          Element boxElement = updatedElement.enclosingElement;
-          assert(boxElement is BoxElement);
+          BoxFieldElement boxFieldElement = updatedElement;
+          freeVariableMapping[fromElement] = boxFieldElement;
+          BoxElement boxElement = boxFieldElement.box;
           boxes.add(boxElement);
         }
       });

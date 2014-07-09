@@ -8,24 +8,22 @@ import "compiler_helper.dart";
 
 const String TEST = "main() => [];";
 
-const String DEFAULT_CORELIB_WITH_LIST = r'''
-  class Object {
-    Object();
-  }
-  class bool {}
-  abstract class List {}
-  class num {}
-  class int {}
-  class double {}
-  class String {}
-  class Function {}
-  class Null {}
-  class Type {}
-  class Map {}
-  class StackTrace {}
-  identical(a, b) => true;
-  const proxy = 0;
-''';
+const Map<String, String> DEFAULT_CORELIB_WITH_LIST = const <String, String>{
+  'Object': 'class Object { Object(); }',
+  'bool': 'class bool {}',
+  'List': 'abstract class List {}',
+  'num': 'class num {}',
+  'int': 'class int {}',
+  'double': 'class double {}',
+  'String': 'class String {}',
+  'Function': 'class Function {}',
+  'Null': 'class Null {}',
+  'Type': 'class Type {}',
+  'Map': 'class Map {}',
+  'StackTrace': 'class StackTrace {}',
+  'identical': 'identical(a, b) => true;',
+  'proxy': 'const proxy = 0;',
+};
 
 main() {
   asyncTest(() => compileAll(TEST, coreSource: DEFAULT_CORELIB_WITH_LIST).

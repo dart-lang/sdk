@@ -59,9 +59,9 @@ class TestCompiler extends apiimpl.Compiler {
     return super.onLibrariesLoaded(loadedLibraries);
   }
 
-  TreeElements analyzeElement(Element element) {
+  void analyzeElement(Element element) {
     test('Compiler.analyzeElement');
-    return super.analyzeElement(element);
+    super.analyzeElement(element);
   }
 
   void codegen(CodegenWorkItem work, CodegenEnqueuer world) {

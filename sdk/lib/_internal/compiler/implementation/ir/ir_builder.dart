@@ -100,10 +100,6 @@ class IrBuilderTask extends CompilerTask {
 
     if (!compiler.backend.shouldOutput(function)) return false;
 
-    // TODO(kmillikin): support functions with optional parameters.
-    FunctionSignature signature = function.functionSignature;
-    if (signature.optionalParameterCount > 0) return false;
-
     // TODO(kmillikin): support getters and setters and static class members.
     // With the current Dart Tree emitter they just require recognizing them
     // and generating the correct syntax.
@@ -112,7 +108,7 @@ class IrBuilderTask extends CompilerTask {
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative) return false;
 
-    // TODO(asgerf): support syntax for redirecting factory constructors
+    // TODO(kmillikin,sigurdm): support syntax for redirecting factory
     if (function is ConstructorElement && function.isRedirectingFactory) {
       return false;
     }
@@ -206,6 +202,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   final List<ConstDeclaration> localConstants;
 
+  FunctionElement currentFunction;
+  final DetectClosureVariables closureLocals;
+
   /// Construct a top-level visitor.
   IrBuilder(TreeElements elements, Compiler compiler, this.sourceFile)
       : returnContinuation = new ir.Continuation.retrn(),
@@ -215,6 +214,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         assignedVars = <ir.Primitive>[],
         index2variable = <Element>[],
         localConstants = <ConstDeclaration>[],
+        closureLocals = new DetectClosureVariables(elements),
         super(elements, compiler) {
           constantBuilder = new ConstExpBuilder(this);
         }
@@ -233,6 +233,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         index2variable = new List<Element>.from(parent.index2variable),
         constantBuilder = parent.constantBuilder,
         localConstants = parent.localConstants,
+        currentFunction = parent.currentFunction,
+        closureLocals = parent.closureLocals,
         super(parent.elements, parent.compiler);
 
   /**
@@ -246,26 +248,42 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.FunctionDefinition buildFunctionInternal(FunctionElement element) {
     assert(invariant(element, element.isImplementation));
+    currentFunction = element;
     ast.FunctionExpression function = element.node;
     assert(function != null);
     assert(!function.modifiers.isExternal);
     assert(elements[function] != null);
 
+    closureLocals.visit(function);
+
     root = current = null;
 
     FunctionSignature signature = element.functionSignature;
-    signature.orderedForEachParameter((parameterElement) {
+    signature.orderedForEachParameter((ParameterElement parameterElement) {
       ir.Parameter parameter = new ir.Parameter(parameterElement);
       parameters.add(parameter);
-      variableIndex[parameterElement] = assignedVars.length;
-      assignedVars.add(parameter);
-      index2variable.add(parameterElement);
+      if (isClosureVariable(parameterElement)) {
+        add(new ir.SetClosureVariable(parameterElement, parameter));
+      } else {
+        variableIndex[parameterElement] = assignedVars.length;
+        assignedVars.add(parameter);
+        index2variable.add(parameterElement);
+      }
+    });
+
+    List<ConstExp> defaults = new List<ConstExp>();
+    signature.orderedOptionalParameters.forEach((ParameterElement element) {
+      if (element.initializer != null) {
+        defaults.add(constantBuilder.visit(element.initializer));
+      } else {
+        defaults.add(new PrimitiveConstExp(constantSystem.createNull()));
+      }
     });
 
     visit(function.body);
     ensureReturn(function);
-    return new ir.FunctionDefinition(returnContinuation, parameters, root,
-        localConstants);
+    return new ir.FunctionDefinition(element, returnContinuation, parameters,
+        root, localConstants, defaults);
   }
 
   ConstantSystem get constantSystem => compiler.backend.constantSystem;
@@ -515,6 +533,17 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   ir.Primitive visitFor(ast.For node) {
     assert(isOpen);
+    // TODO(kmillikin,sigurdm): Handle closure variables declared in a for-loop.
+    if (node.initializer is ast.VariableDefinitions) {
+      ast.VariableDefinitions definitions = node.initializer;
+      for (ast.Node definition in definitions.definitions.nodes) {
+        Element element = elements[definition];
+        if (isClosureVariable(element)) {
+          return giveup(definition, 'Closure variable in for loop initializer');
+        }
+      }
+    }
+
     // For loops use three named continuations: the entry to the condition,
     // the entry to the body, and the loop exit (break).  The CPS translation
     // of [[for (initializer; condition; update) body; successor]] is:
@@ -731,27 +760,29 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     } else {
       for (ast.Node definition in node.definitions.nodes) {
         Element element = elements[definition];
+        ir.Primitive initialValue;
         // Definitions are either SendSets if there is an initializer, or
         // Identifiers if there is no initializer.
         if (definition is ast.SendSet) {
           assert(!definition.arguments.isEmpty);
           assert(definition.arguments.tail.isEmpty);
-          ir.Primitive initialValue = visit(definition.arguments.head);
+          initialValue = visit(definition.arguments.head);
+        } else {
+          assert(definition is ast.Identifier);
+          // The initial value is null.
+          // TODO(kmillikin): Consider pooling constants.
+          initialValue = makePrimConst(constantSystem.createNull());
+          add(new ir.LetPrim(initialValue));
+        }
+        if (isClosureVariable(element)) {
+          add(new ir.SetClosureVariable(element, initialValue,
+                                          isDeclaration: true));
+        } else {
           // In case a primitive was introduced for the initializer expression,
           // use this variable element to help derive a good name for it.
           initialValue.useElementAsHint(element);
           variableIndex[element] = assignedVars.length;
           assignedVars.add(initialValue);
-          index2variable.add(element);
-        } else {
-          assert(definition is ast.Identifier);
-          // The initial value is null.
-          // TODO(kmillikin): Consider pooling constants.
-          ir.Constant constant = makePrimConst(constantSystem.createNull());
-          constant.useElementAsHint(element);
-          add(new ir.LetPrim(constant));
-          variableIndex[element] = assignedVars.length;
-          assignedVars.add(constant);
           index2variable.add(element);
         }
       }
@@ -959,6 +990,14 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return visit(node.expression);
   }
 
+  ir.Primitive continueWithExpression(ir.Expression build(ir.Continuation k)) {
+    ir.Parameter v = new ir.Parameter(null);
+    ir.Continuation k = new ir.Continuation([v]);
+    ir.Expression expression = build(k);
+    add(new ir.LetCont(k, expression));
+    return v;
+  }
+
   ir.Primitive translateClosureCall(ir.Primitive receiver,
                                     Selector closureSelector,
                                     ast.NodeList arguments) {
@@ -968,12 +1007,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
                      closureSelector.argumentCount,
                      closureSelector.namedArguments);
     List<ir.Primitive> args = arguments.nodes.mapToList(visit, growable:false);
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.Expression invoke =
-        new ir.InvokeMethod(receiver, namedCallSelector, k, args);
-    add(new ir.LetCont(k, invoke));
-    return v;
+    return continueWithExpression(
+        (k) => new ir.InvokeMethod(receiver, namedCallSelector, k, args));
   }
 
   ir.Primitive visitClosureSend(ast.Send node) {
@@ -982,6 +1017,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Primitive closureTarget;
     if (element == null) {
       closureTarget = visit(node.selector);
+    } else if (isClosureVariable(element)) {
+      closureTarget = new ir.GetClosureVariable(element);
+      add(new ir.LetPrim(closureTarget));
     } else {
       assert(Elements.isLocal(element));
       closureTarget = lookupLocal(element);
@@ -1020,12 +1058,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     for (ast.Node n in node.arguments) {
       arguments.add(visit(n));
     }
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.Expression invoke =
-        createDynamicInvoke(node, selector, receiver, k, arguments);
-    add(new ir.LetCont(k, invoke));
-    return v;
+    return continueWithExpression(
+        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
   }
 
   _GetterElements translateGetter(ast.Send node, Selector selector) {
@@ -1034,18 +1068,14 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     ir.Primitive receiver;
     ir.Primitive index;
 
-    if (Elements.isErroneousElement(element)) {
-      giveup(node, 'Erroneous element on GetterSend');
-      return null;
-    }
-
     if (element != null && element.isConst) {
       // Reference to constant local, top-level or static field
-
       result = translateConstant(node);
+    } else if (isClosureVariable(element)) {
+      result = new ir.GetClosureVariable(element);
+      add(new ir.LetPrim(result));
     } else if (Elements.isLocal(element)) {
       // Reference to local variable
-
       result = lookupLocal(element);
     } else if (element == null ||
                Elements.isInstanceField(element) ||
@@ -1064,31 +1094,21 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         arguments.add(index);
       }
 
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.INDEX);
-      ir.Expression invoke =
-          createDynamicInvoke(node, selector, receiver, k, arguments);
-      add(new ir.LetCont(k, invoke));
-      result = v;
-    } else if (element.isField || element.isGetter ||
-        // Access to a static field or getter (non-static case handled above).
-        // Even if there is only a setter, we compile as if it was a getter,
-        // so the vm can fail at runtime.
-
-        element.isSetter) {
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
+      result = continueWithExpression(
+          (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+    } else if (element.isField || element.isGetter || element.isErroneous ||
+               element.isSetter) {
+      // Access to a static field or getter (non-static case handled above).
+      // Even if there is only a setter, we compile as if it was a getter,
+      // so the vm can fail at runtime.
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.SETTER);
-      ir.Expression invoke =
-          new ir.InvokeStatic(element, selector, k, []);
-      add(new ir.LetCont(k, invoke));
-      result = v;
+      result = continueWithExpression(
+          (k) => new ir.InvokeStatic(element, selector, k, []));
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // Convert a top-level or static function to a function object.
-
       result = translateConstant(node);
     } else {
       throw "Unexpected SendSet getter: $node, $element";
@@ -1244,7 +1264,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     if (op.source == "is") {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) return giveup(node, "Malformed type for is");
       ir.Primitive receiver = visit(node.receiver);
       ir.IsCheck isCheck = new ir.IsCheck(receiver, type);
       add(new ir.LetPrim(isCheck));
@@ -1252,15 +1271,11 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
     if (op.source == "as") {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      if (type.isMalformed) return giveup(node, "Malformed type for as");
       ir.Primitive receiver = visit(node.receiver);
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
-      ir.AsCast asCast = new ir.AsCast(receiver, type, k);
-      add(new ir.LetCont(k, asCast));
-      return v;
+      return continueWithExpression(
+          (k) => new ir.AsCast(receiver, type, k));
     }
-    return giveup(node);
+    compiler.internalError(node, "Unknown operator '${op.source}'");
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]
@@ -1268,29 +1283,17 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   ir.Primitive visitStaticSend(ast.Send node) {
     assert(isOpen);
     Element element = elements[node];
-    // TODO(lry): support constructors / factory calls.
-    if (element.isConstructor) return giveup(node, 'StaticSend: constructor');
+    assert(!element.isConstructor);
     // TODO(lry): support foreign functions.
     if (element.isForeign(compiler)) return giveup(node, 'StaticSend: foreign');
-    // TODO(lry): for elements that could not be resolved emit code to throw a
-    // [NoSuchMethodError].
-    if (element.isErroneous) return giveup(node, 'StaticSend: erroneous');
-    // TODO(lry): generate IR for object identicality.
-    if (element == compiler.identicalFunction) {
-      return giveup(node, 'StaticSend: identical');
-    }
 
     Selector selector = elements.getSelector(node);
 
     // TODO(lry): support default arguments, need support for locals.
     List<ir.Definition> arguments = node.arguments.mapToList(visit,
                                                              growable:false);
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.Expression invoke =
-        new ir.InvokeStatic(element, selector, k, arguments);
-    add(new ir.LetCont(k, invoke));
-    return v;
+    return continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, arguments));
   }
 
   ir.Primitive visitSuperSend(ast.Send node) {
@@ -1311,8 +1314,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // If the user is trying to invoke the type literal or variable,
     // it must be treated as a function call.
     if (node.argumentsNode != null) {
-      // TODO(sigurdm): Change this to match proposed semantics of issue #19725.
-      return visitDynamicSend(node);
+      // TODO(sigurdm): Handle this to match proposed semantics of issue #19725.
+      return giveup(node, 'Type literal invoked as function');
     }
 
     DartType type = elements.getTypeLiteralType(node);
@@ -1323,6 +1326,13 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     } else {
       return translateConstant(node);
     }
+  }
+
+  /// True if [element] is a local variable, local function, or parameter that
+  /// is accessed from an inner function. Recursive self-references in a local
+  /// function count as closure accesses.
+  bool isClosureVariable(Element element) {
+    return closureLocals.isClosureVariable(element);
   }
 
   ir.Primitive visitSendSet(ast.SendSet node) {
@@ -1386,33 +1396,27 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     }
 
     // Set the value
-    if (Elements.isLocal(element)) {
+    if (isClosureVariable(element)) {
+      add(new ir.SetClosureVariable(element, valueToStore));
+    } else if (Elements.isLocal(element)) {
       valueToStore.useElementAsHint(element);
       assignedVars[variableIndex[element]] = valueToStore;
-    } else if (Elements.isStaticOrTopLevel(element)) {
-      assert(element.isField || element.isSetter);
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
+    } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
+                Elements.isStaticOrTopLevel(element)) {
+      assert(element.isErroneous || element.isField || element.isSetter);
       Selector selector = elements.getSelector(node);
-      ir.InvokeStatic invoke =
-          new ir.InvokeStatic(element, selector, k, [valueToStore]);
-      add(new ir.LetCont(k, invoke));
+      continueWithExpression(
+          (k) => new ir.InvokeStatic(element, selector, k, [valueToStore]));
     } else {
-      if (element != null && Elements.isUnresolved(element)) {
-        return giveup(node, 'SendSet: non-local, non-static, unresolved');
-      }
       // Setter or index-setter invocation
-      ir.Parameter v = new ir.Parameter(null);
-      ir.Continuation k = new ir.Continuation([v]);
       Selector selector = elements.getSelector(node);
       assert(selector.kind == SelectorKind.SETTER ||
           selector.kind == SelectorKind.INDEX);
       List<ir.Definition> arguments = selector.isIndexSet
           ? [index, valueToStore]
           : [valueToStore];
-      ir.Expression invoke =
-          createDynamicInvoke(node, selector, receiver, k, arguments);
-      add(new ir.LetCont(k, invoke));
+      continueWithExpression(
+          (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
     }
 
     if (node.isPostfix) {
@@ -1429,32 +1433,21 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       return translateConstant(node);
     }
     FunctionElement element = elements[node.send];
-    if (Elements.isUnresolved(element)) {
-      return giveup(node, 'NewExpression: unresolved constructor');
-    }
     Selector selector = elements.getSelector(node.send);
     ast.Node selectorNode = node.send.selector;
-    GenericType type = elements.getType(node);
+    DartType type = elements.getType(node);
     List<ir.Primitive> args =
         node.send.arguments.mapToList(visit, growable:false);
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.InvokeConstructor invoke =
-        new ir.InvokeConstructor(type, element,selector, k, args);
-    add(new ir.LetCont(k, invoke));
-    return v;
+    return continueWithExpression(
+        (k) => new ir.InvokeConstructor(type, element,selector, k, args));
   }
 
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
     assert(isOpen);
     ir.Primitive first = visit(node.first);
     ir.Primitive second = visit(node.second);
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.ConcatenateStrings concat =
-        new ir.ConcatenateStrings(k, [first, second]);
-    add(new ir.LetCont(k, concat));
-    return v;
+    return continueWithExpression(
+        (k) => new ir.ConcatenateStrings(k, [first, second]));
   }
 
   ir.Primitive visitStringInterpolation(ast.StringInterpolation node) {
@@ -1467,11 +1460,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       arguments.add(visit(part.expression));
       arguments.add(visitLiteralString(part.string));
     }
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.ConcatenateStrings concat = new ir.ConcatenateStrings(k, arguments);
-    add(new ir.LetCont(k, concat));
-    return v;
+    return continueWithExpression(
+        (k) => new ir.ConcatenateStrings(k, arguments));
   }
 
   ir.Primitive translateConstant(ast.Node node, [Constant value]) {
@@ -1484,9 +1474,38 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return primitive;
   }
 
+  ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
+    return new IrBuilder(elements, compiler, sourceFile)
+           .buildFunctionInternal(elements[node]);
+  }
+
+  ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
+    FunctionElement element = elements[node];
+    ir.FunctionDefinition inner = makeSubFunction(node);
+    ir.CreateFunction prim = new ir.CreateFunction(inner);
+    add(new ir.LetPrim(prim));
+    return prim;
+  }
+
+  ir.Primitive visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    FunctionElement element = elements[node.function];
+    ir.FunctionDefinition inner = makeSubFunction(node.function);
+    if (isClosureVariable(element)) {
+      add(new ir.DeclareFunction(element, inner));
+    } else {
+      ir.CreateFunction prim = new ir.CreateFunction(inner);
+      add(new ir.LetPrim(prim));
+      variableIndex[element] = assignedVars.length;
+      assignedVars.add(prim);
+      index2variable.add(element);
+      prim.useElementAsHint(element);
+    }
+    return null;
+  }
+
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-  ir.Primitive giveup(ast.Node node, [String reason]) {
+  dynamic giveup(ast.Node node, [String reason]) {
     throw ABORT_IRNODE_BUILDER;
   }
 
@@ -1659,6 +1678,48 @@ class ConstExpBuilder extends ast.Visitor<ConstExp> {
 
   ConstExp visitNode(ast.Node node) {
     throw "Unexpected constant: $node";
+  }
+
+}
+
+/// Classifies local variables and local functions as 'closure variables'.
+/// A closure variable is one that is accessed from an inner function nested
+/// one or more levels inside the one that declares it.
+class DetectClosureVariables extends ast.Visitor {
+  final TreeElements elements;
+  DetectClosureVariables(this.elements);
+
+  FunctionElement currentFunction;
+  Set<Element> usedFromClosure = new Set<Element>();
+  Set<FunctionElement> recursiveFunctions = new Set<FunctionElement>();
+
+  bool isClosureVariable(Element element) => usedFromClosure.contains(element);
+
+  void markAsClosureVariable(Element element) {
+    usedFromClosure.add(element);
+  }
+
+  visit(ast.Node node) => node.accept(this);
+
+  visitNode(ast.Node node) {
+    node.visitChildren(this);
+  }
+
+  visitSend(ast.Send node) {
+    Element element = elements[node];
+    if (Elements.isLocal(element) &&
+        !element.isConst &&
+        element.enclosingElement != currentFunction) {
+      markAsClosureVariable(element);
+    }
+    node.visitChildren(this);
+  }
+
+  visitFunctionExpression(ast.FunctionExpression node) {
+    FunctionElement oldFunction = currentFunction;
+    currentFunction = elements[node];
+    visit(node.body);
+    currentFunction = oldFunction;
   }
 
 }

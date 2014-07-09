@@ -167,7 +167,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deopt_env() != NULL);
 
-  __ call(&StubCode::DeoptimizeLabel());
+  StubCode* stub_code = compiler->isolate()->stub_code();
+  __ call(&stub_code->DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
   __ int3();
 #undef __
@@ -205,20 +206,21 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  StubCode* stub_code = isolate()->stub_code();
   __ LoadObject(temp_reg, type_test_cache);
   __ pushl(temp_reg);  // Subtype test cache.
   __ pushl(instance_reg);  // Instance.
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
     __ pushl(raw_null);
-    __ call(&StubCode::Subtype1TestCacheLabel());
+    __ call(&stub_code->Subtype1TestCacheLabel());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
     __ pushl(raw_null);
-    __ call(&StubCode::Subtype2TestCacheLabel());
+    __ call(&stub_code->Subtype2TestCacheLabel());
   } else if (test_kind == kTestTypeThreeArgs) {
     __ pushl(type_arguments_reg);
-    __ call(&StubCode::Subtype3TestCacheLabel());
+    __ call(&stub_code->Subtype3TestCacheLabel());
   } else {
     UNREACHABLE();
   }
@@ -603,7 +605,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // Generate runtime call.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
     __ pushl(ECX);  // Instantiator.
@@ -675,7 +677,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformedOrMalbounded()) {
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(dst_type);  // Push the type of the destination.
@@ -701,7 +703,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ Bind(&runtime_call);
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
   __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   __ pushl(ECX);  // Instantiator.
@@ -917,13 +919,14 @@ void FlowGraphCompiler::CopyParameters() {
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
     // Invoke noSuchMethod function passing "call" as the original name.
+    StubCode* stub_code = isolate()->stub_code();
     const int kNumArgsChecked = 1;
     const ICData& ic_data = ICData::ZoneHandle(
         ICData::New(function, Symbols::Call(), Object::empty_array(),
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(ECX, ic_data);
     __ LeaveFrame();  // The arguments are still on the stack.
-    __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
+    __ jmp(&stub_code->CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
     __ int3();
   } else if (check_correct_named_args) {
@@ -984,6 +987,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
+    StubCode* stub_code = isolate()->stub_code();
     const Register function_reg = EDI;
     __ LoadObject(function_reg, function);
 
@@ -1001,7 +1005,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
               Immediate(FLAG_optimization_counter_threshold));
     }
     ASSERT(function_reg == EDI);
-    __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
+    __ j(GREATER_EQUAL, &stub_code->OptimizeFunctionLabel());
   } else if (!flow_graph().IsCompiledForOsr()) {
     entry_patch_pc_offset_ = assembler()->CodeSize();
   }
@@ -1031,6 +1035,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
+  StubCode* stub_code = isolate()->stub_code();
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
@@ -1070,7 +1075,7 @@ void FlowGraphCompiler::CompileGraph() {
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(ECX, ic_data);
         __ LeaveFrame();  // The arguments are still on the stack.
-        __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
+        __ jmp(&stub_code->CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
         __ int3();
       } else {
@@ -1104,18 +1109,18 @@ void FlowGraphCompiler::CompileGraph() {
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
   patch_code_pc_offset_ = assembler()->CodeSize();
-  __ jmp(&StubCode::FixCallersTargetLabel());
+  __ jmp(&stub_code->FixCallersTargetLabel());
 
   if (is_optimizing()) {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
-    __ jmp(&StubCode::DeoptimizeLazyLabel());
+    __ jmp(&stub_code->DeoptimizeLazyLabel());
   }
 }
 
 
 void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
-                                     PcDescriptors::Kind kind,
+                                     RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ call(label);
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
@@ -1126,7 +1131,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          intptr_t token_pos,
                                          const ExternalLabel* label,
-                                         PcDescriptors::Kind kind,
+                                         RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ call(label);
   AddCurrentDescriptor(kind, deopt_id, token_pos);
@@ -1139,7 +1144,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
 
@@ -1150,7 +1155,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
   if (deopt_id != Isolate::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
@@ -1161,7 +1166,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
     }
   }
 }
@@ -1174,10 +1179,11 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     LocationSummary* locs,
     const ICData& ic_data) {
   uword label_address = 0;
+  StubCode* stub_code = isolate()->stub_code();
   if (ic_data.NumArgsTested() == 0) {
-    label_address = StubCode::ZeroArgsUnoptimizedStaticCallEntryPoint();
+    label_address = stub_code->ZeroArgsUnoptimizedStaticCallEntryPoint();
   } else if (ic_data.NumArgsTested() == 2) {
-    label_address = StubCode::TwoArgsUnoptimizedStaticCallEntryPoint();
+    label_address = stub_code->TwoArgsUnoptimizedStaticCallEntryPoint();
   } else {
     UNIMPLEMENTED();
   }
@@ -1187,7 +1193,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    &target_label,
-                   PcDescriptors::kUnoptStaticCall,
+                   RawPcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
 #if defined(DEBUG)
@@ -1230,7 +1236,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
-                   PcDescriptors::kIcCall,
+                   RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
 }
@@ -1248,7 +1254,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
-                   PcDescriptors::kIcCall,
+                   RawPcDescriptors::kIcCall,
                    locs);
   __ Drop(argument_count);
 #if defined(DEBUG)
@@ -1311,7 +1317,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(EDX, arguments_descriptor);
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
-  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(RawPcDescriptors::kOther,
+      Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
   __ Drop(argument_count);
@@ -1325,13 +1332,14 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
+  StubCode* stub_code = isolate()->stub_code();
   __ LoadObject(EDX, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateDartCall(deopt_id,
                    token_pos,
-                   &StubCode::CallStaticFunctionLabel(),
-                   PcDescriptors::kOptStaticCall,
+                   &stub_code->CallStaticFunctionLabel(),
+                   RawPcDescriptors::kOptStaticCall,
                    locs);
   AddStaticCallTarget(function);
   __ Drop(argument_count);
@@ -1352,15 +1360,16 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
   }
 
   if (needs_number_check) {
+    StubCode* stub_code = isolate()->stub_code();
     __ pushl(reg);
     __ PushObject(obj);
     if (is_optimizing()) {
-      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+      __ call(&stub_code->OptimizedIdenticalWithNumberCheckLabel());
     } else {
-      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+      __ call(&stub_code->UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
-      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
@@ -1378,17 +1387,18 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   bool needs_number_check,
                                                   intptr_t token_pos) {
   if (needs_number_check) {
+    StubCode* stub_code = isolate()->stub_code();
     __ pushl(left);
     __ pushl(right);
     if (is_optimizing()) {
-      __ call(&StubCode::OptimizedIdenticalWithNumberCheckLabel());
+      __ call(&stub_code->OptimizedIdenticalWithNumberCheckLabel());
     } else {
       __ movl(EDX, Immediate(0));
       __ movl(ECX, Immediate(0));
-      __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
+      __ call(&stub_code->UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
-      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+      AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);
     }
@@ -1485,6 +1495,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
+  StubCode* stub_code = isolate()->stub_code();
+
   __ LoadObject(EDX, arguments_descriptor);
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
@@ -1499,8 +1511,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     // that we can record the outgoing edges to other code.
     GenerateDartCall(deopt_id,
                      token_index,
-                     &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kOptStaticCall,
+                     &stub_code->CallStaticFunctionLabel(),
+                     RawPcDescriptors::kOptStaticCall,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);

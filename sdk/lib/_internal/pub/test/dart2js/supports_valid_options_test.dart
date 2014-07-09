@@ -18,6 +18,7 @@ main() {
           "\$dart2js": {
             "commandLineOptions": ["--enable-diagnostic-colors"],
             "checked": true,
+            "csp": true,
             "minify": true,
             "verbose": true,
             "environment": {"name": "value"},

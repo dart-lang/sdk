@@ -176,18 +176,29 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
     ThrowIsolateSpawnException(msg);
   }
 
-  // Try to create a SendPort for the new isolate.
+  // The result of spawning an Isolate is an array with 3 elements:
+  // [main_port, pause_capability, terminate_capability]
+  const Array& result = Array::Handle(Array::New(3));
+
+  // Create a SendPort for the new isolate.
+  Isolate* spawned_isolate = state->isolate();
   const SendPort& port = SendPort::Handle(
-      SendPort::New(state->isolate()->main_port()));
+      SendPort::New(spawned_isolate->main_port()));
+  result.SetAt(0, port);
+  Capability& capability = Capability::Handle();
+  capability = Capability::New(spawned_isolate->pause_capability());
+  result.SetAt(1, capability);  // pauseCapability
+  capability = Capability::New(spawned_isolate->terminate_capability());
+  result.SetAt(2, capability);  // terminateCapability
 
   // Start the new isolate if it is already marked as runnable.
-  MutexLocker ml(state->isolate()->mutex());
-  state->isolate()->set_spawn_state(state);
-  if (state->isolate()->is_runnable()) {
-    state->isolate()->Run();
+  MutexLocker ml(spawned_isolate->mutex());
+  spawned_isolate->set_spawn_state(state);
+  if (spawned_isolate->is_runnable()) {
+    spawned_isolate->Run();
   }
 
-  return port.raw();
+  return result.raw();
 }
 
 
@@ -227,6 +238,24 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
   }
 
   return Spawn(arguments, new IsolateSpawnState(canonical_uri));
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));
+
+  // Make sure to route this request to the isolate library OOB mesage handler.
+  msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(msg);
+
+  PortMap::PostMessage(new Message(port.Id(),
+                                   data, writer.BytesWritten(),
+                                   Message::kOOBPriority));
+  return Object::null();
 }
 
 

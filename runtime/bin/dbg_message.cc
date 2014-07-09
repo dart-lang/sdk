@@ -1041,7 +1041,7 @@ bool DbgMessage::HandleRemBpCmd(DbgMessage* in_msg) {
 void DbgMsgQueue::AddMessage(int32_t cmd_idx,
                              const char* start,
                              const char* end,
-                             int debug_fd) {
+                             intptr_t debug_fd) {
   if ((end > start) && ((end - start) < kMaxInt32)) {
     MonitorLocker ml(&msg_queue_lock_);
     DbgMessage* msg = new DbgMessage(cmd_idx, start, end, debug_fd);
@@ -1235,7 +1235,7 @@ bool DbgMsgQueueList::AddIsolateMessage(Dart_IsolateId isolate_id,
                                         int32_t cmd_idx,
                                         const char* start,
                                         const char* end,
-                                        int debug_fd) {
+                                        intptr_t debug_fd) {
   MutexLocker ml(msg_queue_list_lock_);
   DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
   if (queue != NULL) {

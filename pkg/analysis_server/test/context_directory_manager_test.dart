@@ -5,9 +5,10 @@
 library test.context.directory.manager;
 
 import 'mocks.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analysis_server/src/context_directory_manager.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
-import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';

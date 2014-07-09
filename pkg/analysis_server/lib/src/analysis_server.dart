@@ -7,6 +7,7 @@ library analysis.server;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -18,7 +19,6 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/resource.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -27,7 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/index.dart';
+import 'package:analysis_services/index/index.dart';
 
 
 /**
@@ -226,7 +226,7 @@ class AnalysisServer {
         new HashMap<AnalysisContext, List<Source>>();
     List<String> unanalyzed = new List<String>();
     files.forEach((file) {
-      AnalysisContext analysisContext = _getAnalysisContext(file);
+      AnalysisContext analysisContext = getAnalysisContext(file);
       if (analysisContext == null) {
         unanalyzed.add(file);
       } else {
@@ -235,7 +235,7 @@ class AnalysisServer {
           sourceList = <Source>[];
           sourceMap[analysisContext] = sourceList;
         }
-        sourceList.add(_getSource(file));
+        sourceList.add(getSource(file));
       }
     });
     if (unanalyzed.isNotEmpty) {
@@ -434,13 +434,13 @@ class AnalysisServer {
    */
   void updateContent(Map<String, ContentChange> changes) {
     changes.forEach((file, change) {
-      AnalysisContext analysisContext = _getAnalysisContext(file);
+      AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
       // than one context (e.g package A depends on package B using a local
       // path, user has both packages open for editing in separate contexts,
       // and user modifies a file in package B).
       if (analysisContext != null) {
-        Source source = _getSource(file);
+        Source source = getSource(file);
         if (change.offset == null) {
           analysisContext.setContents(source, change.content);
         } else {
@@ -461,8 +461,8 @@ class AnalysisServer {
       Set<String> oldFiles = analysisServices[service];
       Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
       for (String file in todoFiles) {
-        Source source = _getSource(file);
-        AnalysisContext context = _getAnalysisContext(file);
+        Source source = getSource(file);
+        AnalysisContext context = getAnalysisContext(file);
         // errors
         if (service == AnalysisService.ERRORS) {
           LineInfo lineInfo = context.getLineInfo(source);
@@ -481,8 +481,14 @@ class AnalysisServer {
                 // TODO(scheglov) consider support for one unit in 2+ libraries
                 sendAnalysisNotificationNavigation(this, file, dartUnit);
                 break;
+              case AnalysisService.OCCURRENCES:
+                sendAnalysisNotificationOccurrences(this, file, dartUnit);
+                break;
               case AnalysisService.OUTLINE:
                 sendAnalysisNotificationOutline(this, context, source, dartUnit);
+                break;
+              case AnalysisService.OVERRIDES:
+                sendAnalysisNotificationOverrides(this, file, dartUnit);
                 break;
             }
           }
@@ -497,7 +503,7 @@ class AnalysisServer {
    * Return the [AnalysisContext] that is used to analyze the given [path].
    * Return `null` if there is no such context.
    */
-  AnalysisContext _getAnalysisContext(String path) {
+  AnalysisContext getAnalysisContext(String path) {
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.path)) {
         return folderMap[folder];
@@ -509,7 +515,7 @@ class AnalysisServer {
   /**
    * Return the [Source] of the Dart file with the given [path].
    */
-  Source _getSource(String path) {
+  Source getSource(String path) {
     File file = contextDirectoryManager.resourceProvider.getResource(path);
     return file.createSource(UriKind.FILE_URI);
   }
@@ -522,12 +528,12 @@ class AnalysisServer {
    */
   CompilationUnit getResolvedCompilationUnitToResendNotification(String path) {
     // prepare AnalysisContext
-    AnalysisContext context = _getAnalysisContext(path);
+    AnalysisContext context = getAnalysisContext(path);
     if (context == null) {
       return null;
     }
     // prepare sources
-    Source unitSource = _getSource(path);
+    Source unitSource = getSource(path);
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     if (librarySources.isEmpty) {
       return null;
@@ -547,12 +553,12 @@ class AnalysisServer {
    */
   CompilationUnit test_getResolvedCompilationUnit(String path) {
     // prepare AnalysisContext
-    AnalysisContext context = _getAnalysisContext(path);
+    AnalysisContext context = getAnalysisContext(path);
     if (context == null) {
       return null;
     }
     // prepare sources
-    Source unitSource = _getSource(path);
+    Source unitSource = getSource(path);
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     if (librarySources.isEmpty) {
       return null;
@@ -581,13 +587,15 @@ class AnalysisServer {
  * An enumeration of the services provided by the analysis domain.
  */
 class AnalysisService extends Enum2<AnalysisService> {
-  static const AnalysisService ERRORS = const AnalysisService('ERRORS', 0);
-  static const AnalysisService HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
-  static const AnalysisService NAVIGATION = const AnalysisService('NAVIGATION', 2);
-  static const AnalysisService OUTLINE = const AnalysisService('OUTLINE', 3);
+  static const ERRORS = const AnalysisService('ERRORS', 0);
+  static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
+  static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
+  static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
+  static const OUTLINE = const AnalysisService('OUTLINE', 4);
+  static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
 
   static const List<AnalysisService> VALUES =
-      const [ERRORS, HIGHLIGHTS, NAVIGATION, OUTLINE];
+      const [ERRORS, HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
 }

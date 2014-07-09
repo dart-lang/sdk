@@ -568,11 +568,11 @@ class DeoptRetAddressInstr : public DeoptInstr {
     code ^= deopt_context->ObjectAt(object_table_index_);
     ASSERT(!code.IsNull());
     uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
-                                                PcDescriptors::kDeopt);
+                                                RawPcDescriptors::kDeopt);
     ASSERT(continue_at_pc != 0);
     *dest_addr = continue_at_pc;
 
-    uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptors::kIcCall);
+    uword pc = code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kIcCall);
     if (pc != 0) {
       // If the deoptimization happened at an IC call, update the IC data
       // to avoid repeated deoptimization at the same site next time around.
@@ -1256,7 +1256,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   *code ^= object_table.At(ret_address_instr->object_table_index());
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
-                                    PcDescriptors::kDeopt);
+                                    RawPcDescriptors::kDeopt);
   ASSERT(res != 0);
   return res;
 }
@@ -1394,7 +1394,7 @@ void DeoptInfoBuilder::AddReturnAddress(const Code& code,
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
   ASSERT(Isolate::IsDeoptAfter(deopt_id) ||
-         (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
+         (code.GetPcForDeoptId(deopt_id, RawPcDescriptors::kDeopt) != 0));
 #endif
   const intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());

@@ -1,3 +1,7 @@
+## 0.11.1
+
+* Options may define `valueHelp` which will then be shown in the usage.
+
 ## 0.11.0
 
 * Move handling trailing options from `ArgParser.parse()` into `ArgParser`

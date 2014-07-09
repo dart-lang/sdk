@@ -610,7 +610,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     range->set_assigned_location(Location::Constant(constant->value()));
     range->set_spill_slot(Location::Constant(constant->value()));
   }
-  AssignSafepoints(range);
+  AssignSafepoints(defn, range);
   range->finger()->Initialize(range);
   UsePosition* use =
       range->finger()->FirstRegisterBeneficialUse(block->start_pos());
@@ -783,7 +783,7 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
 
     // All phi resolution moves are connected. Phi's live range is
     // complete.
-    AssignSafepoints(range);
+    AssignSafepoints(phi, range);
 
     CompleteRange(range, RegisterKindForResult(phi));
 
@@ -994,7 +994,6 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
 
 
 void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
-                                          Instruction* current,
                                           intptr_t pos,
                                           Location* out,
                                           Definition* def,
@@ -1103,8 +1102,8 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
     range->AddUse(pos, out);
   }
 
-  AssignSafepoints(range);
-  CompleteRange(range, RegisterKindForResult(current));
+  AssignSafepoints(def, range);
+  CompleteRange(range, RegisterKindForResult(def));
 }
 
 
@@ -1301,14 +1300,14 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       ASSERT(input->HasPairRepresentation());
       // Each element of the pair is assigned it's own virtual register number
       // and is allocated its own LiveRange.
-      ProcessOneOutput(block, current, pos,  // BlockEntry, Instruction, seq.
+      ProcessOneOutput(block, pos,  // BlockEntry, seq.
                        pair->SlotAt(0), def,  // (output) Location, Definition.
                        def->ssa_temp_index(),  // (output) virtual register.
                        true,  // output mapped to first input.
                        in_pair->SlotAt(0), input,  // (input) Location, Def.
                        input->ssa_temp_index(),  // (input) virtual register.
                        interference_set);
-      ProcessOneOutput(block, current, pos,
+      ProcessOneOutput(block, pos,
                        pair->SlotAt(1), def,
                        ToSecondPairVreg(def->ssa_temp_index()),
                        true,
@@ -1318,13 +1317,13 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     } else {
       // Each element of the pair is assigned it's own virtual register number
       // and is allocated its own LiveRange.
-      ProcessOneOutput(block, current, pos,
+      ProcessOneOutput(block, pos,
                        pair->SlotAt(0), def,
                        def->ssa_temp_index(),
                        false,            // output is not mapped to first input.
                        NULL, NULL, -1,   // First input not needed.
                        interference_set);
-      ProcessOneOutput(block, current, pos,
+      ProcessOneOutput(block, pos,
                        pair->SlotAt(1), def,
                        ToSecondPairVreg(def->ssa_temp_index()),
                        false,
@@ -1336,7 +1335,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       Location* in_ref = locs->in_slot(0);
       Definition* input = current->InputAt(0)->definition();
       ASSERT(!in_ref->IsPairLocation());
-      ProcessOneOutput(block, current, pos,  // BlockEntry, Instruction, seq.
+      ProcessOneOutput(block, pos,  // BlockEntry, Instruction, seq.
                        out, def,  // (output) Location, Definition.
                        def->ssa_temp_index(),  // (output) virtual register.
                        true,  // output mapped to first input.
@@ -1344,7 +1343,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                        input->ssa_temp_index(),  // (input) virtual register.
                        interference_set);
     } else {
-      ProcessOneOutput(block, current, pos,
+      ProcessOneOutput(block, pos,
                        out, def,
                        def->ssa_temp_index(),
                        false,            // output is not mapped to first input.
@@ -2463,14 +2462,23 @@ bool LiveRange::Contains(intptr_t pos) const {
 }
 
 
-void FlowGraphAllocator::AssignSafepoints(LiveRange* range) {
+void FlowGraphAllocator::AssignSafepoints(Definition* defn,
+                                          LiveRange* range) {
   for (intptr_t i = safepoints_.length() - 1; i >= 0; i--) {
-    Instruction* instr = safepoints_[i];
+    Instruction* safepoint_instr = safepoints_[i];
+    if (safepoint_instr == defn) {
+      // The value is not live until after the definition is fully executed,
+      // don't assign the safepoint inside the definition itself to
+      // definition's liverange.
+      continue;
+    }
 
-    const intptr_t pos = instr->lifetime_position();
+    const intptr_t pos = safepoint_instr->lifetime_position();
     if (range->End() <= pos) break;
 
-    if (range->Contains(pos)) range->AddSafepoint(pos, instr->locs());
+    if (range->Contains(pos)) {
+      range->AddSafepoint(pos, safepoint_instr->locs());
+    }
   }
 }
 

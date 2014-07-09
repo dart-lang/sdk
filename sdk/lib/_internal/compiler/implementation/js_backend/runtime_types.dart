@@ -146,7 +146,7 @@ class RuntimeTypes {
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
-        classesUsingTypeVariableTests.add(variable.enclosingElement);
+        classesUsingTypeVariableTests.add(variable.typeDeclaration);
       }
     });
     // Add is-checks that result from classes using type variables in checks.

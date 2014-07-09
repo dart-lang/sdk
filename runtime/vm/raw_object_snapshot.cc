@@ -2528,15 +2528,26 @@ RawCapability* Capability::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
-  return Capability::null();
+  uint64_t id = reader->Read<uint64_t>();
+
+  Capability& result = Capability::ZoneHandle(reader->isolate(),
+                                              Capability::New(id));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+  return result.raw();
 }
 
 
 void RawCapability::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kCapabilityCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  writer->Write<uint64_t>(ptr()->id_);
 }
 
 
@@ -2586,7 +2597,7 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kSendPortCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  writer->Write(ptr()->id_);
+  writer->Write<uint64_t>(ptr()->id_);
 }
 
 

@@ -338,8 +338,11 @@ class _LinterVisitor extends TreeVisitor {
       hasIsAttribute = true;
     }
 
-    if (customTagName == null || customTagName == 'polymer-element') return;
-
+    if (customTagName == null || 
+        INTERNALLY_DEFINED_ELEMENTS.contains(customTagName)) {
+      return;
+    }
+    
     var info = _elements[customTagName];
     if (info == null) {
       // TODO(jmesserly): this warning is wrong if someone is using raw custom
@@ -451,3 +454,6 @@ const String USE_INIT_DART =
 const String NO_DART_SCRIPT_AND_EXPERIMENTAL =
     'The experimental bootstrap feature doesn\'t support script tags on '
     'the main document (for now).';
+
+const List<String> INTERNALLY_DEFINED_ELEMENTS = 
+    const ['auto-binding-dart', 'polymer-element'];

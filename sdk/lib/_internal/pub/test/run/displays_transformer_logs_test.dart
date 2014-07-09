@@ -6,7 +6,6 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
-import 'utils.dart';
 
 const SCRIPT = """
 import "package:myapp/lib.dart";
@@ -69,8 +68,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
 
-      var pub = pubRun(args: ["script"],
-          transformers: ["myapp/src/transformer"]);
+      var pub = pubRun(args: ["script"]);
 
       // Note that the info log is only displayed here because the test
       // harness runs pub in verbose mode. By default, only the warning would

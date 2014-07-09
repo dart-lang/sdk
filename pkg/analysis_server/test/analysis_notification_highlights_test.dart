@@ -10,27 +10,30 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'reflective_tests.dart';
 
 
 main() {
   group('notification.highlights', () {
-    runReflectiveTests(_AnalysisNotificationHighlightsTest);
+    runReflectiveTests(AnalysisNotificationHighlightsTest);
+  });
+  group('HighlightType', () {
+    runReflectiveTests(HighlightTypeTest);
   });
 }
 
 
 @ReflectiveTestCase()
-class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
-  List<_HighlightRegion> regions;
+class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
+  List<HighlightRegion> regions;
 
   void assertHasRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlightRegion region in regions) {
+    for (HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
-          type.name) {
+          type) {
         return;
       }
     }
@@ -45,9 +48,9 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
   void assertNoRawRegion(HighlightType type, int offset, int length) {
-    for (_HighlightRegion region in regions) {
+    for (HighlightRegion region in regions) {
       if (region.offset == offset && region.length == length && region.type ==
-          type.name) {
+          type) {
         fail(
             'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
             '${regions.join('\n')}');
@@ -97,7 +100,7 @@ class _AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
         List<Map<String, Object>> regionsJson = notification.getParameter(
             REGIONS);
         for (Map<String, Object> regionJson in regionsJson) {
-          regions.add(new _HighlightRegion.fromJson(regionJson));
+          regions.add(new HighlightRegion.fromJson(regionJson));
         }
       }
     }
@@ -438,6 +441,27 @@ void f() {}
     });
   }
 
+  test_COMMENT() {
+    addTestFile('''
+/**
+ * documentation comment
+ */ 
+void main() {
+  // end-of-line comment
+  my_function(1);
+}
+
+void my_function(String a) {
+ /* block comment */
+}
+''');
+    return prepareHighlights(() {
+      assertHasRegion(HighlightType.COMMENT_DOCUMENTATION, '/**', 32);
+      assertHasRegion(HighlightType.COMMENT_END_OF_LINE, '//', 22);
+      assertHasRegion(HighlightType.COMMENT_BLOCK, '/* b', 19);
+    });
+  }
+
   test_CONSTRUCTOR() {
     addTestFile('''
 class AAA {
@@ -756,14 +780,20 @@ class A<T> {
 }
 
 
-class _HighlightRegion {
-  final int length;
-  final int offset;
-  final String type;
+@ReflectiveTestCase()
+class HighlightTypeTest {
+  void test_toString() {
+    expect(HighlightType.CLASS.toString(), HighlightType.CLASS.name);
+  }
 
-  _HighlightRegion(this.type, this.offset, this.length);
+  void test_valueOf() {
+    expect(HighlightType.CLASS, HighlightType.valueOf(
+        HighlightType.CLASS.name));
+  }
 
-  factory _HighlightRegion.fromJson(Map<String, Object> map) {
-    return new _HighlightRegion(map[TYPE], map[OFFSET], map[LENGTH]);
+  void test_valueOf_unknown() {
+    expect(() {
+      HighlightType.valueOf('no-such-type');
+    }, throws);
   }
 }

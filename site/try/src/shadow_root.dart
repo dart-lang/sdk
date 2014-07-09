@@ -12,6 +12,10 @@ import 'selection.dart' show
 import 'html_to_text.dart' show
     htmlToText;
 
+const int WALKER_NEXT = 0;
+const int WALKER_RETURN = 1;
+const int WALKER_SKIP_NODE = 2;
+
 void setShadowRoot(Element node, text) {
   if (text is String) {
     text = new Text(text);
@@ -52,4 +56,48 @@ String getText(Element node) {
   htmlToText(
       node, buffer, new TrySelection.empty(node), treatRootAsInline: true);
   return '$buffer';
+}
+
+/// Position [walker] at the last predecessor (that is, child of child of
+/// child...) of [node]. The next call to walker.nextNode will return the first
+/// node after [node].
+void skip(Node node, TreeWalker walker) {
+  if (walker.nextSibling() != null) {
+    walker.previousNode();
+    return;
+  }
+  for (Node current = walker.nextNode();
+       current != null;
+       current = walker.nextNode()) {
+    if (!node.contains(current)) {
+      walker.previousNode();
+      return;
+    }
+  }
+}
+
+/// Call [f] on each node in [root] in same order as [TreeWalker].  Skip any
+/// nodes used to implement shadow root polyfill.
+void walkNodes(Node root, int f(Node node)) {
+  TreeWalker walker = new TreeWalker(root, NodeFilter.SHOW_ALL);
+
+  for (Node node = root; node != null; node = walker.nextNode()) {
+    if (!ShadowRoot.supported &&
+        node is Element &&
+        node.getAttribute('try-dart-shadow-root') != null) {
+      skip(node, walker);
+    }
+    int action = f(node);
+    switch (action) {
+      case WALKER_RETURN:
+        return;
+      case WALKER_SKIP_NODE:
+        skip(node, walker);
+        break;
+      case WALKER_NEXT:
+        break;
+      default:
+        throw 'Unexpected action returned from [f]: $action';
+    }
+  }
 }

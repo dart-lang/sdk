@@ -10,15 +10,16 @@ class Option {
   final defaultValue;
   final Function callback;
   final String help;
+  final String valueHelp;
   final Map<String, String> allowedHelp;
   final bool isFlag;
   final bool negatable;
   final bool allowMultiple;
   final bool hide;
 
-  Option(this.name, this.abbreviation, this.help, List<String> allowed,
-      Map<String, String> allowedHelp, this.defaultValue, this.callback,
-      {this.isFlag, this.negatable, this.allowMultiple: false,
+  Option(this.name, this.abbreviation, this.help, this.valueHelp,
+      List<String> allowed, Map<String, String> allowedHelp, this.defaultValue,
+      this.callback, {this.isFlag, this.negatable, this.allowMultiple: false,
       this.hide: false}) :
         this.allowed = allowed == null ?
             null : new UnmodifiableListView(allowed),

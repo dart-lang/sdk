@@ -7,15 +7,17 @@ library operation.analysis;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_navigation.dart';
+import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
-import 'package:analyzer/src/generated/index.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -84,12 +86,32 @@ void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
 }
 
 
+void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
+    CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_OCCURRENCES);
+  notification.setParameter(FILE, file);
+  notification.setParameter(OCCURRENCES, new DartUnitOccurrencesComputer(
+      dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+
 void sendAnalysisNotificationOutline(AnalysisServer server,
     AnalysisContext context, Source source, CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_OUTLINE);
   notification.setParameter(FILE, source.fullName);
   notification.setParameter(OUTLINE, new DartUnitOutlineComputer(context,
       source, dartUnit).compute());
+  server.sendNotification(notification);
+}
+
+
+void sendAnalysisNotificationOverrides(AnalysisServer server,
+    String file, CompilationUnit dartUnit) {
+  Notification notification = new Notification(ANALYSIS_OVERRIDES);
+  notification.setParameter(FILE, file);
+  notification.setParameter(OVERRIDES, new DartUnitOverridesComputer(
+      dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -152,8 +174,14 @@ class PerformAnalysisOperation extends ServerOperation {
         if (server.hasAnalysisSubscription(AnalysisService.NAVIGATION, file)) {
           sendAnalysisNotificationNavigation(server, file, dartUnit);
         }
+        if (server.hasAnalysisSubscription(AnalysisService.OCCURRENCES, file)) {
+          sendAnalysisNotificationOccurrences(server, file, dartUnit);
+        }
         if (server.hasAnalysisSubscription(AnalysisService.OUTLINE, file)) {
           sendAnalysisNotificationOutline(server, context, source, dartUnit);
+        }
+        if (server.hasAnalysisSubscription(AnalysisService.OVERRIDES, file)) {
+          sendAnalysisNotificationOverrides(server, file, dartUnit);
         }
       }
       // TODO(scheglov) use default subscriptions

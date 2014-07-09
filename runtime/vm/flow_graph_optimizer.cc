@@ -7687,7 +7687,6 @@ void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
   GrowableArray<BlockEntryInstr*> ignored;
   ConstantPropagator cp(graph, ignored);
   cp.Analyze();
-  cp.VisitBranches();
   cp.Transform();
   cp.EliminateRedundantBranches();
 }
@@ -7832,14 +7831,20 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
   // might be analyzing it because the constant value of one of its inputs
   // has changed.)
   if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
-    const Object& value = instr->comparison()->constant_value();
-    if (IsNonConstant(value)) {
-      SetReachable(instr->true_successor());
-      SetReachable(instr->false_successor());
-    } else if (value.raw() == Bool::True().raw()) {
-      SetReachable(instr->true_successor());
-    } else if (!IsUnknown(value)) {  // Any other constant.
-      SetReachable(instr->false_successor());
+    if (instr->constant_target() != NULL) {
+      ASSERT((instr->constant_target() == instr->true_successor()) ||
+             (instr->constant_target() == instr->false_successor()));
+      SetReachable(instr->constant_target());
+    } else {
+      const Object& value = instr->comparison()->constant_value();
+      if (IsNonConstant(value)) {
+        SetReachable(instr->true_successor());
+        SetReachable(instr->false_successor());
+      } else if (value.raw() == Bool::True().raw()) {
+        SetReachable(instr->true_successor());
+      } else if (!IsUnknown(value)) {  // Any other constant.
+        SetReachable(instr->false_successor());
+      }
     }
   }
 }
@@ -8930,46 +8935,6 @@ void ConstantPropagator::Analyze() {
     } else {
       BlockEntryInstr* block = block_worklist_.RemoveLast();
       block->Accept(this);
-    }
-  }
-}
-
-
-void ConstantPropagator::VisitBranches() {
-  GraphEntryInstr* entry = graph_->graph_entry();
-  reachable_->Add(entry->preorder_number());
-  block_worklist_.Add(entry);
-
-  while (!block_worklist_.is_empty()) {
-    BlockEntryInstr* block = block_worklist_.RemoveLast();
-    if (block->IsGraphEntry()) {
-      // TODO(fschneider): Improve this approximation. Catch entries are only
-      // reachable if a call in the corresponding try-block is reachable.
-      for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
-        SetReachable(block->SuccessorAt(i));
-      }
-      continue;
-    }
-    Instruction* last = block->last_instruction();
-    if (last->IsGoto()) {
-      SetReachable(last->AsGoto()->successor());
-    } else if (last->IsBranch()) {
-      BranchInstr* branch = last->AsBranch();
-      // The current block must be reachable.
-      ASSERT(reachable_->Contains(branch->GetBlock()->preorder_number()));
-      if (branch->constant_target() != NULL) {
-        // Found constant target computed by range analysis.
-        if (branch->constant_target() == branch->true_successor()) {
-          SetReachable(branch->true_successor());
-        } else {
-          ASSERT(branch->constant_target() == branch->false_successor());
-          SetReachable(branch->false_successor());
-        }
-      } else {
-        // No new information: Assume both targets are reachable.
-        SetReachable(branch->true_successor());
-        SetReachable(branch->false_successor());
-      }
     }
   }
 }

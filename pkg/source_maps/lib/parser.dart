@@ -5,8 +5,10 @@
 /// Contains the top-level function to parse source maps version 3.
 library source_maps.parser;
 
+import 'dart:collection';
 import 'dart:convert';
 
+import 'builder.dart' as builder;
 import 'span.dart';
 import 'src/utils.dart';
 import 'src/vlq.dart';
@@ -41,7 +43,7 @@ Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {
 }
 
 
-/// A mapping parsed our of a source map.
+/// A mapping parsed out of a source map.
 abstract class Mapping {
   Span spanFor(int line, int column, {Map<String, SourceFile> files});
 
@@ -131,7 +133,6 @@ class MultiSectionMapping extends Mapping {
 }
 
 /// A map containing direct source mappings.
-// TODO(sigmund): integrate mapping and sourcemap builder?
 class SingleMapping extends Mapping {
   /// Url of the target file.
   final String targetUrl;
@@ -143,13 +144,58 @@ class SingleMapping extends Mapping {
   final List<String> names;
 
   /// Entries indicating the beginning of each span.
-  final List<TargetLineEntry> lines = <TargetLineEntry>[];
+  final List<TargetLineEntry> lines;
+
+  SingleMapping._internal(this.targetUrl, this.urls, this.names, this.lines);
+
+  factory SingleMapping.fromEntries(
+      Iterable<builder.Entry> entries, [String fileUrl]) {
+    // The entries needs to be sorted by the target offsets.
+    var sourceEntries = new List.from(entries)..sort();
+    var lines = <TargetLineEntry>[];
+
+    // Indices associated with file urls that will be part of the source map. We
+    // use a linked hash-map so that `_urls.keys[_urls[u]] == u`
+    var urls = new LinkedHashMap<String, int>();
+
+    // Indices associated with identifiers that will be part of the source map.
+    // We use a linked hash-map so that `_names.keys[_names[n]] == n`
+    var names = new LinkedHashMap<String, int>();
+
+    var lineNum;
+    var targetEntries;
+    for (var sourceEntry in sourceEntries) {
+      if (lineNum == null || sourceEntry.target.line > lineNum) {
+        lineNum = sourceEntry.target.line;
+        targetEntries = <TargetEntry>[];
+        lines.add(new TargetLineEntry(lineNum, targetEntries));
+      }
+
+      if (sourceEntry.source == null) {
+        targetEntries.add(new TargetEntry(sourceEntry.target.column));
+      } else {
+        var urlId = urls.putIfAbsent(
+            sourceEntry.source.sourceUrl, () => urls.length);
+        var srcNameId = sourceEntry.identifierName == null ? null :
+            names.putIfAbsent(sourceEntry.identifierName, () => names.length);
+        targetEntries.add(new TargetEntry(
+            sourceEntry.target.column,
+            urlId,
+            sourceEntry.source.line,
+            sourceEntry.source.column,
+            srcNameId));
+      }
+    }
+    return new SingleMapping._internal(
+        fileUrl, urls.keys.toList(), names.keys.toList(), lines);
+  }
 
   SingleMapping.fromJson(Map map)
       : targetUrl = map['file'],
         // TODO(sigmund): add support for 'sourceRoot'
         urls = map['sources'],
-        names = map['names'] {
+        names = map['names'],
+        lines = <TargetLineEntry>[] {
     int line = 0;
     int column = 0;
     int srcUrlId = 0;
@@ -213,6 +259,66 @@ class SingleMapping extends Mapping {
     if (!entries.isEmpty) {
       lines.add(new TargetLineEntry(line, entries));
     }
+  }
+
+  /// Encodes the Mapping mappings as a json map.
+  Map toJson() {
+    var buff = new StringBuffer();
+    var line = 0;
+    var column = 0;
+    var srcLine = 0;
+    var srcColumn = 0;
+    var srcUrlId = 0;
+    var srcNameId = 0;
+    var first = true;
+
+    for (var entry in lines) {
+      int nextLine = entry.line;
+      if (nextLine > line) {
+        for (int i = line; i < nextLine; ++i) {
+          buff.write(';');
+        }
+        line = nextLine;
+        column = 0;
+        first = true;
+      }
+
+      for (var segment in entry.entries) {
+        if (!first) buff.write(',');
+        first = false;
+        column = _append(buff, column, segment.column);
+
+        // Encoding can be just the column offset if there is no source
+        // information.
+        var newUrlId = segment.sourceUrlId;
+        if (newUrlId == null) continue;
+        srcUrlId = _append(buff, srcUrlId, newUrlId);
+        srcLine = _append(buff, srcLine, segment.sourceLine);
+        srcColumn = _append(buff, srcColumn, segment.sourceColumn);
+
+        if (segment.sourceNameId == null) continue;
+        srcNameId = _append(buff, srcNameId, segment.sourceNameId);
+      }
+    }
+
+    var result = {
+      'version': 3,
+      'sourceRoot': '',
+      'sources': urls,
+      'names' : names,
+      'mappings' : buff.toString()
+    };
+    if (targetUrl != null) {
+      result['file'] = targetUrl;
+    }
+    return result;
+  }
+
+  /// Appends to [buff] a VLQ encoding of [newValue] using the difference
+  /// between [oldValue] and [newValue]
+  static int _append(StringBuffer buff, int oldValue, int newValue) {
+    buff.writeAll(encodeVlq(newValue - oldValue));
+    return newValue;
   }
 
   _segmentError(int seen, int line) => new StateError(
@@ -308,7 +414,7 @@ class SingleMapping extends Mapping {
 /// A line entry read from a source map.
 class TargetLineEntry {
   final int line;
-  List<TargetEntry> entries = <TargetEntry>[];
+  List<TargetEntry> entries;
   TargetLineEntry(this.line, this.entries);
 
   String toString() => '$runtimeType: $line $entries';

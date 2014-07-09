@@ -23,7 +23,7 @@ namespace bin {
 
 extern bool trace_debug_protocol;
 
-int DebuggerConnectionHandler::listener_fd_ = -1;
+intptr_t DebuggerConnectionHandler::listener_fd_ = -1;
 dart::Monitor* DebuggerConnectionHandler::handler_lock_ = new dart::Monitor();
 
 // TODO(asiva): Remove this once we have support for multiple debugger
@@ -37,7 +37,7 @@ static const int kMaxPrintMessageLen = 1024;
 
 class MessageBuffer {
  public:
-  explicit MessageBuffer(int fd);
+  explicit MessageBuffer(intptr_t fd);
   ~MessageBuffer();
   void ReadData();
   bool IsValidMessage() const;
@@ -50,7 +50,7 @@ class MessageBuffer {
   static const int kInitialBufferSize = 256;
   char* buf_;
   int buf_length_;
-  int fd_;
+  intptr_t fd_;
   int data_length_;
   bool connection_is_alive_;
 
@@ -58,7 +58,7 @@ class MessageBuffer {
 };
 
 
-MessageBuffer::MessageBuffer(int fd)
+MessageBuffer::MessageBuffer(intptr_t fd)
     :  buf_(NULL),
        buf_length_(0),
        fd_(fd),
@@ -152,7 +152,7 @@ static bool IsValidJSON(const char* msg) {
 }
 
 
-DebuggerConnectionHandler::DebuggerConnectionHandler(int debug_fd)
+DebuggerConnectionHandler::DebuggerConnectionHandler(intptr_t debug_fd)
     : debug_fd_(debug_fd), msgbuf_(NULL) {
   msgbuf_ = new MessageBuffer(debug_fd_);
 }
@@ -208,7 +208,7 @@ void DebuggerConnectionHandler::HandleMessages() {
         intptr_t msg_len = msg_end - msgbuf_->buf();
         int print_len = ((msg_len > kMaxPrintMessageLen)
                          ? kMaxPrintMessageLen : msg_len);
-        Log::Print("[<<<] Receiving message from debug fd %d:\n%.*s%s\n",
+        Log::Print("[<<<] Receiving message from debug fd %" Pd ":\n%.*s%s\n",
                    debug_fd_, print_len, msgbuf_->buf(),
                    ((msg_len > print_len) ? "..." : ""));
       }
@@ -273,7 +273,7 @@ void DebuggerConnectionHandler::HandleMessages() {
 }
 
 
-void DebuggerConnectionHandler::SendError(int debug_fd,
+void DebuggerConnectionHandler::SendError(intptr_t debug_fd,
                                           int msg_id,
                                           const char* err_msg) {
   dart::TextBuffer msg(64);
@@ -352,7 +352,8 @@ void DebuggerConnectionHandler::WaitForConnection() {
 }
 
 
-void DebuggerConnectionHandler::SendMsg(int debug_fd, dart::TextBuffer* msg) {
+void DebuggerConnectionHandler::SendMsg(intptr_t debug_fd,
+                                        dart::TextBuffer* msg) {
   ASSERT(handler_lock_ != NULL);
   MonitorLocker ml(handler_lock_);
   SendMsgHelper(debug_fd, msg);
@@ -374,7 +375,7 @@ void DebuggerConnectionHandler::BroadcastMsg(dart::TextBuffer* msg) {
 }
 
 
-void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
+void DebuggerConnectionHandler::SendMsgHelper(intptr_t debug_fd,
                                               dart::TextBuffer* msg) {
   ASSERT(debug_fd >= 0);
   ASSERT(IsValidJSON(msg->buf()));
@@ -382,7 +383,7 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
   if (trace_debug_protocol) {
     int print_len = ((msg->length() > kMaxPrintMessageLen)
                      ? kMaxPrintMessageLen : msg->length());
-    Log::Print("[>>>] Sending message to debug fd %d:\n%.*s%s\n",
+    Log::Print("[>>>] Sending message to debug fd %" Pd ":\n%.*s%s\n",
                debug_fd, print_len, msg->buf(),
                ((msg->length() > print_len) ? "..." : ""));
   }
@@ -421,7 +422,7 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
 }
 
 
-void DebuggerConnectionHandler::AcceptDbgConnection(int debug_fd) {
+void DebuggerConnectionHandler::AcceptDbgConnection(intptr_t debug_fd) {
   Socket::SetNoDelay(debug_fd, true);
   AddNewDebuggerConnection(debug_fd);
   {
@@ -473,7 +474,7 @@ void DebuggerConnectionHandler::HandleIsolatesListCmd(DbgMessage* in_msg) {
 }
 
 
-void DebuggerConnectionHandler::AddNewDebuggerConnection(int debug_fd) {
+void DebuggerConnectionHandler::AddNewDebuggerConnection(intptr_t debug_fd) {
   // TODO(asiva): Support multiple debugger connections, for now we just
   // create one handler, store it in a static variable and use it.
   ASSERT(singleton_handler == NULL);
@@ -481,7 +482,7 @@ void DebuggerConnectionHandler::AddNewDebuggerConnection(int debug_fd) {
 }
 
 
-void DebuggerConnectionHandler::RemoveDebuggerConnection(int debug_fd) {
+void DebuggerConnectionHandler::RemoveDebuggerConnection(intptr_t debug_fd) {
   // TODO(asiva): Support multiple debugger connections, for now we just
   // set the static handler back to NULL.
   ASSERT(singleton_handler != NULL);
@@ -490,7 +491,7 @@ void DebuggerConnectionHandler::RemoveDebuggerConnection(int debug_fd) {
 
 
 DebuggerConnectionHandler*
-DebuggerConnectionHandler::GetDebuggerConnectionHandler(int debug_fd) {
+DebuggerConnectionHandler::GetDebuggerConnectionHandler(intptr_t debug_fd) {
   // TODO(asiva): Support multiple debugger connections, for now we just
   // return the one static handler that was created.
   ASSERT(singleton_handler != NULL);

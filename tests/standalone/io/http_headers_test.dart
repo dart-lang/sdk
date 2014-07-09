@@ -462,6 +462,43 @@ void testHeaderLists() {
   HttpHeaders.REQUEST_HEADERS.forEach((x) => null);
 }
 
+void testInvalidFieldName() {
+  void test(String field) {
+    _HttpHeaders headers = new _HttpHeaders("1.1");
+    Expect.throws(() => headers.add(field, "value"),
+                  (e) => e is FormatException);
+    Expect.throws(() => headers.set(field, "value"),
+                  (e) => e is FormatException);
+    Expect.throws(() => headers.remove(field, "value"),
+                  (e) => e is FormatException);
+    Expect.throws(() => headers.removeAll(field),
+                  (e) => e is FormatException);
+  }
+  test('\r');
+  test('\n');
+  test(',');
+  test('test\x00');
+}
+
+void testInvalidFieldValue() {
+  void test(value, {bool remove: true}) {
+    _HttpHeaders headers = new _HttpHeaders("1.1");
+    Expect.throws(() => headers.add("field", value),
+                  (e) => e is FormatException);
+    Expect.throws(() => headers.set("field", value),
+                  (e) => e is FormatException);
+    if (remove) {
+      Expect.throws(() => headers.remove("field", value),
+                    (e) => e is FormatException);
+    }
+  }
+  test('\r');
+  test('\n');
+  test('test\x00');
+  // Test we handle other types correctly.
+  test(new StringBuffer('\x00'), remove: false);
+}
+
 main() {
   testMultiValue();
   testDate();
@@ -475,4 +512,6 @@ main() {
   testCookie();
   testInvalidCookie();
   testHeaderLists();
+  testInvalidFieldName();
+  testInvalidFieldValue();
 }

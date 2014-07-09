@@ -104,6 +104,8 @@ const Duration LIVE_COMPILE_INTERVAL = const Duration(seconds: 0);
 /// finished quickly.  The purpose is to reduce flicker in the UI.
 const Duration SLOW_COMPILE = const Duration(seconds: 1);
 
+const int TAB_WIDTH = 2;
+
 /**
  * UI interaction manager for the entire application.
  */
@@ -234,6 +236,7 @@ class InteractionContext extends InteractionManager {
   void onKeyUp(KeyboardEvent event) => state.onKeyUp(event);
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
+    workAroundFirefoxBug();
     try {
       try {
         return state.onMutation(mutations, observer);
@@ -306,7 +309,6 @@ abstract class InteractionState implements InteractionManager {
   void set state(InteractionState newState);
 
   void onStateChanged(InteractionState previous) {
-    print('State change ${previous.runtimeType} -> ${runtimeType}.');
   }
 
   void transitionToInitialState() {
@@ -334,15 +336,30 @@ class InitialState extends InteractionState {
 
   void onKeyUp(KeyboardEvent event) {
     if (computeHasModifier(event)) {
-      print('onKeyUp (modified)');
       onModifiedKeyUp(event);
     } else {
-      print('onKeyUp (unmodified)');
       onUnmodifiedKeyUp(event);
     }
   }
 
   void onModifiedKeyUp(KeyboardEvent event) {
+    if (event.getModifierState("Shift")) return onShiftedKeyUp(event);
+    switch (event.keyCode) {
+      case KeyCode.S:
+        // Disable Ctrl-S, Cmd-S, etc. We have observed users hitting these
+        // keys often when using Try Dart and getting frustrated.
+        event.preventDefault();
+        // TODO(ahe): Consider starting a compilation.
+        break;
+    }
+  }
+
+  void onShiftedKeyUp(KeyboardEvent event) {
+    switch (event.keyCode) {
+      case KeyCode.TAB:
+        event.preventDefault();
+        break;
+    }
   }
 
   void onUnmodifiedKeyUp(KeyboardEvent event) {
@@ -373,6 +390,16 @@ class InitialState extends InteractionState {
         }
         break;
       }
+      case KeyCode.TAB: {
+        Selection selection = window.getSelection();
+        if (isCollapsed(selection)) {
+          event.preventDefault();
+          Text text = new Text(' ' * TAB_WIDTH);
+          selection.getRangeAt(0).insertNode(text);
+          selection.collapse(text, TAB_WIDTH);
+        }
+        break;
+      }
     }
 
     // This is a hack to get Safari (iOS) to send mutation events on
@@ -384,8 +411,6 @@ class InitialState extends InteractionState {
   }
 
   void onMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    print('onMutation');
-
     removeCodeCompletion();
 
     Selection selection = window.getSelection();
@@ -427,7 +452,11 @@ class InitialState extends InteractionState {
 
         node.parent.insertAllBefore(nodes, node);
         node.remove();
-        trySelection.adjust(selection);
+        if (mainEditorPane.contains(trySelection.anchorNode)) {
+          // Sometimes the anchor node is removed by the above call. This has
+          // only been observed in Firefox, and is hard to reproduce.
+          trySelection.adjust(selection);
+        }
 
         // TODO(ahe): We know almost exactly what has changed.  It could be
         // more efficient to only communicate what changed.
@@ -637,11 +666,6 @@ class InitialState extends InteractionState {
     }
   }
 
-  /// Called when an exception occurs in an iframe.
-  void onErrorMessage(ErrorMessage message) {
-    outputDiv.appendText('$message\n');
-  }
-
   /// Called when an iframe is modified.
   void onScrollHeightMessage(int scrollHeight) {
     window.console.log('scrollHeight = $scrollHeight');
@@ -680,6 +704,7 @@ class InitialState extends InteractionState {
   }
 
   void onCompilationFailed() {
+    consolePrintLine('Compilation failed.');
   }
 
   void onCompilationDone() {
@@ -1173,9 +1198,18 @@ void normalizeMutationRecord(MutationRecord record,
     }
   }
   if (!record.removedNodes.isEmpty) {
-    normalizedNodes.add(findLine(record.target));
+    var first = record.removedNodes.first;
+    var line = findLine(record.target);
+
+    if (first is Text && first.data=="\n" && line.nextNode != null) {
+      normalizedNodes.add(line.nextNode);
+    }
+    normalizedNodes.add(line);
   }
-  if (record.type == "characterData") {
+  if (record.type == "characterData" && record.target.parent != null) {
+    // At least Firefox sends a "characterData" record whose target is the
+    // deleted text node. It also sends a record where "removedNodes" isn't
+    // empty whose target is the parent (which we are interested in).
     normalizedNodes.add(findLine(record.target));
   }
 }
@@ -1227,4 +1261,24 @@ bool isCompilerStageMarker(String message) {
       message == "Inferring types..." ||
       message == "Compiling..." ||
       message.startsWith('Compiled ');
+}
+
+void workAroundFirefoxBug() {
+  Selection selection = window.getSelection();
+  if (!isCollapsed(selection)) return;
+  Node node = selection.anchorNode;
+  int offset = selection.anchorOffset;
+  if (selection.anchorNode is Element && selection.anchorOffset != 0) {
+    // In some cases, Firefox reports the wrong anchorOffset (always seems to
+    // be 6) when anchorNode is an Element. Moving the cursor back and forth
+    // adjusts the anchorOffset.
+    // Safari can also reach this code, but the offset isn't wrong, just
+    // inconsistent.  After moving the cursor back and forth, Safari will make
+    // the offset relative to a text node.
+    selection
+        ..modify('move', 'backward', 'character')
+        ..modify('move', 'forward', 'character');
+    print('Selection adjusted $node@$offset -> '
+          '${selection.anchorNode}@${selection.anchorOffset}.');
+  }
 }

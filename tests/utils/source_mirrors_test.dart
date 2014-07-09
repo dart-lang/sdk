@@ -30,7 +30,7 @@ main() {
         print(' $name:$declaration');
       });
     });
-  }, onError: (e) {
-      throw 'Analysis failed';
+  }, onError: (e, s) {
+      throw 'Analysis failed: $e\n$s';
   }).then(asyncSuccess);
 }

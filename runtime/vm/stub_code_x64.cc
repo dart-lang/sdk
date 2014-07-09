@@ -358,10 +358,12 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
+  StubCode* stub_code = Isolate::Current()->stub_code();
+
   __ LoadObject(R12, Object::null_object(), PP);
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  __ call(&StubCode::AllocateArrayLabel());
+  __ call(&stub_code->AllocateArrayLabel());
   __ SmiUntag(R10);
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).

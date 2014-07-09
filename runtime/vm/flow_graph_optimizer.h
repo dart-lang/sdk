@@ -331,7 +331,6 @@ class ConstantPropagator : public FlowGraphVisitor {
 
  private:
   void Analyze();
-  void VisitBranches();
   void Transform();
   void EliminateRedundantBranches();
 

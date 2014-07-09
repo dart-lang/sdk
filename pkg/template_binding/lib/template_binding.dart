@@ -21,22 +21,18 @@ library template_binding;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
+import 'dart:js' as js show context;
+import 'dart:js' show JsObject;
 import 'dart:svg' show SvgSvgElement;
 import 'package:observe/observe.dart';
 
 import 'src/mustache_tokens.dart';
 
 part 'src/binding_delegate.dart';
-part 'src/element.dart';
-part 'src/input_bindings.dart';
-part 'src/input_element.dart';
 part 'src/instance_binding_map.dart';
 part 'src/node.dart';
-part 'src/select_element.dart';
 part 'src/template.dart';
 part 'src/template_iterator.dart';
-part 'src/text.dart';
-part 'src/text_area_element.dart';
 
 // TODO(jmesserly): ideally we would split TemplateBinding and Node.bind into
 // two packages, but this is not easy when we are faking extension methods.
@@ -108,25 +104,11 @@ NodeBindExtension nodeBindFallback(Node node) {
   var extension = _expando[node];
   if (extension != null) return extension;
 
-  // TODO(jmesserly): switch on localName?
-  if (node is InputElement) {
-    extension = new _InputElementExtension(node);
-  } else if (node is SelectElement) {
-    extension = new _SelectElementExtension(node);
-  } else if (node is TextAreaElement) {
-    extension = new _TextAreaElementExtension(node);
-  } else if (node is Element) {
-    if (isSemanticTemplate(node)) {
-      extension = new TemplateBindExtension._(node);
-    } else {
-      extension = new _ElementExtension(node);
-    }
-  } else if (node is Text) {
-    extension = new _TextExtension(node);
+  if (isSemanticTemplate(node)) {
+    extension = new TemplateBindExtension._(node);
   } else {
     extension = new NodeBindExtension._(node);
   }
-
   _expando[node] = extension;
   return extension;
 }
@@ -147,7 +129,7 @@ bool _isHtmlTemplate(Element el) => el.tagName == 'TEMPLATE' &&
  * A node is a template if [tagName] is TEMPLATE, or the node has the
  * 'template' attribute and this tag supports attribute form for backwards
  * compatibility with existing HTML parsers. The nodes that can use attribute
- * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
+ * form are table elements (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
  * and COL), OPTION, and OPTGROUP.
  */
 bool isSemanticTemplate(Node n) => n is Element &&
@@ -162,7 +144,12 @@ bool isTemplateStagingDocument(Document d) => _isStagingDocument[d] == true;
  * such as UI builders to easily inspect live bindings. Defaults to false for
  * performance reasons.
  */
-bool enableBindingsReflection = false;
+bool get enableBindingsReflection =>
+    js.context['Platform']['enableBindingsReflection'] == true;
+
+set enableBindingsReflection(bool value) {
+  js.context['Platform']['enableBindingsReflection'] = value;
+}
 
 // TODO(jmesserly): const set would be better
 const _SEMANTIC_TEMPLATE_TAGS = const {

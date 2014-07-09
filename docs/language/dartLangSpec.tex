@@ -5610,7 +5610,7 @@ A function type $T$ may be assigned to a function type $S$, written  $T \Longlef
 
 % ensure that Object  and dynamic may be assign dot a function type
 A function is always an instance of some class that implements the class \code{Function} and implements a \CALL{} method with the same signature as the function. All function types are subtypes of \code{Function}.
-If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be a subtype of $F$.  It is a static warning if a concrete class implements \cd{Function} and does not have a concrete method named \CALL{} unless that class declares its own implementation of \cd{noSuchMethod()}.
+If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{} is the function type $F$, then $I$ is considered to be more specific than $F$.  It is a static warning if a concrete class implements \cd{Function} and does not have a concrete method named \CALL{} unless that class declares its own implementation of \cd{noSuchMethod()}.
 
 
 

@@ -404,10 +404,11 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 static void PushArgumentsArray(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  StubCode* stub_code = Isolate::Current()->stub_code();
 
   // Allocate array to store arguments of caller.
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  __ call(&StubCode::AllocateArrayLabel());
+  __ call(&stub_code->AllocateArrayLabel());
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).

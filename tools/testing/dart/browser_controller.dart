@@ -91,7 +91,7 @@ abstract class Browser {
     const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
            'ie11', 'dartium'];
 
-  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const ['ie11'];
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
 
   // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
@@ -741,7 +741,7 @@ class BrowserTestingStatus {
 
   // This is currently not used for anything except for error reporting.
   // Given the usefulness of this in debugging issues this should not be
-  // removed even when we have really stable system.
+  // removed even when we have a really stable system.
   BrowserTest lastTest;
   bool timeout = false;
   Timer nextTestTimeout;
@@ -751,7 +751,7 @@ class BrowserTestingStatus {
 
 
 /**
- * Describes a single test to be run int the browser.
+ * Describes a single test to be run in the browser.
  */
 class BrowserTest {
   // TODO(ricow): Add timeout callback instead of the string passing hack.

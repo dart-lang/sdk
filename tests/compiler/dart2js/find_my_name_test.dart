@@ -7,6 +7,7 @@ import "package:async_helper/async_helper.dart";
 import "package:compiler/implementation/elements/elements.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
+import 'package:compiler/implementation/elements/modelx.dart';
 
 String TEST_0 = '''
 class Foo {
@@ -34,7 +35,7 @@ main() {
 
 testClass(String code, MockCompiler compiler) {
   int skip = code.indexOf('{');
-  ClassElement cls = parseUnit(code, compiler, compiler.mainApp).head;
+  ClassElementX cls = parseUnit(code, compiler, compiler.mainApp).head;
   cls.parseNode(compiler);
   cls.forEachLocalMember((Element e) {
     String name = e.name;

@@ -515,6 +515,10 @@ void main() {
         'warning: definition for Polymer element with tag name "x-foo" not '
         'found. (lib/test.html 0 0)'
       ]);
+    
+    _testLinter('tag exists (internally defined in code)', {
+      'a|lib/test.html': '<div is="auto-binding-dart"></div>',
+      }, []);
 
     _testLinter('used correctly (no base tag)', {
         'a|lib/test.html': '''

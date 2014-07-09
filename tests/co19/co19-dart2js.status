@@ -150,7 +150,7 @@ LayoutTests/fast/dom/Document/createElement-valid-names_t01: RuntimeError # co19
 LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Document/title-property-creates-title-element_t01: RuntimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Document/title-property-set-multiple-times_t01: RuntimeError # co19-roll r706: Please triage this failure.
-LayoutTests/fast/dom/Document/title-with-multiple-children_t01: RuntimeError # co19-roll r706: Please triage this failure.
+LayoutTests/fast/dom/Document/title-with-multiple-children_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Element/attribute-uppercase_t01: RuntimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Element/class-name_t01: RuntimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Element/client-rect-list-argument_t01: RuntimeError # co19-roll r706: Please triage this failure.

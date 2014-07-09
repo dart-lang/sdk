@@ -75,10 +75,9 @@ class DependencyValidator extends Validator {
 
   /// Warn that dependencies should have version constraints.
   void _warnAboutNoConstraint(PackageDep dep) {
-    var lockFile = entrypoint.loadLockFile();
     var message = 'Your dependency on "${dep.name}" should have a version '
         'constraint.';
-    var locked = lockFile.packages[dep.name];
+    var locked = entrypoint.lockFile.packages[dep.name];
     if (locked != null) {
       message = '$message For example:\n'
         '\n'
@@ -107,7 +106,7 @@ class DependencyValidator extends Validator {
   /// Warn that dependencies should have lower bounds on their constraints.
   void _warnAboutNoConstraintLowerBound(PackageDep dep) {
     var message = 'Your dependency on "${dep.name}" should have a lower bound.';
-    var locked = entrypoint.loadLockFile().packages[dep.name];
+    var locked = entrypoint.lockFile.packages[dep.name];
     if (locked != null) {
       var constraint;
       if (locked.version == (dep.constraint as VersionRange).max) {

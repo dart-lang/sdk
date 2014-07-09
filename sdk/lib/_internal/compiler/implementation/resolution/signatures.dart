@@ -9,7 +9,7 @@ part of resolution;
  */
 class SignatureResolver extends MappingVisitor<ParameterElementX> {
   final ResolverVisitor resolver;
-  final Element enclosingElement;
+  final FunctionTypedElement enclosingElement;
   final Scope scope;
   final MessageKind defaultValuesError;
   Link<Element> optionalParameters = const Link<Element>();
@@ -19,7 +19,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler,
-                    Element enclosingElement,
+                    FunctionTypedElement enclosingElement,
                     ResolutionRegistry registry,
                     {this.defaultValuesError})
       : this.enclosingElement = enclosingElement,
@@ -243,7 +243,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
-                                   Element element,
+                                   FunctionTypedElement element,
                                    ResolutionRegistry registry,
                                    {MessageKind defaultValuesError}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,

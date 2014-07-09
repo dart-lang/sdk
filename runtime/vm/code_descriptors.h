@@ -17,7 +17,7 @@ class DescriptorList : public ZoneAllocated {
  public:
   struct PcDesc {
     intptr_t pc_offset;        // PC offset value of the descriptor.
-    PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
+    RawPcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
     intptr_t deopt_id;         // Deoptimization id.
     intptr_t data;             // Token position or deopt reason.
     intptr_t try_index;        // Try block index of PC or deopt array index.
@@ -41,7 +41,7 @@ class DescriptorList : public ZoneAllocated {
   intptr_t PcOffset(intptr_t index) const {
     return list_[index].pc_offset;
   }
-  PcDescriptors::Kind Kind(intptr_t index) const {
+  RawPcDescriptors::Kind Kind(intptr_t index) const {
     return list_[index].kind;
   }
   intptr_t DeoptId(intptr_t index) const {
@@ -57,7 +57,7 @@ class DescriptorList : public ZoneAllocated {
     return list_[index].try_index;
   }
 
-  void AddDescriptor(PcDescriptors::Kind kind,
+  void AddDescriptor(RawPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      intptr_t token_index,

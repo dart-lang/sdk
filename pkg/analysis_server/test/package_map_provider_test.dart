@@ -7,8 +7,9 @@ library test.package.map.provider;
 import 'dart:convert';
 
 import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analysis_server/src/resource.dart';
 
 main() {
   groupSep = ' | ';

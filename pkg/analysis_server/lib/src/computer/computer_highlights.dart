@@ -4,8 +4,6 @@
 
 library computer.highlights;
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -18,7 +16,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
 
-  final List<Map<String, Object>> _regions = <HashMap<String, Object>>[];
+  final List<HighlightRegion> _regions = <HighlightRegion>[];
 
   DartUnitHighlightsComputer(this._unit);
 
@@ -27,7 +25,33 @@ class DartUnitHighlightsComputer {
    */
   List<Map<String, Object>> compute() {
     _unit.accept(new _DartUnitHighlightsComputerVisitor(this));
-    return _regions;
+    _addCommentRanges();
+    return _regions.map((region) => region.toJson()).toList();
+  }
+
+  void _addCommentRanges() {
+    Token token = _unit.beginToken;
+    while (token != null && token.type != TokenType.EOF) {
+      Token commentToken = token.precedingComments;
+      while (commentToken != null) {
+        HighlightType highlightType = null;
+        if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
+          if (commentToken.lexeme.startsWith('/**')) {
+            highlightType = HighlightType.COMMENT_DOCUMENTATION;
+          } else {
+            highlightType = HighlightType.COMMENT_BLOCK;
+          }
+        }
+        if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
+          highlightType = HighlightType.COMMENT_END_OF_LINE;
+        }
+        if (highlightType != null) {
+          _addRegion_token(commentToken, highlightType);
+        }
+        commentToken = commentToken.next;
+      }
+      token = token.next;
+    }
   }
 
   void _addIdentifierRegion(SimpleIdentifier node) {
@@ -81,7 +105,8 @@ class DartUnitHighlightsComputer {
     if (arguments == null) {
       _addRegion_node(node, HighlightType.ANNOTATION);
     } else {
-      _addRegion_nodeStart_tokenEnd(node, arguments.beginToken, HighlightType.ANNOTATION);
+      _addRegion_nodeStart_tokenEnd(node, arguments.beginToken,
+          HighlightType.ANNOTATION);
       _addRegion_token(arguments.endToken, HighlightType.ANNOTATION);
     }
   }
@@ -177,7 +202,8 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    PropertyAccessorElement propertyAccessorElement = element as PropertyAccessorElement;
+    PropertyAccessorElement propertyAccessorElement = element as
+        PropertyAccessorElement;
     if (propertyAccessorElement.isGetter) {
       return _addRegion_node(node, HighlightType.GETTER_DECLARATION);
     } else {
@@ -266,7 +292,7 @@ class DartUnitHighlightsComputer {
   }
 
   void _addRegion(int offset, int length, HighlightType type) {
-    _regions.add({OFFSET: offset, LENGTH: length, TYPE: type.name});
+    _regions.add(new HighlightRegion(offset, length, type));
   }
 
   bool _addRegion_node(AstNode node, HighlightType type) {
@@ -294,6 +320,142 @@ class DartUnitHighlightsComputer {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
+  }
+}
+
+
+class HighlightRegion {
+  final int offset;
+  final int length;
+  final HighlightType type;
+
+  HighlightRegion(this.offset, this.length, this.type);
+
+  factory HighlightRegion.fromJson(Map<String, Object> map) {
+    HighlightType type = HighlightType.valueOf(map[TYPE]);
+    return new HighlightRegion(map[OFFSET], map[LENGTH], type);
+  }
+
+  Map<String, Object> toJson() {
+    Map<String, Object> json = <String, Object>{};
+    json[OFFSET] = offset;
+    json[LENGTH] = length;
+    json[TYPE] = type.name;
+    return json;
+  }
+
+  @override
+  String toString() => toJson().toString();
+}
+
+
+/**
+ * Highlighting kinds constants.
+ */
+class HighlightType {
+  static const HighlightType ANNOTATION = const HighlightType('ANNOTATION');
+  static const HighlightType BUILT_IN = const HighlightType('BUILT_IN');
+  static const HighlightType CLASS = const HighlightType('CLASS');
+  static const HighlightType COMMENT_BLOCK = const HighlightType(
+      'COMMENT_BLOCK');
+  static const HighlightType COMMENT_DOCUMENTATION = const HighlightType(
+      'COMMENT_DOCUMENTATION');
+  static const HighlightType COMMENT_END_OF_LINE = const HighlightType(
+      'COMMENT_END_OF_LINE');
+  static const HighlightType CONSTRUCTOR = const HighlightType('CONSTRUCTOR');
+  static const HighlightType DIRECTIVE = const HighlightType('DIRECTIVE');
+  static const HighlightType DYNAMIC_TYPE = const HighlightType('DYNAMIC_TYPE');
+  static const HighlightType FIELD = const HighlightType('FIELD');
+  static const HighlightType FIELD_STATIC = const HighlightType('FIELD_STATIC');
+  static const HighlightType FUNCTION_DECLARATION = const HighlightType(
+      'FUNCTION_DECLARATION');
+  static const HighlightType FUNCTION = const HighlightType('FUNCTION');
+  static const HighlightType FUNCTION_TYPE_ALIAS = const HighlightType(
+      'FUNCTION_TYPE_ALIAS');
+  static const HighlightType GETTER_DECLARATION = const HighlightType(
+      'GETTER_DECLARATION');
+  static const HighlightType KEYWORD = const HighlightType('KEYWORD');
+  static const HighlightType IDENTIFIER_DEFAULT = const HighlightType(
+      'IDENTIFIER_DEFAULT');
+  static const HighlightType IMPORT_PREFIX = const HighlightType(
+      'IMPORT_PREFIX');
+  static const HighlightType LITERAL_BOOLEAN = const HighlightType(
+      'LITERAL_BOOLEAN');
+  static const HighlightType LITERAL_DOUBLE = const HighlightType(
+      'LITERAL_DOUBLE');
+  static const HighlightType LITERAL_INTEGER = const HighlightType(
+      'LITERAL_INTEGER');
+  static const HighlightType LITERAL_LIST = const HighlightType('LITERAL_LIST');
+  static const HighlightType LITERAL_MAP = const HighlightType('LITERAL_MAP');
+  static const HighlightType LITERAL_STRING = const HighlightType(
+      'LITERAL_STRING');
+  static const HighlightType LOCAL_VARIABLE_DECLARATION = const HighlightType(
+      'LOCAL_VARIABLE_DECLARATION');
+  static const HighlightType LOCAL_VARIABLE = const HighlightType(
+      'LOCAL_VARIABLE');
+  static const HighlightType METHOD_DECLARATION = const HighlightType(
+      'METHOD_DECLARATION');
+  static const HighlightType METHOD_DECLARATION_STATIC = const HighlightType(
+      'METHOD_DECLARATION_STATIC');
+  static const HighlightType METHOD = const HighlightType('METHOD');
+  static const HighlightType METHOD_STATIC = const HighlightType(
+      'METHOD_STATIC');
+  static const HighlightType PARAMETER = const HighlightType('PARAMETER');
+  static const HighlightType SETTER_DECLARATION = const HighlightType(
+      'SETTER_DECLARATION');
+  static const HighlightType TOP_LEVEL_VARIABLE = const HighlightType(
+      'TOP_LEVEL_VARIABLE');
+  static const HighlightType TYPE_NAME_DYNAMIC = const HighlightType(
+      'TYPE_NAME_DYNAMIC');
+  static const HighlightType TYPE_PARAMETER = const HighlightType(
+      'TYPE_PARAMETER');
+
+  final String name;
+
+  const HighlightType(this.name);
+
+  @override
+  String toString() => name;
+
+  static HighlightType valueOf(String name) {
+    if (ANNOTATION.name == name) return ANNOTATION;
+    if (BUILT_IN.name == name) return BUILT_IN;
+    if (CLASS.name == name) return CLASS;
+    if (COMMENT_BLOCK.name == name) return COMMENT_BLOCK;
+    if (COMMENT_DOCUMENTATION.name == name) return COMMENT_DOCUMENTATION;
+    if (COMMENT_END_OF_LINE.name == name) return COMMENT_END_OF_LINE;
+    if (CONSTRUCTOR.name == name) return CONSTRUCTOR;
+    if (DIRECTIVE.name == name) return DIRECTIVE;
+    if (DYNAMIC_TYPE.name == name) return DYNAMIC_TYPE;
+    if (FIELD.name == name) return FIELD;
+    if (FIELD_STATIC.name == name) return FIELD_STATIC;
+    if (FUNCTION_DECLARATION.name == name) return FUNCTION_DECLARATION;
+    if (FUNCTION.name == name) return FUNCTION;
+    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
+    if (GETTER_DECLARATION.name == name) return GETTER_DECLARATION;
+    if (KEYWORD.name == name) return KEYWORD;
+    if (IDENTIFIER_DEFAULT.name == name) return IDENTIFIER_DEFAULT;
+    if (IMPORT_PREFIX.name == name) return IMPORT_PREFIX;
+    if (LITERAL_BOOLEAN.name == name) return LITERAL_BOOLEAN;
+    if (LITERAL_DOUBLE.name == name) return LITERAL_DOUBLE;
+    if (LITERAL_INTEGER.name == name) return LITERAL_INTEGER;
+    if (LITERAL_LIST.name == name) return LITERAL_LIST;
+    if (LITERAL_MAP.name == name) return LITERAL_MAP;
+    if (LITERAL_STRING.name == name) return LITERAL_STRING;
+    if (LOCAL_VARIABLE_DECLARATION.name == name) return
+        LOCAL_VARIABLE_DECLARATION;
+    if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
+    if (METHOD_DECLARATION.name == name) return METHOD_DECLARATION;
+    if (METHOD_DECLARATION_STATIC.name == name) return
+        METHOD_DECLARATION_STATIC;
+    if (METHOD.name == name) return METHOD;
+    if (METHOD_STATIC.name == name) return METHOD_STATIC;
+    if (PARAMETER.name == name) return PARAMETER;
+    if (SETTER_DECLARATION.name == name) return SETTER_DECLARATION;
+    if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
+    if (TYPE_NAME_DYNAMIC.name == name) return TYPE_NAME_DYNAMIC;
+    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
+    throw new ArgumentError('Unknown HighlightType: $name');
   }
 }
 
@@ -435,7 +597,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_tokenStart_tokenEnd(node.partToken, node.ofToken, HighlightType.BUILT_IN);
+    computer._addRegion_tokenStart_tokenEnd(node.partToken, node.ofToken,
+        HighlightType.BUILT_IN);
     return super.visitPartOfDirective(node);
   }
 
@@ -468,50 +631,4 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
     }
     return super.visitTypeName(node);
   }
-}
-
-
-/**
- * Highlighting kinds constants.
- */
-class HighlightType {
-  static const HighlightType ANNOTATION = const HighlightType('ANNOTATION');
-  static const HighlightType BUILT_IN = const HighlightType('BUILT_IN');
-  static const HighlightType CLASS = const HighlightType('CLASS');
-  static const HighlightType COMMENT_BLOCK = const HighlightType('COMMENT_BLOCK');
-  static const HighlightType COMMENT_DOCUMENTATION = const HighlightType('COMMENT_DOCUMENTATION');
-  static const HighlightType COMMENT_END_OF_LINE = const HighlightType('COMMENT_END_OF_LINE');
-  static const HighlightType CONSTRUCTOR = const HighlightType('CONSTRUCTOR');
-  static const HighlightType DIRECTIVE = const HighlightType('DIRECTIVE');
-  static const HighlightType DYNAMIC_TYPE = const HighlightType('DYNAMIC_TYPE');
-  static const HighlightType FIELD = const HighlightType('FIELD');
-  static const HighlightType FIELD_STATIC = const HighlightType('FIELD_STATIC');
-  static const HighlightType FUNCTION_DECLARATION = const HighlightType('FUNCTION_DECLARATION');
-  static const HighlightType FUNCTION = const HighlightType('FUNCTION');
-  static const HighlightType FUNCTION_TYPE_ALIAS = const HighlightType('FUNCTION_TYPE_ALIAS');
-  static const HighlightType GETTER_DECLARATION = const HighlightType('GETTER_DECLARATION');
-  static const HighlightType KEYWORD = const HighlightType('KEYWORD');
-  static const HighlightType IDENTIFIER_DEFAULT = const HighlightType('IDENTIFIER_DEFAULT');
-  static const HighlightType IMPORT_PREFIX = const HighlightType('IMPORT_PREFIX');
-  static const HighlightType LITERAL_BOOLEAN = const HighlightType('LITERAL_BOOLEAN');
-  static const HighlightType LITERAL_DOUBLE = const HighlightType('LITERAL_DOUBLE');
-  static const HighlightType LITERAL_INTEGER = const HighlightType('LITERAL_INTEGER');
-  static const HighlightType LITERAL_LIST = const HighlightType('LITERAL_LIST');
-  static const HighlightType LITERAL_MAP = const HighlightType('LITERAL_MAP');
-  static const HighlightType LITERAL_STRING = const HighlightType('LITERAL_STRING');
-  static const HighlightType LOCAL_VARIABLE_DECLARATION = const HighlightType('LOCAL_VARIABLE_DECLARATION');
-  static const HighlightType LOCAL_VARIABLE = const HighlightType('LOCAL_VARIABLE');
-  static const HighlightType METHOD_DECLARATION = const HighlightType('METHOD_DECLARATION');
-  static const HighlightType METHOD_DECLARATION_STATIC = const HighlightType('METHOD_DECLARATION_STATIC');
-  static const HighlightType METHOD = const HighlightType('METHOD');
-  static const HighlightType METHOD_STATIC = const HighlightType('METHOD_STATIC');
-  static const HighlightType PARAMETER = const HighlightType('PARAMETER');
-  static const HighlightType SETTER_DECLARATION = const HighlightType('SETTER_DECLARATION');
-  static const HighlightType TOP_LEVEL_VARIABLE = const HighlightType('TOP_LEVEL_VARIABLE');
-  static const HighlightType TYPE_NAME_DYNAMIC = const HighlightType('TYPE_NAME_DYNAMIC');
-  static const HighlightType TYPE_PARAMETER = const HighlightType('TYPE_PARAMETER');
-
-  final String name;
-
-  const HighlightType(this.name);
 }

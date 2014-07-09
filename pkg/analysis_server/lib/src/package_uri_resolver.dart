@@ -4,8 +4,8 @@
 
 library resolver.package;
 
-import 'package:analysis_server/src/resource.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**

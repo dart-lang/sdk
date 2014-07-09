@@ -21,6 +21,7 @@ const String SERVER_STATUS = 'server.status';
 //
 // Analysis methods
 //
+const String ANALYSIS_GET_HOVER = 'analysis.getHover';
 const String ANALYSIS_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
 const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
@@ -34,7 +35,9 @@ const String ANALYSIS_UPDATE_SDKS = 'analysis.updateSdks';
 const String ANALYSIS_ERRORS = 'analysis.errors';
 const String ANALYSIS_HIGHLIGHTS = 'analysis.highlights';
 const String ANALYSIS_NAVIGATION = 'analysis.navigation';
+const String ANALYSIS_OCCURRENCES = 'analysis.occurrences';
 const String ANALYSIS_OUTLINE = 'analysis.outline';
+const String ANALYSIS_OVERRIDES = 'analysis.overrides';
 
 //
 // Code Completion methods
@@ -76,10 +79,15 @@ const String EDIT_SET_REFACTORING_OPTIONS = 'edit.setRefactoringOptions';
 //
 const String ADDED = 'added';
 const String CHILDREN = 'children';
+const String CONTAINING_LIBRARY_NAME = 'containingLibraryName';
+const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
 const String CONTENT = 'content';
 const String CORRECTION = 'correction';
+const String DART_DOC = 'dartdoc';
 const String DEFAULT = 'default';
 const String ELEMENT = 'element';
+const String ELEMENT_DESCRIPTION = 'elementDescription';
+const String ELEMENT_KIND = 'elementKind';
 const String EXCLUDED = 'excluded';
 const String ERROR_CODE = 'errorCode';
 const String ERRORS = 'errors';
@@ -87,8 +95,10 @@ const String FILE = 'file';
 const String FILES = 'files';
 const String FIXES = 'fixes';
 const String FLAGS = 'flags';
+const String HOVERS = 'hovers';
 const String ID = 'id';
 const String INCLUDED = 'included';
+const String INTERFACE_ELEMENTS = 'interfaceElements';
 const String IS_ABSTRACT = 'isAbstract';
 const String IS_STATIC = 'isStatic';
 const String KIND = 'kind';
@@ -97,12 +107,17 @@ const String LOCATION = 'location';
 const String MESSAGE = 'message';
 const String NAME = 'name';
 const String NEW_LENGTH = 'newLength';
+const String OCCURRENCES = 'occurrences';
 const String OFFSET = 'offset';
+const String OFFSETS = 'offsets';
 const String OLD_LENGTH = 'oldLength';
 const String OPTIONS = 'options';
 const String OUTLINE = 'outline';
+const String OVERRIDES = 'overrides';
+const String PARAMETER = 'parameter';
 const String PARAMETERS = 'parameters';
 const String PATTERN = 'pattern';
+const String PROPAGATED_TYPE = 'propagatedType';
 const String REFACTORINGS = 'refactorings';
 const String REGIONS = 'regions';
 const String REMOVED = 'removed';
@@ -110,7 +125,9 @@ const String RETURN_TYPE = 'returnType';
 const String SEVERITY = 'severity';
 const String START_COLUMN = 'startColumn';
 const String START_LINE = 'startLine';
+const String STATIC_TYPE = 'staticType';
 const String SUBSCRIPTIONS = 'subscriptions';
+const String SUPER_CLASS_ELEMENT = 'superclassElement';
 const String TARGETS = 'targets';
 const String TYPE = 'type';
 const String VERSION = 'version';

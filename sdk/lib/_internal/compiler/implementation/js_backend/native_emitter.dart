@@ -361,7 +361,7 @@ class NativeEmitter {
   }
 
   List<jsAst.Statement> generateParameterStubStatements(
-      Element member,
+      FunctionElement member,
       bool isInterceptedMethod,
       String invocationName,
       List<jsAst.Parameter> stubParameters,
@@ -376,7 +376,7 @@ class NativeEmitter {
     // must be turned into a JS call to:
     //   foo(null, y).
 
-    ClassElement classElement = member.enclosingElement;
+    ClassElement classElement = member.enclosingClass;
 
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);

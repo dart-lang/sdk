@@ -71,6 +71,11 @@ class MessageHandler {
     return control_ports_;
   }
 
+  bool paused() const { return paused_ > 0; }
+
+  void increment_paused() { paused_++; }
+  void decrement_paused() { ASSERT(paused_ > 0); paused_--; }
+
   bool pause_on_start() const {
     return pause_on_start_;
   }
@@ -164,6 +169,7 @@ class MessageHandler {
   MessageQueue* oob_queue_;
   intptr_t control_ports_;  // The number of open control ports usually 0 or 1.
   intptr_t live_ports_;  // The number of open ports, including control ports.
+  intptr_t paused_;  // The number of pause messages received.
   bool pause_on_start_;
   bool pause_on_exit_;
   bool paused_on_exit_;

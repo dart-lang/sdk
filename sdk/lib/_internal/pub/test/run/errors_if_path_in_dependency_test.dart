@@ -22,7 +22,7 @@ main() {
 
     schedulePub(args: ["run", "foo:sub/dir"],
         error: """
-Can not run an executable in a subdirectory of a dependency.
+Cannot run an executable in a subdirectory of a dependency.
 
 Usage: pub run <executable> [args...]
 -h, --help    Print usage information for this command.

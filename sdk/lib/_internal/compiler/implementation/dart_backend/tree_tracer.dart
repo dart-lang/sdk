@@ -135,6 +135,11 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -250,6 +255,10 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, expr(node.expression));
   }
 
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    printStatement(null, 'function ${node.definition.element.name}');
+  }
+
   String expr(Expression e) {
     return e.accept(new SubexpressionVisitor(names));
   }
@@ -338,7 +347,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String visitReifyTypeVar(ReifyTypeVar node) {
-    return "typevar [${node.element.name}]";
+    return "typevar [${node.typeVariable.name}]";
   }
 
   bool usesInfixNotation(Expression node) {
@@ -376,6 +385,10 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
       operand = '($operand)';
     }
     return '!$operand';
+  }
+
+  String visitFunctionExpression(FunctionExpression node) {
+    return "function ${node.definition.element.name}";
   }
 
 }

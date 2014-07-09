@@ -3,12 +3,19 @@
 This file contains highlights of what changes on each version of the
 template_binding package.
 
+#### Pub version 0.12.0-dev
+  * NodeBind interop support. This allows elements such as Polymer's
+    core-elements and paper-elements to work properly with Dart binding paths,
+    including using Elements and functions as values, and two-way bindings.
+  * NodeBind is no longer ported. It now comes from
+    packages/web_components/platform.js
+
 #### Pub version 0.11.0
   * Ported up to commit [TemplateBinding#1cee02][5b9a3b] and
     [NodeBind#c47bc1][c47bc1].
 
 #### Pub version 0.10.0
-  * Applied patch to throw errors asycnhronously if property path evaluation
+  * Applied patch to throw errors asynchronously if property path evaluation
     fails.
   * Applied patch matching commit [51df59][] (fix parser to avoid allocating
     PropertyPath if there is a non-null delegateFn).

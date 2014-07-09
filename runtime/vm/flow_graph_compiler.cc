@@ -274,14 +274,14 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
       AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
     } else if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                            instr->deopt_id(),
                            Scanner::kNoSourcePos);
     }
@@ -487,7 +487,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 
 
 // Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
+void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              intptr_t token_pos) {
   pc_descriptors_list()->AddDescriptor(kind,
@@ -832,10 +832,11 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ASSERT(!ic_data.IsNull());
   ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
   uword label_address = 0;
+  StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
     if (ic_data.IsClosureCall()) {
       // This IC call may be closure call only.
-      label_address = StubCode::ClosureCallInlineCacheEntryPoint();
+      label_address = stub_code->ClosureCallInlineCacheEntryPoint();
       ExternalLabel target_label(label_address);
       EmitInstanceCall(&target_label,
                        ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
@@ -849,14 +850,14 @@ void FlowGraphCompiler::GenerateInstanceCall(
            || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
-        label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
+        label_address = stub_code->OneArgOptimizedCheckInlineCacheEntryPoint();
         break;
       case 2:
-        label_address = StubCode::TwoArgsOptimizedCheckInlineCacheEntryPoint();
+        label_address = stub_code->TwoArgsOptimizedCheckInlineCacheEntryPoint();
         break;
       case 3:
         label_address =
-            StubCode::ThreeArgsOptimizedCheckInlineCacheEntryPoint();
+            stub_code->ThreeArgsOptimizedCheckInlineCacheEntryPoint();
         break;
       default:
         UNIMPLEMENTED();
@@ -880,13 +881,13 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   switch (ic_data.NumArgsTested()) {
     case 1:
-      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      label_address = stub_code->OneArgCheckInlineCacheEntryPoint();
       break;
     case 2:
-      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      label_address = stub_code->TwoArgsCheckInlineCacheEntryPoint();
       break;
     case 3:
-      label_address = StubCode::ThreeArgsCheckInlineCacheEntryPoint();
+      label_address = stub_code->ThreeArgsCheckInlineCacheEntryPoint();
       break;
     default:
       UNIMPLEMENTED();

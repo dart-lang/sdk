@@ -7,9 +7,8 @@ library test.protocol;
 import 'dart:convert';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
-
-import 'reflective_tests.dart';
 
 
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
@@ -146,13 +145,6 @@ class RequestDatumTest {
         equals(['foo', 'bar']));
   }
 
-  void test_isList() {
-    expect(makeDatum(3).isList, isFalse);
-    expect(makeDatum(null).isList, isTrue);
-    expect(makeDatum([]).isList, isTrue);
-    expect(makeDatum(['foo', 'bar']).isList, isTrue);
-  }
-
   void test_asList_nonList() {
     expect(() => makeDatum(3).asList((datum) => null), _throwsInvalidParameter);
   }
@@ -166,38 +158,12 @@ class RequestDatumTest {
     expect(() => makeDatum(3).asString(), _throwsInvalidParameter);
   }
 
-  void test_isStringList() {
-    expect(makeDatum(['foo', 'bar']).isStringList, isTrue);
-    expect(makeDatum([]).isStringList, isTrue);
-    expect(makeDatum(null).isStringList, isTrue);
-    expect(makeDatum(['foo', 1]).isStringList, isFalse);
-    expect(makeDatum({}).isStringList, isFalse);
-  }
-
   void test_asStringList() {
     expect(makeDatum(['foo', 'bar']).asStringList(), equals(['foo', 'bar']));
     expect(makeDatum([]).asStringList(), equals([]));
     expect(makeDatum(null).asStringList(), equals([]));
     expect(() => makeDatum(['foo', 1]).asStringList(), _throwsInvalidParameter);
     expect(() => makeDatum({}).asStringList(), _throwsInvalidParameter);
-  }
-
-  void test_isStringListMap() {
-    expect(makeDatum({
-      'key1': ['value11', 'value12'],
-      'key2': ['value21', 'value22']
-    }).isStringListMap, isTrue);
-    expect(makeDatum({
-      'key1': 10,
-      'key2': 20
-    }).isStringListMap, isFalse);
-    expect(makeDatum({
-      'key1': [11, 12],
-      'key2': [21, 22]
-    }).isStringListMap, isFalse);
-    expect(makeDatum({}).isStringListMap, isTrue);
-    expect(makeDatum(null).isStringListMap, isTrue);
-    expect(makeDatum(3).isStringListMap, isFalse);
   }
 
   void test_asStringListMap() {
@@ -222,42 +188,6 @@ class RequestDatumTest {
       };
       expect(() => makeDatum(map).asStringListMap(), _throwsInvalidParameter);
     }
-  }
-
-  void test_isMap() {
-    expect(makeDatum({
-      'key1': 'value1',
-      'key2': 'value2'
-    }).isMap, isTrue);
-    expect(makeDatum({}).isMap, isTrue);
-    expect(makeDatum(null).isMap, isTrue);
-    expect(makeDatum({
-      'key1': 'value1',
-      'key2': 2
-    }).isMap, isTrue);
-    expect(makeDatum({
-      'key1': 1,
-      'key2': 2
-    }).isMap, isTrue);
-    expect(makeDatum([]).isMap, isFalse);
-  }
-
-  void test_isStringMap() {
-    expect(makeDatum({
-      'key1': 'value1',
-      'key2': 'value2'
-    }).isStringMap, isTrue);
-    expect(makeDatum({}).isStringMap, isTrue);
-    expect(makeDatum(null).isStringMap, isTrue);
-    expect(makeDatum({
-      'key1': 'value1',
-      'key2': 2
-    }).isStringMap, isFalse);
-    expect(makeDatum({
-      'key1': 1,
-      'key2': 2
-    }).isStringMap, isFalse);
-    expect(makeDatum([]).isMap, isFalse);
   }
 
   void test_asStringMap() {
@@ -292,7 +222,7 @@ class RequestDatumTest {
     }), _throwsInvalidParameter);
   }
 
-   void test_forEachMap_null() {
+  void test_forEachMap_null() {
     makeDatum(null).forEachMap((key, value) {
       fail('Empty map should not be iterated');
     });
@@ -340,17 +270,13 @@ class RequestDatumTest {
     expect(makeDatum(null).hasKey('foo'), isFalse);
   }
 
-  void test_indexOperator_hasKey() {
+   void test_indexOperator_hasKey() {
     var indexResult = makeDatum({
       'foo': 'bar'
     })['foo'];
     expect(indexResult, isRequestDatum);
     expect(indexResult.datum, equals('bar'));
     expect(indexResult.path, equals('myPath.foo'));
-  }
-
-  void test_indexOperator_null() {
-    expect(() => makeDatum(null)['foo'], _throwsInvalidParameter);
   }
 
   void test_indexOperator_missingKey() {
@@ -361,6 +287,79 @@ class RequestDatumTest {
 
   void test_indexOperator_nonMap() {
     expect(() => makeDatum(1)['foo'], _throwsInvalidParameter);
+  }
+
+  void test_indexOperator_null() {
+    expect(() => makeDatum(null)['foo'], _throwsInvalidParameter);
+  }
+
+  void test_isList() {
+    expect(makeDatum(3).isList, isFalse);
+    expect(makeDatum(null).isList, isTrue);
+    expect(makeDatum([]).isList, isTrue);
+    expect(makeDatum(['foo', 'bar']).isList, isTrue);
+  }
+
+  void test_isMap() {
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 'value2'
+    }).isMap, isTrue);
+    expect(makeDatum({}).isMap, isTrue);
+    expect(makeDatum(null).isMap, isTrue);
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 2
+    }).isMap, isTrue);
+    expect(makeDatum({
+      'key1': 1,
+      'key2': 2
+    }).isMap, isTrue);
+    expect(makeDatum([]).isMap, isFalse);
+  }
+
+  void test_isStringList() {
+    expect(makeDatum(['foo', 'bar']).isStringList, isTrue);
+    expect(makeDatum([]).isStringList, isTrue);
+    expect(makeDatum(null).isStringList, isTrue);
+    expect(makeDatum(['foo', 1]).isStringList, isFalse);
+    expect(makeDatum({}).isStringList, isFalse);
+  }
+
+  void test_isStringListMap() {
+    expect(makeDatum({
+      'key1': ['value11', 'value12'],
+      'key2': ['value21', 'value22']
+    }).isStringListMap, isTrue);
+    expect(makeDatum({
+      'key1': 10,
+      'key2': 20
+    }).isStringListMap, isFalse);
+    expect(makeDatum({
+      'key1': [11, 12],
+      'key2': [21, 22]
+    }).isStringListMap, isFalse);
+    expect(makeDatum({}).isStringListMap, isTrue);
+    expect(makeDatum(null).isStringListMap, isTrue);
+    expect(makeDatum(3).isStringListMap, isFalse);
+  }
+
+  void test_isStringMap() {
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 'value2'
+    }).isStringMap, isTrue);
+    expect(makeDatum({}).isStringMap, isTrue);
+    expect(makeDatum(null).isStringMap, isTrue);
+    expect(makeDatum({
+      'key1': 'value1',
+      'key2': 2
+    }).isStringMap, isFalse);
+    expect(makeDatum({
+      'key1': 1,
+      'key2': 2
+    }).isStringMap, isFalse);
+    expect(makeDatum([]).isMap, isFalse);
   }
 
   static RequestDatum makeDatum(dynamic datum) {

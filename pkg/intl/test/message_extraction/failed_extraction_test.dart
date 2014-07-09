@@ -24,7 +24,7 @@ void runTestWithWarnings({bool warningsAreErrors, int expectedExitCode}) {
   }
 
   copyFilesToTempDirectory();
-  var program = asTestDirPath("extract_to_json.dart");
+  var program = asTestDirPath("../../bin/extract_to_arb.dart");
   var args = ["--output-dir=$tempDir"];
   if (warningsAreErrors) {
     args.add('--warnings-are-errors');

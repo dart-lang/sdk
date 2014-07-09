@@ -25,6 +25,7 @@ namespace dart {
 class AbstractType;
 class ApiState;
 class Array;
+class Capability;
 class Class;
 class Code;
 class CodeIndexTable;
@@ -165,6 +166,12 @@ class Isolate : public BaseIsolate {
     ASSERT(main_port_ == 0);  // Only set main port once.
     main_port_ = port;
   }
+  void set_pause_capability(uint64_t value) { pause_capability_ = value; }
+  uint64_t pause_capability() const { return pause_capability_; }
+  void set_terminate_capability(uint64_t value) {
+    terminate_capability_ = value;
+  }
+  uint64_t terminate_capability() const { return terminate_capability_; }
 
   Heap* heap() const { return heap_; }
   void set_heap(Heap* value) { heap_ = value; }
@@ -353,6 +360,13 @@ class Isolate : public BaseIsolate {
     resume_request_ = false;
     return resume_request;
   }
+
+  // Verify that the sender has the capability to pause this isolate.
+  bool VerifyPauseCapability(const Capability& capability) const;
+  // Returns true if the capability was added or removed from this isolate's
+  // list of pause events.
+  bool AddResumeCapability(const Capability& capability);
+  bool RemoveResumeCapability(const Capability& capability);
 
   Random* random() { return &random_; }
 
@@ -593,6 +607,8 @@ class Isolate : public BaseIsolate {
   char* name_;
   int64_t start_time_;
   Dart_Port main_port_;
+  uint64_t pause_capability_;
+  uint64_t terminate_capability_;
   Heap* heap_;
   ObjectStore* object_store_;
   RawContext* top_context_;

@@ -55,7 +55,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   }
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCodeEntryPoint());
+      isolate->stub_code()->InvokeDartCodeEntryPoint());
   const Code& code = Code::Handle(isolate, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);

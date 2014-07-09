@@ -45,6 +45,15 @@ main() {
               },
               'assetId': {'package': 'myapp', 'path': 'web/main.dart'},
               'message': contains(r'to compile myapp|web/main.dart.')
+            },
+            {
+              'level': 'Fine',
+              'transformer': {
+                'name': 'Dart2JS',
+                'primaryInput': {'package': 'myapp', 'path': 'web/main.dart'}
+              },
+              'assetId': {'package': 'myapp', 'path': 'web/main.dart'},
+              'message': contains(r'Took')
             }
           ]
         });

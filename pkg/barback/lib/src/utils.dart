@@ -336,3 +336,12 @@ final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
 /// [toString], so we remove that if it exists.
 String getErrorMessage(error) =>
   error.toString().replaceFirst(_exceptionPrefix, '');
+
+/// Returns a human-friendly representation of [duration].
+String niceDuration(Duration duration) {
+  var result = duration.inMinutes > 0 ? "${duration.inMinutes}:" : "";
+
+  var s = duration.inSeconds % 59;
+  var ms = (duration.inMilliseconds % 1000) ~/ 100;
+  return result + "$s.${ms}s";
+}

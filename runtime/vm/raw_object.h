@@ -902,17 +902,32 @@ class RawInstructions : public RawObject {
 
 
 class RawPcDescriptors : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
-
-  intptr_t length_;  // Number of descriptors.
+ public:
+  enum Kind {
+    kDeopt,            // Deoptimization continuation point.
+    kIcCall,           // IC call.
+    kOptStaticCall,    // Call directly to known target, e.g. static call.
+    kUnoptStaticCall,  // Call to a known target via a stub.
+    kClosureCall,      // Closure call.
+    kRuntimeCall,      // Runtime call.
+    kOsrEntry,         // OSR entry point in unoptimized code.
+    kOther
+  };
 
   struct PcDescriptorRec {
     uword pc;
     int32_t deopt_id;
     int32_t token_pos;  // Or deopt reason.
     int16_t try_index;  // Or deopt index.
-    int8_t kind;
+    int8_t kind_;
+
+    Kind kind() const { return static_cast<Kind>(kind_); }
   };
+
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
+
+  intptr_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
   PcDescriptorRec* data() { OPEN_ARRAY_START(PcDescriptorRec, intptr_t); }

@@ -900,6 +900,14 @@ abstract class FieldElement extends VariableElement
 
 abstract class ParameterElement extends VariableElement
     implements FunctionTypedElement {
+  /// Use [functionDeclaration] instead.
+  @deprecated
+  get enclosingElement;
+
+  /// The function, typedef or inline function-typed parameter on which
+  /// this parameter is declared.
+  FunctionTypedElement get functionDeclaration;
+
   VariableDefinitions get node;
 }
 
@@ -1011,6 +1019,10 @@ abstract class ConstructorElement extends FunctionElement {
   /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
   /// is `C.c`.
   ConstructorElement get definingConstructor;
+
+  /// Use [enclosingClass] instead.
+  @deprecated
+  get enclosingElement;
 }
 
 abstract class ConstructorBodyElement extends FunctionElement {
@@ -1220,6 +1232,14 @@ abstract class TargetElement extends Element {
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
     implements AstElement, TypedElement {
+
+  /// Use [typeDeclaration] instead.
+  @deprecated
+  get enclosingElement;
+
+  /// The class or typedef on which this type variable is defined.
+  TypeDeclarationElement get typeDeclaration;
+
   /// The [type] defined by the type variable.
   TypeVariableType get type;
 

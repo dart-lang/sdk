@@ -39,7 +39,8 @@ createLocals(List variables) {
 Future testLocals(List variables) {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
-    Element element = visitor.visit(createLocals(variables));
+    ResolutionResult result = visitor.visit(createLocals(variables));
+    Element element = result != null ? result.element : null;
     // A VariableDefinitions does not have an element.
     Expect.equals(null, element);
     Expect.equals(variables.length, map(visitor).length);
@@ -47,7 +48,9 @@ Future testLocals(List variables) {
     for (final variable in variables) {
       final name = variable[0];
       Identifier id = buildIdentifier(name);
-      final VariableElement variableElement = visitor.visit(id);
+      ResolutionResult result = visitor.visit(id);
+      final VariableElement variableElement =
+          result != null ? result.element : null;
       MethodScope scope = visitor.scope;
       Expect.equals(variableElement, scope.elements[name]);
     }
@@ -311,7 +314,7 @@ Future testLocalsTwo() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -326,7 +329,7 @@ Future testLocalsThree() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -340,7 +343,7 @@ Future testLocalsFour() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -355,7 +358,7 @@ Future testLocalsFive() {
     ResolverVisitor visitor = compiler.resolverVisitor();
     If tree =
         parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
-    Element element = visitor.visit(tree);
+    ResolutionResult element = visitor.visit(tree);
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
@@ -679,7 +682,7 @@ Future resolveConstructor(
     {List expectedWarnings: const [],
      List expectedErrors: const [],
      List expectedInfos: const [],
-     String corelib: DEFAULT_CORELIB}) {
+     Map<String, String> corelib}) {
   MockCompiler compiler = new MockCompiler.internal(coreSource: corelib);
   return compiler.init().then((_) {
     compiler.parseScript(script);
@@ -915,28 +918,13 @@ Future testInitializers() {
     },
     () {
       String script = "";
-      final String CORELIB_WITH_INVALID_OBJECT =
-          '''print(var obj) {}
-             class int {}
-             class double {}
-             class bool {}
-             class String {}
-             class num {}
-             class Function {}
-             class List<E> {}
-             class Map {}
-             class Closure {}
-             class Null {}
-             class StackTrace {}
-             class Dynamic_ {}
-             class Type {}
-             class Object { Object() : super(); }
-             const proxy = 0;''';
+      final INVALID_OBJECT =
+          const { 'Object': 'class Object { Object() : super(); }' };
       return resolveConstructor(script,
           "Object o = new Object();", "Object", "", 1,
           expectedWarnings: [],
           expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
-          corelib: CORELIB_WITH_INVALID_OBJECT);
+          corelib: INVALID_OBJECT);
     },
   ], (f) => f());
 }

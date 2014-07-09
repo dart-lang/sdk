@@ -164,7 +164,7 @@ addDiagnostic(String kind, String message, int begin, int end) {
         Element parent = node.parent;
         if (parent.classes.contains("diagnostic") &&
             !interaction.oldDiagnostics.contains(parent)) {
-          Element other = parent.lastChild;
+          Element other = parent.firstChild;
           other.remove();
           SpanElement wrapper = new SpanElement();
           wrapper.style
@@ -232,17 +232,6 @@ addDiagnostic(String kind, String message, int begin, int end) {
       mainEditorPane, childList: true, characterData: true, subtree: true);
 }
 
-void inlineChildren(Element element) {
-  if (element == null) return;
-  var parent = element.parentNode;
-  if (parent == null) return;
-  for (Node child in new List.from(element.nodes)) {
-    child.remove();
-    parent.insertBefore(child, element);
-  }
-  element.remove();
-}
-
 Decoration getDecoration(Token token) {
   if (token is ErrorToken) {
     isMalformedInput = true;
@@ -268,12 +257,15 @@ Decoration getDecoration(Token token) {
   return currentTheme.foreground;
 }
 
-diagnostic(text, tip) {
-  if (text is String) {
-    text = new Text(text);
+diagnostic(content, tip) {
+  if (content is String) {
+    content = new Text(content);
+  }
+  if (content is! List) {
+    content = [content];
   }
   return new AnchorElement()
       ..classes.add('diagnostic')
-      ..append(text)
-      ..append(tip);
+      ..append(tip) // Should be first for better Firefox editing.
+      ..nodes.addAll(content);
 }

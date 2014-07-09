@@ -21,8 +21,6 @@ main() => dirtyCheckZone().run(() {
 
   _registered = customElementsReady.then((_) {
     document.registerElement('my-custom-element', MyCustomElement);
-    document.registerElement('with-attrs-custom-element',
-        WithAttrsCustomElement);
   });
 
   group('Custom Element Bindings', customElementBindingsTest);
@@ -72,49 +70,6 @@ customElementBindingsTest() {
     }).then(endOfMicrotask).then((_) {
       expect(element.scaryMonster.health, 200);
       expect(element.bindFinishedCalled, 0);
-    });
-  });
-
-  test('override attribute setter', () {
-    var element = new WithAttrsCustomElement();
-    var model = toObservable({'a': 1, 'b': 2});
-    nodeBind(element).bind('hidden?', new PathObserver(model, 'a'));
-    nodeBind(element).bind('id', new PathObserver(model, 'b'));
-
-    expect(element.attributes, contains('hidden'));
-    expect(element.attributes['hidden'], '');
-    expect(element.id, '2');
-
-    model['a'] = null;
-    return new Future(() {
-      expect(element.attributes, isNot(contains('hidden')),
-          reason: 'null is false-y');
-
-      model['a'] = false;
-    }).then(endOfMicrotask).then((_) {
-      expect(element.attributes, isNot(contains('hidden')));
-
-      model['a'] = 'foo';
-      // TODO(jmesserly): this is here to force an ordering between the two
-      // changes. Otherwise the order depends on what order StreamController
-      // chooses to fire the two listeners in.
-    }).then(endOfMicrotask).then((_) {
-
-      model['b'] = 'x';
-    }).then(endOfMicrotask).then((_) {
-      expect(element.attributes, contains('hidden'));
-      expect(element.attributes['hidden'], '');
-      expect(element.id, 'x');
-
-      expect(element.attributes.log, [
-        ['remove', 'hidden?'],
-        ['[]=', 'hidden', ''],
-        ['[]=', 'id', '2'],
-        ['remove', 'hidden'],
-        ['remove', 'hidden'],
-        ['[]=', 'hidden', ''],
-        ['[]=', 'id', 'x'],
-      ]);
     });
   });
 
@@ -217,37 +172,3 @@ class MyCustomElement extends HtmlElement implements NodeBindExtension {
   }
 }
 
-
-/**
- * Demonstrates a custom element can override attributes []= and remove.
- * and see changes that the data binding system is making to the attributes.
- */
-class WithAttrsCustomElement extends HtmlElement {
-  AttributeMapWrapper _attributes;
-
-  factory WithAttrsCustomElement() =>
-      new Element.tag('with-attrs-custom-element');
-
-  WithAttrsCustomElement.created() : super.created() {
-    _attributes = new AttributeMapWrapper(super.attributes);
-  }
-
-  get attributes => _attributes;
-}
-
-// TODO(jmesserly): would be nice to use mocks when mirrors work on dart2js.
-class AttributeMapWrapper<K, V> extends MapView<K, V> {
-  final List log = [];
-
-  AttributeMapWrapper(Map map) : super(map);
-
-  void operator []=(K key, V value) {
-    log.add(['[]=', key, value]);
-    super[key] = value;
-  }
-
-  V remove(Object key) {
-    log.add(['remove', key]);
-    return super.remove(key);
-  }
-}
