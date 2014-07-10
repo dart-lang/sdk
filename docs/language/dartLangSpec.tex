@@ -1332,10 +1332,16 @@ A {\em constant constructor} may be used to create compile-time constant  (\ref{
 
 \commentary{All the work of a constant constructor must be handled via its initializers.}
 
-It is a compile-time error if a constant constructor is declared by a class that has a non-final instance variable. 
+It is a compile-time error if a constant constructor is declared by a class that has a non-final instance variable.  
 
 \commentary{
 The above refers to both locally declared and inherited instance variables.
+}
+
+It is a compile-time error if a constant constructor is declared by a class $C$ if any instance variable declared in $C$ is initialized with an expression that is not a constant expression.
+
+\commentary {
+A superclass of $C$ cannot declare such an initializer either, because it must necessarily declare constant constructor as well (unless it is \code{Object}, which declares no instance variables).
 }
 
 The superinitializer that appears, explicitly or implicitly, in the initializer list of a constant constructor must specify a constant constructor of the superclass of the immediately enclosing class or a compile-time error occurs.
@@ -1345,7 +1351,7 @@ Any expression that appears within the initializer list of a constant constructo
 A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression.
 
 \commentary{
-Note that a parameter that is not used in an superexpression that is restricted to certain types can be a constant of any type. For example}
+Note that a parameter that is not used in a superexpression that is restricted to certain types can be a constant of any type. For example}
 
 \begin{dartCode}
 \CLASS{} A \{
@@ -1479,7 +1485,7 @@ It is a static warning if a class $C$ declares a static method named $n$ and has
 \subsection{Superclasses}
 \label{superclasses}
 
-The superclass of a class $C$ that has a with clause \code{\WITH{} $M_1, \ldots, M_k$} and an extends clause \code{\EXTENDS{} S} is the application of mixin (\ref{mixins}) $M_k* \cdots * M_1$  to S.  If no with clause is specified then  the \EXTENDS{} clause of a class $C$ specifies its superclass. If no \EXTENDS{} clause is specified, then either:
+The superclass of a class $C$ that has a with clause \code{\WITH{} $M_1, \ldots, M_k$} and an extends clause \code{\EXTENDS{} S} is the application of mixin (\ref{mixins}) $M_k* \cdots * M_1$  to S.  If no \WITH{} clause is specified then  the \EXTENDS{} clause of a class $C$ specifies its superclass. If no \EXTENDS{} clause is specified, then either:
 \begin{itemize}
 \item $C$ is \code{Object}, which has no superclass. OR
 \item Class $C$ is  deemed to have an \EXTENDS{} clause of the form \code{\EXTENDS{} Object}, and the rules above apply. 
@@ -5417,11 +5423,11 @@ A type $T$ is {\em malformed} iff:
 This ensures that the developer is spared a series of cascading warnings as the malformed type interacts with other types.
 }
 
-A type $T$ is deferred iff it is of the form $p.T$ where $p$ is a deferred prefix.
+A type $T$ is {\em deferred} iff it is of the form $p.T$ where $p$ is a deferred prefix.
 It is a static warning to use a deferred type in a type annotation, type test, type cast or as a type parameter. However, all other static warnings must be issued under the assumption that all deferred libraries have successfully been loaded.
 
 
-\subsubsection{Type Promotion}
+\subsubsection{Type Promotion}   
 \label{typePromotion}
 
 The static type system ascribes a static type to every expression.  In some cases, the types of local variables and formal parameters may be promoted from their declared types based on control flow. 
