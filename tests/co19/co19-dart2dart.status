@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2dart && $builder_tag == new_backend ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # issue 19953
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # issue 19953
+LibTest/core/List/List_class_A01_t02: Crash # issue 19953
+
 [ $compiler == dart2dart ]
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
