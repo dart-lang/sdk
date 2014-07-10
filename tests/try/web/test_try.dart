@@ -13,7 +13,7 @@ export 'package:try/src/interaction_manager.dart' show
 export 'package:try/src/ui.dart' show
     mainEditorPane;
 
-export '../../pkg/expect/lib/expect.dart';
+export 'package:expect/expect.dart';
 
 export 'test_case.dart';
 

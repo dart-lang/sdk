@@ -278,7 +278,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
     unit_test_flags = [flag for flag in flags if flag.startswith('--shard')]
     # Run the unit tests in checked mode (the VM's checked mode).
     unit_test_flags.append('--checked')
-    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
+    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js', 'try'],
              unit_test_flags, arch)
 
   if compiler == 'dart2js' and runtime in ['ie10', 'ie11']:

@@ -9,7 +9,7 @@ import 'dart:html' show
 
 import 'dart:async';
 
-import '../../pkg/async_helper/lib/async_helper.dart';
+import 'package:async_helper/async_helper.dart';
 
 typedef void VoidFunction();
 
