@@ -14,6 +14,7 @@ import 'elements/modelx.dart'
          TypeDeclarationElementX,
          TypedefElementX;
 import 'elements/elements.dart';
+import 'helpers/helpers.dart';
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
@@ -1068,12 +1069,12 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   bool visitTypeVariableType(TypeVariableType t, DartType s) {
     // Identity check is handled in [isSubtype].
     DartType bound = t.element.bound;
-    if (bound.element.isTypeVariable) {
+    if (bound.isTypeVariable) {
       // The bound is potentially cyclic so we need to be extra careful.
       Set<TypeVariableElement> seenTypeVariables =
           new Set<TypeVariableElement>();
       seenTypeVariables.add(t.element);
-      while (bound.element.isTypeVariable) {
+      while (bound.isTypeVariable) {
         TypeVariableElement element = bound.element;
         if (identical(bound.element, s.element)) {
           // [t] extends [s].
